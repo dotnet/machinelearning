@@ -1330,7 +1330,7 @@ namespace Microsoft.ML.Runtime.Data
                             var srcCur = fields.Indices[isrc];
                             Contracts.Assert(min <= srcCur & srcCur < lim);
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
-                                throw Contracts.Except($"Could not parse slot {indexBase + srcCur} of column {info.Name} in line {line}");
+                                throw Contracts.Except($"Could not parse value {fields.Spans[isrc]} in slot {indexBase + srcCur} of column {info.Name} in line {line}");
                         }
                     }
                     ivDst += sizeSeg;
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (isrc < vs.Count && vs.Indices[isrc] == src)
                 {
                     if (!v.Consume(irow, 0, ref vs.Spans[isrc]))
-                        throw Contracts.Except($"Could not parse value in line {line}, column {info.Name}");
+                        throw Contracts.Except($"Could not parse value {vs.Spans[isrc]} in line {line}, column {info.Name}");
                 }
                 else
                     v.Reset(irow, 0);

@@ -98,7 +98,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch(Exception ex)
             {
-                Assert.Equal("Could not parse value in line 1, column DvInt8", ex.Message);
+                Assert.Equal("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Could not parse value in line 1, column DvInt8", ex.Message);
+                Assert.Equal("Could not parse value 9223372036854775808 in line 1, column DvInt8", ex.Message);
                 return;
             }
 

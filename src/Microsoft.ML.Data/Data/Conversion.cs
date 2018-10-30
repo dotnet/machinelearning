@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (min > uu || uu > max)
             {
                 dst = 0;
-                return false;
+                return true;
             }
 
             dst = uu - min + 1;

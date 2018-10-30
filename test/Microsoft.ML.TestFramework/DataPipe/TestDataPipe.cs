@@ -10,6 +10,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Float = System.Single;
 
@@ -488,111 +489,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=KeyToVector{col=Key}",
                     "xf=CountFeatureSelection{col=Key count=100}",
                 });
-
-            Done();
-        }
-
-        [Fact]
-        public void SavePipeMissingValues()
-        {
-            string pathData = DeleteOutputPath("SavePipe", "MissingValuesInput.txt");
-            File.WriteAllLines(pathData, new string[] {
-                "0,",
-                "1,\"\"",
-                "2,0",
-                "3,-0",
-                "4,-",
-                "5,32xy",
-                "6,127",
-                "7,128",
-                "8,-127",
-                "9,-128",
-                "10,-129",
-                "11,255",
-                "12,256",
-                "13,32767",
-                "14,32768",
-                "15,-32767",
-                "16,-32768",
-                "17,-32769",
-                "18,65535",
-                "19,65536",
-                "20,2147483647",
-                "21,2147483648",
-                "22,-2147483647",
-                "23,-2147483648",
-                "24,-2147483649",
-                "25,4294967295",
-                "26,4294967296",
-                "27,9223372036854775807",
-                "28,9223372036854775808",
-                "29,-9223372036854775807",
-                "30,-9223372036854775808",
-                "31,-9223372036854775809",
-                "32,18446744073709551615",
-                "33,18446744073709551616",
-                "34,123456789012345678901",
-            });
-
-            TestCore(pathData, true,
-                new[] {
-                    "loader=Text{sep=comma col=Id:[0-*]:0 col=TX:TX:1 col=I1:I1:1 col=I2:I2:1 col=I4:I4:1 col=I8:I8:1 col=U1:U1:1 col=U2:U2:1 col=U4:U4:1 col=U8:U8:1}",
-                },
-                pipe =>
-                {
-                    // Verify that all narrowing conversions produce the same result as converting
-                    // from text to the narrow type.
-                    using (var c = pipe.GetRowCursor(col => true))
-                    {
-                        // Get all the getters.
-                        var getI1 = c.GetGetter<sbyte>(2);
-                        var getI2 = c.GetGetter<short>(3);
-                        var getI4 = c.GetGetter<int>(4);
-                        var getI8 = c.GetGetter<long>(5);
-                        var getU1 = c.GetGetter<byte>(6);
-                        var getU2 = c.GetGetter<ushort>(7);
-                        var getU4 = c.GetGetter<uint>(8);
-                        var getU8 = c.GetGetter<ulong>(9);
-
-                        sbyte i1 = 0;
-                        short i2 = 0;
-                        int i4 = 0;
-                        long i8 = 0;
-
-                        byte u1 = 0;
-                        ushort u2 = 0;
-                        uint u4 = 0;
-                        ulong u8 = 0;
-
-                        while (c.MoveNext())
-                        {
-                            getI1(ref i1);
-                            getI2(ref i2);
-                            getI4(ref i4);
-                            getI8(ref i8);
-                            getU1(ref u1);
-                            getU2(ref u2);
-                            getU4(ref u4);
-                            getU8(ref u8);
-
-                            // Signed to smaller signed.
-                            VerifyMatch(i8, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(i4, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(i2, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(i8, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(i4, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(i8, i4, Conversions.Instance.Convert, Conversions.Instance.Convert);
-
-                            // Unsigned to smaller unsigned.
-                            VerifyMatch(u8, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(u4, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(u2, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(u8, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(u4, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                            VerifyMatch(u8, u4, Conversions.Instance.Convert, Conversions.Instance.Convert);
-                        }
-                    }
-                }, logCurs: true);
 
             Done();
         }
