@@ -7,7 +7,7 @@ namespace Microsoft.ML
     using HashDefaults = Transforms.HashEstimator.Defaults;
 
     /// <summary>
-    /// Extensions for Column Copying Estiamtor.
+    /// Extensions for Column Copying Estimator.
     /// </summary>
     public static class ColumnCopyingCatalog
     {
@@ -15,8 +15,8 @@ namespace Microsoft.ML
         /// Copies the input column to another column named as specified in <paramref name="outputColumn"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumn">The source column.</param>
-        /// <param name="outputColumn">The new column, resulting from copying.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the new column, resulting from copying.</param>
         public static CopyColumnsEstimator CopyColumns(this TransformsCatalog catalog, string inputColumn, string outputColumn)
             => new CopyColumnsEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn);
 

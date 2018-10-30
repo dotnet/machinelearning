@@ -1201,8 +1201,8 @@ namespace Microsoft.ML.Transforms
         /// Initializes a new instance of <see cref="HashEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         public HashEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
