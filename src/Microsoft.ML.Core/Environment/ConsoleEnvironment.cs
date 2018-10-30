@@ -324,11 +324,15 @@ namespace Microsoft.ML.Runtime.Data
                 Root._consoleWriter.ChannelStarted(this);
             }
 
-            protected override void DisposeCore()
+            protected override void Dispose(bool disposing)
             {
-                Watch.Stop();
-                Root._consoleWriter.ChannelDisposed(this);
-                base.DisposeCore();
+                if(disposing)
+                {
+                    Watch.Stop();
+                    Root._consoleWriter.ChannelDisposed(this);
+                }
+
+                base.Dispose(disposing);
             }
         }
 

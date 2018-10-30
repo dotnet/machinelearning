@@ -149,19 +149,19 @@ namespace Microsoft.ML.Runtime.Learners
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);
                 uint key2 = (uint)(cls2 + 1);
-                return MapLabelsCore(NumberType.U4, (ref uint val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberType.U4, (in uint val) => val == key1 || val == key2, data);
             }
             if (lab.Type == NumberType.R4)
             {
                 float key1 = cls1;
                 float key2 = cls2;
-                return MapLabelsCore(NumberType.R4, (ref float val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberType.R4, (in float val) => val == key1 || val == key2, data);
             }
             if (lab.Type == NumberType.R8)
             {
                 double key1 = cls1;
                 double key2 = cls2;
-                return MapLabelsCore(NumberType.R8, (ref double val) => val == key1 || val == key2, data);
+                return MapLabelsCore(NumberType.R8, (in double val) => val == key1 || val == key2, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by PKPD: {lab.Type}");

@@ -617,7 +617,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
             var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
-            var cat = new CategoricalEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {

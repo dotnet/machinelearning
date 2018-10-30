@@ -79,7 +79,7 @@ module SmokeTest1 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizerEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
@@ -104,7 +104,7 @@ module SmokeTest1 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -146,7 +146,7 @@ module SmokeTest2 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizerEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
@@ -171,7 +171,7 @@ module SmokeTest2 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -210,7 +210,7 @@ module SmokeTest3 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizerEstimator>; 
               typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
@@ -235,7 +235,7 @@ module SmokeTest3 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
