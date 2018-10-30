@@ -242,7 +242,8 @@ namespace Microsoft.ML.Trainers.Online
         protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
-            return new LinearBinaryPredictor(Host, in Weights, Bias);
+            // below should be `in Weights`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            return new LinearBinaryPredictor(Host, Weights, Bias);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]

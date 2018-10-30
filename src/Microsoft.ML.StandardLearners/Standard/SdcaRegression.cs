@@ -107,7 +107,8 @@ namespace Microsoft.ML.Trainers
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
             VBuffer<Float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(in weights[0], ref maybeSparseWeights,
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
             return new LinearRegressionPredictor(Host, in maybeSparseWeights, bias[0]);
         }
