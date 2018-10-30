@@ -4,7 +4,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
-    using HashDefaults = Transforms.HashEstimator.Defaults;
+    using HashDefaults = HashEstimator.Defaults;
 
     /// <summary>
     /// Extensions for Column Copying Estimator.
