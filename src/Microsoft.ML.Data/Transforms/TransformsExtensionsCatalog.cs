@@ -42,8 +42,8 @@ namespace Microsoft.ML
         /// Concatenates two columns together.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="inputColumns">The names of the columns to concatenate together.</param>
         /// <param name="outputColumn">The name of the output column.</param>
+        /// <param name="inputColumns">The names of the columns to concatenate together.</param>
         public static ColumnConcatenatingEstimator Concatenate(this TransformsCatalog catalog, string outputColumn, params string[] inputColumns)
             => new ColumnConcatenatingEstimator(CatalogUtils.GetEnvironment(catalog), outputColumn, inputColumns);
 
