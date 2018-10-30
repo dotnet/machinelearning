@@ -172,7 +172,7 @@
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 7>: Length=7, Count=7
       [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Widowed', [3] 'Divorced', [4] 'Separated', [5] 'Married-spouse-absent', [6] 'Married-AF-spouse'
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 10 columns:
   MarKey: Key<U4, 0-6>
     Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
