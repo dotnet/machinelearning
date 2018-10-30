@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[]{
+            var pipe = new HashingEstimator(Env, new[]{
                     new HashTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
                     new HashTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
                     new HashTransformer.ColumnInfo("C", "HashC", seed:42),
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[] {
+            var pipe = new HashingEstimator(Env, new[] {
                 new HashTransformer.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
                 new HashTransformer.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
                 new HashTransformer.ColumnInfo("A", "HashAUnlimOrdered", invertHash:-1, hashBits:10, ordered:true)
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[]{
+            var pipe = new HashingEstimator(Env, new[]{
                     new HashTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
                     new HashTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
                     new HashTransformer.ColumnInfo("C", "HashC", seed:42),
