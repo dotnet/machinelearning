@@ -792,7 +792,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
@@ -802,11 +802,24 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="inputColumn">The input column.</param>
+        /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
+        /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
         public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
             : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
         {
         }
 
+        /// <summary>
+        /// Extracts word embeddings.
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
         public WordEmbeddingsExtractorEstimator(IHostEnvironment env,
             WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe, params WordEmbeddingsTransform.ColumnInfo[] columns)
         {
