@@ -125,6 +125,9 @@ namespace Microsoft.ML.Transforms
             public readonly bool SaveInv;
             public readonly int PcaNum;
 
+            /// <summary>
+            /// TODO
+            /// </summary>
             public ColInfo(string input, string output = null, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Eps,
                 int maxRow = Defaults.MaxRows, bool saveInv = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
             {
@@ -234,11 +237,11 @@ namespace Microsoft.ML.Transforms
         private readonly ColInfo[] _infos;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new Whitening Transform object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputData">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="columns"> TODO </param>
+        /// <param name="columns"> Specifies the behavior of the transformation. </param>
         internal WhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(columns))
         {
@@ -272,7 +275,7 @@ namespace Microsoft.ML.Transforms
         /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
         internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
-            : this(env, inputData, args.Column.Select(colPair => new ColInfo(colPair, args)).ToArray())
+            : this(env, inputData, GetColumnInfos(args))
         {
         }
 
@@ -315,7 +318,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-            => new WhiteningTransform(env, args, input).MakeDataTransform(input);
+            => new WhiteningTransform(env, input, GetColumnInfos(args)).MakeDataTransform(input);
 
         // Factory method for SignatureLoadDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -328,8 +331,8 @@ namespace Microsoft.ML.Transforms
         private static (string input, string output)[] GetColumnPairs(ColInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
 
-        private static (string input, string output)[] GetColumnPairs(Column[] columns)
-            => columns.Select(c => (c.Source, c.Name ?? c.Source)).ToArray();
+        private static ColInfo[] GetColumnInfos(Arguments args)
+            => args.Column.Select(colPair => new ColInfo(colPair, args)).ToArray();
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -707,7 +710,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class Whitening : IEstimator<WhiteningTransform>
+    public sealed class WhiteningEstimator : IEstimator<WhiteningTransform>
     {
         private readonly IHost _host;
         private readonly WhiteningTransform.ColInfo[] _infos;
@@ -715,7 +718,7 @@ namespace Microsoft.ML.Transforms
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns"> TODO </param>
-        public Whitening(IHostEnvironment env, params WhiteningTransform.ColInfo[] columns)
+        public WhiteningEstimator(IHostEnvironment env, params WhiteningTransform.ColInfo[] columns)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform));
             _infos = columns;
@@ -730,7 +733,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">PCA components to retain.</param>
-        public Whitening(IHostEnvironment env, string inputColumn, string outputColumn,
+        public WhiteningEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             WhiteningKind kind = WhiteningTransform.Defaults.Kind,
             float eps = WhiteningTransform.Defaults.Eps,
             int maxRows = WhiteningTransform.Defaults.MaxRows,
@@ -741,9 +744,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public WhiteningTransform Fit(IDataView input)
-        {
-            return new WhiteningTransform(_host, input, _infos);
-        }
+            => new WhiteningTransform(_host, input, _infos);
 
         /// <summary>
         /// Returns the schema that would be produced by the transformation.
@@ -810,7 +811,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < toOutput.Length; i++)
                     infos[i] = new WhiteningTransform.ColInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _saveInverse, _pcaNum);
 
-                return new Whitening(env, infos);
+                return new WhiteningEstimator(env, infos);
             }
         }
 

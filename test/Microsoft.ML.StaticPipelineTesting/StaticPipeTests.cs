@@ -878,6 +878,5 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
             Assert.True(type.VectorSize == 5);
         }
-
     }
 }
