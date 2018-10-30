@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +34,7 @@ using System.Text;
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Conversions
 {
     public static class TypeConversion
     {
@@ -506,6 +506,11 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class ConvertingEstimator : TrivialEstimator<ConvertingTransform>
     {
+        internal sealed class Defaults
+        {
+            public const DataKind DefaultOutputKind = DataKind.R4;
+        }
+
         /// <summary>
         /// Convinence constructor for simple one column case
         /// </summary>
@@ -515,11 +520,14 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputKind">The expected type of the converted column.</param>
         public ConvertingEstimator(IHostEnvironment env,
             string inputColumn, string outputColumn = null,
-            DataKind outputKind = DataKind.R4)
+            DataKind outputKind = Defaults.DefaultOutputKind)
             : this(env, new ConvertingTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
         {
         }
 
+        /// <summary>
+        /// Create a <see cref="ConvertingEstimator"/> that takes multiple pairs of columns.
+        /// </summary>
         public ConvertingEstimator(IHostEnvironment env, params ConvertingTransform.ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertingEstimator)), new ConvertingTransform(env, columns))
         {
