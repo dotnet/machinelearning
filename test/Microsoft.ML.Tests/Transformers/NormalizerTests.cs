@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
                 {
-                    var dataView = SelectColumnsTransform.CreateDrop(Env, est.Fit(data).Transform(data), "float0" );
+                    var dataView = SelectColumnsTransform.CreateDrop(Env, est.Fit(data).Transform(data), true, "float0");
                     DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
                 }
             }

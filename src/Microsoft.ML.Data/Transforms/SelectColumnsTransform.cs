@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
         public SelectColumnsEstimator(IHostEnvironment env, params string[] keepColumns)
-            : this(env, keepColumns, null, true, true)
+            : this(env, keepColumns, null, SelectColumnsTransform.Defaults.KeepHidden, SelectColumnsTransform.Defaults.IgnoreMissing)
         { }
 
         /// <summary>
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Transforms
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         public SelectColumnsEstimator(IHostEnvironment env, string[] keepColumns,
-                                    string[] dropColumns, bool keepHidden = false,
-                                    bool ignoreMissing= false)
+                                    string[] dropColumns, bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
+                                    bool ignoreMissing = SelectColumnsTransform.Defaults.IgnoreMissing)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsEstimator)),
                   new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
@@ -126,6 +126,12 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private string[] _selectedColumns;
 
+        internal static class Defaults
+        {
+            public const bool KeepHidden = false;
+            public const bool IgnoreMissing = false;
+        };
+
         public bool IsRowToRowMapper => true;
 
         public IEnumerable<string> SelectColumns => _selectedColumns.AsReadOnly();
@@ -179,14 +185,14 @@ namespace Microsoft.ML.Transforms
             public string[] DropColumns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to keep or remove hidden columns.", ShortName = "hidden", SortOrder = 3)]
-            public bool KeepHidden = false;
+            public bool KeepHidden = Defaults.KeepHidden;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to ignore columns that are missing from the input.", ShortName = "ignore", SortOrder = 4)]
-            public bool IgnoreMissing = false;
+            public bool IgnoreMissing = Defaults.IgnoreMissing;
         }
 
         public SelectColumnsTransform(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
-                                        bool keepHidden=false, bool ignoreMissing=false)
+                                        bool keepHidden=Defaults.KeepHidden, bool ignoreMissing=Defaults.IgnoreMissing)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransform));
             _host.CheckValueOrNull(keepColumns);
@@ -256,7 +262,9 @@ namespace Microsoft.ML.Transforms
             else
                 dropColumns = names.ToArray();
 
-            return new SelectColumnsTransform(env, keepColumns, dropColumns, keep);
+            // Note for backward compatibility, Drop/Keep Columns always preserves
+            // hidden columns
+            return new SelectColumnsTransform(env, keepColumns, dropColumns, true);
         }
 
         /// <summary>
@@ -399,6 +407,12 @@ namespace Microsoft.ML.Transforms
         public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
         {
             var transform = new SelectColumnsTransform(env, null, dropColumns);
+            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
+        }
+
+        public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, bool keepHidden, params string[] dropColumns)
+        {
+            var transform = new SelectColumnsTransform(env, null, dropColumns, keepHidden);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
@@ -555,6 +569,9 @@ namespace Microsoft.ML.Transforms
                     // given an input of ABC and dropping column B will result in AC.
                     for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
                     {
+                        if (!keepHidden && inputSchema.IsHidden(colIdx))
+                            continue;
+
                         if (selectedColumns.Contains(inputSchema[colIdx].Name))
                             continue;
 
