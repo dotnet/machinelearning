@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Conversions
 {
     public static partial class ConvertStaticExtensions
     {

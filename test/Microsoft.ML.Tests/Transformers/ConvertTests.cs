@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using System.Linq;

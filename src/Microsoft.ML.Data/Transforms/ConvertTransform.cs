@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
-        /// Convinence constructor for simple one column case
+        /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the output column.</param>
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <summary>
-        /// Convinence constructor for simple one column case
+        /// Convinence constructor for simple one column case.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
