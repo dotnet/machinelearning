@@ -52,24 +52,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float Score;
         }
 
-        private static TextTransform.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
-        {
-            return new TextTransform.Arguments()
-            {
-                Column = new TextTransform.Column
-                {
-                    Name = "Features",
-                    Source = new[] { "SentimentText" }
-                },
-                OutputTokens = true,
-                KeepPunctuations = false,
-                StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
-                CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
-                WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
-            };
-        }
-
         private static TextLoader.Arguments MakeIrisTextLoaderArgs()
         {
             return new TextLoader.Arguments()

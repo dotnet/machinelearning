@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
                     // REVIEW: we should have a common mechanism that will make sure this is 'our' exception thrown.
                 }
 
-                ML.PartCatalog.Catalogs.Add(new TypeCatalog(typeof(MyLambda)));
+                ML.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(MyLambda)));
                 TestEstimatorCore(customEst, data);
                 transformedData = customEst.Fit(data).Transform(data);
             }

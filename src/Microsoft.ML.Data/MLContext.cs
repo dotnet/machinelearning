@@ -64,10 +64,9 @@ namespace Microsoft.ML
         public Action<string> Log { get; set; }
 
         /// <summary>
-        /// This is a MEF catalog to be used for model loading. Add custom components as parts to this catalog,
-        /// so that ML.NET can pick them up at the time model is loaded.
+        /// This is a MEF composition container catalog to be used for model loading.
         /// </summary>
-        public AggregateCatalog PartCatalog { get; }
+        public CompositionContainer CompositionContainer { get; set; }
 
         /// <summary>
         /// Create the ML context.
@@ -87,14 +86,18 @@ namespace Microsoft.ML
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataLoadSaveOperations(_env);
-            PartCatalog = new AggregateCatalog();
         }
 
         private CompositionContainer MakeCompositionContainer()
         {
-            var result = new CompositionContainer(PartCatalog);
-            result.ComposeExportedValue<MLContext>(this);
-            return result;
+            if (CompositionContainer == null)
+                return null;
+
+            var mlContext = CompositionContainer.GetExportedValueOrDefault<MLContext>();
+            if (mlContext == null)
+                CompositionContainer.ComposeExportedValue<MLContext>(this);
+
+            return CompositionContainer;
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
