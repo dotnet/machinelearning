@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,6 +9,13 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), typeof(TermLookupTransform.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
@@ -506,13 +508,14 @@ namespace Microsoft.ML.Runtime.Data
             var typeTerm = schema.GetColumnType(colTerm);
             host.CheckUserArg(typeTerm.IsText, nameof(Arguments.TermColumn), "term column must contain text");
             var typeValue = schema.GetColumnType(colValue);
-
-            var args = new ChooseColumnsTransform.Arguments();
-            args.Column = new[] {
-                new ChooseColumnsTransform.Column {Name = "Term", Source = termColumn},
-                new ChooseColumnsTransform.Column {Name = "Value", Source = valueColumn},
+            var cols = new List<(string Source, string Name)>()
+            {
+                (termColumn, "Term"),
+                (valueColumn, "Value")
             };
-            var view = new ChooseColumnsTransform(host, args, lookup);
+
+            var view = new CopyColumnsTransform(host, cols.ToArray()).Transform(lookup);
+            view = SelectColumnsTransform.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())

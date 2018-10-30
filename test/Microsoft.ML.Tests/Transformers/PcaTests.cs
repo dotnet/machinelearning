@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.PCA;
 using System.IO;
 using Xunit;
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = _env.Start("save"))
             {
                 IDataView savedData = TakeFilter.Create(_env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(_env, savedData, "pca");
+                savedData = SelectColumnsTransform.CreateKeep(_env, savedData, "pca");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, _saver, savedData, fs, keepHidden: true);
