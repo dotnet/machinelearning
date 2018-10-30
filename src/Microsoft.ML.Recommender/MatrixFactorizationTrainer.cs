@@ -28,18 +28,41 @@ namespace Microsoft.ML.Trainers
     /// Train a matrix factorization model. It factotizes the training matrix into the product of two low-rank matrices.
     /// <p>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.
     /// In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
-    /// and the value at the location specified by the two indexes. For an example of the data structure you can use to encode those tuples,
-    /// please see <a href='https://github.com/dotnet/machinelearning/pull/1407/files#diff-ce59b50bd87003b0ffb26912fc4a0e65R144'>MatrixElement</a>.
-    /// Notice that it's not necessary to specify all entries in the training matrix for training, so matrix factorization can be used to fill <i>missing values</i>
-    /// in a partially observed matrix. This behavior is very helpful when building recommender systems.</p>
+    /// and the value at the location specified by the two indexes. For an example data structure of a tuple, one can use
+    /// <code language="csharp">
+    /// // The following variables defines the shape of a m-by-n matrix. The variable firstRowIndex indicates the integer that
+    /// // would be mapped to the first row index. If user data uses 0-based indices for rows, firstRowIndex can be set to 0.
+    /// // Similarly, for 1-based indices, firstRowIndex could be 1.
+    /// const int firstRowIndex = 1;
+    /// const int firstColumnIndex = 1;
+    /// const int m = 60;
+    /// const int n = 100;
+    ///
+    /// // A tuple of row index, column index, and rating. It specifies a value in the rating matrix.
+    /// class MatrixElement
+    /// {
+    ///     // Matrix column index starts from firstColumnIndex and is at most firstColumnIndex+n-1.
+    ///     // Contieuous=true means that all values from firstColumnIndex to firstColumnIndex+n-1 are allowed keys.
+    ///     // [KeyType(Contiguous = true, Count = n, Min = firstColumnIndex)]
+    ///     // public uint MatrixColumnIndex;
+    ///     // Matrix row index starts from firstRowIndex and is at most firstRowIndex+m-1.
+    ///     // Contieuous=true means that all values from firstRowIndex to firstRowIndex+m-1 are allowed keys.
+    ///     [KeyType(Contiguous = true, Count = m, Min = firstRowIndex)]
+    ///     public uint MatrixRowIndex;
+    ///     // The rating at the MatrixColumnIndex-th column and the MatrixRowIndex-th row.
+    ///     public float Value;
+    /// }
+    /// </code>
+    /// Notice that it's not necessary to specify all entries in the training matrix, so matrix factorization can be used to fill <i>missing values</i>.
+    /// This behavior is very helpful when building recommender systems.</p>
     /// <p>To provide a better understanding on practical uses of matrix factorization, let's consider music recommendation as an example.
     /// Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are ratings provided by those users. That is,
     /// rating <i>r</i> at row <i>r</i> and column <i>v</i> means that user <i>u</i> give <i>r</i> to item <i>v</i>.
-    /// An imcomplete matrix is very common because not all users may provide their feedbacks to all products (for example, ten million songs).
+    /// An imcomplete matrix is very common because not all users may provide their feedbacks to all products (for example, no one can rate ten million songs).
     /// Assume that<i>R</i> is a m-by-n rating matrix and the rank of the two factor matrices are<i>P</i> (m-by-k matrix) and <i>Q</i> (n-by-k matrix), where k is the approximation rank.
     /// The predicted rating at the u-th row and the v-th column in <i>R</i> would be the inner product of the u-th row of P and the v-th row of Q; that is,
     /// <i>R</i> is approximated by the product of <i>P</i>'s transpose and <i>Q</i>. This trainer implements
-    /// <a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf'>a stochastic gradient method</a> /// for finding <i>P</i>
+    /// <a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf'>a stochastic gradient method</a> for finding <i>P</i>
     /// and <i>Q</i> via minimizing the distance between<i> R</i> and the product of <i>P</i>'s transpose and Q.</p>.
     /// <p>For users interested in the mathematical details, please see the references below.
     ///     <list type = 'bullet'>
@@ -54,8 +77,7 @@ namespace Microsoft.ML.Trainers
     ///         </item>
     ///     </list>
     /// </p>
-    /// <p>Example code can be found by searching for <i>MatrixFactorization</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET repository</a>,
-    /// for example,<a href='https://github.com/dotnet/machinelearning/pull/1407/files#diff-ce59b50bd87003b0ffb26912fc4a0e65R144'>here</a> is a minimal end-to-end example.</p>
+    /// <p>Example code can be found by searching for <i>MatrixFactorization</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
     /// </summary>
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
