@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
 using System;
 using System.Collections.Generic;
@@ -353,8 +354,17 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
-        public void TensorFlowTransformMNISTLRTemplateTrainingTest()
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowTransformMNISTLRTrainingTest()
+        {
+            // Without shuffling
+            ExecuteTFTransformMNISTLRTrainingTest(false, null, 0.72173913043478266, 0.67482993197278918);
+
+            // With shuffling
+            ExecuteTFTransformMNISTLRTrainingTest(true, 5, 0.8, 0.691156462585034);
+        }
+
+        private void ExecuteTFTransformMNISTLRTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
         {
             var model_location = "mnist_lr_model";
             try
@@ -378,7 +388,7 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                    IDataView trans = new CategoricalEstimator(env, "Label", "OneHotLabel").Fit(loader).Transform(loader);
+                    IDataView trans = new OneHotEncodingEstimator(env, "Label", "OneHotLabel").Fit(loader).Transform(loader);
                     trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
 
                     var args = new TensorFlowTransform.Arguments()
@@ -397,7 +407,21 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     };
 
-                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
+                    }
+
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
@@ -411,8 +435,8 @@ namespace Microsoft.ML.Scenarios
                     IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                     var metrics = Evaluate(env, testDataScorer);
 
-                    Assert.Equal(0.72173913043478266, metrics.AccuracyMicro, 2);
-                    Assert.Equal(0.67482993197278918, metrics.AccuracyMacro, 2);
+                    Assert.Equal(expectedMicroAccuracy, metrics.AccuracyMicro, 2);
+                    Assert.Equal(expectedMacroAccruacy, metrics.AccuracyMacro, 2);
 
                     // Create prediction engine and test predictions
                     var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -483,8 +507,17 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
-        public void TensorFlowTransformMNISTConvTemplateTrainingTest()
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        public void TensorFlowTransformMNISTConvTrainingTest()
+        {
+            // Without shuffling
+            ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
+
+            // With shuffling
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
+        }
+
+        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
         {
             var model_location = "mnist_conv_model";
             try
@@ -528,9 +561,23 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     };
 
-                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
-                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
+                    }
+                    
+                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                    trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -543,8 +590,8 @@ namespace Microsoft.ML.Scenarios
                     IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                     var metrics = Evaluate(env, testDataScorer);
 
-                    Assert.Equal(0.74782608695652175, metrics.AccuracyMicro, 2);
-                    Assert.Equal(0.608843537414966, metrics.AccuracyMacro, 2);
+                    Assert.Equal(expectedMicroAccuracy, metrics.AccuracyMicro, 2);
+                    Assert.Equal(expectedMacroAccruacy, metrics.AccuracyMacro, 2);
 
                     // Create prediction engine and test predictions
                     var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -860,7 +907,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
             var model_location = "cifar_model/frozen_model.pb";

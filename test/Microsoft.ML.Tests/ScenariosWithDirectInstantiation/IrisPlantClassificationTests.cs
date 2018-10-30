@@ -8,6 +8,8 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.IO;
 using Xunit;
@@ -42,7 +44,7 @@ namespace Microsoft.ML.Scenarios
                 IDataView pipeline = new ConcatTransform(env, "Features",
                     "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
-                // Normalizer is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
+                // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train

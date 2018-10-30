@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.FastTree.Internal;
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// <summary>
     /// Base class for all training with LightGBM.
     /// </summary>
-    public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictorProducing<TOutput>
     {
@@ -57,32 +58,43 @@ namespace Microsoft.ML.Runtime.LightGBM
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
         public override TrainerInfo Info => _info;
 
-        private protected LightGbmTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<LightGbmArguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private protected LightGbmTrainerBase(IHostEnvironment env,
+            string name,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int? numLeaves,
+            int? minDataPerLeaf,
+            double? learningRate,
+            int numBoostRound,
+            Action<LightGbmArguments> advancedSettings)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new LightGbmArguments();
 
+            Args.NumLeaves = numLeaves;
+            Args.MinDataPerLeaf = minDataPerLeaf;
+            Args.LearningRate = learningRate;
+            Args.NumBoostRound = numBoostRound;
+
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = weightColumn;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = groupIdColumn;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             InitParallelTraining();
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -159,32 +171,6 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             data.CheckFeatureFloatVector();
             ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
-        }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// REVIEW: we should somehow mark the arguments that are set apart in those two places. Currently they stand out by their sort order annotation.
-        /// </summary>
-        protected void CheckArgsAndAdvancedSettingMismatch(int? numLeaves,
-            int? minDataPerLeaf,
-            double? learningRate,
-            int numBoostRound,
-            LightGbmArguments snapshot,
-            LightGbmArguments currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, currentArgs.NumLeaves, nameof(numLeaves));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numBoostRound, snapshot.NumBoostRound, currentArgs.NumBoostRound, nameof(numBoostRound));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDataPerLeaf, snapshot.MinDataPerLeaf, currentArgs.MinDataPerLeaf, nameof(minDataPerLeaf));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRate, currentArgs.LearningRate, nameof(learningRate));
-            }
         }
 
         protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)

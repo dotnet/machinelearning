@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// A waiter used for cursors where no columns are actually requested but it's still
-        /// necesssary to wait to determine the number of rows.
+        /// necessary to wait to determine the number of rows.
         /// </summary>
         private volatile OrderedWaiter _cacheDefaultWaiter;
 

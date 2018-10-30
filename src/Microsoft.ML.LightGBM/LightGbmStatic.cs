@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
@@ -14,14 +15,14 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class LightGbmTrainers
     {
         /// <summary>
-        /// LightGbm <see cref="RegressionContext"/> extension method.
+        /// Predict a target using a tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -37,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/LightGBM.cs?range=6-10,18-74 "LightGbm regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBM.cs?range=6-10,18-74 "LightGbm regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> LightGbm(this RegressionContext.RegressionTrainers ctx,
@@ -49,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             Action<LightGbmArguments> advancedSettings = null,
             Action<LightGbmRegressionPredictor> onFit = null)
         {
-            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
@@ -63,19 +64,13 @@ namespace Microsoft.ML.StaticPipe
 
             return rec.Score;
         }
-    }
-
-    /// <summary>
-    /// Binary Classification trainer estimators.
-    /// </summary>
-    public static partial class ClassificationTrainers {
 
         /// <summary>
-        /// LightGbm <see cref="BinaryClassificationContext"/> extension method.
+        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -98,7 +93,7 @@ namespace Microsoft.ML.StaticPipe
             Action<LightGbmArguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
@@ -114,11 +109,103 @@ namespace Microsoft.ML.StaticPipe
 
             return rec.Output;
         }
-    }
 
-    internal static class LightGbmStaticsUtils {
+        /// <summary>
+        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="LightGbmRankingTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RankingContext"/>.</param>
+        /// <param name="label">The label column.</param>
+        /// <param name="features">The features column.</param>
+        /// <param name="groupId">The groupId column.</param>
+        /// <param name="weights">The weights column.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained. Note that this action cannot change the result in any way;
+        /// it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted binary classification score (which will range
+        /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
+        public static Scalar<float> LightGbm<TVal>(this RankingContext.RankingTrainers ctx,
+           Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null,
+            Action<LightGbmRankingPredictor> onFit = null)
+        {
+            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            Contracts.CheckValue(groupId, nameof(groupId));
 
-        internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+            var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
+               (env, labelName, featuresName, groupIdName, weightsName) =>
+               {
+                   var trainer = new LightGbmRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numLeaves,
+                       minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
+
+                   if (onFit != null)
+                       return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                   return trainer;
+               }, label, features, groupId, weights);
+
+            return rec.Score;
+        }
+
+        /// <summary>
+        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The multiclass classification context trainer object.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="weights">The weights column.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
+        /// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// the linear model that was trained. Note that this action cannot change the
+        /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
+        /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
+        public static (Vector<float> score, Key<uint, TVal> predictedLabel)
+            LightGbm<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            Key<uint, TVal> label,
+            Vector<float> features,
+            Scalar<float> weights = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null,
+            Action<OvaPredictor> onFit = null)
+        {
+            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+
+            var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
+                (env, labelName, featuresName, weightsName) =>
+                {
+                    var trainer = new LightGbmMulticlassTrainer(env, labelName, featuresName, weightsName, numLeaves,
+                       minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
+
+                    if (onFit != null)
+                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                    return trainer;
+                }, label, features, weights);
+
+            return rec.Output;
+        }
+
+        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
             int? numLeaves,
             int? minDataPerLeaf,
             double? learningRate,

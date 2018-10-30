@@ -147,8 +147,8 @@ namespace Microsoft.ML.Transforms.Text
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            if (!WordTokenizeEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, WordTokenizeEstimator.ExpectedColumnType, type.ToString());
+            if (!WordTokenizingEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, WordTokenizingEstimator.ExpectedColumnType, type.ToString());
         }
 
         private WordTokenizeTransform(IHost host, ModelLoadContext ctx) :
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                var separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.TermSeparators);
+                var separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(item.TermSeparators ?? args.TermSeparators);
                 cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, separators);
 
             }
@@ -431,7 +431,7 @@ namespace Microsoft.ML.Transforms.Text
     /// Word tokenizer splits text into tokens using the delimiter.
     /// For each text input, the output column is a variable vector of text.
     /// </summary>
-    public sealed class WordTokenizeEstimator : TrivialEstimator<WordTokenizeTransform>
+    public sealed class WordTokenizingEstimator : TrivialEstimator<WordTokenizeTransform>
     {
         public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
 
@@ -444,7 +444,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizeEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
+        public WordTokenizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
         }
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizeEstimator(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
+        public WordTokenizingEstimator(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
             : this(env, columns.Select(x => new WordTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray())
         {
         }
@@ -465,8 +465,8 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public WordTokenizeEstimator(IHostEnvironment env, params WordTokenizeTransform.ColumnInfo[] columns)
-          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizeEstimator)), new WordTokenizeTransform(env, columns))
+        public WordTokenizingEstimator(IHostEnvironment env, params WordTokenizeTransform.ColumnInfo[] columns)
+          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizingEstimator)), new WordTokenizeTransform(env, columns))
         {
         }
 

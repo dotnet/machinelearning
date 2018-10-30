@@ -8,6 +8,7 @@
         using System;
         using System.Linq;
         using System.Collections.Generic;
+        using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // A pipeline for concatenating the age, parity and induced columns together in the Features column.
             string outputColumnName = "Features";
-            var pipeline = new ConcatEstimator(ml, outputColumnName, new[] { "Age", "Parity", "Induced"});
+            var pipeline = new ColumnConcatenatingEstimator(ml, outputColumnName, new[] { "Age", "Parity", "Induced"});
 
             // The transformed data.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);

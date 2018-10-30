@@ -4,8 +4,10 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -25,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;
 
                 var cachedTrain = new CacheDataView(env, trainData, prefetch: null);

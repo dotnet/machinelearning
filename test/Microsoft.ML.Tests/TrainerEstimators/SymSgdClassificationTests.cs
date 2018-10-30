@@ -5,12 +5,8 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.SymSgd;
-using System;
-using System.IO;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.SymSgd;
 using System.Linq;
 using Xunit;
 

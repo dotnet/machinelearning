@@ -6,6 +6,7 @@
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Api;
         using Microsoft.ML.Data;
+        using Microsoft.ML.Transforms.Text;
         using System;
         using System.Collections.Generic;
 
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 s.KeepPunctuations = false;
                 s.KeepNumbers = false;
                 s.OutputTokens = true;
-                s.TextLanguage = Runtime.Data.TextTransform.Language.English; // supports  English, French, German, Dutch, Italian, Spanish, Japanese
+                s.TextLanguage = TextFeaturizingEstimator.Language.English; // supports  English, French, German, Dutch, Italian, Spanish, Japanese
             });
 
             // The transformed data for both pipelines.

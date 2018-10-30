@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using System.Collections.Generic;
 using Xunit;
 

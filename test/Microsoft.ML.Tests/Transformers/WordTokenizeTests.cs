@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var invalidData = new[] { new TestWrong() { A =1, B = new float[2] { 2,3 } } };
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
-            var pipe = new WordTokenizeEstimator(Env, new[]{
+            var pipe = new WordTokenizingEstimator(Env, new[]{
                     new WordTokenizeTransform.ColumnInfo("A", "TokenizeA"),
                     new WordTokenizeTransform.ColumnInfo("B", "TokenizeB"),
                 });
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new WordTokenizeEstimator(Env, new[]{
+            var pipe = new WordTokenizingEstimator(Env, new[]{
                     new WordTokenizeTransform.ColumnInfo("A", "TokenizeA"),
                     new WordTokenizeTransform.ColumnInfo("B", "TokenizeB"),
                 });

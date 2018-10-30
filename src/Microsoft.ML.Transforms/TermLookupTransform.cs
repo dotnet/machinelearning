@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,6 +9,12 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
 
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), typeof(TermLookupTransform.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
@@ -385,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
                             // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                             // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                             // computing max and min.
-                            if (Conversions.Instance.TryParseKey(ref txt, 1, ulong.MaxValue, out res))
+                            if (Conversions.Instance.TryParseKey(in txt, 1, ulong.MaxValue, out res))
                             {
                                 if (res < min && res != 0)
                                     min = res;
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Runtime.Data
                             }
                             // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
                             // then the value is 0, and we update min accordingly.
-                            else if (Conversions.Instance.TryParse(ref txt, out res))
+                            else if (Conversions.Instance.TryParse(in txt, out res))
                             {
                                 ch.Assert(res == 0);
                                 min = 0;

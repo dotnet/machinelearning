@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
 
@@ -25,7 +26,7 @@ using Microsoft.ML.Core.Data;
     SdcaMultiClassTrainer.LoadNameValue,
     SdcaMultiClassTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     // SDCA linear multiclass trainer.
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
@@ -57,7 +58,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaMultiClassTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
@@ -67,7 +71,7 @@ namespace Microsoft.ML.Runtime.Learners
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeU4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -78,7 +82,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         internal SdcaMultiClassTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, args, TrainerUtils.MakeU4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(env, args, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
