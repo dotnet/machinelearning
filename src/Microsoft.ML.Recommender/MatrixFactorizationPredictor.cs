@@ -14,13 +14,14 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
     null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Recommender
+namespace Microsoft.ML.Trainers.Recommender
 {
     /// <summary>
     /// <see cref="MatrixFactorizationPredictor"/> stores two factor matrices, P and Q, for approximating the training matrix, R, by P * Q,
