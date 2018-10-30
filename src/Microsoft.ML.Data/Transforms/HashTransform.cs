@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,10 +27,10 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(HashTransformer), null, typeof(SignatureLoadRowMapper),
    "Hash Transform", HashTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
-    /// This transform can hash either single valued columns or vector columns. For vector columns,
+    /// This transformer can hash either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
@@ -1211,6 +1211,9 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="HashEstimator"/>.
+        /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
         public HashEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)

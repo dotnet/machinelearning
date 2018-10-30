@@ -1,4 +1,4 @@
 FastForestRegression
 L1(avg)	L2(avg)	RMS(avg)	Loss-fn(avg)	R Squared	/nl	/mil	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-3.231349	21.57301	4.64174	21.57301	0.741243	5	5	20	FastForestRegression	%Data%		%Output%	99	0	0	maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} threads=- dout=%Output% data=%Data% seed=1	/nl:5;/mil:5;/iter:20	
+3.279948	20.97237	4.578037	20.97237	0.751534	5	5	20	FastForestRegression	%Data%		%Output%	99	0	0	maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} threads=- dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% seed=1	/nl:5;/mil:5;/iter:20	
 
