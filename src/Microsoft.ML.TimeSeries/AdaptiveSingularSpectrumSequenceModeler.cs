@@ -221,12 +221,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             return new VersionInfo(
                 modelSignature: "SSAMODLR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Added saving _state and _nextPrediction
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModeler).Assembly.FullName);
         }
+
+        private const int VersionSavingStateAndPrediction = 0x00010002;
 
         /// <summary>
         /// The constructor for Adaptive SSA model.
@@ -407,8 +410,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _alpha = ctx.Reader.ReadFloatArray();
             _host.CheckDecode(Utils.Size(_alpha) == _windowSize - 1);
 
-            _state = ctx.Reader.ReadFloatArray();
-            _host.CheckDecode(Utils.Size(_state) == _windowSize - 1);
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+            {
+                _state = ctx.Reader.ReadFloatArray();
+                _host.CheckDecode(Utils.Size(_state) == _windowSize - 1);
+            }
+            else
+                _state = new Single[_windowSize - 1];
 
             ShouldComputeForecastIntervals = ctx.Reader.ReadBoolByte();
 
@@ -420,7 +428,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             _observationNoiseMean = ctx.Reader.ReadSingle();
             _autoregressionNoiseMean = ctx.Reader.ReadSingle();
-            _nextPrediction = ctx.Reader.ReadSingle();
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+                _nextPrediction = ctx.Reader.ReadSingle();
 
             _maxRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(1 <= _maxRank && _maxRank <= _windowSize - 1);
