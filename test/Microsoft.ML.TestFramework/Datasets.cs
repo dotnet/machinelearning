@@ -144,7 +144,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             name = "housing",
             trainFilename = "housing.txt",
-            testFilename = "housing.txt"
+            testFilename = "housing.txt",
+            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}"
         };
 
         public static TestDataset generatedRegressionDatasetmacro = new TestDataset
