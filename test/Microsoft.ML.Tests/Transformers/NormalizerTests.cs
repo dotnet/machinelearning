@@ -177,7 +177,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "whitened");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "whitened");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
