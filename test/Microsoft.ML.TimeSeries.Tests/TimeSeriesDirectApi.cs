@@ -113,17 +113,17 @@ namespace Microsoft.ML.Tests
                 // Get predictions
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
-                List<double> expectedValues = new List<double>() { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
-                    0, 0, 1.6069464981555939, 0.05652458872960725, 0, 0, 2.0183047652244568, 0.11021633531076747, 0};
+                List<double> expectedValues = new List<double>() { 0, -341.27374267578125, 0.5, 0, 0, 143.96232604980469, 0,
+                    0, 0, 142.27732849121094, 0.26294916025125559, 0, 0, -84.966033935546875, 0.39567696623630655, 0};
 
                 int index = 0;
                 while (enumerator.MoveNext() && index < expectedValues.Count)
                 {
                     row = enumerator.Current;
-                    Assert.Equal(expectedValues[index++], row.Change[0], precision: 7);
-                    Assert.Equal(expectedValues[index++], row.Change[1], precision: 7);
-                    Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);
-                    Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);
+                    Assert.Equal(expectedValues[index++], row.Change[0], precision: 7);  // Alert
+                    Assert.Equal(expectedValues[index++], row.Change[1], precision: 7);  // Raw score
+                    Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);  // P-Value score
+                    Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);  // Martingale score
                 }
             }
         }

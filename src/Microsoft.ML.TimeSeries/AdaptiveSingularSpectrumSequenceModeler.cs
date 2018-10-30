@@ -333,6 +333,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _autoregressionNoiseVariance = model._autoregressionNoiseVariance;
             _observationNoiseMean = model._observationNoiseMean;
             _autoregressionNoiseMean = model._autoregressionNoiseMean;
+            _nextPrediction = model._nextPrediction;
             _maxTrendRatio = model._maxTrendRatio;
             _shouldStablize = model._shouldStablize;
             _shouldMaintainInfo = model._shouldMaintainInfo;
@@ -373,6 +374,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -417,6 +419,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             _observationNoiseMean = ctx.Reader.ReadSingle();
             _autoregressionNoiseMean = ctx.Reader.ReadSingle();
+            _nextPrediction = ctx.Reader.ReadSingle();
 
             _maxRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(1 <= _maxRank && _maxRank <= _windowSize - 1);
@@ -447,6 +450,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             _buffer = new FixedSizeQueue<Single>(_seriesLength);
+
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
@@ -483,6 +487,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -503,6 +508,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(_autoregressionNoiseVariance);
             ctx.Writer.Write(_observationNoiseMean);
             ctx.Writer.Write(_autoregressionNoiseMean);
+            ctx.Writer.Write(_nextPrediction);
             ctx.Writer.Write(_maxRank);
             ctx.Writer.WriteBoolByte(_shouldStablize);
             ctx.Writer.WriteBoolByte(_shouldMaintainInfo);

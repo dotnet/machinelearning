@@ -209,7 +209,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
                 _model = _parentAnomalyDetector.Model.Clone();
-                _model.InitState();
             }
 
             protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
