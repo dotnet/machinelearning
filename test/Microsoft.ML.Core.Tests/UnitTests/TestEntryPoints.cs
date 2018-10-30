@@ -10,7 +10,6 @@ using Microsoft.ML.Runtime.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -18,14 +17,17 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,7 +38,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact]
+        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();

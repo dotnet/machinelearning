@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(RffTransform), null, typeof(SignatureLoadRowMapper),
     "Random Fourier Features Transform", RffTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Projections
 {
     public sealed class RffTransform : OneToOneTransformerBase
     {
