@@ -5,14 +5,8 @@
 // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Api;
         using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Runtime.Learners;
-        using Microsoft.ML.Runtime.LightGBM;
         using Microsoft.ML.Trainers;
-        using Microsoft.ML.Trainers.FastTree;
-        using Microsoft.ML.StaticPipe;
-        using System;
         using System.Collections.Generic;
-        using System.Linq;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
 // If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
