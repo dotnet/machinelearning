@@ -125,9 +125,13 @@ namespace Microsoft.ML.Transforms
             public readonly bool SaveInv;
             public readonly int PcaNum;
 
-            public ColInfo(string input, string output, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Eps,
+            public ColInfo(string input, string output = null, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Eps,
                 int maxRow = Defaults.MaxRows, bool saveInv = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
             {
+                Input = input;
+                Contracts.CheckValue(Input, nameof(Input));
+                Output = output ?? input;
+                Contracts.CheckValue(Output, nameof(Output));
                 Kind = kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
                 Epsilon = epsilon;
@@ -141,6 +145,10 @@ namespace Microsoft.ML.Transforms
 
             internal ColInfo(Column item, Arguments args)
             {
+                Input = item.Source;
+                Contracts.CheckValue(Input, nameof(Input));
+                Output = item.Name ?? item.Source;
+                Contracts.CheckValue(Output, nameof(Output));
                 Kind = item.Kind ?? args.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
                 Epsilon = item.Eps ?? args.Eps;
@@ -201,7 +209,7 @@ namespace Microsoft.ML.Transforms
         private readonly float[][] _models;
         // Stores inverse ("recover") matrix as float[] for each column. Temporarily internal as it's used in unit test.
         // REVIEW: It doesn't look like this is used by non-test code. Should it be saved at all?
-        internal readonly float[][] InvModels;
+        private readonly float[][] _invModels;
 
         private int[] _cols;
         private ColumnType[] _srcTypes;
@@ -234,28 +242,18 @@ namespace Microsoft.ML.Transforms
         internal WhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(columns))
         {
-        }
-
-        /// <summary>
-        /// Constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(args.Column))
-        {
             Host.AssertNonEmpty(ColumnPairs);
-            Host.Assert(ColumnPairs.Length == Utils.Size(args.Column));
             var inputSchema = inputData.Schema;
 
             _cols = new int[ColumnPairs.Length];
             _srcTypes = new ColumnType[ColumnPairs.Length];
-            _infos = new ColInfo[ColumnPairs.Length];
+            _infos = columns;
             for (int i = 0; i < _infos.Length; i++)
             {
                 if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out _cols[i]))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
                 CheckInputColumn(inputSchema, i, _cols[i]);
                 _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
-                _infos[i] = new ColInfo(args.Column[i], args);
             }
 
             using (var ch = Host.Start("Training"))
@@ -263,11 +261,19 @@ namespace Microsoft.ML.Transforms
                 // The training process will load all data into memory and perform whitening process
                 // for each resulting column separately.
                 _models = new float[ColumnPairs.Length][];
-                InvModels = new float[ColumnPairs.Length][];
+                _invModels = new float[ColumnPairs.Length][];
                 int[] rowCounts;
                 var columnData = LoadDataAsDense(ch, inputData, out rowCounts);
                 TrainModels(columnData, rowCounts, ch);
             }
+        }
+
+        /// <summary>
+        /// Constructor corresponding to SignatureDataTransform.
+        /// </summary>
+        internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
+            : this(env, inputData, args.Column.Select(colPair => new ColInfo(colPair, args)).ToArray())
+        {
         }
 
         private WhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
@@ -290,18 +296,12 @@ namespace Microsoft.ML.Transforms
                 _infos[i] = new ColInfo(ctx);
 
             _models = new float[ColumnPairs.Length][];
-            InvModels = new float[ColumnPairs.Length][];
+            _invModels = new float[ColumnPairs.Length][];
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
                 _models[i] = ctx.Reader.ReadFloatArray();
-                var ex = _infos[i];
-                ColumnType outType = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? new VectorType(NumberType.Float, ex.PcaNum) : _srcTypes[i];
-                ValidateModel(Host, _models[i], outType);
                 if (_infos[i].SaveInv)
-                {
-                    InvModels[i] = ctx.Reader.ReadFloatArray();
-                    ValidateModel(Host, InvModels[i], outType);
-                }
+                    _invModels[i] = ctx.Reader.ReadFloatArray();
             }
         }
 
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Transforms
                     // Save all components for PCA. Retained components will be selected during evaluation.
                     _models[iinfo] = uScaled;
                     if (ex.SaveInv)
-                        InvModels[iinfo] = uInvScaled;
+                        _invModels[iinfo] = uInvScaled;
                 }
                 else if (ex.Kind == WhiteningKind.Zca)
                 {
@@ -510,9 +510,9 @@ namespace Microsoft.ML.Transforms
 
                     if (ex.SaveInv)
                     {
-                        InvModels[iinfo] = new float[u.Length];
+                        _invModels[iinfo] = new float[u.Length];
                         Mkl.Gemm(Layout, Mkl.Transpose.NoTrans, Mkl.Transpose.NoTrans,
-                            ccol, ccol, ccol, 1, u, ccol, uInvScaled, ccol, 0, InvModels[iinfo], ccol);
+                            ccol, ccol, ccol, 1, u, ccol, uInvScaled, ccol, 0, _invModels[iinfo], ccol);
                     }
                 }
                 else
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms
             {
                 ctx.Writer.WriteFloatArray(_models[i]);
                 if (_infos[i].SaveInv)
-                    ctx.Writer.WriteFloatArray(InvModels[i]);
+                    ctx.Writer.WriteFloatArray(_invModels[i]);
             }
         }
 
@@ -607,9 +607,14 @@ namespace Microsoft.ML.Transforms
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
+                    var info = _parent._infos[i];
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[i];
+                    ValidateModel(Host, _parent._models[i], outType);
+                    if (info.SaveInv)
+                        ValidateModel(Host, _parent._invModels[i], outType);
                 }
             }
 
@@ -620,8 +625,8 @@ namespace Microsoft.ML.Transforms
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var ex = _parent._infos[iinfo];
-                    ColumnType outType = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? new VectorType(NumberType.Float, ex.PcaNum) : _srcTypes[iinfo];
+                    var info = _parent._infos[iinfo];
+                    ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
                     result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, outType, null);
                 }
                 return result;
@@ -801,11 +806,11 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string input, string output)>();
-                foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+                var infos = new WhiteningTransform.ColInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; i++)
+                    infos[i] = new WhiteningTransform.ColInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _saveInverse, _pcaNum);
 
-                return new Whitening(env, pairs.ToArray(), _kind, _eps, _maxRows, _saveInverse, _pcaNum);
+                return new Whitening(env, infos);
             }
         }
 
