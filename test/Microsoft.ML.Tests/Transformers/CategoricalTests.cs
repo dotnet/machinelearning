@@ -9,7 +9,6 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.IO;
 using System.Linq;
@@ -91,9 +90,9 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D", "E");
+                var view = new SelectColumnsTransform(Env, new string[]{"A", "B", "C", "D", "E" }, null, false).Transform(savedData);
                 using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+                    DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
             }
 
             CheckEquality("Categorical", "featurized.tsv");

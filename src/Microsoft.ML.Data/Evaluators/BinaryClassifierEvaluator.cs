@@ -1333,43 +1333,33 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            var args = new ChooseColumnsTransform.Arguments();
-            var cols = new List<ChooseColumnsTransform.Column>()
-                {
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldAccuracy,
-                        Source = BinaryClassifierEvaluator.Accuracy
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldLogLoss,
-                        Source = BinaryClassifierEvaluator.LogLoss
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = BinaryClassifierEvaluator.Entropy
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldLogLosRed,
-                        Source = BinaryClassifierEvaluator.LogLossReduction
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = BinaryClassifierEvaluator.Auc
-                    }
-                };
+            (string Source, string Name)[] cols =
+            {
+                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
+                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
+                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+            };
+
+            var colsToKeep = new List<string>();
+            colsToKeep.Add(FoldAccuracy);
+            colsToKeep.Add(FoldLogLoss);
+            colsToKeep.Add(BinaryClassifierEvaluator.Entropy);
+            colsToKeep.Add(FoldLogLosRed);
+            colsToKeep.Add(BinaryClassifierEvaluator.Auc);
+
             int index;
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.IsWeighted });
+                colsToKeep.Add(MetricKinds.ColumnNames.IsWeighted);
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.StratCol });
+                colsToKeep.Add(MetricKinds.ColumnNames.StratCol);
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.StratVal });
+                colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            args.Column = cols.ToArray();
-            fold = new ChooseColumnsTransform(Host, args, fold);
+            fold = new CopyColumnsTransform(Host, cols).Transform(fold);
+
+            // Select the columns that are specified in the Copy
+            fold = SelectColumnsTransform.CreateKeep(Host, fold, colsToKeep.ToArray());
+
             string weightedConf;
             var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
             string weightedFold;
@@ -1386,9 +1376,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            var args = new DropColumnsTransform.Arguments();
-            args.Column = new[] { BinaryClassifierEvaluator.Entropy };
-            return new DropColumnsTransform(Host, args, overall);
+            return SelectColumnsTransform.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
         protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
