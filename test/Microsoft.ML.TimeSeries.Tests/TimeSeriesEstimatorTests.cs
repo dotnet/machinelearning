@@ -45,8 +45,8 @@ namespace Microsoft.ML.Tests
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
-            int ChangeHistorySize = 2000;
-            int SeasonalitySize = 1000;
+            int ChangeHistorySize = 10;
+            int SeasonalitySize = 10;
             int NumberOfSeasonsInTraining = 5;
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
@@ -79,8 +79,8 @@ namespace Microsoft.ML.Tests
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
-            int PValueHistorySize = 2000;
-            int SeasonalitySize = 1000;
+            int PValueHistorySize = 10;
+            int SeasonalitySize = 10;
             int NumberOfSeasonsInTraining = 5;
             int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Tests
         void TestIidChangePointEstimator()
         {
             int Confidence = 95;
-            int ChangeHistorySize = 2000;
+            int ChangeHistorySize = 10;
 
             List<Data> data = new List<Data>();
             var dataView = Env.CreateStreamingDataView(data);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests
         void TestIidSpikeEstimator()
         {
             int Confidence = 95;
-            int PValueHistorySize = 2000;
+            int PValueHistorySize = 10;
 
             List<Data> data = new List<Data>();
             var dataView = Env.CreateStreamingDataView(data);

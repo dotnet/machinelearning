@@ -81,8 +81,8 @@ namespace Microsoft.ML.Tests
         {
             using (var env = new ConsoleEnvironment(conc: 1))
             {
-                const int ChangeHistorySize = 2000;
-                const int SeasonalitySize = 1000;
+                const int ChangeHistorySize = 10;
+                const int SeasonalitySize = 10;
                 const int NumberOfSeasonsInTraining = 5;
                 const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
@@ -113,8 +113,8 @@ namespace Microsoft.ML.Tests
                 // Get predictions
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
-                List<double> expectedValues = new List<double>() { 0, -341.27374267578125, 0.5, 0, 0, 143.96232604980469, 0,
-                    0, 0, 142.27732849121094, 0.26294916025125559, 0, 0, -84.966033935546875, 0.39567696623630655, 0};
+                List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
+                    0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
 
                 int index = 0;
                 while (enumerator.MoveNext() && index < expectedValues.Count)

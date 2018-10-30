@@ -369,6 +369,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
