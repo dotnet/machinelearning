@@ -24,7 +24,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
+            var loader = new TextLoader(dataPath).CreateFrom<SentimentData>();
+            loader.Arguments.HasHeader = true;
+            pipeline.Add(loader);
             pipeline.Add(MakeSentimentTextTransform());
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 5, NumTrees = 5, MinDocumentsInLeafs = 2 });
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
