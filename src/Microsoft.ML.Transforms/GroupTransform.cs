@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), typeof(GroupTransform.Arguments), typeof(SignatureDataTransform),
     GroupTransform.UserName, GroupTransform.ShortName)]
@@ -21,21 +22,25 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(GroupingOperations))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This transform essentially performs the following SQL-like operation:
-    /// SELECT GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)
+    /// A Trasforms that groups values of a scalar column into a vector, by a contiguous group ID.
+    /// </summary>
+    /// <remarks>
+    /// <p>This transform essentially performs the following SQL-like operation:</p>
+    /// <p>SELECT GroupKey1, GroupKey2, ... GroupKeyK, LIST(Value1), LIST(Value2), ... LIST(ValueN)
     /// FROM Data
-    /// GROUP BY GroupKey1, GroupKey2, ... GroupKeyK.
+    /// GROUP BY GroupKey1, GroupKey2, ... GroupKeyK.</p>
     ///
-    /// It assumes that the group keys are contiguous (if a new group key sequence is encountered, the group is over).
+    /// <p>It assumes that the group keys are contiguous (if a new group key sequence is encountered, the group is over).
     /// The GroupKeyN and ValueN columns can be of any primitive types. The code requires that every raw type T of the group key column
     /// is an <see cref="IEquatable{T}"/>, which is currently true for all existing primitive types.
-    /// The produced ValueN columns will be variable-length vectors of the original value column types.
+    /// The produced ValueN columns will be variable-length vectors of the original value column types.</p>
     ///
-    /// The order of ValueN entries in the lists is preserved.
+    /// <p>The order of ValueN entries in the lists is preserved.</p>
     ///
+    /// <example><code>
     /// Example:
     /// User Item
     /// Pete Book
@@ -49,7 +54,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Pete [Book]
     /// Tom  [Table, Kitten]
     /// Pete [Chair, Cup]
-    /// </summary>
+    /// </code></example>
+    /// </remarks>
     public sealed class GroupTransform : TransformBase
     {
         public const string Summary = "Groups values of a scalar column into a vector, by a contiguous group ID";
