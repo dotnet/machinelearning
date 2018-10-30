@@ -1,8 +1,1 @@
-  Bad value at line 1 in column CatU1 at slot 2
-  Bad value at line 1 in column CatU2 at slot 0
-  Bad value at line 2 in column CatU1 at slot 1
-  Bad value at line 3 in column CatU2 at slot 0
-  Bad value at line 3 in column CatU2 at slot 1
-  Bad value at line 4 in column CatU2 at slot 2
-Processed 4 rows with 6 bad values and 0 format errors
 Cursored through 4 rows
