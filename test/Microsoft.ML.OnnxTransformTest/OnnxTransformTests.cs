@@ -29,11 +29,6 @@ namespace Microsoft.ML.Tests
             [VectorType(inputSize)]
             public float[] data_0;
         }
-        private class ImageData
-        {
-            [VectorType(3 * 224 * 224)]
-            public float[] data_0;
-        }
         private class TestDataSize
         {
             [VectorType(2)]
@@ -58,40 +53,9 @@ namespace Microsoft.ML.Tests
             return samplevector;
         }
 
-        private float[] getImagePixelData()
-        {
-            var samplevector = new float[3 * 224 * 224];
-            for (int i = 0; i < 3 * 224 * 224; i++)
-                samplevector[i] = 40.0f;
-            return samplevector;
-        }
-
         public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
         }
-
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
-        void TestDnnImageFeaturizer()
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return;
-
-            var samplevector = getImagePixelData();
-
-            var dataView = ComponentCreation.CreateDataView(Env,
-                new ImageData[] {
-                    new ImageData()
-                    {
-                        data_0 = samplevector
-                    },
-                });
-
-            var pipe = new DnnImageFeaturizerEstimator(Env, "data_0", "dnnfeatures_1", m => m.ResNet18());
-            TestEstimatorCore(pipe, dataView);
-        }
-
-
-
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestSimpleCase()
