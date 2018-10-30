@@ -2,28 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 
-[assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), typeof(WhiteningTransform.Arguments), typeof(SignatureDataTransform),
-    "Whitening Transform", "WhiteningTransform", "Whitening")]
+[assembly: LoadableClass(WhiteningTransform.Summary, typeof(IDataTransform), typeof(WhiteningTransform), typeof(WhiteningTransform.Arguments), typeof(SignatureDataTransform),
+    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature, "Whitening")]
 
-[assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), null, typeof(SignatureLoadDataTransform),
-    "Whitening Transform", WhiteningTransform.LoaderSignature, WhiteningTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(WhiteningTransform.Summary, typeof(IDataTransform), typeof(WhiteningTransform), null, typeof(SignatureLoadDataTransform),
+    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature, WhiteningTransform.LoaderSignatureOld)]
 
-namespace Microsoft.ML.Runtime.Data
+[assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), null, typeof(SignatureLoadModel),
+    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(WhiteningTransform), null, typeof(SignatureLoadRowMapper),
+   WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature)]
+
+namespace Microsoft.ML.Transforms
 {
     public enum WhiteningKind
     {
@@ -35,12 +43,12 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class WhiteningTransform : OneToOneTransformBase
+    public sealed class WhiteningTransform : OneToOneTransformerBase
     {
-        private static class Defaults
+        internal static class Defaults
         {
             public const WhiteningKind Kind = WhiteningKind.Zca;
-            public const Float Eps = (Float)1e-5;
+            public const float Eps = 1e-5f;
             public const int MaxRows = 100 * 1000;
             public const bool SaveInverse = false;
             public const int PcaNum = 0;
@@ -55,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
             public WhiteningKind Kind = Defaults.Kind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scaling regularizer")]
-            public Float Eps = Defaults.Eps;
+            public float Eps = Defaults.Eps;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of rows", ShortName = "rows")]
             public int MaxRows = Defaults.MaxRows;
@@ -77,7 +85,7 @@ namespace Microsoft.ML.Runtime.Data
             public WhiteningKind? Kind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scaling regularizer")]
-            public Float? Eps;
+            public float? Eps;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Max number of rows", ShortName = "rows")]
             public int? MaxRows;
@@ -107,72 +115,77 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public sealed class ColInfoEx
+        public sealed class ColInfo
         {
+            public readonly string Input;
+            public readonly string Output;
             public readonly WhiteningKind Kind;
-            public readonly Float Epsilon;
+            public readonly float Epsilon;
             public readonly int MaxRow;
             public readonly bool SaveInv;
             public readonly int PcaNum;
-            public readonly VectorType Type;
 
-            public ColInfoEx(Column item, Arguments args, ColInfo info)
+            public ColInfo(string input, string output, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Eps,
+                int maxRow = Defaults.MaxRows, bool saveInv = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
+            {
+                Kind = kind;
+                Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
+                Epsilon = epsilon;
+                Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(Epsilon));
+                MaxRow = maxRow;
+                Contracts.CheckUserArg(MaxRow > 0, nameof(MaxRow));
+                SaveInv = saveInv;
+                PcaNum = pcaNum;
+                Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
+            }
+
+            internal ColInfo(Column item, Arguments args)
             {
                 Kind = item.Kind ?? args.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
                 Epsilon = item.Eps ?? args.Eps;
-                Contracts.CheckUserArg(0 <= Epsilon && Epsilon < Float.PositiveInfinity, nameof(item.Eps));
+                Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(item.Eps));
                 MaxRow = item.MaxRows ?? args.MaxRows;
                 Contracts.CheckUserArg(MaxRow > 0, nameof(item.MaxRows));
                 SaveInv = item.SaveInverse ?? args.SaveInverse;
                 PcaNum = item.PcaNum ?? args.PcaNum;
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(item.PcaNum));
-
-                if (Kind == WhiteningKind.Zca || PcaNum == 0)
-                    Type = info.TypeSrc.AsVector;
-                else
-                    Type = new VectorType(NumberType.Float, PcaNum); // REVIEW: make it work with pcaNum == 1.
             }
 
-            public ColInfoEx(ModelLoadContext ctx, ColInfo info)
+            internal ColInfo(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
                 // *** Binary format ***
                 // int:   kind
-                // Float: epsilon
+                // float: epsilon
                 // int:   maxrow
                 // byte:  saveInv
                 // int:   pcaNum
                 Kind = (WhiteningKind)ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
                 Epsilon = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(0 <= Epsilon && Epsilon < Float.PositiveInfinity);
+                Contracts.CheckDecode(0 <= Epsilon && Epsilon < float.PositiveInfinity);
                 MaxRow = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(MaxRow > 0);
                 SaveInv = ctx.Reader.ReadBoolByte();
                 PcaNum = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(PcaNum >= 0);
-
-                if (Kind == WhiteningKind.Zca || PcaNum == 0)
-                    Type = info.TypeSrc.AsVector;
-                else
-                    Type = new VectorType(NumberType.Float, PcaNum); // REVIEW: make it work with pcaNum == 1.
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
                 // *** Binary format ***
                 // int:   kind
-                // Float: epsilon
+                // float: epsilon
                 // int:   maxrow
                 // byte:  saveInv
                 // int:   pcaNum
                 Contracts.Assert(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca);
                 ctx.Writer.Write((int)Kind);
-                Contracts.Assert(0 <= Epsilon && Epsilon < Float.PositiveInfinity);
+                Contracts.Assert(0 <= Epsilon && Epsilon < float.PositiveInfinity);
                 ctx.Writer.Write(Epsilon);
                 Contracts.Assert(MaxRow > 0);
                 ctx.Writer.Write(MaxRow);
@@ -184,15 +197,19 @@ namespace Microsoft.ML.Runtime.Data
 
         private const Mkl.Layout Layout = Mkl.Layout.RowMajor;
 
-        // Stores whitening matrix as Float[] for each column.
-        private readonly Float[][] _models;
-        // Stores inverse ("recover") matrix as Float[] for each column. Temporarily internal as it's used in unit test.
+        // Stores whitening matrix as float[] for each column.
+        private readonly float[][] _models;
+        // Stores inverse ("recover") matrix as float[] for each column. Temporarily internal as it's used in unit test.
         // REVIEW: It doesn't look like this is used by non-test code. Should it be saved at all?
-        internal readonly Float[][] InvModels;
+        internal readonly float[][] InvModels;
+
+        private int[] _cols;
+        private ColumnType[] _srcTypes;
 
         internal const string Summary = "Apply PCA or ZCA whitening algorithm to the input.";
 
-        public const string LoaderSignature = "WhiteningTransform";
+        internal const string FriendlyName = "Whitening Transform";
+        internal const string LoaderSignature = "WhiteningTransform";
         internal const string LoaderSignatureOld = "WhiteningFunction";
         private static VersionInfo GetVersionInfo()
         {
@@ -206,139 +223,240 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(WhiteningTransform).Assembly.FullName);
         }
 
-        private readonly ColInfoEx[] _exes;
-
-        private const string RegistrationName = "Whitening";
+        private readonly ColInfo[] _infos;
 
         /// <summary>
         /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-        public WhiteningTransform(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            WhiteningKind kind = Defaults.Kind)
-                : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Kind = kind }, input)
+        /// <param name="inputData">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columns"> TODO </param>
+        internal WhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(columns))
         {
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
+        /// Constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public WhiteningTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestColumn)
+        internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(args.Column))
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.AssertNonEmpty(ColumnPairs);
+            Host.Assert(ColumnPairs.Length == Utils.Size(args.Column));
+            var inputSchema = inputData.Schema;
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(args.Column[i], args, Infos[i]);
+            _cols = new int[ColumnPairs.Length];
+            _srcTypes = new ColumnType[ColumnPairs.Length];
+            _infos = new ColInfo[ColumnPairs.Length];
+            for (int i = 0; i < _infos.Length; i++)
+            {
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out _cols[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
+                CheckInputColumn(inputSchema, i, _cols[i]);
+                _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                _infos[i] = new ColInfo(args.Column[i], args);
+            }
 
             using (var ch = Host.Start("Training"))
             {
                 // The training process will load all data into memory and perform whitening process
                 // for each resulting column separately.
-                _models = new Float[Infos.Length][];
-                InvModels = new Float[Infos.Length][];
+                _models = new float[ColumnPairs.Length][];
+                InvModels = new float[ColumnPairs.Length][];
                 int[] rowCounts;
-                var columnData = LoadDataAsDense(ch, out rowCounts);
+                var columnData = LoadDataAsDense(ch, inputData, out rowCounts);
                 TrainModels(columnData, rowCounts, ch);
             }
-            Metadata.Seal();
         }
 
-        private Float[][] LoadDataAsDense(IChannel ch, out int[] actualRowCounts)
+        private WhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), ctx)
         {
-            long crowData = GetRowCount();
+            Host.AssertValue(ctx);
 
-            var columnData = new Float[Infos.Length][];
-            actualRowCounts = new int[Infos.Length];
-            int maxActualRowCount = 0;
-            for (int i = 0; i < Infos.Length; i++)
+            // *** Binary format ***
+            // <prefix handled in static Create method>
+            // <base>
+            // foreach added column
+            //   ColInfoEx
+            // foreach model
+            //   whitening matrix
+            //   recovery matrix
+
+            Host.AssertNonEmpty(ColumnPairs);
+            _infos = new ColInfo[ColumnPairs.Length];
+            for (int i = 0; i < _infos.Length; i++)
+                _infos[i] = new ColInfo(ctx);
+
+            _models = new float[ColumnPairs.Length][];
+            InvModels = new float[ColumnPairs.Length][];
+            for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                var type = Infos[i].TypeSrc;
-                ch.Assert(type.IsVector && type.IsKnownSizeVector);
+                _models[i] = ctx.Reader.ReadFloatArray();
+                var ex = _infos[i];
+                ColumnType outType = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? new VectorType(NumberType.Float, ex.PcaNum) : _srcTypes[i];
+                ValidateModel(Host, _models[i], outType);
+                if (_infos[i].SaveInv)
+                {
+                    InvModels[i] = ctx.Reader.ReadFloatArray();
+                    ValidateModel(Host, InvModels[i], outType);
+                }
+            }
+        }
+
+        // Factory method for SignatureLoadModel
+        internal static WhiteningTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new WhiteningTransform(env, ctx);
+        }
+
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+            => new WhiteningTransform(env, args, input).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        private static (string input, string output)[] GetColumnPairs(ColInfo[] columns)
+            => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
+
+        private static (string input, string output)[] GetColumnPairs(Column[] columns)
+            => columns.Select(c => (c.Source, c.Name ?? c.Source)).ToArray();
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            var inType = inputSchema.GetColumnType(srcCol);
+            var reason = TestColumn(inType);
+            if (reason != null)
+                throw Host.ExceptParam(nameof(inputSchema), reason);
+        }
+
+        internal static string TestColumn(ColumnType t)
+        {
+            if ((t.IsVector && !t.IsKnownSizeVector) || t.ItemType != NumberType.R4)
+                return "Expected float or float vector of known size";
+
+            if ((long)t.ValueCount * t.ValueCount > Utils.ArrayMaxSize)
+                return "Vector size exceeds limit";
+
+            return null;
+        }
+
+        private static void ValidateModel(IExceptionContext ectx, float[] model, ColumnType col)
+        {
+            ectx.CheckDecode(Utils.Size(model) == (long)col.ValueCount * col.ValueCount, "Invalid model size.");
+            for (int i = 0; i < model.Length; i++)
+                ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
+        }
+
+        private long GetRowCount(IDataView inputData)
+        {
+            long? rows = inputData.GetRowCount(lazy: false);
+            if (rows != null)
+                return rows.GetValueOrDefault();
+
+            int maxRows = _infos.Max(i => i.MaxRow);
+            long r = 0;
+            using (var cursor = inputData.GetRowCursor(col => false))
+            {
+                while (r < maxRows && cursor.MoveNext())
+                    r++;
+            }
+            return r;
+        }
+
+        private float[][] LoadDataAsDense(IChannel ch, IDataView inputData, out int[] actualRowCounts)
+        {
+            long crowData = GetRowCount(inputData);
+
+            var columnData = new float[ColumnPairs.Length][];
+            actualRowCounts = new int[ColumnPairs.Length];
+            int maxActualRowCount = 0;
+
+            for (int i = 0; i < ColumnPairs.Length; i++)
+            {
+                ch.Assert(_srcTypes[i].IsVector && _srcTypes[i].IsKnownSizeVector);
                 // Use not more than MaxRow number of rows.
-                var ex = _exes[i];
+                var ex = _infos[i];
                 if (crowData <= ex.MaxRow)
                     actualRowCounts[i] = (int)crowData;
                 else
                 {
-                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", ex.MaxRow, Infos[i].Name);
+                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", ex.MaxRow, ColumnPairs[i].output);
                     actualRowCounts[i] = ex.MaxRow;
                 }
 
-                int cslot = type.ValueCount;
+                int cslot = _srcTypes[i].ValueCount;
                 // Check that total number of values in matrix does not exceed int.MaxValue and adjust row count if necessary.
                 if ((long)cslot * actualRowCounts[i] > int.MaxValue)
                 {
                     actualRowCounts[i] = int.MaxValue / cslot;
-                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", actualRowCounts[i], Infos[i].Name);
+                    ch.Info(MessageSensitivity.Schema, "Only {0:N0} rows of column '{1}' will be used for whitening transform.", actualRowCounts[i], ColumnPairs[i].output);
                 }
-                columnData[i] = new Float[cslot * actualRowCounts[i]];
+                columnData[i] = new float[cslot * actualRowCounts[i]];
                 if (actualRowCounts[i] > maxActualRowCount)
                     maxActualRowCount = actualRowCounts[i];
             }
-            var idxDst = new int[Infos.Length];
+            var idxDst = new int[ColumnPairs.Length];
 
-            var cols = new HashSet<int>(Infos.Select(info => info.Source));
-            using (var cursor = Source.GetRowCursor(cols.Contains))
+            var colsSet = new HashSet<int>(_cols);
+            using (var cursor = inputData.GetRowCursor(colsSet.Contains))
             {
-                var getters = new ValueGetter<VBuffer<Float>>[Infos.Length];
-                for (int i = 0; i < Infos.Length; i++)
-                    getters[i] = cursor.GetGetter<VBuffer<Float>>(Infos[i].Source);
-                var val = default(VBuffer<Float>);
+                var getters = new ValueGetter<VBuffer<float>>[ColumnPairs.Length];
+                for (int i = 0; i < ColumnPairs.Length; i++)
+                    getters[i] = cursor.GetGetter<VBuffer<float>>(_cols[i]);
+                var val = default(VBuffer<float>);
                 int irow = 0;
                 while (irow < maxActualRowCount && cursor.MoveNext())
                 {
-                    for (int i = 0; i < Infos.Length; i++)
+                    for (int i = 0; i < ColumnPairs.Length; i++)
                     {
                         if (irow >= actualRowCounts[i] || columnData[i].Length == 0)
                             continue;
 
                         getters[i](ref val);
                         val.CopyTo(columnData[i], idxDst[i]);
-                        idxDst[i] += Infos[i].TypeSrc.ValueCount;
+                        idxDst[i] += _srcTypes[i].ValueCount;
                     }
                     irow++;
                 }
 #if DEBUG
-                for (int i = 0; i < Infos.Length; i++)
+                for (int i = 0; i < ColumnPairs.Length; i++)
                     ch.Assert(idxDst[i] == columnData[i].Length);
 #endif
             }
-
             return columnData;
         }
 
-        private void TrainModels(Float[][] columnData, int[] rowCounts, IChannel ch)
+        private void TrainModels(float[][] columnData, int[] rowCounts, IChannel ch)
         {
             Host.AssertValue(ch);
             ch.Assert(columnData.Length == rowCounts.Length);
 
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
-                var ex = _exes[iinfo];
+                var ex = _infos[iinfo];
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
-                int ccol = Infos[iinfo].TypeSrc.ValueCount;
+                int ccol = _srcTypes[iinfo].ValueCount;
 
                 // Compute covariance matrix (sigma).
-                var u = new Float[ccol * ccol];
+                var u = new float[ccol * ccol];
                 ch.Info("Computing covariance matrix...");
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
-                    ccol, ccol, crow, 1 / (Float)crow, data, ccol, data, ccol, 0, u, ccol);
+                    ccol, ccol, crow, 1 / (float)crow, data, ccol, data, ccol, 0, u, ccol);
 
                 ch.Info("Computing SVD...");
-                var eigValues = new Float[ccol]; // Eigenvalues.
-                var unconv = new Float[ccol]; // Superdiagonal unconverged values (if any). Not used but seems to be required by MKL.
+                var eigValues = new float[ccol]; // Eigenvalues.
+                var unconv = new float[ccol]; // Superdiagonal unconverged values (if any). Not used but seems to be required by MKL.
                 // After the next call, values in U will be ovewritten by left eigenvectors.
                 // Each column in U will be an eigenvector.
                 int r = Mkl.Svd(Layout, Mkl.SvdJob.MinOvr, Mkl.SvdJob.None,
@@ -355,14 +473,14 @@ namespace Microsoft.ML.Runtime.Data
                 // while reciprocal (eigValuesRcp) values are used to compute whitening matrix.
                 for (int i = 0; i < eigValues.Length; i++)
                     eigValues[i] = MathUtils.Sqrt(Math.Max(0, eigValues[i]) + ex.Epsilon);
-                var eigValuesRcp = new Float[eigValues.Length];
+                var eigValuesRcp = new float[eigValues.Length];
                 for (int i = 0; i < eigValuesRcp.Length; i++)
                     eigValuesRcp[i] = 1 / eigValues[i];
 
                 // Scale eigenvectors. Note that resulting matrix is transposed, so the scaled
                 // eigenvectors are stored row-wise.
-                var uScaled = new Float[u.Length];
-                var uInvScaled = new Float[u.Length];
+                var uScaled = new float[u.Length];
+                var uInvScaled = new float[u.Length];
                 int isrc = 0;
                 for (int irowSrc = 0; irowSrc < ccol; irowSrc++)
                 {
@@ -386,13 +504,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else if (ex.Kind == WhiteningKind.Zca)
                 {
-                    _models[iinfo] = new Float[u.Length];
+                    _models[iinfo] = new float[u.Length];
                     Mkl.Gemm(Layout, Mkl.Transpose.NoTrans, Mkl.Transpose.NoTrans,
                         ccol, ccol, ccol, 1, u, ccol, uScaled, ccol, 0, _models[iinfo], ccol);
 
                     if (ex.SaveInv)
                     {
-                        InvModels[iinfo] = new Float[u.Length];
+                        InvModels[iinfo] = new float[u.Length];
                         Mkl.Gemm(Layout, Mkl.Transpose.NoTrans, Mkl.Transpose.NoTrans,
                             ccol, ccol, ccol, 1, u, ccol, uInvScaled, ccol, 0, InvModels[iinfo], ccol);
                     }
@@ -402,56 +520,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private WhiteningTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestColumn)
-        {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
-            // foreach added column
-            //   ColInfoEx
-            // foreach model
-            //   whitening matrix
-            //   recovery matrix
-
-            Host.AssertNonEmpty(Infos);
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(ctx, Infos[i]);
-
-            _models = new Float[Infos.Length][];
-            InvModels = new Float[Infos.Length][];
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                _models[i] = ctx.Reader.ReadFloatArray();
-                ValidateModel(Host, _models[i], Infos[i].TypeSrc);
-                if (_exes[i].SaveInv)
-                {
-                    InvModels[i] = ctx.Reader.ReadFloatArray();
-                    ValidateModel(Host, InvModels[i], Infos[i].TypeSrc);
-                }
-            }
-            Metadata.Seal();
-        }
-
-        public static WhiteningTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // <remainder handled in ctors>
-            int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
-            return h.Apply("Loading Model", ch => new WhiteningTransform(h, ctx, input));
-        }
-
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -459,131 +527,25 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // <base>
             // foreach added column
             //   ColInfoEx
             // foreach model
             //   whitening matrix
             //   recovery matrix
-            ctx.Writer.Write(sizeof(Float));
 
-            SaveBase(ctx);
+            SaveColumns(ctx);
 
-            Host.Assert(_exes.Length == Infos.Length);
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i].Save(ctx);
+            Host.Assert(_infos.Length == ColumnPairs.Length);
+            for (int i = 0; i < _infos.Length; i++)
+                _infos[i].Save(ctx);
             for (int i = 0; i < _models.Length; i++)
             {
                 ctx.Writer.WriteFloatArray(_models[i]);
-                if (_exes[i].SaveInv)
+                if (_infos[i].SaveInv)
                     ctx.Writer.WriteFloatArray(InvModels[i]);
             }
-        }
-
-        private static string TestColumn(ColumnType t)
-        {
-            string reason = TestIsKnownSizeFloatVector(t);
-            if (reason != null)
-                return reason;
-
-            if ((long)t.ValueCount * t.ValueCount > Utils.ArrayMaxSize)
-                return "Vector size exceeds limit";
-
-            return null;
-        }
-
-        private static void ValidateModel(IExceptionContext ectx, Float[] model, ColumnType col)
-        {
-            ectx.CheckDecode(Utils.Size(model) == (long)col.ValueCount * col.ValueCount, "Invalid model size.");
-            for (int i = 0; i < model.Length; i++)
-                ectx.CheckDecode(FloatUtils.IsFinite(model[i]), "Found NaN or infinity in the model.");
-        }
-
-        private long GetRowCount()
-        {
-            long? rows = Source.GetRowCount(lazy: false);
-            if (rows != null)
-                return rows.GetValueOrDefault();
-
-            int maxRows = _exes.Max(i => i.MaxRow);
-            long r = 0;
-            using (var cursor = Source.GetRowCursor(col => false))
-            {
-                while (r < maxRows && cursor.MoveNext())
-                    r++;
-            }
-            return r;
-        }
-
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Check(0 <= iinfo & iinfo < Infos.Length);
-            return _exes[iinfo].Type;
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var ex = _exes[iinfo];
-            Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
-            var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
-            var src = default(VBuffer<Float>);
-            int cslotSrc = Infos[iinfo].TypeSrc.ValueCount;
-            int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : Infos[iinfo].TypeSrc.ValueCount;
-            var model = _models[iinfo];
-            ValueGetter<VBuffer<Float>> del =
-                (ref VBuffer<Float> dst) =>
-                {
-                    getSrc(ref src);
-                    Host.Check(src.Length == cslotSrc, "Invalid column size.");
-                    FillValues(model, ref src, ref dst, cslotDst);
-                };
-            return del;
-        }
-
-        private static void FillValues(Float[] model, ref VBuffer<Float> src, ref VBuffer<Float> dst, int cdst)
-        {
-            int count = src.Count;
-            int length = src.Length;
-            var values = src.Values;
-            var indices = src.Indices;
-            Contracts.Assert(Utils.Size(values) >= count);
-
-            // Since the whitening process produces dense vector, always use dense representation of dst.
-            var a = Utils.Size(dst.Values) >= cdst ? dst.Values : new Float[cdst];
-            if (src.IsDense)
-            {
-                Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
-                    1, model, length, values, 1, 0, a, 1);
-            }
-            else
-            {
-                Contracts.Assert(Utils.Size(indices) >= count);
-
-                int offs = 0;
-                for (int i = 0; i < cdst; i++)
-                {
-                    a[i] = DotProduct(model, offs, values, indices, count);
-                    offs += length;
-                }
-            }
-            dst = new VBuffer<Float>(cdst, a, dst.Indices);
-        }
-
-        /// <summary>
-        /// Returns a dot product of dense vector 'a' starting from offset 'aOffset' and sparse vector 'b'
-        /// with first 'count' valid elements and their corresponding 'indices'.
-        /// </summary>
-        private static Float DotProduct(Float[] a, int aOffset, Float[] b, int[] indices, int count)
-        {
-            Contracts.Assert(count <= indices.Length);
-            return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
-
         }
 
         private static class Mkl
@@ -613,18 +575,262 @@ namespace Microsoft.ML.Runtime.Data
 
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(DllName, EntryPoint = "cblas_sgemv")]
-            public static extern void Gemv(Layout layout, Transpose trans, int m, int n, Float alpha,
-                Float[] a, int lda, Float[] x, int incx, Float beta, Float[] y, int incy);
+            public static extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float[] a, int lda, float[] x, int incx, float beta, float[] y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
             [DllImport(DllName, EntryPoint = "cblas_sgemm")]
-            public static extern void Gemm(Layout layout, Transpose transA, Transpose transB, int m, int n, int k, Float alpha,
-                Float[] a, int lda, Float[] b, int ldb, Float beta, Float[] c, int ldc);
+            public static extern void Gemm(Layout layout, Transpose transA, Transpose transB, int m, int n, int k, float alpha,
+                float[] a, int lda, float[] b, int ldb, float beta, float[] c, int ldc);
 
             // See: https://software.intel.com/en-us/node/521150
             [DllImport(DllName, EntryPoint = "LAPACKE_sgesvd")]
             public static extern int Svd(Layout layout, SvdJob jobu, SvdJob jobvt,
-                int m, int n, Float[] a, int lda, Float[] s, Float[] u, int ldu, Float[] vt, int ldvt, Float[] superb);
+                int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, Schema.Create(schema));
+
+        private sealed class Mapper : MapperBase
+        {
+            private readonly WhiteningTransform _parent;
+            private readonly int[] _cols;
+            private readonly ColumnType[] _srcTypes;
+
+            public Mapper(WhiteningTransform parent, Schema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _cols = new int[_parent.ColumnPairs.Length];
+                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                }
+            }
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; iinfo++)
+                {
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    var ex = _parent._infos[iinfo];
+                    ColumnType outType = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? new VectorType(NumberType.Float, ex.PcaNum) : _srcTypes[iinfo];
+                    result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, outType, null);
+                }
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+
+                var ex = _parent._infos[iinfo];
+                Host.Assert(ex.Kind == WhiteningKind.Pca || ex.Kind == WhiteningKind.Zca);
+                var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
+                var src = default(VBuffer<float>);
+                int cslotSrc = _srcTypes[iinfo].ValueCount;
+                int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : _srcTypes[iinfo].ValueCount;
+                var model = _parent._models[iinfo];
+                ValueGetter<VBuffer<float>> del =
+                    (ref VBuffer<float> dst) =>
+                    {
+                        getSrc(ref src);
+                        Host.Check(src.Length == cslotSrc, "Invalid column size.");
+                        FillValues(model, ref src, ref dst, cslotDst);
+                    };
+                return del;
+            }
+
+            private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                int src = _cols[iinfo];
+                Host.Assert(input.IsColumnActive(src));
+                return input.GetGetter<T>(src);
+            }
+
+            private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)
+            {
+                int count = src.Count;
+                int length = src.Length;
+                var values = src.Values;
+                var indices = src.Indices;
+                Contracts.Assert(Utils.Size(values) >= count);
+
+                // Since the whitening process produces dense vector, always use dense representation of dst.
+                var a = Utils.Size(dst.Values) >= cdst ? dst.Values : new float[cdst];
+                if (src.IsDense)
+                {
+                    Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
+                        1, model, length, values, 1, 0, a, 1);
+                }
+                else
+                {
+                    Contracts.Assert(Utils.Size(indices) >= count);
+
+                    int offs = 0;
+                    for (int i = 0; i < cdst; i++)
+                    {
+                        a[i] = DotProduct(model, offs, values, indices, count);
+                        offs += length;
+                    }
+                }
+                dst = new VBuffer<float>(cdst, a, dst.Indices);
+            }
+
+            /// <summary>
+            /// Returns a dot product of dense vector 'a' starting from offset 'aOffset' and sparse vector 'b'
+            /// with first 'count' valid elements and their corresponding 'indices'.
+            /// </summary>
+            private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
+            {
+                Contracts.Assert(count <= indices.Length);
+                return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
+
+            }
+        }
+    }
+
+    /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+    public sealed class Whitening : IEstimator<WhiteningTransform>
+    {
+        private readonly IHost _host;
+        private readonly WhiteningTransform.ColInfo[] _infos;
+
+        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns"> TODO </param>
+        public Whitening(IHostEnvironment env, params WhiteningTransform.ColInfo[] columns)
+        {
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform));
+            _infos = columns;
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="kind">Whitening kind (PCA/ZCA).</param>
+        /// <param name="eps">Scaling regularizer.</param>
+        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
+        /// <param name="pcaNum">PCA components to retain.</param>
+        public Whitening(IHostEnvironment env, string inputColumn, string outputColumn,
+            WhiteningKind kind = WhiteningTransform.Defaults.Kind,
+            float eps = WhiteningTransform.Defaults.Eps,
+            int maxRows = WhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = WhiteningTransform.Defaults.SaveInverse,
+            int pcaNum = WhiteningTransform.Defaults.PcaNum)
+            : this(env, new WhiteningTransform.ColInfo(inputColumn, outputColumn, kind, eps, maxRows, saveInverse, pcaNum))
+        {
+        }
+
+        public WhiteningTransform Fit(IDataView input)
+        {
+            return new WhiteningTransform(_host, input, _infos);
+        }
+
+        /// <summary>
+        /// Returns the schema that would be produced by the transformation.
+        /// </summary>
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in _infos)
+            {
+                if (!inputSchema.TryFindColumn(colPair.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
+                var reason = WhiteningTransform.TestColumn(col.ItemType);
+                if (reason != null)
+                    throw _host.ExceptUserArg(nameof(inputSchema), reason);
+                result[colPair.Output] = new SchemaShape.Column(colPair.Output, col.Kind, col.ItemType, col.IsKey, null);
+            }
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    /// <summary>
+    /// Extensions for statically typed Whitening estimator.
+    /// </summary>
+    public static class WhiteningExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, WhiteningKind kind, float eps, int maxRows, bool saveInverse, int pcaNum)
+                : base(new Reconciler(kind, eps, maxRows, saveInverse, pcaNum), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly WhiteningKind _kind;
+            private readonly float _eps;
+            private readonly int _maxRows;
+            private readonly bool _saveInverse;
+            private readonly int _pcaNum;
+
+            public Reconciler(WhiteningKind kind, float eps, int maxRows, bool saveInverse, int pcaNum)
+            {
+                _kind = kind;
+                _eps = eps;
+                _maxRows = maxRows;
+                _saveInverse = saveInverse;
+                _pcaNum = pcaNum;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new Whitening(env, pairs.ToArray(), _kind, _eps, _maxRows, _saveInverse, _pcaNum);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="eps">Scaling regularizer.</param>
+        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
+        /// <param name="pcaNum">PCA components to retain.</param>
+        public static Vector<float> PcaWhitening(this Vector<float> input,
+            float eps = (float)1e-5,
+            int maxRows = 100 * 1000,
+            bool saveInverse = false,
+            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="eps">Scaling regularizer.</param>
+        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
+        /// <param name="pcaNum">PCA components to retain.</param>
+        public static Vector<float> ZcaWhitening(this Vector<float> input,
+            float eps = (float)1e-5,
+            int maxRows = 100 * 1000,
+            bool saveInverse = false,
+            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, pcaNum);
     }
 }
