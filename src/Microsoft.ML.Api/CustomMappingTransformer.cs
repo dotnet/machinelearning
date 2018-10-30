@@ -34,13 +34,13 @@ namespace Microsoft.ML.Transforms
         public bool IsRowToRowMapper => true;
         private readonly SchemaDefinition _inputSchemaDefinition;
         /// <summary>
-        /// Create a a map transform.
+        /// Create a custom mapping of input columns to output columns.
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="mapAction">The action by which we map source to destination columns</param>
         /// <param name="contractName">The name of the action (will be saved to the model).</param>
-        /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
-        /// <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>
+        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
+        /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         public CustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
@@ -185,6 +185,14 @@ namespace Microsoft.ML.Transforms
         where TSrc : class, new()
         where TDst : class, new()
     {
+        /// <summary>
+        /// Create a custom mapping of input columns to output columns.
+        /// </summary>
+        /// <param name="env">The host environment</param>
+        /// <param name="mapAction">The mapping action. This must be thread-safe and free from side effects.</param>
+        /// <param name="contractName">The contract name, used by ML.NET for loading the model. If <c>null</c> is specified, such a trained model would not be save-able.</param>
+        /// <param name="inputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TSrc"/> and input data.</param>
+        /// <param name="outputSchemaDefinition">Additional parameters for schema mapping between <typeparamref name="TDst"/> and output data.</param>
         public CustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
                 SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomMappingEstimator<TSrc, TDst>)),
