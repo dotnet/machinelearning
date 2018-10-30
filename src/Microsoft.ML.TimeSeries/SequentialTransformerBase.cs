@@ -196,10 +196,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="initialWindowSize">The number of datapoints picked from the beginning of the series for training the transform parameters if needed.</param>
         /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
-        /// <param name="name"></param>
         /// <param name="outputColType"></param>
-        protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
-            string name, ColumnType outputColType)
+        protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, ColumnType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
@@ -216,10 +214,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             WindowSize = windowSize;
         }
 
-        protected SequentialTransformerBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+        protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
         {
-            Contracts.CheckRef(env, nameof(env));
-            Host = env.Register(name);
+            Host = host;
             Host.CheckValue(ctx, nameof(ctx));
 
             // *** Binary format ***
