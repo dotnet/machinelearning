@@ -126,10 +126,17 @@ namespace Microsoft.ML.Transforms
             public readonly int PcaNum;
 
             /// <summary>
-            /// TODO
+            /// Describes how the transformer handles one column pair.
             /// </summary>
-            public ColInfo(string input, string output = null, WhiteningKind kind = Defaults.Kind, float epsilon = Defaults.Eps,
-                int maxRow = Defaults.MaxRows, bool saveInv = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
+            /// <param name="input">The name of the column containing the data to transform.</param>
+            /// <param name="output">The column name of the generated output column. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="kind">Whitening kind (PCA/ZCA).</param>
+            /// <param name="eps">Scaling regularizer.</param>
+            /// <param name="maxRows">Max number of rows.</param>
+            /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
+            /// <param name="pcaNum">PCA components to retain.</param>
+            public ColInfo(string input, string output = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
+                int maxRows = Defaults.MaxRows, bool saveInverse = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
             {
                 Input = input;
                 Contracts.CheckValue(Input, nameof(Input));
@@ -137,11 +144,11 @@ namespace Microsoft.ML.Transforms
                 Contracts.CheckValue(Output, nameof(Output));
                 Kind = kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(Kind));
-                Epsilon = epsilon;
+                Epsilon = eps;
                 Contracts.CheckUserArg(0 <= Epsilon && Epsilon < float.PositiveInfinity, nameof(Epsilon));
-                MaxRow = maxRow;
+                MaxRow = maxRows;
                 Contracts.CheckUserArg(MaxRow > 0, nameof(MaxRow));
-                SaveInv = saveInv;
+                SaveInv = saveInverse;
                 PcaNum = pcaNum;
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
             }
@@ -237,11 +244,11 @@ namespace Microsoft.ML.Transforms
         private readonly ColInfo[] _infos;
 
         /// <summary>
-        /// Initializes a new Whitening Transform object.
+        /// Initializes a new <see cref="WhiteningTransform"/> object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputData">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="columns"> Specifies the behavior of the transformation. </param>
+        /// <param name="inputData">Input data.</param>
+        /// <param name="columns">Describes the settings for the transformer.</param>
         internal WhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(columns))
         {
@@ -717,7 +724,7 @@ namespace Microsoft.ML.Transforms
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="columns"> TODO </param>
+        /// <param name="columns"> Describes the settings for the transformer.</param>
         public WhiteningEstimator(IHostEnvironment env, params WhiteningTransform.ColInfo[] columns)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform));
@@ -816,7 +823,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">The column to which the transform will be applied to.</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
@@ -828,15 +835,13 @@ namespace Microsoft.ML.Transforms
             int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">The column to which the transform will be applied to.</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
-        /// <param name="pcaNum">PCA components to retain.</param>
         public static Vector<float> ZcaWhitening(this Vector<float> input,
             float eps = (float)1e-5,
             int maxRows = 100 * 1000,
-            bool saveInverse = false,
-            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, pcaNum);
+            bool saveInverse = false) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, 0);
     }
 }
