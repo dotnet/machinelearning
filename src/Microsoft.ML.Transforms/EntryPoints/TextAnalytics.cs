@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
@@ -69,13 +69,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer",
-            Desc = CategoricalTransforms.TermTransform.Summary,
-            UserName = CategoricalTransforms.TermTransform.UserName,
-            ShortName = CategoricalTransforms.TermTransform.LoaderSignature)]
+            Desc = Categorical.TermTransform.Summary,
+            UserName = Categorical.TermTransform.UserName,
+            ShortName = Categorical.TermTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, TermTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
-            var xf = CategoricalTransforms.TermTransform.Create(h, input, input.Data);
+            var xf = Categorical.TermTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

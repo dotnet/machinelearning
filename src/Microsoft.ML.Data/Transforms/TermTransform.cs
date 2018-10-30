@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ using System.Threading;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransform), null, typeof(SignatureLoadRowMapper),
     TermTransform.UserName, TermTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.CategoricalTransforms
+namespace Microsoft.ML.Transforms.Categorical
 {
     // TermTransform builds up term vocabularies (dictionaries).
     // Notes:

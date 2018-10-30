@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;

@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.IO;
 using Xunit;

@@ -6,9 +6,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms.CategoricalTransforms;
-using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api

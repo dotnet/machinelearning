@@ -5,8 +5,8 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api

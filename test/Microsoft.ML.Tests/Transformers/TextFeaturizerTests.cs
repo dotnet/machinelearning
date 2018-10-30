@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
