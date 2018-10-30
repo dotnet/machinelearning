@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.DataPipe;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -24,7 +24,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(OptionalColumnTransform))]
 
-namespace Microsoft.ML.Runtime.DataPipe
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
     public class OptionalColumnTransform : RowToRowMapperTransformBase

@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,7 @@ using System.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(PcaTransform), null, typeof(SignatureEntryPointModule), PcaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.PCA
+namespace Microsoft.ML.Transforms.Projections
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformerBase

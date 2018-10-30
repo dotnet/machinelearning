@@ -248,7 +248,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();

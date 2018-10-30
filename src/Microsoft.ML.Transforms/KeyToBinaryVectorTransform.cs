@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadRowMapper),
    KeyToBinaryVectorTransform.UserName, KeyToBinaryVectorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed class KeyToBinaryVectorTransform : OneToOneTransformerBase
     {
