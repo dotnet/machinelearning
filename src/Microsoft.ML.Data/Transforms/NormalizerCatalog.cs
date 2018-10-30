@@ -20,6 +20,20 @@ namespace Microsoft.ML
         /// <param name="inputName">The column name</param>
         /// <param name="outputName">The column name</param>
         /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values in the new scale. </param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?line=36 )]
+        /// ]]>
+        /// </format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range=6-11,16-89)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputName, outputName, mode);
 
@@ -29,6 +43,20 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="mode">The <see cref="NormalizingEstimator.NormalizerMode"/> used to map the old values to the new ones. </param>
         /// <param name="columns">The pairs of input and output columns.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range=57-60 )]
+        /// ]]>
+        /// </format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range =6-11,16-86)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static NormalizingEstimator Normalize(this TransformsCatalog catalog, NormalizingEstimator.NormalizerMode mode, params (string input, string output)[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, columns);
 
