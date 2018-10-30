@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
@@ -29,8 +24,16 @@ using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Trainers;
@@ -769,7 +772,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
@@ -1038,10 +1041,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextTransform.Create(Env,
-                        new TextTransform.Arguments()
+                    data = TextFeaturizingEstimator.Create(Env,
+                        new TextFeaturizingEstimator.Arguments()
                         {
-                            Column = new TextTransform.Column() { Name = "Features", Source = new[] { "Text" } },
+                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
                             StopWordsRemover = new PredefinedStopWordsRemoverFactory()
                         }, data);
                 }
@@ -1238,7 +1241,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
@@ -3864,7 +3867,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
             {
                 Data = dataView,
                 Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },

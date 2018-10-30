@@ -8,6 +8,8 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.IO;
 using System.Linq;
@@ -51,11 +53,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env, new[]{
-                    new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
-                    new CategoricalEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
-                    new CategoricalEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
-                    new CategoricalEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
+            var pipe = new OneHotEncodingEstimator(Env, new[]{
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -108,19 +110,19 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env, new[] {
-                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("G", "CatG", CategoricalTransform.OutputKind.Key),
-                new CategoricalEstimator.ColumnInfo("H", "CatH", CategoricalTransform.OutputKind.Key),
-                new CategoricalEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("C", "CatK", CategoricalTransform.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin) });
+            var pipe = new OneHotEncodingEstimator(Env, new[] {
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("G", "CatG", CategoricalTransform.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnInfo("H", "CatH", CategoricalTransform.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("C", "CatK", CategoricalTransform.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);
@@ -251,10 +253,10 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env, new[]{
-                    new CategoricalEstimator.ColumnInfo("A", "TermA"),
-                    new CategoricalEstimator.ColumnInfo("B", "TermB"),
-                    new CategoricalEstimator.ColumnInfo("C", "TermC")
+            var pipe = new OneHotEncodingEstimator(Env, new[]{
+                    new OneHotEncodingEstimator.ColumnInfo("A", "TermA"),
+                    new OneHotEncodingEstimator.ColumnInfo("B", "TermB"),
+                    new OneHotEncodingEstimator.ColumnInfo("C", "TermC")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

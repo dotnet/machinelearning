@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using Xunit;

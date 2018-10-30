@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
@@ -28,11 +28,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // "invalidData" is not compatible to "data" because it contains columns Label, ColRenamed, and RowRenamed (no column is Col or Row).
-            var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName+"Renamed"))
+            var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
-            var est = new MatrixFactorizationTrainer(Env, labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName, 
-                advancedSettings:s=>
+            var est = new MatrixFactorizationTrainer(Env, labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+                advancedSettings: s =>
                 {
                     s.NumIterations = 3;
                     s.NumThreads = 1;
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
@@ -62,8 +62,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, labelColumnName, userColumnName, itemColumnName, 
-                advancedSettings:s=>
+            var pipeline = new MatrixFactorizationTrainer(mlContext, labelColumnName, userColumnName, itemColumnName,
+                advancedSettings: s =>
                 {
                     s.NumIterations = 3;
                     s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
@@ -145,17 +145,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
             // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
-            [KeyType(Contiguous=true, Count=_synthesizedMatrixColumnCount, Min=_synthesizedMatrixFirstColumnIndex)]
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
             // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
-            [KeyType(Contiguous=true, Count=_synthesizedMatrixRowCount, Min=_synthesizedMatrixFirstRowIndex)]
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
             // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorizationInMemoryData()
         {
             // Create an in-memory matrix as a list of tuples (column index, row index, value).
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
             var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
-                advancedSettings:s=>
+                advancedSettings: s =>
                 {
                     s.NumIterations = 10;
                     s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.

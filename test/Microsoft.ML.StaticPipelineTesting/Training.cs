@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;
@@ -635,7 +636,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
-                lossFunction:loss,
+                lossFunction: loss,
                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -755,7 +756,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRanking()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -796,7 +797,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void MultiClassLightGBM()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -917,7 +918,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorization()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
