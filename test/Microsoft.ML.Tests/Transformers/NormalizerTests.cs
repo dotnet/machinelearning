@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
+using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv");
+            CheckEquality("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: Environment.Is64BitProcess ? 7 : 5);
             Done();
         }
 
@@ -183,7 +184,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("NormalizerEstimator", "whitened.tsv");
+            CheckEquality("NormalizerEstimator", "whitened.tsv", digitsOfPrecision: Environment.Is64BitProcess ? 7 : 5 );
             Done();
         }
 
