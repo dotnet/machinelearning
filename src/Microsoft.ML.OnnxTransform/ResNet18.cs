@@ -17,8 +17,8 @@ namespace Microsoft.ML.Transforms
             var tempCol = "onnxDnnPrep";
             var prepEstimator = new OnnxEstimator(_env, "C:\\Models\\DnnImageFeat\\Results\\FinalOnnx\\Prep\\resnetPreprocess.onnx", _input, tempCol);
             var mainEstimator = new OnnxEstimator(_env, "C:\\Models\\DnnImageFeat\\Results\\FinalOnnx\\ResNet18\\resnet18.onnx", tempCol, _output);
-            modelChain.Append(prepEstimator);
-            modelChain.Append(mainEstimator);
+            modelChain = modelChain.Append(prepEstimator);
+            modelChain = modelChain.Append(mainEstimator);
             return modelChain;
         }
     }
