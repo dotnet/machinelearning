@@ -676,7 +676,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
 
                 JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);
-                if (_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1)
+                if (!(_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1))
                 {
                     // The concatenation case. We can still use fanout, but we just append them all together.
                     return PfaUtils.Call("a.flatMap", srcToken,
