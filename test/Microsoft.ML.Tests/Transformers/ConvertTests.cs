@@ -73,8 +73,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new ConvertEstimator(Env, columns: new[] {new ConvertTransform.ColumnInfo("A", "ConvA", DataKind.R4),
-                new ConvertTransform.ColumnInfo("B", "ConvB", DataKind.R4)});
+            var pipe = new ConvertingEstimator(Env, columns: new[] {new ConvertingTransform.ColumnInfo("A", "ConvA", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("B", "ConvB", DataKind.R4)});
 
             TestEstimatorCore(pipe, dataView);
             var allTypesData = new[]
@@ -112,19 +112,19 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var allTypesDataView = ComponentCreation.CreateDataView(Env, allTypesData);
-            var allTypesPipe = new ConvertEstimator(Env, columns: new[] {
-                new ConvertTransform.ColumnInfo("AA", "ConvA", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AB", "ConvB", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AC", "ConvC", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AD", "ConvD", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AE", "ConvE", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AF", "ConvF", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AG", "ConvG", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AH", "ConvH", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AK", "ConvK", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AL", "ConvL", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AM", "ConvM", DataKind.R4),
-                new ConvertTransform.ColumnInfo("AN", "ConvN", DataKind.R4)}
+            var allTypesPipe = new ConvertingEstimator(Env, columns: new[] {
+                new ConvertingTransform.ColumnInfo("AA", "ConvA", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AB", "ConvB", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AC", "ConvC", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AD", "ConvD", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AE", "ConvE", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AF", "ConvF", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AG", "ConvG", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AH", "ConvH", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AK", "ConvK", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AL", "ConvL", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AM", "ConvM", DataKind.R4),
+                new ConvertingTransform.ColumnInfo("AN", "ConvN", DataKind.R4)}
             );
             TestEstimatorCore(allTypesPipe, allTypesDataView);
 
@@ -153,8 +153,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new ConvertEstimator(Env, columns: new[] {new ConvertTransform.ColumnInfo("A", "ConvA", DataKind.R8),
-                new ConvertTransform.ColumnInfo("B", "ConvB", DataKind.R8)});
+            var pipe = new ConvertingEstimator(Env, columns: new[] {new ConvertingTransform.ColumnInfo("A", "ConvA", DataKind.R8),
+                new ConvertingTransform.ColumnInfo("B", "ConvB", DataKind.R8)});
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -174,9 +174,9 @@ namespace Microsoft.ML.Tests.Transformers
             var pipe = new OneHotEncodingEstimator(Env, new[] {
                 new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Ind),
                 new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Key)
-            }).Append(new ConvertEstimator(Env, new[] {
-                new ConvertTransform.ColumnInfo("CatA", "ConvA", DataKind.R8),
-                new ConvertTransform.ColumnInfo("CatB", "ConvB", DataKind.U2)
+            }).Append(new ConvertingEstimator(Env, new[] {
+                new ConvertingTransform.ColumnInfo("CatA", "ConvA", DataKind.R8),
+                new ConvertingTransform.ColumnInfo("CatB", "ConvB", DataKind.U2)
             }));
             var dataView = ComponentCreation.CreateDataView(Env, data);
             dataView = pipe.Fit(dataView).Transform(dataView);

@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     throw ch.Except("No feature columns specified");
                 var featNames = new HashSet<string>();
                 var concatNames = new List<KeyValuePair<string, string>>();
-                List<ConvertTransform.ColumnInfo> cvt;
+                List<ConvertingTransform.ColumnInfo> cvt;
                 int errCount;
                 var ktv = ConvertFeatures(feats.ToArray(), featNames, concatNames, ch, out cvt, out errCount);
                 Contracts.Assert(featNames.Count > 0);
@@ -137,18 +137,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return sb.ToString();
         }
 
-        private static IDataView ApplyConvert(List<ConvertTransform.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
+        private static IDataView ApplyConvert(List<ConvertingTransform.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
         {
             Contracts.AssertValueOrNull(cvt);
             Contracts.AssertValue(viewTrain);
             Contracts.AssertValue(env);
             if (Utils.Size(cvt) > 0)
-                viewTrain = new ConvertTransform(env,cvt.ToArray()).Transform(viewTrain);
+                viewTrain = new ConvertingTransform(env,cvt.ToArray()).Transform(viewTrain);
             return viewTrain;
         }
 
         private static List<KeyToVectorTransform.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
-            out List<ConvertTransform.ColumnInfo> cvt, out int errCount)
+            out List<ConvertingTransform.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new ConvertTransform.ColumnInfo(col.Name, colName, DataKind.R4));
+                        Utils.Add(ref cvt, new ConvertingTransform.ColumnInfo(col.Name, colName, DataKind.R4));
                         continue;
                     }
                 }
@@ -297,11 +297,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new ConvertTransform.Arguments()
+            var args = new ConvertingTransform.Arguments()
             {
                 Column = new[]
                 {
-                    new ConvertTransform.Column()
+                    new ConvertingTransform.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     }
                 }
             };
-            var xf = new ConvertTransform(host, new ConvertTransform.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
+            var xf = new ConvertingTransform(host, new ConvertingTransform.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

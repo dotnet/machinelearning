@@ -20,17 +20,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(ConvertTransform.Summary, typeof(IDataTransform), typeof(ConvertTransform), typeof(ConvertTransform.Arguments), typeof(SignatureDataTransform),
-    ConvertTransform.UserName, ConvertTransform.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
+[assembly: LoadableClass(ConvertingTransform.Summary, typeof(IDataTransform), typeof(ConvertingTransform), typeof(ConvertingTransform.Arguments), typeof(SignatureDataTransform),
+    ConvertingTransform.UserName, ConvertingTransform.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
 
-[assembly: LoadableClass(ConvertTransform.Summary, typeof(IDataTransform), typeof(ConvertTransform), null, typeof(SignatureLoadDataTransform),
-    ConvertTransform.UserName, ConvertTransform.LoaderSignature, ConvertTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(ConvertingTransform.Summary, typeof(IDataTransform), typeof(ConvertingTransform), null, typeof(SignatureLoadDataTransform),
+    ConvertingTransform.UserName, ConvertingTransform.LoaderSignature, ConvertingTransform.LoaderSignatureOld)]
 
-[assembly: LoadableClass(ConvertTransform.Summary, typeof(ConvertTransform), null, typeof(SignatureLoadModel),
-    ConvertTransform.UserName, ConvertTransform.LoaderSignature)]
+[assembly: LoadableClass(ConvertingTransform.Summary, typeof(ConvertingTransform), null, typeof(SignatureLoadModel),
+    ConvertingTransform.UserName, ConvertingTransform.LoaderSignature)]
 
-[assembly: LoadableClass(ConvertTransform.Summary, typeof(IRowMapper), typeof(ConvertTransform), null, typeof(SignatureLoadRowMapper),
-    ConvertTransform.UserName, ConvertTransform.LoaderSignature)]
+[assembly: LoadableClass(ConvertingTransform.Summary, typeof(IRowMapper), typeof(ConvertingTransform), null, typeof(SignatureLoadRowMapper),
+    ConvertingTransform.UserName, ConvertingTransform.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
@@ -38,14 +38,14 @@ namespace Microsoft.ML.Transforms
 {
     public static class TypeConversion
     {
-        [TlcModule.EntryPoint(Name = "Transforms.ColumnTypeConverter", Desc = ConvertTransform.Summary, UserName = ConvertTransform.UserName, ShortName = ConvertTransform.ShortName)]
-        public static CommonOutputs.TransformOutput Convert(IHostEnvironment env, ConvertTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ColumnTypeConverter", Desc = ConvertingTransform.Summary, UserName = ConvertingTransform.UserName, ShortName = ConvertingTransform.ShortName)]
+        public static CommonOutputs.TransformOutput Convert(IHostEnvironment env, ConvertingTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Convert", input);
-            var view = ConvertTransform.Create(h, input, input.Data);
+            var view = ConvertingTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
 
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// ConvertTransform allow to change underlying column type as long as we know how to convert types.
     /// </summary>
-    public sealed class ConvertTransform : OneToOneTransformerBase
+    public sealed class ConvertingTransform : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
         {
@@ -163,12 +163,13 @@ namespace Microsoft.ML.Transforms
                 verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
-                loaderAssemblyName: typeof(ConvertTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(ConvertingTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "Convert";
 
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
@@ -176,15 +177,22 @@ namespace Microsoft.ML.Transforms
         {
             public readonly string Input;
             public readonly string Output;
-            public readonly DataKind Kind;
-            public readonly KeyRange KeyRange;
+            public readonly DataKind OutputKind;
+            public readonly KeyRange OutputKeyRange;
 
-            public ColumnInfo(string input, string output, DataKind kind, KeyRange keyRange = null)
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="outputKind">The expected kind of the converted column.</param>
+            /// <param name="outputKeyRange">New key range, if we work with key type.</param>
+            public ColumnInfo(string input, string output, DataKind outputKind, KeyRange outputKeyRange = null)
             {
                 Input = input;
                 Output = output;
-                Kind = kind;
-                KeyRange = keyRange;
+                OutputKind = outputKind;
+                OutputKeyRange = outputKeyRange;
             }
         }
 
@@ -197,10 +205,23 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Create a <see cref="ConvertTransform"/> that takes multiple pairs of columns.
+        /// Convinence constructor for simple one column case
         /// </summary>
-        public ConvertTransform(IHostEnvironment env, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertTransform)), GetColumnPairs(columns))
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="outputKind">The expected type of the converted column.</param>
+        /// <param name="outputKeyRange">New key range if we work with key type.</param>
+        public ConvertingTransform(IHostEnvironment env, string inputColumn, string outputColumn, DataKind outputKind, KeyRange outputKeyRange = null)
+            : this(env, new ColumnInfo(inputColumn, outputColumn, outputKind, outputKeyRange))
+        {
+        }
+
+        /// <summary>
+        /// Create a <see cref="ConvertingTransform"/> that takes multiple pairs of columns.
+        /// </summary>
+        public ConvertingTransform(IHostEnvironment env, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertingTransform)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
@@ -223,32 +244,32 @@ namespace Microsoft.ML.Transforms
 
             for (int i = 0; i < _columns.Length; i++)
             {
-                Host.Assert((DataKind)(byte)_columns[i].Kind == _columns[i].Kind);
-                if (_columns[i].KeyRange != null)
+                Host.Assert((DataKind)(byte)_columns[i].OutputKind == _columns[i].OutputKind);
+                if (_columns[i].OutputKeyRange != null)
                 {
-                    byte b = (byte)_columns[i].Kind;
+                    byte b = (byte)_columns[i].OutputKind;
                     b |= 0x80;
                     ctx.Writer.Write(b);
-                    ctx.Writer.Write(_columns[i].KeyRange.Min);
-                    ctx.Writer.Write(_columns[i].KeyRange.Max ?? 0);
-                    ctx.Writer.WriteBoolByte(_columns[i].KeyRange.Contiguous);
+                    ctx.Writer.Write(_columns[i].OutputKeyRange.Min);
+                    ctx.Writer.Write(_columns[i].OutputKeyRange.Max ?? 0);
+                    ctx.Writer.WriteBoolByte(_columns[i].OutputKeyRange.Contiguous);
                 }
                 else
-                    ctx.Writer.Write((byte)_columns[i].Kind);
+                    ctx.Writer.Write((byte)_columns[i].OutputKind);
             }
         }
 
         // Factory method for SignatureLoadModel.
-        private static ConvertTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ConvertingTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new ConvertTransform(host, ctx);
+            return new ConvertingTransform(host, ctx);
         }
 
-        private ConvertTransform(IHost host, ModelLoadContext ctx)
+        private ConvertingTransform(IHost host, ModelLoadContext ctx)
         : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -312,7 +333,7 @@ namespace Microsoft.ML.Transforms
                 }
                 cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, kind, range);
             };
-            return new ConvertTransform(env, cols).MakeDataTransform(input);
+            return new ConvertingTransform(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -358,13 +379,13 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : MapperBase, ICanSaveOnnx
         {
-            private readonly ConvertTransform _parent;
+            private readonly ConvertingTransform _parent;
             private readonly ColumnType[] _types;
             private readonly int[] _srcCols;
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            public Mapper(ConvertTransform parent, Schema inputSchema)
+            public Mapper(ConvertingTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -374,7 +395,7 @@ namespace Microsoft.ML.Transforms
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
                     var srcCol = inputSchema[_srcCols[i]];
-                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].Kind, _parent._columns[i].KeyRange, out PrimitiveType itemType, out _types[i]))
+                    if (!CanConvertToType(Host, srcCol.Type, _parent._columns[i].OutputKind, _parent._columns[i].OutputKeyRange, out PrimitiveType itemType, out _types[i]))
                     {
                         throw Host.ExceptParam(nameof(inputSchema),
                         "source column '{0}' with item type '{1}' is not compatible with destination type '{2}'",
@@ -382,7 +403,9 @@ namespace Microsoft.ML.Transforms
                     }
                 }
             }
-            private static bool CanConvertToType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range, out PrimitiveType itemType, out ColumnType typeDst)
+
+            private static bool CanConvertToType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range,
+                out PrimitiveType itemType, out ColumnType typeDst)
             {
                 ectx.AssertValue(srcType);
                 ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
@@ -413,17 +436,15 @@ namespace Microsoft.ML.Transforms
                     if (_types[i].IsKnownSizeVector)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                     if (srcType.ItemType.IsKey && _types[i].ItemType.IsKey &&
-                        srcType.ItemType.KeyCount > 0 &&
-                        srcType.ItemType.KeyCount == _types[i].ItemType.KeyCount)
+                        srcType.ItemType.KeyCount > 0 && srcType.ItemType.KeyCount == _types[i].ItemType.KeyCount)
+                    {
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
+                    }
                     if (srcType.ItemType.IsNumber && _types[i].ItemType.IsNumber)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
                     if (srcType.IsBool && _types[i].ItemType.IsNumber)
                     {
-                        ValueGetter<bool> getter = (ref bool dst) =>
-                        {
-                            dst = true;
-                        };
+                        ValueGetter<bool> getter = (ref bool dst) => dst = true;
                         builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
                     }
                     result[i] = new Schema.Column(_parent._columns[i].Output, _types[i], builder.GetMetadata());
@@ -467,8 +488,8 @@ namespace Microsoft.ML.Transforms
                 var opType = "CSharp";
                 var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
                 node.AddAttribute("type", LoaderSignature);
-                node.AddAttribute("to", (byte)_parent._columns[iinfo].Kind);
-                if (_parent._columns[iinfo].KeyRange != null)
+                node.AddAttribute("to", (byte)_parent._columns[iinfo].OutputKind);
+                if (_parent._columns[iinfo].OutputKeyRange != null)
                 {
                     var key = _types[iinfo].ItemType.AsKey;
                     node.AddAttribute("min", key.Min);
@@ -483,24 +504,24 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Convert estimator allow you take column and change it type as long as we know how to do conversion between types.
     /// </summary>
-    public sealed class ConvertEstimator : TrivialEstimator<ConvertTransform>
+    public sealed class ConvertingEstimator : TrivialEstimator<ConvertingTransform>
     {
         /// <summary>
         /// Convinence constructor for simple one column case
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the output column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
-        /// <param name="resultType">The expected type of the converted column.</param>
-        public ConvertEstimator(IHostEnvironment env,
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the output column.</param>
+        /// <param name="outputKind">The expected type of the converted column.</param>
+        public ConvertingEstimator(IHostEnvironment env,
             string inputColumn, string outputColumn = null,
-            DataKind resultType = DataKind.R4)
-            : this(env, new ConvertTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, resultType))
+            DataKind outputKind = DataKind.R4)
+            : this(env, new ConvertingTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
         {
         }
 
-        public ConvertEstimator(IHostEnvironment env, params ConvertTransform.ColumnInfo[] columns) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertEstimator)), new ConvertTransform(env, columns))
+        public ConvertingEstimator(IHostEnvironment env, params ConvertingTransform.ColumnInfo[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertingEstimator)), new ConvertingTransform(env, columns))
         {
         }
 
@@ -512,7 +533,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (!ConvertTransform.GetNewType(Host, col.ItemType, colInfo.Kind, colInfo.KeyRange, out PrimitiveType newType))
+                if (!ConvertingTransform.GetNewType(Host, col.ItemType, colInfo.OutputKind, colInfo.OutputKeyRange, out PrimitiveType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Input} into {newType.ToString()}");
                 if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
@@ -583,13 +604,13 @@ namespace Microsoft.ML.Transforms
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new ConvertTransform.ColumnInfo[toOutput.Length];
+                var infos = new ConvertingTransform.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IConvertCol)toOutput[i];
-                    infos[i] = new ConvertTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
+                    infos[i] = new ConvertingTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
                 }
-                return new ConvertEstimator(env, infos);
+                return new ConvertingEstimator(env, infos);
             }
         }
     }

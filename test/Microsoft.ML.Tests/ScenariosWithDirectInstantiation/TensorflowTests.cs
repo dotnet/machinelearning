@@ -577,7 +577,7 @@ namespace Microsoft.ML.Scenarios
                     }
 
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                    trans = new ConvertTransform(env, new ConvertTransform.ColumnInfo("Label", "Label", DataKind.R4)).Transform(trans);
+                    trans = new ConvertingTransform(env, new ConvertingTransform.ColumnInfo("Label", "Label", DataKind.R4)).Transform(trans);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
