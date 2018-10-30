@@ -24,6 +24,10 @@ using Microsoft.ML.Trainers.Recommender;
 
 namespace Microsoft.ML.Trainers
 {
+    /// <summary>
+    /// Train a matrix factorization model using LIBMF.
+    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="MatrixFactorizationTrainer"]/*' />
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {

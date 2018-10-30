@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+    
+    <member name="MatrixFactorizationTrainer">
+      <summary>
+        Train a matrix factorization model using <a href='https://www.csie.ntu.edu.tw/~cjlin/libmf/'>LIBMF.
+      </summary>
+      <remarks>
+        The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix. In this module, the expected
+        training data is a list of tuples. Every tuple consists of a column index, a row index, and the value at the location specified by the two indexes.
+        For an example of the data structure you can use to encode those tuples, please see <a href='https://github.com/dotnet/machinelearning/pull/1407/files#diff-ce59b50bd87003b0ffb26912fc4a0e65R144'>MatrixElement.
+        Notice that it's not necessary to specify all entries in the training matrix for training, so matrix factorization can be used to fill <i>missing values</i>
+        in a partially observed matrix. This behavior is very helpful when building recommender systems. Let's consider music recommendation as an example.
+        Assume that user IDs and music IDs are used as row and column indexes, respectively, and matrix's values are the ratings provided by those users. Such
+        an imcomplete matrix is very common because not all users may provide their feedbacks to all products (for example, ten million songs).
+        Assume that <i>R</i> is a m-by-n matrix and the rank of the two factor matrices are <i>P</i> (m-by-k matrix) and <i>Q</i> (n-by-k), where k is the approximation rank.
+        The predicted entry value at the u-th row and the v-th column in <i>R</i> would be the inner product of the u-th row of P and the v-th row of Q; that is,
+        <i>R</i> is approximated by <i>P</i> and <i>Q</i>. This trainer implements a stochastic gradient method for finding <i>P</i> and <i>Q</i> via minimizing
+        the distance between <i>R</i> and the product of <i>P</i>'s transpose and Q. For users interested in the mathematical details, please see the references below.
+        </para>
+          <list type='bullet'>
+            <item>
+              <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_journal.pdf'>A Fast Parallel Stochastic Gradient Method for Matrix Factorization in Shared Memory Systems</a></description></item>
+            <item>
+              <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/mf_adaptive_pakdd.pdf'>A Learning-rate Schedule for Stochastic Gradient Methods to Matrix Factorization</a></description>
+            </item>
+            <item>
+              <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/libmf/libmf_open_source.pdf'>LIBMF: A Library for Parallel Matrix Factorization in Shared-memory Systems</a></description>
+            </item>
+          </list>
+      </remarks>
+    </member>
+    Please search for <i>MatrixFactorization</i> as the query to search for code in <a href='https://github.com/dotnet/machinelearning'>ML.NET repository. Several end-to-end tests were made with this module.
+    The following is made based on this <a href='https://github.com/dotnet/machinelearning/blob/453eb57f0cd94d6412b1f8dee76c00c686e2e06e/test/Microsoft.ML.Tests/TrainerEstimators/MatrixFactorizationTests.cs#L135'>test,
+    so users should be able to run it once they can build ML.NET or necessary libraries are included.
+    <example name="MatrixFactorizationTrainer">
+      <example>
+        <code language="csharp">
+        // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
+        // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
+        // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
+        // could be 1.
+        const int _synthesizedMatrixFirstColumnIndex = 1;
+        const int _synthesizedMatrixFirstRowIndex = 1;
+        const int _synthesizedMatrixColumnCount = 60;
+        const int _synthesizedMatrixRowCount = 100;
+
+        class MatrixElement
+        {
+            // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
+            // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
+            // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        // Create an in-memory matrix as a list of tuples (column index, row index, value).
+        var dataMatrix = new List<MatrixElement>();
+        for (uint i = _synthesizedMatrixFirstColumnIndex; i < _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount; ++i)
+            for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
+                dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+        // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+        var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+
+        // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+        // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+        var mlContext = new MLContext(seed: 1, conc: 1);
+        var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+            advancedSettings: s =>
+            {
+                s.NumIterations = 10;
+               s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                s.K = 32;
+            });
+
+        // Train a matrix factorization model.
+        var model = pipeline.Fit(dataView);
+        </code>
+      </example>
+    </example>
+        
+  </members>
+</doc>
