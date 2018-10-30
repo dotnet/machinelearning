@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), typeof(GroupTransform.Arguments), typeof(SignatureDataTransform),
     GroupTransform.UserName, GroupTransform.ShortName)]
@@ -19,9 +20,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), null, typeof(SignatureLoadDataTransform),
     GroupTransform.UserName, GroupTransform.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(GroupingOperations))]
+[assembly: EntryPointModule(typeof(Microsoft.ML.Transforms.GroupingOperations))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transform essentially performs the following SQL-like operation:

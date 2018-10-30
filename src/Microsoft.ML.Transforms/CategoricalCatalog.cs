@@ -4,8 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML
 {

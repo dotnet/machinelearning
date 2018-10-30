@@ -22,7 +22,8 @@ using System.Text;
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
 
 [assembly: LoadableClass(typeof(void), typeof(Categorical), null, typeof(SignatureEntryPointModule), "Categorical")]
-namespace Microsoft.ML.Runtime.Data
+
+namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
     public sealed class CategoricalTransform : ITransformer, ICanSaveModel
