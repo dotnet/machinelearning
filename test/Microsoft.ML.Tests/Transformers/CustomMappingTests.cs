@@ -15,6 +15,7 @@ using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
+using System;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -52,8 +53,6 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCustomTransformer()
         {
-            ML.PartCatalog.Catalogs.Add(new TypeCatalog(typeof(MyLambda)));
-
             string dataPath = GetDataPath("adult.test");
             var source = new MultiFileSource(dataPath);
             var loader = ML.Data.TextReader(new[] {
@@ -63,10 +62,27 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = loader.Read(source);
 
-            var customEst = new CustomMappingEstimator<MyInput, MyOutput>(ML, MyLambda.MyAction, "MyLambda");
-            TestEstimatorCore(customEst, data);
+            IDataView transformedData;
+            // We create a temporary environment to instantiate the custom transformer. This is to ensure that we don't need the same
+            // environment for saving and loading.
+            using (var tempoEnv = new ConsoleEnvironment())
+            {
+                var customEst = new CustomMappingEstimator<MyInput, MyOutput>(tempoEnv, MyLambda.MyAction, "MyLambda");
 
-            var transformedData = customEst.Fit(data).Transform(data);
+                try
+                {
+                    TestEstimatorCore(customEst, data);
+                    Assert.True(false, "Cannot work without MEF injection");
+                }
+                catch (Exception)
+                {
+                    // REVIEW: we should have a common mechanism that will make sure this is 'our' exception thrown.
+                }
+
+                ML.PartCatalog.Catalogs.Add(new TypeCatalog(typeof(MyLambda)));
+                TestEstimatorCore(customEst, data);
+                transformedData = customEst.Fit(data).Transform(data);
+            }
 
             var inputs = transformedData.AsEnumerable<MyInput>(ML, true);
             var outputs = transformedData.AsEnumerable<MyOutput>(ML, true);
