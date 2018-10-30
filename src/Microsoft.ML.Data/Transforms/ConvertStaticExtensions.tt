@@ -24,12 +24,29 @@ namespace Microsoft.ML.Transforms
 #region For <#=typeName#> inputs.
         <#
         foreach (string columnKind in new string[] { "Scalar", "Vector", "VarVector" }) {
+        string returnType="";
+        string convertTo="";
+        switch(columnKind)
+        {
+             case "Scalar":
+                 returnType = "Float column.";
+                 convertTo = "float";
+             break;
+             case "Vector":
+                 returnType = "Column with array of floats.";
+                 convertTo = "array of floats";
+             break;
+             case "VarVector":
+                 returnType = "Column with variable array of floats.";
+                 convertTo = "variable array of floats";
+             break;
+        }
         #>
 /// <summary>
-        /// Convert to <#=columnKind=="Scalar"?"float":" array of floats"#>.
+        /// Convert to <#=convertTo#>.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns ><#=returnType#></returns>
         public static <#=columnKind#><float> ToFloat(this <#=columnKind#><<#=typeName#>> input) => new Impl<#=columnKind#><<#=typeName#>>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         <#

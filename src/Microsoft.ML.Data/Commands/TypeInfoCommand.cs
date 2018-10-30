@@ -19,9 +19,9 @@ namespace Microsoft.ML.Data.Commands
 {
     public sealed class TypeInfoCommand : ICommand
     {
-        public const string LoadName = "TypeInfo";
-        public const string Summary = "Displays information about the standard primitive " +
-            "non-key types, and conversions among them.";
+        internal const string LoadName = "TypeInfo";
+        internal const string Summary = "Displays information about the standard primitive " +
+            "non-key types, and conversions between them.";
 
         public sealed class Arguments
         {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Data.Commands
             }
         }
 
-        private sealed class KindSetComparer : IEqualityComparer<ISet<DataKind>>
+        private sealed class SetOfKindsComparer : IEqualityComparer<ISet<DataKind>>
         {
             public bool Equals(ISet<DataKind> x, ISet<DataKind> y)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Data.Commands
             using (var ch = _host.Start("Run"))
             {
                 var conv = Conversions.Instance;
-                var comp = new KindSetComparer();
+                var comp = new SetOfKindsComparer();
                 var dstToSrcMap = new Dictionary<HashSet<DataKind>, HashSet<DataKind>>(comp);
                 var srcToDstMap = new Dictionary<DataKind, HashSet<DataKind>>();
 

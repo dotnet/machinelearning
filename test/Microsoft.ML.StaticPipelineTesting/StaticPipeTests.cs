@@ -6,7 +6,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
@@ -819,7 +818,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     Assert.True(!VectorFloat[i][j] && !VectorDoulbe[i][j]);
             }
         }
-        
+
         [Fact]
         public void TextNormalizeStatic()
         {
@@ -888,12 +887,12 @@ namespace Microsoft.ML.StaticPipelineTesting
                + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(content);
 
-            var text = ml.Data.TextReader( ctx => (
-                label: ctx.LoadBool(0),
-                text: ctx.LoadText(1),
-                numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
+            var text = ml.Data.TextReader(ctx => (
+               label: ctx.LoadBool(0),
+               text: ctx.LoadText(1),
+               numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
                 dataSource, separator: ' ');
-            var data =text.Read(dataSource);
+            var data = text.Read(dataSource);
             var est = text.MakeNewEstimator().Append(r => (floatLabel: r.label.ToFloat(), txtFloat: r.text.ToFloat(), num: r.numericFeatures.ToFloat()));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

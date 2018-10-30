@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
         [Fact]
-        public void TextNormalizerWorkout()
+        public void TestConvertWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = new int[2] { 1,4 } },
                                new TestClass() { A = 2, B = new int[2] { 3,4 } }};
@@ -76,9 +76,7 @@ namespace Microsoft.ML.Tests.Transformers
             var pipe = new ConvertEstimator(Env, columns: new[] {new ConvertTransform.ColumnInfo("A", "ConvA", DataKind.R4),
                 new ConvertTransform.ColumnInfo("B", "ConvB", DataKind.R4)});
 
-
             TestEstimatorCore(pipe, dataView);
-
             var allTypesData = new[]
             {
                 new TestPrimitiveClass()
@@ -95,37 +93,51 @@ namespace Microsoft.ML.Tests.Transformers
                     AL = new ulong[]{ 0,1},
                     AM = new float[]{ 1.0f,1.0f,},
                     AN = new double[]{ 1.0d,1.0d,}
+                },
+                  new TestPrimitiveClass()
+                {
+                    AA = new []{"0", "1"},
+                    AB = new []{false, true},
+                    AC = new []{ int.MinValue, int.MaxValue},
+                    AD = new uint[]{ uint.MinValue, uint.MaxValue},
+                    AE = new byte[]{ byte.MinValue, byte.MaxValue},
+                    AF = new sbyte[]{ sbyte.MinValue, sbyte.MaxValue},
+                    AG = new short[]{ short.MinValue, short.MaxValue},
+                    AH = new ushort[]{ ushort.MinValue, ushort.MaxValue},
+                    AK = new long[]{ long.MinValue, long.MaxValue},
+                    AL = new ulong[]{ ulong.MinValue, ulong.MaxValue},
+                    AM = new float[]{ float.MinValue, float.MaxValue,},
+                    AN = new double[]{ double.MinValue, double.MaxValue,}
                 }
             };
 
-            var allTypesDataView = new ConvertEstimator(Env, columns: new[] {
-                new ConvertTransform.ColumnInfo("A", "ABL", DataKind.BL),
-                new ConvertTransform.ColumnInfo("B", "ConvB", DataKind.R4)}
+            var allTypesDataView = ComponentCreation.CreateDataView(Env, allTypesData);
+            var allTypesPipe = new ConvertEstimator(Env, columns: new[] {
+                new ConvertTransform.ColumnInfo("AA", "ConvA", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AB", "ConvB", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AC", "ConvC", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AD", "ConvD", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AE", "ConvE", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AF", "ConvF", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AG", "ConvG", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AH", "ConvH", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AK", "ConvK", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AL", "ConvL", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AM", "ConvM", DataKind.R4),
+                new ConvertTransform.ColumnInfo("AN", "ConvN", DataKind.R4)}
             );
+            TestEstimatorCore(allTypesPipe, allTypesDataView);
 
-            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(Env, ctx => (
-                    label: ctx.LoadBool(0),
-                    text: ctx.LoadText(1)), hasHeader: true);
-            var dataSource = new MultiFileSource(dataPath);
-            dataView = reader.Read(dataSource).AsDynamic;
-
-            var pipeVariations = new TextNormalizerEstimator(Env, columns: new[] { ("text", "NormText") }).Append(
-                                new TextNormalizerEstimator(Env, textCase: TextNormalizerEstimator.CaseNormalizationMode.Upper, columns: new[] { ("text", "UpperText") })).Append(
-                                new TextNormalizerEstimator(Env, keepDiacritics: true, columns: new[] { ("text", "WithDiacriticsText") })).Append(
-                                new TextNormalizerEstimator(Env, keepNumbers: false, columns: new[] { ("text", "NoNumberText") })).Append(
-                                new TextNormalizerEstimator(Env, keepPunctuations: false, columns: new[] { ("text", "NoPuncText") }));
-
-            var outputPath = GetOutputPath("Text", "Normalized.tsv");
+            var outputPath = GetOutputPath("Convert", "Types.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                var savedData = TakeFilter.Create(Env, pipeVariations.Fit(dataView).Transform(dataView), 5);
+                var savedData = TakeFilter.Create(Env, allTypesPipe.Fit(allTypesDataView).Transform(allTypesDataView), 2);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("Text", "Normalized.tsv");
+            CheckEquality("Convert", "Types.tsv");
             Done();
         }
 
@@ -159,9 +171,9 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
-            var pipe = new CategoricalEstimator(Env, new[] {
-                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Key)
+            var pipe = new OneHotEncodingEstimator(Env, new[] {
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Key)
             }).Append(new ConvertEstimator(Env, new[] {
                 new ConvertTransform.ColumnInfo("CatA", "ConvA", DataKind.R8),
                 new ConvertTransform.ColumnInfo("CatB", "ConvB", DataKind.U2)
@@ -176,17 +188,17 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema.TryGetColumnIndex("ConvA", out int colA));
             Assert.True(result.Schema.TryGetColumnIndex("ConvB", out int colB));
             var types = result.Schema.GetMetadataTypes(colA);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames,MetadataUtils.Kinds.IsNormalized });
+            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
             VBuffer<ReadOnlyMemory<char>> slots = default;
             bool normalized = default;
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
             Assert.True(slots.Length == 2);
-            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2"});
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "1", "2" });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colA, ref normalized);
             Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colB);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues});
+            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colB, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });

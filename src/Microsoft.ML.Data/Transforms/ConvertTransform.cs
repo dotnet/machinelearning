@@ -8,7 +8,6 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -49,12 +48,16 @@ namespace Microsoft.ML.Transforms
             var view = ConvertTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
+
                 Model = new TransformModel(h, view, input.Data),
                 OutputData = view
             };
         }
     }
 
+    /// <summary>
+    /// ConvertTransform allow to change underlying column type as long as we know how to convert types.
+    /// </summary>
     public sealed class ConvertTransform : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
@@ -82,16 +85,14 @@ namespace Microsoft.ML.Transforms
 
                 // We accept N:T:S where N is the new column name, T is the new type,
                 // and S is source column names.
-                string extra;
-                if (!base.TryParse(str, out extra))
+                if (!base.TryParse(str, out string extra))
                     return false;
                 if (extra == null)
                     return true;
 
-                DataKind kind;
-                if (!TypeParsingUtils.TryParseDataKind(extra, out kind, out KeyRange))
+                if (!TypeParsingUtils.TryParseDataKind(extra, out DataKind kind, out KeyRange))
                     return false;
-                ResultType = kind == default(DataKind) ? default(DataKind?) : kind;
+                ResultType = kind == default ? default(DataKind?) : kind;
                 return true;
             }
 
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "CONVERTF",
                 // verWrittenCur: 0x00010001, // Initial
-                //verWrittenCur: 0x00010002, // Added support for keyRange
+                // verWrittenCur: 0x00010002, // Added support for keyRange
                 verWrittenCur: 0x00010003, // Change to transformer leads to change of saving objects.
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
@@ -199,7 +200,7 @@ namespace Microsoft.ML.Transforms
         /// Create a <see cref="ConvertTransform"/> that takes multiple pairs of columns.
         /// </summary>
         public ConvertTransform(IHostEnvironment env, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueTransform)), GetColumnPairs(columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ConvertTransform)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
@@ -392,7 +393,7 @@ namespace Microsoft.ML.Transforms
 
                 // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
                 // re-fetched by the utils code when needed.
-                if (!Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out Delegate del, out bool identity))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out Delegate del, out bool identity))
                     return false;
 
                 typeDst = itemType;
@@ -479,6 +480,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// Convert estimator allow you take column and change it type as long as we know how to do conversion between types.
+    /// </summary>
     public sealed class ConvertEstimator : TrivialEstimator<ConvertTransform>
     {
         /// <summary>
@@ -510,7 +514,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!ConvertTransform.GetNewType(Host, col.ItemType, colInfo.Kind, colInfo.KeyRange, out PrimitiveType newType))
                     throw Host.ExceptParam(nameof(inputSchema), $"Can't convert {colInfo.Input} into {newType.ToString()}");
-                if (!Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(col.ItemType, newType, out Delegate del, out bool identity))
                     throw Host.ExceptParam(nameof(inputSchema), $"Don't know how to convert {colInfo.Input} into {newType.ToString()}");
                 var metadata = new List<SchemaShape.Column>();
                 if (col.ItemType.IsBool && newType.ItemType.IsNumber)
@@ -529,6 +533,7 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(result.Values);
         }
     }
+
     public static partial class ConvertStaticExtensions
     {
 

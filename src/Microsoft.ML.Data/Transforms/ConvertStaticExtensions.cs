@@ -16,21 +16,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<string> input) => new ImplScalar<string>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<string> input) => new ImplVector<string>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<string> input) => new ImplVarVector<string>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -39,21 +39,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<double> input) => new ImplScalar<double>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<double> input) => new ImplVector<double>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<double> input) => new ImplVarVector<double>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -62,21 +62,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<sbyte> input) => new ImplScalar<sbyte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<sbyte> input) => new ImplVector<sbyte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<sbyte> input) => new ImplVarVector<sbyte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -85,21 +85,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<short> input) => new ImplScalar<short>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<short> input) => new ImplVector<short>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<short> input) => new ImplVarVector<short>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -108,21 +108,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<int> input) => new ImplScalar<int>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<int> input) => new ImplVector<int>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<int> input) => new ImplVarVector<int>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -131,21 +131,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<long> input) => new ImplScalar<long>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<long> input) => new ImplVector<long>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<long> input) => new ImplVarVector<long>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -154,21 +154,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<byte> input) => new ImplScalar<byte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<byte> input) => new ImplVector<byte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<byte> input) => new ImplVarVector<byte>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -177,21 +177,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<ushort> input) => new ImplScalar<ushort>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<ushort> input) => new ImplVector<ushort>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<ushort> input) => new ImplVarVector<ushort>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -200,21 +200,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<uint> input) => new ImplScalar<uint>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<uint> input) => new ImplVector<uint>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<uint> input) => new ImplVarVector<uint>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -223,21 +223,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<ulong> input) => new ImplScalar<ulong>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<ulong> input) => new ImplVector<ulong>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<ulong> input) => new ImplVarVector<ulong>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
@@ -246,21 +246,21 @@ namespace Microsoft.ML.Transforms
         /// Convert to float.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Float column.</returns>
         public static Scalar<float> ToFloat(this Scalar<bool> input) => new ImplScalar<bool>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with array of floats.</returns>
         public static Vector<float> ToFloat(this Vector<bool> input) => new ImplVector<bool>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         /// <summary>
-        /// Convert to  array of floats.
+        /// Convert to variable array of floats.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float valued column.</returns>
+        /// <returns >Column with variable array of floats.</returns>
         public static VarVector<float> ToFloat(this VarVector<bool> input) => new ImplVarVector<bool>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         #endregion
