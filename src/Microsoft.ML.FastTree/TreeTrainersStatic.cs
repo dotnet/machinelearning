@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,81-133 "FastTree regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTree.cs?range=6-11,19-69 "FastTree regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
