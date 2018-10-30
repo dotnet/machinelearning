@@ -128,8 +128,8 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">The name of the column containing the data to transform.</param>
-            /// <param name="output">The column name of the generated output column. Null means <paramref name="input"/> is replaced.</param>
+            /// <param name="input">Name of the input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
             /// <param name="kind">Whitening kind (PCA/ZCA).</param>
             /// <param name="eps">Scaling regularizer.</param>
             /// <param name="maxRows">Max number of rows.</param>
@@ -278,14 +278,6 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        /// <summary>
-        /// Constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
-            : this(env, inputData, GetColumnInfos(args))
-        {
-        }
-
         private WhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), ctx)
         {
@@ -313,6 +305,11 @@ namespace Microsoft.ML.Transforms
                 if (_infos[i].SaveInv)
                     _invModels[i] = ctx.Reader.ReadFloatArray();
             }
+        }
+
+        internal WhiteningTransform(IHostEnvironment env, Arguments args, IDataView inputData)
+            : this(env, inputData, GetColumnInfos(args))
+        {
         }
 
         // Factory method for SignatureLoadModel
@@ -733,8 +730,8 @@ namespace Microsoft.ML.Transforms
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
@@ -823,7 +820,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied to.</param>
+        /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
@@ -835,7 +832,7 @@ namespace Microsoft.ML.Transforms
             int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied to.</param>
+        /// <param name="input">The column to which the transform will be applied.</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
