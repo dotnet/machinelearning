@@ -519,7 +519,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 if(!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
                 {
-                    return false;        
+                    return false;
                 }
             }
                 
