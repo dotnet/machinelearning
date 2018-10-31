@@ -6,9 +6,12 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static Microsoft.ML.Transforms.DnnImageFeaturizerEstimator;
 
 namespace Microsoft.ML.Transforms
 {
@@ -52,7 +55,7 @@ namespace Microsoft.ML.Transforms
             { "alexnet.onnx", "AlexNet" },
         };
 
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, string input, string output, DnnImageModel model)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, DnnImageModel model, string input, string output)
         {
             _host = env.Register(nameof(DnnImageFeaturizerEstimator));
             _modelChain = new EstimatorChain<OnnxTransform>();
@@ -92,6 +95,48 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             return _modelChain.GetOutputSchema(inputSchema);
+        }
+    }
+
+    public static class DnnImageFeaturizerStaticExtensions
+    {
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input, DnnImageModel model)
+                : base(new Reconciler(model), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly DnnImageModel _model;
+
+            public Reconciler(DnnImageModel model)
+            {
+                _model = model;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutColumn)toOutput[0];
+                return new DnnImageFeaturizerEstimator(env, _model, inputNames[outCol.Input], outputNames[outCol]);
+            }
+        }
+
+        public static Vector<float> DnnImageFeaturizer(this Vector<float> input, DnnImageModel model)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutColumn(input, model);
         }
     }
 }
