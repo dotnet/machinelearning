@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
 using System.Threading;

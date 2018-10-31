@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Text;
-using System.Threading;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.IO;
+using System.Text;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Categorical
 {
     public sealed partial class TermTransform
     {
@@ -63,9 +64,9 @@ namespace Microsoft.ML.Runtime.Data
                 // If this is a type with NA values, we should ignore those NA values for the purpose
                 // of building our term dictionary. For the other types (practically, only the UX types),
                 // we should ignore nothing.
-                RefPredicate<T> mapsToMissing;
+                InPredicate<T> mapsToMissing;
                 if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
-                    mapsToMissing = (ref T val) => false;
+                    mapsToMissing = (in T val) => false;
                 return new Impl<T>(type, mapsToMissing, sorted);
             }
 
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Because we can't know the actual mapping till we finish.
                 private readonly HashArray<T> _values;
-                private readonly RefPredicate<T> _mapsToMissing;
+                private readonly InPredicate<T> _mapsToMissing;
                 private readonly bool _sort;
 
                 public override int Count
@@ -158,7 +159,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// to the missing value. If this returns true for a value then we do not attempt
                 /// to store it in the map.</param>
                 /// <param name="sort">Indicates whether to sort mapping IDs by input values.</param>
-                public Impl(PrimitiveType type, RefPredicate<T> mapsToMissing, bool sort)
+                public Impl(PrimitiveType type, InPredicate<T> mapsToMissing, bool sort)
                     : base(type)
                 {
                     Contracts.Assert(type.RawType == typeof(T));
@@ -171,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override bool TryAdd(ref T val)
                 {
-                    return !_mapsToMissing(ref val) && _values.TryAdd(val);
+                    return !_mapsToMissing(in val) && _values.TryAdd(val);
                 }
 
                 public override TermMap Finish()
@@ -204,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             public override void ParseAddTermArg(ref ReadOnlyMemory<char> terms, IChannel ch)
             {
                 T val;
-                var tryParse = Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
@@ -212,10 +213,10 @@ namespace Microsoft.ML.Runtime.Data
                     term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'terms' specification");
-                    else if (!tryParse(ref term, out val))
-                        ch.Warning("Item '{0}' ignored in 'terms' specification since it could not be parsed as '{1}'", term, ItemType);
+                    else if (!tryParse(in term, out val))
+                        throw ch.Except($"Item '{term}' in 'terms' specification could not be parsed as '{ItemType}'");
                     else if (!TryAdd(ref val))
-                        ch.Warning("Duplicate item '{0}' ignored in 'terms' specification", term);
+                        ch.Warning($"Duplicate item '{term}' ignored in 'terms' specification", term);
                 }
 
                 if (Count == 0)
@@ -230,14 +231,14 @@ namespace Microsoft.ML.Runtime.Data
             public override void ParseAddTermArg(string[] terms, IChannel ch)
             {
                 T val;
-                var tryParse = Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();
                     term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'term' specification");
-                    else if (!tryParse(ref term, out val))
+                    else if (!tryParse(in term, out val))
                         ch.Warning("Item '{0}' ignored in 'term' specification since it could not be parsed as '{1}'", term, ItemType);
                     else if (!TryAdd(ref val))
                         ch.Warning("Duplicate item '{0}' ignored in 'term' specification", term);
@@ -746,7 +747,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     writer.WriteLine("# Number of terms of type '{0}' = {1}", ItemType, Count);
                     StringBuilder sb = null;
-                    var stringMapper = Conversion.Conversions.Instance.GetStringConversion<T>(ItemType);
+                    var stringMapper = Runtime.Data.Conversion.Conversions.Instance.GetStringConversion<T>(ItemType);
                     for (int i = 0; i < _values.Count; ++i)
                     {
                         T val = _values.GetItem(i);
@@ -1045,7 +1046,7 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     if (IsTextMetadata && !TypedMap.ItemType.IsText)
                     {
-                        var conv = Conversion.Conversions.Instance;
+                        var conv = Runtime.Data.Conversion.Conversions.Instance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
 
                         ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
@@ -1105,7 +1106,7 @@ namespace Microsoft.ML.Runtime.Data
                     var srcType = TypedMap.ItemType.AsKey;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
-                    var convInst = Conversion.Conversions.Instance;
+                    var convInst = Runtime.Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try to pass along the metadata.
@@ -1186,7 +1187,7 @@ namespace Microsoft.ML.Runtime.Data
                     var srcType = TypedMap.ItemType.AsKey;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
-                    var convInst = Conversion.Conversions.Instance;
+                    var convInst = Runtime.Data.Conversion.Conversions.Instance;
                     ValueMapper<T, uint> conv;
                     bool identity;
                     // If we can't convert this type to U4, don't try.

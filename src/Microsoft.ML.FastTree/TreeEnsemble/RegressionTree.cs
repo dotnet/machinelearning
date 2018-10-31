@@ -48,7 +48,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public int[][] CategoricalSplitFeatures;
         /// <summary>
         /// For a given categorical feature that is chosen as a split feature for a node, this
-        /// array contains it's start and end range in the input feature vector at prediction time.
+        /// array contains its start and end range in the input feature vector at prediction time.
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
         // These are the thresholds based on the binned values of the raw features.

@@ -89,7 +89,7 @@
       [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
       [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
       [20] 'pneumonia'
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 1 columns:
   Features: Vec<R4, 21>
     Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21

@@ -7,7 +7,7 @@
   Anomaly: Vec<R8, 3>
     Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 3 columns:
   Features: R4
   Anomaly: Vec<R8, 3>
@@ -28,7 +28,7 @@
   Anomaly2: Vec<R8, 3>
     Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 5 columns:
   Features: R4
   Anomaly: Vec<R8, 3>
