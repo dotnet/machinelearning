@@ -18,6 +18,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
         TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
-        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {
@@ -130,8 +131,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
-            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
 
             Initialize(env);
         }
@@ -149,8 +152,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
-            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
 
             Initialize(env);
         }
@@ -1388,16 +1393,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group != null)
-                    {
-                        var convArgs = new ConvertTransform.Arguments();
-                        var convCol = new ConvertTransform.Column
-                        {
-                            ResultType = DataKind.U8
-                        };
-                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
-                        convArgs.Column = new ConvertTransform.Column[] { convCol };
-                        data = new ConvertTransform(Host, convArgs, data);
-                    }
+                        data = new ConvertingTransform(Host, new ConvertingTransform.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.

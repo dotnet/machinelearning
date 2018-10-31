@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms.Projections
                 modelSignature: "RFF FUNC",
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00010002, // Get rid of writing float size in model context
-                verReadableCur: 0x00010001,
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(RffTransform).Assembly.FullName);
