@@ -99,11 +99,11 @@ namespace Microsoft.ML.Runtime.RunTests
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                transformer.SaveTo(Env, fs);
+                ML.Model.Save(transformer, fs);
 
             ITransformer loadedTransformer;
             using (var fs = File.OpenRead(modelPath))
-                loadedTransformer = TransformerChain.LoadFrom(Env, fs);
+                loadedTransformer = ML.Model.Load(fs);
             DeleteOutputPath(modelPath);
 
             // Run on train data.
