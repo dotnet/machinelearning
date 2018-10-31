@@ -125,24 +125,17 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var writer = OpenWriter(pathOut))
             using (Env.RedirectChannelOutput(writer, writer))
             {
-                try
-                {
-                    TestCore(pathData, true,
-                        new[] {
+                TestCore(pathData, true,
+                    new[] {
                             "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                             string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
                             string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
-                        }, suffix: "4");
-                    Assert.True(false);
-                }
-                catch (Exception e)
-                {
-                    while (e.InnerException != null)
-                        e = e.InnerException;
-                    Assert.Equal("Could not parse value 1a in line 5, column Value", e.Message);
-                }
+                    }, suffix: "4");
+                writer.WriteLine(ProgressLogLine);
+                Env.PrintProgress();
             }
+            CheckEqualityNormalized("SavePipe", name);
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
             File.WriteAllLines(mappingPathData,

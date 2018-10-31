@@ -565,7 +565,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
         }
 
-        public TryParseMapper<TDst> GetParseConversion<TDst>(ColumnType typeDst)
+        public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.IsStandardScalar || typeDst.IsKey, nameof(typeDst),
@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (min > uu || uu > max)
             {
                 dst = 0;
-                return true;
+                return false;
             }
 
             dst = uu - min + 1;

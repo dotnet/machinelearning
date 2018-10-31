@@ -389,7 +389,7 @@ namespace Microsoft.ML.Runtime.Data
                             // computing max and min.
                             if (Conversions.Instance.TryParseKey(in txt, 1, ulong.MaxValue, out res))
                             {
-                                if (res < min)
+                                if (res < min && res != 0)
                                     min = res;
                                 if (res > max)
                                     max = res;
