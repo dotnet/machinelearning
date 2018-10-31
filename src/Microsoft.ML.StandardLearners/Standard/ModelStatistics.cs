@@ -83,13 +83,13 @@ namespace Microsoft.ML.Runtime.Learners
         // of the variance-covariance matrix.
         private VBuffer<Single>? _coeffStdError;
 
-        public long TrainingExampleCount { get { return _trainingExampleCount; } }
+        public long TrainingExampleCount => _trainingExampleCount;
 
-        public Single Deviance { get { return _deviance; } }
+        public Single Deviance => _deviance;
 
-        public Single NullDeviance { get { return _nullDeviance; } }
+        public Single NullDeviance => _nullDeviance;
 
-        public int ParametersCount { get { return _paramCount; } }
+        public int ParametersCount => _paramCount;
 
         public Double[] Hessian;
 

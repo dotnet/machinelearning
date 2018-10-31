@@ -136,7 +136,6 @@ namespace Microsoft.ML.Runtime.Learners
         private VBuffer<float>[] _features;
         private float[] _labels;
         private float[] _weights;
-        protected int NumParams;
 
         // Stores the bounds of the chunk to be used by each thread. The 0th slot is 0. The length
         // is one more than the number of threads to use.
@@ -146,26 +145,6 @@ namespace Microsoft.ML.Runtime.Learners
         // Working buffers allocated lazily.
         private VBuffer<float>[] _localGradients;
         private float[] _localLosses;
-
-        /// <summary>
-        /// Gets the number of useful training rows.
-        /// </summary>
-        public long GetNumGoodRows => NumGoodRows;
-
-        /// <summary>
-        /// Gets the L2weight
-        /// </summary>
-        public float GetL2Weight => L2Weight;
-
-        /// <summary>
-        /// Gets the number of parameters selected
-        /// </summary>
-        public int GetNumSelectedParams => NumParams;
-
-        /// <summary>
-        /// Gets the training weights.
-        /// </summary>
-        public VBuffer<float> GetWeights => CurrentWeights;
 
         // REVIEW: It's pointless to request caching when we're going to load everything into
         // memory, that is, when using multiple threads. So should caching not be requested?
@@ -574,16 +553,16 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Assert(CurrentWeights.Length == BiasCount + WeightCount);
 
-            NumParams = BiasCount;
+            int numParams = BiasCount;
             if ((L1Weight > 0 && !Quiet) || ShowTrainingStats)
             {
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) NumParams++; });
+                VBufferUtils.ForEachDefined(ref CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) numParams++; });
                 if (L1Weight > 0 && !Quiet)
-                    ch.Info("L1 regularization selected {0} of {1} weights.", NumParams, BiasCount + WeightCount);
+                    ch.Info("L1 regularization selected {0} of {1} weights.", numParams, BiasCount + WeightCount);
             }
 
             if (ShowTrainingStats)
-                ComputeTrainingStatistics(ch, cursorFactory, loss);
+                ComputeTrainingStatistics(ch, cursorFactory, loss, numParams);
         }
 
         // Ensure that the bias portion of vec is represented in vec.
@@ -599,7 +578,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected abstract float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
             ref VBuffer<float> xDense, ref VBuffer<float> grad, ref float[] scratch);
 
-        protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss);
+        protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams);
 
         protected abstract void ProcessPriorDistribution(float label, float weight);
         /// <summary>

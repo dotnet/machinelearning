@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Xunit;
@@ -44,20 +45,22 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            var trainer = new LogisticRegression(Env, "Features", "Label", advancedSettings: s=> { s.ShowTrainingStats = true; });
-            pipe = pipe.Append(trainer);
-            var transformer = pipe.Fit(dataView);
+            pipe = pipe.Append(new LogisticRegression(Env, "Features", "Label", advancedSettings: s => { s.ShowTrainingStats = true; }));
+            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
 
-            LinearModelStatistics.TryGetBiasStatistics(trainer.Stats, 2, out float stdError, out float zScore, out float pValue);
+            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryPredictor;
+            var stats = linearModel.Statistics;
+
+            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
             Assert.Equal(0.0f, stdError);
             Assert.Equal(0.0f, zScore);
             Assert.Equal(0.0f, pValue);
 
             using (var ch = Env.Start("Calcuating STD for LR."))
-                trainer.ComputeExtendedTrainingStatistics(ch);
+                linearModel.ComputeExtendedTrainingStatistics(ch);
 
-            LinearModelStatistics.TryGetBiasStatistics(trainer.Stats, 2, out stdError, out zScore, out pValue);
+            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out stdError, out zScore, out pValue);
 
             Assert.True(stdError > 0);
             Assert.True(zScore > 0);
