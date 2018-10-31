@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
 
     
     <NativeAssemblyReference Include="CpuMathNative" />
