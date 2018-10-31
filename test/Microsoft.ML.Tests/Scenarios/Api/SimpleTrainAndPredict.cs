@@ -4,11 +4,11 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Xunit;
-using System.Linq;
-using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Text;
+using System.Linq;
+using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Start with a dataset in a text file. Run text featurization on text values. 
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
-        /// (e.g., the prediction does not happen over a file as it did during training).
+        /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
         public void SimpleTrainAndPredict()
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
 
                 // Train
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
@@ -61,21 +61,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-        private static TextTransform.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
+        private static TextFeaturizingEstimator.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
         {
-            return new TextTransform.Arguments()
+            return new TextFeaturizingEstimator.Arguments()
             {
-                Column = new TextTransform.Column
+                Column = new TextFeaturizingEstimator.Column
                 {
                     Name = "Features",
                     Source = new[] { "SentimentText" }
                 },
-                KeepDiacritics = false,
-                KeepPunctuations = false,
-                TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                 OutputTokens = true,
-                StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
+                KeepPunctuations=false,
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                VectorNormalizer = normalize ? TextFeaturizingEstimator.TextNormKind.L2 : TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
             };

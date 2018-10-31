@@ -4,13 +4,15 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {
-    [Config(typeof(PredictConfig))]
     public class PredictionEngineBench
     {
         private IrisData _irisExample;
@@ -52,10 +54,10 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_irisDataPath));
-                
-                var pipeline = new ConcatEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
+                IDataView data = reader.Read(_irisDataPath);
+
+                var pipeline = new ColumnConcatenatingEstimator (env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                    .Append(new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -87,10 +89,10 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_sentimentDataPath));
+                IDataView data = reader.Read(_sentimentDataPath);
 
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
+                var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
+                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -122,9 +124,9 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_breastCancerDataPath));
+                IDataView data = reader.Read(_breastCancerDataPath);
 
-                var pipeline = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label");
+                var pipeline = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 
                 var model = pipeline.Fit(data);
 
@@ -162,9 +164,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class SentimentData
     {
-        [ColumnName("Label")]
+        [ColumnName("Label"), Column("0")]
         public bool Sentiment;
 
+        [Column("1")]
         public string SentimentText;
     }
 
@@ -178,10 +181,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class BreastCancerData
     {
-        [ColumnName("Label")]
+        [ColumnName("Label"), Column("0")]
         public bool Label;
 
-        [ColumnName("Features"), VectorType(9)]
+        [ColumnName("Features"), Column("1-9"), VectorType(9)]
         public float[] Features;
     }
 

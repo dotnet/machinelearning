@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ColumnType OutputType => _mapper.OutputType;
         public ColumnType DistType => NumberType.Float;
         public bool CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
-        public bool CanSaveOnnx => (_mapper as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<Float> predictor, ICalibrator calibrator)
             : base(env, name, predictor, calibrator)
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return false;
 
             var calibrator = Calibrator as ISingleCanSaveOnnx;
-            if (!(calibrator?.CanSaveOnnx == true && calibrator.SaveAsOnnx(ctx, new[] { outputNames[1], outputNames[2] }, featureColumnName)))
+            if (!(calibrator?.CanSaveOnnx(ctx) == true && calibrator.SaveAsOnnx(ctx, new[] { outputNames[1], outputNames[2] }, featureColumnName)))
                 ctx.RemoveVariable(outputNames[1], true);
 
             return true;
@@ -524,8 +524,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             public ISchemaBindableMapper Bindable => _parent;
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
-            public ISchema InputSchema => _predictor.InputSchema;
-            public ISchema Schema { get; }
+            public Schema InputSchema => _predictor.InputSchema;
+            public Schema Schema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                Schema = new BinaryClassifierSchema();
+                Schema = Schema.Create(new BinaryClassifierSchema());
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// </summary>
         public bool CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx => (_bindable as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindableCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Single> predictor, ICalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
@@ -668,7 +668,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
             Host.CheckValue(schema, nameof(schema));
-            Host.Check(CanSaveOnnx, "Called despite not being savable");
+            Host.Check(CanSaveOnnx(ctx), "Called despite not being savable");
             return false;
         }
 
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public Double ParamA { get; }
         public Double ParamB { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)
         {
@@ -1929,8 +1929,6 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     calibratedPredictor =
                         CalibratorUtils.TrainCalibrator(host, ch, calibratorTrainer, input.MaxRows, predictor, data);
                 }
-                ch.Done();
-
                 return new TOut() { PredictorModel = new PredictorModel(host, data, input.Data, calibratedPredictor) };
             }
         }

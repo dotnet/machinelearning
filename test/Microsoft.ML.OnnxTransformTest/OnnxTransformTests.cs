@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestSimpleCase()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestOldSavingAndLoading()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         public void OnnxStatic()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tests
                 var data = TextLoader.CreateReader(env, ctx => (
                     imagePath: ctx.LoadText(0),
                     name: ctx.LoadText(1)))
-                    .Read(new MultiFileSource(dataFile));
+                    .Read(dataFile);
 
                 // Note that CamelCase column names are there to match the TF graph node names.
                 var pipe = data.MakeNewEstimator()
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

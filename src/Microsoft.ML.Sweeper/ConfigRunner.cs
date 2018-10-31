@@ -107,7 +107,10 @@ namespace Microsoft.ML.Runtime.Sweeper
             if (Exe == null || Exe.EndsWith("maml", StringComparison.OrdinalIgnoreCase) ||
                 Exe.EndsWith("maml.exe", StringComparison.OrdinalIgnoreCase))
             {
+                string currentDirectory = Path.GetDirectoryName(typeof(ExeConfigRunnerBase).Module.FullyQualifiedName);
+
                 using (var ch = Host.Start("Finish"))
+                using (AssemblyLoadingUtils.CreateAssemblyRegistrar(Host, currentDirectory))
                 {
                     var runs = RunNums.ToArray();
                     var args = Utils.BuildArray(RunNums.Count + 2,
@@ -120,10 +123,9 @@ namespace Microsoft.ML.Runtime.Sweeper
                             return string.Format("{{{0}}}", GetFilePath(runs[i], "out"));
                         });
 
-                    ResultProcessorInternal.ResultProcessor.Main (args);
+                    ResultProcessorInternal.ResultProcessor.Main(args);
 
                     ch.Info(@"The summary of the run results has been saved to the file {0}\{1}.summary.txt", OutputFolder, Prefix);
-                    ch.Done();
                 }
             }
         }
@@ -165,9 +167,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 for (int i = 0; i < sweeps.Length; i++)
                     ch.Info("Parameter set: {0}", string.Join(", ", sweeps[i].Select(p => string.Format("{0}:{1}", p.Name, p.ValueText))));
 
-                var res = RunConfigsCore(sweeps, ch, min);
-                ch.Done();
-                return res;
+               return RunConfigsCore(sweeps, ch, min);
             }
         }
 

@@ -362,9 +362,14 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
         /// </summary>
-        /// <param name="labelColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeU4ScalarLabel(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        /// <param name="columnName">name of the weight column</param>
+        public static SchemaShape.Column MakeU4ScalarColumn(string columnName)
+        {
+            if (columnName == null)
+                return null;
+
+            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        }
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the feature column.
@@ -377,43 +382,12 @@ namespace Microsoft.ML.Runtime.Training
         /// The <see cref="SchemaShape.Column"/> for the weight column.
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
+        /// <param name="isExplicit">whether the column is implicitly, or explicitly defined</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
         {
-            if (weightColumn == null)
+            if (weightColumn == null || !isExplicit)
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        /// <summary>
-        /// Check that the label, feature, weights, groupId column names are not supplied in the args of the constructor, through the advancedSettings parameter,
-        /// for cases when the public constructor is called.
-        /// The recommendation is to set the column names directly.
-        /// </summary>
-        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithGroupId args)
-        {
-            Action<string, string> checkArgColName = (defaultColName, argValue) =>
-            {
-                if (argValue != defaultColName)
-                    throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
-            };
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            checkArgColName(DefaultColumnNames.Label, args.LabelColumn);
-            checkArgColName(DefaultColumnNames.Features, args.FeatureColumn);
-            checkArgColName(DefaultColumnNames.Weight, args.WeightColumn);
-
-            if (args.GroupIdColumn != null)
-                checkArgColName(DefaultColumnNames.GroupId, args.GroupIdColumn);
-        }
-
-        /// <summary>
-        /// If, after applying the advancedArgs delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user.
-        /// </summary>
-        public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
-        {
-            if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
-                channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 

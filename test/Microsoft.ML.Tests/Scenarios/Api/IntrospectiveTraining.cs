@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using System.Collections.Generic;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         ///  *) The tree ensemble learners, I should be able to inspect the trees.
         ///  *) The LDA transform, I should be able to inspect the topics.
         ///  I view it as essential from a usability perspective that this be discoverable to someone without 
-        ///  having to read documentation.E.g.: if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
+        ///  having to read documentation. For example, if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
         ///  exact signature, just giving the idea), then if I were to type lda.
         ///  In Visual Studio, one of the auto-complete targets should be something like GetTopics.
         /// </summary>

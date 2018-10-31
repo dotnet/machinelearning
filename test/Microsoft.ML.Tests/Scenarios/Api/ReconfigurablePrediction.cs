@@ -5,8 +5,9 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(data));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
 
                 // Train
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

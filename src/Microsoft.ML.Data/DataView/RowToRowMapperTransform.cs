@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
@@ -17,20 +18,6 @@ using Microsoft.ML.Runtime.Model.Pfa;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class RowMapperColumnInfo
-    {
-        public readonly string Name;
-        public readonly ColumnType ColType;
-        public readonly IRow Metadata;
-
-        public RowMapperColumnInfo(string name, ColumnType type, IRow metadata)
-        {
-            Name = name;
-            ColType = type;
-            Metadata = metadata;
-        }
-    }
-
     /// <summary>
     /// This interface is used to create a <see cref="RowToRowMapperTransform"/>.
     /// Implementations should be given an <see cref="ISchema"/> in their constructor, and should have a
@@ -54,75 +41,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
-        RowMapperColumnInfo[] GetOutputColumns();
+        Schema.Column[] GetOutputColumns();
     }
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, ISchema schema);
-
-    public abstract class MetadataInfo
-    {
-        public readonly ColumnType Type;
-
-        protected MetadataInfo(ColumnType type)
-        {
-            Contracts.AssertValueOrNull(type);
-            Type = type;
-        }
-    }
-
-    public sealed class MetadataInfo<T> : MetadataInfo
-    {
-        public readonly MetadataUtils.MetadataGetter<T> Getter;
-
-        public MetadataInfo(ColumnType type, MetadataUtils.MetadataGetter<T> getter)
-            : base(type)
-        {
-            Getter = getter;
-        }
-    }
-
-    public sealed class ColumnMetadataInfo : RowColumnUtils.DefaultCounted, IRow
-    {
-        public readonly string Name;
-        private readonly List<(string Kind, MetadataInfo Metadata)> _infos;
-        private SimpleSchema _schema;
-
-        public ColumnMetadataInfo(string name)
-        {
-            Contracts.CheckNonWhiteSpace(name, nameof(name));
-
-            Name = name;
-            _infos = new List<(string Name, MetadataInfo Metadata)>();
-            _schema = new SimpleSchema(null);
-        }
-
-        public void Add(string kind, MetadataInfo info)
-        {
-            if (_infos.Any(x => x.Kind == kind))
-                throw Contracts.Except("Already contains metadata of kind '{0}'", kind);
-            _infos.Add((kind, info));
-            _schema = new SimpleSchema(null, _infos.Select(x => new KeyValuePair<string, ColumnType>(x.Kind, x.Metadata.Type)).ToArray());
-        }
-
-        public ISchema Schema => _schema;
-
-        public ValueGetter<TValue> GetGetter<TValue>(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < _infos.Count, nameof(col));
-            var typedMeta = _infos[col].Metadata as MetadataInfo<TValue>;
-            if (typedMeta == null)
-                throw MetadataUtils.ExceptGetMetadata();
-
-            var getter = typedMeta.Getter;
-            ValueGetter<TValue> result = (ref TValue value) =>
-            {
-                getter(col, ref value);
-            };
-            return result;
-        }
-
-        public bool IsColumnActive(int col) => true;
-    }
 
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.
@@ -132,105 +54,8 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa
     {
-        private sealed class Bindings : ColumnBindingsBase
-        {
-            private readonly IRowMapper _mapper;
-            public readonly RowMapperColumnInfo[] OutputColInfos;
-
-            public Bindings(ISchema inputSchema, IRowMapper mapper)
-                : base(inputSchema, true, Contracts.CheckRef(mapper, nameof(mapper)).GetOutputColumns().Select(info => info.Name).ToArray())
-            {
-                Contracts.AssertValue(mapper);
-                _mapper = mapper;
-                OutputColInfos = _mapper.GetOutputColumns().ToArray();
-            }
-
-            protected override ColumnType GetColumnTypeCore(int iinfo)
-            {
-                Contracts.Assert(0 <= iinfo & iinfo < OutputColInfos.Length);
-                return OutputColInfos[iinfo].ColType;
-            }
-
-            /// <summary>
-            /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
-            /// a predicate for the needed active input columns, and a predicate for the needed active
-            /// output columns.
-            /// </summary>
-            public bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
-            {
-                var active = GetActive(predicate);
-                Contracts.Assert(active.Length == ColumnCount);
-
-                var activeInput = GetActiveInput(predicate);
-                Contracts.Assert(activeInput.Length == Input.ColumnCount);
-
-                // Get a predicate that determines which outputs are active.
-                var predicateOut = GetActiveOutputColumns(active);
-
-                // Now map those to active input columns.
-                var predicateIn = _mapper.GetDependencies(predicateOut);
-
-                // Combine the two sets of input columns.
-                predicateInput =
-                    col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateIn(col));
-
-                return active;
-            }
-
-            public Func<int, bool> GetActiveOutputColumns(bool[] active)
-            {
-                Contracts.AssertValue(active);
-                Contracts.Assert(active.Length == ColumnCount);
-
-                return
-                    col =>
-                    {
-                        Contracts.Assert(0 <= col && col < OutputColInfos.Length);
-                        return 0 <= col && col < OutputColInfos.Length && active[MapIinfoToCol(col)];
-                    };
-            }
-
-            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
-            {
-                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
-                // REVIEW: An IRow can have collisions in names, whereas there is no notion of this in metadata types.
-                // Since I intend to remove this soon anyway and the number of usages of this will be very low, I am just going
-                // to tolerate the potential for strangeness here, since it will practically never arise until we reorganize
-                // the whole thing.
-                var meta = OutputColInfos[iinfo].Metadata;
-                if (meta == null)
-                    yield break;
-                var schema = meta.Schema;
-                for (int i = 0; i < schema.ColumnCount; ++i)
-                    yield return new KeyValuePair<string, ColumnType>(schema.GetColumnName(i), schema.GetColumnType(i));
-            }
-
-            protected override ColumnType GetMetadataTypeCore(string kind, int iinfo)
-            {
-                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
-                var meta = OutputColInfos[iinfo].Metadata;
-                int mcol;
-                if (meta == null || !meta.Schema.TryGetColumnIndex(kind, out mcol))
-                    return null;
-                return meta.Schema.GetColumnType(mcol);
-            }
-
-            protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
-            {
-                Contracts.Assert(0 <= iinfo && iinfo < OutputColInfos.Length);
-                var meta = OutputColInfos[iinfo].Metadata;
-                int mcol;
-                if (meta == null || !meta.Schema.TryGetColumnIndex(kind, out mcol))
-                    throw MetadataUtils.ExceptGetMetadata();
-                // REVIEW: Again, since this is a shim, not going to sweat the potential for inappropriate exception message.
-                meta.GetGetter<TValue>(mcol)(ref value);
-            }
-
-            public bool TryGetInfoIndex(string name, out int iinfo) => TryGetColumnIndexCore(name, out iinfo);
-        }
-
         private readonly IRowMapper _mapper;
-        private readonly Bindings _bindings;
+        private readonly ColumnBindings _bindings;
 
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
@@ -245,9 +70,9 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.Schema;
 
-        public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
+        public bool CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
@@ -256,14 +81,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new Bindings(input.Schema, mapper);
+            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
         }
 
-        public static ISchema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
-            return new Bindings(inputSchema, mapper);
+            return new ColumnBindings(Schema.Create(inputSchema), mapper.GetOutputColumns()).Schema;
         }
 
         private RowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -273,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
             // _mapper
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new Bindings(input.Schema, _mapper);
+            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -298,10 +123,50 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(_mapper, "Mapper");
         }
 
+        /// <summary>
+        /// Produces the set of active columns for the data view (as a bool[] of length bindings.ColumnCount),
+        /// a predicate for the needed active input columns, and a predicate for the needed active
+        /// output columns.
+        /// </summary>
+        private bool[] GetActive(Func<int, bool> predicate, out Func<int, bool> predicateInput)
+        {
+            int n = _bindings.Schema.ColumnCount;
+            var active = Utils.BuildArray(n, predicate);
+            Contracts.Assert(active.Length == n);
+
+            var activeInput = _bindings.GetActiveInput(predicate);
+            Contracts.Assert(activeInput.Length == _bindings.InputSchema.ColumnCount);
+
+            // Get a predicate that determines which outputs are active.
+            var predicateOut = GetActiveOutputColumns(active);
+
+            // Now map those to active input columns.
+            var predicateIn = _mapper.GetDependencies(predicateOut);
+
+            // Combine the two sets of input columns.
+            predicateInput =
+                col => 0 <= col && col < activeInput.Length && (activeInput[col] || predicateIn(col));
+
+            return active;
+        }
+
+        private Func<int, bool> GetActiveOutputColumns(bool[] active)
+        {
+            Contracts.AssertValue(active);
+            Contracts.Assert(active.Length == _bindings.Schema.ColumnCount);
+
+            return
+                col =>
+                {
+                    Contracts.Assert(0 <= col && col < _bindings.AddedColumnIndices.Count);
+                    return 0 <= col && col < _bindings.AddedColumnIndices.Count && active[_bindings.AddedColumnIndices[col]];
+                };
+        }
+
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
             Host.AssertValue(predicate, "predicate");
-            if (_bindings.AnyNewColumnsActive(predicate))
+            if (_bindings.AddedColumnIndices.Any(predicate))
                 return true;
             return null;
         }
@@ -309,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
         {
             Func<int, bool> predicateInput;
-            var active = _bindings.GetActive(predicate, out predicateInput);
+            var active = GetActive(predicate, out predicateInput);
             return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
@@ -319,12 +184,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValueOrNull(rand);
 
             Func<int, bool> predicateInput;
-            var active = _bindings.GetActive(predicate, out predicateInput);
+            var active = GetActive(predicate, out predicateInput);
 
             var inputs = Source.GetRowCursorSet(out consolidator, predicateInput, n, rand);
             Host.AssertNonEmpty(inputs);
 
-            if (inputs.Length == 1 && n > 1 && _bindings.AnyNewColumnsActive(predicate))
+            if (inputs.Length == 1 && n > 1 && _bindings.AddedColumnIndices.Any(predicate))
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
@@ -339,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
             {
-                Host.Check(onnx.CanSaveOnnx, "Cannot be saved as ONNX.");
+                Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
                 onnx.SaveAsOnnx(ctx);
             }
         }
@@ -357,11 +222,11 @@ namespace Microsoft.ML.Runtime.Data
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             Func<int, bool> predicateInput;
-            _bindings.GetActive(predicate, out predicateInput);
+            GetActive(predicate, out predicateInput);
             return predicateInput;
         }
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -376,10 +241,9 @@ namespace Microsoft.ML.Runtime.Data
                 var activeArr = new bool[Schema.ColumnCount];
                 for (int i = 0; i < Schema.ColumnCount; i++)
                     activeArr[i] = active(i);
-                var pred = _bindings.GetActiveOutputColumns(activeArr);
+                var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                ch.Done();
                 return new Row(input, this, Schema, getters);
             }
         }
@@ -395,9 +259,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public long Position { get { return _input.Position; } }
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
 
-            public Row(IRow input, RowToRowMapperTransform parent, ISchema schema, Delegate[] getters)
+            public Row(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
@@ -435,15 +299,15 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly Delegate[] _getters;
             private readonly bool[] _active;
-            private readonly Bindings _bindings;
+            private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.Schema;
 
             public RowCursor(IChannelProvider provider, IRowCursor input, RowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
             {
-                var pred = parent._bindings.GetActiveOutputColumns(active);
+                var pred = parent.GetActiveOutputColumns(active);
                 _getters = parent._mapper.CreateGetters(input, pred, out _disposer);
                 _active = active;
                 _bindings = parent._bindings;
@@ -451,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < _bindings.ColumnCount);
+                Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
                 return _active[col];
             }
 

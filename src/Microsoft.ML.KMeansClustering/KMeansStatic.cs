@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
@@ -13,7 +13,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
     /// </summary>
-    public static class ClusteringTrainers
+    public static class KMeansClusteringExtensions
     {
         /// <summary>
         /// KMeans <see cref="ClusteringContext"/> extension method.
@@ -24,8 +24,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>

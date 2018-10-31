@@ -10,11 +10,13 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A convenience class for concatenating several schemas together.
-    /// This would be necessary when combining IDataViews through any type of combining operation, e.g. zip.
+    /// This would be necessary when combining IDataViews through any type of combining operation, for example, zip.
     /// </summary>
     internal sealed class CompositeSchema : ISchema
     {
         private readonly ISchema[] _sources;
+
+        public Schema AsSchema { get; }
 
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
@@ -31,6 +33,7 @@ namespace Microsoft.ML.Runtime.Data
                 var schema = sources[i];
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.ColumnCount;
             }
+            AsSchema = Schema.Create(this);
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];

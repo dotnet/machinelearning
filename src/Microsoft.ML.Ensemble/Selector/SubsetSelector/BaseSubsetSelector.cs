@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
 {
@@ -87,7 +88,6 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
                 }
 
                 yield return new Batch(dataTrain, dataTest);
-                ch.Done();
             }
         }
 

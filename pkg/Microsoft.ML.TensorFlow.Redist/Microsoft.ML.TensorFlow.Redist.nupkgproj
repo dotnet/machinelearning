@@ -16,6 +16,6 @@
   <ItemGroup>
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\LICENSE.txt" Pack="true" PackagePath=".\" />
-    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\THIRD_PARTY_NOTICES.txt" Pack="true" PackagePath=".\" />
+    <Content Condition="Exists('$(PackageAssetsPath)$(PackageIdFolderName)\THIRD_PARTY_NOTICES.txt')" Include="$(PackageAssetsPath)$(PackageIdFolderName)\THIRD_PARTY_NOTICES.txt" Pack="true" PackagePath=".\" />
   </ItemGroup>
 </Project>

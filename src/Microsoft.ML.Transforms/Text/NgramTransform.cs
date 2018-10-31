@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(NgramTransform.Summary, typeof(NgramTransform), typeof(NgramTransform.Arguments), typeof(SignatureDataTransform),
     "Ngram Transform", "NgramTransform", "Ngram")]
@@ -20,7 +21,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 [assembly: LoadableClass(NgramTransform.Summary, typeof(NgramTransform), null, typeof(SignatureLoadDataTransform),
     "Ngram Transform", NgramTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 

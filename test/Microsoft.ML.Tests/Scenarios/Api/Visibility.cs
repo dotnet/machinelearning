@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Text;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         /// <summary>
         /// Visibility: It should, possibly through the debugger, be not such a pain to actually
-        /// see what is happening to your data when you apply this or that transform. E.g.: if I
+        /// see what is happening to your data when you apply this or that transform. For example, if I
         /// were to have the text "Help I'm a bug!" I should be able to see the steps where it is
         /// normalized to "help i'm a bug" then tokenized into ["help", "i'm", "a", "bug"] then
         /// mapped into term numbers [203, 25, 3, 511] then projected into the sparse
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.

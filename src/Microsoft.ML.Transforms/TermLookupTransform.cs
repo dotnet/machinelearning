@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms.Categoricals;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), typeof(TermLookupTransform.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
@@ -21,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), null, typeof(SignatureLoadDataTransform),
     "Term Lookup Transform", TermLookupTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Categoricals
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
                 // We should probably have a mapping from type to its bad value somewhere, perhaps in Conversions.
                 bool identity;
                 ValueMapper<ReadOnlyMemory<char>, TRes> conv;
-                if (Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
+                if (Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
                     out conv, out identity))
                 {
                     //Empty string will map to NA for R4 and R8, the only two types that can
@@ -317,7 +318,6 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
-                ch.Done();
             }
         }
 
@@ -337,7 +337,6 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
-                ch.Done();
             }
         }
 
@@ -387,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
                             // Try to parse the text as a key value between 1 and ulong.MaxValue. If this succeeds and res>0,
                             // we update max and min accordingly. If res==0 it means the value is missing, in which case we ignore it for
                             // computing max and min.
-                            if (Conversions.Instance.TryParseKey(ref txt, 1, ulong.MaxValue, out res))
+                            if (Runtime.Data.Conversion.Conversions.Instance.TryParseKey(in txt, 1, ulong.MaxValue, out res))
                             {
                                 if (res < min && res != 0)
                                     min = res;
@@ -396,7 +395,7 @@ namespace Microsoft.ML.Runtime.Data
                             }
                             // If parsing as key did not succeed, the value can still be 0, so we try parsing it as a ulong. If it succeeds,
                             // then the value is 0, and we update min accordingly.
-                            else if (Conversions.Instance.TryParse(ref txt, out res))
+                            else if (Runtime.Data.Conversion.Conversions.Instance.TryParse(in txt, out res))
                             {
                                 ch.Assert(res == 0);
                                 min = 0;
@@ -421,7 +420,6 @@ namespace Microsoft.ML.Runtime.Data
                         }
                         else
                             ch.Info("Found key values in the range {0} to {1} in the file '{2}'", min, max, filename);
-                        ch.Done();
                     }
                 }
             }
@@ -509,13 +507,14 @@ namespace Microsoft.ML.Runtime.Data
             var typeTerm = schema.GetColumnType(colTerm);
             host.CheckUserArg(typeTerm.IsText, nameof(Arguments.TermColumn), "term column must contain text");
             var typeValue = schema.GetColumnType(colValue);
-
-            var args = new ChooseColumnsTransform.Arguments();
-            args.Column = new[] {
-                new ChooseColumnsTransform.Column {Name = "Term", Source = termColumn},
-                new ChooseColumnsTransform.Column {Name = "Value", Source = valueColumn},
+            var cols = new List<(string Source, string Name)>()
+            {
+                (termColumn, "Term"),
+                (valueColumn, "Value")
             };
-            var view = new ChooseColumnsTransform(host, args, lookup);
+
+            var view = new CopyColumnsTransform(host, cols.ToArray()).Transform(lookup);
+            view = SelectColumnsTransform.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())

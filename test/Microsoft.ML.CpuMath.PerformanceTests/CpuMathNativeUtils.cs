@@ -23,8 +23,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [DllImport("CpuMathNative", EntryPoint = "AddScalarU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float AddScalarU(float a, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "ScaleU"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe void ScaleU(float a, /*_Inout_*/ float* pd, int c);
+        [DllImport("CpuMathNative", EntryPoint = "Scale"), SuppressUnmanagedCodeSecurity]
+        internal static extern unsafe void Scale(float a, /*_Inout_*/ float* pd, int c);
 
         [DllImport("CpuMathNative", EntryPoint = "ScaleSrcU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void ScaleSrcU(float a, /*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
@@ -50,8 +50,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [DllImport("CpuMathNative", EntryPoint = "MulElementWiseU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void MulElementWiseU(/*_In_ const*/ float* ps1, /*_In_ const*/ float* ps2, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SumU"), SuppressUnmanagedCodeSecurity]
-        internal static extern unsafe float SumU(/*const*/ float* ps, int c);
+        [DllImport("CpuMathNative", EntryPoint = "Sum"), SuppressUnmanagedCodeSecurity]
+        internal static extern unsafe float Sum(/*const*/ float* pValues, int length);
 
         [DllImport("CpuMathNative", EntryPoint = "SumSqU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float SumSqU(/*const*/ float* ps, int c);

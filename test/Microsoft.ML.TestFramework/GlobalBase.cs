@@ -11,6 +11,7 @@
 //    }
 
 using System;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
@@ -22,6 +23,28 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
             System.Diagnostics.Debug.WriteLine("*** Setting test assertion handler");
             var prev = Contracts.SetAssertHandler(AssertHandler);
             Contracts.Check(prev == null, "Expected to replace null assertion handler!");
+
+            // HACK: ensure MklImports is loaded very early in the tests so it doesn't deadlock while loading it later.
+            // See https://github.com/dotnet/machinelearning/issues/1073
+            Mkl.PptrfInternal(Mkl.Layout.RowMajor, Mkl.UpLo.Up, 0, Array.Empty<double>());
+        }
+
+        private static class Mkl
+        {
+            public enum Layout
+            {
+                RowMajor = 101,
+                ColMajor = 102
+            }
+
+            public enum UpLo : byte
+            {
+                Up = (byte)'U',
+                Lo = (byte)'L'
+            }
+
+            [DllImport("MklImports", EntryPoint = "LAPACKE_dpptrf")]
+            public static extern int PptrfInternal(Layout layout, UpLo uplo, int n, double[] ap);
         }
 
         public static void AssemblyCleanup()

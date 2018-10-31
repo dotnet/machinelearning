@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature, LdaTransform.ShortName, DocName = "transform/LdaTransform.md")]
@@ -24,7 +25,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 [assembly: LoadableClass(typeof(LdaTransform), null, typeof(SignatureLoadDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     // LightLDA transform: Big Topic Models on Modest Compute Clusters.
     // <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
@@ -326,7 +327,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start("Train"))
             {
                 Train(ch, input, _ldas);
-                ch.Done();
             }
             Metadata.Seal();
         }

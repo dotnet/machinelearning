@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -52,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IMamlEvaluator GetEvaluator(IHostEnvironment env, ISchema schema)
+        public static IMamlEvaluator GetEvaluator(IHostEnvironment env, Schema schema)
         {
             Contracts.CheckValueOrNull(env);
             ReadOnlyMemory<char> tmp = default;
@@ -90,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
-        private static bool CheckScoreColumnKind(ISchema schema, int col)
+        private static bool CheckScoreColumnKind(Schema schema, int col)
         {
             var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
             return columnType != null && columnType.IsText;
@@ -101,7 +103,7 @@ namespace Microsoft.ML.Runtime.Data
         /// most recent score set of the given kind. If there is no such score set and defName is specifed it
         /// uses defName. Otherwise, it throws.
         /// </summary>
-        public static ColumnInfo GetScoreColumnInfo(IExceptionContext ectx, ISchema schema, string name, string argName, string kind,
+        public static ColumnInfo GetScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName, string kind,
             string valueKind = MetadataUtils.Const.ScoreValueKind.Score, string defName = null)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -155,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Otherwise, if colScore is part of a score set, this looks in the score set for a column
         /// with the given valueKind. If none is found, it returns null.
         /// </summary>
-        public static ColumnInfo GetOptAuxScoreColumnInfo(IExceptionContext ectx, ISchema schema, string name, string argName,
+        public static ColumnInfo GetOptAuxScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName,
             int colScore, string valueKind, Func<ColumnType, bool> testType)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -931,7 +933,7 @@ namespace Microsoft.ML.Runtime.Data
                                  variableSizeVectorColumnName, type);
 
                         // Drop the old column that does not have variable length.
-                        idv = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = new[] { variableSizeVectorColumnName } }, idv);
+                        idv = SelectColumnsTransform.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };
@@ -939,7 +941,7 @@ namespace Microsoft.ML.Runtime.Data
             return AppendRowsDataView.Create(env, null, views.Select(keyToValue).Select(selectDropNonVarLenthCol).ToArray());
         }
 
-        private static IEnumerable<int> FindHiddenColumns(ISchema schema, string colName)
+        private static IEnumerable<int> FindHiddenColumns(Schema schema, string colName)
         {
             for (int i = 0; i < schema.ColumnCount; i++)
             {
@@ -985,7 +987,7 @@ namespace Microsoft.ML.Runtime.Data
                        (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
-        private static List<string> GetMetricNames(IChannel ch, ISchema schema, IRow row, Func<int, bool> ignoreCol,
+        private static List<string> GetMetricNames(IChannel ch, Schema schema, IRow row, Func<int, bool> ignoreCol,
             ValueGetter<double>[] getters, ValueGetter<VBuffer<double>>[] vBufferGetters)
         {
             ch.AssertValue(schema);
@@ -1057,8 +1059,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    var dropArgs = new DropColumnsTransform.Arguments() { Column = nonAveragedCols.ToArray() };
-                    data = new DropColumnsTransform(env, dropArgs, data);
+                    data = SelectColumnsTransform.CreateDrop(env, data, nonAveragedCols.ToArray());
                 }
                 idvList.Add(data);
             }
@@ -1119,7 +1120,6 @@ namespace Microsoft.ML.Runtime.Data
                     metricNames = GetMetricNames(ch, data.Schema, cursor,
                         i => hasWeighted && i == wcol || hasStrats && (i == scol || i == svalcol) ||
                             hasFoldCol && i == fcol, getters, vBufferGetters);
-                    ch.Done();
                 }
                 agg = new AggregatedMetric[metricNames.Count];
 
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(iMetric == metricNames.Count);
         }
 
-        internal static IDataView GetAverageToDataView(IHostEnvironment env, ISchema schema, AggregatedMetric[] agg, AggregatedMetric[] weightedAgg,
+        internal static IDataView GetAverageToDataView(IHostEnvironment env, Schema schema, AggregatedMetric[] agg, AggregatedMetric[] weightedAgg,
             int numFolds, int stratCol, int stratVal, int isWeightedCol, int foldCol, bool hasStdev, List<string> nonAveragedCols = null)
         {
             Contracts.AssertValue(env);
@@ -1733,9 +1733,7 @@ namespace Microsoft.ML.Runtime.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            var dropArgs = new DropColumnsTransform.Arguments();
-            dropArgs.Column = new[] { data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal) };
-            data = new DropColumnsTransform(env, dropArgs, data);
+            data = SelectColumnsTransform.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
             return data;
         }
     }

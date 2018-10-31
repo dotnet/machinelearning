@@ -4,41 +4,39 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
 
-[assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(TextNormalizerTransform), typeof(TextNormalizerTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
-[assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(TextNormalizerTransform), null, typeof(SignatureLoadDataTransform),
-    "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(TextNormalizingTransformer), null, typeof(SignatureLoadModel),
+     "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadRowMapper),
+   "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
+
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
     /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
     /// </summary>
-    public sealed class TextNormalizerTransform : OneToOneTransformBase
+    public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
-        /// <summary>
-        /// Case normalization mode of text. This enumeration is serialized.
-        /// </summary>
-        public enum CaseNormalizationMode
-        {
-            Lower = 0,
-            Upper = 1,
-            None = 2
-        }
-
         public sealed class Column : OneToOneColumn
         {
             public static Column Parse(string str)
@@ -62,23 +60,24 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 1)]
-            public CaseNormalizationMode TextCase = CaseNormalizationMode.Lower;
+            public TextNormalizerEstimator.CaseNormalizationMode TextCase = TextNormalizerEstimator.Defaults.TextCase;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.",
                 ShortName = "diac", SortOrder = 1)]
-            public bool KeepDiacritics = false;
+            public bool KeepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep punctuation marks or remove them.", ShortName = "punc", SortOrder = 2)]
-            public bool KeepPunctuations = true;
+            public bool KeepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 2)]
-            public bool KeepNumbers = true;
+            public bool KeepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers;
         }
 
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
             " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
-        public const string LoaderSignature = "TextNormalizerTransform";
+        internal const string LoaderSignature = "TextNormalizerTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -87,23 +86,150 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TextNormalizerTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(TextNormalizingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "TextNormalizer";
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
-        // Arguments
-        private readonly CaseNormalizationMode _case;
+        private readonly TextNormalizerEstimator.CaseNormalizationMode _textCase;
         private readonly bool _keepDiacritics;
         private readonly bool _keepPunctuations;
         private readonly bool _keepNumbers;
 
-        // A map where keys are letters combined with diacritics and values are the letters without diacritics.
-        private static volatile Dictionary<char, char> _combinedDiacriticsMap;
-
-        // List of pairs of (letters combined with diacritics, the letters without diacritics) from Office NL team.
-        private static readonly string[] _combinedDiacriticsPairs =
+        public TextNormalizingTransformer(IHostEnvironment env,
+            TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizerEstimator.Defaults.TextCase,
+            bool keepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics,
+            bool keepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations,
+            bool keepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers,
+            params (string input, string output)[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
+            _textCase = textCase;
+            _keepDiacritics = keepDiacritics;
+            _keepPunctuations = keepPunctuations;
+            _keepNumbers = keepNumbers;
+
+        }
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            var type = inputSchema.GetColumnType(srcCol);
+            if (!TextNormalizerEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizerEstimator.ExpectedColumnType, type.ToString());
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base>
+            // byte: case
+            // bool: whether to keep diacritics
+            // bool: whether to keep punctuations
+            // bool: whether to keep numbers
+            SaveColumns(ctx);
+
+            ctx.Writer.Write((byte)_textCase);
+            ctx.Writer.WriteBoolByte(_keepDiacritics);
+            ctx.Writer.WriteBoolByte(_keepPunctuations);
+            ctx.Writer.WriteBoolByte(_keepNumbers);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static TextNormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(RegistrationName);
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new TextNormalizingTransformer(host, ctx);
+        }
+
+        private TextNormalizingTransformer(IHost host, ModelLoadContext ctx)
+          : base(host, ctx)
+        {
+            var columnsLength = ColumnPairs.Length;
+            // *** Binary format ***
+            // <base>
+            // byte: case
+            // bool: whether to keep diacritics
+            // bool: whether to keep punctuations
+            // bool: whether to keep numbers
+            _textCase = (TextNormalizerEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
+            host.CheckDecode(Enum.IsDefined(typeof(TextNormalizerEstimator.CaseNormalizationMode), _textCase));
+
+            _keepDiacritics = ctx.Reader.ReadBoolByte();
+            _keepPunctuations = ctx.Reader.ReadBoolByte();
+            _keepNumbers = ctx.Reader.ReadBoolByte();
+        }
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new (string input, string output)[args.Column.Length];
+            for (int i = 0; i < cols.Length; i++)
+            {
+                var item = args.Column[i];
+                cols[i] = (item.Source ?? item.Name, item.Name);
+            }
+            return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+
+        private sealed class Mapper : MapperBase
+        {
+            private readonly ColumnType[] _types;
+            private readonly TextNormalizingTransformer _parent;
+
+            public Mapper(TextNormalizingTransformer parent, Schema inputSchema)
+              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _types.Length; i++)
+                {
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
+                    var srcType = inputSchema.GetColumnType(srcCol);
+                    _types[i] = srcType.IsVector ? new VectorType(TextType.Instance) : srcType;
+                }
+            }
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
+                }
+                return result;
+            }
+
+            // A map where keys are letters combined with diacritics and values are the letters without diacritics.
+            private static volatile Dictionary<char, char> _combinedDiacriticsMap;
+
+            // List of pairs of (letters combined with diacritics, the letters without diacritics) from Office NL team.
+            private static readonly string[] _combinedDiacriticsPairs =
+            {
             // Latin letters combined with diacritics:
             "ÀA", "ÁA", "ÂA", "ÃA", "ÄA", "ÅA", "ÇC", "ÈE", "ÉE", "ÊE", "ËE", "ÌI", "ÍI", "ÎI", "ÏI", "ÑN",
             "ÒO", "ÓO", "ÔO", "ÕO", "ÖO", "ÙU", "ÚU", "ÛU", "ÜU", "ÝY", "àa", "áa", "âa", "ãa", "äa", "åa",
@@ -133,257 +259,255 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             "ӴЧ", "ӵч", "ӸЫ", "ӹы"
         };
 
-        public TextNormalizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestIsTextItem)
-        {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-
-            using (var ch = Host.Start("Construction"))
+            private static Dictionary<char, char> CombinedDiacriticsMap
             {
-                ch.CheckUserArg(Enum.IsDefined(typeof(CaseNormalizationMode), args.TextCase),
-                    nameof(args.TextCase), "Invalid case normalization mode");
-
-                _case = args.TextCase;
-                _keepDiacritics = args.KeepDiacritics;
-                _keepPunctuations = args.KeepPunctuations;
-                _keepNumbers = args.KeepNumbers;
-
-                ch.Done();
-            }
-            Metadata.Seal();
-        }
-
-        private static Dictionary<char, char> CombinedDiacriticsMap
-        {
-            get
-            {
-                if (_combinedDiacriticsMap == null)
+                get
                 {
-                    var combinedDiacriticsMap = new Dictionary<char, char>();
-                    for (int i = 0; i < _combinedDiacriticsPairs.Length; i++)
+                    if (_combinedDiacriticsMap == null)
                     {
-                        Contracts.Assert(_combinedDiacriticsPairs[i].Length == 2);
-                        combinedDiacriticsMap.Add(_combinedDiacriticsPairs[i][0], _combinedDiacriticsPairs[i][1]);
+                        var combinedDiacriticsMap = new Dictionary<char, char>();
+                        for (int i = 0; i < _combinedDiacriticsPairs.Length; i++)
+                        {
+                            Contracts.Assert(_combinedDiacriticsPairs[i].Length == 2);
+                            combinedDiacriticsMap.Add(_combinedDiacriticsPairs[i][0], _combinedDiacriticsPairs[i][1]);
+                        }
+
+                        Interlocked.CompareExchange(ref _combinedDiacriticsMap, combinedDiacriticsMap, null);
                     }
 
-                    Interlocked.CompareExchange(ref _combinedDiacriticsMap, combinedDiacriticsMap, null);
+                    return _combinedDiacriticsMap;
+                }
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+
+                var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
+                Host.Assert(srcType.ItemType.IsText);
+
+                if (srcType.IsVector)
+                {
+                    Host.Assert(srcType.VectorSize >= 0);
+                    return MakeGetterVec(input, iinfo);
                 }
 
-                return _combinedDiacriticsMap;
+                Host.Assert(!srcType.IsVector);
+                return MakeGetterOne(input, iinfo);
             }
-        }
 
-        private TextNormalizerTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsTextItem)
-        {
-            Host.AssertValue(ctx);
-
-            using (var ch = Host.Start("Deserialization"))
+            private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(IRow input, int iinfo)
             {
-                // *** Binary format ***
-                // <base>
-                //   byte: case
-                //   bool: whether to keep diacritics
-                //   bool: whether to keep punctuations
-                //   bool: whether to keep numbers
-                ch.AssertNonEmpty(Infos);
-
-                _case = (CaseNormalizationMode)ctx.Reader.ReadByte();
-                ch.CheckDecode(Enum.IsDefined(typeof(CaseNormalizationMode), _case));
-
-                _keepDiacritics = ctx.Reader.ReadBoolByte();
-                _keepPunctuations = ctx.Reader.ReadBoolByte();
-                _keepNumbers = ctx.Reader.ReadBoolByte();
-
-                ch.Done();
-            }
-            Metadata.Seal();
-        }
-
-        public static TextNormalizerTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new TextNormalizerTransform(h, ctx, input));
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // <base>
-            //   byte: case
-            //   bool: whether to keep diacritics
-            //   bool: whether to keep punctuations
-            //   bool: whether to keep numbers
-            SaveBase(ctx);
-
-            ctx.Writer.Write((byte)_case);
-            ctx.Writer.WriteBoolByte(_keepDiacritics);
-            ctx.Writer.WriteBoolByte(_keepPunctuations);
-            ctx.Writer.WriteBoolByte(_keepNumbers);
-        }
-
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return Infos[iinfo].TypeSrc.IsVector ? new VectorType(TextType.Instance) : Infos[iinfo].TypeSrc;
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var typeSrc = Infos[iinfo].TypeSrc;
-            Host.Assert(typeSrc.ItemType.IsText);
-
-            if (typeSrc.IsVector)
-            {
-                Host.Assert(typeSrc.VectorSize >= 0);
-                return MakeGetterVec(input, iinfo);
-            }
-
-            Host.Assert(!typeSrc.IsVector);
-            return MakeGetterOne(input, iinfo);
-        }
-
-        private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(IRow input, int iinfo)
-        {
-            Contracts.Assert(Infos[iinfo].TypeSrc.IsText);
-            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
-            Host.AssertValue(getSrc);
-            var src = default(ReadOnlyMemory<char>);
-            var buffer = new StringBuilder();
-            return
-                (ref ReadOnlyMemory<char> dst) =>
-                {
-                    getSrc(ref src);
-                    NormalizeSrc(ref src, ref dst, buffer);
-                };
-        }
-
-        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
-            Host.AssertValue(getSrc);
-            var src = default(VBuffer<ReadOnlyMemory<char>>);
-            var buffer = new StringBuilder();
-            var list = new List<ReadOnlyMemory<char>>();
-            var temp = default(ReadOnlyMemory<char>);
-            return
-                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                {
-                    getSrc(ref src);
-                    list.Clear();
-                    for (int i = 0; i < src.Count; i++)
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                Host.AssertValue(getSrc);
+                var src = default(ReadOnlyMemory<char>);
+                var buffer = new StringBuilder();
+                return
+                    (ref ReadOnlyMemory<char> dst) =>
                     {
-                        NormalizeSrc(ref src.Values[i], ref temp, buffer);
-                        if (!temp.IsEmpty)
-                            list.Add(temp);
-                    }
-
-                    VBufferUtils.Copy(list, ref dst, list.Count);
-                };
-        }
-
-        private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
-        {
-            Host.AssertValue(buffer);
-
-            if (src.IsEmpty)
-            {
-                dst = src;
-                return;
+                        getSrc(ref src);
+                        NormalizeSrc(ref src, ref dst, buffer);
+                    };
             }
 
-            buffer.Clear();
-
-            int i = 0;
-            int min = 0;
-            var span = src.Span;
-            while (i < src.Length)
+            private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(IRow input, int iinfo)
             {
-                char ch = span[i];
-                if (!_keepPunctuations && char.IsPunctuation(ch) || !_keepNumbers && char.IsNumber(ch))
+                var getSrc = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                Host.AssertValue(getSrc);
+                var src = default(VBuffer<ReadOnlyMemory<char>>);
+                var buffer = new StringBuilder();
+                var list = new List<ReadOnlyMemory<char>>();
+                var temp = default(ReadOnlyMemory<char>);
+                return
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                    {
+                        getSrc(ref src);
+                        list.Clear();
+                        for (int i = 0; i < src.Count; i++)
+                        {
+                            NormalizeSrc(ref src.Values[i], ref temp, buffer);
+                            if (!temp.IsEmpty)
+                                list.Add(temp);
+                        }
+
+                        VBufferUtils.Copy(list, ref dst, list.Count);
+                    };
+            }
+
+            private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
+            {
+                Host.AssertValue(buffer);
+
+                if (src.IsEmpty)
                 {
-                    // Append everything before ch and ignore ch.
-                    buffer.AppendSpan(span.Slice(min, i - min));
-                    min = i + 1;
-                    i++;
-                    continue;
+                    dst = src;
+                    return;
                 }
 
-                if (!_keepDiacritics)
+                buffer.Clear();
+
+                int i = 0;
+                int min = 0;
+                var span = src.Span;
+                while (i < src.Length)
                 {
-                    if (IsCombiningDiacritic(ch))
+                    char ch = span[i];
+                    if (!_parent._keepPunctuations && char.IsPunctuation(ch) || !_parent._keepNumbers && char.IsNumber(ch))
                     {
+                        // Append everything before ch and ignore ch.
                         buffer.AppendSpan(span.Slice(min, i - min));
                         min = i + 1;
                         i++;
                         continue;
                     }
 
-                    if (CombinedDiacriticsMap.ContainsKey(ch))
-                        ch = CombinedDiacriticsMap[ch];
+                    if (!_parent._keepDiacritics)
+                    {
+                        if (IsCombiningDiacritic(ch))
+                        {
+                            buffer.AppendSpan(span.Slice(min, i - min));
+                            min = i + 1;
+                            i++;
+                            continue;
+                        }
+
+                        if (CombinedDiacriticsMap.ContainsKey(ch))
+                            ch = CombinedDiacriticsMap[ch];
+                    }
+
+                    if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Lower)
+                        ch = CharUtils.ToLowerInvariant(ch);
+                    else if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Upper)
+                        ch = CharUtils.ToUpperInvariant(ch);
+
+                    if (ch != src.Span[i])
+                    {
+                        buffer.AppendSpan(span.Slice(min, i - min)).Append(ch);
+                        min = i + 1;
+                    }
+
+                    i++;
                 }
 
-                if (_case == CaseNormalizationMode.Lower)
-                    ch = CharUtils.ToLowerInvariant(ch);
-                else if (_case == CaseNormalizationMode.Upper)
-                    ch = CharUtils.ToUpperInvariant(ch);
-
-                if (ch != src.Span[i])
+                Host.Assert(i == src.Length);
+                int len = i - min;
+                if (min == 0)
                 {
-                    buffer.AppendSpan(span.Slice(min, i - min)).Append(ch);
-                    min = i + 1;
+                    Host.Assert(src.Length == len);
+                    dst = src;
                 }
-
-                i++;
+                else
+                {
+                    buffer.AppendSpan(span.Slice(min, len));
+                    dst = buffer.ToString().AsMemory();
+                }
             }
 
-            Host.Assert(i == src.Length);
-            int len = i - min;
-            if (min == 0)
+            /// <summary>
+            /// Whether a character is a combining diacritic character or not.
+            /// Combining diacritic characters are the set of diacritics intended to modify other characters.
+            /// The list is provided by Office NL team.
+            /// </summary>
+            private bool IsCombiningDiacritic(char ch)
             {
-                Host.Assert(src.Length == len);
-                dst = src;
+                if (ch < 0x0300 || ch > 0x0670)
+                    return false;
+
+                // Basic combining diacritics
+                return ch >= 0x0300 && ch <= 0x036F ||
+
+                    // Hebrew combining diacritics
+                    ch >= 0x0591 && ch <= 0x05BD || ch == 0x05C1 || ch == 0x05C2 || ch == 0x05C4 ||
+                    ch == 0x05C5 || ch == 0x05C7 ||
+
+                    // Arabic combining diacritics
+                    ch >= 0x0610 && ch <= 0x0615 || ch >= 0x064C && ch <= 0x065E || ch == 0x0670;
             }
-            else
-            {
-                buffer.AppendSpan(span.Slice(min, len));
-                dst = buffer.ToString().AsMemory();
-            }
+        }
+    }
+
+    public sealed class TextNormalizerEstimator : TrivialEstimator<TextNormalizingTransformer>
+    {
+        /// <summary>
+        /// Case normalization mode of text. This enumeration is serialized.
+        /// </summary>
+        public enum CaseNormalizationMode
+        {
+            Lower = 0,
+            Upper = 1,
+            None = 2
+        }
+
+        internal static class Defaults
+        {
+            public const CaseNormalizationMode TextCase = CaseNormalizationMode.Lower;
+            public const bool KeepDiacritics = false;
+            public const bool KeepPunctuations = true;
+            public const bool KeepNumbers = true;
+
+        }
+
+        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText);
+
+        internal const string ExpectedColumnType = "Text or vector of text.";
+
+        /// <summary>
+        /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
+        /// and outputs new text as <paramref name="outputColumn"/>.
+        /// </summary>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to normalize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
+        /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
+        /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
+        /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
+        public TextNormalizerEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn = null,
+            CaseNormalizationMode textCase = Defaults.TextCase,
+            bool keepDiacritics = Defaults.KeepDiacritics,
+            bool keepPunctuations = Defaults.KeepPunctuations,
+            bool keepNumbers = Defaults.KeepNumbers)
+            : this(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, (inputColumn, outputColumn ?? inputColumn))
+        {
         }
 
         /// <summary>
-        /// Whether a character is a combining diacritic character or not.
-        /// Combining diacritic characters are the set of diacritics intended to modify other characters.
-        /// The list is provided by Office NL team.
+        /// Normalizes incoming text in input columns by changing case, removing diacritical marks, punctuation marks and/or numbers
+        /// and outputs new text as output columns.
         /// </summary>
-        private bool IsCombiningDiacritic(char ch)
+        /// <param name="env">The environment.</param>
+        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
+        /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
+        /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
+        /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
+        /// <param name="columns">Pairs of columns to run the text normalization on.</param>
+        public TextNormalizerEstimator(IHostEnvironment env,
+            CaseNormalizationMode textCase = Defaults.TextCase,
+            bool keepDiacritics = Defaults.KeepDiacritics,
+            bool keepPunctuations = Defaults.KeepPunctuations,
+            bool keepNumbers = Defaults.KeepNumbers,
+            params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), new TextNormalizingTransformer(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, columns))
         {
-            if (ch < 0x0300 || ch > 0x0670)
-                return false;
+        }
 
-            // Basic combining diacritics
-            return ch >= 0x0300 && ch <= 0x036F ||
-
-                // Hebrew combining diacritics
-                ch >= 0x0591 && ch <= 0x05BD || ch == 0x05C1 || ch == 0x05C2 || ch == 0x05C4 ||
-                ch == 0x05C5 || ch == 0x05C7 ||
-
-                // Arabic combining diacritics
-                ch >= 0x0610 && ch <= 0x0615 || ch >= 0x064C && ch <= 0x065E || ch == 0x0670;
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!IsColumnTypeValid(col.ItemType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, TextNormalizerEstimator.ExpectedColumnType, col.ItemType.ToString());
+                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
+            }
+            return new SchemaShape(result.Values);
         }
     }
 }
