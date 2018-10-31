@@ -60,9 +60,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// Loads the sampled labels of this tree to the distribution array for the sparse instance type.
         /// By calling for all the trees, the distribution array will have all the samples from all the trees
         /// </summary>
-        public void LoadSampledLabels(ref VBuffer<Float> feat, Float[] distribution, Float[] weights, int sampleCount, int destinationIndex)
+        public void LoadSampledLabels(in VBuffer<Float> feat, Float[] distribution, Float[] weights, int sampleCount, int destinationIndex)
         {
-            int leaf = GetLeaf(ref feat);
+            int leaf = GetLeaf(in feat);
             LoadSampledLabels(distribution, weights, sampleCount, destinationIndex, leaf);
         }
 

@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            public abstract void Write(ref T value);
+            public abstract void Write(in T value);
 
             public virtual void Write(T[] values, int index, int count)
             {
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Contracts.Assert(0 <= count && count <= Utils.Size(values) - index);
                 // Basic un-optimized reference implementation.
                 for (int i = 0; i < count; ++i)
-                    Write(ref values[i + index]);
+                    Write(in values[i + index]);
             }
 
             public abstract void Commit();
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _ops = codec._ops;
                 }
 
-                public override void Write(ref T value)
+                public override void Write(in T value)
                 {
                     _ops.Write(value, Writer);
                     _numWritten++;
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _boundaries = new List<int>();
                 }
 
-                public override void Write(ref ReadOnlyMemory<char> value)
+                public override void Write(in ReadOnlyMemory<char> value)
                 {
                     Contracts.Check(_builder != null, "writer was already committed");
                     _builder.AppendMemory(value);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref bool value)
+                public override void Write(in bool value)
                 {
                     Contracts.Assert(0 <= _currentIndex && _currentIndex < 8);
 
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref DateTime value)
+                public override void Write(in DateTime value)
                 {
                     Writer.Write(value.Ticks);
                     _numWritten++;
@@ -698,7 +698,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _ticks = new List<long>();
                 }
 
-                public override void Write(ref DateTimeOffset value)
+                public override void Write(in DateTimeOffset value)
                 {
                     Contracts.Assert(_offsets != null, "writer was already committed");
 
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     return structureLength + _valueWriter.GetCommitLengthEstimate();
                 }
 
-                public override void Write(ref VBuffer<T> value)
+                public override void Write(in VBuffer<T> value)
                 {
                     Contracts.Check(_valuesStream != null, "writer already committed");
                     if (FixedLength)

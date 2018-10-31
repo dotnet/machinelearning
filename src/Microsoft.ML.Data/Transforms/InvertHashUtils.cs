@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, ref VBuffer<ReadOnlyMemory<char>> values)
+        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, in VBuffer<ReadOnlyMemory<char>> values)
         {
             Contracts.AssertValue(ch);
             ch.CheckValue(ctx, nameof(ctx));
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 using (var writer = textCodec.OpenWriter(mem))
                 {
-                    writer.Write(ref values);
+                    writer.Write(in values);
                     writer.Commit();
                 }
                 ctx.Writer.WriteByteArray(mem.ToArray());
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (keyValues[iinfo].Length == 0)
                         continue;
                     ctx.SaveSubModel(string.Format(dirFormat, iinfo),
-                        c => Save(ch, c, factory, ref keyValues[iinfo]));
+                        c => Save(ch, c, factory, in keyValues[iinfo]));
                 }
             }
         }

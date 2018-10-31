@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.TreePredictor
         /// <param name="features">Type of features container (instance) on which to make predictions</param>
         /// <returns>node id</returns>
         /// <typeparamref name="TFeatures">Type of features container (instance) on which to make predictions</typeparamref>
-        int GetLeaf(ref TFeatures features);
+        int GetLeaf(in TFeatures features);
     }
 
     /// <summary>

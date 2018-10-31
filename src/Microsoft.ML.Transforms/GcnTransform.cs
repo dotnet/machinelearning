@@ -446,7 +446,7 @@ namespace Microsoft.ML.Runtime.Data
                                 getSrc(ref src);
                                 Float mean = Mean(src.Values, src.Count, src.Length);
                                 Float divisor = StdDev(src.Values, src.Count, src.Length, mean);
-                                FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                                FillValues(Host, in src, ref dst, divisor, scale, mean);
                             };
                         return del;
                     case NormalizerKind.L2Norm:
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Data
                                getSrc(ref src);
                                Float mean = Mean(src.Values, src.Count, src.Length);
                                Float divisor = L2Norm(src.Values, src.Count, mean);
-                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               FillValues(Host, in src, ref dst, divisor, scale, mean);
                            };
                         return del;
                     case NormalizerKind.L1Norm:
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Runtime.Data
                                getSrc(ref src);
                                Float mean = Mean(src.Values, src.Count, src.Length);
                                Float divisor = L1Norm(src.Values, src.Count, mean);
-                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               FillValues(Host, in src, ref dst, divisor, scale, mean);
                            };
                         return del;
                     case NormalizerKind.LInf:
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Runtime.Data
                                getSrc(ref src);
                                Float mean = Mean(src.Values, src.Count, src.Length);
                                Float divisor = LInfNorm(src.Values, src.Count, mean);
-                               FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               FillValues(Host, in src, ref dst, divisor, scale, mean);
                            };
                         return del;
                     default:
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             getSrc(ref src);
                             Float divisor = StdDev(src.Values, src.Count, src.Length);
-                            FillValues(Host, ref src, ref dst, divisor, scale);
+                            FillValues(Host, in src, ref dst, divisor, scale);
                         };
                     return del;
                 case NormalizerKind.L2Norm:
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.Data
                        {
                            getSrc(ref src);
                            Float divisor = L2Norm(src.Values, src.Count);
-                           FillValues(Host, ref src, ref dst, divisor, scale);
+                           FillValues(Host, in src, ref dst, divisor, scale);
                        };
                     return del;
                 case NormalizerKind.L1Norm:
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Runtime.Data
                        {
                            getSrc(ref src);
                            Float divisor = L1Norm(src.Values, src.Count);
-                           FillValues(Host, ref src, ref dst, divisor, scale);
+                           FillValues(Host, in src, ref dst, divisor, scale);
                        };
                     return del;
                 case NormalizerKind.LInf:
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Data
                        {
                            getSrc(ref src);
                            Float divisor = LInfNorm(src.Values, src.Count);
-                           FillValues(Host, ref src, ref dst, divisor, scale);
+                           FillValues(Host, in src, ref dst, divisor, scale);
                        };
                     return del;
                 default:
@@ -529,7 +529,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void FillValues(IExceptionContext ectx, ref VBuffer<Float> src, ref VBuffer<Float> dst, Float divisor, Float scale, Float offset = 0)
+        private static void FillValues(IExceptionContext ectx, in VBuffer<Float> src, ref VBuffer<Float> dst, Float divisor, Float scale, Float offset = 0)
         {
             int count = src.Count;
             int length = src.Length;

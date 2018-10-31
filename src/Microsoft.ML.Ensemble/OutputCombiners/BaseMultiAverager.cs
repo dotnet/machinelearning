@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             {
                 weightTotal = src.Length;
                 for (int i = 0; i < src.Length; i++)
-                    VectorUtils.Add(ref src[i], ref dst);
+                    VectorUtils.Add(in src[i], ref dst);
             }
             else
             {
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 {
                     var w = weights[i];
                     weightTotal += w;
-                    VectorUtils.AddMult(ref src[i], w, ref dst);
+                    VectorUtils.AddMult(in src[i], w, ref dst);
                 }
             }
 

@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
                             maps[i](ref vBuffers[i], ref predictions[i], ref probabilities[i]);
                         }
                         else
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
                             maps[i](ref vBuffers[i], ref predictions[i], ref probabilities[i]);
                         }
                         else

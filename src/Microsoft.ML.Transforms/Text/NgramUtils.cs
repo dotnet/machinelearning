@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
             _queue.Clear();
         }
 
-        public bool AddNgrams(ref VBuffer<uint> src, int icol, uint keyMax)
+        public bool AddNgrams(in VBuffer<uint> src, int icol, uint keyMax)
         {
             Contracts.Assert(icol >= 0);
             Contracts.Assert(keyMax > 0);

@@ -855,7 +855,7 @@ namespace Microsoft.ML.Runtime.Data
                             // In the event that no slot names were recorded here, then slotNames will be
                             // the default, length 0 vector.
                             firstDvSlotNames.TryGetValue(name, out slotNames);
-                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, ref slotNames))
+                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, in slotNames))
                                 variableSizeVectorColumnNamesList.Add(name);
                         }
                         else
@@ -951,7 +951,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
-            ColumnType type, ref VBuffer<ReadOnlyMemory<char>> firstDvSlotNames)
+            ColumnType type, in VBuffer<ReadOnlyMemory<char>> firstDvSlotNames)
         {
             if (cachedSize != type.VectorSize)
                 return false;
@@ -968,7 +968,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     var result = true;
-                    VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
+                    VBufferUtils.ForEachEitherDefined(in currSlotNames, in firstDvSlotNames,
                         (slot, val1, val2) => result = result && val1.Span.SequenceEqual(val2.Span));
                     return result;
                 }

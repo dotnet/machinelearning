@@ -252,15 +252,15 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return output;
         }
 
-        public double GetOutput(ref VBuffer<float> feat)
+        public double GetOutput(in VBuffer<float> feat)
         {
             double output = 0.0;
             for (int h = 0; h < NumTrees; h++)
-                output += _trees[h].GetOutput(ref feat);
+                output += _trees[h].GetOutput(in feat);
             return output;
         }
 
-        public float[] GetDistribution(ref VBuffer<float> feat, int sampleCount, out float[] weights)
+        public float[] GetDistribution(in VBuffer<float> feat, int sampleCount, out float[] weights)
         {
             var distribution = new float[sampleCount * NumTrees];
 
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             for (int h = 0; h < NumTrees; h++)
             {
-                ((QuantileRegressionTree)_trees[h]).LoadSampledLabels(ref feat, distribution,
+                ((QuantileRegressionTree)_trees[h]).LoadSampledLabels(in feat, distribution,
                     weights, sampleCount, h * sampleCount);
             }
             return distribution;
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
-        internal void GetFeatureContributions(ref VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
+        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
         {
             // The feature contributions are equal to the sum of per-tree contributions.
 
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             builder.Reset(features.Length, false);
 
             foreach (var tree in _trees)
-                tree.AppendFeatureContributions(ref features, builder);
+                tree.AppendFeatureContributions(in features, builder);
 
             builder.GetResult(ref contribs);
         }

@@ -107,7 +107,7 @@ namespace Microsoft.ML.Trainers.FastTree
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
+            dst = (float)TrainedEnsemble.GetOutput(in src) / TrainedEnsemble.NumTrees;
         }
 
         public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 {
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
                     float[] weights = null;
-                    var distribution = TrainedEnsemble.GetDistribution(ref src, _quantileSampleCount, out weights);
+                    var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
                     var values = dst.Values;

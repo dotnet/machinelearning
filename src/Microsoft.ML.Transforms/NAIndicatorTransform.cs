@@ -280,7 +280,7 @@ namespace Microsoft.ML.Transforms
                         // Sense indicates if the values added to the indices list represent NAs or non-NAs.
                         bool sense;
                         getSrc(ref src);
-                        FindNAs(ref src, isNA, defaultIsNA, indices, out sense);
+                        FindNAs(in src, isNA, defaultIsNA, indices, out sense);
                         FillValues(src.Length, ref dst, indices, sense);
                     };
             }
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
             /// </summary>
-            private void FindNAs<T>(ref VBuffer<T> src, InPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
+            private void FindNAs<T>(in VBuffer<T> src, InPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
             {
                 Host.AssertValue(isNA);
                 Host.AssertValue(indices);

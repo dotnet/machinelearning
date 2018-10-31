@@ -79,7 +79,7 @@ namespace Microsoft.ML.Trainers.Online
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
 
-                return new LinearBinaryPredictor(ParentHost, ref weights, bias);
+                return new LinearBinaryPredictor(ParentHost, in weights, bias);
             }
         }
 

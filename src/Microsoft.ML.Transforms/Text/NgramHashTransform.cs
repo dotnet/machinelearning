@@ -706,7 +706,7 @@ namespace Microsoft.ML.Transforms.Text
                     for (int i = 0; i < srcCount; i++)
                     {
                         getSrc[i](ref src);
-                        bldr.AddNgrams(ref src, i, keyCounts[i]);
+                        bldr.AddNgrams(in src, i, keyCounts[i]);
                     }
                     bldr.GetResult(ref dst);
                 };

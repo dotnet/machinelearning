@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             for (int i = 0; i < values.Length; i++)
             {
                 // Leave a zero vector as all zeros. Otherwise, make the L1 norm equal to 1.
-                var sum = VectorUtils.L1Norm(ref values[i]);
+                var sum = VectorUtils.L1Norm(in values[i]);
                 if (!FloatUtils.IsFinite(sum))
                     return false;
                 if (sum > 0)

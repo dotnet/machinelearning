@@ -83,7 +83,7 @@ namespace Microsoft.ML.Trainers.Online
                     VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
-                return new LinearRegressionPredictor(ParentHost, ref weights, bias);
+                return new LinearRegressionPredictor(ParentHost, in weights, bias);
             }
         }
 

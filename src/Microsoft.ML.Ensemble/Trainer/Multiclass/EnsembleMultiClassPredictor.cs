@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref features[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref features[i]);
                             maps[i](ref features[i], ref predictions[i]);
                         }
                         else

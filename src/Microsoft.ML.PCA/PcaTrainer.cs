@@ -189,7 +189,7 @@ namespace Microsoft.ML.Trainers.PCA
 
                 // Make the next vectors in the queue orthogonal to the orthonormalized vectors.
                 for (var j = i + 1; j < oversampledRank; ++j) //subtract the projection of y[j] on v.
-                    VectorUtils.AddMult(ref v, -VectorUtils.DotProduct(ref v, ref y[j]), ref y[j]);
+                    VectorUtils.AddMult(in v, -VectorUtils.DotProduct(in v, in y[j]), ref y[j]);
             }
             var q = y; // q in QR decomposition.
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 for (var j = i; j < oversampledRank; ++j)
-                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(ref b[i], ref b[j]);
+                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(in b[i], in b[j]);
             }
 
             float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.PCA
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
             PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
 
-            return new PcaPredictor(Host, _rank, b, ref mean);
+            return new PcaPredictor(Host, _rank, b, in mean);
         }
 
         private static VBuffer<float>[] Zeros(int k, int d)
@@ -258,12 +258,12 @@ namespace Microsoft.ML.Trainers.PCA
                 while (cursor.MoveNext())
                 {
                     if (center)
-                        VectorUtils.AddMult(ref cursor.Features, cursor.Weight, ref mean);
+                        VectorUtils.AddMult(in cursor.Features, cursor.Weight, ref mean);
                     for (int i = 0; i < numCols; i++)
                     {
                         VectorUtils.AddMult(
-                            ref cursor.Features,
-                            cursor.Weight * VectorUtils.DotProduct(ref omega[i], ref cursor.Features),
+                            in cursor.Features,
+                            cursor.Weight * VectorUtils.DotProduct(in omega[i], in cursor.Features),
                             ref y[i]);
                     }
                     n += cursor.Weight;
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Trainers.PCA
             {
                 VectorUtils.ScaleBy(ref mean, invn);
                 for (int i = 0; i < numCols; i++)
-                    VectorUtils.AddMult(ref mean, -VectorUtils.DotProduct(ref omega[i], ref mean), ref y[i]);
+                    VectorUtils.AddMult(in mean, -VectorUtils.DotProduct(in omega[i], in mean), ref y[i]);
             }
         }
 
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, ref VBuffer<float> mean)
+        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < rank; ++i) // Only want first k
             {
                 _eigenVectors[i] = eigenVectors[i];
-                _meanProjected[i] = VectorUtils.DotProduct(ref eigenVectors[i], ref mean);
+                _meanProjected[i] = VectorUtils.DotProduct(in eigenVectors[i], in mean);
             }
 
             _mean = mean;
@@ -450,7 +450,7 @@ namespace Microsoft.ML.Trainers.PCA
                 var vi = ctx.Reader.ReadFloatArray(_dimension);
                 Host.CheckDecode(vi.All(FloatUtils.IsFinite));
                 _eigenVectors[i] = new VBuffer<float>(_dimension, vi);
-                _meanProjected[i] = VectorUtils.DotProduct(ref _eigenVectors[i], ref _mean);
+                _meanProjected[i] = VectorUtils.DotProduct(in _eigenVectors[i], in _mean);
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
@@ -519,7 +519,7 @@ namespace Microsoft.ML.Trainers.PCA
             writer.WriteLine("# V");
             for (var i = 0; i < _rank; ++i)
             {
-                VBufferUtils.ForEachDefined(ref _eigenVectors[i],
+                VBufferUtils.ForEachDefined(in _eigenVectors[i],
                     (ind, val) => { if (val != 0) writer.Write(" {0}:{1}", ind, val); });
                 writer.WriteLine();
             }
@@ -564,19 +564,19 @@ namespace Microsoft.ML.Trainers.PCA
                 (ref VBuffer<float> src, ref float dst) =>
                 {
                     Host.Check(src.Length == _dimension);
-                    dst = Score(ref src);
+                    dst = Score(in src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private float Score(ref VBuffer<float> src)
+        private float Score(in VBuffer<float> src)
         {
             Host.Assert(src.Length == _dimension);
 
             // REVIEW: Can this be done faster in a single pass over src and _mean?
             var mean = _mean;
-            float norm2X = VectorUtils.NormSquared(src) -
-                2 * VectorUtils.DotProduct(ref mean, ref src) + _norm2Mean;
+            float norm2X = VectorUtils.NormSquared(in src) -
+                2 * VectorUtils.DotProduct(in mean, in src) + _norm2Mean;
             // Because the distance between src and _mean is computed using the above expression, the result
             // may be negative due to round off error. If this happens, we let the distance be 0.
             if (norm2X < 0)
@@ -585,7 +585,7 @@ namespace Microsoft.ML.Trainers.PCA
             float norm2U = 0;
             for (int i = 0; i < _rank; i++)
             {
-                float component = VectorUtils.DotProduct(ref _eigenVectors[i], ref src) - _meanProjected[i];
+                float component = VectorUtils.DotProduct(in _eigenVectors[i], in src) - _meanProjected[i];
                 norm2U += component * component;
             }
 
