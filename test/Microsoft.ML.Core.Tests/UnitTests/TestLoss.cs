@@ -50,8 +50,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void LossHinge()
         {
-            HingeLoss.Arguments args = new HingeLoss.Arguments();
-            HingeLoss loss = new HingeLoss(args);
+            var loss = new HingeLoss();
             // Positive examples.
             TestHelper(loss, 1, 2, 0, 0);
             TestHelper(loss, 1, 1, 0, 0, false);
