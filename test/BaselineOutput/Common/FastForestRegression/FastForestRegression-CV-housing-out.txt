@@ -1,113 +1,40 @@
-maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} threads=- dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% seed=1
 Not adding a normalizer.
 Making per-feature arrays
 Changing data from row-wise to column-wise
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
 Processed 241 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 56016 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
 Not adding a normalizer.
 Making per-feature arrays
 Changing data from row-wise to column-wise
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
 Processed 265 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 61056 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
-L1(avg):            3.268509
-L2(avg):            23.105903
-RMS(avg):           4.806860
-Loss-fn(avg):       23.105904
-R Squared:          0.746987
-Warning: Encountered 1 unlabeled instances during testing.
-L1(avg):            3.194190
-L2(avg):            20.040123
-RMS(avg):           4.476620
-Loss-fn(avg):       20.040123
-R Squared:          0.735499
+L1(avg):            3.297530
+L2(avg):            22.053650
+RMS(avg):           4.696131
+Loss-fn(avg):       22.053650
+R Squared:          0.736495
+L1(avg):            3.262365
+L2(avg):            19.891088
+RMS(avg):           4.459943
+Loss-fn(avg):       19.891088
+R Squared:          0.766574
 
 OVERALL RESULTS
 ---------------------------------------
-L1(avg):            3.231349 (0.0372)
-L2(avg):            21.573013 (1.5329)
-RMS(avg):           4.641740 (0.1651)
-Loss-fn(avg):       21.573014 (1.5329)
-R Squared:          0.741243 (0.0057)
+L1(avg):            3.279948 (0.0176)
+L2(avg):            20.972369 (1.0813)
+RMS(avg):           4.578037 (0.1181)
+Loss-fn(avg):       20.972369 (1.0813)
+R Squared:          0.751534 (0.0150)
 
 ---------------------------------------
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
-  Bad value at line 1 in column Label
-  Bad value at line 1 in column Features at slot 0
-  Bad value at line 1 in column Features at slot 1
-  Bad value at line 1 in column Features at slot 2
-  Bad value at line 1 in column Features at slot 3
-  Bad value at line 1 in column Features at slot 4
-  Bad value at line 1 in column Features at slot 5
-  Bad value at line 1 in column Features at slot 6
-  Bad value at line 1 in column Features at slot 7
-  Bad value at line 1 in column Features at slot 8
-  Suppressing further bad value messages
-Processed 507 rows with 14 bad values and 0 format errors
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%
 %DateTime%	 Time elapsed(s): %Number%

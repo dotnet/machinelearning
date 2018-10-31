@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;
@@ -158,7 +159,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             LinearBinaryPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -201,7 +202,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             LinearBinaryPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
@@ -269,7 +270,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             MulticlassLogisticRegressionPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -931,7 +932,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Read data file. The file contains 3 columns, label (float value), matrixColumnIndex (unsigned integer key), and matrixRowIndex (unsigned integer key).
             // More specifically, LoadKey(1, 0, 19) means that the matrixColumnIndex column is read from the 2nd (indexed by 1) column in the data file and as
             // a key type (stored as 32-bit unsigned integer) ranged from 0 to 19 (aka the training matrix has 20 columns).
-            var reader = mlContext.Data.TextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 0, 19), matrixRowIndex: ctx.LoadKey(2, 0, 39)));
+            var reader = mlContext.Data.TextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadKey(1, 0, 19), matrixRowIndex: ctx.LoadKey(2, 0, 39)), hasHeader: true);
 
             // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
             // so that we will be able to touch it.

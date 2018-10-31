@@ -538,7 +538,7 @@ var trainData = mlContext.CreateStreamingDataView(churnData);
 // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
 var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
-    .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+    .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
     .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
 var dynamicModel = dynamicLearningPipeline.Fit(trainData);
