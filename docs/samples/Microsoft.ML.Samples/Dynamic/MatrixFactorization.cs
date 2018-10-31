@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
-        using Microsoft.ML.Runtime.Api;
-        using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Trainers;
-        using System.Collections.Generic;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Trainers;
+using System;
+using System.Collections.Generic;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
 // If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
@@ -41,6 +41,17 @@ namespace Microsoft.ML.Samples.Static
             public float Value;
         }
 
+        // A data structure used to encode prediction result. Comparing with MatrixElement, The field Value in MatrixElement is
+        // renamed to Score because Score is the default name of matrix factorization's output.
+        internal class MatrixElementForScore
+        {
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
         // This example first creates in-memory data and then use it to train a matrix factorization model. Afterward, quality metrics are reported.
         public static void MatrixFactorizationInMemoryData()
         {
@@ -69,11 +80,23 @@ namespace Microsoft.ML.Samples.Static
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
 
-            // Apply the trained model to the training set
+            // Apply the trained model to the training set.
             var prediction = model.Transform(dataView);
 
-            // Calculate regression matrices for the prediction result
+            // Calculate regression matrices for the prediction result.
             var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+
+            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
+            var testMatrix = new List<MatrixElementForScore>() {
+                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = default },
+                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
+
+            // Again, convert the test data to a format supported by ML.NET.
+            var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
+
+            // Feed the test data into the model and then iterate through all predictions.
+            foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
+                Console.WriteLine("Predicted value at row {0} and column {1} is {2}", pred.MatrixRowIndex, pred.MatrixColumnIndex, pred.Score);
         }
     }
 }
