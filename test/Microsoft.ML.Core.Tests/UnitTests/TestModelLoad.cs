@@ -37,7 +37,6 @@ namespace Microsoft.ML.Runtime.RunTests
         public void LoadOldConcatTransformModel()
         {
             var env = new MLContext().AddStandardComponents();
-            env.Log += System.Console.WriteLine;
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "ConcatTransform.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
