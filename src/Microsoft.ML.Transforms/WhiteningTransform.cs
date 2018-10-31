@@ -126,15 +126,15 @@ namespace Microsoft.ML.Transforms
             public readonly int PcaNum;
 
             /// <summary>
-            /// Describes how the transformer handles one column pair.
+            /// Describes how the transformer handles one input-output column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
             /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
             /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-            /// <param name="eps">Scaling regularizer.</param>
-            /// <param name="maxRows">Max number of rows.</param>
+            /// <param name="eps">Whitening constant, prevents division by zero.</param>
+            /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
             /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
-            /// <param name="pcaNum">PCA components to retain.</param>
+            /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
             public ColInfo(string input, string output = null, WhiteningKind kind = Defaults.Kind, float eps = Defaults.Eps,
                 int maxRows = Defaults.MaxRows, bool saveInverse = Defaults.SaveInverse, int pcaNum = Defaults.PcaNum)
             {
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Transforms
                 MaxRow = maxRows;
                 Contracts.CheckUserArg(MaxRow > 0, nameof(MaxRow));
                 SaveInv = saveInverse;
-                PcaNum = pcaNum;
+                PcaNum = pcaNum; // REVIEW: make it work with pcaNum == 1.
                 Contracts.CheckUserArg(PcaNum >= 0, nameof(PcaNum));
             }
 
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Transforms
 
         private const Mkl.Layout Layout = Mkl.Layout.RowMajor;
 
-        // Stores whitening matrix as float[] for each column.
+        // Stores whitening matrix as float[] for each column. _models[i] is the whitening matrix of the i-th column.
         private readonly float[][] _models;
         // Stores inverse ("recover") matrix as float[] for each column. Temporarily internal as it's used in unit test.
         // REVIEW: It doesn't look like this is used by non-test code. Should it be saved at all?
@@ -633,6 +633,7 @@ namespace Microsoft.ML.Transforms
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._infos[iinfo];
+                    // For ZCA the output type is the same as the input type. For PCA the size of the output vector is determined by PCANum.
                     ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
                     result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, outType, null);
                 }
@@ -733,10 +734,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-        /// <param name="eps">Scaling regularizer.</param>
-        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="eps">Whitening constant, prevents division by zero.</param>
+        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
-        /// <param name="pcaNum">PCA components to retain.</param>
+        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public WhiteningEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             WhiteningKind kind = WhiteningTransform.Defaults.Kind,
             float eps = WhiteningTransform.Defaults.Eps,
@@ -821,24 +822,24 @@ namespace Microsoft.ML.Transforms
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Scaling regularizer.</param>
-        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="eps">Whitening constant, prevents division by zero.</param>
+        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
-        /// <param name="pcaNum">PCA components to retain.</param>
+        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = (float)1e-5,
-            int maxRows = 100 * 1000,
-            bool saveInverse = false,
-            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
+            float eps = WhiteningTransform.Defaults.Eps,
+            int maxRows = WhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = WhiteningTransform.Defaults.SaveInverse,
+            int pcaNum = WhiteningTransform.Defaults.PcaNum) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Scaling regularizer.</param>
-        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="eps">Whitening constant, prevents division by zero.</param>
+        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = (float)1e-5,
-            int maxRows = 100 * 1000,
-            bool saveInverse = false) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, 0);
+            float eps = WhiteningTransform.Defaults.Eps,
+            int maxRows = WhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = WhiteningTransform.Defaults.SaveInverse) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, WhiteningTransform.Defaults.PcaNum);
     }
 }
