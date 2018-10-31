@@ -159,7 +159,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             LinearBinaryPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
@@ -202,7 +202,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             LinearBinaryPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
@@ -270,7 +270,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             MulticlassLogisticRegressionPredictor pred = null;
 
-            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+            var loss = new HingeLoss(1);
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()

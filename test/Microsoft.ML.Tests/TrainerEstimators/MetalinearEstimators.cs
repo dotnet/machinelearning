@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System.Linq;
 using Xunit;
 

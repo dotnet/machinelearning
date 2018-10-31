@@ -435,26 +435,26 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class NAIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
+    public sealed class MissingValueIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public NAIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public MissingValueIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), new NAIndicatorTransform(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">The name of the input column of the transformation.</param>
         /// <param name="output">The name of the column produced by the transformation.</param>
-        public NAIndicatorEstimator(IHostEnvironment env, string input, string output = null)
+        public MissingValueIndicatorEstimator(IHostEnvironment env, string input, string output = null)
             : this(env, (input, output ?? input))
         {
         }
@@ -542,7 +542,7 @@ namespace Microsoft.ML.Transforms
                     var col = (IColInput)toOutput[i];
                     columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
                 }
-                return new NAIndicatorEstimator(env, columnPairs);
+                return new MissingValueIndicatorEstimator(env, columnPairs);
             }
         }
 

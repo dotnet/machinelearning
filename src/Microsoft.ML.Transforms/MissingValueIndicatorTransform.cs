@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(MissingValueIndicatorTransform), typeof(MissingValueIndicatorTransform.Arguments), typeof(SignatureDataTransform),
     "", "MissingValueIndicatorTransform", "MissingValueTransform", "MissingTransform", "Missing")]
@@ -18,7 +19,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(MissingValueIndicatorTransform), null, typeof(SignatureLoadDataTransform),
     "Missing Value Indicator Transform", MissingValueIndicatorTransform.LoaderSignature, "MissingFeatureFunction")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class MissingValueIndicatorTransform : OneToOneTransformBase
     {

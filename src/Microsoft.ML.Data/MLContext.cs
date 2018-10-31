@@ -5,6 +5,8 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML
 {
@@ -62,13 +64,18 @@ namespace Microsoft.ML
         public Action<string> Log { get; set; }
 
         /// <summary>
+        /// This is a MEF composition container catalog to be used for model loading.
+        /// </summary>
+        public CompositionContainer CompositionContainer { get; set; }
+
+        /// <summary>
         /// Create the ML context.
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
         public MLContext(int? seed = null, int conc = 0)
         {
-            _env = new LocalEnvironment(seed, conc);
+            _env = new LocalEnvironment(seed, conc, MakeCompositionContainer);
             _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationContext(_env);
@@ -79,6 +86,18 @@ namespace Microsoft.ML
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataLoadSaveOperations(_env);
+        }
+
+        private CompositionContainer MakeCompositionContainer()
+        {
+            if (CompositionContainer == null)
+                return null;
+
+            var mlContext = CompositionContainer.GetExportedValueOrDefault<MLContext>();
+            if (mlContext == null)
+                CompositionContainer.ComposeExportedValue<MLContext>(this);
+
+            return CompositionContainer;
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
@@ -104,5 +123,6 @@ namespace Microsoft.ML
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
+        CompositionContainer IHostEnvironment.GetCompositionContainer() => _env.GetCompositionContainer();
     }
 }

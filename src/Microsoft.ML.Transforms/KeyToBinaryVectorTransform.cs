@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadRowMapper),
    KeyToBinaryVectorTransform.UserName, KeyToBinaryVectorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed class KeyToBinaryVectorTransform : OneToOneTransformerBase
     {
@@ -445,21 +445,21 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class KeyToBinaryVectorEstimator : TrivialEstimator<KeyToBinaryVectorTransform>
+    public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorTransform>
     {
 
-        public KeyToBinaryVectorEstimator(IHostEnvironment env, params KeyToBinaryVectorTransform.ColumnInfo[] columns)
+        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params KeyToBinaryVectorTransform.ColumnInfo[] columns)
             : this(env, new KeyToBinaryVectorTransform(env, columns))
         {
         }
 
-        public KeyToBinaryVectorEstimator(IHostEnvironment env, string name, string source = null)
-            : this(env, new KeyToBinaryVectorTransform(env, new KeyToBinaryVectorTransform.ColumnInfo(source ?? name, name)))
+        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null)
+            : this(env, new KeyToBinaryVectorTransform(env, new KeyToBinaryVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn)))
         {
         }
 
-        private KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorEstimator)), transformer)
+        private KeyToBinaryVectorMappingEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorMappingEstimator)), transformer)
         {
         }
 
@@ -568,7 +568,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = (IColInput)toOutput[i];
                     infos[i] = new KeyToBinaryVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
                 }
-                return new KeyToBinaryVectorEstimator(env, infos);
+                return new KeyToBinaryVectorMappingEstimator(env, infos);
             }
         }
 
