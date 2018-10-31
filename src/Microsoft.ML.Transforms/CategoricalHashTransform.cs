@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        internal CategoricalHashTransform(HashEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
+        internal CategoricalHashTransform(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             var chain = hash.Append(keyToVector);
             _transformer = chain.Fit(input);
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IEstimator<ITransformer> _toSomething;
-        private HashEstimator _hash;
+        private HashingEstimator _hash;
 
         /// A helper method to create <see cref="OneHotHashEncodingEstimator"/> for public facing API.
         /// <param name="env">Host Environment.</param>
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
-            _hash = new HashEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
+            _hash = new HashingEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {
                 var binaryCols = new List<(string input, string output)>();

@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     var columnArgument = new StringBuilder();
                     var columnNameQuoted = new StringBuilder();
-                    var epColumns = new List<ML.Legacy.Transforms.ConvertTransformColumn>();
+                    var epColumns = new List<ML.Legacy.Transforms.ConvertingTransformColumn>();
 
                     foreach (var column in columns)
                     {
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             columnNameQuoted.AppendFormat("{0}", column.ColumnName);
                         }
 
-                        epColumns.Add(new ML.Legacy.Transforms.ConvertTransformColumn
+                        epColumns.Add(new ML.Legacy.Transforms.ConvertingTransformColumn
                         {
                             Name = columnNameQuoted.ToString(),
                             Source = columnNameQuoted.ToString(),

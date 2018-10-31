@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 },
                 OutputTokens = true,
                 KeepPunctuations=false,
-                StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = normalize ? TextFeaturizingEstimator.TextNormKind.L2 : TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
