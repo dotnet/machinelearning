@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
             var testMatrix = new List<MatrixElementForScore>() {
-                new MatrixElementForScore() { MatrixColumnIndex = 1000, MatrixRowIndex = 7, Score = default },
+                new MatrixElementForScore() { MatrixColumnIndex = 10, MatrixRowIndex = 7, Score = default },
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
 
             // Again, convert the test data to a format supported by ML.NET.
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
-                Console.WriteLine("Predicted value at row {0} and column {1} is {2}", pred.MatrixRowIndex, pred.MatrixColumnIndex, pred.Score);
+                Assert.True(pred.Score != 0);
         }
     }
 }
