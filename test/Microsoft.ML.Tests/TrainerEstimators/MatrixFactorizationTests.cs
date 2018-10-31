@@ -202,5 +202,94 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.L2 < 0.1);
         }
+
+        internal class MatrixElementZeroBased
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        internal class MatrixElementZeroBasedForScore
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        public void MatrixFactorizationInMemoryDataZeroBaseIndex()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value).
+            // Iterators i and j are column and row indexes, respectively.
+            var dataMatrix = new List<MatrixElementZeroBased>();
+            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElementZeroBased.Value),
+                nameof(MatrixElementZeroBased.MatrixColumnIndex), nameof(MatrixElementZeroBased.MatrixRowIndex),
+                advancedSettings: s =>
+                {
+                    s.NumIterations = 10;
+                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                    s.K = 32;
+                });
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Check if the expected types in the trained model are expected.
+            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
+            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
+            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
+            Assert.True(model.MatrixRowIndexColumnType.IsKey);
+            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
+            Assert.True(matColKeyType.Min == 0);
+            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
+            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
+            Assert.True(matRowKeyType.Min == 0);
+            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+
+            // Create matrix examples for testing prediction
+            var testMatrix = new List<MatrixElementZeroBasedForScore>();
+            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                    testMatrix.Add(new MatrixElementZeroBasedForScore() { MatrixColumnIndex = i, MatrixRowIndex = j, Score = default });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var testDataView = ComponentCreation.CreateDataView(Env, testMatrix);
+
+            // Apply the trained model to the training set
+            var prediction = model.Transform(dataView);
+
+            foreach (var pred in prediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+                Assert.True(!float.IsNaN(pred.Score));
+
+            // Calculate regression matrices for the prediction result
+            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+
+            // Native test. Just check the pipeline runs.
+            Assert.True(metrics.L2 < 0.1);
+        }
     }
 }
