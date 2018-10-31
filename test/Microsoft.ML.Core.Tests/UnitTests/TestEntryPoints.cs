@@ -1328,9 +1328,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter3(ref score0[3]);
                     getter4(ref score0[4]);
                     getterSaved(ref scoreSaved);
-                    Assert.True(CompareVBuffers(ref scoreSaved, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in scoreSaved, in score, ref dense1, ref dense2));
                     c(ref avg, score0, null);
-                    Assert.True(CompareVBuffers(ref avg, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in avg, in score, ref dense1, ref dense2));
                 }
                 Assert.False(curs0.MoveNext());
                 Assert.False(curs1.MoveNext());
@@ -1476,7 +1476,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        private static bool CompareVBuffers(ref VBuffer<Single> v1, ref VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
+        private static bool CompareVBuffers(in VBuffer<Single> v1, in VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
         {
             if (v1.Length != v2.Length)
                 return false;

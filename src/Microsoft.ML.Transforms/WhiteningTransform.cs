@@ -542,12 +542,12 @@ namespace Microsoft.ML.Transforms
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == cslotSrc, "Invalid column size.");
-                    FillValues(model, ref src, ref dst, cslotDst);
+                    FillValues(model, in src, ref dst, cslotDst);
                 };
             return del;
         }
 
-        private static void FillValues(Float[] model, ref VBuffer<Float> src, ref VBuffer<Float> dst, int cdst)
+        private static void FillValues(Float[] model, in VBuffer<Float> src, ref VBuffer<Float> dst, int cdst)
         {
             int count = src.Count;
             int length = src.Length;

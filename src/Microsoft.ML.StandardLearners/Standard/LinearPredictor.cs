@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        internal LinearPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
+        internal LinearPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
             : base(env, name)
         {
             Host.CheckParam(FloatUtils.IsFinite(weights.Values, weights.Count), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
@@ -246,25 +246,25 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Generate the score from the given values, assuming they have already been normalized.
-        protected virtual Float Score(ref VBuffer<Float> src)
+        protected virtual Float Score(in VBuffer<Float> src)
         {
             if (src.IsDense)
             {
                 var weights = Weight;
-                return Bias + VectorUtils.DotProduct(ref weights, ref src);
+                return Bias + VectorUtils.DotProduct(in weights, in src);
             }
             EnsureWeightsDense();
-            return Bias + VectorUtils.DotProduct(ref _weightsDense, ref src);
+            return Bias + VectorUtils.DotProduct(in _weightsDense, in src);
         }
 
-        protected virtual void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contributions, int top, int bottom, bool normalize)
+        protected virtual void GetFeatureContributions(in VBuffer<Float> features, ref VBuffer<Float> contributions, int top, int bottom, bool normalize)
         {
             if (features.Length != Weight.Length)
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
 
             var weights = Weight;
-            VBuffer<Float>.Copy(ref features, ref contributions);
-            VectorUtils.MulElementWise(ref weights, ref contributions);
+            features.CopyTo(ref contributions);
+            VectorUtils.MulElementWise(in weights, ref contributions);
             VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
-                    dst = Score(ref src);
+                    dst = Score(in src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 var sub = (LinearPredictor)m;
                 var subweights = sub.Weight;
-                VectorUtils.Add(ref subweights, ref weights);
+                VectorUtils.Add(in subweights, ref weights);
                 bias += sub.Bias;
             }
             VectorUtils.ScaleBy(ref weights, (Float)1 / models.Count);
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(schema, nameof(schema));
 
             var weights = Weight;
-            LinearPredictorUtils.SaveAsCode(writer, ref weights, Bias, schema);
+            LinearPredictorUtils.SaveAsCode(writer, in weights, Bias, schema);
         }
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Learners
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
                 (ref VBuffer<Float> src, ref VBuffer<Float> dstContributions) =>
                 {
-                    GetFeatureContributions(ref src, ref dstContributions, top, bottom, normalize);
+                    GetFeatureContributions(in src, ref dstContributions, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
@@ -421,8 +421,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
         /// <param name="stats"></param>
-        public LinearBinaryPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
-            : base(env, RegistrationName, ref weights, bias)
+        public LinearBinaryPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias, LinearModelStatistics stats = null)
+            : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(stats);
             _stats = stats;
@@ -498,7 +498,7 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new LinearBinaryPredictor(Host, ref weights, bias);
+            return new LinearBinaryPredictor(Host, in weights, bias);
         }
 
         public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.Learners
             // REVIEW: Would be nice to have the settings!
             var weights = Weight;
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Linear Binary Classification Predictor", null, null,
-                ref weights, Bias, schema));
+                in weights, Bias, schema));
 
             _stats?.SaveText(writer, this, schema, 20);
         }
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var weights = Weight;
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
-            LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(ref weights, Bias, schema, results);
+            LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(in weights, Bias, schema, results);
             _stats?.SaveSummaryInKeyValuePairs(this, schema, int.MaxValue, results);
             return results;
         }
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.Learners
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
 
             // Add the stat columns.
-            _stats.AddStatsColumns(cols, this, schema, ref names);
+            _stats.AddStatsColumns(cols, this, schema, in names);
             return RowColumnUtils.GetRow(null, cols.ToArray());
         }
 
@@ -545,15 +545,15 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValueOrNull(calibrator);
 
             var weights = Weight;
-            writer.Write(LinearPredictorUtils.LinearModelAsIni(ref weights, Bias, this,
+            writer.Write(LinearPredictorUtils.LinearModelAsIni(in weights, Bias, this,
                 schema, calibrator as PlattCalibrator));
         }
     }
 
     public abstract class RegressionPredictor : LinearPredictor
     {
-        protected RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
-            : base(env, name, ref weights, bias)
+        protected RegressionPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
+            : base(env, name, in weights, bias)
         {
         }
 
@@ -579,7 +579,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // REVIEW: For Poisson should encode the exp operation in the ini as well, bug 2433.
             var weights = Weight;
-            writer.Write(LinearPredictorUtils.LinearModelAsIni(ref weights, Bias, this, schema, null));
+            writer.Write(LinearPredictorUtils.LinearModelAsIni(in weights, Bias, this, schema, null));
         }
     }
 
@@ -609,8 +609,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="weights">The weights for the linear predictor. Note that this
         /// will take ownership of the <see cref="VBuffer{T}"/>.</param>
         /// <param name="bias">The bias added to every output score.</param>
-        public LinearRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias)
-            : base(env, RegistrationName, ref weights, bias)
+        public LinearRegressionPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+            : base(env, RegistrationName, in weights, bias)
         {
         }
 
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Runtime.Learners
             // REVIEW: Would be nice to have the settings!
             var weights = Weight;
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Linear Regression Predictor", null, null,
-                ref weights, Bias, schema, null));
+                in weights, Bias, schema, null));
         }
 
         /// <summary>
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new LinearRegressionPredictor(Host, ref weights, bias);
+            return new LinearRegressionPredictor(Host, in weights, bias);
         }
 
         ///<inheritdoc/>
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var weights = Weight;
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
-            LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(ref weights, Bias, schema, results);
+            LinearPredictorUtils.SaveLinearModelWeightsInKeyValuePairs(in weights, Bias, schema, results);
 
             return results;
         }
@@ -685,8 +685,8 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderAssemblyName: typeof(PoissonRegressionPredictor).Assembly.FullName);
         }
 
-        internal PoissonRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias)
-            : base(env, RegistrationName, ref weights, bias)
+        internal PoissonRegressionPredictor(IHostEnvironment env, in VBuffer<Float> weights, Float bias)
+            : base(env, RegistrationName, in weights, bias)
         {
         }
 
@@ -709,9 +709,9 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        protected override Float Score(ref VBuffer<Float> src)
+        protected override Float Score(in VBuffer<Float> src)
         {
-            return MathUtils.ExpSlow(base.Score(ref src));
+            return MathUtils.ExpSlow(base.Score(in src));
         }
 
         public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Runtime.Learners
             // REVIEW: Would be nice to have the settings!
             var weights = Weight;
             writer.WriteLine(LinearPredictorUtils.LinearModelAsText("Poisson Regression Predictor", null, null,
-                ref weights, Bias, schema, null));
+                in weights, Bias, schema, null));
         }
 
         /// <summary>
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<Float> weights;
             Float bias;
             CombineParameters(models, out weights, out bias);
-            return new PoissonRegressionPredictor(Host, ref weights, bias);
+            return new PoissonRegressionPredictor(Host, in weights, bias);
         }
     }
 }

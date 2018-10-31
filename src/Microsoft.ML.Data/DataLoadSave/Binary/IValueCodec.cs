@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <summary>
         /// Writes a single value to the writer.
         /// </summary>
-        void Write(ref T value);
+        void Write(in T value);
 
         /// <summary>
         /// Writes an array of values. This should be equivalent to writing each element

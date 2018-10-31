@@ -557,7 +557,7 @@ namespace Microsoft.ML.Transforms
                         getter(ref tmp);
                         mapper(ref tmp, ref slotValues, out int min, out int lim);
                         Contracts.Assert(iScore < slotCount);
-                        scores[iScore++] = ComputeMutualInformation(ref slotValues, lim - min, min);
+                        scores[iScore++] = ComputeMutualInformation(in slotValues, lim - min, min);
                     }
                 }
                 return scores;
@@ -566,7 +566,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Computes the mutual information for one slot.
             /// </summary>
-            private Single ComputeMutualInformation(ref VBuffer<int> features, int numFeatures, int offset)
+            private Single ComputeMutualInformation(in VBuffer<int> features, int numFeatures, int offset)
             {
                 Contracts.Assert(_labels.Length == features.Length);
                 if (Utils.Size(_contingencyTable[0]) < numFeatures)
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms
                 Array.Clear(_labelSums, 0, _numLabels);
                 Array.Clear(_featureSums, 0, numFeatures);
 
-                FillTable(ref features, offset, numFeatures);
+                FillTable(in features, offset, numFeatures);
                 for (int i = 0; i < _numLabels; i++)
                 {
                     for (int j = 0; j < numFeatures; j++)
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Fills the contingency table.
             /// </summary>
-            private void FillTable(ref VBuffer<int> features, int offset, int numFeatures)
+            private void FillTable(in VBuffer<int> features, int offset, int numFeatures)
             {
                 Contracts.Assert(_labels.Length == features.Length);
                 if (features.IsDense)

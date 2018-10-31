@@ -189,8 +189,8 @@ namespace Microsoft.ML.Runtime.Learners
             return opt;
         }
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
+        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
         {
             if (Utils.Size(scores) < _numClasses)
                 scores = new float[_numClasses];
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
                 x.GetItemOrDefault(c, ref bias);
-                scores[c] = bias + VectorUtils.DotProductWithOffset(ref x, start, ref feat);
+                scores[c] = bias + VectorUtils.DotProductWithOffset(in x, start, in feat);
             }
 
             float logZ = MathUtils.SoftMax(scores, _numClasses);
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
                 float mult = weight * (modelProb - probLabel);
-                VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, start);
+                VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
                 Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
                 grad.Values[c] += mult;
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            return new MulticlassLogisticRegressionPredictor(Host, ref CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
+            return new MulticlassLogisticRegressionPredictor(Host, in CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
         protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // Need to subtract L1 regularization loss.
                 // The bias term is not regularized.
                 Double regLoss = 0;
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
+                VBufferUtils.ForEachDefined(in CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
                 deviance -= (float)regLoss * L1Weight * 2;
             }
 
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Runtime.Learners
         public bool CanSavePfa => true;
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // This is actually a bug waiting to happen: sparse/dense vectors
                     // can have different dot products even if they are logically the
                     // same vector.
-                    numIndices += NonZeroCount(ref _weights[i]);
+                    numIndices += NonZeroCount(in _weights[i]);
                     ctx.Writer.Write(numIndices);
                 }
 
@@ -708,7 +708,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // REVIEW: Destroy.
-        private static int NonZeroCount(ref VBuffer<float> vector)
+        private static int NonZeroCount(in VBuffer<float> vector)
         {
             int count = 0;
             if (!vector.IsDense)
@@ -741,13 +741,13 @@ namespace Microsoft.ML.Runtime.Learners
                     Host.Check(src.Length == _numFeatures);
 
                     var values = dst.Values;
-                    PredictCore(ref src, ref values);
+                    PredictCore(in src, ref values);
                     dst = new VBuffer<float>(_numClasses, values, dst.Indices);
                 };
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        private void PredictCore(ref VBuffer<float> src, ref float[] dst)
+        private void PredictCore(in VBuffer<float> src, ref float[] dst)
         {
             Host.Check(src.Length == _numFeatures, "src length should equal the number of features");
             var weights = _weights;
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Runtime.Learners
                 dst = new float[_numClasses];
 
             for (int i = 0; i < _biases.Length; i++)
-                dst[i] = _biases[i] + VectorUtils.DotProduct(ref weights[i], ref src);
+                dst[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
 
             Calibrate(dst);
         }
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < _biases.Length; i++)
             {
                 LinearPredictorUtils.SaveAsCode(writer,
-                    ref _weights[i],
+                    in _weights[i],
                     _biases[i],
                     schema,
                     "score[" + i.ToString() + "]");
@@ -1024,7 +1024,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var cols = new List<IColumn>();
             var names = default(VBuffer<ReadOnlyMemory<char>>);
-            _stats.AddStatsColumns(cols, null, schema, ref names);
+            _stats.AddStatsColumns(cols, null, schema, in names);
             return RowColumnUtils.GetRow(null, cols.ToArray());
         }
     }
