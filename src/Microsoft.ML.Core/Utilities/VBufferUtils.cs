@@ -589,7 +589,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
         public static void ApplyWithCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
@@ -622,7 +623,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
         public static void ApplyWithEitherDefinedCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)

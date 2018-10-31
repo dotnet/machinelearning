@@ -1027,15 +1027,11 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="values">The values for one particular feature value across all examples</param>
         /// <param name="maxBins">The maximum number of bins to find</param>
         /// <param name="minDocsPerLeaf"></param>
-        /// <param name="distinctValues">The working array of distinct values, a temporary buffer that should be called
-        /// to multiple invocations of this method, but not meant to be useful to the caller. This method will reallocate
-        /// the array to a new size if necessary. Passing in null at first is acceptable.</param>
-        /// <param name="distinctCounts">Similar working array, but for distinct counts</param>
         /// <param name="upperBounds">The bin upper bounds, maximum length will be <paramref name="maxBins"/></param>
         /// <returns>Whether finding the bins was successful or not. It will be unsuccessful iff <paramref name="values"/>
         /// has any missing values. In that event, the out parameters will be left as null.</returns>
         protected static bool CalculateBins(BinFinder binFinder, in VBuffer<double> values, int maxBins, int minDocsPerLeaf,
-            ref double[] distinctValues, ref int[] distinctCounts, out double[] upperBounds)
+            out double[] upperBounds)
         {
             return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
         }
@@ -1444,8 +1440,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
                                     // Perhaps we should change the binning to just work over singles.
                                     VBuffer<double> doubleTemp = default(VBuffer<double>);
-                                    double[] distinctValues = null;
-                                    int[] distinctCounts = null;
                                     var copier = GetCopier<Float, Double>(NumberType.Float, NumberType.R8);
                                     int iFeature = 0;
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
@@ -1469,7 +1463,6 @@ namespace Microsoft.ML.Trainers.FastTree
                                             // Must copy over, as bin calculation is potentially destructive.
                                             copier(ref temp, ref doubleTemp);
                                             hasMissing = !CalculateBins(finder, in doubleTemp, maxBins, 0,
-                                                ref distinctValues, ref distinctCounts,
                                                 out BinUpperBounds[iFeature]);
                                         }
                                         else
@@ -1941,8 +1934,6 @@ namespace Microsoft.ML.Trainers.FastTree
                     BinFinder binFinder = new BinFinder();
                     VBuffer<double> temp = default(VBuffer<double>);
                     int len = _numExamples;
-                    double[] distinctValues = null;
-                    int[] distinctCounts = null;
                     bool[] localConstructBinFeatures = parallelTraining.GetLocalBinConstructionFeatures(NumFeatures);
                     int iFeature = 0;
                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, NumFeatures));
@@ -1957,7 +1948,6 @@ namespace Microsoft.ML.Trainers.FastTree
                         // into here, and collapse bins somehow as we determine the bins, so that "trivial"
                         // bins on the head or tail of the bin distribution are never actually considered.
                         CalculateBins(binFinder, in temp, maxBins, _minDocsPerLeaf,
-                            ref distinctValues, ref distinctCounts,
                             out double[] binUpperBounds);
                         BinUpperBounds[iFeature] = binUpperBounds;
                     }
