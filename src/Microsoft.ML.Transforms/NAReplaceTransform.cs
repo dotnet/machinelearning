@@ -6,7 +6,6 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -14,6 +13,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(NAReplaceTransform), null, typeof(SignatureLoadRowMapper),
    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     // This transform can transform either scalars or vectors (both fixed and variable size),
     // creating output columns that are identical to the input columns except for replacing NA values
@@ -121,11 +121,11 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = (ReplacementKind)NAReplaceEstimator.Defaults.ReplacementMode;
+            public ReplacementKind ReplacementKind = (ReplacementKind)MissingValueReplacingEstimator.Defaults.ReplacementMode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
-            public bool ImputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot;
+            public bool ImputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot;
         }
 
         public const string LoadName = "NAReplaceTransform";
@@ -160,13 +160,13 @@ namespace Microsoft.ML.Runtime.Data
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out RefPredicate<T> isNA))
+            if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
             }
             var t = default(T);
-            if (isNA(ref t))
+            if (isNA(in t))
             {
                 // REVIEW: Key values will be handled in a "new key value" transform.
                 return string.Format("Type '{0}' is not supported by {1} since its NA value is equivalent to its default value",
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string input, string output, ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            public ColumnInfo(string input, string output, ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 Input = input;
                 Output = output;
@@ -288,11 +288,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(srcType.IsVector);
             Host.Assert(srcType.VectorSize == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            InPredicate<T> defaultPred = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
             _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
             for (int slot = 0; slot < src.Length; slot++)
             {
-                if (defaultPred(ref src.Values[slot]))
+                if (defaultPred(in src.Values[slot]))
                     _repIsDefault[iinfo][slot] = true;
             }
             T[] valReturn = src.Values;
@@ -401,10 +401,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.Assert(values.Length == type.VectorSize);
             BitArray defaultSlots = new BitArray(values.Length);
-            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+            InPredicate<T> defaultPred = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
             for (int slot = 0; slot < values.Length; slot++)
             {
-                if (defaultPred(ref values[slot]))
+                if (defaultPred(in values[slot]))
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
@@ -432,31 +432,29 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private Delegate GetIsNADelegate<T>(ColumnType type)
-        {
-            return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
-        }
+            => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
 
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
         /// </summary>
         private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
         {
-            Func<string, ColumnType, RefPredicate<int>, object> func = GetSpecifiedValue<int>;
+            Func<string, ColumnType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.ItemType.RawType);
             return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
         }
 
-        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, RefPredicate<T> isNA)
+        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, InPredicate<T> isNA)
         {
             var val = default(T);
             if (!string.IsNullOrEmpty(srcStr))
             {
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
-                var strToT = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
+                var strToT = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
                 strToT(ref srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
-                if (isNA(ref val))
+                if (isNA(in val))
                     throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.ItemType);
             }
 
@@ -560,7 +558,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
@@ -585,7 +583,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _isNAs;
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            public Mapper(NAReplaceTransform parent, ISchema inputSchema)
+            public Mapper(NAReplaceTransform parent, Schema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -633,16 +631,16 @@ namespace Microsoft.ML.Runtime.Data
                 return infos;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
-                    var meta = RowColumnUtils.GetMetadataAsRow(InputSchema, colIndex, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], meta);
+                    var builder = new Schema.Metadata.Builder();
+                    builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
@@ -671,7 +669,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
-                var isNA = (RefPredicate<T>)_isNAs[iinfo];
+                var isNA = (InPredicate<T>)_isNAs[iinfo];
                 Host.Assert(_parent._repValues[iinfo] is T);
                 T rep = (T)_parent._repValues[iinfo];
                 ValueGetter<T> getter;
@@ -680,7 +678,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref T dst) =>
                     {
                         getSrc(ref src);
-                        dst = isNA(ref src) ? rep : src;
+                        dst = isNA(in src) ? rep : src;
                     };
             }
 
@@ -696,8 +694,8 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
-                var isNA = (RefPredicate<T>)_isNAs[iinfo];
-                var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
+                var isNA = (InPredicate<T>)_isNAs[iinfo];
+                var isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
 
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;
@@ -707,7 +705,7 @@ namespace Microsoft.ML.Runtime.Data
                     // One replacement value for all slots.
                     Host.Assert(_parent._repValues[iinfo] is T);
                     T rep = (T)_parent._repValues[iinfo];
-                    bool repIsDefault = isDefault(ref rep);
+                    bool repIsDefault = isDefault(in rep);
                     return getter =
                         (ref VBuffer<T> dst) =>
                         {
@@ -733,7 +731,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Fills values for vectors where there is one replacement value.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T rep, bool repIsDefault)
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T rep, bool repIsDefault)
             {
                 Host.AssertValue(isNA);
 
@@ -765,7 +763,7 @@ namespace Microsoft.ML.Runtime.Data
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstValues[ivSrc] = isNA(ref srcVal) ? rep : srcVal;
+                        dstValues[ivSrc] = isNA(in srcVal) ? rep : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -791,7 +789,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(ivPrev < iv & iv < srcSize);
                         ivPrev = iv;
 
-                        if (!isNA(ref srcVal))
+                        if (!isNA(in srcVal))
                         {
                             dstValues[iivDst] = srcVal;
                             dstIndices[iivDst++] = iv;
@@ -813,7 +811,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Fills values for vectors where there is slot-wise replacement values.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T[] rep, BitArray repIsDefault)
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T[] rep, BitArray repIsDefault)
             {
                 Host.AssertValue(rep);
                 Host.Assert(rep.Length == src.Length);
@@ -849,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstValues[ivSrc] = isNA(ref srcVal) ? rep[ivSrc] : srcVal;
+                        dstValues[ivSrc] = isNA(in srcVal) ? rep[ivSrc] : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -875,7 +873,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(ivPrev < iv & iv < srcSize);
                         ivPrev = iv;
 
-                        if (!isNA(ref srcVal))
+                        if (!isNA(in srcVal))
                         {
                             dstValues[iivDst] = srcVal;
                             dstIndices[iivDst++] = iv;
@@ -947,7 +945,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class NAReplaceEstimator : IEstimator<NAReplaceTransform>
+    public sealed class MissingValueReplacingEstimator : IEstimator<NAReplaceTransform>
     {
         public static class Defaults
         {
@@ -958,16 +956,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly NAReplaceTransform.ColumnInfo[] _columns;
 
-        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new NAReplaceTransform.ColumnInfo(source ?? name, name, replacementKind))
+        public MissingValueReplacingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new NAReplaceTransform.ColumnInfo(outputColumn ?? inputColumn, inputColumn, replacementKind))
         {
 
         }
 
-        public NAReplaceEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
+        public MissingValueReplacingEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(NAReplaceEstimator));
+            _host = env.Register(nameof(MissingValueReplacingEstimator));
             _columns = columns;
         }
 
@@ -999,15 +997,15 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class NAReplaceExtensions
+    public static class NAReplacerExtensions
     {
         private struct Config
         {
             public readonly bool ImputeBySlot;
             public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;
 
-            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
                 ReplacementMode = replacementMode;
@@ -1078,7 +1076,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = (IColInput)toOutput[i];
                     infos[i] = new NAReplaceTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
-                return new NAReplaceEstimator(env, infos);
+                return new MissingValueReplacingEstimator(env, infos);
             }
         }
 
@@ -1087,7 +1085,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -1098,7 +1096,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -1111,7 +1109,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -1125,7 +1123,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -1136,7 +1134,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -1146,7 +1144,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> NAReplace(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));

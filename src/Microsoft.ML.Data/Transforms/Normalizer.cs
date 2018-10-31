@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -21,9 +22,9 @@ using System.Linq;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizerTransformer), null, typeof(SignatureLoadRowMapper),
     "", NormalizerTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed class Normalizer : IEstimator<NormalizerTransformer>
+    public sealed class NormalizingEstimator : IEstimator<NormalizerTransformer>
     {
         internal static class Defaults
         {
@@ -37,9 +38,21 @@ namespace Microsoft.ML.Runtime.Data
 
         public enum NormalizerMode
         {
+            /// <summary>
+            /// Linear rescale such that minimum and maximum values are mapped between -1 and 1.
+            /// </summary>
             MinMax = 0,
+            /// <summary>
+            /// Rescale to unit variance and, optionally, zero mean.
+            /// </summary>
             MeanVariance = 1,
+            /// <summary>
+            /// Rescale to unit variance on the log scale.
+            /// </summary>
             LogMeanVariance = 2,
+            /// <summary>
+            /// Bucketize and then rescale to between -1 and 1.
+            /// </summary>
             Binning = 3
         }
 
@@ -150,23 +163,41 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly ColumnBase[] _columns;
 
-        public Normalizer(IHostEnvironment env, string columnName, NormalizerMode mode = NormalizerMode.MinMax)
-            : this(env, mode, (columnName, columnName))
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        public NormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NormalizerMode mode = NormalizerMode.MinMax)
+            : this(env, mode, (inputColumn, outputColumn ?? inputColumn))
         {
         }
 
-        public Normalizer(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        /// <param name="columns">An array of (inputColumn, outputColumn) tuples.</param>
+        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(Normalizer));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
             _columns = columns.Select(x => ColumnBase.Create(x.inputColumn, x.outputColumn, mode)).ToArray();
         }
 
-        public Normalizer(IHostEnvironment env, params ColumnBase[] columns)
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
+        /// <param name="columns">An array of <see cref="ColumnBase"/> defining the inputs to the Normalizer, and their settings.</param>
+        public NormalizingEstimator(IHostEnvironment env, params ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(Normalizer));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
 
             _columns = columns.ToArray();
@@ -301,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
             ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
-        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, Normalizer.ColumnBase[] columns)
+        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -447,7 +478,7 @@ namespace Microsoft.ML.Runtime.Data
             => base.MakeDataTransform(input);
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -456,37 +487,31 @@ namespace Microsoft.ML.Runtime.Data
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(NormalizerTransformer parent, ISchema schema)
+            public Mapper(NormalizerTransformer parent, Schema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent._columns.Length];
+                var result = new Schema.Column[_parent._columns.Length];
                 for (int i = 0; i < _parent.Columns.Length; i++)
-                    result[i] = new RowMapperColumnInfo(_parent._columns[i].Output, _parent._columns[i].InputType, MakeMetadata(i));
+                    result[i] = new Schema.Column(_parent._columns[i].Output, _parent._columns[i].InputType, MakeMetadata(i));
                 return result;
             }
 
-            private ColumnMetadataInfo MakeMetadata(int iinfo)
+            private Schema.Metadata MakeMetadata(int iinfo)
             {
                 var colInfo = _parent._columns[iinfo];
-                var result = new ColumnMetadataInfo(colInfo.Output);
-                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, IsNormalizedGetter));
-                if (InputSchema.HasSlotNames(ColMapNewToOld[iinfo], colInfo.InputType.VectorSize))
-                {
-                    MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> slotNames) =>
-                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo], ref slotNames);
-                    var metaType = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo]);
-                    Contracts.AssertValue(metaType);
-                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(metaType, getter));
-                }
-                return result;
+                var builder = new Schema.Metadata.Builder();
+
+                builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)IsNormalizedGetter);
+                builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                return builder.GetMetadata();
             }
 
-            private void IsNormalizedGetter(int col, ref bool dst)
+            private void IsNormalizedGetter(ref bool dst)
             {
                 dst = true;
             }

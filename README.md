@@ -8,7 +8,7 @@ ML.NET allows .NET developers to develop their own models and infuse custom mach
 
 ML.NET was originally developed in Microsoft Research, and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release, ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
+ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
 
 Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
@@ -16,7 +16,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
+ML.NET runs on Windows, Linux, and macOS - any platform where x64 [.NET Core](https://github.com/dotnet/core) or later is available. In addition, .NET Framework on Windows x64 is also supported.
 
 The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md) to see what's new.
 
@@ -34,7 +34,7 @@ Install-Package Microsoft.ML
 
 Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
-Daily NuGet builds of the project are also available in our MyGet feed:
+Daily NuGet builds of the project are also available in our [MyGet](https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML) feed:
 
 > [https://dotnet.myget.org/F/dotnet-core/api/v3/index.json](https://dotnet.myget.org/F/dotnet-core/api/v3/index.json)
 

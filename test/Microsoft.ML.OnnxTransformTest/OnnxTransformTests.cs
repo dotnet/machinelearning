@@ -82,7 +82,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new OnnxEstimator(Env, modelFile, "data_0", "softmaxout_1");
+            var pipe = new OnnxScoringEstimator(Env, modelFile, "data_0", "softmaxout_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "softmaxout_1";
-            var est = new OnnxEstimator(Env, modelFile, inputNames, outputNames);
+            var est = new OnnxScoringEstimator(Env, modelFile, inputNames, outputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tests
                 var data = TextLoader.CreateReader(env, ctx => (
                     imagePath: ctx.LoadText(0),
                     name: ctx.LoadText(1)))
-                    .Read(new MultiFileSource(dataFile));
+                    .Read(dataFile);
 
                 // Note that CamelCase column names are there to match the TF graph node names.
                 var pipe = data.MakeNewEstimator()

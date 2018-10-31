@@ -4,10 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,7 +38,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                 }
             });
-            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
+            var data = reader.Read(GetDataPath(TestDatasets.mnistOneClass.trainFilename));
 
 
             // Pipeline.
@@ -65,7 +67,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     new TextLoader.Column(weights, DataKind.R4, 0)
                 }
             });
-            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.mnistTiny28.trainFilename)));
+            var data = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
 
 
             // Pipeline.
@@ -84,7 +86,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -96,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMultiClassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -113,10 +115,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
                         }
-                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                    }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextTransform(Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator (Env, "SentimentText", "Features");
 
             return (pipeline, data);
         }
@@ -134,10 +136,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         new TextLoader.Column("Workclass", DataKind.Text, 1),
                         new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
                     }
-            }).Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
+            }).Read(GetDataPath(TestDatasets.adultRanking.trainFilename));
 
             // Pipeline.
-            var pipeline = new TermEstimator(Env, new[]{
+            var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
                                     new TermTransform.ColumnInfo("Workclass", "Group"),
                                     new TermTransform.ColumnInfo("Label", "Label0") });
 
@@ -156,7 +158,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.R4, 11),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
                         }
-                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
+                    }).Read(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename));
         }
 
         private TextLoader.Arguments GetIrisLoaderArgs()
@@ -186,9 +188,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.Text, 4)
                         }
                 })
-                .Read(new MultiFileSource(GetDataPath(IrisDataPath)));
+                .Read(GetDataPath(IrisDataPath));
 
-            var pipeline = new TermEstimator(Env, "Label");
+            var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 
             return (pipeline, data);
         }

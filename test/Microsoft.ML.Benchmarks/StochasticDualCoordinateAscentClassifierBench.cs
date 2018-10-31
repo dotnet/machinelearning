@@ -11,6 +11,8 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -89,20 +91,18 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_sentimentDataPath));
 
-                var text = TextTransform.Create(env,
-                    new TextTransform.Arguments()
+                var text = TextFeaturizingEstimator.Create(env,
+                    new TextFeaturizingEstimator.Arguments()
                     {
-                        Column = new TextTransform.Column
+                        Column = new TextFeaturizingEstimator.Column
                         {
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
                         },
-                        KeepDiacritics = false,
-                        KeepPunctuations = false,
-                        TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                         OutputTokens = true,
-                        StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                        VectorNormalizer = TextTransform.TextNormKind.None,
+                        KeepPunctuations=false,
+                        StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
                     }, loader);

@@ -25,7 +25,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
+            var loader = new TextLoader(dataPath).CreateFrom<SentimentData>();
+            loader.Arguments.HasHeader = true;
+            pipeline.Add(loader);
 
             pipeline.Add(MakeSentimentTextTransform());
 
@@ -41,12 +43,10 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         {
             return new TextFeaturizer("Features", "SentimentText")
             {
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
-                VectorNormalizer = TextTransformTextNormKind.L2,
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
             };

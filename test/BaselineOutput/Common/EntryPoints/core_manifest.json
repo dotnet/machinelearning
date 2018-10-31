@@ -17892,68 +17892,20 @@
       ]
     },
     {
-      "Name": "Transforms.ColumnDropper",
-      "Desc": "Drops columns from the dataset",
-      "FriendlyName": "Drop Columns Transform",
-      "ShortName": "Drop",
-      "Inputs": [
-        {
-          "Name": "Column",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "String"
-          },
-          "Desc": "Column name to drop",
-          "Aliases": [
-            "col"
-          ],
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        }
-      ],
-      "Outputs": [
-        {
-          "Name": "OutputData",
-          "Type": "DataView",
-          "Desc": "Transformed dataset"
-        },
-        {
-          "Name": "Model",
-          "Type": "TransformModel",
-          "Desc": "Transform model"
-        }
-      ],
-      "InputKind": [
-        "ITransformInput"
-      ],
-      "OutputKind": [
-        "ITransformOutput"
-      ]
-    },
-    {
       "Name": "Transforms.ColumnSelector",
       "Desc": "Selects a set of columns, dropping all others",
       "FriendlyName": "Select Columns",
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "Column",
+          "Name": "KeepColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
           },
-          "Desc": "Column name to keep",
+          "Desc": "List of columns to keep.",
           "Aliases": [
-            "col"
+            "keepcol"
           ],
           "Required": false,
           "SortOrder": 1.0,
@@ -17967,6 +17919,45 @@
           "Required": true,
           "SortOrder": 1.0,
           "IsNullable": false
+        },
+        {
+          "Name": "DropColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of columns to drop.",
+          "Aliases": [
+            "dropcol"
+          ],
+          "Required": false,
+          "SortOrder": 2.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "KeepHidden",
+          "Type": "Bool",
+          "Desc": "Specifies whether to keep or remove hidden columns.",
+          "Aliases": [
+            "hidden"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": false
+        },
+        {
+          "Name": "IgnoreMissing",
+          "Type": "Bool",
+          "Desc": "Specifies whether to ignore columns that are missing from the input.",
+          "Aliases": [
+            "ignore"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [
@@ -22726,20 +22717,11 @@
           "Default": 0.01
         },
         {
-          "Name": "Shuffle",
-          "Type": "Bool",
-          "Desc": "Shuffle data before each iteration.",
-          "Required": false,
-          "SortOrder": 13.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
           "Name": "SaveLocationOperation",
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 14.0,
+          "SortOrder": 13.0,
           "IsNullable": false,
           "Default": "save/Const"
         },
@@ -22748,7 +22730,7 @@
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 15.0,
+          "SortOrder": 14.0,
           "IsNullable": false,
           "Default": "save/control_dependency"
         },
@@ -22757,7 +22739,7 @@
           "Type": "Bool",
           "Desc": "Retrain TensorFlow model.",
           "Required": false,
-          "SortOrder": 16.0,
+          "SortOrder": 15.0,
           "IsNullable": false,
           "Default": false
         }

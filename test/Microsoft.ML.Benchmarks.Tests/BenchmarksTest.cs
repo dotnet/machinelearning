@@ -23,7 +23,7 @@ namespace Microsoft.ML.Benchmarks.Tests
     public class BenchmarkTouchingNativeDependency
     {
         [Benchmark]
-        public float Simple() => CpuMathUtils.Sum(Enumerable.Range(0, 1024).Select(Convert.ToSingle).ToArray(), 1024);
+        public float Simple() => CpuMathUtils.Sum(Enumerable.Range(0, 1024).Select(Convert.ToSingle).ToArray());
     }
 
     public class BenchmarksTest
@@ -39,7 +39,11 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper Output { get; }
 
+#if DEBUG
         [Fact(Skip = SkipTheDebug)]
+#else
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+#endif
         public void BenchmarksProjectIsNotBroken()
         {
             var summary = BenchmarkRunner.Run<BenchmarkTouchingNativeDependency>(new TestConfig().With(new OutputLogger(Output)));

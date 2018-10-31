@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(NgramHashTransform), typeof(NgramHashTransform.Arguments), typeof(SignatureDataTransform),
     "Ngram Hash Transform", "NgramHashTransform", "NgramHash")]
@@ -21,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(NgramHashTransform), null, typeof(SignatureLoadDataTransform),
     "Ngram Hash Transform", NgramHashTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -602,7 +603,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(icol >= 0);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -720,7 +721,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(NgramHashTransform parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)

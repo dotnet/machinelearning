@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator), typeof(BinaryClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Binary Classifier Evaluator", BinaryClassifierEvaluator.LoadName, "BinaryClassifier", "Binary", "bin")]
@@ -411,42 +411,48 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double Acc
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumTruePos) / (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos);
                     }
                 }
 
                 public Double RecallPos
                 {
-                    get {
+                    get
+                    {
                         return (NumTruePos + NumFalseNeg > 0) ? NumTruePos / (NumTruePos + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double PrecisionPos
                 {
-                    get {
+                    get
+                    {
                         return (NumTruePos + NumFalsePos > 0) ? NumTruePos / (NumTruePos + NumFalsePos) : 0;
                     }
                 }
 
                 public Double RecallNeg
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumFalsePos > 0) ? NumTrueNeg / (NumTrueNeg + NumFalsePos) : 0;
                     }
                 }
 
                 public Double PrecisionNeg
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumFalseNeg > 0) ? NumTrueNeg / (NumTrueNeg + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double Entropy
                 {
-                    get {
+                    get
+                    {
                         return MathUtils.Entropy((NumTruePos + NumFalseNeg) /
                             (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos));
                     }
@@ -454,7 +460,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLoss
                 {
-                    get {
+                    get
+                    {
                         return Double.IsNaN(_logLoss) ? Double.NaN : (_numLogLossPositives + _numLogLossNegatives > 0)
                             ? _logLoss / (_numLogLossPositives + _numLogLossNegatives) : 0;
                     }
@@ -462,7 +469,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLossReduction
                 {
-                    get {
+                    get
+                    {
                         if (_numLogLossPositives + _numLogLossNegatives == 0)
                             return 0;
                         var logLoss = _logLoss / (_numLogLossPositives + _numLogLossNegatives);
@@ -1205,16 +1213,16 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
             if (_probIndex >= 0)
             {
-                var infos = new RowMapperColumnInfo[2];
-                infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
-                infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], null);
+                var infos = new Schema.Column[2];
+                infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
+                infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], null);
                 return infos;
             }
-            return new[] { new RowMapperColumnInfo(Assigned, _types[AssignedCol], null), };
+            return new[] { new Schema.Column(Assigned, _types[AssignedCol], null), };
         }
 
         private void CheckInputColumnTypes(ISchema schema)
@@ -1325,43 +1333,33 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            var args = new ChooseColumnsTransform.Arguments();
-            var cols = new List<ChooseColumnsTransform.Column>()
-                {
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldAccuracy,
-                        Source = BinaryClassifierEvaluator.Accuracy
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldLogLoss,
-                        Source = BinaryClassifierEvaluator.LogLoss
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = BinaryClassifierEvaluator.Entropy
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = FoldLogLosRed,
-                        Source = BinaryClassifierEvaluator.LogLossReduction
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = BinaryClassifierEvaluator.Auc
-                    }
-                };
+            (string Source, string Name)[] cols =
+            {
+                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
+                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
+                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+            };
+
+            var colsToKeep = new List<string>();
+            colsToKeep.Add(FoldAccuracy);
+            colsToKeep.Add(FoldLogLoss);
+            colsToKeep.Add(BinaryClassifierEvaluator.Entropy);
+            colsToKeep.Add(FoldLogLosRed);
+            colsToKeep.Add(BinaryClassifierEvaluator.Auc);
+
             int index;
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.IsWeighted, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.IsWeighted });
+                colsToKeep.Add(MetricKinds.ColumnNames.IsWeighted);
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratCol, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.StratCol });
+                colsToKeep.Add(MetricKinds.ColumnNames.StratCol);
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = MetricKinds.ColumnNames.StratVal });
+                colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            args.Column = cols.ToArray();
-            fold = new ChooseColumnsTransform(Host, args, fold);
+            fold = new CopyColumnsTransform(Host, cols).Transform(fold);
+
+            // Select the columns that are specified in the Copy
+            fold = SelectColumnsTransform.CreateKeep(Host, fold, colsToKeep.ToArray());
+
             string weightedConf;
             var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
             string weightedFold;
@@ -1378,9 +1376,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            var args = new DropColumnsTransform.Arguments();
-            args.Column = new[] { BinaryClassifierEvaluator.Entropy };
-            return new DropColumnsTransform(Host, args, overall);
+            return SelectColumnsTransform.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
         protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
@@ -1696,9 +1692,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataView warnings;
             if (!metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
-                warnings = new EmptyDataView(host,
-                    new SimpleSchema(host,
-                        new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.WarningText, TextType.Instance)));
+                warnings = new EmptyDataView(host, SimpleSchemaUtils.Create(host,
+                    new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.WarningText, TextType.Instance)));
             }
 
             return warnings;
@@ -1710,7 +1705,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overallMetrics))
             {
                 overallMetrics = new EmptyDataView(host,
-                    new SimpleSchema(host,
+                    SimpleSchemaUtils.Create(host,
                         evaluator.GetOverallMetricColumns()
                             .Select(mc => new KeyValuePair<string, ColumnType>(mc.LoadName, NumberType.R8))
                             .ToArray()));
@@ -1725,7 +1720,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out confusionMatrix))
             {
                 confusionMatrix = new EmptyDataView(host,
-                    new SimpleSchema(host, new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.Count, NumberType.R8)));
+                    SimpleSchemaUtils.Create(host, new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.Count, NumberType.R8)));
             }
 
             return confusionMatrix;

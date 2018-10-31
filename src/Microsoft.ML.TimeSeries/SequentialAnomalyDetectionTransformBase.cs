@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     /// <typeparam name="TInput">The type of the input sequence</typeparam>
     /// <typeparam name="TState">The type of the state object for sequential anomaly detection. Must be a class inherited from AnomalyDetectionStateBase</typeparam>
-    public abstract class SequentialAnomalyDetectionTransformBase<TInput, TState> : SequentialTransformBase<TInput, VBuffer<Double>, TState>
+    public abstract class SequentialAnomalyDetectionTransformBase<TInput, TState> : SequentialTransformerBase<TInput, VBuffer<Double>, TState>
         where TState : SequentialAnomalyDetectionTransformBase<TInput, TState>.AnomalyDetectionStateBase, new()
     {
         /// <summary>
@@ -144,10 +144,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         // The size of the VBuffer in the dst column.
         private int _outputLength;
 
-        private readonly SchemaImpl _wrappedSchema;
-
-        public override ISchema Schema => _wrappedSchema;
-
         private static int GetOutputLength(AlertingScore alertingScore, IHostEnvironment host)
         {
             switch (alertingScore)
@@ -163,23 +159,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private static SchemaImpl CreateSchema(ISchema parentSchema, string colName, int length)
-        {
-            Contracts.AssertValue(parentSchema);
-            Contracts.Assert(2 <= length && length <= 4);
-
-            string[] names = { "Alert", "Raw Score", "P-Value Score", "Martingale Score" };
-            int col;
-            bool result = parentSchema.TryGetColumnIndex(colName, out col);
-            Contracts.Assert(result);
-
-            return new SchemaImpl(parentSchema, col, names, length);
-        }
-
-        protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env, IDataView input,
+        protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
             AnomalySide anomalySide, MartingaleType martingale, AlertingScore alertingScore, Double powerMartingaleEpsilon,
             Double alertThreshold)
-            : base(windowSize, initialWindowSize, inputColumnName, outputColumnName, name, env, input, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, inputColumnName, outputColumnName, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
         {
             Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), "Value is undefined.");
             Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), "Value is undefined.");
@@ -198,17 +181,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             PowerMartingaleEpsilon = powerMartingaleEpsilon;
             AlertThreshold = alertThreshold;
             _outputLength = GetOutputLength(ThresholdScore, Host);
-            _wrappedSchema = CreateSchema(base.Schema, outputColumnName, _outputLength);
         }
 
-        protected SequentialAnomalyDetectionTransformBase(ArgumentsBase args, string name, IHostEnvironment env, IDataView input)
-            : this(args.WindowSize, args.InitialWindowSize, args.Source, args.Name, name, env, input, args.Side, args.Martingale,
+        protected SequentialAnomalyDetectionTransformBase(ArgumentsBase args, string name, IHostEnvironment env)
+            : this(args.WindowSize, args.InitialWindowSize, args.Source, args.Name, name, env, args.Side, args.Martingale,
                 args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
         {
         }
 
-        protected SequentialAnomalyDetectionTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
-            : base(env, ctx, name, input)
+        protected SequentialAnomalyDetectionTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
             // *** Binary format ***
             // <base>
@@ -242,7 +224,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Host.CheckDecode(ThresholdScore != AlertingScore.PValueScore || (0 <= AlertThreshold && AlertThreshold <= 1));
 
             _outputLength = GetOutputLength(ThresholdScore, Host);
-            _wrappedSchema = CreateSchema(base.Schema, OutputColumnName, _outputLength);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -557,98 +538,86 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        /// <summary>
-        /// Schema implementation to add slot name metadata to the produced output column.
-        /// </summary>
-        private sealed class SchemaImpl : ISchema
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+
+        private sealed class Mapper : IRowMapper
         {
-            private readonly ISchema _parent;
-            private readonly int _col;
-            private readonly ColumnType _type;
-            private readonly string[] _names;
-            private readonly int _namesLength;
-            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getter;
+            private readonly IHost _host;
+            private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
+            private readonly ISchema _parentSchema;
+            private readonly int _inputColumnIndex;
+            private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
 
-            public int ColumnCount { get { return _parent.ColumnCount; } }
-
-            /// <summary>
-            /// Constructs the schema.
-            /// </summary>
-            /// <param name="schema">The schema we will wrap.
-            /// Aside from presenting that additional piece of metadata, the constructed schema
-            /// will appear identical to this input schema.</param>
-            /// <param name="col">The column in <paramref name="schema"/> that has the metadata.</param>
-            /// <param name="names"></param>
-            /// <param name="length"></param>
-            public SchemaImpl(ISchema schema, int col, string[] names, int length)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
-                Contracts.Assert(length > 0);
-                Contracts.Assert(Utils.Size(names) >= length);
-                Contracts.AssertValue(schema);
-                Contracts.Assert(0 <= col && col < schema.ColumnCount);
-                _parent = schema;
-                _col = col;
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register(nameof(Mapper));
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                _host.CheckValue(parent, nameof(parent));
 
-                _names = names;
-                _namesLength = length;
+                if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
-                _type = new VectorType(TextType.Instance, _namesLength);
-                Contracts.AssertValue(_type);
-                _getter = GetSlotNames;
+                var colType = inputSchema.GetColumnType(_inputColumnIndex);
+                if (colType != NumberType.R4)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
+
+                _parent = parent;
+                _parentSchema = inputSchema;
+                _slotNames = new VBuffer<ReadOnlyMemory<char>>(4, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
+                    "P-Value Score".AsMemory(), "Martingale Score".AsMemory() });
             }
 
-            public bool TryGetColumnIndex(string name, out int col)
+            public Schema.Column[] GetOutputColumns()
             {
-                return _parent.TryGetColumnIndex(name, out col);
+                var meta = new Schema.Metadata.Builder();
+                meta.AddSlotNames(_parent._outputLength, GetSlotNames);
+                var info = new Schema.Column[1];
+                info[0] = new Schema.Column(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
+                return info;
             }
 
-            public string GetColumnName(int col)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst) => _slotNames.CopyTo(ref dst, 0, _parent._outputLength);
+
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                return _parent.GetColumnName(col);
+                if (activeOutput(0))
+                    return col => col == _inputColumnIndex;
+                else
+                    return col => false;
             }
 
-            public ColumnType GetColumnType(int col)
+            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                return _parent.GetColumnType(col);
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                var result = _parent.GetMetadataTypes(col);
-                if (col == _col)
-                    return result.Prepend(_type.GetPair(MetadataUtils.Kinds.SlotNames));
-                return result;
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                if (col == _col && kind == MetadataUtils.Kinds.SlotNames)
-                    return _type;
-                return _parent.GetMetadataTypeOrNull(kind, col);
-            }
-
-            public void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> slotNames)
-            {
-                Contracts.Assert(col == _col);
-
-                var result = slotNames.Values;
-                if (Utils.Size(result) < _namesLength)
-                    result = new ReadOnlyMemory<char>[_namesLength];
-
-                for (int i = 0; i < _namesLength; ++i)
-                    result[i] = _names[i].AsMemory();
-
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(_namesLength, result, slotNames.Indices);
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                if (col == _col && kind == MetadataUtils.Kinds.SlotNames)
+                disposer = null;
+                var getters = new Delegate[1];
+                if (activeOutput(0))
                 {
-                    _getter.Marshal(col, ref value);
-                    return;
+                    TState state = new TState();
+                    state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host);
+                    getters[0] = MakeGetter(input, state);
                 }
-                _parent.GetMetadata(kind, col, ref value);
+                return getters;
+            }
+
+            private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
+
+            private Delegate MakeGetter(IRow input, TState state)
+            {
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
+                ProcessData processData = _parent.WindowSize > 0 ?
+                    (ProcessData) state.Process : state.ProcessWithoutBuffer;
+                ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                {
+                    TInput src = default;
+                    srcGetter(ref src);
+                    processData(ref src, ref dst);
+                };
+
+                return valueGetter;
             }
         }
     }

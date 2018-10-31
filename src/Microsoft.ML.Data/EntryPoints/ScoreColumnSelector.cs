@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
         }
 
-        private static bool ShouldAddColumn(ISchema schema, int i, string[] extraColumns, uint scoreSet)
+        private static bool ShouldAddColumn(Schema schema, int i, string[] extraColumns, uint scoreSet)
         {
             uint scoreSetId = 0;
             if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType.AsPrimitive, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     }
 
                     var copyColumn = new CopyColumnsTransform(env, copyCols.ToArray()).Transform(input.Data);
-                    var dropColumn = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = copyCols.Select(c => c.Source).ToArray() }, copyColumn);
+                    var dropColumn = SelectColumnsTransform.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
                     return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }

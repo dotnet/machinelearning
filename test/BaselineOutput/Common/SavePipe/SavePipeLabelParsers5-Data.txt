@@ -1,0 +1,126 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=RawLabel:TX:0
+#@   col=FileLabel:U4[10000000000-10000000006]:1
+#@ }
+RawLabel	FileLabel
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Gesundheit	10000000001
+Deutschland	10000000002
+Deutschland	10000000002
+Ausland	10000000003
+Ausland	10000000003
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Sport	10000000005
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Gesundheit	10000000001
+Gesundheit	10000000001
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Ausland	10000000003
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Unterhaltung	10000000004
+Sport	10000000005
+Sport	10000000005
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Technik & Wissen	10000000006
+Wirtschaft	10000000000
+Gesundheit	10000000001
+Wirtschaft	10000000000
+Deutschland	10000000002
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Unterhaltung	10000000004
+Deutschland	10000000002
+Gesundheit	10000000001
+Gesundheit	10000000001
+Deutschland	10000000002
+Wirtschaft	10000000000
+Unterhaltung	10000000004
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Gesundheit	10000000001
+Deutschland	10000000002
+Gesundheit	10000000001
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Deutschland	10000000002
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Gesundheit	10000000001
+Unterhaltung	10000000004
+Wirtschaft	10000000000
+Deutschland	10000000002
+Wirtschaft	10000000000
+Unterhaltung	10000000004
+Gesundheit	10000000001
+Deutschland	10000000002
+Wirtschaft	10000000000
+Unterhaltung	10000000004
+Deutschland	10000000002
+Wirtschaft	10000000000
+Deutschland	10000000002
+Wirtschaft	10000000000
+Wirtschaft	10000000000
+Deutschland	10000000002

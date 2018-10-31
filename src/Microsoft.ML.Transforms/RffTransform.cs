@@ -40,12 +40,12 @@ namespace Microsoft.ML.Transforms
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = RffEstimator.Defaults.NewDim;
+            public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
             public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Arguments();
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = RffEstimator.Defaults.UseSin;
+            public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Transforms
                 modelSignature: "RFF FUNC",
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00010002, // Get rid of writing float size in model context
-                verReadableCur: 0x00010001,
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(RffTransform).Assembly.FullName);
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase
         {
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms
             private readonly ColumnType[] _types;
             private readonly RffTransform _parent;
 
-            public Mapper(RffTransform parent, ISchema inputSchema)
+            public Mapper(RffTransform parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -523,22 +523,19 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
-                    _srcTypes[i] = inputSchema.GetColumnType(_srcCols[i]);
+                    var srcCol = inputSchema[_srcCols[i]];
+                    _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
                     _types[i] = new VectorType(NumberType.Float, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
-                    Host.Assert(colIndex >= 0);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], null);
-                }
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
                 return result;
             }
 
@@ -610,7 +607,7 @@ namespace Microsoft.ML.Transforms
                 if (src.IsDense)
                 {
                     featuresAligned.CopyFrom(src.Values, 0, src.Length);
-                    CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                    CpuMathUtils.MatTimesSrc(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                         transformInfo.NewDim);
                 }
                 else
@@ -618,7 +615,7 @@ namespace Microsoft.ML.Transforms
                     // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                     // no need to zero them out.
                     featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                    CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                    CpuMathUtils.MatTimesSrc(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                         src.Count, productAligned, transformInfo.NewDim);
                 }
 
@@ -643,9 +640,9 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Estimator which takes set of vector columns and maps its input to a random low-dimensional feature space.
     /// </summary>
-    public sealed class RffEstimator : IEstimator<RffTransform>
+    public sealed class RandomFourierFeaturizingEstimator : IEstimator<RffTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const int NewDim = 1000;
             public const bool UseSin = false;
@@ -662,15 +659,15 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
-        public RffEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
             : this(env, new RffTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
         {
         }
 
-        public RffEstimator(IHostEnvironment env, params RffTransform.ColumnInfo[] columns)
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, params RffTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(RffEstimator));
+            _host = env.Register(nameof(RandomFourierFeaturizingEstimator));
             _columns = columns;
         }
 
@@ -741,7 +738,7 @@ namespace Microsoft.ML.Transforms
                     var tcol = (IColInput)toOutput[i];
                     infos[i] = new RffTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
                 }
-                return new RffEstimator(env, infos);
+                return new RandomFourierFeaturizingEstimator(env, infos);
             }
         }
 
@@ -756,7 +753,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
-            int newDim = RffEstimator.Defaults.NewDim, bool useSin = RffEstimator.Defaults.UseSin,
+            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
             IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
         {
             Contracts.CheckValue(input, nameof(input));

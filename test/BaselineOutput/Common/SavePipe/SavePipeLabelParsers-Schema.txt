@@ -1,0 +1,62 @@
+---- BoundLoader ----
+3 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+---- RowToRowMapperTransform ----
+4 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  AutoLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+---- RowToRowMapperTransform ----
+5 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  AutoLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+  StringLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+---- TermLookupTransform ----
+6 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  AutoLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+  StringLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+  FileLabel: Key<U4, 0-1>
+---- SelectColumnsDataTransform ----
+4 columns:
+  RawLabel: Text
+  AutoLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+  StringLabel: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
+  FileLabel: Key<U4, 0-1>

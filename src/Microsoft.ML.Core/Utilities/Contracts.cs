@@ -946,6 +946,19 @@ namespace Microsoft.ML.Runtime
     }
 
     [Conditional("DEBUG")]
+    public static void AssertNonEmpty<T>(ReadOnlySpan<T> args)
+    {
+        if (args.IsEmpty)
+            DbgFail();
+    }
+    [Conditional("DEBUG")]
+    public static void AssertNonEmpty<T>(Span<T> args)
+    {
+        if (args.IsEmpty)
+            DbgFail();
+    }
+
+    [Conditional("DEBUG")]
     public static void AssertNonEmpty<T>(ICollection<T> args)
     {
         if (Size(args) == 0)

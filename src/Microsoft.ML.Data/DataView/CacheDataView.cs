@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// A waiter used for cursors where no columns are actually requested but it's still
-        /// necesssary to wait to determine the number of rows.
+        /// necessary to wait to determine the number of rows.
         /// </summary>
         private volatile OrderedWaiter _cacheDefaultWaiter;
 
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return true; } }
 
-        public ISchema Schema { get { return _subsetInput.Schema; } }
+        public Schema Schema => _subsetInput.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -1233,7 +1233,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool _disposed;
 
-            public ISchema Schema => Parent.Schema;
+            public Schema Schema => Parent.Schema;
 
             public long Position { get; protected set; }
 

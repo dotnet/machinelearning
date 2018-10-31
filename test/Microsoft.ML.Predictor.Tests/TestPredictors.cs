@@ -2,21 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+    using Microsoft.ML.Runtime;
     using Microsoft.ML.Runtime.Data;
     using Microsoft.ML.Runtime.EntryPoints;
-    using Microsoft.ML.Runtime.FastTree;
-    using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.Runtime.Internal.Utilities;
+    using Microsoft.ML.Runtime.Learners;
     using Microsoft.ML.Runtime.LightGBM;
-    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
+    using Microsoft.ML.Trainers.FastTree;
+    using Microsoft.ML.Trainers.FastTree.Internal;
+    using Microsoft.ML.Trainers.Online;
+    using Microsoft.ML.Trainers.SymSgd;
+    using Microsoft.ML.Transforms.Categorical;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;
@@ -108,7 +112,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.perceptron };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 
@@ -253,7 +257,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TestLearners.binarySgdHinge
                 };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
         }
 
@@ -265,7 +269,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void BinaryClassifierLogisticRegressionTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };
-            RunOneAllTests(TestLearners.logisticRegression, TestDatasets.breastCancer, summary: true);
+            RunOneAllTests(TestLearners.logisticRegression, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 3);
             // RunOneAllTests(TestLearners.logisticRegression, TestDatasets.msm);
             Done();
         }
@@ -278,7 +282,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
-            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
         }
 
@@ -288,7 +292,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };
             var binaryClassificationDatasets = new[] { TestDatasets.breastCancer };
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, new[] { "eval=BinaryClassifier{threshold=0.95 useRawScore=-}" }, "withThreshold");
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, new[] { "eval=BinaryClassifier{threshold=0.95 useRawScore=-}" }, "withThreshold", digitsOfPrecision: 3);
             Done();
         }
 
@@ -301,7 +305,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
         }
 
@@ -327,7 +331,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 
@@ -340,14 +344,14 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionGaussianNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
             Done();
         }
 
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -359,13 +363,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 string dir = learner.Trainer.Kind;
                 string prName = "prcurve-breast-cancer-prcurve.txt";
                 string prPath = DeleteOutputPath(dir, prName);
-                string eval = string.Format("eval=Binary{{pr={{{0}}}}}", prPath);
+                string eval = $"eval=Binary{{pr={{{prPath} }}}}";
                 Run_TrainTest(learner, data, new[] { eval });
-                CheckEqualityNormalized(dir, prName);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // PR curves are only generated on Windows.
+                    CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
-
-                Run_CV(TestLearners.fastRankClassification, TestDatasets.breastCancer);
-                RunOneAllTests(TestLearners.fastRankClassification, TestDatasets.msm);
             });
             Done();
         }
@@ -390,7 +392,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for regressors
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         [TestCategory("FastForest")]
         public void FastForestRegressionTest()
@@ -587,14 +589,12 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -611,16 +611,14 @@ namespace Microsoft.ML.Runtime.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
-            var cat = CategoricalTransform.Create(Env, dataView, "Features", "Categories");
+            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
@@ -649,11 +647,12 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
             Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
 
-            var scoredArray = new IDataView[3];
-            var scoreColArray = new int[3];
-            var probColArray = new int[3];
-            var predColArray = new int[3];
-            for (int i = 0; i < 3; i++)
+            int predCount = Utils.Size(fastTrees);
+            var scoredArray = new IDataView[predCount];
+            var scoreColArray = new int[predCount];
+            var probColArray = new int[predCount];
+            var predColArray = new int[predCount];
+            for (int i = 0; i < predCount; i++)
             {
                 scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = fastTrees[i] }).ScoredData;
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
@@ -661,49 +660,270 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
             }
 
-            var cursors = new IRowCursor[3];
-            using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
-            using (cursors[0] = scoredArray[0].GetRowCursor(c => c == scoreColArray[0] || c == probColArray[0] || c == predColArray[0]))
-            using (cursors[1] = scoredArray[1].GetRowCursor(c => c == scoreColArray[1] || c == probColArray[1] || c == predColArray[1]))
-            using (cursors[2] = scoredArray[2].GetRowCursor(c => c == scoreColArray[2] || c == probColArray[2] || c == predColArray[2]))
-            {
-                var scoreGetter = curs.GetGetter<float>(scoreCol);
-                var probGetter = curs.GetGetter<float>(probCol);
-                var predGetter = curs.GetGetter<bool>(predCol);
-                var scoreGetters = new ValueGetter<float>[3];
-                var probGetters = new ValueGetter<float>[3];
-                var predGetters = new ValueGetter<bool>[3];
-                for (int i = 0; i < 3; i++)
-                {
-                    scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
-                    probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
-                    predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
-                }
+            var cursors = new IRowCursor[predCount];
+            for (int i = 0; i < predCount; i++)
+                cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
 
-                float score = 0;
-                float prob = 0;
-                bool pred = default;
-                var scores = new float[3];
-                var probs = new float[3];
-                var preds = new bool[3];
-                while (curs.MoveNext())
+            try
+            {
+                using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
                 {
-                    scoreGetter(ref score);
-                    probGetter(ref prob);
-                    predGetter(ref pred);
-                    for (int i = 0; i < 3; i++)
+                    var scoreGetter = curs.GetGetter<float>(scoreCol);
+                    var probGetter = curs.GetGetter<float>(probCol);
+                    var predGetter = curs.GetGetter<bool>(predCol);
+                    var scoreGetters = new ValueGetter<float>[predCount];
+                    var probGetters = new ValueGetter<float>[predCount];
+                    var predGetters = new ValueGetter<bool>[predCount];
+                    for (int i = 0; i < predCount; i++)
                     {
-                        Assert.True(cursors[i].MoveNext());
-                        scoreGetters[i](ref scores[i]);
-                        probGetters[i](ref probs[i]);
-                        predGetters[i](ref preds[i]);
+                        scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
+                        probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
+                        predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
                     }
-                    Assert.Equal(score, 0.4 * scores.Sum() / 3, 5);
-                    Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 6);
-                    Assert.True(pred == score > 0);
+
+                    float score = 0;
+                    float prob = 0;
+                    bool pred = default;
+                    var scores = new float[predCount];
+                    var probs = new float[predCount];
+                    var preds = new bool[predCount];
+                    while (curs.MoveNext())
+                    {
+                        scoreGetter(ref score);
+                        probGetter(ref prob);
+                        predGetter(ref pred);
+                        for (int i = 0; i < predCount; i++)
+                        {
+                            Assert.True(cursors[i].MoveNext());
+                            scoreGetters[i](ref scores[i]);
+                            probGetters[i](ref probs[i]);
+                            predGetters[i](ref preds[i]);
+                        }
+                        Assert.Equal(score, 0.4 * scores.Sum() / predCount, 5);
+                        Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 6);
+                        Assert.True(pred == score > 0);
+                    }
                 }
             }
+            finally
+            {
+                for (int i = 0; i < predCount; i++)
+                    cursors[i].Dispose();
+            }
         }
+
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        public void TestEnsembleCombiner()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+
+            var predictors = new IPredictorModel[]
+            {
+                FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                {
+                    FeatureColumn = "Features",
+                    NumTrees = 5,
+                    NumLeaves = 4,
+                    LabelColumn = DefaultColumnNames.Label,
+                    TrainingData = dataView
+                }).PredictorModel,
+                AveragedPerceptronTrainer.TrainBinary(Env, new AveragedPerceptronTrainer.Arguments()
+                {
+                    FeatureColumn = "Features",
+                    LabelColumn = DefaultColumnNames.Label,
+                    NumIterations = 2,
+                    TrainingData = dataView,
+                    NormalizeFeatures = NormalizeOption.No
+                }).PredictorModel,
+                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                {
+                    FeatureColumn = "Features",
+                    LabelColumn = DefaultColumnNames.Label,
+                    OptTol = 10e-4F,
+                    TrainingData = dataView,
+                    NormalizeFeatures = NormalizeOption.No
+                }).PredictorModel,
+                LogisticRegression.TrainBinary(Env, new LogisticRegression.Arguments()
+                {
+                    FeatureColumn = "Features",
+                    LabelColumn = DefaultColumnNames.Label,
+                    OptTol = 10e-3F,
+                    TrainingData = dataView,
+                    NormalizeFeatures = NormalizeOption.No
+                }).PredictorModel
+            };
+            CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
+        }
+
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        public void TestMultiClassEnsembleCombiner()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
+
+            var predictors = new IPredictorModel[]
+            {
+                LightGbm.TrainMultiClass(Env, new LightGbmArguments
+                {
+                    FeatureColumn = "Features",
+                    NumBoostRound = 5,
+                    NumLeaves = 4,
+                    LabelColumn = DefaultColumnNames.Label,
+                    TrainingData = dataView
+                }).PredictorModel,
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                {
+                    FeatureColumn = "Features",
+                    LabelColumn = DefaultColumnNames.Label,
+                    OptTol = 10e-4F,
+                    TrainingData = dataView,
+                    NormalizeFeatures = NormalizeOption.No
+                }).PredictorModel,
+                LogisticRegression.TrainMultiClass(Env, new MulticlassLogisticRegression.Arguments()
+                {
+                    FeatureColumn = "Features",
+                    LabelColumn = DefaultColumnNames.Label,
+                    OptTol = 10e-3F,
+                    TrainingData = dataView,
+                    NormalizeFeatures = NormalizeOption.No
+                }).PredictorModel
+            };
+            CombineAndTestEnsembles(dataView, "weightedensemblemulticlass", "oc=multiaverage", PredictionKind.MultiClassClassification, predictors);
+        }
+
+        private void CombineAndTestEnsembles(IDataView idv, string name, string options, PredictionKind predictionKind,
+            IPredictorModel[] predictors)
+        {
+            var combiner = ComponentCatalog.CreateInstance<IModelCombiner>(
+                Env, typeof(SignatureModelCombiner), name, options, predictionKind);
+
+            var predictor = combiner.CombineModels(predictors.Select(pm => pm.Predictor));
+
+            var data = new RoleMappedData(idv, label: null, feature: "Features");
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, predictor) }).ScoredData;
+
+            var predCount = Utils.Size(predictors);
+
+            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
+            int probCol = -1;
+            int predCol = -1;
+            if (predictionKind == PredictionKind.BinaryClassification)
+            {
+                Assert.True(scored.Schema.TryGetColumnIndex("Probability", out probCol));
+                Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out predCol));
+            }
+
+            var scoredArray = new IDataView[predCount];
+            int[] scoreColArray = new int[predCount];
+            int[] probColArray = new int[predCount];
+            int[] predColArray = new int[predCount];
+
+            for (int i = 0; i < predCount; i++)
+            {
+                scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = predictors[i] }).ScoredData;
+                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
+                if (predictionKind == PredictionKind.BinaryClassification)
+                {
+                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
+                    Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+                }
+                else
+                {
+                    probColArray[i] = -1;
+                    predColArray[i] = -1;
+                }
+            }
+
+            var cursors = new IRowCursor[predCount];
+            for (int i = 0; i < predCount; i++)
+                cursors[i] = scoredArray[i].GetRowCursor(c => c == scoreColArray[i] || c == probColArray[i] || c == predColArray[i]);
+
+            try
+            {
+                using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
+                {
+                    var scoreGetter = predictionKind == PredictionKind.MultiClassClassification ?
+                        (ref float dst) => dst = 0 :
+                        curs.GetGetter<float>(scoreCol);
+                    var vectorScoreGetter = predictionKind == PredictionKind.MultiClassClassification ?
+                        curs.GetGetter<VBuffer<float>>(scoreCol) :
+                        (ref VBuffer<float> dst) => dst = default;
+                    var probGetter = predictionKind == PredictionKind.BinaryClassification ?
+                        curs.GetGetter<float>(probCol) :
+                        (ref float dst) => dst = 0;
+                    var predGetter = predictionKind == PredictionKind.BinaryClassification ?
+                        curs.GetGetter<bool>(predCol) :
+                        (ref bool dst) => dst = false;
+
+                    var scoreGetters = new ValueGetter<float>[predCount];
+                    var vectorScoreGetters = new ValueGetter<VBuffer<float>>[predCount];
+                    var probGetters = new ValueGetter<float>[predCount];
+                    var predGetters = new ValueGetter<bool>[predCount];
+                    for (int i = 0; i< predCount; i++)
+                    {
+                        scoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
+                            (ref float dst) => dst = 0 :
+                            cursors[i].GetGetter<float>(scoreColArray[i]);
+                        vectorScoreGetters[i] = predictionKind == PredictionKind.MultiClassClassification ?
+                            cursors[i].GetGetter<VBuffer<float>>(scoreColArray[i]) :
+                            (ref VBuffer<float> dst) => dst = default;
+                        probGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
+                            cursors[i].GetGetter<float>(probColArray[i]) :
+                            (ref float dst) => dst = 0;
+                        predGetters[i] = predictionKind == PredictionKind.BinaryClassification ?
+                            cursors[i].GetGetter<bool>(predColArray[i]) :
+                            (ref bool dst) => dst = false;
+                    }
+
+                    float score = 0;
+                    VBuffer<float> vectorScore = default;
+                    float prob = 0;
+                    bool pred = false;
+                    var scores = new float[predCount];
+                    var vectorScores = new VBuffer<float>[predCount];
+                    var probs = new float[predCount];
+                    var preds = new bool[predCount];
+                    while (curs.MoveNext())
+                    {
+                        scoreGetter(ref score);
+                        vectorScoreGetter(ref vectorScore);
+                        probGetter(ref prob);
+                        predGetter(ref pred);
+
+                        for (int i = 0; i < predCount; i++)
+                        {
+                            Assert.True(cursors[i].MoveNext());
+                            scoreGetters[i](ref scores[i]);
+                            vectorScoreGetters[i](ref vectorScores[i]);
+                            probGetters[i](ref probs[i]);
+                            predGetters[i](ref preds[i]);
+                        }
+                        if (scores.All(s => !float.IsNaN(s)))
+                            Assert.Equal(score, scores.Sum() / predCount, 3);
+                        for (int i = 0; i < predCount; i++)
+                            Assert.Equal(vectorScore.Length, vectorScores[i].Length);
+                        for (int i = 0; i < vectorScore.Length; i++)
+                        {
+                            float sum = 0;
+                            for (int j = 0; j < predCount; j++)
+                                sum += vectorScores[j].GetItemOrDefault(i);
+                            if (float.IsNaN(sum))
+                                Assert.Equal(vectorScore.GetItemOrDefault(i), sum / predCount, 3);
+                        }
+                        Assert.Equal(probs.Count(p => p >= prob), probs.Count(p => p <= prob));
+                    }
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < predCount; i++)
+                    cursors[i].Dispose();
+            }
+        }
+
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         [TestCategory("Binary")]
@@ -936,7 +1156,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset, digitsOfPrecision: 4);
             Done();
         }
 
@@ -1380,7 +1600,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void NoCalibratorLinearSvmTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration");
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration", digitsOfPrecision: 6);
             Done();
         }
 
@@ -1392,7 +1612,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PAVCalibratorLinearSvmTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration", digitsOfPrecision: 5);
             Done();
         }
 
@@ -1413,7 +1633,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 string prPath = DeleteOutputPath(dir, prName);
                 string eval = string.Format("eval=Binary{{pr={{{0}}}}}", prPath);
                 Run_TrainTest(learner, data, new[] { eval });
-                CheckEqualityNormalized(dir, prName);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // PR curves are only generated on Windows.
+                    CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
             });
             Done();
@@ -1521,8 +1742,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
@@ -1934,14 +2155,16 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()
         {
             var binaryPredictors = new[] { TestLearners.FieldAwareFactorizationMachine };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
+
             Done();
         }
 

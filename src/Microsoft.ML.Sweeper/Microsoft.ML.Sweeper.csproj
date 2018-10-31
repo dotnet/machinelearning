@@ -16,4 +16,8 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\Common\AssemblyLoadingUtils.cs" Link="Common\AssemblyLoadingUtils.cs" />
+  </ItemGroup>
+
 </Project>

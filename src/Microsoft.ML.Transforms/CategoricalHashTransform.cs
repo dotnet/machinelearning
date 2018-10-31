@@ -11,7 +11,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -140,11 +141,11 @@ namespace Microsoft.ML.Runtime.Data
             IDataView input,
             string name,
             string source = null,
-            int hashBits = CategoricalHashEstimator.Defaults.HashBits,
-            int invertHash = CategoricalHashEstimator.Defaults.InvertHash,
-            CategoricalTransform.OutputKind outputKind = CategoricalHashEstimator.Defaults.OutputKind)
+            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
+            int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
+            CategoricalTransform.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
         {
-            return new CategoricalHashEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
+            return new OneHotHashEncodingEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -155,10 +156,10 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
 
-            var columns = new List<CategoricalHashEstimator.ColumnInfo>();
+            var columns = new List<OneHotHashEncodingEstimator.ColumnInfo>();
             foreach (var column in args.Column)
             {
-                var col = new CategoricalHashEstimator.ColumnInfo(
+                var col = new OneHotHashEncodingEstimator.ColumnInfo(
                     column.Source ?? column.Name,
                     column.Name,
                     column.OutputKind ?? args.OutputKind,
@@ -168,18 +169,18 @@ namespace Microsoft.ML.Runtime.Data
                     column.InvertHash ?? args.InvertHash);
                 columns.Add(col);
             }
-            return new CategoricalHashEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new OneHotHashEncodingEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        internal CategoricalHashTransform(HashEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
+        internal CategoricalHashTransform(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             var chain = hash.Append(keyToVector);
             _transformer = chain.Fit(input);
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema) => _transformer.GetOutputSchema(inputSchema);
+        public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
@@ -187,13 +188,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array. Use hashing to determine indicator position.
     /// </summary>
-    public sealed class CategoricalHashEstimator : IEstimator<CategoricalHashTransform>
+    public sealed class OneHotHashEncodingEstimator : IEstimator<CategoricalHashTransform>
     {
         internal static class Defaults
         {
@@ -208,6 +209,17 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly HashTransformer.ColumnInfo HashInfo;
             public readonly CategoricalTransform.OutputKind OutputKind;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
+            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="seed">Hashing seed.</param>
+            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
+            /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
             public ColumnInfo(string input, string output,
                 CategoricalTransform.OutputKind outputKind = Defaults.OutputKind,
                 int hashBits = Defaults.HashBits,
@@ -222,25 +234,25 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IEstimator<ITransformer> _toSomething;
-        private HashEstimator _hash;
+        private HashingEstimator _hash;
 
-        /// A helper method to create <see cref="CategoricalHashEstimator"/> for public facing API.
+        /// A helper method to create <see cref="OneHotHashEncodingEstimator"/> for public facing API.
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public CategoricalHashEstimator(IHostEnvironment env, string name,
-            string source = null, CategoricalTransform.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnInfo(source ?? name, name, outputKind))
+        public OneHotHashEncodingEstimator(IHostEnvironment env, string inputColumn,
+            string outputColumn = null, CategoricalTransform.OutputKind outputKind = Defaults.OutputKind)
+            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
         {
         }
 
-        public CategoricalHashEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        public OneHotHashEncodingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TermEstimator));
-            _hash = new HashEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
-            using (var ch = _host.Start(nameof(CategoricalHashEstimator)))
+            _host = env.Register(nameof(ValueToKeyMappingEstimator));
+            _hash = new HashingEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
+            using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {
                 var binaryCols = new List<(string input, string output)>();
                 var cols = new List<(string input, string output, bool bag)>();
@@ -270,9 +282,9 @@ namespace Microsoft.ML.Runtime.Data
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);
@@ -324,11 +336,11 @@ namespace Microsoft.ML.Runtime.Data
             Bin = 4,
         }
 
-        private const OneHotHashVectorOutputKind DefOut = (OneHotHashVectorOutputKind)CategoricalHashEstimator.Defaults.OutputKind;
-        private const int DefHashBits = CategoricalHashEstimator.Defaults.HashBits;
-        private const uint DefSeed = CategoricalHashEstimator.Defaults.Seed;
-        private const bool DefOrdered = CategoricalHashEstimator.Defaults.Ordered;
-        private const int DefInvertHash = CategoricalHashEstimator.Defaults.InvertHash;
+        private const OneHotHashVectorOutputKind DefOut = (OneHotHashVectorOutputKind)OneHotHashEncodingEstimator.Defaults.OutputKind;
+        private const int DefHashBits = OneHotHashEncodingEstimator.Defaults.HashBits;
+        private const uint DefSeed = OneHotHashEncodingEstimator.Defaults.Seed;
+        private const bool DefOrdered = OneHotHashEncodingEstimator.Defaults.Ordered;
+        private const int DefInvertHash = OneHotHashEncodingEstimator.Defaults.InvertHash;
 
         private struct Config
         {
@@ -383,14 +395,14 @@ namespace Microsoft.ML.Runtime.Data
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new CategoricalHashEstimator.ColumnInfo[toOutput.Length];
+                var infos = new OneHotHashEncodingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new CategoricalHashEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotHashEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.HashBits, tcol.Config.Seed, tcol.Config.Ordered, tcol.Config.InvertHash);
                 }
-                return new CategoricalHashEstimator(env, infos);
+                return new OneHotHashEncodingEstimator(env, infos);
             }
         }
 

@@ -324,11 +324,15 @@ namespace Microsoft.ML.Runtime.Data
                 Root._consoleWriter.ChannelStarted(this);
             }
 
-            protected override void DisposeCore()
+            protected override void Dispose(bool disposing)
             {
-                Watch.Stop();
-                Root._consoleWriter.ChannelDisposed(this);
-                base.DisposeCore();
+                if(disposing)
+                {
+                    Watch.Stop();
+                    Root._consoleWriter.ChannelDisposed(this);
+                }
+
+                base.Dispose(disposing);
             }
         }
 
@@ -428,6 +432,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(newOutWriter, nameof(newOutWriter));
             Contracts.CheckValue(newErrWriter, nameof(newErrWriter));
             return new OutputRedirector(this, newOutWriter, newErrWriter);
+        }
+
+        internal void ResetProgressChannel()
+        {
+            ProgressTracker.Reset();
         }
 
         private sealed class OutputRedirector : IDisposable

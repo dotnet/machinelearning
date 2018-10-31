@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var generator = new GaussianFourierSampler.Arguments();
 
-            var pipe = new RffEstimator(Env, new[]{
+            var pipe = new RandomFourierFeaturizingEstimator(Env, new[]{
                     new RffTransform.ColumnInfo("A", "RffA", 5, false),
                     new RffTransform.ColumnInfo("A", "RffB", 10, true, new LaplacianFourierSampler.Arguments())
                 });
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Label: ctx.LoadFloat(0)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             var est = data.MakeNewEstimator()
                 .Append(row => (
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            var est = new RffEstimator(Env, new[]{
+            var est = new RandomFourierFeaturizingEstimator(Env, new[]{
                     new RffTransform.ColumnInfo("A", "RffA", 5, false),
                     new RffTransform.ColumnInfo("A", "RffB", 10, true,new LaplacianFourierSampler.Arguments())
                 });

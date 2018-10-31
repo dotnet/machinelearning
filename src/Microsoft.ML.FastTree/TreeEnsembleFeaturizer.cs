@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
@@ -171,8 +172,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema Schema { get; }
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema Schema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
-                Schema = new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType);
+                Schema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
@@ -747,7 +748,7 @@ namespace Microsoft.ML.Runtime.Data
                 mapper =
                     (ref TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
@@ -763,7 +764,7 @@ namespace Microsoft.ML.Runtime.Data
                 mapper =
                     (ref TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;

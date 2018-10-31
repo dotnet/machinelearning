@@ -401,17 +401,17 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColumnType _labelType;
         private readonly ColumnType _scoreType;
-        private readonly ColumnMetadataInfo _labelMetadata;
-        private readonly ColumnMetadataInfo _scoreMetadata;
+        private readonly Schema.Metadata _labelMetadata;
+        private readonly Schema.Metadata _scoreMetadata;
 
-        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol,
+        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol,
             string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
         }
 
-        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, schema);
+            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, Schema.Create(schema));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -450,14 +450,14 @@ namespace Microsoft.ML.Runtime.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[5];
-            infos[LabelOutput] = new RowMapperColumnInfo(LabelCol, _labelType, _labelMetadata);
-            infos[ScoreOutput] = new RowMapperColumnInfo(ScoreCol, _scoreType, _scoreMetadata);
-            infos[L1Output] = new RowMapperColumnInfo(L1, NumberType.R8, null);
-            infos[L2Output] = new RowMapperColumnInfo(L2, NumberType.R8, null);
-            infos[DistCol] = new RowMapperColumnInfo(Dist, NumberType.R8, null);
+            var infos = new Schema.Column[5];
+            infos[LabelOutput] = new Schema.Column(LabelCol, _labelType, _labelMetadata);
+            infos[ScoreOutput] = new Schema.Column(ScoreCol, _scoreType, _scoreMetadata);
+            infos[L1Output] = new Schema.Column(L1, NumberType.R8, null);
+            infos[L2Output] = new Schema.Column(L2, NumberType.R8, null);
+            infos[DistCol] = new Schema.Column(Dist, NumberType.R8, null);
             return infos;
         }
 
@@ -544,8 +544,8 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema, out ColumnType labelType, out ColumnType scoreType,
-            out ColumnMetadataInfo labelMetadata, out ColumnMetadataInfo scoreMetadata)
+        private void CheckInputColumnTypes(Schema schema, out ColumnType labelType, out ColumnType scoreType,
+            out Schema.Metadata labelMetadata, out Schema.Metadata scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -555,52 +555,55 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
             labelType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
             var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
-            labelMetadata = new ColumnMetadataInfo(LabelCol);
-            labelMetadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True")));
+            var builder = new Schema.Metadata.Builder();
+            builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
+            labelMetadata = builder.GetMetadata();
 
             t = schema.GetColumnType(ScoreIndex);
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
             scoreType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
-            scoreMetadata = new ColumnMetadataInfo(ScoreCol);
-            scoreMetadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted")));
-            scoreMetadata.Add(MetadataUtils.Kinds.ScoreColumnKind, new MetadataInfo<ReadOnlyMemory<char>>(TextType.Instance, GetScoreColumnKind));
-            scoreMetadata.Add(MetadataUtils.Kinds.ScoreValueKind, new MetadataInfo<ReadOnlyMemory<char>>(TextType.Instance, GetScoreValueKind));
-            scoreMetadata.Add(MetadataUtils.Kinds.ScoreColumnSetId,
-                new MetadataInfo<uint>(MetadataUtils.ScoreColumnSetIdType, GetScoreColumnSetId(schema)));
+            builder = new Schema.Metadata.Builder();
+            builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
+
+            ValueGetter<ReadOnlyMemory<char>> getter = GetScoreColumnKind;
+            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, null), getter);
+            getter = GetScoreValueKind;
+            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, null), getter);
+            ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
+            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, null), uintGetter);
+            scoreMetadata = builder.GetMetadata();
         }
 
-        private MetadataUtils.MetadataGetter<uint> GetScoreColumnSetId(ISchema schema)
+        private ValueGetter<uint> GetScoreColumnSetId(Schema schema)
         {
             int c;
             var max = schema.GetMaxMetadataKind(out c, MetadataUtils.Kinds.ScoreColumnSetId);
             uint id = checked(max + 1);
             return
-                (int col, ref uint dst) => dst = id;
+                (ref uint dst) => dst = id;
         }
 
-        private void GetScoreColumnKind(int col, ref ReadOnlyMemory<char> dst)
+        private void GetScoreColumnKind(ref ReadOnlyMemory<char> dst)
         {
             dst = MetadataUtils.Const.ScoreColumnKind.MultiOutputRegression.AsMemory();
         }
 
-        private void GetScoreValueKind(int col, ref ReadOnlyMemory<char> dst)
+        private void GetScoreValueKind(ref ReadOnlyMemory<char> dst)
         {
             dst = MetadataUtils.Const.ScoreValueKind.Score.AsMemory();
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(ISchema schema, int column, int length, string prefix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(ISchema schema, int column, int length, string prefix)
         {
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, column);
             if (type != null && type.IsText)
             {
                 return
-                    (int col, ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, column, ref dst);
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) => schema.GetMetadata(MetadataUtils.Kinds.SlotNames, column, ref dst);
             }
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < length)

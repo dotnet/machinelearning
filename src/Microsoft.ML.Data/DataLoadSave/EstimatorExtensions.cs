@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class LearningPipelineExtensions
     {
         /// <summary>
-        /// Create a composite reader estimator by appending an estimator to a reader estimator.
+        /// Create a new composite reader estimator, by appending another estimator to the end of this data reader estimator.
         /// </summary>
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
             this IDataReaderEstimator<TSource, IDataReader<TSource>> start, IEstimator<TTrans> estimator)
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create a composite reader estimator by appending an estimator to a reader.
+        /// Create a new composite reader estimator, by appending an estimator to this data reader.
         /// </summary>
         public static CompositeReaderEstimator<TSource, TTrans> Append<TSource, TTrans>(
             this IDataReader<TSource> start, IEstimator<TTrans> estimator)
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create an estimator chain by appending an estimator to an estimator.
+        /// Create a new estimator chain, by appending another estimator to the end of this estimator.
         /// </summary>
         public static EstimatorChain<TTrans> Append<TTrans>(
             this IEstimator<ITransformer> start, IEstimator<TTrans> estimator,
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create a composite reader by appending a transformer to a data reader.
+        /// Create a new composite reader, by appending a transformer to this data reader.
         /// </summary>
         public static CompositeDataReader<TSource, TTrans> Append<TSource, TTrans>(this IDataReader<TSource> reader, TTrans transformer)
             where TTrans : class, ITransformer
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create a transformer chain by appending a transformer to a transformer.
+        /// Create a new transformer chain, by appending another transformer to the end of this transformer chain.
         /// </summary>
         public static TransformerChain<TTrans> Append<TTrans>(this ITransformer start, TTrans transformer)
             where TTrans : class, ITransformer

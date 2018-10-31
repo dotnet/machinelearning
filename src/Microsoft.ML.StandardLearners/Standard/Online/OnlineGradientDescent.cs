@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers.Online;
 using System;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
@@ -22,7 +23,7 @@ using System;
     "stochasticgradientdescentregression")]
 [assembly: LoadableClass(typeof(void), typeof(OnlineGradientDescentTrainer), null, typeof(SignatureEntryPointModule), "OGD")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
@@ -49,10 +50,40 @@ namespace Microsoft.ML.Runtime.Learners
                 DecreaseLearningRate = OgdDefaultArgs.DecreaseLearningRate;
             }
 
+            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
+
             internal class OgdDefaultArgs : AveragedDefaultArgs
             {
                 internal new const float LearningRate = 0.1f;
                 internal new const bool DecreaseLearningRate = true;
+            }
+        }
+
+        private sealed class TrainState : AveragedTrainStateBase
+        {
+            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, OnlineGradientDescentTrainer parent)
+                : base(ch, numFeatures, predictor, parent)
+            {
+            }
+
+            public override LinearRegressionPredictor CreatePredictor()
+            {
+                Contracts.Assert(WeightsScale == 1);
+                VBuffer<float> weights = default;
+                float bias;
+
+                if (!Averaged)
+                {
+                    Weights.CopyTo(ref weights);
+                    bias = Bias;
+                }
+                else
+                {
+                    TotalWeights.CopyTo(ref weights);
+                    VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
+                    bias = TotalBias / (float)NumWeightUpdates;
+                }
+                return new LinearRegressionPredictor(ParentHost, ref weights, bias);
             }
         }
 
@@ -78,8 +109,8 @@ namespace Microsoft.ML.Runtime.Learners
             int numIterations = Arguments.OgdDefaultArgs.NumIterations,
             string weightsColumn = null,
             IRegressionLoss lossFunction = null,
-            Action<AveragedLinearArguments> advancedSettings = null)
-            : this(env, new Arguments
+            Action<Arguments> advancedSettings = null)
+            : this(env, InvokeAdvanced(advancedSettings, new Arguments
             {
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
@@ -87,14 +118,22 @@ namespace Microsoft.ML.Runtime.Learners
                 NumIterations = numIterations,
                 LabelColumn = labelColumn,
                 FeatureColumn = featureColumn,
-                InitialWeights = weightsColumn
-
-            })
+                InitialWeights = weightsColumn,
+                LossFunction = new TrivialFactory(lossFunction ?? new SquaredLoss())
+            }))
         {
-            LossFunction = lossFunction ?? new SquaredLoss();
+        }
 
-            if (advancedSettings != null)
-                advancedSettings.Invoke(Args);
+        private sealed class TrivialFactory : ISupportRegressionLossFactory
+        {
+            private IRegressionLoss _loss;
+
+            public TrivialFactory(IRegressionLoss loss)
+            {
+                _loss = loss;
+            }
+
+            IRegressionLoss IComponentFactory<IRegressionLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
@@ -113,29 +152,14 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override void CheckLabel(RoleMappedData data)
+        protected override void CheckLabels(RoleMappedData data)
         {
             data.CheckRegressionLabel();
         }
 
-        protected override LinearRegressionPredictor CreatePredictor()
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
         {
-            Contracts.Assert(WeightsScale == 1);
-            VBuffer<float> weights = default(VBuffer<float>);
-            float bias;
-
-            if (!Args.Averaged)
-            {
-                Weights.CopyTo(ref weights);
-                bias = Bias;
-            }
-            else
-            {
-                TotalWeights.CopyTo(ref weights);
-                VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
-                bias = TotalBias / (float)NumWeightUpdates;
-            }
-            return new LinearRegressionPredictor(Host, ref weights, bias);
+            return new TrainState(ch, numFeatures, predictor, this);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
@@ -156,7 +180,7 @@ namespace Microsoft.ML.Runtime.Learners
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)
+        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
         => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

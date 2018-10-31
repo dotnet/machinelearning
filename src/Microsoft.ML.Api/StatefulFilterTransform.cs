@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms;
 using System;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
 {
     // REVIEW: the current interface to 'state' object may be inadequate: instead of insisting on
     // parameterless constructor, we could take a delegate that would create the state per cursor.
     /// <summary>
-    /// This transform is similar to <see cref="MapTransform{TSrc,TDst}"/>, but it allows per-cursor state,
+    /// This transform is similar to <see cref="CustomMappingTransformer{TSrc,TDst}"/>, but it allows per-cursor state,
     /// as well as the ability to 'accept' or 'filter out' some rows of the supplied <see cref="IDataView"/>.
     /// The downside is that the provided lambda is eagerly called on every row (not lazily when needed), and
     /// parallel cursors are not allowed.
@@ -29,7 +29,8 @@ namespace Microsoft.ML.Runtime.Api
         private readonly IDataView _source;
         private readonly Func<TSrc, TDst, TState, bool> _filterFunc;
         private readonly Action<TState> _initStateAction;
-        private readonly MergedSchema _schema;
+        private readonly ColumnBindings _bindings;
+        private readonly InternalSchemaDefinition _addedSchema;
 
         // Memorized input schema definition. Needed for re-apply.
         private readonly SchemaDefinition _inputSchemaDefinition;
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Runtime.Api
         /// null simultaneously with <paramref name="loadFunc"/>.</param>
         /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
         /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be a
-        /// <see cref="MapTransform{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
+        /// <see cref="CustomMappingTransformer{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
         /// a static non-lambda method that this assembly can legally call. May be null simultaneously with
         /// <paramref name="saveAction"/>.</param>
         /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
@@ -74,7 +75,8 @@ namespace Microsoft.ML.Runtime.Api
             _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
 
             var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
-            _schema = MergedSchema.Create(_source.Schema, outSchema);
+            _addedSchema = outSchema;
+            _bindings = new ColumnBindings(Data.Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
         }
 
         /// <summary>
@@ -89,15 +91,13 @@ namespace Microsoft.ML.Runtime.Api
             _filterFunc = transform._filterFunc;
             _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
 
-            _schema = MergedSchema.Create(newSource.Schema, transform._schema.AddedSchema);
+            _addedSchema = transform._addedSchema;
+            _bindings = new ColumnBindings(Data.Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
         }
 
         public bool CanShuffle { get { return false; } }
 
-        public ISchema Schema
-        {
-            get { return _schema; }
-        }
+        public Schema Schema => _bindings.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Api
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
-            var activeInputs = _schema.GetActiveInput(predicate);
+            var activeInputs = _bindings.GetActiveInput(predicate);
             Func<int, bool> srcPredicate = c => activeInputs[c];
 
             var input = _typedSource.GetCursor(srcPredicate, rand == null ? (int?)null : rand.Next());
@@ -180,13 +180,13 @@ namespace Microsoft.ML.Runtime.Api
                 if (parent._initStateAction != null)
                     parent._initStateAction(_state);
 
-                var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._schema.AddedSchema);
+                var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(parent.Host, _parent._addedSchema);
                 appendedDataView.SetCurrentRowObject(_dst);
 
                 Func<int, bool> appendedPredicate =
                     col =>
                     {
-                        col = _parent._schema.MapIinfoToCol(col);
+                        col = _parent._bindings.AddedColumnIndices[col];
                         return predicate(col);
                     };
 
@@ -237,16 +237,13 @@ namespace Microsoft.ML.Runtime.Api
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public ISchema Schema
-            {
-                get { return _parent._schema; }
-            }
+            public Schema Schema => _parent._bindings.Schema;
 
             public bool IsColumnActive(int col)
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;
-                int iCol = _parent._schema.MapColumnIndex(out isSrc, col);
+                int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
                     return _input.IsColumnActive(iCol);
                 return _appendedRow.IsColumnActive(iCol);
@@ -256,7 +253,7 @@ namespace Microsoft.ML.Runtime.Api
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;
-                int iCol = _parent._schema.MapColumnIndex(out isSrc, col);
+                int iCol = _parent._bindings.MapColumnIndex(out isSrc, col);
                 return isSrc ?
                     _input.GetGetter<TValue>(iCol)
                     : _appendedRow.GetGetter<TValue>(iCol);

@@ -2,26 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
 
 [assembly: LoadableClass(typeof(void), typeof(Categorical), null, typeof(SignatureEntryPointModule), "Categorical")]
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
     public sealed class CategoricalTransform : ITransformer, ICanSaveModel
@@ -102,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OutputKind OutputKind = CategoricalEstimator.Defaults.OutKind;
+            public OutputKind OutputKind = OneHotEncodingEstimator.Defaults.OutKind;
 
             public Arguments()
             {
@@ -117,20 +119,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/>.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="outputKind">The type of output expected.</param>
-        public static IDataView Create(IHostEnvironment env, IDataView input, string name,
-            string source = null, OutputKind outputKind = CategoricalEstimator.Defaults.OutKind)
-        {
-            return new CategoricalEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
-        }
-
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -139,31 +127,33 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
 
-            var columns = new List<CategoricalEstimator.ColumnInfo>();
+            var columns = new List<OneHotEncodingEstimator.ColumnInfo>();
             foreach (var column in args.Column)
             {
-                var col = new CategoricalEstimator.ColumnInfo(
+                var col = new OneHotEncodingEstimator.ColumnInfo(
                     column.Source ?? column.Name,
                     column.Name,
                     column.OutputKind ?? args.OutputKind,
                     column.MaxNumTerms ?? args.MaxNumTerms,
                     column.Sort ?? args.Sort,
                     column.Term ?? args.Term);
-                col.SetTerms(column.Terms);
+                col.SetTerms(column.Terms ?? args.Terms);
                 columns.Add(col);
             }
-            return new CategoricalEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new OneHotEncodingEstimator(env, columns.ToArray(), args.DataFile, args.TermsColumn, args.Loader).Fit(input).Transform(input) as IDataTransform;
         }
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> toVector, IDataView input)
+        public CategoricalTransform(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
-            var chain = term.Append(toVector);
-            _transformer = chain.Fit(input);
+            if (toVector != null)
+                _transformer = term.Append(toVector).Fit(input);
+            else
+                _transformer = new TransformerChain<ITransformer>(term.Fit(input));
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema) => _transformer.GetOutputSchema(inputSchema);
+        public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
@@ -171,12 +161,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array.
     /// </summary>
-    public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
+    public sealed class OneHotEncodingEstimator : IEstimator<CategoricalTransform>
     {
         internal static class Defaults
         {
@@ -187,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly CategoricalTransform.OutputKind OutputKind;
             public ColumnInfo(string input, string output, CategoricalTransform.OutputKind outputKind = Defaults.OutKind,
-                int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = TermEstimator.Defaults.Sort,
+                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)
             {
@@ -203,24 +193,26 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IEstimator<ITransformer> _toSomething;
-        private TermEstimator _term;
+        private ValueToKeyMappingEstimator _term;
 
-        /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
+        /// Initializes an instance of the <see cref="OneHotEncodingEstimator"/>.
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is <c>null</c>, <paramref name="inputColumn"/> is used.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public CategoricalEstimator(IHostEnvironment env, string name,
-            string source = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new ColumnInfo(source ?? name, name, outputKind))
+        public OneHotEncodingEstimator(IHostEnvironment env, string inputColumn,
+            string outputColumn = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
+            : this(env, new[] { new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind) })
         {
         }
 
-        public CategoricalEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TermEstimator));
-            _term = new TermEstimator(_host, columns);
+            _host = env.Register(nameof(OneHotEncodingEstimator));
+            _term = new ValueToKeyMappingEstimator(_host, columns, file, termsColumn, loaderFactory);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)
@@ -247,9 +239,9 @@ namespace Microsoft.ML.Runtime.Data
             IEstimator<ITransformer> toBinVector = null;
             IEstimator<ITransformer> toVector = null;
             if (binaryCols.Count > 0)
-                toBinVector = new KeyToBinaryVectorEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
             if (cols.Count > 0)
-                toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
             if (toBinVector != null && toVector != null)
                 _toSomething = toVector.Append(toBinVector);
@@ -268,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {
-            _term = (TermEstimator)_term.WithOnFitDelegate(onFit);
+            _term = (ValueToKeyMappingEstimator)_term.WithOnFitDelegate(onFit);
         }
     }
 
@@ -371,9 +363,9 @@ namespace Microsoft.ML.Runtime.Data
             Bin = 4,
         }
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;
-        private const int DefMax = TermEstimator.Defaults.MaxNumTerms;
-        private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)CategoricalEstimator.Defaults.OutKind;
+        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
+        private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private struct Config
         {
@@ -436,12 +428,12 @@ namespace Microsoft.ML.Runtime.Data
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new CategoricalEstimator.ColumnInfo[toOutput.Length];
+                var infos = new OneHotEncodingEstimator.ColumnInfo[toOutput.Length];
                 Action<TermTransform> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new CategoricalEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.Max, (TermTransform.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
@@ -449,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                         onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
                     }
                 }
-                var est = new CategoricalEstimator(env, infos);
+                var est = new OneHotEncodingEstimator(env, infos);
                 if (onFit != null)
                     est.WrapTermWithDelegate(onFit);
                 return est;
