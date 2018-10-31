@@ -2146,7 +2146,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Key1',
                         'Source': 'Key',
-                        'Range': '[5-10,21-24]'
+                        'Range': '1-10'
                       }
                       ]",
                     @"'Column': [
