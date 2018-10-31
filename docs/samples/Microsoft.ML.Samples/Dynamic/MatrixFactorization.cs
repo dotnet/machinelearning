@@ -11,7 +11,7 @@ using System.Collections.Generic;
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
 // If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
 // line by line. 
-namespace Microsoft.ML.Samples.Static
+namespace Microsoft.ML.Samples.Dynamic
 {
     public partial class TrainerSamples
     {
