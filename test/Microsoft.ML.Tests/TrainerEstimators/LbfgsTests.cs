@@ -48,8 +48,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             pipe = pipe.Append(trainer);
             var transformer = pipe.Fit(dataView);
 
+            LinearModelStatistics.TryGetBiasStatistics(trainer.Stats, 2, out float stdError, out float zScore, out float pValue);
+
+            Assert.Equal(0.0f, stdError);
+            Assert.Equal(0.0f, zScore);
+            Assert.Equal(0.0f, pValue);
+
             using (var ch = Env.Start("Calcuating STD for LR."))
                 trainer.ComputeExtendedTrainingStatistics(ch);
+
+            LinearModelStatistics.TryGetBiasStatistics(trainer.Stats, 2, out stdError, out zScore, out pValue);
+
+            Assert.True(stdError > 0);
+            Assert.True(zScore > 0);
 
             Done();
         }

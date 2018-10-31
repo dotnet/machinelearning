@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Learners
                 stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
 
            VBuffer<float> stdErrors = new VBuffer<float>(trainer.GetWeights.Length, trainer.GetNumSelectedParams, stdErrorValues, trainer.Stats.WeightIndices);
-           trainer.Stats.SetCoeffStdError(ref stdErrors);
+           trainer.Stats.SetCoeffStdError(stdErrors);
         }
     }
 }

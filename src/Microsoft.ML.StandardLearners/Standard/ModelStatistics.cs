@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Learners
             stdError = stats._coeffStdError.Value.Values[0];
             Contracts.Assert(stdError == stats._coeffStdError.Value.GetItemOrDefault(0));
             zScore = bias / stdError;
-            pValue = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
+            pValue = 1.0f - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
             return true;
         }
 
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Runtime.Learners
                 };
         }
 
-        public void SetCoeffStdError(ref VBuffer<Single> coeffStdError)
+        public void SetCoeffStdError(VBuffer<Single> coeffStdError)
         {
             _env.Assert(coeffStdError.Count == _paramCount);
             _coeffStdError = coeffStdError;
