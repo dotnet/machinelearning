@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         float score = 0;
                         float prob = 0;
-                        maps[i](ref tmp, ref score, ref prob);
+                        maps[i](in tmp, ref score, ref prob);
                         buffer[i] = prob;
                     });
 

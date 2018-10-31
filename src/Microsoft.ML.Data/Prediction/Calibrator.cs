@@ -250,7 +250,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.Check(typeof(TDist) == typeof(Float));
             var map = GetMapper<TIn, Float>();
             ValueMapper<TIn, Float, Float> del =
-                (ref TIn src, ref Float score, ref Float prob) =>
+                (in TIn src, ref Float score, ref Float prob) =>
                 {
                     map(in src, ref score);
                     prob = Calibrator.PredictProbability(score);

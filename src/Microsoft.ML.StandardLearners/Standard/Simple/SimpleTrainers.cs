@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Learners
             dst = PredictCore();
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = PredictCore();
             prob = (score + 1) / 2;
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Learners
             dst = _raw;
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = _raw;
             prob = _prob;

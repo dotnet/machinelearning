@@ -570,7 +570,7 @@ namespace Microsoft.ML.Runtime.Learners
                             i =>
                             {
                                 float score = 0;
-                                maps[i](ref tmp, ref score, ref values[i]);
+                                maps[i](in tmp, ref score, ref values[i]);
                             });
                         Normalize(values, maps.Length);
                         dst = new VBuffer<float>(maps.Length, values, dst.Indices);

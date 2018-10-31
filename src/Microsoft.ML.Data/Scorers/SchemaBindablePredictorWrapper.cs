@@ -546,7 +546,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (featureGetter != null)
                         featureGetter(ref features);
 
-                    mapper(ref features, ref score, ref prob);
+                    mapper(in features, ref score, ref prob);
                     cachedPosition = input.Position;
                 }
             }

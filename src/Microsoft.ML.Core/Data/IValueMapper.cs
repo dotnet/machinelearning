@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Data
     /// Delegate type to map/convert among three values, for example, one input with two
     /// outputs, or two inputs with one output.
     /// </summary>
-    public delegate void ValueMapper<TVal1, TVal2, TVal3>(ref TVal1 val1, ref TVal2 val2, ref TVal3 val3);
+    public delegate void ValueMapper<TVal1, TVal2, TVal3>(in TVal1 val1, ref TVal2 val2, ref TVal3 val3);
 
     /// <summary>
     /// Interface for mapping a single input value (of an indicated ColumnType) to
