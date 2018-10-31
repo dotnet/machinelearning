@@ -9,7 +9,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Delegate type to map/convert a value.
     /// </summary>
-    public delegate void ValueMapper<TSrc, TDst>(ref TSrc src, ref TDst dst);
+    public delegate void ValueMapper<TSrc, TDst>(in TSrc src, ref TDst dst);
 
     /// <summary>
     /// Delegate type to map/convert among three values, for example, one input with two

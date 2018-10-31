@@ -1002,7 +1002,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }).Data;
 
             ValueMapper<ReadOnlyMemory<char>, bool> labelToBinary =
-                (ref ReadOnlyMemory<char> src, ref bool dst) =>
+                (in ReadOnlyMemory<char> src, ref bool dst) =>
                 {
                     if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
                         dst = true;

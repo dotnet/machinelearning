@@ -370,7 +370,7 @@ namespace Microsoft.ML.Trainers
             absentFeatureLogProb += Math.Log(absentFeatureCount + 1) - Math.Log(labelOccurrenceCount + _labelCount);
         }
 
-        private void Map(ref VBuffer<float> src, ref VBuffer<float> dst)
+        private void Map(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _featureCount, "Invalid number of features passed.");
             float[] labelScores = (dst.Length >= _labelCount) ? dst.Values : new float[_labelCount];

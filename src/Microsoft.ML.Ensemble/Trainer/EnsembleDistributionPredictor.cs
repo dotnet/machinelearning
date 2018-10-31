@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var probabilities = new Single[_mappers.Length];
             var vBuffers = new VBuffer<Single>[_mappers.Length];
             ValueMapper<VBuffer<Single>, Single> del =
-                (ref VBuffer<Single> src, ref Single dst) =>
+                (in VBuffer<Single> src, ref Single dst) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);

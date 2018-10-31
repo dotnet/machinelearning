@@ -799,7 +799,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> features, ref float response)
+        private void Map(in VBuffer<float> features, ref float response)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 

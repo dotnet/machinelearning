@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
                 // Handles converting input strings to correct types.
                 var srcTxt = srcStr.AsMemory();
                 var strToT = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
-                strToT(ref srcTxt, ref val);
+                strToT(in srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(in val))
                     throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.ItemType);

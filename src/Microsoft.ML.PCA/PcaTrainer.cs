@@ -561,7 +561,7 @@ namespace Microsoft.ML.Trainers.PCA
             Host.Check(typeof(TOut) == typeof(float));
 
             ValueMapper<VBuffer<float>, float> del =
-                (ref VBuffer<float> src, ref float dst) =>
+                (in VBuffer<float> src, ref float dst) =>
                 {
                     Host.Check(src.Length == _dimension);
                     dst = Score(in src);

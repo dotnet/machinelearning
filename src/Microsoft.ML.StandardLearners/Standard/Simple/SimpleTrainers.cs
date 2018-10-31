@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = PredictCore();
         }
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = _raw;
         }

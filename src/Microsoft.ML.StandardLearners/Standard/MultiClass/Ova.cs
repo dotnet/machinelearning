@@ -487,7 +487,7 @@ namespace Microsoft.ML.Runtime.Learners
                     maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
 
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Learners
                             values = new float[maps.Length];
 
                         var tmp = src;
-                        Parallel.For(0, maps.Length, i => maps[i](ref tmp, ref values[i]));
+                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref values[i]));
                         dst = new VBuffer<float>(maps.Length, values, dst.Indices);
                     };
             }
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Learners
                     maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);

@@ -489,12 +489,12 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeTweediePredictor(env, ctx);
         }
 
-        protected override void Map(ref VBuffer<float> src, ref float dst)
+        protected override void Map(in VBuffer<float> src, ref float dst)
         {
             // The value learnt and predicted by the trees is the log of the expected value,
             // as seen in equation 9 of the paper. So for the actual prediction, we take its
             // exponent.
-            base.Map(ref src, ref dst);
+            base.Map(in src, ref dst);
             // REVIEW: Some packages like R's GBM apparently clamp the input to the exponent
             // in the range [-19, 19]. We have historically taken a dim view of this sort of thing
             // ourselves, but if our views prove problematic we can reconsider. (An upper clamp of 19

@@ -144,7 +144,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Host.Check(typeof(TOut) == typeof(VBuffer<Float>));
 
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");

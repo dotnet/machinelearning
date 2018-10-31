@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     //Empty string will map to NA for R4 and R8, the only two types that can
                     //handle missing values.
                     var bad = String.Empty.AsMemory();
-                    conv(ref bad, ref _badValue);
+                    conv(in bad, ref _badValue);
                 }
             }
 

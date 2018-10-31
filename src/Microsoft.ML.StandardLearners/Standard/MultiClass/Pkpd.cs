@@ -450,7 +450,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var buffer = new Double[_numClasses];
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
-                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);

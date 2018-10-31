@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 maps[i] = _mappers[i].GetMapper<VBuffer<Single>, Single>();
 
             ValueMapper<VBuffer<Single>, Single> del =
-                (ref VBuffer<Single> src, ref Single dst) =>
+                (in VBuffer<Single> src, ref Single dst) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);
@@ -134,10 +134,10 @@ namespace Microsoft.ML.Runtime.Ensemble
                         if (model.SelectedFeatures != null)
                         {
                             EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref buffers[i]);
-                            maps[i](ref buffers[i], ref predictions[i]);
+                            maps[i](in buffers[i], ref predictions[i]);
                         }
                         else
-                            maps[i](ref tmp, ref predictions[i]);
+                            maps[i](in tmp, ref predictions[i]);
                     });
 
                     combine(ref dst, predictions, Weights);
