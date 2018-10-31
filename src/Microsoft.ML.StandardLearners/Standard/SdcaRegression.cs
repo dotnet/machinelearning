@@ -63,7 +63,10 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaRegressionTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,

@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Learners
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeU4ScalarLabel(labelColumn), weightColumn, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weightColumn, advancedSettings,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
         internal MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
         {
             ShowTrainingStats = Args.ShowTrainingStats;
         }

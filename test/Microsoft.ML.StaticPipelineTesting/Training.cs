@@ -755,6 +755,85 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
+        public void LightGBMRanking()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RankingContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
+                separator: '\t', hasHeader: true);
+
+            LightGbmRankingPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
+                .Append(r => (r.label, r.groupId, score: ctx.Trainers.LightGbm(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
+            Assert.NotNull(metrics);
+
+            Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
+
+            Assert.InRange(metrics.Dcg[0], 1.4, 1.6);
+            Assert.InRange(metrics.Dcg[1], 1.4, 1.8);
+            Assert.InRange(metrics.Dcg[2], 1.4, 1.8);
+
+            Assert.InRange(metrics.Ndcg[0], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[1], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[2], 36.5, 37);
+        }
+
+        [Fact]
+        public void MultiClassLightGBM()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            OvaPredictor pred = null;
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.LightGbm(
+                    r.label,
+                    r.features, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.True(metrics.LogLoss > 0);
+            Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
         public void MultiClassNaiveBayesTrainer()
         {
             var env = new ConsoleEnvironment(seed: 0);

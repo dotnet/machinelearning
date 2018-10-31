@@ -92,15 +92,28 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LightGbmRankingTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        /// <param name="groupIdColumn">The name of the column containing the group ID. </param>
+        /// <param name="weightColumn">The name of the column containing the initial weight.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
+        public LightGbmRankingTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string groupIdColumn,
+            string weightColumn = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
         }
 
