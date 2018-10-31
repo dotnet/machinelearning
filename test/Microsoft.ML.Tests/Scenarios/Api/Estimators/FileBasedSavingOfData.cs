@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
                 .Fit(src).Read(src);
 
-            using (var file = File.Create(GetOutputPath("i.idv")))
+            using (var file = File.Create(DeleteOutputPath("i.idv")))
             {
                 var saver = new BinarySaver(ml, new BinarySaver.Arguments());
                 using (var ch = ((IHostEnvironment)ml).Start("SaveData"))

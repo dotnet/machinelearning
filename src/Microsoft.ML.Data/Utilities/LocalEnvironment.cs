@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             private void ChannelFinished()
-                => Dispatch(this, new ChannelMessage(ChannelMessageKind.Trace, MessageSensitivity.None, "Channel finished. Elapsed { 0:c }.", Watch.Elapsed));
+                => Dispatch(this, new ChannelMessage(ChannelMessageKind.Trace, MessageSensitivity.None, "Channel finished. Elapsed {0:c}.", Watch.Elapsed));
 
             protected override void Dispose(bool disposing)
             {
