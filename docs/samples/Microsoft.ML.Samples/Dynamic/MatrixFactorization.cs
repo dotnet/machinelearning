@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Contieuous=true means that all values between the min and max indexes are all allowed.
             [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
-            // The value at the column MatrixColumnIndex and row MatrixRowIndexin.
+            // The value at the column MatrixColumnIndex and row MatrixRowIndex.
             public float Value;
         }
 
@@ -61,7 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
                     dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
+            // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext(seed: 0, conc: 1);
 
             // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
