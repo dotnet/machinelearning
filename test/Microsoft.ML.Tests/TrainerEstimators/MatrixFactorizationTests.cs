@@ -191,17 +191,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
 
-            Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
-            Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
-            Assert.True(model.MatrixRowIndexColumnType.IsKey);
-            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
-            Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
-            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
-            Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
-            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
-
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
 

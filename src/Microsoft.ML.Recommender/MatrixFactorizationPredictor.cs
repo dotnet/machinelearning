@@ -403,7 +403,6 @@ namespace Microsoft.ML.Trainers.Recommender
             MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
-            MatrixRowIndexColumnType = trainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
