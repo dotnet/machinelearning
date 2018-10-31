@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   sep=tab
+#@   col=T:TX:0-**
+#@ }
+SentimentText
+==RUDE== Dude	you	re rude uplo	d th	t c	rl picture b	ck	or el	e.
+== OK! ==  IM GOING TO VANDALIZE WILD ONES WIKI THEN!!!
+Stop trolling	z	p	t	nc	c	lling me	li	r merely demon	t	rte	th	t you	rer Z	p	t	nc	. You m	y choo	e to ch	e every legitim	te editor from thi	ite	nd ignore me but I	m	n editor with	record th	t i	nt 99% trolling	nd therefore my wi	he	re not to be completely ignored by	ockpuppet like your	elf. The con	en	u	i	overwhelmingly	g	in	t you	nd your trollin g lover Z	p	t	nc

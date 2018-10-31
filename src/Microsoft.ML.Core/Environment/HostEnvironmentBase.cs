@@ -174,15 +174,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             public override int Depth { get; }
 
-            /// <summary>
-            /// Whether this pipe is still active.
-            /// </summary>
-            public bool IsActive { get; private set; }
-
             // The delegate to call to dispatch messages.
             protected readonly Action<IMessageSource, TMessage> Dispatch;
 
             public readonly ChannelProviderBase Parent;
+
+            private bool _disposed;
 
             protected PipeBase(ChannelProviderBase parent, string shortName,
                 Action<IMessageSource, TMessage> dispatch)
@@ -192,23 +189,20 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(dispatch);
                 Parent = parent;
                 Depth = parent.Depth + 1;
-                IsActive = true;
                 Dispatch = dispatch;
-            }
-
-            public virtual void Done()
-            {
-                IsActive = false;
             }
 
             public void Dispose()
             {
-                DisposeCore();
+                if(!_disposed)
+                {
+                    Dispose(true);
+                    _disposed = true;
+                }
             }
 
-            protected virtual void DisposeCore()
+            protected virtual void Dispose(bool disposing)
             {
-                IsActive = false;
             }
 
             public void Send(TMessage msg)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Linq;
 using System.IO;
@@ -15,7 +13,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
@@ -31,7 +29,7 @@ using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(typeof(void), typeof(RandomizedPcaTrainer), null, typeof(SignatureEntryPointModule), RandomizedPcaTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.PCA
+namespace Microsoft.ML.Trainers.PCA
 {
     // REVIEW: make RFF transformer an option here.
 
@@ -141,9 +139,7 @@ namespace Microsoft.ML.Runtime.PCA
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.TrainingSet, dimension);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, context.TrainingSet, dimension);
             }
         }
 
@@ -169,12 +165,12 @@ namespace Microsoft.ML.Runtime.PCA
             int oversampledRank = Math.Min(_rank + _oversampling, dimension);
 
             //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-            Double memoryUsageEstimate = 2.0 * dimension * oversampledRank * sizeof(Float) / 1e9;
+            Double memoryUsageEstimate = 2.0 * dimension * oversampledRank * sizeof(float) / 1e9;
             if (memoryUsageEstimate > 2)
                 ch.Info("Estimate memory usage: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.", memoryUsageEstimate);
 
             var y = Zeros(oversampledRank, dimension);
-            var mean = _center ? VBufferUtils.CreateDense<Float>(dimension) : VBufferUtils.CreateEmpty<Float>(dimension);
+            var mean = _center ? VBufferUtils.CreateDense<float>(dimension) : VBufferUtils.CreateEmpty<float>(dimension);
 
             var omega = GaussianMatrix(oversampledRank, dimension, _seed);
 
@@ -201,30 +197,30 @@ namespace Microsoft.ML.Runtime.PCA
             Project(Host, cursorFactory, ref mean, q, b, out numBad);
 
             //Compute B2 = B' * B
-            var b2 = new Float[oversampledRank * oversampledRank];
+            var b2 = new float[oversampledRank * oversampledRank];
             for (var i = 0; i < oversampledRank; ++i)
             {
                 for (var j = i; j < oversampledRank; ++j)
                     b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(ref b[i], ref b[j]);
             }
 
-            Float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
-            Float[] smallEigenvectors;
+            float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
+            float[] smallEigenvectors;
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
             PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
 
             return new PcaPredictor(Host, _rank, b, ref mean);
         }
 
-        private static VBuffer<Float>[] Zeros(int k, int d)
+        private static VBuffer<float>[] Zeros(int k, int d)
         {
-            var rv = new VBuffer<Float>[k];
+            var rv = new VBuffer<float>[k];
             for (var i = 0; i < k; ++i)
-                rv[i] = VBufferUtils.CreateDense<Float>(d);
+                rv[i] = VBufferUtils.CreateDense<float>(d);
             return rv;
         }
 
-        private static VBuffer<Float>[] GaussianMatrix(int k, int d, int seed)
+        private static VBuffer<float>[] GaussianMatrix(int k, int d, int seed)
         {
             var rv = Zeros(k, d);
             var rng = new SysRandom(seed);
@@ -234,7 +230,7 @@ namespace Microsoft.ML.Runtime.PCA
             for (var i = 0; i < k; ++i)
             {
                 for (var j = 0; j < d; ++j)
-                    rv[i].Values[j] = (Float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
+                    rv[i].Values[j] = (float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
             }
             return rv;
         }
@@ -242,7 +238,7 @@ namespace Microsoft.ML.Runtime.PCA
         //Project the covariance matrix A on to Omega: Y <- A * Omega
         //A = X' * X / n, where X = data - mean
         //Note that the covariance matrix is not computed explicitly
-        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<Float> mean, VBuffer<Float>[] omega, VBuffer<Float>[] y, out long numBad)
+        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<float> mean, VBuffer<float>[] omega, VBuffer<float>[] y, out long numBad)
         {
             Contracts.AssertValue(host, "host");
             host.AssertNonEmpty(omega);
@@ -253,7 +249,7 @@ namespace Microsoft.ML.Runtime.PCA
                 VBufferUtils.Clear(ref y[i]);
 
             bool center = mean.IsDense;
-            Float n = 0;
+            float n = 0;
             long count = 0;
             using (var pch = host.StartProgressChannel("Project covariance matrix"))
             using (var cursor = cursorFactory.Create())
@@ -278,7 +274,7 @@ namespace Microsoft.ML.Runtime.PCA
             }
 
             Contracts.Check(n > 0, "Empty training data");
-            Float invn = 1 / n;
+            float invn = 1 / n;
 
             for (var i = 0; i < numCols; ++i)
                 VectorUtils.ScaleBy(ref y[i], invn);
@@ -295,14 +291,14 @@ namespace Microsoft.ML.Runtime.PCA
         /// Modifies <paramref name="y"/> in place so it becomes <paramref name="y"/> * eigenvectors / eigenvalues.
         /// </summary>
         // REVIEW: improve
-        private static void PostProcess(VBuffer<Float>[] y, Float[] sigma, Float[] z, int d, int k)
+        private static void PostProcess(VBuffer<float>[] y, float[] sigma, float[] z, int d, int k)
         {
             Contracts.Assert(y.All(v => v.IsDense));
-            var pinv = new Float[k];
-            var tmp = new Float[k];
+            var pinv = new float[k];
+            var tmp = new float[k];
 
             for (int i = 0; i < k; i++)
-                pinv[i] = (Float)(1.0) / ((Float)(1e-6) + sigma[i]);
+                pinv[i] = (float)(1.0) / ((float)(1e-6) + sigma[i]);
 
             for (int i = 0; i < d; i++)
             {
@@ -335,7 +331,7 @@ namespace Microsoft.ML.Runtime.PCA
             };
         }
 
-        protected override AnomalyPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, ISchema trainSchema)
+        protected override AnomalyPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, Schema trainSchema)
             => new AnomalyPredictionTransformer<PcaPredictor>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
@@ -364,7 +360,7 @@ namespace Microsoft.ML.Runtime.PCA
     // REVIEW: move the predictor to a different file and fold EigenUtils.cs to this file.
     // REVIEW: Include the above detail in the XML documentation file.
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-    public sealed class PcaPredictor : PredictorBase<Float>,
+    public sealed class PcaPredictor : PredictorBase<float>,
         IValueMapper,
         ICanGetSummaryAsIDataView,
         ICanSaveInTextFormat, ICanSaveModel, ICanSaveSummary
@@ -385,10 +381,10 @@ namespace Microsoft.ML.Runtime.PCA
 
         private readonly int _dimension;
         private readonly int _rank;
-        private readonly VBuffer<Float>[] _eigenVectors; // top-k eigenvectors of the train data's covariance matrix
-        private readonly Float[] _meanProjected; // for centering
-        private readonly VBuffer<Float> _mean; // used to compute (x-mu)^2
-        private readonly Float _norm2Mean;
+        private readonly VBuffer<float>[] _eigenVectors; // top-k eigenvectors of the train data's covariance matrix
+        private readonly float[] _meanProjected; // for centering
+        private readonly VBuffer<float> _mean; // used to compute (x-mu)^2
+        private readonly float _norm2Mean;
 
         private readonly ColumnType _inputType;
 
@@ -397,13 +393,13 @@ namespace Microsoft.ML.Runtime.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<Float>[] eigenVectors, ref VBuffer<Float> mean)
+        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, ref VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
             _rank = rank;
-            _eigenVectors = new VBuffer<Float>[rank];
-            _meanProjected = new Float[rank];
+            _eigenVectors = new VBuffer<float>[rank];
+            _meanProjected = new float[rank];
 
             for (var i = 0; i < rank; ++i) // Only want first k
             {
@@ -425,8 +421,8 @@ namespace Microsoft.ML.Runtime.PCA
             // int: rank
             // bool: center
             // If (center)
-            //  Float[]: mean vector
-            // Float[][]: eigenvectors
+            //  float[]: mean vector
+            // float[][]: eigenvectors
             _dimension = ctx.Reader.ReadInt32();
             Host.CheckDecode(FloatUtils.IsFinite(_dimension));
 
@@ -438,22 +434,22 @@ namespace Microsoft.ML.Runtime.PCA
             {
                 var meanArray = ctx.Reader.ReadFloatArray(_dimension);
                 Host.CheckDecode(meanArray.All(FloatUtils.IsFinite));
-                _mean = new VBuffer<Float>(_dimension, meanArray);
+                _mean = new VBuffer<float>(_dimension, meanArray);
                 _norm2Mean = VectorUtils.NormSquared(_mean);
             }
             else
             {
-                _mean = VBufferUtils.CreateEmpty<Float>(_dimension);
+                _mean = VBufferUtils.CreateEmpty<float>(_dimension);
                 _norm2Mean = 0;
             }
 
-            _eigenVectors = new VBuffer<Float>[_rank];
-            _meanProjected = new Float[_rank];
+            _eigenVectors = new VBuffer<float>[_rank];
+            _meanProjected = new float[_rank];
             for (int i = 0; i < _rank; ++i)
             {
                 var vi = ctx.Reader.ReadFloatArray(_dimension);
                 Host.CheckDecode(vi.All(FloatUtils.IsFinite));
-                _eigenVectors[i] = new VBuffer<Float>(_dimension, vi);
+                _eigenVectors[i] = new VBuffer<float>(_dimension, vi);
                 _meanProjected[i] = VectorUtils.DotProduct(ref _eigenVectors[i], ref _mean);
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
@@ -472,8 +468,8 @@ namespace Microsoft.ML.Runtime.PCA
             // int: rank
             // bool: center
             // If (center)
-            //  Float[]: mean vector
-            // Float[][]: eigenvectors
+            //  float[]: mean vector
+            // float[][]: eigenvectors
             writer.Write(_dimension);
             writer.Write(_rank);
 
@@ -533,7 +529,7 @@ namespace Microsoft.ML.Runtime.PCA
         {
             var bldr = new ArrayDataViewBuilder(Host);
 
-            var cols = new VBuffer<Float>[_rank + 1];
+            var cols = new VBuffer<float>[_rank + 1];
             var names = new string[_rank + 1];
             for (var i = 0; i < _rank; ++i)
             {
@@ -561,11 +557,11 @@ namespace Microsoft.ML.Runtime.PCA
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(Float));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del =
-                (ref VBuffer<Float> src, ref Float dst) =>
+            ValueMapper<VBuffer<float>, float> del =
+                (ref VBuffer<float> src, ref float dst) =>
                 {
                     Host.Check(src.Length == _dimension);
                     dst = Score(ref src);
@@ -573,23 +569,23 @@ namespace Microsoft.ML.Runtime.PCA
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private Float Score(ref VBuffer<Float> src)
+        private float Score(ref VBuffer<float> src)
         {
             Host.Assert(src.Length == _dimension);
 
             // REVIEW: Can this be done faster in a single pass over src and _mean?
             var mean = _mean;
-            Float norm2X = VectorUtils.NormSquared(src) -
+            float norm2X = VectorUtils.NormSquared(src) -
                 2 * VectorUtils.DotProduct(ref mean, ref src) + _norm2Mean;
             // Because the distance between src and _mean is computed using the above expression, the result
             // may be negative due to round off error. If this happens, we let the distance be 0.
             if (norm2X < 0)
                 norm2X = 0;
 
-            Float norm2U = 0;
+            float norm2U = 0;
             for (int i = 0; i < _rank; i++)
             {
-                Float component = VectorUtils.DotProduct(ref _eigenVectors[i], ref src) - _meanProjected[i];
+                float component = VectorUtils.DotProduct(ref _eigenVectors[i], ref src) - _meanProjected[i];
                 norm2U += component * component;
             }
 
@@ -604,7 +600,7 @@ namespace Microsoft.ML.Runtime.PCA
         /// be expanded as necessary to accomodate the data.</param>
         /// <param name="rank">Set to the rank, which is also the logical length
         /// of <paramref name="vectors"/>.</param>
-        public void GetEigenVectors(ref VBuffer<Float>[] vectors, out int rank)
+        public void GetEigenVectors(ref VBuffer<float>[] vectors, out int rank)
         {
             rank = _eigenVectors.Length;
             Utils.EnsureSize(ref vectors, _eigenVectors.Length, _eigenVectors.Length);
@@ -615,7 +611,7 @@ namespace Microsoft.ML.Runtime.PCA
         /// <summary>
         /// Copies the mean vector of the training data.
         /// </summary>
-        public void GetMean(ref VBuffer<Float> mean)
+        public void GetMean(ref VBuffer<float> mean)
         {
             _mean.CopyTo(ref mean);
         }

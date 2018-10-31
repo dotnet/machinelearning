@@ -3,7 +3,7 @@ Building ML.NET on Linux and macOS
 ## Building
 
 1. Install the prerequisites ([Linux](#user-content-linux), [macOS](#user-content-macos))
-2. Clone the machine learning repo `git clone https://github.com/dotnet/machinelearning.git`
+2. Clone the machine learning repo `git clone --recursive https://github.com/dotnet/machinelearning.git`
 3. Navigate to the `machinelearning` directory
 4. Run the build script `./build.sh`
 
@@ -28,7 +28,7 @@ The following components are needed:
 * curl
 * All the requirements necessary to run .NET Core 2.0 applications: libssl1.0.0 (1.0.2 for Debian 9) and libicu5x (libicu52 for ubuntu 14.x, libicu55 for ubuntu 16.x, and libicu57 for ubuntu 17.x). For more information on prerequisites in different linux distributions click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
 
-e.g. for Ubuntu 16.x:
+For example, for Ubuntu 16.x:
 
 ```sh
 sudo apt-get update
@@ -38,7 +38,7 @@ sudo apt-get install libssl1.0.0 libicu55
 
 ### macOS
 
-macOS 10.12 or higher is needed to build dotnet/machinelearning.
+macOS 10.12 (Sierra) or higher is needed to build dotnet/machinelearning.
 
 On macOS a few components are needed which are not provided by a default developer setup:
 * cmake 3.10.3

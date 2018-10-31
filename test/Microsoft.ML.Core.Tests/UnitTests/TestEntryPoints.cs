@@ -2,34 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Core.Tests.UnitTests;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Ensemble.EntryPoints;
+using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Runtime.ImageAnalytics;
+using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Runtime.PipelineInference;
+using Microsoft.ML.Trainers.SymSgd;
+using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Core.Tests.UnitTests;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.PCA;
-using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Runtime.SymSgd;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -37,6 +44,7 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         public TestEntryPoints(ITestOutputHelper output) : base(output)
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(ExponentialAverageTransform).Assembly);
         }
 
         private IDataView GetBreastCancerDataView()
@@ -121,8 +129,8 @@ namespace Microsoft.ML.Runtime.RunTests
             expected = Env.CreateTransform("KeyToVector{col=F1}", expected);
             expected = Env.CreateTransform("Concat{col=Features:F1,F2,Rest}", expected);
 
-            expected = Env.CreateTransform("ChooseColumns{col=Features}", expected);
-            result = Env.CreateTransform("ChooseColumns{col=Features}", result);
+            expected = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", expected);
+            result = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", result);
             CheckSameValues(result, expected);
             Done();
         }
@@ -240,7 +248,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -298,6 +306,44 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        public void EntryPointCatalogCheckDuplicateParams()
+        {
+            // Run this test to prevent introducing duplicate param names in entrypoints
+            // TODO: fix entrypoints in excludeSet from having duplicate param names
+            var excludeSet = new HashSet<string>();
+            excludeSet.Add("Data.DataViewReference");
+            excludeSet.Add("Models.CrossValidator");
+            excludeSet.Add("Models.CrossValidationResultsCombiner");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.SweepResultExtractor");
+            excludeSet.Add("Models.TrainTestEvaluator");
+            excludeSet.Add("Transforms.TwoHeterogeneousModelCombiner");
+            excludeSet.Add("Transforms.ManyHeterogeneousModelCombiner");
+
+            var (epListContents, jObj) = BuildManifests();
+            foreach (var ep in jObj["EntryPoints"])
+            {
+                if (excludeSet.Contains(ep["Name"].ToString()))
+                    continue;
+
+                var variables = new HashSet<string>();
+                foreach (var param in ep["Inputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+                foreach (var param in ep["Outputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+            }
+
+            Done();
+        }
+
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -306,6 +352,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessing.TimeSeriesProcessing).Assembly);
 
             var catalog = Env.ComponentCatalog;
 
@@ -390,24 +437,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointInputArgsChecks()
-        {
-            var input = new DropColumnsTransform.KeepArguments();
-            try
-            {
-                EntryPointUtils.CheckInputArgs(Env, input);
-                Assert.False(true);
-            }
-            catch
-            {
-            }
-
-            input.Data = new EmptyDataView(Env, new SimpleSchema(Env, new KeyValuePair<string, ColumnType>("ColA", NumberType.R4)));
-            input.Column = new string[0];
-            EntryPointUtils.CheckInputArgs(Env, input);
-        }
-
-        [Fact]
         public void EntryPointCreateEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -443,9 +472,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = new DropColumnsTransform(Env,
-                    new DropColumnsTransform.Arguments() { Column = new[] { MetadataUtils.Const.ScoreValueKind.Score } },
-                    individualScores[i]);
+                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -558,8 +585,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -726,16 +752,11 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
+
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1000,10 +1021,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextTransform.Create(Env,
-                        new TextTransform.Arguments()
+                    data = TextFeaturizingEstimator.Create(Env,
+                        new TextFeaturizingEstimator.Arguments()
                         {
-                            Column = new TextTransform.Column() { Name = "Features", Source = new[] { "Text" } },
+                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
                             StopWordsRemover = new PredefinedStopWordsRemoverFactory()
                         }, data);
                 }
@@ -1200,16 +1221,10 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1324,6 +1339,141 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.False(curs4.MoveNext());
                 Assert.False(cursSaved.MoveNext());
             }
+        }
+
+        [Fact]
+        public void EntryPointPipelineEnsembleGetSummary()
+        {
+            var dataPath = GetDataPath("breast-cancer-withheader.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+            var dataView =
+                ImportTextData.TextLoader(Env,
+                    new ImportTextData.LoaderInput
+                    {
+                        InputFile = inputFile,
+                        Arguments =
+                        {
+                            Column = new[]
+                            {
+                                new TextLoader.Column("Label", DataKind.R4, 0),
+                                new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 8) }),
+                                new TextLoader.Column("Cat", DataKind.TX, 9)
+                            },
+                            HasHeader = true,
+                        }
+                    })
+                    .Data;
+
+            const int nModels = 4;
+            var splitOutput = CVSplit.Split(Env, new CVSplit.Input { Data = dataView, NumFolds = nModels });
+            var predictorModels = new IPredictorModel[nModels];
+            for (int i = 0; i < nModels; i++)
+            {
+                var data = splitOutput.TrainData[i];
+                data = CategoricalTransform.Create(Env,
+                    new CategoricalTransform.Arguments()
+                    {
+                        Column = new[] { new CategoricalTransform.Column() { Name = "Cat", Source = "Cat" } }
+                    }, data);
+                data = new ConcatTransform(Env, new ConcatTransform.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                if (i % 2 == 0)
+                {
+                    var lrInput = new LogisticRegression.Arguments
+                    {
+                        TrainingData = data,
+                        NormalizeFeatures = NormalizeOption.Yes,
+                        NumThreads = 1,
+                        ShowTrainingStats = true
+                    };
+                    predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
+                    var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
+
+                    predictorModels[i] = ModelOperations.CombineTwoModels(Env,
+                        new ModelOperations.SimplePredictorModelInput()
+                        { PredictorModel = predictorModels[i], TransformModel = transformModel }).PredictorModel;
+                }
+                else if (i % 2 == 1)
+                {
+                    var trainer = new FastTreeBinaryClassificationTrainer(Env, "Label", "Features");
+                    var rmd = new RoleMappedData(data, false,
+                        RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, "Features"),
+                        RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, "Label"));
+                    var predictor = trainer.Train(rmd);
+                    predictorModels[i] = new PredictorModel(Env, rmd, splitOutput.TrainData[i], predictor);
+                }
+            }
+
+            var binaryEnsembleModel = EnsembleCreator.CreateBinaryPipelineEnsemble(Env,
+                new EnsembleCreator.PipelineClassifierInput()
+                {
+                    ModelCombiner = EnsembleCreator.ClassifierCombiner.Average,
+                    Models = predictorModels
+                }).PredictorModel;
+            var binaryEnsembleCalibrated = Calibrate.Platt(Env,
+                new Calibrate.NoArgumentsInput()
+                {
+                    Data = splitOutput.TestData[0],
+                    UncalibratedPredictorModel = binaryEnsembleModel
+                }).PredictorModel;
+
+            var summaryDataViews = PipelineEnsemble.Summarize(Env,
+                new SummarizePredictor.Input() { PredictorModel = binaryEnsembleCalibrated });
+
+            var summarizable = binaryEnsembleCalibrated.Predictor as ICanSaveSummary;
+            Assert.NotNull(summarizable);
+
+            using (var ch = Env.Register("LinearPredictorSummary").Start("Save Data Views"))
+            {
+                for (int i = 0; i < summaryDataViews.Summaries.Length; i++)
+                {
+                    var summary = DeleteOutputPath(@"../Common/EntryPoints", $"ensemble-model{i}-summary.txt");
+                    var saver = Env.CreateSaver("Text");
+                    using (var file = Env.CreateOutputFile(summary))
+                        DataSaverUtils.SaveDataView(ch, saver, summaryDataViews.Summaries[i], file);
+                    CheckEquality(@"../Common/EntryPoints", $"ensemble-model{i}-summary.txt");
+
+                    if (summaryDataViews.Stats[i] != null)
+                    {
+                        var stats = DeleteOutputPath(@"../Common/EntryPoints", $"ensemble-model{i}-stats.txt");
+                        using (var file = Env.CreateOutputFile(stats))
+                            DataSaverUtils.SaveDataView(ch, saver, summaryDataViews.Stats[i], file);
+                        CheckEquality(@"../Common/EntryPoints", $"ensemble-model{i}-stats.txt");
+                    }
+                }
+            }
+
+            var summaryPath = DeleteOutputPath(@"../Common/EntryPoints", "ensemble-summary.txt");
+            using (var file = File.OpenWrite(summaryPath))
+            using (var writer = Utils.OpenWriter(file))
+                summarizable.SaveSummary(writer, null);
+
+            CheckEquality(@"../Common/EntryPoints", "ensemble-summary.txt");
+
+            var summaryKvps = binaryEnsembleCalibrated.Predictor as ICanGetSummaryInKeyValuePairs;
+            Assert.NotNull(summaryKvps);
+
+            var summaryKvpPath = DeleteOutputPath(@"../Common/EntryPoints", "ensemble-summary-key-value-pairs.txt");
+            using (var file = File.OpenWrite(summaryKvpPath))
+            using (var writer = Utils.OpenWriter(file))
+            {
+                var kvps = summaryKvps.GetSummaryInKeyValuePairs(null);
+                for (int i = 0; i < kvps.Count; i++)
+                {
+                    var kvp = kvps[i];
+                    var list = kvp.Value as IList<KeyValuePair<string, object>>;
+                    Assert.NotNull(list);
+
+                    writer.WriteLine(kvp.Key);
+                    for (int j = 0; j < list.Count; j++)
+                    {
+                        kvp = list[j];
+                        writer.WriteLine("{0}: {1}", kvp.Key, kvp.Value);
+                    }
+                }
+            }
+            CheckEquality(@"../Common/EntryPoints", "ensemble-summary-key-value-pairs.txt");
+
+            Done();
         }
 
         private static bool CompareVBuffers(ref VBuffer<Single> v1, ref VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
@@ -1796,14 +1946,14 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmBinary()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmMultiClass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -1995,7 +2145,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Key1',
                         'Source': 'Key',
-                        'Range': '[5-10,21-24]'
+                        'Range': '1-10'
                       }
                       ]",
                     @"'Column': [
@@ -2480,8 +2630,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2576,8 +2725,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2684,8 +2832,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2789,8 +2936,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2950,8 +3096,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3145,8 +3290,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3268,8 +3412,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             Assert.True(graph.Macros.All(x => x.CanStart()));
         }
 
@@ -3323,11 +3466,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             // Serialize the nodes with ToJson() and then executing them to ensure serialization working correctly.
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-            var runner = new GraphRunner(Env, catalog, nodes);
+            var runner = new GraphRunner(Env, nodes);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3383,8 +3525,7 @@ namespace Microsoft.ML.Runtime.RunTests
                   ]
                 }";
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             for (int i = 0; i < 2; i++)
             {
                 var nodes = graph.AllNodes.ToArray();
@@ -3402,7 +3543,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Serialize the graph and verify again.
                 var serNodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-                graph = new EntryPointGraph(Env, catalog, serNodes);
+                graph = new EntryPointGraph(Env, serNodes);
             }
         }
 
@@ -3433,8 +3574,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
-                // REVIEW: this depends on MKL library which is not available
-                ShowTrainingStats = false
+                // REVIEW: this depends on MKL library which is not available. Only a subset of training stats are reported.
+                ShowTrainingStats = true
             };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
@@ -3460,26 +3601,23 @@ namespace Microsoft.ML.Runtime.RunTests
                 using (var file = Env.CreateOutputFile(weights))
                     DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
 
-                // REVIEW: enable this once MKL library is available
-                // var stats = DeleteOutputPath(@"../Common/EntryPoints", "lr-stats.txt");
-                // using (var file = Env.CreateOutputFile(stats))
-                //    DataSaverUtils.SaveDataView(ch, saver, output.Stats, file);
+                var stats = DeleteOutputPath(@"../Common/EntryPoints", "lr-stats.txt");
+                using (var file = Env.CreateOutputFile(stats))
+                    DataSaverUtils.SaveDataView(ch, saver, output.Stats, file);
 
                 weights = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-weights.txt");
                 using (var file = Env.CreateOutputFile(weights))
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Summary, file);
 
-                var stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
+                stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
                 using (var file = Env.CreateOutputFile(stats))
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
-
-                ch.Done();
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
-            // CheckEquality(@"../Common/EntryPoints", "lr-stats.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt");
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
         }
 
@@ -3519,11 +3657,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     var saver = Env.CreateSaver("Text");
                     using (var file = Env.CreateOutputFile(weights))
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
-
-                    ch.Done();
                 }
 
-                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
+                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt", digitsOfPrecision: 4);
                 Done();
             }
         }
@@ -3641,7 +3777,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,
@@ -3711,7 +3847,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
             {
                 Data = dataView,
                 Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
@@ -3732,7 +3868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
@@ -3742,8 +3878,164 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'Model': 'mnist_model/frozen_saved_model.pb',
+                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
+                });
+        }
+
+        [Fact(Skip = "Needs real time series dataset. https://github.com/dotnet/machinelearning/issues/1120")]
+        public void EntryPointSsaChangePoint()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS1.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Power',
+                      'Eps': '0.1'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Mixture'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointIidSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Negative'",
+                });
+        }
+
+        [Fact(Skip = "Needs real time series dataset. https://github.com/dotnet/machinelearning/issues/1120")]
+        public void EntryPointSsaSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Negative'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly3',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100'",
+                });
+        }
+
+        [Fact]
+        public void EntryPointPercentileThreshold()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PercentileThresholdTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10',
+                      'Pcnt': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointPValue()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PValueTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointSlidingWindow()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '3',
+                      'L': '0'",
+                    @"'Src': 'Input',
+                      'Name': 'Output1',
+                      'Wnd': '1',
+                      'L': '1'",
+                    @"'Src': 'Input',
+                      'Name': 'Output2',
+                      'Wnd': '1',
+                      'L': '2'",
+                    @"'Src': 'Input',
+                      'Name': 'Output3',
+                      'Wnd': '2',
+                      'L': '1'"
                 });
         }
     }

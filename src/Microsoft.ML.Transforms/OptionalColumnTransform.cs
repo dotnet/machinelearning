@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.DataPipe;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -24,7 +24,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(OptionalColumnTransform))]
 
-namespace Microsoft.ML.Runtime.DataPipe
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
     public class OptionalColumnTransform : RowToRowMapperTransformBase
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.DataPipe
             // The input schema of the original data view that contains the source columns. We need this
             // so that we can have the metadata even when we load this transform with new data that does not have
             // these columns.
-            private readonly ISchema _inputWithOptionalColumn;
+            private readonly Schema _inputWithOptionalColumn;
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.DataPipe
                 SrcCols = srcCols;
                 _parent = parent;
                 _metadata = new MetadataDispatcher(InfoCount);
-                _inputWithOptionalColumn = inputWithOptionalColumn;
+                _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
             }
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.DataPipe
             _bindings.Save(Host, ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -374,7 +374,6 @@ namespace Microsoft.ML.Runtime.DataPipe
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }
-                ch.Done();
                 return getters;
             }
         }
@@ -426,7 +425,7 @@ namespace Microsoft.ML.Runtime.DataPipe
                 }
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {

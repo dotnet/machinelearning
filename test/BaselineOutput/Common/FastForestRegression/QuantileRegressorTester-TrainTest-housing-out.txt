@@ -1,0 +1,39 @@
+maml.exe TrainTest test=%Data% tr=FastForestRegression{nl=5 mil=5 iter=20} scorer=QuantileRegression{quantiles = 0.25,0.5,0.75} dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 506 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+L1(avg):            2.840810
+L2(avg):            17.723068
+RMS(avg):           4.209877
+Loss-fn(avg):       17.723068
+R Squared:          0.790060
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            2.840810 (0.0000)
+L2(avg):            17.723068 (0.0000)
+RMS(avg):           4.209877 (0.0000)
+Loss-fn(avg):       17.723068 (0.0000)
+R Squared:          0.790060 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'Saving model' started.
+[5] 'Saving model' finished in %Time%.

@@ -2,7 +2,10 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <DefaultTestTargetFramework>netcoreapp2.1</DefaultTestTargetFramework>
+    <DefaultTestTargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</DefaultTestTargetFramework>
+    
+    <TargetFramework>$(DefaultTestTargetFramework)</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
@@ -24,8 +27,9 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="Microsoft.DotNet.XUnitExtensions" Version="2.4.0-prerelease-63213-02" />
   </ItemGroup>
 
 </Project>

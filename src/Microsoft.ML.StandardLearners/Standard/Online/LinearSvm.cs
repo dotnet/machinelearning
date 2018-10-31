@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.Online;
 
 [assembly: LoadableClass(LinearSvm.Summary, typeof(LinearSvm), typeof(LinearSvm.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -24,7 +25,7 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LinearSvm), null, typeof(SignatureEntryPointModule), "LinearSvm")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
     using Microsoft.ML.Core.Data;
     using TPredictor = LinearBinaryPredictor;
@@ -70,18 +71,177 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
-        private int _batch;
-        private long _numBatchExamples;
+        private sealed class TrainState : TrainStateBase
+        {
+<<<<<<< HEAD
+            Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
+            Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
 
-        // A vector holding the next update to the model, in the case where we have multiple batch sizes.
-        // This vector will remain unused in the case where our batch size is 1, since in that case, the
-        // example vector will just be used directly. The semantics of
-        // weightsUpdate/weightsUpdateScale/biasUpdate are similar to weights/weightsScale/bias, in that
-        // all elements of weightsUpdate are considered to be multiplied by weightsUpdateScale, and the
-        // bias update term is not considered to be multiplied by the scale.
-        private VBuffer<Float> _weightsUpdate;
-        private Float _weightsUpdateScale;
-        private Float _biasUpdate;
+            Args = args;
+        }
+
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+=======
+            private int _batch;
+            private long _numBatchExamples;
+            // A vector holding the next update to the model, in the case where we have multiple batch sizes.
+            // This vector will remain unused in the case where our batch size is 1, since in that case, the
+            // example vector will just be used directly. The semantics of
+            // weightsUpdate/weightsUpdateScale/biasUpdate are similar to weights/weightsScale/bias, in that
+            // all elements of weightsUpdate are considered to be multiplied by weightsUpdateScale, and the
+            // bias update term is not considered to be multiplied by the scale.
+            private VBuffer<Float> _weightsUpdate;
+            private Float _weightsUpdateScale;
+            private Float _biasUpdate;
+
+            private readonly int _batchSize;
+            private readonly bool _noBias;
+            private readonly bool _performProjection;
+            private readonly float _lambda;
+
+            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, LinearSvm parent)
+                : base(ch, numFeatures, predictor, parent)
+>>>>>>> master
+            {
+                _batchSize = parent.Args.BatchSize;
+                _noBias = parent.Args.NoBias;
+                _performProjection = parent.Args.PerformProjection;
+                _lambda = parent.Args.Lambda;
+
+<<<<<<< HEAD
+        protected override void CheckLabel(RoleMappedData data)
+        {
+            Contracts.AssertValue(data);
+            data.CheckBinaryLabel();
+        }
+=======
+                if (_noBias)
+                    Bias = 0;
+
+                if (predictor == null)
+                    VBufferUtils.Densify(ref Weights);
+
+                _weightsUpdate = VBufferUtils.CreateEmpty<Float>(numFeatures);
+
+            }
+>>>>>>> master
+
+            public override void BeginIteration(IChannel ch)
+            {
+                base.BeginIteration(ch);
+                BeginBatch();
+            }
+
+            private void BeginBatch()
+            {
+                _batch++;
+                _numBatchExamples = 0;
+                _biasUpdate = 0;
+                _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
+            }
+
+            private void FinishBatch(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+            {
+                if (_numBatchExamples > 0)
+                    UpdateWeights(ref weightsUpdate, weightsUpdateScale);
+                _numBatchExamples = 0;
+            }
+
+            /// <summary>
+            /// Observe an example and update weights if necesary.
+            /// </summary>
+            public override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+            {
+                base.ProcessDataInstance(ch, ref feat, label, weight);
+
+                // compute the update and update if needed
+                Float output = Margin(ref feat);
+                Float trueOutput = (label > 0 ? 1 : -1);
+                Float loss = output * trueOutput - 1;
+
+                // Accumulate the update if there is a loss and we have larger batches.
+                if (_batchSize > 1 && loss < 0)
+                {
+                    Float currentBiasUpdate = trueOutput * weight;
+                    _biasUpdate += currentBiasUpdate;
+                    // Only aggregate in the case where we're handling multiple instances.
+                    if (_weightsUpdate.Count == 0)
+                    {
+                        VectorUtils.ScaleInto(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                        _weightsUpdateScale = 1;
+                    }
+                    else
+                        VectorUtils.AddMult(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                }
+
+                if (++_numBatchExamples >= _batchSize)
+                {
+                    if (_batchSize == 1 && loss < 0)
+                    {
+                        Contracts.Assert(_weightsUpdate.Count == 0);
+                        // If we aren't aggregating multiple instances, just use the instance's
+                        // vector directly.
+                        Float currentBiasUpdate = trueOutput * weight;
+                        _biasUpdate += currentBiasUpdate;
+                        FinishBatch(ref feat, currentBiasUpdate);
+                    }
+                    else
+                        FinishBatch(ref _weightsUpdate, _weightsUpdateScale);
+                    BeginBatch();
+                }
+            }
+
+            /// <summary>
+            /// Updates the weights at the end of the batch. Since weightsUpdate can be an instance
+            /// feature vector, this function should not change the contents of weightsUpdate.
+            /// </summary>
+            private void UpdateWeights(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+            {
+                Contracts.Assert(_batch > 0);
+
+                // REVIEW: This is really odd - normally lambda is small, so the learning rate is initially huge!?!?!
+                // Changed from the paper's recommended rate = 1 / (lambda * t) to rate = 1 / (1 + lambda * t).
+                Float rate = 1 / (1 + _lambda * _batch);
+
+                // w_{t+1/2} = (1 - eta*lambda) w_t + eta/k * totalUpdate
+                WeightsScale *= 1 - rate * _lambda;
+                ScaleWeightsIfNeeded();
+                VectorUtils.AddMult(ref weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
+
+                Contracts.Assert(!_noBias || Bias == 0);
+                if (!_noBias)
+                    Bias += rate / _numBatchExamples * _biasUpdate;
+
+                // w_{t+1} = min{1, 1/sqrt(lambda)/|w_{t+1/2}|} * w_{t+1/2}
+                if (_performProjection)
+                {
+                    Float normalizer = 1 / (MathUtils.Sqrt(_lambda) * VectorUtils.Norm(Weights) * Math.Abs(WeightsScale));
+                    if (normalizer < 1)
+                    {
+                        // REVIEW: Why would we not scale _bias if we're scaling the weights?
+                        WeightsScale *= normalizer;
+                        ScaleWeightsIfNeeded();
+                        //_bias *= normalizer;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Return the raw margin from the decision hyperplane.
+            /// </summary>
+            public override Float Margin(ref VBuffer<Float> feat)
+                => Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+
+            public override TPredictor CreatePredictor()
+            {
+                Contracts.Assert(WeightsScale == 1);
+                return new LinearBinaryPredictor(ParentHost, ref Weights, Bias);
+            }
+        }
 
         protected override bool NeedCalibration => true;
 
@@ -106,142 +266,20 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override void CheckLabel(RoleMappedData data)
+        protected override void CheckLabels(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
         }
 
-        /// <summary>
-        /// Return the raw margin from the decision hyperplane
-        /// </summary>
-        protected override Float Margin(ref VBuffer<Float> feat)
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
         {
-            return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            return new TrainState(ch, numFeatures, predictor, this);
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
         {
             return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
-
-        protected override void InitCore(IChannel ch, int numFeatures, LinearPredictor predictor)
-        {
-            base.InitCore(ch, numFeatures, predictor);
-
-            if (Args.NoBias)
-                Bias = 0;
-
-            if (predictor == null)
-                VBufferUtils.Densify(ref Weights);
-
-            _weightsUpdate = VBufferUtils.CreateEmpty<Float>(numFeatures);
-        }
-
-        protected override void BeginIteration(IChannel ch)
-        {
-            base.BeginIteration(ch);
-            BeginBatch();
-        }
-
-        private void BeginBatch()
-        {
-            _batch++;
-            _numBatchExamples = 0;
-            _biasUpdate = 0;
-            _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
-        }
-
-        private void FinishBatch(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
-        {
-            if (_numBatchExamples > 0)
-                UpdateWeights(ref weightsUpdate, weightsUpdateScale);
-            _numBatchExamples = 0;
-        }
-
-        /// <summary>
-        /// Observe an example and update weights if necessary
-        /// </summary>
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
-        {
-            base.ProcessDataInstance(ch, ref feat, label, weight);
-
-            // compute the update and update if needed
-            Float output = Margin(ref feat);
-            Float trueOutput = (label > 0 ? 1 : -1);
-            Float loss = output * trueOutput - 1;
-
-            // Accumulate the update if there is a loss and we have larger batches.
-            if (Args.BatchSize > 1 && loss < 0)
-            {
-                Float currentBiasUpdate = trueOutput * weight;
-                _biasUpdate += currentBiasUpdate;
-                // Only aggregate in the case where we're handling multiple instances.
-                if (_weightsUpdate.Count == 0)
-                {
-                    VectorUtils.ScaleInto(ref feat, currentBiasUpdate, ref _weightsUpdate);
-                    _weightsUpdateScale = 1;
-                }
-                else
-                    VectorUtils.AddMult(ref feat, currentBiasUpdate, ref _weightsUpdate);
-            }
-
-            if (++_numBatchExamples >= Args.BatchSize)
-            {
-                if (Args.BatchSize == 1 && loss < 0)
-                {
-                    Contracts.Assert(_weightsUpdate.Count == 0);
-                    // If we aren't aggregating multiple instances, just use the instance's
-                    // vector directly.
-                    Float currentBiasUpdate = trueOutput * weight;
-                    _biasUpdate += currentBiasUpdate;
-                    FinishBatch(ref feat, currentBiasUpdate);
-                }
-                else
-                    FinishBatch(ref _weightsUpdate, _weightsUpdateScale);
-                BeginBatch();
-            }
-        }
-
-        /// <summary>
-        /// Updates the weights at the end of the batch. Since weightsUpdate can be an instance
-        /// feature vector, this function should not change the contents of weightsUpdate.
-        /// </summary>
-        private void UpdateWeights(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
-        {
-            Contracts.Assert(_batch > 0);
-
-            // REVIEW: This is really odd - normally lambda is small, so the learning rate is initially huge!?!?!
-            // Changed from the paper's recommended rate = 1 / (lambda * t) to rate = 1 / (1 + lambda * t).
-            Float rate = 1 / (1 + Args.Lambda * _batch);
-
-            // w_{t+1/2} = (1 - eta*lambda) w_t + eta/k * totalUpdate
-            WeightsScale *= 1 - rate * Args.Lambda;
-            ScaleWeightsIfNeeded();
-            VectorUtils.AddMult(ref weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
-
-            Contracts.Assert(!Args.NoBias || Bias == 0);
-            if (!Args.NoBias)
-                Bias += rate / _numBatchExamples * _biasUpdate;
-
-            // w_{t+1} = min{1, 1/sqrt(lambda)/|w_{t+1/2}|} * w_{t+1/2}
-            if (Args.PerformProjection)
-            {
-                Float normalizer = 1 / (MathUtils.Sqrt(Args.Lambda) * VectorUtils.Norm(Weights) * Math.Abs(WeightsScale));
-                if (normalizer < 1)
-                {
-                    // REVIEW: Why would we not scale _bias if we're scaling the weights?
-                    WeightsScale *= normalizer;
-                    ScaleWeightsIfNeeded();
-                    //_bias *= normalizer;
-                }
-            }
-        }
-
-        protected override TPredictor CreatePredictor()
-        {
-            Contracts.Assert(WeightsScale == 1);
-            return new LinearBinaryPredictor(Host, ref Weights, Bias);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
@@ -258,7 +296,7 @@ namespace Microsoft.ML.Runtime.Learners
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

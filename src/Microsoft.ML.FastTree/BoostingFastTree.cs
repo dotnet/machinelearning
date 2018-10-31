@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.FastTree.Internal;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public abstract class BoostingFastTreeTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
@@ -22,10 +21,24 @@ namespace Microsoft.ML.Runtime.FastTree
         {
         }
 
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int numLeaves,
+            int numTrees,
+            int minDocumentsInLeafs,
+            double learningRate,
+            Action<TArgs> advancedSettings)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDocumentsInLeafs, advancedSettings)
         {
+
+            if (Args.LearningRates != learningRate)
+            {
+                using (var ch = Host.Start($"Setting learning rate to: {learningRate} as supplied in the direct arguments."))
+                    Args.LearningRates = learningRate;
+            }
         }
 
         protected override void CheckArgs(IChannel ch)

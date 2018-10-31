@@ -94,7 +94,6 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             using (var ch = Host.Start("Run"))
             {
                 Run(ch);
-                ch.Done();
             }
         }
 

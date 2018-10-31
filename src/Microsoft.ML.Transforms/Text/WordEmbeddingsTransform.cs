@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -15,8 +10,15 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
@@ -30,7 +32,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadRowMapper),
     WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
     public sealed class WordEmbeddingsTransform : OneToOneTransformerBase
@@ -95,14 +97,14 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Model
         {
-            private readonly BigArray<float> _wordVectors;
+            public readonly BigArray<float> WordVectors;
             private readonly NormStr.Pool _pool;
             public readonly int Dimension;
 
             public Model(int dimension)
             {
                 Dimension = dimension;
-                _wordVectors = new BigArray<float>();
+                WordVectors = new BigArray<float>();
                 _pool = new NormStr.Pool();
             }
 
@@ -112,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_pool.Get(word) == null)
                 {
                     _pool.Add(word);
-                    _wordVectors.AddRange(wordVector, Dimension);
+                    WordVectors.AddRange(wordVector, Dimension);
                 }
             }
 
@@ -121,11 +123,28 @@ namespace Microsoft.ML.Runtime.Data
                 NormStr str = _pool.Get(word);
                 if (str != null)
                 {
-                    _wordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
+                    WordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
                     return true;
                 }
                 return false;
             }
+
+            public long GetNumWords()
+            {
+                return _pool.LongCount();
+            }
+
+            public List<string> GetWordLabels()
+            {
+
+                var labels = new List<string>();
+                foreach (var label in _pool)
+                {
+                    labels.Add(new string(label.Value.ToArray()));
+                }
+                return labels;
+            }
+
         }
 
         /// <summary>
@@ -204,6 +223,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckNonWhiteSpace(customModelFile, nameof(customModelFile));
 
             _modelKind = null;
+            _customLookup = true;
             _modelFileNameWithPath = customModelFile;
             _currentVocab = GetVocabularyDictionary();
         }
@@ -296,7 +316,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-           => new Mapper(this, schema);
+           => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -305,12 +325,12 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
             private readonly WordEmbeddingsTransform _parent;
             private readonly VectorType _outputType;
 
-            public Mapper(WordEmbeddingsTransform parent, ISchema inputSchema)
+            public Mapper(WordEmbeddingsTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -324,8 +344,218 @@ namespace Microsoft.ML.Runtime.Data
                 _outputType = new VectorType(NumberType.R4, 3 * _parent._currentVocab.Dimension);
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _outputType, null)).ToArray();
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+
+            public override Schema.Column[] GetOutputColumns()
+                => _parent.ColumnPairs.Select(x => new Schema.Column(x.output, _outputType, null)).ToArray();
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                foreach (var (input, output) in _parent.Columns)
+                {
+                    var srcVariableName = ctx.GetVariableName(input);
+                    var schema = _parent.GetOutputSchema(InputSchema);
+                    var dstVariableName = ctx.AddIntermediateVariable(schema[output].Type, output);
+                    SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
+                }
+            }
+
+            private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
+            {
+                // Converts 1 column that is taken as input to the transform into one column of output
+                //
+                // Missing words are mapped to k for finding average, k + 1 for finding min, and k + 2 for finding max
+                // Those spots in the dictionary contain a vector of 0s, max floats, and min floats, respectively
+                //
+                // Symbols:
+                // j: length of latent vector of every word in the pretrained model
+                // n: length of input tensor (number of words)
+                // X: word input, a tensor with n elements.
+                // k: # of words in pretrained model (known when transform is created)
+                // S: word labels, k tensor (known when transform is created)
+                // D: word embeddings, (k + 3)-by-j tensor(known when transform is created). The extra three embeddings
+                //      at the end are used for out of vocab words.
+                // F: location value representing missing words, equal to k
+                // P: output, a j * 3 tensor
+                //
+                //                                                      X [n]
+                //                                                       |
+                //                                                     nameX
+                //                                                       |
+                //                           LabelEncoder (classes_strings = S [k], default_int64 = k)
+                //                                                       |
+                //                            /----------------------- nameY -----------------------\
+                //                           /   |                       |                           \
+                //     Initialize (F)-------/----|------ nameF ------> Equal                          \
+                //                         /     |                       |                             \
+                //                        /      |                     nameA                            \
+                //                       /       |                     / |  \                            \
+                //                      /        '-------------|      /  |   \                            \
+                //                     /                 ------|-----/   |    \------------------          \---------
+                //                    /                 /      |         |                       \                   \
+                //                    |      Cast (to = int64) |  Cast (to = float)              Not                 |
+                //                    |             |          |         |                        |                  |
+                //                    |         nameVMin       |       nameB                    nameQ                |
+                //                    |             |          |         |                        |                  |
+                //                  Add ------------'          | Scale (scale = 2.0)         Cast (to = int32)       |
+                //                    |                        |         |                        |                  |
+                //                    |                        |     nameSMax                  nameZ                 |
+                //                    |                        |         |                        |                  |
+                //                    |                        | Cast (to = int64)       ReduceSum (axes = [0])      |
+                //                namePMin                     |         |                        |                  |
+                //                    |                        |      nameVMax                 nameR                 |
+                //                    |                        |         |                        |                  |
+                //                    |                        '-- Add --'                Cast (to = float)          |
+                //                    |   Initialize (D [k + 3, j]   |                            |                  |
+                //                    |             |                |                            |                  |
+                //                    |           nameD           namePMax                     nameRF                |
+                //                    |             |                |                            |                  |
+                //                    |             |                |                     Clip (min = 1.0)          |
+                //                    |             |                |                            |                  |
+                //                    |             |                |                          nameT                |
+                //                    |             |----------------|----------------------------|--------\         |
+                //                    |             |                |                            |         \        |
+                //                    |   /---------'-------------\  |                            |          '----\  |
+                //                  Gather                        Gather                          |               Gather
+                //                    |                              |                            |                  |
+                //                 nameGMin                       nameGMax                        |                nameW
+                //                    |                              |                            |                  |
+                //            ReduceMin (axes = [0])      ReduceMax (axes = [0])                  |        ReduceSum (axes = [0])
+                //                    |                              |                            |                  |
+                //                    |                              |                            |                nameK
+                //                    |                              |                            |                  |
+                //                    |                              |                            '------- Div ------'
+                //                  nameJ                          nameL                                    |
+                //                    |                              |                                   nameE
+                //                    |                              |                                      |
+                //                    '------------------- Concat (axis = 1) -------------------------------'
+                //                                                   |
+                //                                                 nameP
+                //                                                   |
+                //                                               P [j * 3]
+
+                long[] axes = new long[] { 0 };
+                // Allocate D, a constant tensor representing word embedding weights.
+                var shapeD = new long[] { _parent._currentVocab.GetNumWords() + 3, _parent._currentVocab.Dimension };
+                var wordVectors = _parent._currentVocab.WordVectors;
+                var tensorD = new List<float>();
+                tensorD.AddRange(wordVectors);
+                // Out-of-vocab embedding vector for combining embeddings by mean.
+                tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
+                // Out-of-vocab embedding vector for combining embeddings by element-wise min.
+                tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
+                // Out-of-vocab embedding vector for combining embeddings by element-wise max.
+                tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
+                var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
+
+                // Allocate F, a value representing an out-of-dictionary word.
+                var tensorF = _parent._currentVocab.GetNumWords();
+                var nameF = ctx.AddInitializer(tensorF, "NotFoundValueComp");
+
+                // Retrieve X, name of input.
+                var nameX = srcVariableName;
+
+                // Do label encoding. Out-of-vocab tokens will be mapped to the size of vocabulary. Because the index of vocabulary
+                // is zero-based, the size of vocabulary is just greater then the max indexes computed from in-vocab tokens by one.
+                var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
+                var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
+                nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
+                nodeY.AddAttribute("default_int64", _parent._currentVocab.GetNumWords());
+
+                // Do steps necessary for min and max embedding vectors.
+
+                // Map to boolean vector representing missing words. The following Equal produces 1 if a token is missing and 0 otherwise.
+                var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
+                var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
+
+                // Cast the not found vector to a vector of floats.
+                var nameB = ctx.AddIntermediateVariable(null, "NotFoundValuesFloat", true);
+                var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
+                nodeB.AddAttribute("to", 1);
+
+                // Scale the not found vector to get the location bias for max weights.
+                var nameSMax = ctx.AddIntermediateVariable(null, "ScaleMax", true);
+                var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
+                nodeSMax.AddAttribute("scale", 2.0);
+
+                // Cast scaled word label locations to ints.
+                var nameVMin = ctx.AddIntermediateVariable(null, "CastMin", true);
+                var nodeVMin = ctx.CreateNode("Cast", nameA, nameVMin, ctx.GetNodeName("Cast"), "");
+                nodeVMin.AddAttribute("to", 7);
+
+                var nameVMax = ctx.AddIntermediateVariable(null, "CastMax", true);
+                var nodeVMax = ctx.CreateNode("Cast", nameSMax, nameVMax, ctx.GetNodeName("Cast"), "");
+                nodeVMax.AddAttribute("to", 7);
+
+                // Add the scaled options back to originals. The outputs of the following Add operators are almost identical
+                // the output of the previous LabelEncoder. The only difference is that out-of-vocab tokens are mapped to k+1
+                // for applying ReduceMin and k+2 for applying ReduceMax so that out-of-vocab tokens do not affect embedding results at all.
+                var namePMin = ctx.AddIntermediateVariable(null, "AddMin", true);
+                var nodePMin = ctx.CreateNode("Add", new[] { nameY, nameVMin }, new[] { namePMin }, ctx.GetNodeName("Add"), "");
+
+                var namePMax = ctx.AddIntermediateVariable(null, "AddMax", true);
+                var nodePMax = ctx.CreateNode("Add", new[] { nameY, nameVMax }, new[] { namePMax }, ctx.GetNodeName("Add"), "");
+
+                // Map encoded words to their embedding vectors, mapping missing ones to min/max.
+                var nameGMin = ctx.AddIntermediateVariable(null, "GatheredMin", true);
+                var nodeGMin = ctx.CreateNode("Gather", new[] { nameD, namePMin }, new[] { nameGMin }, ctx.GetNodeName("Gather"), "");
+
+                var nameGMax = ctx.AddIntermediateVariable(null, "GatheredMax", true);
+                var nodeGMax = ctx.CreateNode("Gather", new[] { nameD, namePMax }, new[] { nameGMax }, ctx.GetNodeName("Gather"), "");
+
+                // Merge all embedding vectors using element-wise min/max per embedding coordinate.
+                var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
+                var nodeJ = ctx.CreateNode("ReduceMin", nameGMin, nameJ, ctx.GetNodeName("ReduceMin"), "");
+                nodeJ.AddAttribute("axes", axes);
+
+                var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
+                var nodeL = ctx.CreateNode("ReduceMax", nameGMax, nameL, ctx.GetNodeName("ReduceMax"), "");
+                nodeL.AddAttribute("axes", axes);
+
+                // Do steps necessary for mean embedding vector.
+
+                // Map encoded words to their embedding vectors using Gather.
+                var nameW = ctx.AddIntermediateVariable(null, "GatheredMean", true);
+                var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
+
+                // Find the sum of the embedding vectors.
+                var nameK = ctx.AddIntermediateVariable(null, "SumWeights", true);
+                var nodeK = ctx.CreateNode("ReduceSum", nameW, nameK, ctx.GetNodeName("ReduceSum"), "");
+                nodeK.AddAttribute("axes", axes);
+
+                // Flip the boolean vector representing missing words to represent found words.
+                var nameQ = ctx.AddIntermediateVariable(null, "FoundValuesBool", true);
+                var nodeQ = ctx.CreateNode("Not", nameA, nameQ, ctx.GetNodeName("Not"), "");
+
+                // Cast the found words vector to ints.
+                var nameZ = ctx.AddIntermediateVariable(null, "FoundValuesInt", true);
+                var nodeZ = ctx.CreateNode("Cast", nameQ, nameZ, ctx.GetNodeName("Cast"), "");
+                nodeZ.AddAttribute("to", 6);
+
+                // Sum the number of total found words.
+                var nameR = ctx.AddIntermediateVariable(null, "NumWordsFoundInt", true);
+                var nodeR = ctx.CreateNode("ReduceSum", nameZ, nameR, ctx.GetNodeName("ReduceSum"), "");
+                nodeR.AddAttribute("axes", axes);
+
+                // Cast the found words to float.
+                var nameRF = ctx.AddIntermediateVariable(null, "NumWordsFoundFloat", true);
+                var nodeRF = ctx.CreateNode("Cast", nameR, nameRF, ctx.GetNodeName("Cast"), "");
+                nodeRF.AddAttribute("to", 1);
+
+                // Clip the number of found words to prevent division by 0.
+                var nameT = ctx.AddIntermediateVariable(null, "NumWordsClippedFloat", true);
+                var nodeT = ctx.CreateNode("Clip", nameRF, nameT, ctx.GetNodeName("Clip"), "");
+                nodeT.AddAttribute("min", 1.0f);
+
+                // Divide total sum by number of words found to get the average embedding vector of the input string vector.
+                var nameE = ctx.AddIntermediateVariable(null, "MeanWeights", true);
+                var nodeE = ctx.CreateNode("Div", new[] { nameK, nameT }, new[] { nameE }, ctx.GetNodeName("Div"), "");
+
+                // Concatenate the final embeddings produced by the three reduction strategies.
+                var nameP = dstVariableName;
+                var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameE, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"), "");
+                nodeP.AddAttribute("axis", 1);
+            }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -552,38 +782,46 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class WordEmbeddingsEstimator : IEstimator<WordEmbeddingsTransform>
+    /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+    public sealed class WordEmbeddingsExtractorEstimator : IEstimator<WordEmbeddingsTransform>
     {
         private readonly IHost _host;
         private readonly WordEmbeddingsTransform.ColumnInfo[] _columns;
         private readonly WordEmbeddingsTransform.PretrainedModelKind? _modelKind;
         private readonly string _customLookupTable;
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        /// <summary>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="inputColumn">The input column.</param>
+        /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
            WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
-            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
+            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
             : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
         {
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env,
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env,
             WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe, params WordEmbeddingsTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
             _modelKind = modelKind;
             _customLookupTable = null;
             _columns = columns;
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsTransform.ColumnInfo[] columns)
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
             _modelKind = null;
             _customLookupTable = customModelFile;
             _columns = columns;
@@ -688,9 +926,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
                 if (customLookup)
-                    return new WordEmbeddingsEstimator(env, _customLookupTable, cols);
+                    return new WordEmbeddingsExtractorEstimator(env, _customLookupTable, cols);
                 else
-                    return new WordEmbeddingsEstimator(env, _modelKind.Value, cols);
+                    return new WordEmbeddingsExtractorEstimator(env, _modelKind.Value, cols);
             }
         }
     }

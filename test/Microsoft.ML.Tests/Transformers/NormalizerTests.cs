@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Normalizers;
+using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -36,25 +39,25 @@ namespace Microsoft.ML.Tests.Transformers
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
-            var est = new Normalizer(Env,
-                new Normalizer.MinMaxColumn("float1"),
-                new Normalizer.MinMaxColumn("float4"),
-                new Normalizer.MinMaxColumn("double1"),
-                new Normalizer.MinMaxColumn("double4"),
-                new Normalizer.BinningColumn("float1", "float1bin"),
-                new Normalizer.BinningColumn("float4", "float4bin"),
-                new Normalizer.BinningColumn("double1", "double1bin"),
-                new Normalizer.BinningColumn("double4", "double4bin"),
-                new Normalizer.MeanVarColumn("float1", "float1mv"),
-                new Normalizer.MeanVarColumn("float4", "float4mv"),
-                new Normalizer.MeanVarColumn("double1", "double1mv"),
-                new Normalizer.MeanVarColumn("double4", "double4mv"),
-                new Normalizer.LogMeanVarColumn("float1", "float1lmv"),
-                new Normalizer.LogMeanVarColumn("float4", "float4lmv"),
-                new Normalizer.LogMeanVarColumn("double1", "double1lmv"),
-                new Normalizer.LogMeanVarColumn("double4", "double4lmv"));
+            var est = new NormalizingEstimator(Env,
+                new NormalizingEstimator.MinMaxColumn("float1"),
+                new NormalizingEstimator.MinMaxColumn("float4"),
+                new NormalizingEstimator.MinMaxColumn("double1"),
+                new NormalizingEstimator.MinMaxColumn("double4"),
+                new NormalizingEstimator.BinningColumn("float1", "float1bin"),
+                new NormalizingEstimator.BinningColumn("float4", "float4bin"),
+                new NormalizingEstimator.BinningColumn("double1", "double1bin"),
+                new NormalizingEstimator.BinningColumn("double4", "double4bin"),
+                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
+                new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
+                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
+                new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
+                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
 
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
 
             var badData1 = new CopyColumnsTransform(Env, ("int1", "float1")).Transform(data);
             var badData2 = new CopyColumnsTransform(Env, ("float0", "float4")).Transform(data);
@@ -62,21 +65,24 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est, data, null, badData1);
             TestEstimatorCore(est, data, null, badData2);
 
-            var outputPath = GetOutputPath("Normalizer", "normalized.tsv");
+            var outputPath = GetOutputPath("NormalizerEstimator", "normalized.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, new DropColumnsTransform(Env, est.Fit(data).Transform(data), "float0"), fs, keepHidden: true);
+                {
+                    var dataView = SelectColumnsTransform.CreateDrop(Env, est.Fit(data).Transform(data), true, "float0");
+                    DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
+                }
             }
 
-            CheckEquality("Normalizer", "normalized.tsv");
+            CheckEquality("NormalizerEstimator", "normalized.tsv");
 
             Done();
         }
 
         [Fact]
-        public void SimpleConstructors()
+        public void SimpleConstructorsAndExtensions()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -87,20 +93,28 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             });
 
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
 
-            var est1 = new Normalizer(Env, "float4");
-            var est2 = new Normalizer(Env, Normalizer.NormalizerMode.MinMax, ("float4", "float4"));
-            var est3 = new Normalizer(Env, new Normalizer.MinMaxColumn("float4"));
+            var est1 = new NormalizingEstimator(Env, "float4");
+            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+            var est4 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est5 = ML.Transforms.Normalize("float4");
 
             var data1 = est1.Fit(data).Transform(data);
             var data2 = est2.Fit(data).Transform(data);
             var data3 = est3.Fit(data).Transform(data);
+            var data4 = est4.Fit(data).Transform(data);
+            var data5 = est5.Fit(data).Transform(data);
 
             CheckSameSchemas(data1.Schema, data2.Schema);
             CheckSameSchemas(data1.Schema, data3.Schema);
+            CheckSameSchemas(data1.Schema, data4.Schema);
+            CheckSameSchemas(data1.Schema, data5.Schema);
             CheckSameValues(data1, data2);
             CheckSameValues(data1, data3);
+            CheckSameValues(data1, data4);
+            CheckSameValues(data1, data5);
 
             Done();
         }
@@ -113,12 +127,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var invalidData = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var est = new LpNormalizer(env, "features", "lpnorm")
                 .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
@@ -130,13 +144,13 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "lpnorm", "gcnorm", "whitened");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "lpnorm", "gcnorm", "whitened");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv");
+            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
             Done();
         }
     }

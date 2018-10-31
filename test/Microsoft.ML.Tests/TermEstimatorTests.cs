@@ -8,6 +8,8 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.IO;
 using Xunit;
@@ -68,7 +70,7 @@ namespace Microsoft.ML.Tests
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
-            var pipe = new TermEstimator(Env, new[]{
+            var pipe = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("float1", "TermFloat1"),
                     new TermTransform.ColumnInfo("float4", "TermFloat4"),
                     new TermTransform.ColumnInfo("double1", "TermDouble1"),
@@ -77,7 +79,7 @@ namespace Microsoft.ML.Tests
                     new TermTransform.ColumnInfo("text1", "TermText1"),
                     new TermTransform.ColumnInfo("text2", "TermText2")
                 });
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
             data = TakeFilter.Create(Env, data, 10);
             var outputPath = GetOutputPath("Term", "Term.tsv");
             using (var ch = Env.Start("save"))
@@ -99,7 +101,7 @@ namespace Microsoft.ML.Tests
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new TermEstimator(Env, new[]{
+            var pipe = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
@@ -114,7 +116,7 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new TermEstimator(Env, new[]{
+            var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var termEst = new TermEstimator(Env, new[] {
+            var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                     new TermTransform.ColumnInfo("Term" ,"T") });
                     
             var termTransformer = termEst.Fit(dataView);

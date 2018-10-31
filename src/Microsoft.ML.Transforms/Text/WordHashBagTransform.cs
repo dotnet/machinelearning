@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(WordHashBagTransform.Summary, typeof(IDataTransform), typeof(WordHashBagTransform), typeof(WordHashBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Hash Bag Transform", "WordHashBagTransform", "WordHashBag")]
@@ -21,7 +22,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(NgramHashExtractorTransform.NgramHashExtractorArguments))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     public static class WordHashBagTransform
     {
@@ -72,20 +73,11 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        /// <summary>
-        /// This class is a merger of <see cref="ITokenizeTransform"/>
-        /// and <see cref="NgramExtractorTransform.ArgumentsBase"/> options.
-        /// </summary>
         public sealed class Arguments : NgramHashExtractorTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:srcs)",
                 ShortName = "col", SortOrder = 1)]
             public Column[] Column;
-
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
-            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
-                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
-                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
         private const string RegistrationName = "WordHashBagTransform";
 
@@ -99,7 +91,6 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // To each input column to the WordHashBagTransform, a tokenize transform is applied,
             // followed by applying WordHashVectorizeTransform.
@@ -112,7 +103,7 @@ namespace Microsoft.ML.Runtime.Data
             var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Column, view.Schema);
             Contracts.Assert(uniqueSourceNames.Length == args.Column.Length);
 
-            var tokenizeColumns = new List<WordBagTransform.TokenizeColumn>();
+            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
             var extractorCols = new NgramHashExtractorTransform.Column[args.Column.Length];
             var colCount = args.Column.Length;
             List<string> tmpColNames = new List<string>();
@@ -123,14 +114,7 @@ namespace Microsoft.ML.Runtime.Data
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                {
-                    tokenizeColumns.Add(
-                        new WordBagTransform.TokenizeColumn
-                        {
-                            Name = curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc],
-                            Source = args.Column[iinfo].Source[isrc]
-                        });
-                }
+                    tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]);
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -149,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns.ToArray());
+            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
 
             var featurizeArgs =
                 new NgramHashExtractorTransform.Arguments
@@ -167,13 +151,7 @@ namespace Microsoft.ML.Runtime.Data
             view = NgramHashExtractorTransform.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
-            var dropColsArgs =
-                new DropColumnsTransform.Arguments()
-                {
-                    Column = tmpColNames.ToArray()
-                };
-
-            return new DropColumnsTransform(h, dropColsArgs, view);
+            return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.ToArray());
         }
     }
 
@@ -463,10 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
 
             view = new NgramHashTransform(h, ngramHashArgs, view);
-            return new DropColumnsTransform(h, new DropColumnsTransform.Arguments()
-            {
-                Column = tmpColNames.SelectMany(cols => cols).ToArray()
-            }, view);
+            return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 
         public static IDataTransform Create(NgramHashExtractorArguments extractorArgs, IHostEnvironment env, IDataView input,

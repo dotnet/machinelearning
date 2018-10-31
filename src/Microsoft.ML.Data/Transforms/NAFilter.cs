@@ -3,18 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 // REVIEW: As soon as we stop writing sizeof(Float), or when we retire the double builds, we can remove this.
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Float = System.Single;
 
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), typeof(NAFilter.Arguments), typeof(SignatureDataTransform),
     NAFilter.FriendlyName, NAFilter.ShortName, "MissingValueFilter", "MissingFilter")]
@@ -24,7 +23,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(NAFilter.Summary, typeof(NAFilter), null, typeof(SignatureLoadDataTransform),
     NAFilter.FriendlyName, NAFilter.LoaderSignature, "MissingFeatureFilter")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAFilter"]'/>
     public sealed class NAFilter : FilterBase
@@ -309,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(info.Index);
-                    var hasBad = Conversions.Instance.GetIsNAPredicate<T>(info.Type);
+                    var hasBad = Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(info.Type);
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
@@ -321,17 +320,17 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(info.Type.ItemType.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(info.Index);
-                    var hasBad = Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
+                    var hasBad = Runtime.Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);
                     return new ValueVec<T>(cursor, getSrc, hasBad);
                 }
 
                 private abstract class TypedValue<T> : Value
                 {
                     private readonly ValueGetter<T> _getSrc;
-                    private readonly RefPredicate<T> _hasBad;
+                    private readonly InPredicate<T> _hasBad;
                     public T Src;
 
-                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor)
                     {
                         Contracts.AssertValue(getSrc);
@@ -343,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override bool Refresh()
                     {
                         _getSrc(ref Src);
-                        return !_hasBad(ref Src);
+                        return !_hasBad(in Src);
                     }
                 }
 
@@ -351,7 +350,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<T> _getter;
 
-                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -373,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<VBuffer<T>> _getter;
 
-                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, RefPredicate<VBuffer<T>> hasBad)
+                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, InPredicate<VBuffer<T>> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;

@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks
@@ -22,7 +24,7 @@ namespace Microsoft.ML.Benchmarks
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));           
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));           
         }
 
         [Benchmark]
@@ -36,7 +38,7 @@ namespace Microsoft.ML.Benchmarks
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -53,7 +55,7 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, LightGbmMulticlassTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -71,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -89,14 +91,13 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, SdcaMultiClassTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
     }
 
-    [Config(typeof(PredictConfig))]
     public class MultiClassClassificationTest
     {
         private string _dataPath_Wiki;
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Benchmarks
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
             _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
 
@@ -120,7 +121,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -132,7 +133,8 @@ namespace Microsoft.ML.Benchmarks
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }

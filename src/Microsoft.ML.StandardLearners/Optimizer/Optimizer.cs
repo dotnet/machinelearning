@@ -659,7 +659,6 @@ namespace Microsoft.ML.Runtime.Numeric
 
                 state.X.CopyTo(ref result);
                 optimum = state.Value;
-                ch.Done();
             }
         }
 

@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Data
         /// This StringBuilder representation will be a component of the composed KeyValues for the
         /// hash outputs.
         /// </summary>
-        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(ISchema schema, int col)
+        public static ValueMapper<T, StringBuilder> GetSimpleMapper<T>(Schema schema, int col)
         {
             Contracts.AssertValue(schema);
             Contracts.Assert(0 <= col && col < schema.ColumnCount);
@@ -468,7 +468,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 keyValues = keyValuesLocal;
                 kvTypes = kvTypesLocal;
-                ch.Done();
             }
         }
 
@@ -494,7 +493,6 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.SaveSubModel(string.Format(dirFormat, iinfo),
                         c => Save(ch, c, factory, ref keyValues[iinfo]));
                 }
-                ch.Done();
             }
         }
     }

@@ -10,7 +10,11 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
+<<<<<<< HEAD
 using Microsoft.ML.Runtime.KMeans;
+=======
+using Microsoft.ML.Trainers.KMeans;
+>>>>>>> master
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using System;
@@ -25,7 +29,7 @@ using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
-namespace Microsoft.ML.Runtime.KMeans
+namespace Microsoft.ML.Trainers.KMeans
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>
@@ -153,9 +157,7 @@ namespace Microsoft.ML.Runtime.KMeans
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, data, dimensionality);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, data, dimensionality);
             }
         }
 
@@ -272,7 +274,11 @@ namespace Microsoft.ML.Runtime.KMeans
             };
         }
 
+<<<<<<< HEAD
         protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, ISchema trainSchema)
+=======
+        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, Schema trainSchema)
+>>>>>>> master
         => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
     }
 

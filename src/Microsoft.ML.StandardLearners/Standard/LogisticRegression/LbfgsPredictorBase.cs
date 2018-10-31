@@ -151,12 +151,22 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
         public override TrainerInfo Info => _info;
 
+<<<<<<< HEAD
         internal LbfgsTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
             string weightColumn, Action<TArgs> advancedSettings, float l1Weight,
+=======
+        internal LbfgsTrainerBase(IHostEnvironment env,
+            string featureColumn,
+            SchemaShape.Column labelColumn,
+            string weightColumn,
+            Action<TArgs> advancedSettings,
+            float l1Weight,
+>>>>>>> master
             float l2Weight,
             float optimizationTolerance,
             int memorySize,
             bool enforceNoNegativity)
+<<<<<<< HEAD
             : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings), labelColumn,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
@@ -168,14 +178,46 @@ namespace Microsoft.ML.Runtime.Learners
             float? optimizationTolerance = null,
             int? memorySize = null,
             bool? enforceNoNegativity = null)
+=======
+            : this(env, new TArgs
+                        {
+                            FeatureColumn = featureColumn,
+                            LabelColumn = labelColumn.Name,
+                            WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                            L1Weight = l1Weight,
+                            L2Weight = l2Weight,
+                            OptTol = optimizationTolerance,
+                            MemorySize = memorySize,
+                            EnforceNonNegativity = enforceNoNegativity
+                        },
+                  labelColumn, advancedSettings)
+        {
+        }
+
+        internal LbfgsTrainerBase(IHostEnvironment env,
+            TArgs args,
+            SchemaShape.Column labelColumn,
+            Action<TArgs> advancedSettings = null)
+>>>>>>> master
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+                  labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
 
+<<<<<<< HEAD
             Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
                 nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+=======
+            // Apply the advanced args, if the user supplied any.
+            advancedSettings?.Invoke(args);
+
+            args.FeatureColumn = FeatureColumn.Name;
+            args.LabelColumn = LabelColumn.Name;
+            args.WeightColumn = WeightColumn?.Name;
+            Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
+              nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+>>>>>>> master
             Host.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
             Host.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
             Host.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
@@ -184,6 +226,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
             Host.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
 
+<<<<<<< HEAD
             Host.CheckParam(!(l2Weight < 0), nameof(l2Weight), "Must be non-negative, if provided.");
             Host.CheckParam(!(l1Weight < 0), nameof(l1Weight), "Must be non-negative, if provided");
             Host.CheckParam(!(optimizationTolerance <= 0), nameof(optimizationTolerance), "Must be positive, if provided.");
@@ -194,6 +237,17 @@ namespace Microsoft.ML.Runtime.Learners
             L1Weight = l1Weight ?? Args.L1Weight;
             OptTol = optimizationTolerance ?? Args.OptTol;
             MemorySize = memorySize ?? Args.MemorySize;
+=======
+            Host.CheckParam(!(Args.L2Weight < 0), nameof(Args.L2Weight), "Must be non-negative, if provided.");
+            Host.CheckParam(!(Args.L1Weight < 0), nameof(Args.L1Weight), "Must be non-negative, if provided");
+            Host.CheckParam(!(Args.OptTol <= 0), nameof(Args.OptTol), "Must be positive, if provided.");
+            Host.CheckParam(!(Args.MemorySize <= 0), nameof(Args.MemorySize), "Must be positive, if provided.");
+
+            L2Weight = Args.L2Weight;
+            L1Weight = Args.L1Weight;
+            OptTol = Args.OptTol;
+            MemorySize =Args.MemorySize;
+>>>>>>> master
             MaxIterations = Args.MaxIterations;
             SgdInitializationTolerance = Args.SgdInitializationTolerance;
             Quiet = Args.Quiet;
@@ -209,7 +263,6 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var ch = Host.Start("Initialization"))
                 {
                     ch.Warning("The training statistics cannot be computed with non-negativity constraint.");
-                    ch.Done();
                 }
             }
 
@@ -218,14 +271,25 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn,
-            string weightColumn, Action<TArgs> advancedSettings)
+                string weightColumn,
+                float l1Weight,
+                float l2Weight,
+                float optimizationTolerance,
+                int memorySize,
+                bool enforceNoNegativity)
         {
-            var args = new TArgs();
+            var args = new TArgs
+            {
+                FeatureColumn = featureColumn,
+                LabelColumn = labelColumn.Name,
+                WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                L1Weight = l1Weight,
+                L2Weight = l2Weight,
+                OptTol = optimizationTolerance,
+                MemorySize = memorySize,
+                EnforceNonNegativity = enforceNoNegativity
+            };
 
-            // Apply the advanced args, if the user supplied any.
-            advancedSettings?.Invoke(args);
-            args.FeatureColumn = featureColumn;
-            args.LabelColumn = labelColumn.Name;
             args.WeightColumn = weightColumn;
             return args;
         }
@@ -373,9 +437,7 @@ namespace Microsoft.ML.Runtime.Learners
             using (var ch = Host.Start("Training"))
             {
                 TrainCore(ch, data);
-                var pred = CreatePredictor();
-                ch.Done();
-                return pred;
+                return CreatePredictor();
             }
         }
 

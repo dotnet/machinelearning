@@ -1,24 +1,50 @@
 <Project>
+
+  <!-- Core Product Dependencies -->
   <PropertyGroup>
-    <GoogleProtobufPackageVersion>3.5.1</GoogleProtobufPackageVersion>
     <NewtonsoftJsonPackageVersion>10.0.3</NewtonsoftJsonPackageVersion>
-    <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
-    <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
-    <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
-    <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
-    <LightGBMPackageVersion>2.1.2.2</LightGBMPackageVersion>
-    <MlNetMklDepsPackageVersion>0.0.0.6</MlNetMklDepsPackageVersion>
-    <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
-    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
-    <TensorFlowVersion>1.10.0</TensorFlowVersion>
     <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
+    <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
+    <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
+  </PropertyGroup>
+
+  <!-- Other/Non-Core Product Dependencies -->
+  <PropertyGroup>
+    <GoogleProtobufPackageVersion>3.5.1</GoogleProtobufPackageVersion>
+    <LightGBMPackageVersion>2.2.1.1</LightGBMPackageVersion>
+    <MicrosoftMLScoring>1.1.0</MicrosoftMLScoring>
+    <MlNetMklDepsPackageVersion>0.0.0.7</MlNetMklDepsPackageVersion>
+    <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
+    <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
+    <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
+    <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
+    <TensorFlowVersion>1.10.0</TensorFlowVersion>
+  </PropertyGroup>
+
+  <!-- Code Analyzer Dependencies -->
+  <PropertyGroup>
     <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
+<<<<<<< HEAD
     <MicrosoftMLScoring>1.1.0</MicrosoftMLScoring>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
+=======
+>>>>>>> master
   </PropertyGroup>
+
+  <!-- Build/infrastructure Dependencies -->
+  <PropertyGroup>
+    <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
+  </PropertyGroup>
+
+  <!-- Test-only Dependencies -->
+  <PropertyGroup>
+    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
+    <MicrosoftMLTestModelsPackageVersion>0.0.3-test</MicrosoftMLTestModelsPackageVersion>
+  </PropertyGroup>
+
 </Project>

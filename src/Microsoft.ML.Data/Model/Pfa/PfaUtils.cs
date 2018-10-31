@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         }
 
         /// <summary>
-        /// This ensures that there is a function formatted as "count_type" (e.g., "count_double"),
+        /// This ensures that there is a function formatted as "count_type" (for example, "count_double"),
         /// that takes either a map or array and returns the number of items in that map or array.
         /// </summary>
         /// <param name="ctx">The context to check for the existence of this</param>
