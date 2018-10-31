@@ -46,7 +46,7 @@
       [0] 'Black', [1] 'White', [2] 'Male', [3] 'Female'
     Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
       [0] 'Race', [1] 'Gen.sex', [2] 'Race'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 8 columns:
   Mar: Text
   Race: Text

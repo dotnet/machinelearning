@@ -18,6 +18,7 @@ using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
         TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
-        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {
@@ -1388,16 +1389,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group != null)
-                    {
-                        var convArgs = new ConvertTransform.Arguments();
-                        var convCol = new ConvertTransform.Column
-                        {
-                            ResultType = DataKind.U8
-                        };
-                        convCol.Name = convCol.Source = examples.Schema.Group.Name;
-                        convArgs.Column = new ConvertTransform.Column[] { convCol };
-                        data = new ConvertTransform(Host, convArgs, data);
-                    }
+                        data = new ConvertingTransform(Host, new ConvertingTransform.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.

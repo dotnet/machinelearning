@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
 using System;
@@ -575,9 +576,9 @@ namespace Microsoft.ML.Scenarios
                     {
                         trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
                     }
-                    
+
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                    trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+                    trans = new ConvertingTransform(env, new ConvertingTransform.ColumnInfo("Label", "Label", DataKind.R4)).Transform(trans);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
