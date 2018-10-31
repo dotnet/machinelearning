@@ -11,6 +11,7 @@ using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Transformers
 {

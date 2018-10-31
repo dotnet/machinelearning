@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Categoricals;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +22,7 @@ using System.Text;
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), null, typeof(SignatureLoadDataTransform),
     "Term Lookup Transform", TermLookupTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Categoricals
+namespace Microsoft.ML.Transforms.Categorical
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 

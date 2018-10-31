@@ -61,9 +61,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnsToKeep">The array of column names to keep.</param>
         public static ColumnSelectingEstimator KeepColumns(this TransformsCatalog catalog, params string[] columnsToKeep)
-        {
-            return new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columnsToKeep);
-        }
+            => ColumnSelectingEstimator.KeepColumns(CatalogUtils.GetEnvironment(catalog), columnsToKeep);
 
         /// <summary>
         /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will
@@ -72,13 +70,10 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
         public static ColumnSelectingEstimator DropColumns(this TransformsCatalog catalog, params string[] columnsToDrop)
-        {
-            return new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog), null, columnsToDrop);
-
-        }
+            => ColumnSelectingEstimator.DropColumns(CatalogUtils.GetEnvironment(catalog), columnsToDrop);
 
         /// <summary>
-        /// Constructs the Select Columns Estimator.
+        /// ColumnSelectingEstimator is used to select a list of columns that user wants to drop from a given input.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="keepColumns">The array of column names to keep, cannot be set with <paramref name="dropColumns"/>.</param>
@@ -88,8 +83,11 @@ namespace Microsoft.ML
         /// or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         /// SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
-            string[] keepColumns, string[] dropColumns, bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
+            string[] keepColumns,
+            string[] dropColumns,
+            bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
             bool ignoreMissing = SelectColumnsTransform.Defaults.IgnoreMissing)
-            => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog), keepColumns, dropColumns, keepHidden, ignoreMissing);
+            => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
+                keepColumns, dropColumns, keepHidden, ignoreMissing);
     }
 }

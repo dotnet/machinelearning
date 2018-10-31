@@ -811,7 +811,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
         public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
-            : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
+            : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 

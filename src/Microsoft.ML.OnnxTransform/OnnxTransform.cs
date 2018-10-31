@@ -294,14 +294,14 @@ namespace Microsoft.ML.Transforms
             }
         }
     }
-    public sealed class OnnxConvertingEstimator : TrivialEstimator<OnnxTransform>
+    public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxConvertingEstimator(IHostEnvironment env, string modelFile, string input, string output)
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string input, string output)
            : this(env, new OnnxTransform(env, modelFile, input, output))
         {
         }
 
-        public OnnxConvertingEstimator(IHostEnvironment env, OnnxTransform transformer)
+        public OnnxScoringEstimator(IHostEnvironment env, OnnxTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)), transformer)
         {
         }
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new OnnxConvertingEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
+                return new OnnxScoringEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
             }
         }
 
