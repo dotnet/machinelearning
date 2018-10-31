@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args)
-            :base(env, LoadName)
+            : base(env, LoadName)
         {
             Initialize(env, args);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, string labelColumn, string[] featureColumns,
-            string weightColumn = null, TrainerEstimatorContext context = null, Action<Arguments> advancedSettings= null)
+            string weightColumn = null, TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
             : base(env, LoadName)
         {
             var args = new Arguments();
@@ -153,11 +153,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             FeatureColumns = new SchemaShape.Column[featureColumns.Length];
 
-            for(int i=0; i< featureColumns.Length; i++)
+            for (int i = 0; i < featureColumns.Length; i++)
                 FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = weightColumn != null? new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false): null;
+            WeightColumn = weightColumn != null ? new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
         }
 
         /// <summary>
@@ -435,9 +435,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                var pred = TrainCore(ch, pch, context.TrainingSet, context.ValidationSet, initPredictor);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, pch, context.TrainingSet, context.ValidationSet, initPredictor);
             }
         }
 
@@ -467,24 +465,22 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
 
-            if(WeightColumn != null)
+            if (WeightColumn != null)
                 roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, WeightColumn.Name));
 
             var trainingData = new RoleMappedData(input, roles);
 
             RoleMappedData validData = null;
             if (Context != null)
-                 validData = new RoleMappedData(Context.ValidationSet, roles);
+                validData = new RoleMappedData(Context.ValidationSet, roles);
 
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                var pred = TrainCore(ch, pch, trainingData, validData, Context?.InitialPredictor as FieldAwareFactorizationMachinePredictor);
-                ch.Done();
-                model = pred;
+                model = TrainCore(ch, pch, trainingData, validData, Context?.InitialPredictor as FieldAwareFactorizationMachinePredictor);
             }
 
-            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, input.Schema, FeatureColumns.Select(x => x.Name).ToArray() );
+            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, input.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -492,7 +488,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            void CheckColumnsCompatible(SchemaShape.Column column, string defaultName){
+            void CheckColumnsCompatible(SchemaShape.Column column, string defaultName)
+            {
 
                 if (!inputSchema.TryFindColumn(column.Name, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(col), defaultName, defaultName);

@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="data">The data to score.</param>
         /// <param name="predictor">The predictor to score.</param>
         /// <param name="trainSchema">The training data schema from which the scorer can optionally extract
-        /// additional information, e.g., label names. If this is <c>null</c>, no information will be
+        /// additional information, for example, label names. If this is <c>null</c>, no information will be
         /// extracted.</param>
         /// <returns>The scored data.</returns>
         public static IDataScorerTransform CreateScorer(this IHostEnvironment env, string settings,
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="data">The data to score.</param>
         /// <param name="predictor">The predictor to score.</param>
         /// <param name="trainSchema">The training data schema from which the scorer can optionally extract
-        /// additional information, e.g., label names. If this is <c>null</c>, no information will be
+        /// additional information, for example, label names. If this is <c>null</c>, no information will be
         /// extracted.</param>
         /// <returns>The scored data.</returns>
         public static IDataScorerTransform CreateDefaultScorer(this IHostEnvironment env, RoleMappedData data,

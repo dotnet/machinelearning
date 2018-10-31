@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             for (int i = 0; i < weights.Length; i++)
                 weights[i] /= counts[i] > 0 ? counts[i] : 1;
 
-            // If any learner has not been seen, default it's average to 1.0
+            // If any learner has not been seen, default its average to 1.0
             // to encourage exploration of untried algorithms.
             for (int i = 0; i < weights.Length; i++)
                 weights[i] += counts[i] == 0 ? 1 : 0;

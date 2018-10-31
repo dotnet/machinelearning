@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
@@ -17,7 +19,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// than the total capacity.
     /// </summary>
     /// <typeparam name="T">The type of entries.</typeparam>
-    public sealed class BigArray<T>
+    public sealed class BigArray<T> : IEnumerable<T>
     {
         // REVIEW: This class merges and replaces the original private BigArray implementation in CacheDataView.
         // There the block size was 25 bits. Need to understand the performance implication of this 32x change.
@@ -59,7 +61,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// This indexer is not efficient for looping. If looping access to entries is desired,
         /// use the <see cref="ApplyRange"/> method instead.
         /// Note that unlike a normal array, the value returned from this indexer getter cannot be modified
-        /// (e.g., by ++ operator or passing into a method as a ref parameter). To modify an entry, use
+        /// (for example, by ++ operator or passing into a method as a ref parameter). To modify an entry, use
         /// the <see cref="ApplyAt"/> method instead.
         /// </remarks>
         public T this[long index]
@@ -453,6 +455,21 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             major = (int)((--lim) >> BlockSizeBits);
             minor = (int)((lim & BlockSizeMinusOne) + 1);
             Contracts.Assert((long)major * BlockSize + minor == lim + 1);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            long cur = 0;
+            while (cur < _length)
+            {
+                yield return this[cur];
+                cur++;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

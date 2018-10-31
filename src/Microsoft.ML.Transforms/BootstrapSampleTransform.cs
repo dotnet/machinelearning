@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
 
 [assembly: LoadableClass(BootstrapSampleTransform.Summary, typeof(BootstrapSampleTransform), typeof(BootstrapSampleTransform.Arguments), typeof(SignatureDataTransform),
     BootstrapSampleTransform.UserName, "BootstrapSampleTransform", "BootstrapSample")]
@@ -188,7 +189,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch { get { return 0; } }
 
-            public ISchema Schema { get { return Input.Schema; } }
+            public Schema Schema { get { return Input.Schema; } }
 
             public RowCursor(BootstrapSampleTransform parent, IRowCursor input, IRandom rgen)
                 : base(parent.Host, input)

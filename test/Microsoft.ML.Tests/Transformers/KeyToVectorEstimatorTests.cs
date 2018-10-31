@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            dataView = new TermEstimator(Env, new[]{
+            dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
@@ -74,12 +75,12 @@ namespace Microsoft.ML.Tests.Transformers
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env,
+            var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
-                new TermTransform.ColumnInfo("VectorString", "B"))
+                new TermTransform.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var termEst = new TermEstimator(Env,
+            var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("A", "TA", textKeyValues: true),
                 new TermTransform.ColumnInfo("B", "TB"),
                 new TermTransform.ColumnInfo("C", "TC", textKeyValues: true),
@@ -116,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TermTransform.ColumnInfo("E", "TE"),
                 new TermTransform.ColumnInfo("F", "TF"),
                 new TermTransform.ColumnInfo("G", "TG"),
-                new TermTransform.ColumnInfo("H", "TH", textKeyValues: true));
+                new TermTransform.ColumnInfo("H", "TH", textKeyValues: true) });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
@@ -224,7 +225,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new TermEstimator(Env, new[]{
+            var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")

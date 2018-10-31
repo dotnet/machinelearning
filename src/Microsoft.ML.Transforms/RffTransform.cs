@@ -1,12 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,38 +10,42 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-[assembly: LoadableClass(RffTransform.Summary, typeof(RffTransform), typeof(RffTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RffTransform.Summary, typeof(IDataTransform), typeof(RffTransform), typeof(RffTransform.Arguments), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
 
-[assembly: LoadableClass(RffTransform.Summary, typeof(RffTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(RffTransform.Summary, typeof(IDataTransform), typeof(RffTransform), null, typeof(SignatureLoadDataTransform),
     "Random Fourier Features Transform", RffTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
-{
-    public sealed class RffTransform : OneToOneTransformBase
-    {
-        private static class Defaults
-        {
-            public const int NewDim = 1000;
-            public const bool UseSin = false;
-        }
+[assembly: LoadableClass(RffTransform.Summary, typeof(RffTransform), null, typeof(SignatureLoadModel),
+    "Random Fourier Features Transform", RffTransform.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(IRowMapper), typeof(RffTransform), null, typeof(SignatureLoadRowMapper),
+    "Random Fourier Features Transform", RffTransform.LoaderSignature)]
+
+namespace Microsoft.ML.Transforms
+{
+    public sealed class RffTransform : OneToOneTransformerBase
+    {
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = Defaults.NewDim;
+            public int NewDim = RandomFourierFeaturizingEstimator.Defaults.NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
-            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator =
-                ComponentFactoryUtils.CreateFromFunction<Float, IFourierDistributionSampler>(
-                    (env, avgDist) => new GaussianFourierSampler(env, new GaussianFourierSampler.Arguments(), avgDist));
-
+            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator = new GaussianFourierSampler.Arguments();
             [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = Defaults.UseSin;
+            public bool UseSin = RandomFourierFeaturizingEstimator.Defaults.UseSin;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Data
             public int? NewDim;
 
             [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
-            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator;
+            public IComponentFactory<float, IFourierDistributionSampler> MatrixGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
@@ -104,21 +104,19 @@ namespace Microsoft.ML.Runtime.Data
             private readonly TauswortheHybrid _rand;
             private readonly TauswortheHybrid.State _state;
 
-            public TransformInfo(IHost host, Column item, Arguments args, int d, Float avgDist)
+            public TransformInfo(IHost host, ColumnInfo column, int d, float avgDist)
             {
                 Contracts.AssertValue(host);
 
                 SrcDim = d;
-                NewDim = item.NewDim ?? args.NewDim;
-                host.CheckUserArg(NewDim > 0, nameof(item.NewDim));
-                _useSin = item.UseSin ?? args.UseSin;
-                var seed = item.Seed ?? args.Seed;
+                NewDim = column.NewDim;
+                host.CheckUserArg(NewDim > 0, nameof(column.NewDim));
+                _useSin = column.UseSin;
+                var seed = column.Seed;
                 _rand = seed.HasValue ? RandomUtils.Create(seed) : RandomUtils.Create(host.Rand);
                 _state = _rand.GetState();
 
-                var generator = item.MatrixGenerator;
-                if (generator == null)
-                    generator = args.MatrixGenerator;
+                var generator = column.Generator;
                 _matrixGenerator = generator.CreateComponent(host, avgDist);
 
                 int roundedUpD = RoundUp(NewDim, _cfltAlign);
@@ -129,10 +127,9 @@ namespace Microsoft.ML.Runtime.Data
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
-            public TransformInfo(IHostEnvironment env, ModelLoadContext ctx, int colValueCount, string directoryName)
+            public TransformInfo(IHostEnvironment env, ModelLoadContext ctx, string directoryName)
             {
                 env.AssertValue(env);
-                env.Assert(colValueCount > 0);
 
                 // *** Binary format ***
                 // int: d (number of untransformed features)
@@ -141,7 +138,6 @@ namespace Microsoft.ML.Runtime.Data
                 // uint[4]: the seeds for the pseudo random number generator.
 
                 SrcDim = ctx.Reader.ReadInt32();
-                env.CheckDecode(SrcDim == colValueCount);
 
                 NewDim = ctx.Reader.ReadInt32();
                 env.CheckDecode(NewDim > 0);
@@ -196,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
             private void GetDRotationTerms(int colSize)
             {
                 for (int i = 0; i < colSize; ++i)
-                    RotationTerms[i] = (_rand.NextSingle() - (Float)0.5) * (Float)Math.PI;
+                    RotationTerms[i] = (_rand.NextSingle() - (float)0.5) * (float)Math.PI;
             }
 
             private void InitializeFourierCoefficients(int rowSize, int colSize)
@@ -213,126 +209,89 @@ namespace Microsoft.ML.Runtime.Data
             + "shift-invariant kernel.";
 
         public const string LoaderSignature = "RffTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "RFF FUNC",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Get rid of writing float size in model context
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(RffTransform).Assembly.FullName);
         }
 
-        // These are parallel to Infos.
-        private readonly ColumnType[] _types;
         private readonly TransformInfo[] _transformInfos;
 
-        private const string RegistrationName = "Rff";
         private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
 
         private static string TestColumnType(ColumnType type)
         {
-            if (type.ItemType == NumberType.Float && type.ValueCount > 0)
+            if (type.ItemType == NumberType.Float && type.IsKnownSizeVector)
                 return null;
-            return "Expected R4 or vector of R4 with known size";
+            return "Expected vector of floats with known size";
         }
 
-        /// <summary>
-        /// Convenience constructor for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="newDim">The number of random Fourier features to create.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public RffTransform(IHostEnvironment env,
-            IDataView input,
-            int newDim,
-            string name,
-            string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim }, input)
+        public sealed class ColumnInfo
         {
-        }
+            public readonly string Input;
+            public readonly string Output;
+            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+            public readonly int NewDim;
+            public readonly bool UseSin;
+            public readonly int? Seed;
 
-        /// <summary>
-        /// Public constructor corresponding to <see cref="SignatureDataTransform"/>.
-        /// </summary>
-        public RffTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestColumnType)
-        {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-            Host.CheckUserArg(
-                args.Column.All(c => c.Seed.HasValue) ||
-                args.Column.All(c => !c.Seed.HasValue) || args.Seed.HasValue, nameof(args.Seed),
-                "If any column specific seeds are non-zero, the global transform seed must also be non-zero, to make results deterministic");
-
-            _transformInfos = new TransformInfo[args.Column.Length];
-
-            var avgDistances = Train(Host, Infos, args, input);
-
-            for (int i = 0; i < _transformInfos.Length; i++)
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="generator">Which fourier generator to use.</param>
+            /// <param name="newDim">The number of random Fourier features to create.</param>
+            /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+            /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used.</param>
+            public ColumnInfo(string input, string output, int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
             {
-                _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), args.Column[i], args,
-                    Infos[i].TypeSrc.ValueCount, avgDistances[i]);
+                Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
+                Input = input;
+                Output = output;
+                Generator = generator ?? new GaussianFourierSampler.Arguments();
+                NewDim = newDim;
+                UseSin = useSin;
+                Seed = seed;
             }
-
-            _types = InitColumnTypes();
         }
 
-        private RffTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestColumnType)
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
-            // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
-            // transformInfos
-            Host.AssertNonEmpty(Infos);
-            _transformInfos = new TransformInfo[Infos.Length];
-            for (int i = 0; i < Infos.Length; i++)
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            var type = inputSchema.GetColumnType(srcCol);
+            string reason = TestColumnType(type);
+            if (reason != null)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
+            if (_transformInfos[col].SrcDim != type.VectorSize)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input,
+                    new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
+        }
+
+        public RffTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RffTransform)), GetColumnPairs(columns))
+        {
+            var avgDistances = GetAvgDistances(columns, input);
+            _transformInfos = new TransformInfo[columns.Length];
+            for (int i = 0; i < columns.Length; i++)
             {
-                _transformInfos[i] = new TransformInfo(Host, ctx, Infos[i].TypeSrc.ValueCount,
-                    string.Format("MatrixGenerator{0}", i));
+                input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
+                var typeSrc = input.Schema.GetColumnType(srcCol);
+                _transformInfos[i] = new TransformInfo(Host.Register(string.Format("column{0}", i)), columns[i],
+                    typeSrc.ValueCount, avgDistances[i]);
             }
-            _types = InitColumnTypes();
-        }
-
-        public static RffTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            h.CheckValue(input, nameof(input));
-
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    h.CheckDecode(cbFloat == sizeof(Float));
-                    return new RffTransform(h, ctx, input);
-                });
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // <base>
-            // transformInfos
-            ctx.Writer.Write(sizeof(Float));
-            SaveBase(ctx);
-            for (int i = 0; i < _transformInfos.Length; i++)
-                _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
         // Round cflt up to a multiple of cfltAlign.
@@ -347,238 +306,458 @@ namespace Microsoft.ML.Runtime.Data
             return cblob * cfltAlign;
         }
 
-        private static Float[] Train(IHost host, ColInfo[] infos, Arguments args, IDataView trainingData)
+        private float[] GetAvgDistances(ColumnInfo[] columns, IDataView input)
         {
-            Contracts.AssertValue(host, "host");
-            host.AssertNonEmpty(infos);
-
-            var avgDistances = new Float[infos.Length];
+            var avgDistances = new float[columns.Length];
             const int reservoirSize = 5000;
-
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            for (int i = 0; i < infos.Length; i++)
-                activeColumns[infos[i].Source] = true;
-
-            var reservoirSamplers = new ReservoirSamplerWithReplacement<VBuffer<Float>>[infos.Length];
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            bool[] activeColumns = new bool[input.Schema.ColumnCount];
+            int[] srcCols = new int[columns.Length];
+            for (int i = 0; i < columns.Length; i++)
             {
-                var rng = args.Seed.HasValue ? RandomUtils.Create(args.Seed) : host.Rand;
-                for (int i = 0; i < infos.Length; i++)
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                var type = input.Schema.GetColumnType(srcCol);
+                string reason = TestColumnType(type);
+                if (reason != null)
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
+                srcCols[i] = srcCol;
+                activeColumns[srcCol] = true;
+            }
+            var reservoirSamplers = new ReservoirSamplerWithReplacement<VBuffer<float>>[columns.Length];
+            using (var cursor = input.GetRowCursor(col => activeColumns[col]))
+            {
+                for (int i = 0; i < columns.Length; i++)
                 {
-                    if (infos[i].TypeSrc.IsVector)
+                    var rng = columns[i].Seed.HasValue ? RandomUtils.Create(columns[i].Seed.Value) : Host.Rand;
+                    var srcType = input.Schema.GetColumnType(srcCols[i]);
+                    if (srcType.IsVector)
                     {
-                        var get = cursor.GetGetter<VBuffer<Float>>(infos[i].Source);
-                        reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<Float>>(rng, reservoirSize, get);
+                        var get = cursor.GetGetter<VBuffer<float>>(srcCols[i]);
+                        reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
                     }
                     else
                     {
-                        var getOne = cursor.GetGetter<Float>(infos[i].Source);
-                        Float val = 0;
-                        ValueGetter<VBuffer<Float>> get =
-                            (ref VBuffer<Float> dst) =>
+                        var getOne = cursor.GetGetter<float>(srcCols[i]);
+                        float val = 0;
+                        ValueGetter<VBuffer<float>> get =
+                            (ref VBuffer<float> dst) =>
                             {
                                 getOne(ref val);
                                 dst = new VBuffer<float>(1, new[] { val });
                             };
-                        reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<Float>>(rng, reservoirSize, get);
+                        reservoirSamplers[i] = new ReservoirSamplerWithReplacement<VBuffer<float>>(rng, reservoirSize, get);
                     }
                 }
 
                 while (cursor.MoveNext())
                 {
-                    for (int i = 0; i < infos.Length; i++)
+                    for (int i = 0; i < columns.Length; i++)
                         reservoirSamplers[i].Sample();
                 }
-                for (int i = 0; i < infos.Length; i++)
+                for (int i = 0; i < columns.Length; i++)
                     reservoirSamplers[i].Lock();
-            }
 
-            for (int iinfo = 0; iinfo < infos.Length; iinfo++)
-            {
-                var instanceCount = reservoirSamplers[iinfo].NumSampled;
-
-                // If the number of pairs is at most the maximum reservoir size / 2, we go over all the pairs,
-                // so we get all the examples. Otherwise, get a sample with replacement.
-                VBuffer<Float>[] res;
-                int resLength;
-                if (instanceCount < reservoirSize && instanceCount * (instanceCount - 1) <= reservoirSize)
+                for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    res = reservoirSamplers[iinfo].GetCache();
-                    resLength = reservoirSamplers[iinfo].Size;
-                    Contracts.Assert(resLength == instanceCount);
-                }
-                else
-                {
-                    res = reservoirSamplers[iinfo].GetSample().ToArray();
-                    resLength = res.Length;
-                }
+                    var instanceCount = reservoirSamplers[iinfo].NumSampled;
 
-                // If the dataset contains only one valid Instance, then we can't learn anything anyway, so just return 1.
-                if (instanceCount <= 1)
-                    avgDistances[iinfo] = 1;
-                else
-                {
-                    Float[] distances;
-                    var sub = args.Column[iinfo].MatrixGenerator;
-                    if (sub == null)
-                        sub = args.MatrixGenerator;
-                    // create a dummy generator in order to get its type.
-                    // REVIEW this should be refactored. See https://github.com/dotnet/machinelearning/issues/699
-                    var matrixGenerator = sub.CreateComponent(host, 1);
-                    bool gaussian = matrixGenerator is GaussianFourierSampler;
-
-                    // If the number of pairs is at most the maximum reservoir size / 2, go over all the pairs.
-                    if (resLength < reservoirSize)
+                    // If the number of pairs is at most the maximum reservoir size / 2, we go over all the pairs,
+                    // so we get all the examples. Otherwise, get a sample with replacement.
+                    VBuffer<float>[] res;
+                    int resLength;
+                    if (instanceCount < reservoirSize && instanceCount * (instanceCount - 1) <= reservoirSize)
                     {
-                        distances = new Float[instanceCount * (instanceCount - 1) / 2];
-                        int count = 0;
-                        for (int i = 0; i < instanceCount; i++)
-                        {
-                            for (int j = i + 1; j < instanceCount; j++)
-                            {
-                                distances[count++] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[j])
-                                    : VectorUtils.L1Distance(ref res[i], ref res[j]);
-                            }
-                        }
-                        host.Assert(count == distances.Length);
+                        res = reservoirSamplers[iinfo].GetCache();
+                        resLength = reservoirSamplers[iinfo].Size;
+                        Contracts.Assert(resLength == instanceCount);
                     }
                     else
                     {
-                        distances = new Float[reservoirSize / 2];
-                        for (int i = 0; i < reservoirSize - 1; i += 2)
-                        {
-                            // For Gaussian kernels, we scale by the L2 distance squared, since the kernel function is exp(-gamma ||x-y||^2).
-                            // For Laplacian kernels, we scale by the L1 distance, since the kernel function is exp(-gamma ||x-y||_1).
-                            distances[i / 2] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[i + 1]) :
-                                VectorUtils.L1Distance(ref res[i], ref res[i + 1]);
-                        }
+                        res = reservoirSamplers[iinfo].GetSample().ToArray();
+                        resLength = res.Length;
                     }
 
-                    // If by chance, in the random permutation all the pairs are the same instance we return 1.
-                    Float median = MathUtils.GetMedianInPlace(distances, distances.Length);
-                    avgDistances[iinfo] = median == 0 ? 1 : median;
+                    // If the dataset contains only one valid Instance, then we can't learn anything anyway, so just return 1.
+                    if (instanceCount <= 1)
+                        avgDistances[iinfo] = 1;
+                    else
+                    {
+                        float[] distances;
+                        // create a dummy generator in order to get its type.
+                        // REVIEW this should be refactored. See https://github.com/dotnet/machinelearning/issues/699
+                        var matrixGenerator = columns[iinfo].Generator.CreateComponent(Host, 1);
+                        bool gaussian = matrixGenerator is GaussianFourierSampler;
+
+                        // If the number of pairs is at most the maximum reservoir size / 2, go over all the pairs.
+                        if (resLength < reservoirSize)
+                        {
+                            distances = new float[instanceCount * (instanceCount - 1) / 2];
+                            int count = 0;
+                            for (int i = 0; i < instanceCount; i++)
+                            {
+                                for (int j = i + 1; j < instanceCount; j++)
+                                {
+                                    distances[count++] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[j])
+                                        : VectorUtils.L1Distance(ref res[i], ref res[j]);
+                                }
+                            }
+                            Host.Assert(count == distances.Length);
+                        }
+                        else
+                        {
+                            distances = new float[reservoirSize / 2];
+                            for (int i = 0; i < reservoirSize - 1; i += 2)
+                            {
+                                // For Gaussian kernels, we scale by the L2 distance squared, since the kernel function is exp(-gamma ||x-y||^2).
+                                // For Laplacian kernels, we scale by the L1 distance, since the kernel function is exp(-gamma ||x-y||_1).
+                                distances[i / 2] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[i + 1]) :
+                                    VectorUtils.L1Distance(ref res[i], ref res[i + 1]);
+                            }
+                        }
+
+                        // If by chance, in the random permutation all the pairs are the same instance we return 1.
+                        float median = MathUtils.GetMedianInPlace(distances, distances.Length);
+                        avgDistances[iinfo] = median == 0 ? 1 : median;
+                    }
+                }
+                return avgDistances;
+            }
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        private RffTransform(IHost host, ModelLoadContext ctx)
+         : base(host, ctx)
+        {
+            // *** Binary format ***
+            // <prefix handled in static Create method>
+            // <base>
+            // transformInfos
+            var columnsLength = ColumnPairs.Length;
+            _transformInfos = new TransformInfo[columnsLength];
+            for (int i = 0; i < columnsLength; i++)
+            {
+                _transformInfos[i] = new TransformInfo(Host, ctx,
+                    string.Format("MatrixGenerator{0}", i));
+            }
+        }
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
+            {
+
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = args.Column[i];
+                    cols[i] = new ColumnInfo(item.Source,
+                        item.Name,
+                        item.NewDim ?? args.NewDim,
+                        item.UseSin ?? args.UseSin,
+                        item.MatrixGenerator ?? args.MatrixGenerator,
+                        item.Seed ?? args.Seed);
+                };
+            }
+            return new RffTransform(env, input, cols).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static RffTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(nameof(RffTransform));
+
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
+            return new RffTransform(host, ctx);
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+            // *** Binary format ***
+            // <base>
+            // transformInfos
+            SaveColumns(ctx);
+            for (int i = 0; i < _transformInfos.Length; i++)
+                _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
+        }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+
+        private sealed class Mapper : MapperBase
+        {
+            private readonly ColumnType[] _srcTypes;
+            private readonly int[] _srcCols;
+            private readonly ColumnType[] _types;
+            private readonly RffTransform _parent;
+
+            public Mapper(RffTransform parent, Schema inputSchema)
+               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _srcCols = new int[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    var srcCol = inputSchema[_srcCols[i]];
+                    _srcTypes[i] = srcCol.Type;
+                    //validate typeSrc.ValueCount and transformInfo.SrcDim
+                    _types[i] = new VectorType(NumberType.Float, _parent._transformInfos[i].RotationTerms == null ?
+                    _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
-            return avgDistances;
-        }
 
-        private ColumnType[] InitColumnTypes()
-        {
-            Host.Assert(Infos.Length == _transformInfos.Length);
-            var types = new ColumnType[Infos.Length];
-            for (int i = 0; i < _transformInfos.Length; i++)
+            public override Schema.Column[] GetOutputColumns()
             {
-                types[i] = new VectorType(NumberType.Float, _transformInfos[i].RotationTerms == null ?
-                    _transformInfos[i].NewDim * 2 : _transformInfos[i].NewDim);
-            }
-            Metadata.Seal();
-            return types;
-        }
-
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Check(0 <= iinfo & iinfo < Infos.Length);
-            return _types[iinfo];
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var info = Infos[iinfo];
-            if (info.TypeSrc.IsVector)
-                return GetterFromVectorType(input, iinfo);
-            return GetterFromFloatType(input, iinfo);
-        }
-
-        private ValueGetter<VBuffer<Float>> GetterFromVectorType(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
-            var src = default(VBuffer<Float>);
-
-            var featuresAligned = new AlignedArray(RoundUp(Infos[iinfo].TypeSrc.ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-
-            return
-                (ref VBuffer<Float> dst) =>
-                {
-                    getSrc(ref src);
-                    TransformFeatures(Host, ref src, ref dst, _transformInfos[iinfo], featuresAligned, productAligned);
-                };
-        }
-
-        private ValueGetter<VBuffer<Float>> GetterFromFloatType(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<Float>(input, iinfo);
-            var src = default(Float);
-
-            var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-
-            var oneDimensionalVector = new VBuffer<Float>(1, new Float[] { 0 });
-
-            return
-                (ref VBuffer<Float> dst) =>
-                {
-                    getSrc(ref src);
-                    oneDimensionalVector.Values[0] = src;
-                    TransformFeatures(Host, ref oneDimensionalVector, ref dst, _transformInfos[iinfo], featuresAligned, productAligned);
-                };
-        }
-
-        private static void TransformFeatures(IHost host, ref VBuffer<Float> src, ref VBuffer<Float> dst, TransformInfo transformInfo,
-            AlignedArray featuresAligned, AlignedArray productAligned)
-        {
-            Contracts.AssertValue(host, "host");
-            host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
-
-            var values = dst.Values;
-            Float scale;
-            if (transformInfo.RotationTerms != null)
-            {
-                if (Utils.Size(values) < transformInfo.NewDim)
-                    values = new Float[transformInfo.NewDim];
-                scale = MathUtils.Sqrt((Float)2.0 / transformInfo.NewDim);
-            }
-            else
-            {
-                if (Utils.Size(values) < 2 * transformInfo.NewDim)
-                    values = new Float[2 * transformInfo.NewDim];
-                scale = MathUtils.Sqrt((Float)1.0 / transformInfo.NewDim);
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
+                return result;
             }
 
-            if (src.IsDense)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
-                featuresAligned.CopyFrom(src.Values, 0, src.Length);
-                CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
-                    transformInfo.NewDim);
-            }
-            else
-            {
-                // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
-                // no need to zero them out.
-                featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
-                    src.Count, productAligned, transformInfo.NewDim);
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+                if (_srcTypes[iinfo].IsVector)
+                    return GetterFromVectorType(input, iinfo);
+                return GetterFromFloatType(input, iinfo);
             }
 
-            for (int i = 0; i < transformInfo.NewDim; i++)
+            private ValueGetter<VBuffer<float>> GetterFromVectorType(IRow input, int iinfo)
             {
-                var dotProduct = productAligned[i];
+                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var src = default(VBuffer<float>);
+
+                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        getSrc(ref src);
+                        TransformFeatures(ref src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                    };
+            }
+
+            private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
+            {
+                var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
+                var src = default(float);
+
+                var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+
+                var oneDimensionalVector = new VBuffer<float>(1, new float[] { 0 });
+
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        getSrc(ref src);
+                        oneDimensionalVector.Values[0] = src;
+                        TransformFeatures(ref oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                    };
+            }
+
+            private void TransformFeatures(ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
+                AlignedArray featuresAligned, AlignedArray productAligned)
+            {
+                Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
+
+                var values = dst.Values;
+                float scale;
                 if (transformInfo.RotationTerms != null)
-                    values[i] = (Float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
+                {
+                    if (Utils.Size(values) < transformInfo.NewDim)
+                        values = new float[transformInfo.NewDim];
+                    scale = MathUtils.Sqrt(2.0f / transformInfo.NewDim);
+                }
                 else
                 {
-                    values[2 * i] = (Float)MathUtils.Cos(dotProduct) * scale;
-                    values[2 * i + 1] = (Float)MathUtils.Sin(dotProduct) * scale;
+                    if (Utils.Size(values) < 2 * transformInfo.NewDim)
+                        values = new float[2 * transformInfo.NewDim];
+                    scale = MathUtils.Sqrt(1.0f / transformInfo.NewDim);
                 }
+
+                if (src.IsDense)
+                {
+                    featuresAligned.CopyFrom(src.Values, 0, src.Length);
+                    CpuMathUtils.MatTimesSrc(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                        transformInfo.NewDim);
+                }
+                else
+                {
+                    // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
+                    // no need to zero them out.
+                    featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
+                    CpuMathUtils.MatTimesSrc(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                        src.Count, productAligned, transformInfo.NewDim);
+                }
+
+                for (int i = 0; i < transformInfo.NewDim; i++)
+                {
+                    var dotProduct = productAligned[i];
+                    if (transformInfo.RotationTerms != null)
+                        values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
+                    else
+                    {
+                        values[2 * i] = (float)MathUtils.Cos(dotProduct) * scale;
+                        values[2 * i + 1] = (float)MathUtils.Sin(dotProduct) * scale;
+                    }
+                }
+
+                dst = new VBuffer<float>(transformInfo.RotationTerms == null ? 2 * transformInfo.NewDim : transformInfo.NewDim,
+                    values, dst.Indices);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Estimator which takes set of vector columns and maps its input to a random low-dimensional feature space.
+    /// </summary>
+    public sealed class RandomFourierFeaturizingEstimator : IEstimator<RffTransform>
+    {
+        internal static class Defaults
+        {
+            public const int NewDim = 1000;
+            public const bool UseSin = false;
+        }
+
+        private readonly IHost _host;
+        private readonly RffTransform.ColumnInfo[] _columns;
+
+        /// <summary>
+        /// Convinence constructor for simple one column case
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="newDim">The number of random Fourier features to create.</param>
+        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
+            : this(env, new RffTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
+        {
+        }
+
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, params RffTransform.ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(RandomFourierFeaturizingEstimator));
+            _columns = columns;
+        }
+
+        public RffTransform Fit(IDataView input) => new RffTransform(_host, input, _columns);
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (col.ItemType.RawKind != DataKind.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }
 
-            dst = new VBuffer<Float>(transformInfo.RotationTerms == null ? 2 * transformInfo.NewDim : transformInfo.NewDim,
-                values, dst.Indices);
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    public static class RffExtenensions
+    {
+        private struct Config
+        {
+            public readonly int NewDim;
+            public readonly bool UseSin;
+            public readonly int? Seed;
+            public readonly IComponentFactory<float, IFourierDistributionSampler> Generator;
+
+            public Config(int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator, int? seed = null)
+            {
+                NewDim = newDim;
+                UseSin = useSin;
+                Generator = generator;
+                Seed = seed;
+            }
+        }
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class ImplVector<T> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVector(PipelineColumn input, Config config) : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static readonly Reconciler Inst = new Reconciler();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new RffTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (IColInput)toOutput[i];
+                    infos[i] = new RffTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
+                }
+                return new RandomFourierFeaturizingEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// It maps input to a random low-dimensional feature space. It is useful when data has non-linear features, since the transform
+        /// is designed so that the inner products of the transformed data are approximately equal to those in the feature space of a user
+        /// speciﬁed shift-invariant kernel. With this transform, we are able to use linear methods (which are scalable) to approximate more complex kernel SVM models.
+        /// </summary>
+        /// <param name="input">The column to apply Random Fourier transfomration.</param>
+        /// <param name="newDim">Expected size of new vector.</param>
+        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
+        /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
+        /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
+        public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
+            int newDim = RandomFourierFeaturizingEstimator.Defaults.NewDim, bool useSin = RandomFourierFeaturizingEstimator.Defaults.UseSin,
+            IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
         }
     }
 }

@@ -98,8 +98,6 @@ namespace Microsoft.ML.Runtime.Sweeper
 
                     ch.Info("Outputs of finished runs can be found in the specified output folder");
                     _runner.Finish();
-
-                    ch.Done();
                 }
             }
             catch (Exception e)

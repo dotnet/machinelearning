@@ -4,17 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 [assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), typeof(ShuffleTransform.Arguments), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
@@ -22,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), null, typeof(SignatureLoadDataTransform),
     "Shuffle Transform", ShuffleTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This is a transform that, given any input dataview (even an unshufflable one) will,
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override bool CanShuffle { get { return true; } }
 
-        public override ISchema Schema { get { return _subsetInput.Schema; } }
+        public override Schema Schema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly int[] _colToActivesIndex;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public Schema Schema { get { return _input.Schema; } }
 
             public override long Batch
             {

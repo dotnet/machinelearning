@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class BaggingProvider
     {

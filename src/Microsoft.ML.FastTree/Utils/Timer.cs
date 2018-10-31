@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 

@@ -2,18 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -23,7 +22,7 @@ using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(NgramExtractorTransform.NgramExtractorArguments))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an INgramExtractorFactory.
@@ -95,19 +94,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public sealed class TokenizeColumn : OneToOneColumn { }
 
-        /// <summary>
-        /// This class is a merger of <see cref="ITokenizeTransform"/>
-        /// and <see cref="NgramExtractorTransform.ArgumentsBase"/> options.
-        /// </summary>
         public sealed class Arguments : NgramExtractorTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
-
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
-            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
-                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
-                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
 
         private const string RegistrationName = "WordBagTransform";
@@ -122,7 +112,6 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -135,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new TokenizeColumn[args.Column.Length];
+            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -155,12 +144,7 @@ namespace Microsoft.ML.Runtime.Data
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] =
-                    new TokenizeColumn()
-                    {
-                        Name = column.Name,
-                        Source = column.Source.Length > 1 ? column.Name : column.Source[0]
-                    };
+                tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -177,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns);
+            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
@@ -203,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                 "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), ShortName = "all")]
             public bool? AllLengths;
 
-            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully e.g.
+            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully for example,
             // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
             // something like 1,1,10000, term transform would be run with limitation of only one term.
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
@@ -461,7 +445,7 @@ namespace Microsoft.ML.Runtime.Data
         public string TermsColumn;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-            "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 5)]
+            "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
         public TermTransform.SortOrder Sort = TermTransform.SortOrder.Occurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
@@ -596,7 +580,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int isrc = 0; isrc < srcCount; isrc++)
                 {
                     string tmpColName;
-                    for (;;)
+                    for (; ; )
                     {
                         tmpColName = string.Format("_tmp{0:000}", tmp++);
                         int index;

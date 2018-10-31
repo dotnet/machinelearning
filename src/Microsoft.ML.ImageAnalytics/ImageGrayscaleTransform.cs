@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 });
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -158,14 +158,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             private ImageGrayscaleTransform _parent;
 
-            public Mapper(ImageGrayscaleTransform parent, ISchema inputSchema)
+            public Mapper(ImageGrayscaleTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent.ColumnPairs.Select((x, idx) => new RowMapperColumnInfo(x.output, InputSchema.GetColumnType(ColMapNewToOld[idx]), null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent.ColumnPairs.Select((x, idx) => new Schema.Column(x.output, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -240,12 +240,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             PipelineColumn Input { get; }
         }
 
-        internal sealed class OutPipelineColumn<T> : Scalar<T>, IColInput
+        internal sealed class OutPipelineColumn<T> : Custom<T>, IColInput
         {
             public PipelineColumn Input { get; }
 
-            public OutPipelineColumn(Scalar<T> input)
-    : base(Reconciler.Inst, input)
+            public OutPipelineColumn(Custom<T> input)
+                : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(typeof(T) == typeof(Bitmap) || typeof(T) == typeof(UnknownSizeBitmap));
@@ -257,8 +257,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// Reconciler to an <see cref="ImageGrayscaleEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{Bitmap})"/>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{UnknownSizeBitmap})"/>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{Bitmap})"/>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{UnknownSizeBitmap})"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             public static Reconciler Inst = new Reconciler();

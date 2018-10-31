@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +41,7 @@ using System.Threading;
 [assembly: EntryPointModule(typeof(PredefinedStopWordsRemoverFactory))]
 [assembly: EntryPointModule(typeof(CustomStopWordsRemoverTransform.LoaderArguments))]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an IStopWordsRemoverTransform.
@@ -307,7 +307,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -331,7 +330,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -354,7 +352,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                 _resourcesExist = new bool?[StopWords.Length];
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -752,7 +749,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 int colSrc;
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out colSrc))
                     throw ch.ExceptUserArg(nameof(Arguments.StopwordsColumn), "Unknown column '{0}'", srcCol);
-                var typeSrc = loader.Schema.GetColumnType(colSrc);
+                var typeSrc = loader.Schema[colSrc].Type;
                 ch.CheckUserArg(typeSrc.IsText, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.
@@ -793,14 +790,13 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, args, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
 
         /// <summary>
         /// Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments,
-        /// and a separate array of columns (constructed by the caller -TextTransform- arguments).
+        /// and a separate array of columns (constructed by the caller -TextFeaturizingEstimator - arguments).
         /// </summary>
         public CustomStopWordsRemoverTransform(IHostEnvironment env, LoaderArguments loaderArgs, IDataView input, OneToOneColumn[] column)
             : base(env, RegistrationName, column, input, TestIsTextItem)
@@ -815,7 +811,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, loaderArgs, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -861,7 +856,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     throw Host.ExceptDecode();
 
                 _stopWordsMap = stopwrods;
-                ch.Done();
             }
             Metadata.Seal();
         }

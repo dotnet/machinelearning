@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Building the variance-covariance matrix for parameters.
             // The layout of this algorithm is a packed row-major lower triangular matrix.
-            // E.g., layout of indices for 4-by-4:
+            // For example, layout of indices for 4-by-4:
             // 0
             // 1 2
             // 3 4 5
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias),
+                new LinearBinaryPredictor(Host, ref weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 

@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;
 
                 // Apply the same transformations on the validation set.
