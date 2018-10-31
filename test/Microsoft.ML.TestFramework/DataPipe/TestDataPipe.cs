@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Xunit;
 using Float = System.Single;
 

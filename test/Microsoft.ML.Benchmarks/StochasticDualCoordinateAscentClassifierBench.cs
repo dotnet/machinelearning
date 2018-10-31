@@ -101,7 +101,7 @@ namespace Microsoft.ML.Benchmarks
                         },
                         OutputTokens = true,
                         KeepPunctuations=false,
-                        StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                        StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                         VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
