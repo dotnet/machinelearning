@@ -29,6 +29,9 @@ namespace Microsoft.ML
              => new KeyToValueEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 
+    /// <summary>
+    /// Extensions for KeyToVectorMappingEstimator.
+    /// </summary>
     public static class ToVectorCatalog
     {
         /// <summary>

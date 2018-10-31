@@ -34,7 +34,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// Extension ColumnConcatenatingEstimator
+    /// Extensions for ColumnConcatenatingEstimator.
     /// </summary>
     public static class ColumnConcatenatingEstimatorCatalog
     {
@@ -49,6 +49,9 @@ namespace Microsoft.ML
 
     }
 
+    /// <summary>
+    /// Extensions for ColumnSelectingEstimator.
+    /// </summary>
     public static class ColumnSelectingCatalog
     {
         /// <summary>
