@@ -8,8 +8,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +15,7 @@ using System.Linq;
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(SentimentAnalyzingTransform), typeof(SentimentAnalyzingTransform.Arguments), typeof(SignatureDataTransform),
     SentimentAnalyzingTransform.UserName, "SentimentAnalyzingTransform", SentimentAnalyzingTransform.LoaderSignature, SentimentAnalyzingTransform.ShortName, DocName = "transform/SentimentAnalyzingTransform.md")]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
     public static class SentimentAnalyzingTransform
@@ -95,7 +93,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             // 5. Drop all the columns created by the pretrained model, including the expected input column
             // and the output column, which we have copied to a temporary column in (4).
-            input = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = _modelIntermediateColumnNames }, input);
+            input = SelectColumnsTransform.CreateDrop(env, input, _modelIntermediateColumnNames);
 
             // 6. Unalias all the original columns that were originally present in the IDataView, but may have
             // been shadowed by column names in the pretrained model. This method will also drop all the temporary
@@ -107,7 +105,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
-            return new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = new[] { scoreTempName } }, input);
+            return SelectColumnsTransform.CreateDrop(env, input, scoreTempName);
         }
 
         /// <summary>
@@ -148,10 +146,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 Column = hiddenNames.Select(pair => new CopyColumnsTransform.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
             }, input);
 
-            return new DropColumnsTransform(env, new DropColumnsTransform.Arguments()
-            {
-                Column = hiddenNames.Select(pair => pair.Value).ToArray()
-            }, input);
+            return SelectColumnsTransform.CreateDrop(env, input, hiddenNames.Select(pair => pair.Value).ToArray());
         }
 
         private static IDataView LoadTransforms(IHostEnvironment env, IDataView input, string modelFile)
