@@ -83,6 +83,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
+        /// <summary>
+        /// Converts the images to grayscale.
+        /// </summary>
+        /// <param name="env">The estimator's local <see cref="IHostEnvironment"/>.</param>
+        /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
+
         public ImageGrayscaleTransform(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
@@ -211,10 +217,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImageGrayscaleEstimator : TrivialEstimator<ImageGrayscaleTransform>
+    public sealed class ImageGrayscalingEstimator : TrivialEstimator<ImageGrayscaleTransform>
     {
-        public ImageGrayscaleEstimator(IHostEnvironment env, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscaleEstimator)), new ImageGrayscaleTransform(env, columns))
+        public ImageGrayscalingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageGrayscalingEstimator)), new ImageGrayscaleTransform(env, columns))
         {
         }
 
@@ -254,7 +260,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         /// <summary>
-        /// Reconciler to an <see cref="ImageGrayscaleEstimator"/> for the <see cref="PipelineColumn"/>.
+        /// Reconciler to an <see cref="ImageGrayscalingEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
         /// <see cref="ImageStaticPipe.AsGrayscale(Custom{Bitmap})"/>
@@ -277,7 +283,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     var outCol = (IColInput)toOutput[i];
                     cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
                 }
-                return new ImageGrayscaleEstimator(env, cols);
+                return new ImageGrayscalingEstimator(env, cols);
             }
         }
     }

@@ -16722,7 +16722,7 @@ namespace Microsoft.ML
             Japanese = 7
         }
 
-        public enum TextNormalizerEstimatorCaseNormalizationMode
+        public enum TextNormalizingEstimatorCaseNormalizationMode
         {
             Lower = 0,
             Upper = 1,
@@ -16810,7 +16810,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Casing text using the rules of the invariant culture.
             /// </summary>
-            public TextNormalizerEstimatorCaseNormalizationMode TextCase { get; set; } = TextNormalizerEstimatorCaseNormalizationMode.Lower;
+            public TextNormalizingEstimatorCaseNormalizationMode TextCase { get; set; } = TextNormalizingEstimatorCaseNormalizationMode.Lower;
 
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
