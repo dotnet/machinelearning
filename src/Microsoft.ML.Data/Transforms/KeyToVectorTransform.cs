@@ -84,7 +84,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
-            public bool Bag = KeyToVectorEstimator.Defaults.Bag;
+            public bool Bag = KeyToVectorMappingEstimator.Defaults.Bag;
         }
 
         public class ColumnInfo
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public readonly string Output;
             public readonly bool Bag;
 
-            public ColumnInfo(string input, string output, bool bag = KeyToVectorEstimator.Defaults.Bag)
+            public ColumnInfo(string input, string output, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
                 Input = input;
                 Output = output;
@@ -733,25 +733,25 @@ namespace Microsoft.ML.Transforms.Categorical
         }
     }
 
-    public sealed class KeyToVectorEstimator : TrivialEstimator<KeyToVectorTransform>
+    public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorTransform>
     {
         internal static class Defaults
         {
             public const bool Bag = false;
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
+        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
             : this(env, new KeyToVectorTransform(env, columns))
         {
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(source ?? name, name, bag)))
+        public KeyToVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
         {
         }
 
-        private KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorEstimator)), transformer)
+        private KeyToVectorMappingEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorMappingEstimator)), transformer)
         {
         }
 
@@ -891,7 +891,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     var col = (IColInput)toOutput[i];
                     infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
                 }
-                return new KeyToVectorEstimator(env, infos);
+                return new KeyToVectorMappingEstimator(env, infos);
             }
         }
 

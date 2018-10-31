@@ -28,4 +28,27 @@ namespace Microsoft.ML
         public static KeyToValueEstimator ToValue(this TransformsCatalog.CategoricalTransforms catalog, params (string input, string output)[] columns)
              => new KeyToValueEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
+
+    public static class ToVectorCatalog
+    {
+        /// <summary>
+        /// Convert the key types back to their original vectors.
+        /// </summary>
+        /// <param name="catalog">The categorical transform's catalog.</param>
+        /// <param name="columns">The input column to map back to vectors.</param>
+        public static KeyToVectorMappingEstimator ToVector(this TransformsCatalog.CategoricalTransforms catalog,
+            params KeyToVectorTransform.ColumnInfo[] columns)
+            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Convert the key types back to their original vectors.
+        /// </summary>
+        /// <param name="catalog">The categorical transform's catalog.</param>
+        /// <param name="inputColumn">The name of the input column.</param>
+        /// <param name="outputColumn">The name of the output column.</param>
+        /// <param name="bag">Whether bagging is used for the conversion. </param>
+        public static KeyToVectorMappingEstimator ToVector(this TransformsCatalog.CategoricalTransforms catalog,
+            string inputColumn, string outputColumn = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
+            => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, bag);
+    }
 }
