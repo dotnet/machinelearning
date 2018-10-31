@@ -69,8 +69,10 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ComponentCreation.CreateDataView(mlContext, dataMatrix);
 
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
-            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
+            // names' in MatrixElement class.
+            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
+                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -85,9 +87,18 @@ namespace Microsoft.ML.Samples.Dynamic
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Regression.Evaluate(prediction,
+                label: nameof(MatrixElement.Value), score: nameof(MatrixElementForScore.Score));
+
+            // Print out some metrics for checking the model's quality.
+            Console.WriteLine($"L1 - {metrics.L1}");
+            Console.WriteLine($"L2 - {metrics.L2}");
+            Console.WriteLine($"LossFunction - {metrics.LossFn}");
+            Console.WriteLine($"RMS - {metrics.Rms}");
+            Console.WriteLine($"RSquared - {metrics.RSquared}");
 
             // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
+            // If any of row and column indexes are out-of-range (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
             var testMatrix = new List<MatrixElementForScore>() {
                 new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = default },
                 new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
@@ -97,7 +108,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
-                Console.WriteLine("Predicted value at row {0} and column {1} is {2}", pred.MatrixRowIndex, pred.MatrixColumnIndex, pred.Score);
+                Console.WriteLine($"Predicted value at row {pred.MatrixRowIndex} and column {pred.MatrixColumnIndex} is {pred.Score}");
         }
     }
 }

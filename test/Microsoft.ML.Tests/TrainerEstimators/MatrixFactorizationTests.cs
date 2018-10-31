@@ -164,7 +164,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Score;
         }
 
-
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorizationInMemoryData()
         {
@@ -180,7 +179,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
+                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -207,7 +207,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Regression.Evaluate(prediction, label: nameof(MatrixElement.Value),
+                score: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.L2 < 0.1);
