@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainer = new Ova(env, new Ova.Arguments
                 {
                     PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                        e => new AveragedPerceptronTrainer(env, "Label", "Features", lossFunction: new SmoothedHingeLoss.Arguments())
+                        e => new AveragedPerceptronTrainer(env, "Label", "Features", lossFunction: new SmoothedHingeLoss())
                     )
                 });
 

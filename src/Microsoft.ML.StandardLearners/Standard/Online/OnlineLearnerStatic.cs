@@ -53,13 +53,13 @@ namespace Microsoft.ML.StaticPipe
         {
             OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
 
-            bool hasProbs = lossFunction is HingeLoss;
+            bool hasProbs = lossFunction is LogLoss;
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
 
-                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, new TrivialClassificationLossFactory(lossFunction),
+                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, lossFunction,
                         learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
 
                     if (onFit != null)
@@ -70,21 +70,6 @@ namespace Microsoft.ML.StaticPipe
                 }, label, features, weights, hasProbs);
 
             return rec.Output;
-        }
-
-        private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory
-        {
-            private readonly IClassificationLoss _loss;
-
-            public TrivialClassificationLossFactory(IClassificationLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public IClassificationLoss CreateComponent(IHostEnvironment env)
-            {
-                return _loss;
-            }
         }
     }
 

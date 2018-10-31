@@ -8,8 +8,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +15,7 @@ using System.Linq;
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(SentimentAnalyzingTransform), typeof(SentimentAnalyzingTransform.Arguments), typeof(SignatureDataTransform),
     SentimentAnalyzingTransform.UserName, "SentimentAnalyzingTransform", SentimentAnalyzingTransform.LoaderSignature, SentimentAnalyzingTransform.ShortName, DocName = "transform/SentimentAnalyzingTransform.md")]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
     public static class SentimentAnalyzingTransform

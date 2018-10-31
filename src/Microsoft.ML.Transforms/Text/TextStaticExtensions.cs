@@ -4,13 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
+using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
 namespace Microsoft.ML.Transforms.Text
 {

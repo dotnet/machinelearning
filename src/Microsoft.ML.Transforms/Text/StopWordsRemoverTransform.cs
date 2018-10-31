@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +41,7 @@ using System.Threading;
 [assembly: EntryPointModule(typeof(PredefinedStopWordsRemoverFactory))]
 [assembly: EntryPointModule(typeof(CustomStopWordsRemoverTransform.LoaderArguments))]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an IStopWordsRemoverTransform.
