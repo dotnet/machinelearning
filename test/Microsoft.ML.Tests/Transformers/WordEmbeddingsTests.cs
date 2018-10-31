@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
