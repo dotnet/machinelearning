@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
             public string GroupColumn = DefaultColumnNames.GroupId;
 
             [Argument(ArgumentType.Multiple,
-                HelpText = "Input columns: Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
                 ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
@@ -89,7 +89,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("Score"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 
@@ -207,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Whether a column should be added, assuming it's not hidden
         /// (i.e.: this doesn't check for hidden
         /// </summary>
-        private bool ShouldAddColumn(ISchema schema, int i, uint scoreSet, bool outputNamesAndLabels)
+        private bool ShouldAddColumn(Schema schema, int i, uint scoreSet, bool outputNamesAndLabels)
         {
             uint scoreSetId = 0;
             if (schema.TryGetMetadata(MetadataUtils.ScoreColumnSetIdType.AsPrimitive, MetadataUtils.Kinds.ScoreColumnSetId, i, ref scoreSetId)

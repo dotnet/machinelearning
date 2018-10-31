@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         /// Start with a dataset in a text file. Run text featurization on text values. 
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
-        /// (e.g., the prediction does not happen over a file as it did during training).
+        /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
         void SimpleTrainAndPredict()
@@ -25,7 +25,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
+            var loader = new TextLoader(dataPath).CreateFrom<SentimentData>();
+            loader.Arguments.HasHeader = true;
+            pipeline.Add(loader);
 
             pipeline.Add(MakeSentimentTextTransform());
 
@@ -41,12 +43,10 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         {
             return new TextFeaturizer("Features", "SentimentText")
             {
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
-                VectorNormalizer = TextTransformTextNormKind.L2,
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
             };

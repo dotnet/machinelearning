@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
                 return sb.ToString();
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public override void Dispose()
             {
@@ -849,9 +849,7 @@ namespace Microsoft.ML.Runtime.Data
                     // column types are cachable.
                     using (var ch = provider.Start("Consolidator"))
                     {
-                        var result = DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
-                        ch.Done();
-                        return result;
+                        return DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
                     }
                 }
             }

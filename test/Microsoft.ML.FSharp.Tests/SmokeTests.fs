@@ -8,7 +8,7 @@
 // manually in script form (to help debug it and also check that F# scripting works with ML.NET).
 // Running as a script requires using F# Interactive on Windows, and the explicit references below.  
 // The references would normally be created by a package loader for the scripting 
-// environment, e.g. see https://github.com/isaacabraham/ml-test-experiment/, but 
+// environment, for example, see https://github.com/isaacabraham/ml-test-experiment/, but 
 // here we list them explicitly to avoid the dependency on a package loader,
 //
 // You should build Microsoft.ML.FSharp.Tests in Debug mode for framework net461 
@@ -79,8 +79,8 @@ module SmokeTest1 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
-              typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -102,11 +102,9 @@ module SmokeTest1 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -148,8 +146,8 @@ module SmokeTest2 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
-              typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -171,11 +169,9 @@ module SmokeTest2 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -214,8 +210,8 @@ module SmokeTest3 =
 
         // See https://github.com/dotnet/machinelearning/issues/401: forces the loading of ML.NET component assemblies
         let _load  =
-            [ typeof<Microsoft.ML.Runtime.Transforms.TextAnalytics>; 
-              typeof<Microsoft.ML.Runtime.FastTree.FastTree> ]
+            [ typeof<Microsoft.ML.Transforms.Text.TextNormalizingEstimator>; 
+              typeof<Microsoft.ML.Trainers.FastTree.FastTree> ]
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
@@ -237,11 +233,9 @@ module SmokeTest3 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(

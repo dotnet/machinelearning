@@ -45,10 +45,10 @@ namespace Microsoft.ML.Tests
                     }
                 }, new MultiFileSource(dataFile));
 
-                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
-                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
-                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
-                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
+                var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizingEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractingEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscalingEstimator(env, ("ImageReal", "ImageGray")));
 
                 TestEstimatorCore(pipe, data, null, invalidData);
             }
@@ -71,10 +71,10 @@ namespace Microsoft.ML.Tests
                     }
                 }, new MultiFileSource(dataFile));
 
-                var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
-                    .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
-                    .Append(new ImagePixelExtractorEstimator(env, "ImageReal", "ImagePixels"))
-                    .Append(new ImageGrayscaleEstimator(env, ("ImageReal", "ImageGray")));
+                var pipe = new ImageLoadingEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizingEstimator(env, "ImageReal", "ImageReal", 100, 100))
+                    .Append(new ImagePixelExtractingEstimator(env, "ImageReal", "ImagePixels"))
+                    .Append(new ImageGrayscalingEstimator(env, ("ImageReal", "ImageGray")));
 
                 pipe.GetOutputSchema(Core.Data.SchemaShape.Create(data.Schema));
                 var model = pipe.Fit(data);

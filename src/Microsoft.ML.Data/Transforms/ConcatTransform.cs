@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -34,9 +35,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class ConcatTransform : ITransformer, ICanSaveModel
     {
-        public const string Summary = "Concatenates one or more columns of the same item type.";
-        public const string UserName = "Concat Transform";
-        public const string LoadName = "Concat";
+        internal const string Summary = "Concatenates one or more columns of the same item type.";
+        internal const string UserName = "Concat Transform";
+        internal const string LoadName = "Concat";
 
         internal const string LoaderSignature = "ConcatTransform";
         internal const string LoaderSignatureOld = "ConcatFunction";
@@ -240,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
                 //verWrittenCur: 0x00010001, // Initial
                 //verWrittenCur: 0x00010002, // Added aliases
                 verWrittenCur: 0x00010003, // Converted to transformer
-                verReadableCur: 0x00010002,
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
@@ -248,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private const int VersionAddedAliases = 0x00010002;
-        private const int VersionTransformer = 0x00010002;
+        private const int VersionTransformer = 0x00010003;
 
         public void Save(ModelSaveContext ctx)
         {
@@ -295,6 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         private ColumnInfo[] LoadLegacy(ModelLoadContext ctx)
         {
             // *** Legacy binary format ***
+            // int: sizeof(Float).
             // int: number of added columns
             // for each added column
             //   int: id of output column name
@@ -306,6 +308,9 @@ namespace Microsoft.ML.Runtime.Data
             //          int: index of the alias
             //          int: string id of the alias
             //      int: -1, marks the end of the list
+
+            var sizeofFloat = ctx.Reader.ReadInt32();
+            Contracts.CheckDecode(sizeofFloat == sizeof(float));
 
             int n = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(n > 0);
@@ -384,7 +389,7 @@ namespace Microsoft.ML.Runtime.Data
                 env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
 
             var cols = args.Column
-                .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key))))
+                .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key != "" ? kvp.Key : null))))
                 .ToArray();
             var transformer = new ConcatTransform(env, cols);
             return transformer.MakeDataTransform(input);
@@ -395,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
         private IDataTransform MakeDataTransform(IDataView input)
             => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
 
-        public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, inputSchema);
+        public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, Schema.Create(inputSchema));
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
@@ -409,16 +414,16 @@ namespace Microsoft.ML.Runtime.Data
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => new ConcatTransform(env, ctx).MakeRowMapper(inputSchema);
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
-            return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
@@ -427,14 +432,14 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly IHost _host;
-            private readonly ISchema _inputSchema;
+            private readonly Schema _inputSchema;
             private readonly ConcatTransform _parent;
             private readonly BoundColumn[] _columns;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(ConcatTransform parent, ISchema inputSchema)
+            public Mapper(ConcatTransform parent, Schema inputSchema)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(inputSchema);
@@ -449,7 +454,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private BoundColumn MakeColumn(ISchema inputSchema, int iinfo)
+            private BoundColumn MakeColumn(Schema inputSchema, int iinfo)
             {
                 Contracts.AssertValue(inputSchema);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -543,20 +548,20 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly ColumnType _slotNamesType;
                 private readonly ColumnType _categoricalRangeType;
 
-                private readonly ISchema _inputSchema;
+                private readonly Schema _inputSchema;
 
-                public BoundColumn(ISchema inputSchema, ColumnInfo columnInfo, int[] sources, ColumnType outputType,
+                public BoundColumn(Schema inputSchema, ColumnInfo columnInfo, int[] sources, ColumnType outputType,
                     bool isNormalized, bool hasSlotNames, bool hasCategoricals, int slotCount, int catCount)
                 {
                     _columnInfo = columnInfo;
                     SrcIndices = sources;
-                    _srcTypes = sources.Select(c => inputSchema.GetColumnType(c)).ToArray();
+                    _srcTypes = sources.Select(c => inputSchema[c].Type).ToArray();
 
                     OutputType = outputType;
 
                     _inputSchema = inputSchema;
 
-                    _isIdentity = SrcIndices.Length == 1 && _inputSchema.GetColumnType(SrcIndices[0]).IsVector;
+                    _isIdentity = SrcIndices.Length == 1 && _inputSchema[SrcIndices[0]].Type.IsVector;
                     _isNormalized = isNormalized;
 
                     _hasSlotNames = hasSlotNames;
@@ -568,25 +573,28 @@ namespace Microsoft.ML.Runtime.Data
                         _categoricalRangeType = MetadataUtils.GetCategoricalType(catCount / 2);
                 }
 
-                public RowMapperColumnInfo MakeColumnInfo()
+                public Schema.Column MakeColumnInfo()
                 {
                     if (_isIdentity)
-                        return new RowMapperColumnInfo(_columnInfo.Output, OutputType, RowColumnUtils.GetMetadataAsRow(_inputSchema, SrcIndices[0], x => true));
+                    {
+                        var inputCol = _inputSchema[SrcIndices[0]];
+                        return new Schema.Column(_columnInfo.Output, inputCol.Type, inputCol.Metadata);
+                    }
 
-                    var metadata = new ColumnMetadataInfo(_columnInfo.Output);
+                    var metadata = new Schema.Metadata.Builder();
                     if (_isNormalized)
-                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, GetIsNormalized));
+                        metadata.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)GetIsNormalized);
                     if (_hasSlotNames)
-                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(_slotNamesType, GetSlotNames));
+                        metadata.AddSlotNames(_slotNamesType.VectorSize, GetSlotNames);
                     if (_hasCategoricals)
-                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<int>>(_categoricalRangeType, GetCategoricalSlotRanges));
+                        metadata.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, null), (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new RowMapperColumnInfo(_columnInfo.Output, OutputType, metadata);
+                    return new Schema.Column(_columnInfo.Output, OutputType, metadata.GetMetadata());
                 }
 
-                private void GetIsNormalized(int col, ref bool value) => value = _isNormalized;
+                private void GetIsNormalized(ref bool value) => value = _isNormalized;
 
-                private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<int> dst)
+                private void GetCategoricalSlotRanges(ref VBuffer<int> dst)
                 {
                     List<int> allValues = new List<int>();
                     int slotCount = 0;
@@ -612,7 +620,7 @@ namespace Microsoft.ML.Runtime.Data
                     dst = new VBuffer<int>(allValues.Count, allValues.ToArray());
                 }
 
-                private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
+                private void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(!_isIdentity);
                     Contracts.Assert(OutputType.VectorSize > 0);
@@ -631,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data
                         int colSrc = SrcIndices[i];
                         var typeSrc = _srcTypes[i];
                         Contracts.Assert(_columnInfo.Inputs[i].alias != "");
-                        var colName = _inputSchema.GetColumnName(colSrc);
+                        var colName = _inputSchema[colSrc].Name;
                         var nameSrc = _columnInfo.Inputs[i].alias ?? colName;
                         if (!typeSrc.IsVector)
                         {
@@ -640,10 +648,15 @@ namespace Microsoft.ML.Runtime.Data
                         }
 
                         Contracts.Assert(typeSrc.IsKnownSizeVector);
-                        var typeNames = _inputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, colSrc);
+                        ColumnType typeNames = null;
+
+                        var inputMetadata = _inputSchema[colSrc].Metadata;
+                        if (inputMetadata != null && inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.SlotNames, out int idx))
+                            typeNames = inputMetadata.Schema[idx].Type;
+
                         if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType.IsText)
                         {
-                            _inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, colSrc, ref names);
+                            inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref names);
                             sb.Clear();
                             if (_columnInfo.Inputs[i].alias != colName)
                                 sb.Append(nameSrc).Append(".");
@@ -861,14 +874,18 @@ namespace Microsoft.ML.Runtime.Data
                 return col => active[col];
             }
 
-            public RowMapperColumnInfo[] GetOutputColumns()
-                => _columns.Select(x => x.MakeColumnInfo()).ToArray();
+            public Schema.Column[] GetOutputColumns() => _columns.Select(x => x.MakeColumnInfo()).ToArray();
 
             public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                Contracts.Assert(input.Schema == _inputSchema);
+                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
+                // of the input row.
+                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
+                // is no longer always possible. So, we relax the assert as below.
+                if (input.Schema is Schema s)
+                    Contracts.Assert(s == _inputSchema);
                 var result = new Delegate[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
@@ -902,7 +919,7 @@ namespace Microsoft.ML.Runtime.Data
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
-                Contracts.Assert(CanSaveOnnx);
+                Contracts.Assert(CanSaveOnnx(ctx));
 
                 string opType = "FeatureVectorizer";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
@@ -930,7 +947,7 @@ namespace Microsoft.ML.Runtime.Data
 
                         var srcIndex = boundCol.SrcIndices[i];
                         inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
-                            _inputSchema.GetColumnType(srcIndex).ValueCount));
+                            _inputSchema[srcIndex].Type.ValueCount));
                     }
 
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),

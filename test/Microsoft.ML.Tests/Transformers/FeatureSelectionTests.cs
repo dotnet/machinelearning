@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,12 +27,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words")
                 .Append(new CountFeatureSelector(Env, "bag_of_words", "bag_of_words_count", 10)
@@ -41,8 +42,8 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "bag_of_words_count", "bag_of_words_mi");
+                    IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                    savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "bag_of_words_count", "bag_of_words_mi");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

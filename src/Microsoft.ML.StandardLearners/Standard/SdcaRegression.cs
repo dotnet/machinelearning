@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
@@ -22,10 +23,10 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     SdcaRegressionTrainer.LoadNameValue,
     SdcaRegressionTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
+    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
         internal const string LoadNameValue = "SDCAR";
         internal const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
@@ -48,20 +49,50 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private readonly ISupportSdcaRegressionLoss _loss;
-        private readonly Arguments _args;
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        /// <summary>
+        /// Initializes a new instance of <see cref="SdcaRegressionTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="labelColumn">The label, or dependent variable.</param>
+        /// <param name="loss">The custom loss.</param>
+        /// <param name="weightColumn">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
+        public SdcaRegressionTrainer(IHostEnvironment env,
+            string featureColumn,
+            string labelColumn,
+            string weightColumn = null,
+            ISupportSdcaRegressionLoss loss = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null,
+            Action<Arguments> advancedSettings = null)
+             : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
+                  l2Const, l1Threshold, maxIterations)
+        {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            _loss = loss ?? Args.LossFunction.CreateComponent(env);
+            Loss = _loss;
+        }
+
+        internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
 
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
-            _args = args;
         }
 
         internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
@@ -132,7 +163,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)
+        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 

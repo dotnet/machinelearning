@@ -28,12 +28,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// However, since the transform can be persisted across machines, it is generally considered more
         /// safe for users to simply always make their input paths absolute.</param>
         /// <returns>The loaded images</returns>
-        /// <seealso cref="ImageLoaderEstimator"/>
-        public static Scalar<UnknownSizeBitmap> LoadAsImage(this Scalar<string> path, string relativeTo = null)
+        /// <seealso cref="ImageLoadingEstimator"/>
+        public static Custom<UnknownSizeBitmap> LoadAsImage(this Scalar<string> path, string relativeTo = null)
         {
             Contracts.CheckValue(path, nameof(path));
             Contracts.CheckValueOrNull(relativeTo);
-            return new ImageLoaderEstimator.OutPipelineColumn(path, relativeTo);
+            return new ImageLoadingEstimator.OutPipelineColumn(path, relativeTo);
         }
 
         /// <summary>
@@ -41,11 +41,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// </summary>
         /// <param name="input">The image to convert</param>
         /// <returns>The grayscale images</returns>
-        /// <seealso cref="ImageGrayscaleEstimator"/>
-        public static Scalar<UnknownSizeBitmap> AsGrayscale(this Scalar<UnknownSizeBitmap> input)
+        /// <seealso cref="ImageGrayscalingEstimator"/>
+        public static Custom<UnknownSizeBitmap> AsGrayscale(this Custom<UnknownSizeBitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImageGrayscaleEstimator.OutPipelineColumn<UnknownSizeBitmap>(input);
+            return new ImageGrayscalingEstimator.OutPipelineColumn<UnknownSizeBitmap>(input);
         }
 
         /// <summary>
@@ -53,11 +53,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// </summary>
         /// <param name="input">The image to convert</param>
         /// <returns>The grayscale images</returns>
-        /// <seealso cref="ImageGrayscaleEstimator"/>
-        public static Scalar<Bitmap> AsGrayscale(this Scalar<Bitmap> input)
+        /// <seealso cref="ImageGrayscalingEstimator"/>
+        public static Custom<Bitmap> AsGrayscale(this Custom<Bitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImageGrayscaleEstimator.OutPipelineColumn<Bitmap>(input);
+            return new ImageGrayscalingEstimator.OutPipelineColumn<Bitmap>(input);
         }
 
         /// <summary>
@@ -69,8 +69,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="resizing">The type of resizing to do</param>
         /// <param name="cropAnchor">If cropping is necessary, at what position will the image be fixed?</param>
         /// <returns>The now uniformly sized images</returns>
-        /// <seealso cref="ImageResizerEstimator"/>
-        public static Scalar<Bitmap> Resize(this Scalar<UnknownSizeBitmap> input, int width, int height,
+        /// <seealso cref="ImageResizingEstimator"/>
+        public static Custom<Bitmap> Resize(this Custom<UnknownSizeBitmap> input, int width, int height,
             ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
             ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
         {
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
-            return new ImageResizerEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
+            return new ImageResizingEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
 
         /// <summary>
@@ -92,8 +92,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="resizing">The type of resizing to do</param>
         /// <param name="cropAnchor">If cropping is necessary, at what </param>
         /// <returns>The resized images</returns>
-        /// <seealso cref="ImageResizerEstimator"/>
-        public static Scalar<Bitmap> Resize(this Scalar<Bitmap> input, int width, int height,
+        /// <seealso cref="ImageResizingEstimator"/>
+        public static Custom<Bitmap> Resize(this Custom<Bitmap> input, int width, int height,
             ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
             ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
         {
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.ResizingKind), resizing), nameof(resizing), "Undefined value detected");
             Contracts.CheckParam(Enum.IsDefined(typeof(ImageResizerTransform.Anchor), cropAnchor), nameof(cropAnchor), "Undefined value detected");
 
-            return new ImageResizerEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
+            return new ImageResizingEstimator.OutPipelineColumn(input, width, height, resizing, cropAnchor);
         }
 
         /// <summary>
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="scale">Scale the normally 0 through 255 pixel values by this amount</param>
         /// <param name="offset">Add this amount to the pixel values, before scaling</param>
         /// <returns>The vectorized image</returns>
-        /// <seealso cref="ImagePixelExtractorEstimator"/>
-        public static Vector<float> ExtractPixels(this Scalar<Bitmap> input, bool useAlpha = false, bool useRed = true,
+        /// <seealso cref="ImagePixelExtractingEstimator"/>
+        public static Vector<float> ExtractPixels(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false, float scale = 1.0f, float offset = 0.0f)
         {
             var colParams = new ImagePixelExtractorTransform.Column
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 Offset = offset,
                 Convert = true
             };
-            return new ImagePixelExtractorEstimator.OutPipelineColumn<float>(input, colParams);
+            return new ImagePixelExtractingEstimator.OutPipelineColumn<float>(input, colParams);
         }
 
         /// <summary>
@@ -150,8 +150,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="useBlue">Whether the blue channel should be extracted</param>
         /// <param name="interleaveArgb">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
         /// <returns>The vectorized image</returns>
-        /// <seealso cref="ImagePixelExtractorEstimator"/>
-        public static Vector<byte> ExtractPixelsAsBytes(this Scalar<Bitmap> input, bool useAlpha = false, bool useRed = true,
+        /// <seealso cref="ImagePixelExtractingEstimator"/>
+        public static Vector<byte> ExtractPixelsAsBytes(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false)
         {
             var colParams = new ImagePixelExtractorTransform.Column
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 InterleaveArgb = interleaveArgb,
                 Convert = false
             };
-            return new ImagePixelExtractorEstimator.OutPipelineColumn<byte>(input, colParams);
+            return new ImagePixelExtractingEstimator.OutPipelineColumn<byte>(input, colParams);
         }
     }
 }

@@ -2,22 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Pfa;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Newtonsoft.Json.Linq;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class RegressionTree
     {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public int[][] CategoricalSplitFeatures;
         /// <summary>
         /// For a given categorical feature that is chosen as a split feature for a node, this
-        /// array contains it's start and end range in the input feature vector at prediction time.
+        /// array contains its start and end range in the input feature vector at prediction time.
         /// </summary>
         public int[][] CategoricalSplitFeatureRanges;
         // These are the thresholds based on the binned values of the raw features.

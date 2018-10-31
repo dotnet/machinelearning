@@ -2,15 +2,11 @@ project (CpuMathNative)
 
 set(SOURCES
     Sse.cpp
-    Avx.cpp
     MathLinux.S
 )
 
-if(WIN32)
-    set_property(SOURCE Avx.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " /arch:AVX")
-else()
+if(NOT WIN32)
     set_property(SOURCE Sse.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse3")
-    set_property(SOURCE Avx.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -mavx")
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 endif()
 

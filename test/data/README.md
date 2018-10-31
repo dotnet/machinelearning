@@ -65,6 +65,29 @@ The dataset is under a CC-by 4.0 license.
 }
 ```
 
+### Boston Housing Data
+
+Redistributing the dataset "[housing.txt](housing.txt)" with attribution:
+
+ > Harrison, D. and Rubinfeld, D.L. 'Hedonic prices and the demand for clean air', J. Environ. Economics & Management, vol.5, 81-102, 1978.
+
+More information: https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.names
+
+### Air Quality
+
+This dataset is from the R documentation: [New York Air Quality Measurements]https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/airquality.html
+The data were obtained from the New York State Department of Conservation (ozone data) and the National Weather Service (meteorological data). 
+References: Chambers, J. M., Cleveland, W. S., Kleiner, B. and Tukey, P. A. (1983) Graphical Methods for Data Analysis. Belmont, CA: Wadsworth. 
+
+The dataset is distributed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+
+### Infertility 
+
+This dataset is from the R documentation: [Infertility after Spontaneous and Induced Abortion]https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/infert.html
+Original source: Trichopoulos et al (1976) Br. J. of Obst. and Gynaec. 83, 645–650. 
+
+The dataset is distributed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+
 # Images
 
 ### Located in `images` folder

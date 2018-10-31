@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -14,6 +9,12 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
@@ -55,7 +56,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for stratification", ShortName = "strat", SortOrder = 7)]
             public string StratificationColumn;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of folds in k-fold cross-validation", ShortName = "k")]
@@ -129,8 +130,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     RunCore(ch, cmd);
                 }
-
-                ch.Done();
             }
         }
 
@@ -330,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
                     int inc = 0;
                     while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    output = new HashEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
+                    output = new HashingEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
                 }
             }
 
@@ -358,11 +357,11 @@ namespace Microsoft.ML.Runtime.Data
             public struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
-                public readonly ISchema ScoreSchema;
+                public readonly Schema ScoreSchema;
                 public readonly RoleMappedData PerInstanceResults;
                 public readonly RoleMappedSchema TrainSchema;
 
-                public FoldResult(Dictionary<string, IDataView> metrics, ISchema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
+                public FoldResult(Dictionary<string, IDataView> metrics, Schema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
                 {
                     Metrics = metrics;
                     ScoreSchema = scoreSchema;
@@ -589,7 +588,6 @@ namespace Microsoft.ML.Runtime.Data
                         var perInst = eval.GetPerInstanceMetrics(dataEval);
                         perInstance = new RoleMappedData(perInst, dataEval.Schema.GetColumnRoleNames(), opt: true);
                     }
-                    ch.Done();
                     return new FoldResult(dict, dataEval.Schema.Schema, perInstance, trainData.Schema);
                 }
             }

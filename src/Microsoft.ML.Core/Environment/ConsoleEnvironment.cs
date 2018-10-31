@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public void ChannelFinished(Channel channel)
+            public void ChannelDisposed(Channel channel)
             {
                 if (!channel.Verbose)
                     return;
@@ -150,22 +150,7 @@ namespace Microsoft.ML.Runtime.Data
                     WriteAndReturnLinePrefix(MessageSensitivity.None, _out);
                     WriteHeader(_out, channel);
                     _out.WriteLine("Finished.");
-                }
-            }
-
-            public void ChannelDisposed(Channel channel, bool active)
-            {
-                if (!channel.Verbose)
-                    return;
-
-                lock (_lock)
-                {
                     EnsureNewLine();
-                    if (active)
-                    {
-                        PrintMessage(channel,
-                            new ChannelMessage(ChannelMessageKind.Error, MessageSensitivity.None, "The channel was not properly closed."));
-                    }
                     WriteAndReturnLinePrefix(MessageSensitivity.None, _out);
                     WriteHeader(_out, channel);
                     _out.WriteLine("Elapsed {0:c}.", channel.Watch.Elapsed);
@@ -339,19 +324,15 @@ namespace Microsoft.ML.Runtime.Data
                 Root._consoleWriter.ChannelStarted(this);
             }
 
-            public override void Done()
+            protected override void Dispose(bool disposing)
             {
-                Watch.Stop();
-                Root._consoleWriter.ChannelFinished(this);
-                base.Done();
-            }
-
-            protected override void DisposeCore()
-            {
-                if (IsActive)
+                if(disposing)
+                {
                     Watch.Stop();
-                Root._consoleWriter.ChannelDisposed(this, IsActive);
-                base.DisposeCore();
+                    Root._consoleWriter.ChannelDisposed(this);
+                }
+
+                base.Dispose(disposing);
             }
         }
 
@@ -451,6 +432,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(newOutWriter, nameof(newOutWriter));
             Contracts.CheckValue(newErrWriter, nameof(newErrWriter));
             return new OutputRedirector(this, newOutWriter, newErrWriter);
+        }
+
+        internal void ResetProgressChannel()
+        {
+            ProgressTracker.Reset();
         }
 
         private sealed class OutputRedirector : IDisposable

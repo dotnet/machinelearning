@@ -310,13 +310,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private ISchema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
 
-            var columnNameTypes = cols.Select((col) => new KeyValuePair<string, ColumnType>(col.Name, col.ColType));
-            return new SimpleSchema(ectx, columnNameTypes.ToArray());
+            return new Schema(cols.Select(c => new Schema.Column(c.Name, c.ColType, null)));
         }
 
         /// <summary>
@@ -383,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -585,7 +584,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public ISchema Schema => _loader.Schema;
+            public Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 

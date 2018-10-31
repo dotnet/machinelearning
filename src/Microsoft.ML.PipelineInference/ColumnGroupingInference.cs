@@ -96,8 +96,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         ch.Info("Grouped data from columns '{0}' into vector column '{1}'.", range, name);
                     result.Add(new GroupingColumn(name, g.Key.ItemType.RawKind, g.Key.Purpose, range));
                 }
-
-                ch.Done();
             }
 
             return new InferenceResult(result.ToArray());

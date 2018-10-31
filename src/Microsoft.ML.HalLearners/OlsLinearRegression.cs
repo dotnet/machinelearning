@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.HalLearners;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.HalLearners
+namespace Microsoft.ML.Trainers.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionPredictor>, OlsLinearRegressionPredictor>
@@ -76,8 +76,6 @@ namespace Microsoft.ML.Runtime.HalLearners
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
         }
 
         /// <summary>
@@ -85,7 +83,7 @@ namespace Microsoft.ML.Runtime.HalLearners
         /// </summary>
         internal OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+                  TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "L2 regularization term cannot be negative");
@@ -106,7 +104,7 @@ namespace Microsoft.ML.Runtime.HalLearners
             return args;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionPredictor> MakeTransformer(OlsLinearRegressionPredictor model, ISchema trainSchema)
+        protected override RegressionPredictionTransformer<OlsLinearRegressionPredictor> MakeTransformer(OlsLinearRegressionPredictor model, Schema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -150,9 +148,7 @@ namespace Microsoft.ML.Runtime.HalLearners
 
                 var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
 
-                var pred = TrainCore(ch, cursorFactory, typeFeat.VectorSize);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, cursorFactory, typeFeat.VectorSize);
             }
         }
 

@@ -2,27 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 [assembly: LoadableClass(CountFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(CountFeatureSelectionTransform), typeof(CountFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
     CountFeatureSelectionTransform.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public static class CountFeatureSelectionTransform
     {
-        public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
-        public const string UserName = "Count Feature Selection Transform";
+        internal const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
+        internal const string UserName = "Count Feature Selection Transform";
 
         internal static class Defaults
         {
@@ -91,7 +91,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                ch.Done();
                 return new DropSlotsTransform(host, dsArgs, input);
             }
         }
@@ -213,7 +212,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static CountAggregator GetOneAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
@@ -226,7 +224,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static CountAggregator GetVecAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -238,12 +235,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private sealed class CountAggregator<T> : CountAggregator, IColumnAggregator<VBuffer<T>>
-            where T : IEquatable<T>
         {
             private readonly long[] _count;
             private readonly Action _fillBuffer;
-            private readonly RefPredicate<T> _isDefault;
-            private readonly RefPredicate<T> _isMissing;
+            private readonly InPredicate<T> _isDefault;
+            private readonly InPredicate<T> _isMissing;
             private VBuffer<T> _buffer;
 
             public CountAggregator(ColumnType type, ValueGetter<T> getter)
@@ -258,8 +254,9 @@ namespace Microsoft.ML.Runtime.Data
                         getter(ref t);
                         _buffer.Values[0] = t;
                     };
-                _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type);
+                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
             public CountAggregator(ColumnType type, ValueGetter<VBuffer<T>> getter)
@@ -268,8 +265,9 @@ namespace Microsoft.ML.Runtime.Data
                 var size = type.ValueCount;
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
-                _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
             public override long[] Count
@@ -291,7 +289,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var kvp in value.Items())
                 {
                     var val = kvp.Value;
-                    if (!_isDefault(ref val) && !_isMissing(ref val))
+                    if (!_isDefault(in val) && !_isMissing(in val))
                         _count[kvp.Key]++;
                 }
             }

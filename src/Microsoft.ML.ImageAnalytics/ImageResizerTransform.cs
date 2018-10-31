@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -297,14 +297,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             private readonly ImageResizerTransform _parent;
 
-            public Mapper(ImageResizerTransform parent, ISchema inputSchema)
+            public Mapper(ImageResizerTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent._columns.Select(x => new RowMapperColumnInfo(x.Output, x.Type, null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent._columns.Select(x => new Schema.Column(x.Output, x.Type, null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -426,21 +426,21 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImageResizerEstimator : TrivialEstimator<ImageResizerTransform>
+    public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizerTransform>
     {
-        public ImageResizerEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        public ImageResizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int imageWidth, int imageHeight, ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop, ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
             : this(env, new ImageResizerTransform(env, inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
         {
         }
 
-        public ImageResizerEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
+        public ImageResizingEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
             : this(env, new ImageResizerTransform(env, columns))
         {
         }
 
-        public ImageResizerEstimator(IHostEnvironment env, ImageResizerTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizerEstimator)), transformer)
+        public ImageResizingEstimator(IHostEnvironment env, ImageResizerTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizingEstimator)), transformer)
         {
         }
 
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new SchemaShape(result.Values);
         }
 
-        internal sealed class OutPipelineColumn : Scalar<Bitmap>
+        internal sealed class OutPipelineColumn : Custom<Bitmap>
         {
             private readonly PipelineColumn _input;
             private readonly int _width;
@@ -487,8 +487,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             /// <summary>
             /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
             /// </summary>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
             private sealed class Reconciler : EstimatorReconciler
             {
                 public static Reconciler Inst = new Reconciler();
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         var outCol = (OutPipelineColumn)toOutput[i];
                         cols[i] = outCol.MakeColumnInfo(inputNames[outCol._input], outputNames[outCol]);
                     }
-                    return new ImageResizerEstimator(env, cols);
+                    return new ImageResizingEstimator(env, cols);
                 }
             }
         }

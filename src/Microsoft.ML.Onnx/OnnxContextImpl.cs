@@ -18,6 +18,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
+        private readonly List<TensorProto> _initializers;
         private readonly List<OnnxUtils.ModelArgs> _intermediateValues;
         private readonly List<OnnxUtils.ModelArgs> _outputs;
         private readonly Dictionary<string, string> _columnNameMap;
@@ -31,9 +32,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly string _domain;
         private readonly string _producerVersion;
         private readonly long _modelVersion;
+        private readonly OnnxVersion _onnxVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -43,6 +45,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _nodes = new List<NodeProto>();
             _intermediateValues = new List<OnnxUtils.ModelArgs>();
             _inputs = new List<OnnxUtils.ModelArgs>();
+            _initializers = new List<TensorProto>();
             _outputs = new List<OnnxUtils.ModelArgs>();
             _columnNameMap = new Dictionary<string, string>();
             _variableNames = new HashSet<string>();
@@ -52,9 +55,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _producerVersion = producerVersion;
             _modelVersion = modelVersion;
             _domain = domain;
+            _onnxVersion = onnxVersion;
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
+
+        public override bool IsVariableDefined(string variableName) => _variableNames.Contains(variableName);
 
         /// <summary>
         /// Stops tracking a column. If removeVariable is true then it also removes the
@@ -196,7 +202,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="colName">IDataView column name.</param>
         /// <returns>Unique variable name.</returns>
-        private string AddVariable(string colName)
+        public string AddVariable(string colName)
         {
             _host.CheckNonEmpty(colName, nameof(colName));
             _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);
@@ -222,16 +228,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <summary>
         /// Adds an output variable to the list.
         /// </summary>
-        public string AddOutputVariable(ColumnType type, string colName, List<long> dim = null)
+        public void AddOutputVariable(ColumnType type, string variableName, List<long> dim = null)
         {
             _host.CheckValue(type, nameof(type));
-
-            if (!ContainsColumn(colName))
-                AddVariable(colName);
-
-            colName = GetVariableName(colName);
-            _outputs.Add(OnnxUtils.GetModelArgs(type, colName, dim));
-            return colName;
+            _host.CheckParam(IsVariableDefined(variableName), nameof(variableName));
+            _outputs.Add(OnnxUtils.GetModelArgs(type, variableName, dim));
         }
 
         /// <summary>
@@ -247,9 +248,92 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
+        /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
+        /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public override List<long> RetrieveShapeOrNull(string variableName)
+        {
+            foreach (var arg in _inputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _intermediateValues)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _outputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            return null;
+        }
+
+        /// Adds constant tensor into the graph.
+        public override string AddInitializer(float value, string name = null)
+        {
+            name = AddVariable(name ?? "float");
+            _initializers.Add(OnnxUtils.MakeFloat(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(string value, string name = null)
+        {
+            name = AddVariable(name ?? "string");
+            _initializers.Add(OnnxUtils.MakeString(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(long value, string name = null)
+        {
+            name = AddVariable(name ?? "int64");
+            _initializers.Add(OnnxUtils.MakeInt64(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "floats");
+            _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "int64s");
+            _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "strings");
+            _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
+            return name;
+        }
+
+        /// <summary>
         /// Makes the ONNX model based on the context.
         /// </summary>
         public ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
+
+        /// <summary>
+        /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are
+        /// not officially supported in the official ONNX standard. Otherwise, only official ONNX features should be used.
+        /// </summary>
+        public override OnnxVersion GetOnnxVersion() => _onnxVersion;
     }
 }

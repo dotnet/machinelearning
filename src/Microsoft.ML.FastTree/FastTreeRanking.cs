@@ -6,8 +6,8 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -38,7 +38,7 @@ using System.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(FastTree), null, typeof(SignatureEntryPointModule), "FastTree")]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer
@@ -67,13 +67,23 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeRankingTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string groupIdColumn,
-            string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
+        public FastTreeRankingTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string groupIdColumn,
+            string weightColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
         }
 
@@ -81,7 +91,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         internal FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
-                : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
+        : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }
 
@@ -102,7 +112,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 ConvertData(trainData);
                 TrainCore(ch);
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
-                ch.Done();
             }
             return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
@@ -432,7 +441,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return headerBuilder.ToString();
         }
 
-        protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, ISchema trainSchema)
+        protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, Schema trainSchema)
         => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

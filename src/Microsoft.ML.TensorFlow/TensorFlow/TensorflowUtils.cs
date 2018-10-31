@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public const string OpType = "OpType";
         public const string InputOps = "InputOps";
 
-        private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
+        internal static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
             var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
@@ -29,6 +28,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             var inputOpsLengths = new List<int>();
             foreach (var op in graph)
             {
+                if (opType != null && opType != op.OpType)
+                    continue;
                 var tfType = op[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
 
@@ -55,12 +56,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 }
                 inputOpsGetters.Add(inputOpsGetter);
 
-                var opType = op.OpType;
                 MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> opTypeGetter =
-                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
+                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(op.OpType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
-                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] == -1 ? new VectorType(mlType) :
+                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0 ? new VectorType(mlType) :
                     Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                         new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                         : new VectorType(mlType);
@@ -69,6 +69,17 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
         }
 
+        /// <summary>
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="ISchema"/>.
+        /// For every node in the graph that has an output type that is compatible with the types supported by
+        /// <see cref="TensorFlowTransform"/>, the output schema contains a column with the name of that node, and the
+        /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
+        /// of kind <see cref="OpType"/>, indicating the operation type of the node, and if that node has inputs in the graph,
+        /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.
+        /// </summary>
+        /// <param name="ectx">An <see cref="IExceptionContext"/>.</param>
+        /// <param name="modelFile">The name of the file containing the TensorFlow model. Currently only frozen model
+        /// format is supported.</param>
         public static ISchema GetModelSchema(IExceptionContext ectx, string modelFile)
         {
             var bytes = File.ReadAllBytes(modelFile);
@@ -76,6 +87,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return GetModelSchema(ectx, session.Graph);
         }
 
+        /// <summary>
+        /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
+        /// iterates over the columns of the <see cref="ISchema"/> returned by <see cref="GetModelSchema(IExceptionContext, string)"/>,
+        /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
+        /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
+        /// </summary>
+        /// <param name="modelFile"></param>
+        /// <returns></returns>
         public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelFile)
         {
             var schema = GetModelSchema(null, modelFile);
@@ -115,6 +134,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 case TFDataType.Float:
                     return NumberType.R4;
+                case TFDataType.Float_ref:
+                    return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
                 case TFDataType.UInt16:
@@ -125,6 +146,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.U4;
                 case TFDataType.UInt64:
                     return NumberType.U8;
+                case TFDataType.Int16:
+                    return NumberType.I2;
+                case TFDataType.Int32:
+                    return NumberType.I4;
+                case TFDataType.Int64:
+                    return NumberType.I8;
                 default:
                     return null;
             }
@@ -281,6 +308,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
+        public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        {
+            var session = GetSession(env, modelPath);
+            return new TensorFlowModelInfo(env, session, modelPath);
+        }
+
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
         {
             Contracts.Check(env != null, nameof(env));
@@ -317,6 +350,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt16:
                 case TFDataType.UInt32:
                 case TFDataType.UInt64:
+                case TFDataType.Int16:
+                case TFDataType.Int32:
+                case TFDataType.Int64:
                     return true;
                 default:
                     return false;

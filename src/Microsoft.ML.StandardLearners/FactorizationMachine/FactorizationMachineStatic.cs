@@ -7,19 +7,17 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Extension methods and utilities for instantiating FFM trainer estimators inside statically typed pipelines.
     /// </summary>
-    public static class FactorizationMachineStatic
+    public static class FactorizationMachineExtensions
     {
         /// <summary>
         /// Predict a target using a field-aware factorization machine.
@@ -30,10 +28,12 @@ namespace Microsoft.ML.Trainers
         /// <param name="learningRate">Initial learning rate.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         /// <param name="numLatentDimensions">Latent space dimensions.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
-        /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>/// <param name="onFit">A delegate that is called every time the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
@@ -59,10 +59,11 @@ namespace Microsoft.ML.Trainers
                 var trainer = new FieldAwareFactorizationMachineTrainer(env, labelCol, featureCols, advancedSettings:
                     args =>
                     {
-                        advancedSettings?.Invoke(args);
                         args.LearningRate = learningRate;
                         args.Iters = numIterations;
                         args.LatentDim = numLatentDimensions;
+
+                        advancedSettings?.Invoke(args);
                     });
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

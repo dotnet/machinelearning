@@ -41,14 +41,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
-            public ISchema Schema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema Schema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
+                Schema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {

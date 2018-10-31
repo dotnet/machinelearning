@@ -27,13 +27,13 @@ namespace Microsoft.ML.Tests.Scenarios
         {
             
             var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
-            var env = new LocalEnvironment();
+            var env = new MLContext();
             var data = TextLoader.CreateReader(env, ctx => (
                 floatScalar: ctx.LoadFloat(1),
                 floatVector: ctx.LoadFloat(2, 6),
                 stringScalar: ctx.LoadText(4),
                 stringVector: ctx.LoadText(5, 7)
-            )).Read(new MultiFileSource(path));
+            )).Read(path);
 
             Action<Action> mustFail = (Action action) =>
             {
