@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         /// reallocate internal memory buffers on every single prediction, the PredictionEngine
         /// (or its estimator/transformer based successor) is, like most stateful .NET objects,
         /// fundamentally not thread safe. This is deliberate and as designed. However, some mechanism
-        /// to enable multi-threaded scenarios (e.g., a web server servicing requests) should be possible
+        /// to enable multi-threaded scenarios (for example, a web server servicing requests) should be possible
         /// and performant in the new API.
         /// </summary>
         [Fact]
@@ -29,7 +29,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
+            var loader = new TextLoader(dataPath).CreateFrom<SentimentData>();
+            loader.Arguments.HasHeader = true;
+            pipeline.Add(loader);
 
             pipeline.Add(MakeSentimentTextTransform());
 

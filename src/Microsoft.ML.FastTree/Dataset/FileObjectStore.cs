@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if !NO_STORE
     /// <summary>

@@ -399,7 +399,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -418,15 +418,15 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             private readonly ImagePixelExtractorTransform _parent;
             private readonly VectorType[] _types;
 
-            public Mapper(ImagePixelExtractorTransform parent, ISchema inputSchema)
+            public Mapper(ImagePixelExtractorTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _types = ConstructTypes();
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent._columns.Select((x, idx) => new RowMapperColumnInfo(x.Output, _types[idx], null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent._columns.Select((x, idx) => new Schema.Column(x.Output, _types[idx], null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -617,7 +617,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     var column = _parent._columns[i];
                     Contracts.Assert(column.Planes > 0);
 
-                    var type = InputSchema.GetColumnType(ColMapNewToOld[i]) as ImageType;
+                    var type = InputSchema[ColMapNewToOld[i]].Type as ImageType;
                     Contracts.Assert(type != null);
 
                     int height = type.Height;
@@ -636,16 +636,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImagePixelExtractorEstimator : TrivialEstimator<ImagePixelExtractorTransform>
+    public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractorTransform>
     {
-        public ImagePixelExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        public ImagePixelExtractingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
                 ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.ColorBits.Rgb, bool interleave = false)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
         {
         }
 
-        public ImagePixelExtractorEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, columns))
+        public ImagePixelExtractingEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, columns))
         {
         }
 
@@ -669,18 +669,18 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private interface IColInput
         {
-            Scalar<Bitmap> Input { get; }
+            Custom<Bitmap> Input { get; }
 
             ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output);
         }
 
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
         {
-            public Scalar<Bitmap> Input { get; }
+            public Custom<Bitmap> Input { get; }
             private static readonly ImagePixelExtractorTransform.Arguments _defaultArgs = new ImagePixelExtractorTransform.Arguments();
             private readonly ImagePixelExtractorTransform.Column _colParam;
 
-            public OutPipelineColumn(Scalar<Bitmap> input, ImagePixelExtractorTransform.Column col)
+            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractorTransform.Column col)
                 : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
@@ -702,11 +702,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         /// <summary>
-        /// Reconciler to an <see cref="ImagePixelExtractorEstimator"/> for the <see cref="PipelineColumn"/>.
+        /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Scalar{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Scalar{Bitmap}, bool, bool, bool, bool, bool)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             /// <summary>
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     var outCol = (IColInput)toOutput[i];
                     cols[i] = outCol.MakeColumnInfo(inputNames[outCol.Input], outputNames[toOutput[i]]);
                 }
-                return new ImagePixelExtractorEstimator(env, cols);
+                return new ImagePixelExtractingEstimator(env, cols);
             }
         }
     }

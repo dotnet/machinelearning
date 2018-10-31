@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToVectorTransform), null, typeof(SignatureLoadRowMapper),
    KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed class KeyToVectorTransform : OneToOneTransformerBase
     {
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
-            public bool Bag = KeyToVectorEstimator.Defaults.Bag;
+            public bool Bag = KeyToVectorMappingEstimator.Defaults.Bag;
         }
 
         public class ColumnInfo
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string Output;
             public readonly bool Bag;
 
-            public ColumnInfo(string input, string output, bool bag = KeyToVectorEstimator.Defaults.Bag)
+            public ColumnInfo(string input, string output, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
                 Input = input;
                 Output = output;
@@ -172,22 +173,16 @@ namespace Microsoft.ML.Runtime.Data
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
-            return new KeyToVectorTransform(host, ctx);
-        }
-
-        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
-        {
             if (ctx.Header.ModelVerWritten == 0x00010001)
             {
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return ctx;
+            return new KeyToVectorTransform(host, ctx);
         }
 
         private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ReadFloatFromCtx(host, ctx))
+          : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
             // *** Binary format ***
@@ -214,17 +209,14 @@ namespace Microsoft.ML.Runtime.Data
 
             env.CheckValue(args.Column, nameof(args.Column));
             var cols = new ColumnInfo[args.Column.Length];
-            using (var ch = env.Start("ValidateArgs"))
+            for (int i = 0; i < cols.Length; i++)
             {
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    var item = args.Column[i];
+                var item = args.Column[i];
 
-                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
-                        item.Name,
-                        item.Bag ?? args.Bag);
-                };
-            }
+                cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                    item.Name,
+                    item.Bag ?? args.Bag);
+            };
             return new KeyToVectorTransform(env, cols).MakeDataTransform(input);
         }
 
@@ -236,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -258,7 +250,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColInfo[] _infos;
             private readonly VectorType[] _types;
 
-            public Mapper(KeyToVectorTransform parent, ISchema inputSchema)
+            public Mapper(KeyToVectorTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -288,73 +280,75 @@ namespace Microsoft.ML.Runtime.Data
                 return infos;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
-                    AddMetadata(i, colMetaInfo);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                    var builder = new Schema.Metadata.Builder();
+                    AddMetadata(i, builder);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int i, ColumnMetadataInfo colMetaInfo)
+            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
-                InputSchema.TryGetColumnIndex(_infos[i].Source, out int srcCol);
-                var srcType = _infos[i].TypeSrc;
-                var typeNames = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                var inputMetadata = InputSchema[srcCol].Metadata;
+
+                var srcType = _infos[iinfo].TypeSrc;
+
+                ColumnType typeNames = null;
+                int metaKeyValuesCol = 0;
+                if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
+                    typeNames = inputMetadata.Schema[metaKeyValuesCol].Type;
                 if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
-                    typeNames.VectorSize != _infos[i].TypeSrc.ItemType.KeyCount)
+                    typeNames.VectorSize != _infos[iinfo].TypeSrc.ItemType.KeyCount)
                 {
                     typeNames = null;
                 }
-                if (_parent._columns[i].Bag || _infos[i].TypeSrc.ValueCount == 1)
+
+                if (_parent._columns[iinfo].Bag || _infos[iinfo].TypeSrc.ValueCount == 1)
                 {
                     if (typeNames != null)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        {
-                            InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref dst);
-                        };
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(typeNames, getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
+                        var getter = inputMetadata.GetGetter<VBuffer<ReadOnlyMemory<char>>>(metaKeyValuesCol);
+                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
+                        builder.AddSlotNames(slotNamesType.VectorSize, getter);
                     }
                 }
                 else
                 {
-                    if (typeNames != null && _types[i].IsKnownSizeVector)
+                    if (typeNames != null && _types[iinfo].IsKnownSizeVector)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            GetSlotNames(i, ref dst);
+                            GetSlotNames(iinfo, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
+                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
+                        builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, slotNamesType, null), getter);
                     }
                 }
 
-                if (!_parent._columns[i].Bag && srcType.ValueCount > 0)
+                if (!_parent._columns[iinfo].Bag && srcType.ValueCount > 0)
                 {
-                    MetadataUtils.MetadataGetter<VBuffer<int>> getter = (int col, ref VBuffer<int> dst) =>
+                    ValueGetter<VBuffer<int>> getter = (ref VBuffer<int> dst) =>
                     {
-                        GetCategoricalSlotRanges(i, ref dst);
+                        GetCategoricalSlotRanges(iinfo, ref dst);
                     };
-                    var info = new MetadataInfo<VBuffer<int>>(MetadataUtils.GetCategoricalType(_infos[i].TypeSrc.ValueCount), getter);
-                    colMetaInfo.Add(MetadataUtils.Kinds.CategoricalSlotRanges, info);
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(_infos[iinfo].TypeSrc.ValueCount), null), getter);
                 }
 
-                if (!_parent._columns[i].Bag || srcType.ValueCount == 1)
+                if (!_parent._columns[iinfo].Bag || srcType.ValueCount == 1)
                 {
-                    MetadataUtils.MetadataGetter<bool> getter = (int col, ref bool dst) =>
+                    ValueGetter<bool> getter = (ref bool dst) =>
                     {
                         dst = true;
                     };
-                    var info = new MetadataInfo<bool>(BoolType.Instance, getter);
-                    colMetaInfo.Add(MetadataUtils.Kinds.IsNormalized, info);
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
                 }
             }
 
@@ -371,12 +365,13 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Get the source slot names, defaulting to empty text.
                 var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
-                Host.Assert(srcCol >= 0);
-                var typeSlotSrc = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, srcCol);
+
+                var inputMetadata = InputSchema[_infos[iinfo].Source].Metadata;
+                Contracts.AssertValue(inputMetadata);
+                var typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                 if (typeSlotSrc != null && typeSlotSrc.VectorSize == typeSrc.VectorSize && typeSlotSrc.ItemType.IsText)
                 {
-                    InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref namesSlotSrc);
+                    inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSlotSrc);
                     Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
                 }
                 else
@@ -388,7 +383,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Get the source key names, in an array (since we will use them multiple times).
                 var namesKeySrc = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref namesKeySrc);
+                inputMetadata.GetValue(MetadataUtils.Kinds.KeyValues, ref namesKeySrc);
                 Host.Check(namesKeySrc.Length == keyCount);
                 var keys = new ReadOnlyMemory<char>[keyCount];
                 namesKeySrc.CopyTo(keys);
@@ -611,7 +606,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 
@@ -681,7 +676,7 @@ namespace Microsoft.ML.Runtime.Data
                     return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
 
                 JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);
-                if (_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1)
+                if (!(_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1))
                 {
                     // The concatenation case. We can still use fanout, but we just append them all together.
                     return PfaUtils.Call("a.flatMap", srcToken,
@@ -710,34 +705,53 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                var shape = ctx.RetrieveShapeOrNull(srcVariableName);
+                // Make sure that shape must present for calculating the reduction axes. The shape here is generally not null
+                // because inputs and outputs of a transform are declared with shapes.
+                Contracts.CheckValue(shape, nameof(shape));
+
+                // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
+                // default ONNX LabelEncoder just matches the behavior of Bag=false.
+                var encodedVariableName = _parent._columns[iinfo].Bag ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
+
                 string opType = "OneHotEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+                var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
+                if (_parent._columns[iinfo].Bag)
+                {
+                    // If input shape is [1, 3], then OneHotEncoder may produce a 3-D tensor. Thus, we need to do a
+                    // reduction along the second last axis to merge the one-hot vectors produced by all input features.
+                    // Note that one input feature got expended to an one-hot vector.
+                    opType = "ReduceSum";
+                    var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
+                    reduceNode.AddAttribute("keepdims", 0);
+                }
                 return true;
             }
         }
     }
 
-    public sealed class KeyToVectorEstimator : TrivialEstimator<KeyToVectorTransform>
+    public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const bool Bag = false;
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
+        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
             : this(env, new KeyToVectorTransform(env, columns))
         {
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(source ?? name, name, bag)))
+        public KeyToVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
         {
         }
 
-        private KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorEstimator)), transformer)
+        private KeyToVectorMappingEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorMappingEstimator)), transformer)
         {
         }
 
@@ -877,7 +891,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = (IColInput)toOutput[i];
                     infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
                 }
-                return new KeyToVectorEstimator(env, infos);
+                return new KeyToVectorMappingEstimator(env, infos);
             }
         }
 

@@ -109,6 +109,7 @@
           {
             "name": "cats_int64s",
             "ints": [
+              "0",
               "1",
               "2",
               "3",
@@ -117,8 +118,7 @@
               "6",
               "7",
               "8",
-              "9",
-              "10"
+              "9"
             ],
             "type": "INTS"
           },
@@ -340,6 +340,36 @@
           }
         ],
         "domain": "ai.onnx.ml"
+      },
+      {
+        "input": [
+          "PredictedLabel"
+        ],
+        "output": [
+          "PredictedLabel0"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Score"
+        ],
+        "output": [
+          "Score0"
+        ],
+        "name": "Identity0",
+        "opType": "Identity"
+      },
+      {
+        "input": [
+          "Probability"
+        ],
+        "output": [
+          "Probability0"
+        ],
+        "name": "Identity1",
+        "opType": "Identity"
       }
     ],
     "name": "BinaryClassificationFastTreeSaveModelToOnnxTest",
@@ -383,7 +413,7 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel",
+        "name": "PredictedLabel0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -401,7 +431,7 @@
         }
       },
       {
-        "name": "Score",
+        "name": "Score0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -419,7 +449,7 @@
         }
       },
       {
-        "name": "Probability",
+        "name": "Probability0",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",

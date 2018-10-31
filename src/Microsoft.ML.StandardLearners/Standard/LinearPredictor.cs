@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public bool CanSavePfa => true;
 
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Constructs a new linear predictor.

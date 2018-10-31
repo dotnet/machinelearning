@@ -15,14 +15,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Configures a reader for text files.
         /// </summary>
-        /// <typeparam name="TTupleShape">The type shape parameter, which must be</typeparam>
-        /// <param name="env"></param>
+        /// <typeparam name="TShape">The type shape parameter, which must be a valid-schema shape. As a practical
+        /// matter this is generally not explicitly defined from the user, but is instead inferred from the return
+        /// type of the <paramref name="func"/> where one takes an input <see cref="Context"/> and uses it to compose
+        /// a shape-type instance describing what the columns are and how to load them from the file.</typeparam>
+        /// <param name="env">The environment.</param>
         /// <param name="func">The delegate that describes what fields to read from the text file, as well as
         /// describing their input type. The way in which it works is that the delegate is fed a <see cref="Context"/>,
-        /// and the user composes a value-tuple with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
-        /// The resulting data will have columns with the names corresponding to their names in the value-tuple.</param>
+        /// and the user composes a shape type with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
+        /// The resulting data will have columns with the names corresponding to their names in the shape type.</param>
         /// <param name="files">Input files. If <c>null</c> then no files are read, but this means that options or
-        /// configurations that require input data for initialization (e.g., <paramref name="hasHeader"/> or
+        /// configurations that require input data for initialization (for example, <paramref name="hasHeader"/> or
         /// <see cref="Context.LoadFloat(int, int?)"/>) with a <c>null</c> second argument.</param>
         /// <param name="hasHeader">Data file has header with feature names.</param>
         /// <param name="separator">Text field separator.</param>
@@ -33,8 +36,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="allowSparse">Whether the input may include sparse representations.</param>
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
         /// <returns>A configured statically-typed reader for text files.</returns>
-        public static DataReader<IMultiStreamSource, TTupleShape> CreateReader<[IsShape] TTupleShape>(
-            IHostEnvironment env,  Func<Context, TTupleShape> func, IMultiStreamSource files = null,
+        public static DataReader<IMultiStreamSource, TShape> CreateReader<[IsShape] TShape>(
+            IHostEnvironment env,  Func<Context, TShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
         {
@@ -57,9 +60,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var readerEst = StaticPipeUtils.ReaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
                 Contracts.AssertValue(readerEst);
-                var reader = readerEst.Fit(files);
-                ch.Done();
-                return reader;
+                return readerEst.Fit(files);
             }
         }
 
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Context object by which a user can indicate what fields they want to read from a text file, and what data type they ought to have.
         /// Instances of this class are never made but the user, but rather are fed into the delegate in
-        /// <see cref="TextLoader.CreateReader{TTupleShape}(IHostEnvironment, Func{Context, TTupleShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
+        /// <see cref="TextLoader.CreateReader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
         /// </summary>
         public sealed class Context
         {
@@ -142,6 +143,15 @@ namespace Microsoft.ML.Runtime.Data
             /// will be inspected to get the length of the type.</param>
             /// <returns>The column representation.</returns>
             public Vector<bool> LoadBool(int minOrdinal, int? maxOrdinal) => Load<bool>(DataKind.BL, minOrdinal, maxOrdinal);
+
+            /// <summary>
+            /// Create a representation for a key loaded from TextLoader as an unsigned integer (32 bits).
+            /// </summary>
+            /// <param name="ordinal">The zero-based index of the field to read from.</param>
+            /// <param name="minKeyValue">smallest value of the loaded key values</param>
+            /// <param name="maxKeyValue">If specified, it's the largest allowed value of the loaded key values. Use null if key is unbounded.</param>
+            /// <returns>The column representation.</returns>
+            public Key<uint> LoadKey(int ordinal, ulong minKeyValue, ulong? maxKeyValue) => Load<uint>(DataKind.U4, ordinal, minKeyValue, maxKeyValue);
 
             /// <summary>
             /// Reads a scalar single-precision floating point column from a single field in the text file.
@@ -208,6 +218,51 @@ namespace Microsoft.ML.Runtime.Data
                 return new MyVector<T>(_rec, kind, minOrdinal, maxOrdinal);
             }
 
+            private Key<T> Load<T>(DataKind kind, int ordinal, ulong minKeyValue, ulong? maxKeyValue)
+            {
+                Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Should be non-negative");
+                Contracts.CheckParam(minKeyValue >= 0, nameof(minKeyValue), "Should be non-negative");
+                Contracts.CheckParam(maxKeyValue == null || maxKeyValue >= minKeyValue, nameof(maxKeyValue), "Should be greater than or eqaul to minimum key value or null");
+                return new MyKey<T>(_rec, kind, ordinal, minKeyValue, maxKeyValue);
+            }
+
+            /// <summary>
+            /// A data type used to bridge <see cref="PipelineColumn"/> and <see cref="TextLoader.Column"/>. It can be used as <see cref="PipelineColumn"/>
+            /// in static-typed pipelines and provides <see cref="MyKey{T}.Create"/> for translating itself into <see cref="TextLoader.Column"/>.
+            /// </summary>
+            private class MyKey<T> : Key<T>, IPipelineArgColumn
+            {
+                // The storage type that the targeted content would be loaded as.
+                private readonly DataKind _kind;
+                // The position where the key value gets read from.
+                private readonly int _oridinal;
+                // The lower bound of the key value.
+                private readonly ulong _minKeyValue;
+                // The upper bound of the key value. Its value is null if unbounded.
+                private readonly ulong? _maxKeyValue;
+
+                // Contstuct a representation for a key-typed column loaded from a text file. Key values are assumed to be contiguous.
+                public MyKey(Reconciler rec, DataKind kind, int oridinal, ulong minKeyValue, ulong? maxKeyValue=null)
+                    : base(rec, null)
+                {
+                    _kind = kind;
+                    _oridinal = oridinal;
+                    _minKeyValue = minKeyValue;
+                    _maxKeyValue = maxKeyValue;
+                }
+
+                // Translate the internal variable representation to columns of TextLoader.
+                public Column Create()
+                {
+                    return new Column()
+                    {
+                        Type = _kind,
+                        Source = new[] { new Range(_oridinal) },
+                        KeyRange = new KeyRange(_minKeyValue, _maxKeyValue)
+                    };
+                }
+            }
+
             private class MyScalar<T> : Scalar<T>, IPipelineArgColumn
             {
                 private readonly DataKind _kind;
@@ -255,5 +310,17 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
     }
-}
 
+    public static class LocalPathReader
+    {
+        public static IDataView Read(this IDataReader<IMultiStreamSource> reader, params string[] path)
+        {
+            return reader.Read(new MultiFileSource(path));
+        }
+
+        public static DataView<TShape> Read<TShape>(this DataReader<IMultiStreamSource, TShape> reader, params string[] path)
+        {
+            return reader.Read(new MultiFileSource(path));
+        }
+    }
+}

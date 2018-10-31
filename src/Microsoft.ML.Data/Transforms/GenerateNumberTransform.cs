@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(GenerateNumberTransform.Summary, typeof(GenerateNumberTransform), typeof(GenerateNumberTransform.Arguments), typeof(SignatureDataTransform),
     GenerateNumberTransform.UserName, GenerateNumberTransform.LoadName, "GenerateNumber", GenerateNumberTransform.ShortName)]
@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(RandomNumberGenerator))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transform adds columns containing either random numbers distributed
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return false; } }
 
@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {

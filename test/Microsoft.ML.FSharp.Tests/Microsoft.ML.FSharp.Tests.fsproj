@@ -3,12 +3,12 @@
   <PropertyGroup>
     <!-- Empty TargetFramework because test\Directory.Build.props sets TFM, but FSharp.Tests is multi-targeted -->
     <TargetFramework></TargetFramework>
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>$(DefaultTestTargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Unix'">$(TargetFrameworks); net461</TargetFrameworks>
     <NoWarn>2003;$(NoWarn)</NoWarn>
     <PublicSign>false</PublicSign>
     <SourceLink></SourceLink>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>$(TargetArchitecture)</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

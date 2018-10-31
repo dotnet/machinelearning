@@ -19,39 +19,37 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// reallocate internal memory buffers on every single prediction, the PredictionEngine
         /// (or its estimator/transformer based successor) is, like most stateful .NET objects,
         /// fundamentally not thread safe. This is deliberate and as designed. However, some mechanism
-        /// to enable multi-threaded scenarios (e.g., a web server servicing requests) should be possible
+        /// to enable multi-threaded scenarios (for example, a web server servicing requests) should be possible
         /// and performant in the new API.
         /// </summary>
         [Fact]
         void New_MultithreadedPrediction()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            var ml = new MLContext(seed: 1, conc: 1);
+            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            // Create prediction engine and test predictions.
+            var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+
+            // Take a couple examples out of the test data and run predictions on top.
+            var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
+                .AsEnumerable<SentimentData>(ml, false);
+
+            Parallel.ForEach(testData, (input) =>
             {
-                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
-
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
-
-                // Train.
-                var model = pipeline.Fit(data);
-
-                // Create prediction engine and test predictions.
-                var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
-
-                // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
-                    .AsEnumerable<SentimentData>(env, false);
-
-                Parallel.ForEach(testData, (input) =>
+                lock (engine)
                 {
-                    lock (engine)
-                    {
-                        var prediction = engine.Predict(input);
-                    }
-                });
-            }
+                    var prediction = engine.Predict(input);
+                }
+            });
         }
     }
 }

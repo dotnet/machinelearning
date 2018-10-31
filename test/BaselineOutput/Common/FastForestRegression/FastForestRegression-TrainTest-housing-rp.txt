@@ -1,0 +1,4 @@
+FastForestRegression
+L1(avg)	L2(avg)	RMS(avg)	Loss-fn(avg)	R Squared	/nl	/mil	/iter	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+2.970635	17.7449	4.21247	17.7449	0.789801	5	5	20	FastForestRegression	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=FastForestRegression{nl=5 mil=5 iter=20} dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% out=%Output% seed=1	/nl:5;/mil:5;/iter:20	
+

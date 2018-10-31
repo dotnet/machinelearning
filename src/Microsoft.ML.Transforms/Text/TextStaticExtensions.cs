@@ -4,14 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
-using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
+using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -24,7 +22,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, string separators)
+            public OutPipelineColumn(Scalar<string> input, char[] separators)
                 : base(new Reconciler(separators), input)
             {
                 Input = input;
@@ -33,9 +31,9 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly string _separators;
+            private readonly char[] _separators;
 
-            public Reconciler(string separators)
+            public Reconciler(char[] separators)
             {
                 _separators = separators;
             }
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new WordTokenizer(env, pairs.ToArray(), _separators);
+                return new WordTokenizingEstimator(env, pairs.ToArray(), _separators);
             }
         }
 
@@ -60,8 +58,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text using <paramref name="separators"/> and output the tokens.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public static VarVector<string> TokenizeText(this Scalar<string> input, string separators = "space") => new OutPipelineColumn(input, separators);
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public static VarVector<string> TokenizeText(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
     }
 
     /// <summary>
@@ -106,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new CharacterTokenizer(env, pairs.ToArray(), _useMarker);
+                return new CharacterTokenizingEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 
@@ -182,7 +180,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public OutPipelineColumn(Scalar<string> input, TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
                 : base(new Reconciler(textCase, keepDiacritics, keepPunctuations, keepNumbers), input)
             {
                 Input = input;
@@ -191,12 +189,12 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly CaseNormalizationMode _textCase;
+            private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
             private readonly bool _keepDiacritics;
             private readonly bool _keepPunctuations;
             private readonly bool _keepNumbers;
 
-            public Reconciler(CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public Reconciler(TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
             {
                 _textCase = textCase;
                 _keepDiacritics = keepDiacritics;
@@ -225,7 +223,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new TextNormalizer(env, pairs.ToArray(), _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers);
+                return new TextNormalizingEstimator(env, _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers, pairs.ToArray());
             }
         }
 
@@ -238,7 +236,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public static Scalar<string> NormalizeText(this Scalar<string> input,
-            CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
+            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.CaseNormalizationMode.Lower,
             bool keepDiacritics = false,
             bool keepPunctuations = true,
             bool keepNumbers = true) => new OutPipelineColumn(input, textCase, keepDiacritics, keepPunctuations, keepNumbers);
@@ -427,9 +425,9 @@ namespace Microsoft.ML.Transforms.Text
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
-            public readonly VarVector<Key<uint, string>> Input;
+            public readonly PipelineColumn Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input,
+            public OutPipelineColumn(PipelineColumn input,
                 int ngramLength,
                 int skipLength,
                 bool allLengths,
@@ -497,7 +495,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static Vector<float> ToNgrams(this VarVector<Key<uint,string>> input,
+        public static Vector<float> ToNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,

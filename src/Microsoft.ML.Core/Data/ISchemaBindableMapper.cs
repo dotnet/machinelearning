@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Mappers are defined as accepting inputs with this very specific schema.
         /// </summary>
-        ISchema InputSchema { get; }
+        Schema InputSchema { get; }
 
         /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
         /// The optional <paramref name="disposer"/> should be invoked by any user of this row mapping, once it no
         /// longer needs the <see cref="IRow"/>. If no action is needed when the cursor is Disposed, the implementation
         /// should set <paramref name="disposer"/> to <c>null</c>, otherwise it should be set to a delegate to be
-        /// invoked by the code calling this object. (E.g., a wrapping cursor's <see cref="IDisposable.Dispose"/>
+        /// invoked by the code calling this object. (For example, a wrapping cursor's <see cref="IDisposable.Dispose"/>
         /// method. It's best for this action to be idempotent - calling it multiple times should be equivalent to
         /// calling it once.
         /// </summary>

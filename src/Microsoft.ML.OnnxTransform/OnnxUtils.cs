@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
 
         private ITensorValueGetter _tensorValueGetter;
 
-        public IdvToTensorAdapter(ISchema idvSchema, string idvColumnName,
+        public IdvToTensorAdapter(Schema idvSchema, string idvColumnName,
                                     OnnxModel.OnnxNodeInfo onnxInputNodeInfo)
         {
             _idvColumnName = idvColumnName;
@@ -342,11 +342,12 @@ namespace Microsoft.ML.Transforms
         {
             if (typeof(T) == typeof(System.Single))
             {
-                // Sonoma only takes List<T>. We need to do an extra copy to T[]
-                var listDst = new List<System.Single>();
                 var typedDst = (System.Single[])(object)dst;
-                tensor.CopyTo(listDst);
-                listDst.CopyTo(typedDst);
+                tensor.CopyTo(typedDst);
+                // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
+                // during the method call. Use KeepAlive for now, and remove
+                // after permanent fix in CopyTo().
+                GC.KeepAlive(tensor);
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");

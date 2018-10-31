@@ -6,8 +6,8 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
@@ -26,7 +26,7 @@ using System.Threading.Tasks;
     "GAM Binary Class Predictor",
     BinaryClassGamPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class BinaryClassificationGamTrainer :
     GamTrainerBase<BinaryClassificationGamTrainer.Arguments, BinaryPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>
@@ -62,13 +62,18 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public BinaryClassificationGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, advancedSettings)
+        public BinaryClassificationGamTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, minDocumentsInLeafs, learningRate, advancedSettings)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-
             _sigmoidParameter = 1;
         }
 
@@ -132,7 +137,7 @@ namespace Microsoft.ML.Runtime.FastTree
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override BinaryPredictionTransformer<IPredictorProducing<float>> MakeTransformer(IPredictorProducing<float> model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<IPredictorProducing<float>> MakeTransformer(IPredictorProducing<float> model, Schema trainSchema)
             => new BinaryPredictionTransformer<IPredictorProducing<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

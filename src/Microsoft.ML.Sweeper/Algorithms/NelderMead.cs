@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init", SignatureType = typeof(SignatureSweeperFromParameterList))]
-            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper;
+            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>((host, array) => new UniformRandomSweeper(host, new SweeperBase.ArgumentsBase(), array));
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 // 1. assign each discrete value a random number (1-n) to make mirroring possible
                 // 2. each time we need to mirror a discrete value, sample from the remaining value
                 // 2.1. make the sampling non-uniform by learning "weights" for the different discrete values based on
-                // the metric values that we get when using them. (E.g. if, for a given discrete value, we get a bad result,
+                // the metric values that we get when using them. (For example, if, for a given discrete value, we get a bad result,
                 // we lower its weight, but if we get a good result we increase its weight).
                 var parameterNumeric = parameter as INumericValueGenerator;
                 env.CheckUserArg(parameterNumeric != null, nameof(args.SweptParameters), "Nelder-Mead sweeper can only sweep over numeric parameters");

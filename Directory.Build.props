@@ -6,14 +6,17 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <Configurations>Debug;Release;Debug-Intrinsics;Release-Intrinsics</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
-    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">x64</NativeTargetArchitecture>
+    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
+    <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">$(TargetArchitecture)</NativeTargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
   </PropertyGroup>
 
   <PropertyGroup>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
+      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
@@ -104,6 +107,16 @@
 
   <PropertyGroup>
     <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
+  </PropertyGroup>
+
+  <!-- Need to explicitly set these properties for the -Intrinsics configurations becuase they are typically based off 'Debug' or 'Release' configs -->
+  <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug-Intrinsics'">
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release-Intrinsics'">
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <PropertyGroup>

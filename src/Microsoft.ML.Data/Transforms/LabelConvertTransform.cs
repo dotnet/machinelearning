@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Text;
-using System.Threading;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Text;
+using System.Threading;
+using Float = System.Single;
 
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), typeof(LabelConvertTransform.Arguments), typeof(SignatureDataTransform),
     "", "LabelConvert", "LabelConvertTransform")]
@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(LabelConvertTransform.Summary, typeof(LabelConvertTransform), null, typeof(SignatureLoadDataTransform),
     "Label Convert Transform", LabelConvertTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class LabelConvertTransform : OneToOneTransformBase
     {
@@ -82,6 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertNonEmpty(Infos);
             Contracts.Assert(Infos.Length == Utils.Size(args.Column));
+            Metadata.Seal();
         }
 
         private LabelConvertTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -92,6 +93,8 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // <prefix handled in static Create method>
             // <base>
+
+            Metadata.Seal();
         }
 
         public static LabelConvertTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

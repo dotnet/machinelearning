@@ -228,10 +228,10 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(0 <= countB && countB <= Utils.Size(indicesB));
             Contracts.Assert(countB <= Utils.Size(valuesB));
 
-            var normA = CpuMathUtils.SumSq(valuesA, 0, lengthA);
+            var normA = CpuMathUtils.SumSq(valuesA.AsSpan(0, lengthA));
             if (countB == 0)
                 return normA;
-            var normB = CpuMathUtils.SumSq(valuesB, 0, countB);
+            var normB = CpuMathUtils.SumSq(valuesB.AsSpan(0, countB));
             var dotP = CpuMathUtils.DotProductSparse(valuesA, valuesB, indicesB, countB);
             var res = normA + normB - 2 * dotP;
             return res < 0 ? 0 : res;
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Runtime.Numeric
             if (a.IsDense)
             {
                 if (b.IsDense)
-                    return CpuMathUtils.DotProductDense(a.Values, offset, b.Values, b.Length);
-                return CpuMathUtils.DotProductSparse(a.Values, offset, b.Values, b.Indices, b.Count);
+                    return CpuMathUtils.DotProductDense(a.Values.AsSpan(offset), b.Values, b.Length);
+                return CpuMathUtils.DotProductSparse(a.Values.AsSpan(offset), b.Values, b.Indices, b.Count);
             }
             else
             {
@@ -314,8 +314,8 @@ namespace Microsoft.ML.Runtime.Numeric
                 return 0;
 
             if (b.IsDense)
-                return CpuMathUtils.DotProductDense(a, offset, b.Values, b.Length);
-            return CpuMathUtils.DotProductSparse(a, offset, b.Values, b.Indices, b.Count);
+                return CpuMathUtils.DotProductDense(a.AsSpan(offset), b.Values, b.Length);
+            return CpuMathUtils.DotProductSparse(a.AsSpan(offset), b.Values, b.Indices, b.Count);
         }
 
         private static Float DotProductSparse(Float[] aValues, int[] aIndices, int ia, int iaLim, Float[] bValues, int[] bIndices, int ib, int ibLim, int offset)
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         public static Float Norm(Float[] a)
         {
-            return MathUtils.Sqrt(CpuMathUtils.SumSq(a, a.Length));
+            return MathUtils.Sqrt(CpuMathUtils.SumSq(a));
         }
 
         /// <summary>
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a == null || a.Length == 0)
                 return 0;
-            return CpuMathUtils.Sum(a, a.Length);
+            return CpuMathUtils.Sum(a);
         }
 
         /// <summary>
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return;
 
             if (c != 0)
-                CpuMathUtils.Scale(c, dst, dst.Length);
+                CpuMathUtils.Scale(c, dst);
             else
                 Array.Clear(dst, 0, dst.Length);
         }
