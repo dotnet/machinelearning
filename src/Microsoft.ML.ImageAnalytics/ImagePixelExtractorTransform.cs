@@ -636,16 +636,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImagePixelExtractorEstimator : TrivialEstimator<ImagePixelExtractorTransform>
+    public sealed class ImagePixelExtractingEstimator : TrivialEstimator<ImagePixelExtractorTransform>
     {
-        public ImagePixelExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        public ImagePixelExtractingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
                 ImagePixelExtractorTransform.ColorBits colors = ImagePixelExtractorTransform.ColorBits.Rgb, bool interleave = false)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, inputColumn, outputColumn, colors, interleave))
         {
         }
 
-        public ImagePixelExtractorEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractorEstimator)), new ImagePixelExtractorTransform(env, columns))
+        public ImagePixelExtractingEstimator(IHostEnvironment env, params ImagePixelExtractorTransform.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImagePixelExtractingEstimator)), new ImagePixelExtractorTransform(env, columns))
         {
         }
 
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         /// <summary>
-        /// Reconciler to an <see cref="ImagePixelExtractorEstimator"/> for the <see cref="PipelineColumn"/>.
+        /// Reconciler to an <see cref="ImagePixelExtractingEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
         /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     var outCol = (IColInput)toOutput[i];
                     cols[i] = outCol.MakeColumnInfo(inputNames[outCol.Input], outputNames[toOutput[i]]);
                 }
-                return new ImagePixelExtractorEstimator(env, cols);
+                return new ImagePixelExtractingEstimator(env, cols);
             }
         }
     }
