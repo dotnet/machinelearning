@@ -31,7 +31,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
                 .Fit(src).Read(src);
 
-            using (var file = File.Create(DeleteOutputPath("i.idv")))
+            var path = DeleteOutputPath("i.idv");
+            using (var file = File.Create(path))
             {
                 var saver = new BinarySaver(ml, new BinarySaver.Arguments());
                 using (var ch = ((IHostEnvironment)ml).Start("SaveData"))
@@ -39,11 +40,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
 
             var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1);
-            var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource("i.idv"));
+            var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource(path));
 
             // Train.
             var model = trainer.Fit(loadedTrainData);
-            DeleteOutputPath("i.idv");
         }
     }
 }
