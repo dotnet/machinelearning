@@ -11,7 +11,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML
 {
     using CharTokenizingDefaults = CharacterTokenizingEstimator.Defaults;
-    using TextNormalizeDefaults = TextNormalizerEstimator.Defaults;
+    using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
     public static class TextCatalog
     {
@@ -86,14 +86,14 @@ namespace Microsoft.ML
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public static TextNormalizerEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
+        public static TextNormalizingEstimator NormalizeText(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizeDefaults.TextCase,
+            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizeDefaults.TextCase,
             bool keepDiacritics = TextNormalizeDefaults.KeepDiacritics,
             bool keepPunctuations = TextNormalizeDefaults.KeepPunctuations,
             bool keepNumbers = TextNormalizeDefaults.KeepNumbers)
-            => new TextNormalizerEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, textCase, keepDiacritics, keepPunctuations, keepNumbers);
+            => new TextNormalizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, textCase, keepDiacritics, keepPunctuations, keepNumbers);
 
         /// <summary>
         /// Extracts word embeddings.

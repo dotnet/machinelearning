@@ -141,7 +141,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new TextNormalizerEstimator(Env,"text")
+            var est = new TextNormalizingEstimator(Env,"text")
                 .Append(new WordTokenizingEstimator(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
