@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -41,7 +41,7 @@ using System.Threading;
 [assembly: EntryPointModule(typeof(PredefinedStopWordsRemoverFactory))]
 [assembly: EntryPointModule(typeof(CustomStopWordsRemoverTransform.LoaderArguments))]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an IStopWordsRemoverTransform.
@@ -796,7 +796,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
         /// <summary>
         /// Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments,
-        /// and a separate array of columns (constructed by the caller -TextTransform- arguments).
+        /// and a separate array of columns (constructed by the caller -TextFeaturizingEstimator - arguments).
         /// </summary>
         public CustomStopWordsRemoverTransform(IHostEnvironment env, LoaderArguments loaderArgs, IDataView input, OneToOneColumn[] column)
             : base(env, RegistrationName, column, input, TestIsTextItem)

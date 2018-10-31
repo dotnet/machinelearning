@@ -50,6 +50,21 @@
       </example>
     </example>
 
+    <member name="ValueToKeyMappingEstimator">
+      <summary>
+        Converts input values (words, numbers, etc.) to index in a dictionary.
+      </summary>
+      <remarks>
+        The ValueToKeyMappingEstimator builds up term vocabularies (dictionaries).
+        If multiple columns are used, each column builds/uses exactly one vocabulary.
+        The output columns are KeyType-valued.
+        The Key value is the one-based index of the item in the dictionary.
+        If the key is not found in the dictionary, it is assigned the missing value indicator.
+        This dictionary mapping values to keys is most commonly learnt from the unique values in input data,
+        but can be defined through other means: either with the mapping defined directly on the command line, or as loaded from an external file.
+      </remarks>
+    </member>
+
     <member name="NAHandle">
       <summary>
         Handle missing values by replacing them with either the default value or the indicated value.

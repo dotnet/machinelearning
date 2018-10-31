@@ -6,6 +6,9 @@ using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
-                var text = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var text = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 IDataView trans = new GenerateNumberTransform(env, text, "StratificationColumn");
                 // Train.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

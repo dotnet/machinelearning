@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -10,26 +12,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
-    public sealed class ConcatEstimator : IEstimator<ITransformer>
+    public sealed class ColumnConcatenatingEstimator  : IEstimator<ITransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
         private readonly string[] _source;
 
-        public ConcatEstimator(IHostEnvironment env, string name, params string[] source)
+        /// <summary>
+        /// Initializes a new instance of <see cref="ColumnConcatenatingEstimator"/>
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="outputColumn">The name of the resulting column.</param>
+        /// <param name="inputColumns">The columns to concatenate together.</param>
+        public ColumnConcatenatingEstimator (IHostEnvironment env, string outputColumn, params string[] inputColumns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ConcatEstimator");
+            _host = env.Register("ColumnConcatenatingEstimator ");
 
-            _host.CheckNonEmpty(name, nameof(name));
-            _host.CheckNonEmpty(source, nameof(source));
-            _host.CheckParam(!source.Any(r => string.IsNullOrEmpty(r)), nameof(source),
+            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckValue(inputColumns, nameof(inputColumns));
+            _host.CheckParam(!inputColumns.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumns),
                 "Contained some null or empty items");
 
-            _name = name;
-            _source = source;
+            _name = outputColumn;
+            _source = inputColumns;
         }
 
         public ITransformer Fit(IDataView input)
@@ -144,13 +152,6 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="me">The first input column.</param>
         /// <param name="others">Subsequent input columns.</param>
         /// <returns>The result of concatenating all input columns together.</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ConcatWith](](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Transformers.cs?range=6-10,23-74 )]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static Vector<T> ConcatWith<T>(this Scalar<T> me, params ScalarOrVector<T>[] others)
             => new Impl<T>(Join(me, others));
 
@@ -261,7 +262,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var ccol = (IConcatCol)toOutput[i];
                     string[] inputs = ccol.Sources.Select(s => inputNames[s]).ToArray();
-                    var localEst = new ConcatEstimator(env, outputNames[toOutput[i]], inputs);
+                    var localEst = new ColumnConcatenatingEstimator (env, outputNames[toOutput[i]], inputs);
                     if (i == 0)
                         est = localEst;
                     else

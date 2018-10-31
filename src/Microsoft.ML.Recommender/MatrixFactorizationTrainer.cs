@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },

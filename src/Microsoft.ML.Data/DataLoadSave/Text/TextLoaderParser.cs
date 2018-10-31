@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.Assert(0 <= irow && irow < _values.Length);
                 Contracts.Assert(index == 0);
-                return _conv(ref text, out _values[irow]);
+                return _conv(in text, out _values[irow]);
             }
 
             public void Get(ref TResult value)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(_indexPrev < index & index < _size);
 
                     TItem tmp = default(TItem);
-                    bool f = _conv(ref text, out tmp);
+                    bool f = _conv(in text, out tmp);
                     if (_count < _size)
                     {
                         if (_count < _size / 2)
@@ -1330,7 +1330,7 @@ namespace Microsoft.ML.Runtime.Data
                             var srcCur = fields.Indices[isrc];
                             Contracts.Assert(min <= srcCur & srcCur < lim);
                             if (!v.Consume(irow, indexBase + srcCur, ref fields.Spans[isrc]))
-                                v.Rows.Stats.LogBadValue(line, info.Name, indexBase + srcCur);
+                                throw Contracts.Except($"Could not parse value {fields.Spans[isrc]} in slot {indexBase + srcCur} of column {info.Name} in line {line}");
                         }
                     }
                     ivDst += sizeSeg;
@@ -1349,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (isrc < vs.Count && vs.Indices[isrc] == src)
                 {
                     if (!v.Consume(irow, 0, ref vs.Spans[isrc]))
-                        v.Rows.Stats.LogBadValue(line, info.Name);
+                        throw Contracts.Except($"Could not parse value {vs.Spans[isrc]} in line {line}, column {info.Name}");
                 }
                 else
                     v.Reset(irow, 0);
