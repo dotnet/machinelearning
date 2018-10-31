@@ -4,13 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
+using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new WordTokenizeEstimator(env, pairs.ToArray(), _separators);
+                return new WordTokenizingEstimator(env, pairs.ToArray(), _separators);
             }
         }
 
@@ -105,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new CharacterTokenizeEstimator(env, _useMarker, pairs.ToArray());
+                return new CharacterTokenizingEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 

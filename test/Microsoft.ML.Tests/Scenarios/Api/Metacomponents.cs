@@ -7,6 +7,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -29,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainer = new Ova(env, new Ova.Arguments
                 {
                     PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                        e => new AveragedPerceptronTrainer(env, "Label", "Features", lossFunction: new SmoothedHingeLoss.Arguments())
+                        e => new AveragedPerceptronTrainer(env, "Label", "Features", lossFunction: new SmoothedHingeLoss())
                     )
                 });
 

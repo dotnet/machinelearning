@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "Data", "Data_TransformedText");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "Data", "Data_TransformedText");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -69,8 +70,8 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordTokenizeEstimator(Env, "text", "words")
-                .Append(new CharacterTokenizeEstimator(Env, "text", "chars"))
+            var est = new WordTokenizingEstimator(Env, "text", "words")
+                .Append(new CharacterTokenizingEstimator(Env, "text", "chars"))
                 .Append(new KeyToValueEstimator(Env, "chars"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "text", "words", "chars");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "text", "words", "chars");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -98,9 +99,9 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath).AsDynamic;
 
-            var est = new WordTokenizeEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
+            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
-            var savedData = new ChooseColumnsTransform(Env, outdata, "words");
+            var savedData = SelectColumnsTransform.CreateKeep(Env, outdata, "words");
 
             var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
             var outputPath = GetOutputPath("Text", "tokenizedWithSeparators.tsv");
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new TextNormalizerEstimator(Env,"text")
-                .Append(new WordTokenizeEstimator(Env, "text", "words"))
+                .Append(new WordTokenizingEstimator(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "text", "words_without_stopwords");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "text", "words_without_stopwords");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -186,7 +187,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "text", "bag_of_words", "bag_of_wordshash");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "text", "bag_of_words", "bag_of_wordshash");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -210,8 +211,8 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordTokenizeEstimator(Env, "text", "text")
-                .Append(new TermEstimator(Env, "text", "terms"))
+            var est = new WordTokenizingEstimator(Env, "text", "text")
+                .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
             
@@ -224,7 +225,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "text", "terms", "ngrams", "ngramshash");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "text", "terms", "ngrams", "ngramshash");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -264,7 +265,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
                 IDataView savedData = TakeFilter.Create(env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(env, savedData, "topics");
+                savedData = SelectColumnsTransform.CreateKeep(env, savedData, "topics");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

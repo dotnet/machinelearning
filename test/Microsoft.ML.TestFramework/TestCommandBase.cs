@@ -907,7 +907,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 foldModels[i] = FoldModelPath(i);
 
             string extraArgs = string.Format("{0} {1} {2} {3} k={4}", "prexf=Term{col=Label:Cat} prexf=CategoricalTransform{col=Cat01}",
-                                               "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
+                                                "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
                                                 "threads- tr=MultiClassLogisticRegression{numThreads=1}", "norm=No", numFolds);
             const string loaderArgs = "loader=TextLoader{col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3 header=+}";
             TestCore("cv", pathData, loaderArgs, extraArgs);

@@ -6,6 +6,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Transforms;
 using System;
 
 namespace Microsoft.ML.Runtime.Learners

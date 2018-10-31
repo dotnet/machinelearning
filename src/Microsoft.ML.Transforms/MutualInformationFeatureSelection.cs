@@ -4,22 +4,22 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 [assembly: LoadableClass(MutualInformationFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectionTransform), typeof(MutualInformationFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
     MutualInformationFeatureSelectionTransform.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectionTransform.ShortName)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
     public static class MutualInformationFeatureSelectionTransform
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private static ValueMapper<VBuffer<T>, VBuffer<int>> BinKeys<T>(ColumnType colType)
             {
-                var conv = Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberType.U4, out bool identity);
+                var conv = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<T, uint>(colType, NumberType.U4, out bool identity);
                 ValueMapper<T, int> mapper;
                 if (identity)
                 {
