@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc, TextType.Instance,
-                (ref TSrc src, ref ReadOnlyMemory<char> dst) => dst = value.AsMemory());
+                (in TSrc src, ref ReadOnlyMemory<char> dst) => dst = value.AsMemory());
         }
 
         /// <summary>
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc,
-                new KeyType(DataKind.U4, 0, keyCount), (ref TSrc src, ref uint dst) =>
+                new KeyType(DataKind.U4, 0, keyCount), (in TSrc src, ref uint dst) =>
                 {
                     if (value < 0 || value > keyCount)
                         dst = 0;
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (def.Equals(default(T)))
                 {
                     mapper =
-                        (ref VBuffer<T> src, ref VBuffer<T> dst) =>
+                        (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
 
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Runtime.Data
                             naIndices.Add(j);
                     }
                     mapper =
-                        (ref VBuffer<T> src, ref VBuffer<T> dst) =>
+                        (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
                             var values = dst.Values;
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var keyMapperCur = keyValueMappers[i];
                 ValueMapper<uint, uint> mapper =
-                    (ref uint src, ref uint dst) =>
+                    (in uint src, ref uint dst) =>
                     {
                         if (src == 0 || src > keyMapperCur.Length)
                             dst = 0;
@@ -653,7 +653,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!views[i].Schema.TryGetColumnIndex(columnName, out var index))
                     throw env.Except($"Data view {i} doesn't contain a column '{columnName}'");
                 ValueMapper<uint, uint> mapper =
-                    (ref uint src, ref uint dst) =>
+                    (in uint src, ref uint dst) =>
                     {
                         if (src > keyCount)
                             dst = 0;
@@ -689,7 +689,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var keyMapperCur = keyValueMappers[i];
                 ValueMapper<VBuffer<uint>, VBuffer<uint>> mapper =
-                    (ref VBuffer<uint> src, ref VBuffer<uint> dst) =>
+                    (in VBuffer<uint> src, ref VBuffer<uint> dst) =>
                     {
                         var values = dst.Values;
                         if (Utils.Size(values) < src.Count)
@@ -984,7 +984,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
                        variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
-                       (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
+                       (in VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
         private static List<string> GetMetricNames(IChannel ch, Schema schema, IRow row, Func<int, bool> ignoreCol,

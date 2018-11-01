@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms
                 Ch.Assert(Parent._type.IsKey);
                 _srcGetter(ref _value);
                 ulong value = 0;
-                _conv(ref _value, ref value);
+                _conv(in _value, ref value);
                 if (value == 0 || value > (ulong)_count)
                     return false;
                 if (!CheckBounds(((Double)(uint)value - 0.5) / _count))

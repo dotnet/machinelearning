@@ -736,7 +736,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");
 
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
-                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     Host.Check(src.Length == _numFeatures);
 

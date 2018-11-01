@@ -534,32 +534,32 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (count > 0)
             {
                 return
-                    (ref TSrc src, ref SB dst) =>
+                    (in TSrc src, ref SB dst) =>
                     {
                         ulong tmp = 0;
-                        convSrc(ref src, ref tmp);
+                        convSrc(in src, ref tmp);
                         if (tmp == 0 || tmp > (ulong)count)
                             ClearDst(ref dst);
                         else
                         {
                             tmp = tmp + min - 1;
-                            convU8(ref tmp, ref dst);
+                            convU8(in tmp, ref dst);
                         }
                     };
             }
             else
             {
                 return
-                    (ref TSrc src, ref SB dst) =>
+                    (in TSrc src, ref SB dst) =>
                     {
                         U8 tmp = 0;
-                        convSrc(ref src, ref tmp);
+                        convSrc(in src, ref tmp);
                         if (tmp == 0 || min > 1 && tmp > U8.MaxValue - min + 1)
                             ClearDst(ref dst);
                         else
                         {
                             tmp = tmp + min - 1;
-                            convU8(ref tmp, ref dst);
+                            convU8(in tmp, ref dst);
                         }
                     };
             }
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                         return false;
                     // REVIEW: This call to fnConv should never need range checks, so could be made faster.
                     // Also, it would be nice to be able to assert that it doesn't overflow....
-                    fnConv(ref uu, ref dst);
+                    fnConv(in uu, ref dst);
                     return true;
                 };
         }
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             bool identity;
             var fnConv = GetStandardConversion<U8, TDst>(NumberType.U8, NumberType.FromKind(key.RawKind), out identity);
             return
-                (ref TX src, ref TDst dst) =>
+                (in TX src, ref TDst dst) =>
                 {
                     ulong uu;
                     dst = default(TDst);
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     }
                     // REVIEW: This call to fnConv should never need range checks, so could be made faster.
                     // Also, it would be nice to be able to assert that it doesn't overflow....
-                    fnConv(ref uu, ref dst);
+                    fnConv(in uu, ref dst);
                 };
         }
 
@@ -856,126 +856,126 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion GetNA
 
         #region ToI1
-        public void Convert(ref I1 src, ref I1 dst) => dst = src;
-        public void Convert(ref I2 src, ref I1 dst) => dst = (I1)src;
-        public void Convert(ref I4 src, ref I1 dst) => dst = (I1)src;
-        public void Convert(ref I8 src, ref I1 dst) => dst = (I1)src;
+        public void Convert(in I1 src, ref I1 dst) => dst = src;
+        public void Convert(in I2 src, ref I1 dst) => dst = (I1)src;
+        public void Convert(in I4 src, ref I1 dst) => dst = (I1)src;
+        public void Convert(in I8 src, ref I1 dst) => dst = (I1)src;
         #endregion ToI1
 
         #region ToI2
-        public void Convert(ref I1 src, ref I2 dst) => dst = src;
-        public void Convert(ref I2 src, ref I2 dst) => dst = src;
-        public void Convert(ref I4 src, ref I2 dst) => dst = (I2)src;
-        public void Convert(ref I8 src, ref I2 dst) => dst = (I2)src;
+        public void Convert(in I1 src, ref I2 dst) => dst = src;
+        public void Convert(in I2 src, ref I2 dst) => dst = src;
+        public void Convert(in I4 src, ref I2 dst) => dst = (I2)src;
+        public void Convert(in I8 src, ref I2 dst) => dst = (I2)src;
         #endregion ToI2
 
         #region ToI4
-        public void Convert(ref I1 src, ref I4 dst) => dst = src;
-        public void Convert(ref I2 src, ref I4 dst) => dst = src;
-        public void Convert(ref I4 src, ref I4 dst) => dst = src;
-        public void Convert(ref I8 src, ref I4 dst) => dst = (I4)src;
+        public void Convert(in I1 src, ref I4 dst) => dst = src;
+        public void Convert(in I2 src, ref I4 dst) => dst = src;
+        public void Convert(in I4 src, ref I4 dst) => dst = src;
+        public void Convert(in I8 src, ref I4 dst) => dst = (I4)src;
         #endregion ToI4
 
         #region ToI8
-        public void Convert(ref I1 src, ref I8 dst) => dst = src;
-        public void Convert(ref I2 src, ref I8 dst) => dst = src;
-        public void Convert(ref I4 src, ref I8 dst) => dst = src;
-        public void Convert(ref I8 src, ref I8 dst) => dst = src;
+        public void Convert(in I1 src, ref I8 dst) => dst = src;
+        public void Convert(in I2 src, ref I8 dst) => dst = src;
+        public void Convert(in I4 src, ref I8 dst) => dst = src;
+        public void Convert(in I8 src, ref I8 dst) => dst = src;
 
-        public void Convert(ref TS src, ref I8 dst) => dst = (I8)src.Ticks;
-        public void Convert(ref DT src, ref I8 dst) => dst = (I8)src.Ticks;
-        public void Convert(ref DZ src, ref I8 dst) => dst = (I8)src.UtcDateTime.Ticks;
+        public void Convert(in TS src, ref I8 dst) => dst = (I8)src.Ticks;
+        public void Convert(in DT src, ref I8 dst) => dst = (I8)src.Ticks;
+        public void Convert(in DZ src, ref I8 dst) => dst = (I8)src.UtcDateTime.Ticks;
         #endregion ToI8
 
         #region ToU1
-        public void Convert(ref U1 src, ref U1 dst) => dst = src;
-        public void Convert(ref U2 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
-        public void Convert(ref U4 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
-        public void Convert(ref U8 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
-        public void Convert(ref UG src, ref U1 dst) => dst = src.Hi == 0 && src.Lo <= U1.MaxValue ? (U1)src.Lo : (U1)0;
+        public void Convert(in U1 src, ref U1 dst) => dst = src;
+        public void Convert(in U2 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
+        public void Convert(in U4 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
+        public void Convert(in U8 src, ref U1 dst) => dst = src <= U1.MaxValue ? (U1)src : (U1)0;
+        public void Convert(in UG src, ref U1 dst) => dst = src.Hi == 0 && src.Lo <= U1.MaxValue ? (U1)src.Lo : (U1)0;
         #endregion ToU1
 
         #region ToU2
-        public void Convert(ref U1 src, ref U2 dst) => dst = src;
-        public void Convert(ref U2 src, ref U2 dst) => dst = src;
-        public void Convert(ref U4 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
-        public void Convert(ref U8 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
-        public void Convert(ref UG src, ref U2 dst) => dst = src.Hi == 0 && src.Lo <= U2.MaxValue ? (U2)src.Lo : (U2)0;
+        public void Convert(in U1 src, ref U2 dst) => dst = src;
+        public void Convert(in U2 src, ref U2 dst) => dst = src;
+        public void Convert(in U4 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
+        public void Convert(in U8 src, ref U2 dst) => dst = src <= U2.MaxValue ? (U2)src : (U2)0;
+        public void Convert(in UG src, ref U2 dst) => dst = src.Hi == 0 && src.Lo <= U2.MaxValue ? (U2)src.Lo : (U2)0;
         #endregion ToU2
 
         #region ToU4
-        public void Convert(ref U1 src, ref U4 dst) => dst = src;
-        public void Convert(ref U2 src, ref U4 dst) => dst = src;
-        public void Convert(ref U4 src, ref U4 dst) => dst = src;
-        public void Convert(ref U8 src, ref U4 dst) => dst = src <= U4.MaxValue ? (U4)src : (U4)0;
-        public void Convert(ref UG src, ref U4 dst) => dst = src.Hi == 0 && src.Lo <= U4.MaxValue ? (U4)src.Lo : (U4)0;
+        public void Convert(in U1 src, ref U4 dst) => dst = src;
+        public void Convert(in U2 src, ref U4 dst) => dst = src;
+        public void Convert(in U4 src, ref U4 dst) => dst = src;
+        public void Convert(in U8 src, ref U4 dst) => dst = src <= U4.MaxValue ? (U4)src : (U4)0;
+        public void Convert(in UG src, ref U4 dst) => dst = src.Hi == 0 && src.Lo <= U4.MaxValue ? (U4)src.Lo : (U4)0;
         #endregion ToU4
 
         #region ToU8
-        public void Convert(ref U1 src, ref U8 dst) => dst = src;
-        public void Convert(ref U2 src, ref U8 dst) => dst = src;
-        public void Convert(ref U4 src, ref U8 dst) => dst = src;
-        public void Convert(ref U8 src, ref U8 dst) => dst = src;
-        public void Convert(ref UG src, ref U8 dst) => dst = src.Hi == 0 ? src.Lo : (U8)0;
+        public void Convert(in U1 src, ref U8 dst) => dst = src;
+        public void Convert(in U2 src, ref U8 dst) => dst = src;
+        public void Convert(in U4 src, ref U8 dst) => dst = src;
+        public void Convert(in U8 src, ref U8 dst) => dst = src;
+        public void Convert(in UG src, ref U8 dst) => dst = src.Hi == 0 ? src.Lo : (U8)0;
         #endregion ToU8
 
         #region ToUG
-        public void Convert(ref U1 src, ref UG dst) => dst = new UG(src, 0);
-        public void Convert(ref U2 src, ref UG dst) => dst = new UG(src, 0);
-        public void Convert(ref U4 src, ref UG dst) => dst = new UG(src, 0);
-        public void Convert(ref U8 src, ref UG dst) => dst = new UG(src, 0);
-        public void Convert(ref UG src, ref UG dst) => dst = src;
+        public void Convert(in U1 src, ref UG dst) => dst = new UG(src, 0);
+        public void Convert(in U2 src, ref UG dst) => dst = new UG(src, 0);
+        public void Convert(in U4 src, ref UG dst) => dst = new UG(src, 0);
+        public void Convert(in U8 src, ref UG dst) => dst = new UG(src, 0);
+        public void Convert(in UG src, ref UG dst) => dst = src;
         #endregion ToUG
 
         #region ToR4
-        public void Convert(ref I1 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref I2 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref I4 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref I8 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref U1 src, ref R4 dst) => dst = src;
-        public void Convert(ref U2 src, ref R4 dst) => dst = src;
-        public void Convert(ref U4 src, ref R4 dst) => dst = src;
+        public void Convert(in I1 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(in I2 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(in I4 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(in I8 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(in U1 src, ref R4 dst) => dst = src;
+        public void Convert(in U2 src, ref R4 dst) => dst = src;
+        public void Convert(in U4 src, ref R4 dst) => dst = src;
         // REVIEW: The 64-bit JIT has a bug in that it rounds incorrectly from ulong
         // to floating point when the high bit of the ulong is set. Should we work around the bug
         // or just live with it? See the DoubleParser code for details.
-        public void Convert(ref U8 src, ref R4 dst) => dst = src;
+        public void Convert(in U8 src, ref R4 dst) => dst = src;
 
-        public void Convert(ref TS src, ref R4 dst) => dst = (R4)src.Ticks;
-        public void Convert(ref DT src, ref R4 dst) => dst = (R4)src.Ticks;
-        public void Convert(ref DZ src, ref R4 dst) => dst = (R4)src.UtcDateTime.Ticks;
+        public void Convert(in TS src, ref R4 dst) => dst = (R4)src.Ticks;
+        public void Convert(in DT src, ref R4 dst) => dst = (R4)src.Ticks;
+        public void Convert(in DZ src, ref R4 dst) => dst = (R4)src.UtcDateTime.Ticks;
         #endregion ToR4
 
         #region ToR8
-        public void Convert(ref I1 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref I2 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref I4 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref I8 src, ref R8 dst) => dst = (R8)src;
-        public void Convert(ref U1 src, ref R8 dst) => dst = src;
-        public void Convert(ref U2 src, ref R8 dst) => dst = src;
-        public void Convert(ref U4 src, ref R8 dst) => dst = src;
+        public void Convert(in I1 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(in I2 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(in I4 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(in I8 src, ref R8 dst) => dst = (R8)src;
+        public void Convert(in U1 src, ref R8 dst) => dst = src;
+        public void Convert(in U2 src, ref R8 dst) => dst = src;
+        public void Convert(in U4 src, ref R8 dst) => dst = src;
         // REVIEW: The 64-bit JIT has a bug in that it rounds incorrectly from ulong
         // to floating point when the high bit of the ulong is set. Should we work around the bug
         // or just live with it? See the DoubleParser code for details.
-        public void Convert(ref U8 src, ref R8 dst) => dst = src;
+        public void Convert(in U8 src, ref R8 dst) => dst = src;
 
-        public void Convert(ref TS src, ref R8 dst) => dst = (R8)src.Ticks;
-        public void Convert(ref DT src, ref R8 dst) => dst = (R8)src.Ticks;
-        public void Convert(ref DZ src, ref R8 dst) => dst = (R8)src.UtcDateTime.Ticks;
+        public void Convert(in TS src, ref R8 dst) => dst = (R8)src.Ticks;
+        public void Convert(in DT src, ref R8 dst) => dst = (R8)src.Ticks;
+        public void Convert(in DZ src, ref R8 dst) => dst = (R8)src.UtcDateTime.Ticks;
         #endregion ToR8
 
         #region ToStringBuilder
-        public void Convert(ref I1 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
-        public void Convert(ref I2 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
-        public void Convert(ref I4 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
-        public void Convert(ref I8 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
-        public void Convert(ref U1 src, ref SB dst) => ClearDst(ref dst).Append(src);
-        public void Convert(ref U2 src, ref SB dst) => ClearDst(ref dst).Append(src);
-        public void Convert(ref U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
-        public void Convert(ref U8 src, ref SB dst) => ClearDst(ref dst).Append(src);
-        public void Convert(ref UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.Hi, src.Lo); }
-        public void Convert(ref R4 src, ref SB dst) { ClearDst(ref dst); if (R4.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
-        public void Convert(ref R8 src, ref SB dst) { ClearDst(ref dst); if (R8.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
-        public void Convert(ref BL src, ref SB dst)
+        public void Convert(in I1 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(in I2 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(in I4 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(in I8 src, ref SB dst) { ClearDst(ref dst); dst.Append(src); }
+        public void Convert(in U1 src, ref SB dst) => ClearDst(ref dst).Append(src);
+        public void Convert(in U2 src, ref SB dst) => ClearDst(ref dst).Append(src);
+        public void Convert(in U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
+        public void Convert(in U8 src, ref SB dst) => ClearDst(ref dst).Append(src);
+        public void Convert(in UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.Hi, src.Lo); }
+        public void Convert(in R4 src, ref SB dst) { ClearDst(ref dst); if (R4.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
+        public void Convert(in R8 src, ref SB dst) { ClearDst(ref dst); if (R8.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
+        public void Convert(in BL src, ref SB dst)
         {
             ClearDst(ref dst);
             if (!src)
@@ -983,19 +983,19 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             else
                 dst.Append("1");
         }
-        public void Convert(ref TS src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:c}", src); }
-        public void Convert(ref DT src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
-        public void Convert(ref DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
+        public void Convert(in TS src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:c}", src); }
+        public void Convert(in DT src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
+        public void Convert(in DZ src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("{0:o}", src); }
         #endregion ToStringBuilder
 
         #region FromR4
-        public void Convert(ref R4 src, ref R4 dst) => dst = src;
-        public void Convert(ref R4 src, ref R8 dst) => dst = src;
+        public void Convert(in R4 src, ref R4 dst) => dst = src;
+        public void Convert(in R4 src, ref R8 dst) => dst = src;
         #endregion FromR4
 
         #region FromR8
-        public void Convert(ref R8 src, ref R4 dst) => dst = (R4)src;
-        public void Convert(ref R8 src, ref R8 dst) => dst = src;
+        public void Convert(in R8 src, ref R4 dst) => dst = (R4)src;
+        public void Convert(in R8 src, ref R8 dst) => dst = src;
         #endregion FromR8
 
         #region FromTX
@@ -1666,44 +1666,44 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        public void Convert(ref TX span, ref I1 value)
+        public void Convert(in TX span, ref I1 value)
         {
             value = ParseI1(in span);
         }
-        public void Convert(ref TX span, ref U1 value)
+        public void Convert(in TX span, ref U1 value)
         {
             value = ParseU1(in span);
         }
-        public void Convert(ref TX span, ref I2 value)
+        public void Convert(in TX span, ref I2 value)
         {
             value = ParseI2(in span);
         }
-        public void Convert(ref TX span, ref U2 value)
+        public void Convert(in TX span, ref U2 value)
         {
             value = ParseU2(in span);
         }
-        public void Convert(ref TX span, ref I4 value)
+        public void Convert(in TX span, ref I4 value)
         {
             value = ParseI4(in span);
         }
-        public void Convert(ref TX span, ref U4 value)
+        public void Convert(in TX span, ref U4 value)
         {
             value = ParseU4(in span);
         }
-        public void Convert(ref TX span, ref I8 value)
+        public void Convert(in TX span, ref I8 value)
         {
             value = ParseI8(in span);
         }
-        public void Convert(ref TX span, ref U8 value)
+        public void Convert(in TX span, ref U8 value)
         {
             value = ParseU8(in span);
         }
-        public void Convert(ref TX span, ref UG value)
+        public void Convert(in TX span, ref UG value)
         {
             if (!TryParse(in span, out value))
                 Contracts.Assert(value.Equals(default(UG)));
         }
-        public void Convert(ref TX src, ref R4 value)
+        public void Convert(in TX src, ref R4 value)
         {
             var span = src.Span;
             if (DoubleParser.TryParse(span, out value))
@@ -1711,7 +1711,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             // Unparsable is mapped to NA.
             value = R4.NaN;
         }
-        public void Convert(ref TX src, ref R8 value)
+        public void Convert(in TX src, ref R8 value)
         {
             var span = src.Span;
             if (DoubleParser.TryParse(span, out value))
@@ -1719,37 +1719,37 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             // Unparsable is mapped to NA.
             value = R8.NaN;
         }
-        public void Convert(ref TX span, ref TX value)
+        public void Convert(in TX span, ref TX value)
         {
             value = span;
         }
-        public void Convert(ref TX src, ref BL value)
+        public void Convert(in TX src, ref BL value)
         {
             // When TryParseBL returns false, it should have set value to false.
             if (!TryParse(in src, out value))
                 Contracts.Assert(!value);
         }
-        public void Convert(ref TX src, ref SB dst)
+        public void Convert(in TX src, ref SB dst)
         {
             ClearDst(ref dst);
             if (!src.IsEmpty)
                 dst.AppendMemory(src);
         }
 
-        public void Convert(ref TX span, ref TS value) => TryParse(in span, out value);
-        public void Convert(ref TX span, ref DT value) => TryParse(in span, out value);
-        public void Convert(ref TX span, ref DZ value) => TryParse(in span, out value);
+        public void Convert(in TX span, ref TS value) => TryParse(in span, out value);
+        public void Convert(in TX span, ref DT value) => TryParse(in span, out value);
+        public void Convert(in TX span, ref DZ value) => TryParse(in span, out value);
 
         #endregion FromTX
 
         #region FromBL
-        public void Convert(ref BL src, ref I1 dst) => dst = (I1)(object)src;
-        public void Convert(ref BL src, ref I2 dst) => dst = (I2)(object)src;
-        public void Convert(ref BL src, ref I4 dst) => dst = (I4)(object)src;
-        public void Convert(ref BL src, ref I8 dst) => dst = (I8)(object)src;
-        public void Convert(ref BL src, ref R4 dst) => dst = System.Convert.ToSingle(src);
-        public void Convert(ref BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
-        public void Convert(ref BL src, ref BL dst) => dst = src;
+        public void Convert(in BL src, ref I1 dst) => dst = (I1)(object)src;
+        public void Convert(in BL src, ref I2 dst) => dst = (I2)(object)src;
+        public void Convert(in BL src, ref I4 dst) => dst = (I4)(object)src;
+        public void Convert(in BL src, ref I8 dst) => dst = (I8)(object)src;
+        public void Convert(in BL src, ref R4 dst) => dst = System.Convert.ToSingle(src);
+        public void Convert(in BL src, ref R8 dst) => dst = System.Convert.ToDouble(src);
+        public void Convert(in BL src, ref BL dst) => dst = src;
         #endregion FromBL
     }
 }

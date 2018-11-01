@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(typeof(TOut) == typeof(Float));
 
             ValueMapper<VBuffer<Float>, Float> del =
-                (ref VBuffer<Float> src, ref Float dst) =>
+                (in VBuffer<Float> src, ref Float dst) =>
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));
 
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dstContributions) =>
+                (in VBuffer<Float> src, ref VBuffer<Float> dstContributions) =>
                 {
                     GetFeatureContributions(in src, ref dstContributions, top, bottom, normalize);
                 };
