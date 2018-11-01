@@ -17,7 +17,7 @@ namespace Microsoft.ML
         /// <param name="modelFile">The path of the file containing the ONNX model.</param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The output column resulting from the transformation.</param>
-        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog.CategoricalTransforms catalog,
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog,
             string modelFile,
             string inputColumn,
             string outputColumn)
@@ -28,7 +28,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="transformer">The ONNX transformer.</param>
-        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog.CategoricalTransforms catalog, OnnxTransform transformer)
+        public static OnnxScoringEstimator ApplyOnnxModel(this TransformsCatalog catalog, OnnxTransform transformer)
             => new OnnxScoringEstimator(CatalogUtils.GetEnvironment(catalog), transformer);
     }
 }
