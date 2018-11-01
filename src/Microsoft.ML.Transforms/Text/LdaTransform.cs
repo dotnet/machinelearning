@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -18,6 +12,11 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Float = System.Single;
 
 [assembly: LoadableClass(LdaTransform.Summary, typeof(IDataTransform), typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
     "Latent Dirichlet Allocation Transform", "LdaTransform", "Lda")]
@@ -183,16 +182,16 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
             /// <param name="numTopic">The number of topics in the LDA.</param>
-            /// <param name="alphaSum">Dirichlet prior on document-topic vectors</param>
-            /// <param name="beta">Dirichlet prior on vocab-topic vectors</param>
-            /// <param name="mhStep">Number of Metropolis Hasting step</param>
-            /// <param name="numIter">Number of iterations</param>
-            /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval</param>
+            /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+            /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+            /// <param name="mhStep">Number of Metropolis Hasting step.</param>
+            /// <param name="numIter">Number of iterations.</param>
+            /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
             /// <param name="numThread">The number of training threads. Default value depends on number of logical processors.</param>
-            /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc</param>
-            /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic</param>
-            /// <param name="numBurninIter">The number of burn-in iterations</param>
-            /// <param name="resetRandomGenerator">Reset the random number generator for each document</param>
+            /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+            /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+            /// <param name="numBurninIter">The number of burn-in iterations.</param>
+            /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
             public ColumnInfo(string input, string output, int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
                 int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator)
             {
@@ -1050,16 +1049,16 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="alphaSum">Dirichlet prior on document-topic vectors</param>
-        /// <param name="beta">Dirichlet prior on vocab-topic vectors</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step</param>
-        /// <param name="numIterations">Number of iterations</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
+        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
         /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations</param>
-        /// <param name="resetRandomGenerator">Reset the random number generator for each document</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         public LdaEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,

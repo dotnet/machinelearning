@@ -75,9 +75,6 @@ namespace Microsoft.ML.Transforms.Text
             if (onFit == null)
                 return null;
 
-            // The type T asociated with the delegate will be the actual value type once #863 goes in.
-            // However, until such time as #863 goes in, it would be too awkward to attempt to extract the metadata.
-            // For now construct the useless object then pass it into the delegate.
             return state => onFit(new LdaFitResult<T>(state));
         }
 
@@ -142,16 +139,16 @@ namespace Microsoft.ML.Transforms.Text
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="alphaSum">Dirichlet prior on document-topic vectors</param>
-        /// <param name="beta">Dirichlet prior on vocab-topic vectors</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step</param>
-        /// <param name="numIterations">Number of iterations</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
+        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
         /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations</param>
-        /// <param name="resetRandomGenerator">Reset the random number generator for each document</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         public static Vector<float> ToLdaTopicVector(this Vector<float> input,
             int numTopic = LdaEstimator.Defaults.NumTopic,

@@ -750,7 +750,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             try
             {
-                var lda = LdaTransform.Create(Env, args, srcView);
+                var lda = new LdaEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {
