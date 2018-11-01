@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private void MapKey(ref TKey src, ref TValue dst)
                 {
                     uint uintSrc = 0;
-                    _convertToUInt(ref src, ref uintSrc);
+                    _convertToUInt(in src, ref uintSrc);
                     // Assign to NA if key value is not in valid range.
                     if (0 < uintSrc && uintSrc <= _values.Length)
                         dst = _values[uintSrc - 1];

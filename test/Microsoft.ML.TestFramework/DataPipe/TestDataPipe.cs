@@ -496,11 +496,11 @@ namespace Microsoft.ML.Runtime.RunTests
             where TDst : struct
         {
             TDst v = default(TDst);
-            conv(ref src, ref v);
+            conv(in src, ref v);
             if (EqualityComparer<TDst>.Default.Equals(dst, v))
                 return true;
             TSrc vSrc = default;
-            convBack(ref v, ref vSrc);
+            convBack(in v, ref vSrc);
             if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
                 return true;
             Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");

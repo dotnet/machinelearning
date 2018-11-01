@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Data
             var value = default(T);
             var sb = default(StringBuilder);
             schema.GetMetadata(kind, col, ref value);
-            conv(ref value, ref sb);
+            conv(in value, ref sb);
 
             itw.Write(": '{0}'", sb);
         }
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         itw.Write(", ");
                     var val = item.Value;
-                    conv(ref val, ref sb);
+                    conv(in val, ref sb);
                     itw.Write("[{0}] '{1}'", item.Key, sb);
                     count++;
                 }

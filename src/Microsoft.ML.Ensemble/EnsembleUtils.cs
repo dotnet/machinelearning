@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var name = data.Schema.Feature.Name;
             var view = LambdaColumnMapper.Create(
                 host, "FeatureSelector", data.Data, name, name, type, type,
-                (ref VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(in src, features, card, ref dst));
+                (in VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(in src, features, card, ref dst));
 
             var res = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return res;

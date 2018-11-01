@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref TDst dst) =>
                 {
                     featureGetter(ref features);
-                    map(ref features, ref dst);
+                    map(in features, ref dst);
                 };
         }
 
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (featureGetter != null)
                         featureGetter(ref features);
 
-                    mapper(ref features, ref score, ref prob);
+                    mapper(in features, ref score, ref prob);
                     cachedPosition = input.Position;
                 }
             }
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     featureGetter(ref features);
                     Contracts.Check(features.Length == featureCount || featureCount == 0);
-                    map(ref features, ref value);
+                    map(in features, ref value);
                 };
             return del;
         }

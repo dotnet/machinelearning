@@ -465,7 +465,7 @@ namespace Microsoft.ML.Transforms
                 var tmp = default(VBuffer<T>);
                 var labels = default(VBuffer<int>);
                 trans.GetSingleSlotValue(labelCol, ref tmp);
-                BinKeys<T>(labeColumnType)(ref tmp, ref labels);
+                BinKeys<T>(labeColumnType)(in tmp, ref labels);
                 VBufferUtils.Densify(ref labels);
                 var values = labels.Values;
                 if (labels.Length < values.Length)
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Transforms
                     {
                         min = 0;
                         lim = type.KeyCount + 1;
-                        mapper(ref src, ref dst);
+                        mapper(in src, ref dst);
                     };
             }
 
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Transforms
                 if (identity)
                 {
                     mapper = (ValueMapper<T, int>)(Delegate)(ValueMapper<uint, int>)(
-                        (ref uint src, ref int dst) =>
+                        (in uint src, ref int dst) =>
                         {
                             dst = (int)src;
                         });
@@ -660,10 +660,10 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     mapper =
-                        (ref T src, ref int dst) =>
+                        (in T src, ref int dst) =>
                         {
                             uint t = 0;
-                            conv(ref src, ref t);
+                            conv(in src, ref t);
                             dst = (int)t;
                         };
                 }
@@ -683,9 +683,9 @@ namespace Microsoft.ML.Transforms
                 lim = min + bounds.Length + 1;
                 int offset = min;
                 ValueMapper<int, int> mapper =
-                    (ref int src, ref int dst) =>
+                    (in int src, ref int dst) =>
                         dst = offset + 1 + bounds.FindIndexSorted((Single)src);
-                mapper.MapVector(ref input, ref output);
+                mapper.MapVector(in input, ref output);
                 _singles.Clear();
             }
 
@@ -711,9 +711,9 @@ namespace Microsoft.ML.Transforms
                 lim = min + bounds.Length + 1;
                 int offset = min;
                 ValueMapper<Single, int> mapper =
-                    (ref Single src, ref int dst) =>
+                    (in Single src, ref int dst) =>
                         dst = Single.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
-                mapper.MapVector(ref input, ref output);
+                mapper.MapVector(in input, ref output);
                 _singles.Clear();
             }
 
@@ -738,9 +738,9 @@ namespace Microsoft.ML.Transforms
                 var offset = min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 ValueMapper<Double, int> mapper =
-                    (ref Double src, ref int dst) =>
+                    (in Double src, ref int dst) =>
                         dst = Double.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
-                mapper.MapVector(ref input, ref output);
+                mapper.MapVector(in input, ref output);
                 _doubles.Clear();
             }
 
@@ -748,10 +748,10 @@ namespace Microsoft.ML.Transforms
             {
                 if (_boolMapper == null)
                     _boolMapper = CreateVectorMapper<bool, int>(BinOneBool);
-                _boolMapper(ref input, ref output);
+                _boolMapper(in input, ref output);
             }
 
-            private void BinOneBool(ref bool src, ref int dst)
+            private void BinOneBool(in bool src, ref int dst)
             {
                 dst = Convert.ToInt32(src);
             }
@@ -767,13 +767,13 @@ namespace Microsoft.ML.Transforms
 #if DEBUG
             TSrc tmpSrc = default(TSrc);
             TDst tmpDst = default(TDst);
-            map(ref tmpSrc, ref tmpDst);
+            map(in tmpSrc, ref tmpDst);
             Contracts.Assert(tmpDst.Equals(default(TDst)));
 #endif
             return map.MapVector;
         }
 
-        private static void MapVector<TSrc, TDst>(this ValueMapper<TSrc, TDst> map, ref VBuffer<TSrc> input, ref VBuffer<TDst> output)
+        private static void MapVector<TSrc, TDst>(this ValueMapper<TSrc, TDst> map, in VBuffer<TSrc> input, ref VBuffer<TDst> output)
         {
             var values = output.Values;
             if (Utils.Size(values) < input.Count)
@@ -781,7 +781,7 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < input.Count; i++)
             {
                 TSrc val = input.Values[i];
-                map(ref val, ref values[i]);
+                map(in val, ref values[i]);
             }
 
             var indices = output.Indices;

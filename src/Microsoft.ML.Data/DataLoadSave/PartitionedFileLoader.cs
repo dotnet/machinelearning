@@ -610,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 return (ref TValue value) =>
                 {
-                    conv(ref _colValues[col], ref value);
+                    conv(in _colValues[col], ref value);
                 };
             }
 

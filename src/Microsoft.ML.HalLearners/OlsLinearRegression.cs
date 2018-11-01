@@ -294,7 +294,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 while (cursor.MoveNext())
                 {
                     var features = cursor.Features;
-                    lrMap(ref features, ref yh);
+                    lrMap(in features, ref yh);
                     var e = cursor.Label - yh;
                     rss += e * e;
                     var ydm = cursor.Label - yMean;

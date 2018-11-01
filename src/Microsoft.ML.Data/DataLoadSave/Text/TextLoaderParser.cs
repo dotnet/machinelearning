@@ -1015,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data
                                 int csrc = default;
                                 try
                                 {
-                                    Conversions.Instance.Convert(ref spanT, ref csrc);
+                                    Conversions.Instance.Convert(in spanT, ref csrc);
                                 }
                                 catch
                                 {

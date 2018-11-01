@@ -931,12 +931,12 @@ namespace Microsoft.ML.Transforms.Text
                     Contracts.AssertValue(srcMap);
 
                     stringMapper =
-                        (ref NGram src, ref StringBuilder dst) =>
+                        (in NGram src, ref StringBuilder dst) =>
                         {
                             Contracts.Assert(src.ISrcCol == 0);
                             if (src.Lim == 1)
                             {
-                                srcMap(ref src.Grams[0], ref dst);
+                                srcMap(in src.Grams[0], ref dst);
                                 return;
                             }
                             ClearDst(ref dst);
@@ -944,7 +944,7 @@ namespace Microsoft.ML.Transforms.Text
                             {
                                 if (i > 0)
                                     dst.Append('|');
-                                srcMap(ref src.Grams[i], ref temp);
+                                srcMap(in src.Grams[i], ref temp);
                                 InvertHashUtils.AppendToEnd(temp, dst, ref buffer);
                             }
                         };
@@ -964,7 +964,7 @@ namespace Microsoft.ML.Transforms.Text
                     // We need to disambiguate the column name. This will be the same as the above format,
                     // just instead of "<Stuff>" it would be with "ColumnName:<Stuff>".
                     stringMapper =
-                        (ref NGram src, ref StringBuilder dst) =>
+                        (in NGram src, ref StringBuilder dst) =>
                         {
                             var srcMap = _srcTextGetters[srcIndices[src.ISrcCol]];
                             Contracts.AssertValue(srcMap);
@@ -975,7 +975,7 @@ namespace Microsoft.ML.Transforms.Text
                             {
                                 if (i > 0)
                                     dst.Append('|');
-                                srcMap(ref src.Grams[i], ref temp);
+                                srcMap(in src.Grams[i], ref temp);
                                 InvertHashUtils.AppendToEnd(temp, dst, ref buffer);
                             }
                         };
@@ -983,7 +983,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var collector = _iinfoToCollector[iinfo] = new InvertHashCollector<NGram>(
                     _parent._bindings.Types[iinfo].VectorSize, _invertHashMaxCounts[iinfo],
-                    stringMapper, EqualityComparer<NGram>.Default, (ref NGram src, ref NGram dst) => dst = src.Clone());
+                    stringMapper, EqualityComparer<NGram>.Default, (in NGram src, ref NGram dst) => dst = src.Clone());
 
                 return
                     (uint[] ngram, int lim, int icol, ref bool more) =>

@@ -451,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<ReadOnlyMemory<char>>(n, output, dst.Indices);
         }
 
-        private delegate uint HashDelegate<TSrc>(ref TSrc value, uint seed);
+        private delegate uint HashDelegate<TSrc>(in TSrc value, uint seed);
 
         // generic method generators
         private static MethodInfo _methGetterOneToOne;
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref uint dst) =>
                 {
                     getSrc(ref src);
-                    dst = (hashFunction(ref src, hashSeed) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
+                    dst = (hashFunction(in src, hashSeed) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                 };
         }
 
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Data
                             // REVIEW: some legacy code hashes 0 for srcSlot in ord- case, do we need to preserve this behavior?
                             if (ordered)
                                 hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                            hash = hashFunction(ref values[srcSlot], hash);
+                            hash = hashFunction(in values[srcSlot], hash);
                         }
 
                         hashes[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (ordered)
                             hash = Hashing.MurmurRound(hash, (uint)srcSlot);
-                        hash = hashFunction(ref values[srcSlot], hash);
+                        hash = hashFunction(in values[srcSlot], hash);
                     }
                     dst = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                 };
@@ -658,9 +658,9 @@ namespace Microsoft.ML.Runtime.Data
             var sb = default(StringBuilder);
             var conv = Conversions.Instance.GetStringConversion<TSrc>();
             return
-                (ref TSrc value, uint seed) =>
+                (in TSrc value, uint seed) =>
                 {
-                    conv(ref value, ref sb);
+                    conv(in value, ref sb);
                     return Hashing.MurmurHash(seed, sb, 0, sb.Length);
                 };
         }
@@ -681,12 +681,12 @@ namespace Microsoft.ML.Runtime.Data
             return Hash;
         }
 
-        private uint Hash(ref float value, uint seed)
+        private uint Hash(in float value, uint seed)
         {
             return Hashing.MurmurRound(seed, FloatUtils.GetBits(value));
         }
 
-        private uint Hash(ref double value, uint seed)
+        private uint Hash(in double value, uint seed)
         {
             ulong v = FloatUtils.GetBits(value);
             uint hash = Hashing.MurmurRound(seed, Utils.GetLo(v));

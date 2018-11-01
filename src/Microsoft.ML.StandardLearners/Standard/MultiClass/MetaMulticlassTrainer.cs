@@ -110,12 +110,12 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
                     lab.Name, lab.Name, type, NumberType.Float,
-                    (ref T src, ref float dst) =>
+                    (in T src, ref float dst) =>
                         dst = equalsTarget(in src) ? 1 : (isMissing(in src) ? float.NaN : default(float)));
             }
             return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
                 lab.Name, lab.Name, type, NumberType.Float,
-                (ref T src, ref float dst) =>
+                (in T src, ref float dst) =>
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 

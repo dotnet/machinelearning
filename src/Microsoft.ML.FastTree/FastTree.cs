@@ -1334,11 +1334,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (identity)
                 {
                     ValueMapper<VBuffer<T1>, VBuffer<T1>> identityResult =
-                        (ref VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
+                        (in VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
                     return (ValueMapper<VBuffer<T1>, VBuffer<T2>>)(object)identityResult;
                 }
                 return
-                    (ref VBuffer<T1> src, ref VBuffer<T2> dst) =>
+                    (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
                         var indices = dst.Indices;
                         var values = dst.Values;
@@ -1351,7 +1351,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             }
                             Utils.EnsureSize(ref values, src.Count);
                             for (int i = 0; i < src.Count; ++i)
-                                conv(ref src.Values[i], ref values[i]);
+                                conv(in src.Values[i], ref values[i]);
                         }
                         dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
                     };
@@ -1458,7 +1458,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                             ch.Assert(maxBins > 0);
                                             finder = finder ?? new BinFinder();
                                             // Must copy over, as bin calculation is potentially destructive.
-                                            copier(ref temp, ref doubleTemp);
+                                            copier(in temp, ref doubleTemp);
                                             hasMissing = !CalculateBins(finder, in doubleTemp, maxBins, 0,
                                                 out BinUpperBounds[iFeature]);
                                         }
@@ -1682,7 +1682,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 Contracts.Assert(cursor.Position == iFeature);
 
                 getter(ref temp);
-                copier(ref temp, ref doubleTemp);
+                copier(in temp, ref doubleTemp);
             }
 
             private static ValueGetter<VBuffer<T>> SubsetGetter<T>(ValueGetter<VBuffer<T>> getter, SlotDropper slotDropper)
@@ -2915,7 +2915,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        protected virtual void Map(ref VBuffer<Float> src, ref Float dst)
+        protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
@@ -2934,7 +2934,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             BufferBuilder<Float> builder = null;
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
                     WhatTheFeatureMap(in src, ref dst, ref builder);
                     Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
