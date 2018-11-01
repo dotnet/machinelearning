@@ -12,7 +12,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;

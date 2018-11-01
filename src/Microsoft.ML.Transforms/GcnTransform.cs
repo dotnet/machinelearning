@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,6 +9,10 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms.Projections;
+using System;
+using System.Text;
+using Float = System.Single;
 
 [assembly: LoadableClass(LpNormNormalizerTransform.GcnSummary, typeof(LpNormNormalizerTransform), typeof(LpNormNormalizerTransform.GcnArguments), typeof(SignatureDataTransform),
     LpNormNormalizerTransform.UserNameGn, "GcnTransform", LpNormNormalizerTransform.ShortNameGn)]
@@ -25,7 +25,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(LpNormalization))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Projections
 {
     /// <summary>
     /// Lp-Norm (vector/row-wise) normalization transform. Has the following two set of arguments:
