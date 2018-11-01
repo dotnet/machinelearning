@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML
 {
