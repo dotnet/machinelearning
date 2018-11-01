@@ -1547,14 +1547,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             var span = src.Span;
 
-            if (!span.IsEmpty && IsStdMissing(ref span))
-            {
-                dst = false;
-                return false;
-            }
-
-            Contracts.Assert(!IsStdMissing(ref span));
-
             char ch;
             switch (src.Length)
             {
