@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -32,7 +32,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToValueTransform), null, typeof(SignatureLoadRowMapper),
     KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
     /// KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 private void MapKey(ref TKey src, ref TValue dst)
                 {
                     uint uintSrc = 0;
-                    _convertToUInt(ref src, ref uintSrc);
+                    _convertToUInt(in src, ref uintSrc);
                     // Assign to NA if key value is not in valid range.
                     if (0 < uintSrc && uintSrc <= _values.Length)
                         dst = _values[uintSrc - 1];

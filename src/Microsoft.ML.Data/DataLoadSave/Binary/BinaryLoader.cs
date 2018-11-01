@@ -1228,7 +1228,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
             KeyType type = new KeyType(DataKind.U8, 0, count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
-            ValueMapper<long, ulong> mapper = (ref long src, ref ulong dst) => dst = (ulong)(src + 1);
+            ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
             return entry;
         }
@@ -1710,7 +1710,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     Ectx.Check(_curr != null, _badCursorState);
                     long src = _curr.RowIndexLim - _remaining - 1;
-                    _mapper(ref src, ref value);
+                    _mapper(in src, ref value);
                 }
 
                 public override Delegate GetGetter()

@@ -34,7 +34,10 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
+            string inputName,
+            string outputName = null,
+            NormalizingEstimator.NormalizerMode mode = NormalizingEstimator.NormalizerMode.MinMax)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputName, outputName, mode);
 
         /// <summary>
@@ -57,7 +60,9 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog, NormalizingEstimator.NormalizerMode mode, params (string input, string output)[] columns)
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
+            NormalizingEstimator.NormalizerMode mode,
+            params (string input, string output)[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), mode, columns);
 
         /// <summary>
@@ -65,7 +70,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The normalization settings for all the columns</param>
-        public static NormalizingEstimator Normalize(this TransformsCatalog catalog, params NormalizingEstimator.ColumnBase[] columns)
+        public static NormalizingEstimator Normalize(this TransformsCatalog catalog,
+            params NormalizingEstimator.ColumnBase[] columns)
             => new NormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

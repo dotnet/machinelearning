@@ -397,8 +397,8 @@ namespace Microsoft.ML.Transforms.Projections
                             {
                                 for (int j = i + 1; j < instanceCount; j++)
                                 {
-                                    distances[count++] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[j])
-                                        : VectorUtils.L1Distance(ref res[i], ref res[j]);
+                                    distances[count++] = gaussian ? VectorUtils.L2DistSquared(in res[i], in res[j])
+                                        : VectorUtils.L1Distance(in res[i], in res[j]);
                                 }
                             }
                             Host.Assert(count == distances.Length);
@@ -410,8 +410,8 @@ namespace Microsoft.ML.Transforms.Projections
                             {
                                 // For Gaussian kernels, we scale by the L2 distance squared, since the kernel function is exp(-gamma ||x-y||^2).
                                 // For Laplacian kernels, we scale by the L1 distance, since the kernel function is exp(-gamma ||x-y||_1).
-                                distances[i / 2] = gaussian ? VectorUtils.L2DistSquared(ref res[i], ref res[i + 1]) :
-                                    VectorUtils.L1Distance(ref res[i], ref res[i + 1]);
+                                distances[i / 2] = gaussian ? VectorUtils.L2DistSquared(in res[i], in res[i + 1]) :
+                                    VectorUtils.L1Distance(in res[i], in res[i + 1]);
                             }
                         }
 
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Transforms.Projections
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        TransformFeatures(ref src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                        TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
 
@@ -580,11 +580,11 @@ namespace Microsoft.ML.Transforms.Projections
                     {
                         getSrc(ref src);
                         oneDimensionalVector.Values[0] = src;
-                        TransformFeatures(ref oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                        TransformFeatures(in oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
 
-            private void TransformFeatures(ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
+            private void TransformFeatures(in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
                 AlignedArray featuresAligned, AlignedArray productAligned)
             {
                 Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");

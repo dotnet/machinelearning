@@ -15,16 +15,30 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     public abstract class IidAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<Single, IidAnomalyDetectionBase.State>
     {
-        public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env, IDataView input)
-            : base(args, name, env, input)
+        public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env)
+            : base(args, name, env)
         {
             InitialWindowSize = 0;
         }
 
-        public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
-            : base(env, ctx, name, input)
+        public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+            : base(env, ctx, name)
         {
             Host.CheckDecode(InitialWindowSize == 0);
+        }
+
+        public override Schema GetOutputSchema(Schema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+            var colType = inputSchema.GetColumnType(col);
+            if (colType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberType.R4.ToString(), colType.ToString());
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
         public override void Save(ModelSaveContext ctx)

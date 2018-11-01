@@ -482,10 +482,10 @@ namespace Microsoft.ML.Transforms.Projections
                             totalColWeight[iinfo] += weight;
 
                             if (center[iinfo])
-                                VectorUtils.AddMult(ref features, mean[iinfo], weight);
+                                VectorUtils.AddMult(in features, mean[iinfo], weight);
 
                             for (int i = 0; i < omega[iinfo].Length; i++)
-                                VectorUtils.AddMult(ref features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
+                                VectorUtils.AddMult(in features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, in features));
                         }
                     }
                 }
@@ -619,13 +619,13 @@ namespace Microsoft.ML.Transforms.Projections
                 ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
                     {
                         srcGetter(ref src);
-                        TransformFeatures(Host, ref src, ref dst, _parent._transformInfos[iinfo]);
+                        TransformFeatures(Host, in src, ref dst, _parent._transformInfos[iinfo]);
                     };
 
                 return dstGetter;
             }
 
-            private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
+            private static void TransformFeatures(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
             {
                 ectx.Check(src.Length == transformInfo.Dimension);
 
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Transforms.Projections
 
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
+                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 

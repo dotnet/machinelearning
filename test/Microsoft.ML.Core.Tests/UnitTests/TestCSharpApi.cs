@@ -813,7 +813,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         Assert.True(b);
                         getter(ref val);
                         foldGetter(ref fold);
-                        sumBldr.AddFeatures(0, ref val);
+                        sumBldr.AddFeatures(0, in val);
                         Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                     }
                     var sum = default(VBuffer<double>);

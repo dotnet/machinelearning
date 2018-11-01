@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
                         _pred =
                             (in T1 src) =>
                             {
-                                conv(ref _src, ref val);
+                                conv(in _src, ref val);
                                 return pred(in val);
                             };
                     }

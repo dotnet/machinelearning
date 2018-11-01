@@ -351,7 +351,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             get { return _vCount; }
         }
 
-        public void ProcessValue(ref VBuffer<TFloat> value)
+        public void ProcessValue(in VBuffer<TFloat> value)
         {
             var size = _min.Length;
             Contracts.Check(value.Length == size);
@@ -455,7 +455,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             get { return _m2; }
         }
 
-        public void ProcessValue(ref VBuffer<TFloat> value)
+        public void ProcessValue(in VBuffer<TFloat> value)
         {
             _trainCount++;
             var size = _mean.Length;
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                             {
                                 getSrc(ref dst);
                                 Contracts.Check(dst.Length == Scale.Length);
-                                FillValues(ref dst, bldr, Scale);
+                                FillValues(in dst, bldr, Scale);
                                 bldr.GetResult(ref dst);
                             };
                         }
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                             {
                                 getSrc(ref dst);
                                 Contracts.Check(dst.Length == Scale.Length);
-                                FillValues(ref dst, bldr, Scale, Offset);
+                                FillValues(in dst, bldr, Scale, Offset);
                                 bldr.GetResult(ref dst);
                             };
                         }
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                             {
                                 getSrc(ref dst);
                                 Contracts.Check(dst.Length == Scale.Length);
-                                FillValues(ref dst, bldr, Scale, Offset, IndicesNonZeroOffset);
+                                FillValues(in dst, bldr, Scale, Offset, IndicesNonZeroOffset);
                                 bldr.GetResult(ref dst);
                             };
                         }
@@ -702,7 +702,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
 
                     // REVIEW: Change to normalize in place. when there are no offsets.
-                    private static void FillValues(ref VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale)
+                    private static void FillValues(in VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale)
                     {
                         Contracts.Assert(input.Length == scale.Length);
                         int size = scale.Length;
@@ -732,7 +732,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
                     }
 
-                    private static void FillValues(ref VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale,
+                    private static void FillValues(in VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale,
                         TFloat[] offset)
                     {
                         Contracts.Assert(input.Length == scale.Length);
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
                     }
 
-                    private static void FillValues(ref VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale,
+                    private static void FillValues(in VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] scale,
                         TFloat[] offset, int[] nz)
                     {
                         Contracts.Assert(input.Length == scale.Length);
@@ -971,14 +971,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                         {
                             getSrc(ref dst);
                             Host.Check(dst.Length == Mean.Length);
-                            FillValues(ref dst, bldr, Mean, Stddev, UseLog);
+                            FillValues(in dst, bldr, Mean, Stddev, UseLog);
                             bldr.GetResult(ref dst);
                         };
 
                         return del;
                     }
 
-                    private static void FillValues(ref VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] mean,
+                    private static void FillValues(in VBuffer<TFloat> input, BufferBuilder<TFloat> bldr, TFloat[] mean,
                         TFloat[] stddev, bool useLog)
                     {
                         Contracts.Assert(input.Length == mean.Length);
@@ -1188,12 +1188,12 @@ namespace Microsoft.ML.Transforms.Normalizers
                             {
                                 getSrc(ref dst);
                                 Host.Check(dst.Length == _binUpperBounds.Length);
-                                GetResult(ref dst, ref dst, bldr);
+                                GetResult(in dst, ref dst, bldr);
                             };
                         return del;
                     }
 
-                    private void GetResult(ref VBuffer<TFloat> input, ref VBuffer<TFloat> value, BufferBuilder<TFloat> bldr)
+                    private void GetResult(in VBuffer<TFloat> input, ref VBuffer<TFloat> value, BufferBuilder<TFloat> bldr)
                     {
                         Contracts.Assert(input.Length == _binUpperBounds.Length);
                         int size = _binUpperBounds.Length;
@@ -1415,12 +1415,12 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
-                protected override bool ProcessValue(ref TFloat val)
+                protected override bool ProcessValue(in TFloat val)
                 {
-                    if (!base.ProcessValue(ref val))
+                    if (!base.ProcessValue(in val))
                         return false;
                     _buffer.Values[0] = val;
-                    Aggregator.ProcessValue(ref _buffer);
+                    Aggregator.ProcessValue(in _buffer);
                     return true;
                 }
             }
@@ -1462,14 +1462,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                     Aggregator = new MinMaxSngAggregator(cv);
                 }
 
-                protected override bool ProcessValue(ref VBuffer<TFloat> buffer)
+                protected override bool ProcessValue(in VBuffer<TFloat> buffer)
                 {
-                    if (!base.ProcessValue(ref buffer))
+                    if (!base.ProcessValue(in buffer))
                         return false;
                     var size = Aggregator.Min.Length;
                     if (buffer.Length != size)
                         throw Host.Except("Normalizer expected {0} slots but got {1}", size, buffer.Length);
-                    Aggregator.ProcessValue(ref buffer);
+                    Aggregator.ProcessValue(in buffer);
                     return true;
                 }
             }
@@ -1559,12 +1559,12 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new MeanVarOneColumnFunctionBuilder(host, lim, false, getter, true, column.UseCdf);
                 }
 
-                protected override bool ProcessValue(ref TFloat origVal)
+                protected override bool ProcessValue(in TFloat origVal)
                 {
-                    if (!base.ProcessValue(ref origVal))
+                    if (!base.ProcessValue(in origVal))
                         return false;
                     _buffer.Values[0] = origVal;
-                    _aggregator.ProcessValue(ref _buffer);
+                    _aggregator.ProcessValue(in _buffer);
                     return true;
                 }
 
@@ -1635,12 +1635,12 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new MeanVarVecColumnFunctionBuilder(host, cv, lim, false, getter, true, column.UseCdf);
                 }
 
-                protected override bool ProcessValue(ref VBuffer<TFloat> buffer)
+                protected override bool ProcessValue(in VBuffer<TFloat> buffer)
                 {
-                    if (!base.ProcessValue(ref buffer))
+                    if (!base.ProcessValue(in buffer))
                         return false;
 
-                    _aggregator.ProcessValue(ref buffer);
+                    _aggregator.ProcessValue(in buffer);
                     return true;
                 }
 
@@ -1745,9 +1745,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new BinOneColumnFunctionBuilder(host, lim, fix, numBins, getter);
                 }
 
-                protected override bool ProcessValue(ref TFloat val)
+                protected override bool ProcessValue(in TFloat val)
                 {
-                    if (!base.ProcessValue(ref val))
+                    if (!base.ProcessValue(in val))
                         return false;
                     if (val != 0)
                         _values.Add(val);
@@ -1795,9 +1795,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new BinVecColumnFunctionBuilder(host, cv, lim, fix, numBins, getter);
                 }
 
-                protected override bool ProcessValue(ref VBuffer<TFloat> buffer)
+                protected override bool ProcessValue(in VBuffer<TFloat> buffer)
                 {
-                    if (!base.ProcessValue(ref buffer))
+                    if (!base.ProcessValue(in buffer))
                         return false;
 
                     int size = _values.Length;
@@ -1857,7 +1857,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _minBinSize = minBinSize;
                 }
 
-                protected override bool AcceptColumnValue(ref TFloat colValue)
+                protected override bool AcceptColumnValue(in TFloat colValue)
                 {
                     return !TFloat.IsNaN(colValue);
                 }
@@ -1895,7 +1895,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     _minBinSize = minBinSize;
                 }
 
-                protected override bool AcceptColumnValue(ref VBuffer<TFloat> colValuesBuffer)
+                protected override bool AcceptColumnValue(in VBuffer<TFloat> colValuesBuffer)
                 {
                     return !colValuesBuffer.Values.Any(TFloat.IsNaN);
                 }

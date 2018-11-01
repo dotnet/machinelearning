@@ -35,9 +35,9 @@ using System.Linq;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// The SelectColumnsEstimator supports selection of specified columns to keep from a given input.
+    /// The ColumnSelectingEstimator supports selection of specified columns to keep from a given input.
     /// </summary>
-    public sealed class SelectColumnsEstimator : TrivialEstimator<SelectColumnsTransform>
+    public sealed class ColumnSelectingEstimator : TrivialEstimator<SelectColumnsTransform>
     {
         private readonly Func<string, bool> _selectPredicate;
 
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
-        public SelectColumnsEstimator(IHostEnvironment env, params string[] keepColumns)
+        public ColumnSelectingEstimator(IHostEnvironment env, params string[] keepColumns)
             : this(env, keepColumns, null, SelectColumnsTransform.Defaults.KeepHidden, SelectColumnsTransform.Defaults.IgnoreMissing)
         { }
 
@@ -60,10 +60,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="ignoreMissing">If false will check for any columns given in <paramref name="keepColumns"/>
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
-        public SelectColumnsEstimator(IHostEnvironment env, string[] keepColumns,
+        public ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
                                     string[] dropColumns, bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
                                     bool ignoreMissing = SelectColumnsTransform.Defaults.IgnoreMissing)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsEstimator)),
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnSelectingEstimator)),
                   new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
 
@@ -76,9 +76,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToKeep">The array of column names to keep.</param>
-        public static SelectColumnsEstimator KeepColumns(IHostEnvironment env, params string[] columnsToKeep)
+        public static ColumnSelectingEstimator KeepColumns(IHostEnvironment env, params string[] columnsToKeep)
         {
-            return new SelectColumnsEstimator(env, columnsToKeep);
+            return new ColumnSelectingEstimator(env, columnsToKeep);
         }
 
         /// <summary>
@@ -87,9 +87,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
-        public static SelectColumnsEstimator DropColumns(IHostEnvironment env, params string[] columnsToDrop)
+        public static ColumnSelectingEstimator DropColumns(IHostEnvironment env, params string[] columnsToDrop)
         {
-            return new SelectColumnsEstimator(env, null, columnsToDrop);
+            return new ColumnSelectingEstimator(env, null, columnsToDrop);
 
         }
 

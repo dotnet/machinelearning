@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms.Text
                             if (_exes[iinfo].RequireIdf())
                                 helpers[iinfo].Reset();
 
-                            helpers[iinfo].AddNgrams(ref src[iinfo], 0, keyCount);
+                            helpers[iinfo].AddNgrams(in src[iinfo], 0, keyCount);
                             if (_exes[iinfo].RequireIdf())
                             {
                                 int totalNgrams = counts[iinfo].Sum();
@@ -650,7 +650,7 @@ namespace Microsoft.ML.Transforms.Text
                             if (!bldr.IsEmpty)
                             {
                                 bldr.Reset();
-                                bldr.AddNgrams(ref src, 0, keyCount);
+                                bldr.AddNgrams(in src, 0, keyCount);
                                 bldr.GetResult(ref dst);
                                 VBufferUtils.Apply(ref dst, (int i, ref Float v) => v = (Float)(v * _invDocFreqs[iinfo][i]));
                             }
@@ -667,7 +667,7 @@ namespace Microsoft.ML.Transforms.Text
                             if (!bldr.IsEmpty)
                             {
                                 bldr.Reset();
-                                bldr.AddNgrams(ref src, 0, keyCount);
+                                bldr.AddNgrams(in src, 0, keyCount);
                                 bldr.GetResult(ref dst);
                                 VBufferUtils.Apply(ref dst, (int i, ref Float v) => v = v >= 1 ? (Float)_invDocFreqs[iinfo][i] : 0);
                             }
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Transforms.Text
                             if (!bldr.IsEmpty)
                             {
                                 bldr.Reset();
-                                bldr.AddNgrams(ref src, 0, keyCount);
+                                bldr.AddNgrams(in src, 0, keyCount);
                                 bldr.GetResult(ref dst);
                             }
                             else
