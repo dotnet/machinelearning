@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime
     /// </summary>
     public sealed class TauswortheHybrid : IRandom
     {
-        public struct State
+        public readonly struct State
         {
             public readonly uint U1;
             public readonly uint U2;

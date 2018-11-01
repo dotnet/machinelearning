@@ -1489,7 +1489,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     public class PavCalibratorTrainer : CalibratorTrainerBase
     {
         // a piece of the piecwise function
-        private struct Piece
+        private readonly struct Piece
         {
             public readonly Float MinX; // end of interval.
             public readonly Float MaxX; // beginning of interval.
@@ -1743,7 +1743,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
     public sealed class CalibrationDataStore : IEnumerable<CalibrationDataStore.DataItem>
     {
-        public struct DataItem
+        public readonly struct DataItem
         {
             // The actual binary label of this example.
             public readonly bool Target;

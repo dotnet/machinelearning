@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public abstract class CountersBase
             {
-                protected struct Info
+                protected readonly struct Info
                 {
                     public readonly Single Label;
                     public readonly Single Score;
