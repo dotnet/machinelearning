@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
             public void Dispose()
             {
-                _wrt.Indent--;
+                _wrt.Outdent();
                 _wrt = null;
             }
         }
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public static void Indent(this IndentedTextWriter wrt)
         {
-            wrt.Indent++;;
+            wrt.Indent++;
         }
         public static void Outdent(this IndentedTextWriter wrt)
         {

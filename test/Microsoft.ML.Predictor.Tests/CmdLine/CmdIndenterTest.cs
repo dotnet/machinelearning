@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             using (var writer = File.CreateText(outPath))
             {
-                var wrt = new IndentedTextWriter(writer);
+                var wrt = new IndentedTextWriter(writer, "  ");
 
                 // Individual scripts are separated by $
                 int count = 0;

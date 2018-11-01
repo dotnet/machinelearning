@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             using (var sw = new System.IO.StringWriter())
             {
-                var itw = new IndentedTextWriter(sw);
+                var itw = new IndentedTextWriter(sw, "  ");
                 if (TryProduceIndentString(commandLine, itw))
                     return sw.ToString().Trim();
                 return commandLine;

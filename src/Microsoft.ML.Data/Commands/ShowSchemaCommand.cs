@@ -127,9 +127,9 @@ namespace Microsoft.ML.Runtime.Data
             }
 #endif
             int colLim = schema.ColumnCount;
-            writer.WriteLine("{0} columns:", colLim);
 
-            var itw = new IndentedTextWriter(writer);
+            var itw = new IndentedTextWriter(writer, "  ");
+            itw.WriteLine("{0} columns:", colLim);
             using (itw.Nest())
             {
                 var names = default(VBuffer<ReadOnlyMemory<char>>);
