@@ -1428,8 +1428,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DT dst)
@@ -1443,8 +1442,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DZ dst)
@@ -1459,8 +1457,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
 
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         // These throw an exception for unparsable and overflow values.
