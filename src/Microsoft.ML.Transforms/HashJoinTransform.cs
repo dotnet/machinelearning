@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
+using Float = System.Single;
 
 [assembly: LoadableClass(HashJoinTransform.Summary, typeof(HashJoinTransform), typeof(HashJoinTransform.Arguments), typeof(SignatureDataTransform),
     HashJoinTransform.UserName, "HashJoinTransform", HashJoinTransform.RegistrationName)]
@@ -25,7 +24,7 @@ using Microsoft.ML.Runtime.Model;
 
 [assembly: EntryPointModule(typeof(HashJoin))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
     /// This transform hashes its input columns. Each column is hashed separately, and within each
@@ -656,7 +655,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Default case: convert to text and hash as a string.
             var sb = default(StringBuilder);
-            var conv = Conversions.Instance.GetStringConversion<TSrc>();
+            var conv = Runtime.Data.Conversion.Conversions.Instance.GetStringConversion<TSrc>();
             return
                 (in TSrc value, uint seed) =>
                 {

@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Projections;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;

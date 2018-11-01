@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;

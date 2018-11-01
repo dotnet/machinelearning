@@ -20,7 +20,7 @@ using System.Text;
 [assembly: LoadableClass(CategoricalHashTransform.Summary, typeof(IDataTransform), typeof(CategoricalHashTransform), typeof(CategoricalHashTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalHashTransform.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Categorical
 {
     public sealed class CategoricalHashTransform : ITransformer, ICanSaveModel
     {
