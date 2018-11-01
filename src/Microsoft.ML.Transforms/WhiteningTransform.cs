@@ -794,7 +794,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <summary>
     /// Extensions for statically typed Whitening estimator.
     /// </summary>
-    public static class WhiteningExtensions
+    public static class VectorWhiteningExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {

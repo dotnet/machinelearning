@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToBinaryVectorEstimator(Env, new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
+            var pipe = new KeyToBinaryVectorMappingEstimator(Env, new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
                 new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC"));
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = new KeyToBinaryVectorEstimator(Env,
+            var pipe = new KeyToBinaryVectorMappingEstimator(Env,
                  new KeyToBinaryVectorTransform.ColumnInfo("TA", "CatA"),
                  new KeyToBinaryVectorTransform.ColumnInfo("TB", "CatB"),
                  new KeyToBinaryVectorTransform.ColumnInfo("TC", "CatC"),
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToBinaryVectorEstimator(Env,
+            var pipe = new KeyToBinaryVectorMappingEstimator(Env,
                 new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
                 new KeyToBinaryVectorTransform.ColumnInfo("TermB", "CatB"),
                 new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC")

@@ -278,10 +278,10 @@ namespace Microsoft.ML.Transforms
             public override void ProcessValue()
             {
                 _fillBuffer();
-                ProcessValue(ref _buffer);
+                ProcessValue(in _buffer);
             }
 
-            public void ProcessValue(ref VBuffer<T> value)
+            public void ProcessValue(in VBuffer<T> value)
             {
                 var size = _count.Length;
                 Contracts.Check(value.Length == size);

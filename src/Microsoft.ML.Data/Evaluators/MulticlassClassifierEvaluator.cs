@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
 
-                if (VBufferUtils.HasNaNs(ref _scores) || VBufferUtils.HasNonFinite(ref _scores))
+                if (VBufferUtils.HasNaNs(in _scores) || VBufferUtils.HasNonFinite(in _scores))
                 {
                     NumBadScores++;
                     return;
@@ -1105,7 +1105,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
-                    (ref uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
+                    (in uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
             }
 
             var perInstSchema = perInst.Schema;

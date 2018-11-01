@@ -31,13 +31,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
             float fVal = float.NaN;
             StringBuilder textFVal = default;
-            r4ToSB(ref fVal, ref textFVal);
+            r4ToSB(in fVal, ref textFVal);
 
             Assert.True("?" == textFVal.ToString());
 
             fVal = 0;
             var fValTX = textFVal.ToString().AsMemory();
-            txToR4(ref fValTX, ref fVal);
+            txToR4(in fValTX, ref fVal);
 
             Assert.Equal(fVal, float.NaN);
         }
@@ -55,13 +55,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
             double dVal = double.NaN;
             StringBuilder textDVal = default;
-            r8ToSB(ref dVal, ref textDVal);
+            r8ToSB(in dVal, ref textDVal);
 
             Assert.True("?" == textDVal.ToString());
 
             dVal = 0;
             var dValTX = textDVal.ToString().AsMemory();
-            txToR8(ref dValTX, ref dVal);
+            txToR8(in dValTX, ref dVal);
 
             Assert.Equal(dVal, double.NaN);
         }
@@ -78,31 +78,31 @@ namespace Microsoft.ML.Runtime.RunTests
             sbyte maxValue = sbyte.MaxValue;
             ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             sbyte dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. sbyte.MaxValue in text to sbyte.
             src = maxValue.ToString().AsMemory();
             dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: sbyte.MinValue - 1 in text to sbyte.
             src = (sbyte.MinValue - 1).ToString().AsMemory();
             dst = 0;
-            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
 
             //4. ERROR condition: sbyte.MaxValue + 1 in text to sbyte.
             src = (sbyte.MaxValue + 1).ToString().AsMemory();
             dst = 0;
-            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
 
             //5. Empty string in text to sbyte.
             src = default;
             dst = -1;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(default, dst);
         }
 
@@ -118,31 +118,31 @@ namespace Microsoft.ML.Runtime.RunTests
             short maxValue = short.MaxValue;
             ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             short dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. short.MaxValue in text to short.
             src = maxValue.ToString().AsMemory();
             dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: short.MinValue - 1 in text to short.
             src = (minValue - 1).ToString().AsMemory();
             dst = 0;
-            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to short.", ex.Message);
 
             //4. ERROR condition: short.MaxValue + 1 in text to short.
             src = (maxValue + 1).ToString().AsMemory();
             dst = 0;
-            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to short.", ex.Message);
 
             //5. Empty value in text to short.
             src = default;
             dst = -1;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(default, dst);
         }
 
@@ -158,31 +158,31 @@ namespace Microsoft.ML.Runtime.RunTests
             int maxValue = int.MaxValue;
             ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             int dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. int.MaxValue in text to int.
             src = maxValue.ToString().AsMemory();
             dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. ERROR condition: int.MinValue - 1 in text to int.
             src = ((long)minValue - 1).ToString().AsMemory();
             dst = 0;
-            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to int.", ex.Message);
 
             //4. ERROR condition: int.MaxValue + 1 in text to int.
             src = ((long)maxValue + 1).ToString().AsMemory();
             dst = 0;
-            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to int.", ex.Message);
 
             //5. Empty value in text to int.
             src = default;
             dst = -1;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(default, dst);
         }
 
@@ -198,31 +198,31 @@ namespace Microsoft.ML.Runtime.RunTests
             var maxValue = long.MaxValue;
             ReadOnlyMemory<char> src = minValue.ToString().AsMemory();
             var dst = default(long);
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, minValue);
 
             //2. long.MaxValue in text to long.
             src = maxValue.ToString().AsMemory();
             dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, maxValue);
 
             //3. long.MinValue - 1 in text to long.
             src = (minValue - 1).ToString().AsMemory();
             dst = 0;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(dst, (long)minValue - 1);
 
             //4. ERROR condition: long.MaxValue + 1 in text to long.
             src = ((ulong)maxValue + 1).ToString().AsMemory();
             dst = 0;
-            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(in src, ref dst));
             Assert.Equal("Value could not be parsed from text to long.", ex.Message);
 
             //5. Empty value in text to long.
             src = default;
             dst = -1;
-            mapper(ref src, ref dst);
+            mapper(in src, ref dst);
             Assert.Equal(default, dst);
         }
 

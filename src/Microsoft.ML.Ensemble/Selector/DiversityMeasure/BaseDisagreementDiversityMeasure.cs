@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
                     var modelYOutputs = predictions[models[j]];
                     for (int k = 0; k < modelXOutputs.Length; k++)
                     {
-                        differencesCount += GetDifference(ref modelXOutputs[k], ref modelYOutputs[k]);
+                        differencesCount += GetDifference(in modelXOutputs[k], in modelYOutputs[k]);
                     }
                     diversityValues.Add(new ModelDiversityMetric<TOutput>()
                     {
@@ -40,6 +40,6 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
             return diversityValues;
         }
 
-        protected abstract Single GetDifference(ref TOutput tOutput1, ref TOutput tOutput2);
+        protected abstract Single GetDifference(in TOutput tOutput1, in TOutput tOutput2);
     }
 }

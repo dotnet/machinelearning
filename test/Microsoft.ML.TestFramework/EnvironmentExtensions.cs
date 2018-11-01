@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML.TestFramework
 {

@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Projections;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,10 +40,10 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);
 
-            var est = new PcaEstimator(_env, "features", "pca", rank: 4, seed: 10);
+            var est = new PrincipalComponentAnalysisEstimator(_env, "features", "pca", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
-            var estNonDefaultArgs = new PcaEstimator(_env, "features", "pca", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
+            var estNonDefaultArgs = new PrincipalComponentAnalysisEstimator(_env, "features", "pca", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
             TestEstimatorCore(estNonDefaultArgs, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             Done();
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(_dataSource);
 
-            var est = new PcaEstimator(_env, "features", "pca", rank: 5, seed: 1);
+            var est = new PrincipalComponentAnalysisEstimator(_env, "features", "pca", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
             using (var ch = _env.Start("save"))
             {

@@ -632,7 +632,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                private void KeyMapper(ref ReadOnlyMemory<char> src, ref uint dst)
+                private void KeyMapper(in ReadOnlyMemory<char> src, ref uint dst)
                 {
                     var nstr = ReadOnlyMemoryUtils.FindInPool(src, _pool);
                     if (nstr == null)
@@ -708,7 +708,7 @@ namespace Microsoft.ML.Transforms.Categorical
                         for (int i = 0; i < _values.Count; ++i)
                         {
                             T val = _values.GetItem(i);
-                            writer.Write(ref val);
+                            writer.Write(in val);
                         }
                         writer.Commit();
                     }
@@ -717,7 +717,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 public override ValueMapper<T, uint> GetKeyMapper()
                 {
                     return
-                        (ref T src, ref uint dst) =>
+                        (in T src, ref uint dst) =>
                         {
                             int val;
                             if (_values.TryGetIndex(src, out val))
@@ -751,7 +751,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     for (int i = 0; i < _values.Count; ++i)
                     {
                         T val = _values.GetItem(i);
-                        stringMapper(ref val, ref sb);
+                        stringMapper(in val, ref sb);
                         writer.WriteLine("{0}\t{1}", i, sb.ToString());
                     }
                 }
@@ -771,7 +771,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public abstract void GetTerms(ref VBuffer<T> dst);
         }
 
-        private static void GetTextTerms<T>(ref VBuffer<T> src, ValueMapper<T, StringBuilder> stringMapper, ref VBuffer<ReadOnlyMemory<char>> dst)
+        private static void GetTextTerms<T>(in VBuffer<T> src, ValueMapper<T, StringBuilder> stringMapper, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             // REVIEW: This convenience function is not optimized. For non-string
             // types, creating a whole bunch of string objects on the heap is one that is
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 values = new ReadOnlyMemory<char>[src.Length];
             for (int i = 0; i < src.Length; ++i)
             {
-                stringMapper(ref src.Values[i], ref sb);
+                stringMapper(in src.Values[i], ref sb);
                 values[i] = sb.ToString().AsMemory();
             }
             dst = new VBuffer<ReadOnlyMemory<char>>(src.Length, values, dst.Indices);
@@ -888,7 +888,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 {
                     T src = default(T);
                     uint dst = 0;
-                    map(ref src, ref dst);
+                    map(in src, ref dst);
                     return dst;
                 }
 
@@ -915,7 +915,7 @@ namespace Microsoft.ML.Transforms.Categorical
                             (ref uint dst) =>
                             {
                                 getSrc(ref src);
-                                map(ref src, ref dst);
+                                map(in src, ref dst);
                             };
                         return retVal;
                     }
@@ -965,7 +965,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                     int count = src.Count;
                                     for (int islot = 0; islot < count; islot++)
                                     {
-                                        map(ref values[islot], ref dstItem);
+                                        map(in values[islot], ref dstItem);
                                         if (dstItem != 0)
                                         {
                                             int slot = indices != null ? indices[islot] : islot;
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                     {
                                         for (int slot = 0; slot < src.Length; ++slot)
                                         {
-                                            map(ref values[slot], ref dstItem);
+                                            map(in values[slot], ref dstItem);
                                             if (dstItem != 0)
                                                 bldr.AddFeature(slot, dstItem);
                                         }
@@ -1019,7 +1019,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                             {
                                                 // This was an explicitly defined value.
                                                 _host.Assert(islot < src.Count);
-                                                map(ref values[islot], ref dstItem);
+                                                map(in values[islot], ref dstItem);
                                                 if (dstItem != 0)
                                                     bldr.AddFeature(slot, dstItem);
                                                 nextExplicitSlot = ++islot == src.Count ? src.Length : indices[islot];
@@ -1055,7 +1055,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                 // No buffer sharing convenient here.
                                 VBuffer<T> dstT = default;
                                 TypedMap.GetTerms(ref dstT);
-                                GetTextTerms(ref dstT, stringMapper, ref dst);
+                                GetTextTerms(in dstT, stringMapper, ref dst);
                             };
                         builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, getter);
                     }
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.Transforms.Categorical
                             foreach (var pair in keyVals.Items(all: true))
                             {
                                 T keyVal = pair.Value;
-                                conv(ref keyVal, ref convKeyVal);
+                                conv(in keyVal, ref convKeyVal);
                                 // The builder for the key values should not have any missings.
                                 _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
                                 srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref values[pair.Key]);
@@ -1147,7 +1147,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                 var tempMeta = default(VBuffer<TMeta>);
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
-                                GetTextTerms(ref tempMeta, stringMapper, ref dst);
+                                GetTextTerms(in tempMeta, stringMapper, ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
                         builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, mgetter);
@@ -1213,13 +1213,13 @@ namespace Microsoft.ML.Transforms.Categorical
                     foreach (var pair in keyVals.Items(all: true))
                     {
                         T keyVal = pair.Value;
-                        conv(ref keyVal, ref convKeyVal);
+                        conv(in keyVal, ref convKeyVal);
                         // The key mapping will not have admitted missing keys.
                         _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
                         srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref metaVal);
-                        keyStringMapper(ref keyVal, ref sb);
+                        keyStringMapper(in keyVal, ref sb);
                         writer.Write("{0}\t{1}", pair.Key, sb.ToString());
-                        metaStringMapper(ref metaVal, ref sb);
+                        metaStringMapper(in metaVal, ref sb);
                         writer.WriteLine("\t{0}", sb.ToString());
                     }
                     return true;

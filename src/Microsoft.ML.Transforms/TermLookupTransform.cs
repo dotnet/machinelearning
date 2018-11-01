@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms.Categoricals;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +22,7 @@ using System.Text;
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), null, typeof(SignatureLoadDataTransform),
     "Term Lookup Transform", TermLookupTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.Categoricals
+namespace Microsoft.ML.Transforms.Categorical
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -199,14 +199,14 @@ namespace Microsoft.ML.Transforms.Categoricals
                         else
                         {
                             Contracts.Assert(0 <= nstr.Id && nstr.Id < _values.Length);
-                            CopyValue(ref _values[nstr.Id], ref dst);
+                            CopyValue(in _values[nstr.Id], ref dst);
                         }
                     };
             }
 
             protected abstract void GetMissing(ref TRes dst);
 
-            protected abstract void CopyValue(ref TRes src, ref TRes dst);
+            protected abstract void CopyValue(in TRes src, ref TRes dst);
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms.Categoricals
                     //Empty string will map to NA for R4 and R8, the only two types that can
                     //handle missing values.
                     var bad = String.Empty.AsMemory();
-                    conv(ref bad, ref _badValue);
+                    conv(in bad, ref _badValue);
                 }
             }
 
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Categoricals
                 dst = _badValue;
             }
 
-            protected override void CopyValue(ref TRes src, ref TRes dst)
+            protected override void CopyValue(in TRes src, ref TRes dst)
             {
                 dst = src;
             }
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Categoricals
                 dst = new VBuffer<TItem>(Type.VectorSize, 0, dst.Values, dst.Indices);
             }
 
-            protected override void CopyValue(ref VBuffer<TItem> src, ref VBuffer<TItem> dst)
+            protected override void CopyValue(in VBuffer<TItem> src, ref VBuffer<TItem> dst)
             {
                 src.CopyTo(ref dst);
             }

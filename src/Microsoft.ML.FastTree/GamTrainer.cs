@@ -799,7 +799,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> features, ref float response)
+        private void Map(in VBuffer<float> features, ref float response)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
-        internal void GetFeatureContributions(ref VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
+        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
         {
             if (builder == null)
                 builder = new BufferBuilder<float>(R4Adder.Instance);
@@ -879,7 +879,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return;
         }
 
-        internal double GetFeatureBinsAndScore(ref VBuffer<float> features, int[] bins)
+        internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features));
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
@@ -1086,7 +1086,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         while (cursor.MoveNext())
                         {
                             labels.Add(cursor.Label);
-                            var score = _pred.GetFeatureBinsAndScore(ref cursor.Features, bins);
+                            var score = _pred.GetFeatureBinsAndScore(in cursor.Features, bins);
                             scores.Add((float)score);
                             for (int f = 0; f < numFeatures; f++)
                                 _binDocsList[f][bins[f]].Add(doc);

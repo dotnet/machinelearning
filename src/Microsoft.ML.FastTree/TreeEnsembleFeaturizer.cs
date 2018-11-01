@@ -384,7 +384,7 @@ namespace Microsoft.ML.Runtime.Data
                         _ectx.Assert(Utils.Size(_pathIds) == _numTrees);
 
                         for (int i = 0; i < _numTrees; i++)
-                            _leafIds[i] = _ensemble.GetLeaf(i, ref _src, ref _pathIds[i]);
+                            _leafIds[i] = _ensemble.GetLeaf(i, in _src, ref _pathIds[i]);
 
                         _cachedPosition = _input.Position;
                     }
@@ -746,14 +746,14 @@ namespace Microsoft.ML.Runtime.Data
             if (seed == 0)
             {
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
                         if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)(temp - 1);
                     };
             }
@@ -762,14 +762,14 @@ namespace Microsoft.ML.Runtime.Data
                 ch.Check(type.Count > 0, "Label must be of known cardinality.");
                 int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.Count);
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
                         if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)permutation[(int)(temp - 1)];
                     };
             }
