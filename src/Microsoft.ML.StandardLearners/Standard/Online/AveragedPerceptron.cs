@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -14,6 +12,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.Online;
 using System;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Arguments),
@@ -23,7 +22,7 @@ using System;
 
 [assembly: LoadableClass(typeof(void), typeof(AveragedPerceptronTrainer), null, typeof(SignatureEntryPointModule), "AP")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
     // This is an averaged perceptron classifier.
     // Configurable subcomponents:
@@ -40,7 +39,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private readonly Arguments _args;
 
-        public class Arguments : AveragedLinearArguments
+        public sealed class Arguments : AveragedLinearArguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new HingeLoss.Arguments();
@@ -50,6 +49,38 @@ namespace Microsoft.ML.Runtime.Learners
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public int MaxCalibrationExamples = 1000000;
+
+            internal override IComponentFactory<IScalarOutputLoss> LossFunctionFactory => LossFunction;
+        }
+
+        private sealed class TrainState : AveragedTrainStateBase
+        {
+            public TrainState(IChannel ch, int numFeatures, LinearPredictor predictor, AveragedPerceptronTrainer parent)
+                : base(ch, numFeatures, predictor, parent)
+            {
+            }
+
+            public override LinearBinaryPredictor CreatePredictor()
+            {
+                Contracts.Assert(WeightsScale == 1);
+
+                VBuffer<float> weights = default;
+                float bias;
+
+                if (!Averaged)
+                {
+                    Weights.CopyTo(ref weights);
+                    bias = Bias;
+                }
+                else
+                {
+                    TotalWeights.CopyTo(ref weights);
+                    VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
+                    bias = TotalBias / (float)NumWeightUpdates;
+                }
+
+                return new LinearBinaryPredictor(ParentHost, in weights, bias);
+            }
         }
 
         internal AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
@@ -77,13 +108,13 @@ namespace Microsoft.ML.Runtime.Learners
             string label,
             string features,
             string weights = null,
-            ISupportClassificationLossFactory lossFunction = null,
+            IClassificationLoss lossFunction = null,
             float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
             bool decreaseLearningRate = Arguments.AveragedDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Arguments.AveragedDefaultArgs.L2RegularizerWeight,
             int numIterations = Arguments.AveragedDefaultArgs.NumIterations,
             Action<Arguments> advancedSettings = null)
-            : this(env, new Arguments
+            : this(env, InvokeAdvanced(advancedSettings, new Arguments
             {
                 LabelColumn = label,
                 FeatureColumn = features,
@@ -91,18 +122,22 @@ namespace Microsoft.ML.Runtime.Learners
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
                 L2RegularizerWeight = l2RegularizerWeight,
-                NumIterations = numIterations
-
-            })
+                NumIterations = numIterations,
+                LossFunction = new TrivialFactory(lossFunction ?? new HingeLoss())
+            }))
         {
-            if (lossFunction == null)
-                lossFunction = new HingeLoss.Arguments();
+        }
 
-            LossFunction = lossFunction.CreateComponent(env);
+        private sealed class TrivialFactory : ISupportClassificationLossFactory
+        {
+            private IClassificationLoss _loss;
 
-            if (advancedSettings != null)
-                advancedSettings.Invoke(_args);
+            public TrivialFactory(IClassificationLoss loss)
+            {
+                _loss = loss;
+            }
 
+            IClassificationLoss IComponentFactory<IClassificationLoss>.CreateComponent(IHostEnvironment env) => _loss;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -119,7 +154,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override void CheckLabel(RoleMappedData data)
+        protected override void CheckLabels(RoleMappedData data)
         {
             Contracts.AssertValue(data);
             data.CheckBinaryLabel();
@@ -139,26 +174,9 @@ namespace Microsoft.ML.Runtime.Learners
                 error();
         }
 
-        protected override LinearBinaryPredictor CreatePredictor()
+        private protected override TrainStateBase MakeState(IChannel ch, int numFeatures, LinearPredictor predictor)
         {
-            Contracts.Assert(WeightsScale == 1);
-
-            VBuffer<Float> weights = default(VBuffer<Float>);
-            Float bias;
-
-            if (!_args.Averaged)
-            {
-                Weights.CopyTo(ref weights);
-                bias = Bias;
-            }
-            else
-            {
-                TotalWeights.CopyTo(ref weights);
-                VectorUtils.ScaleBy(ref weights, 1 / (Float)NumWeightUpdates);
-                bias = TotalBias / (Float)NumWeightUpdates;
-            }
-
-            return new LinearBinaryPredictor(Host, ref weights, bias);
+            return new TrainState(ch, numFeatures, predictor, this);
         }
 
         protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)

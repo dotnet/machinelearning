@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 [assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueTransform), typeof(KeyToValueTransform.Arguments), typeof(SignatureDataTransform),
     KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature, "KeyToValue", "KeyToVal", "Unterm")]
@@ -32,7 +32,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToValueTransform), null, typeof(SignatureLoadRowMapper),
     KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
     /// KeyToValueTransform utilizes KeyValues metadata to map key indices to the corresponding values in the KeyValues metadata.
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly TValue _na;
 
                 private readonly bool _naMapsToDefault;
-                private readonly RefPredicate<TValue> _isDefault;
+                private readonly InPredicate<TValue> _isDefault;
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
@@ -318,22 +318,22 @@ namespace Microsoft.ML.Runtime.Data
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    _na = Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
+                    _na = Runtime.Data.Conversion.Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
 
                     if (_naMapsToDefault)
                     {
                         // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                        _isDefault = Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
+                        _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
                     }
 
                     bool identity;
-                    _convertToUInt = Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
+                    _convertToUInt = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
                 }
 
                 private void MapKey(ref TKey src, ref TValue dst)
                 {
                     uint uintSrc = 0;
-                    _convertToUInt(ref src, ref uintSrc);
+                    _convertToUInt(in src, ref uintSrc);
                     // Assign to NA if key value is not in valid range.
                     if (0 < uintSrc && uintSrc <= _values.Length)
                         dst = _values[uintSrc - 1];
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                                         // Current slot has an explicitly defined value.
                                         Parent.Host.Assert(islotSrc < srcCount);
                                         MapKey(ref srcValues[islotSrc], ref dstItem);
-                                        if (!_isDefault(ref dstItem))
+                                        if (!_isDefault(in dstItem))
                                         {
                                             dstValues[islotDst] = dstItem;
                                             dstIndices[islotDst++] = srcIndices[islotSrc];

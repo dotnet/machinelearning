@@ -99,11 +99,11 @@ namespace Microsoft.ML.Runtime.RunTests
             // Save and reload.
             string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
-                transformer.SaveTo(Env, fs);
+                ML.Model.Save(transformer, fs);
 
             ITransformer loadedTransformer;
             using (var fs = File.OpenRead(modelPath))
-                loadedTransformer = TransformerChain.LoadFrom(Env, fs);
+                loadedTransformer = ML.Model.Load(fs);
             DeleteOutputPath(modelPath);
 
             // Run on train data.
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 // This in turn means that the schema of loaded transformer matches for 
                 // Transform and GetOutputSchema calls.
                 CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
-                CheckSameValues(scoredTrain, scoredTrain2);
+                CheckSameValues(scoredTrain, scoredTrain2, exactDoubles: false);
             };
 
             checkOnData(validFitInput);
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
+            if (!CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -1092,7 +1092,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         if (exactDoubles)
                             return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
                         else
-                            return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
+                            return GetComparerOne<Double>(r1, r2, col, EqualWithEpsDouble);
                     case DataKind.Text:
                         return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
@@ -1133,12 +1133,15 @@ namespace Microsoft.ML.Runtime.RunTests
                     case DataKind.U8:
                         return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.R4:
-                        return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        if (exactDoubles)
+                            return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerVec<Single>(r1, r2, col, size, EqualWithEpsSingle);
                     case DataKind.R8:
                         if (exactDoubles)
                             return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
                         else
-                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
+                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEpsDouble);
                     case DataKind.Text:
                         return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
@@ -1176,10 +1179,18 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private const Double DoubleEps = 1e-9;
 
-        private static bool EqualWithEps(Double x, Double y)
+        private static bool EqualWithEpsDouble(Double x, Double y)
         {
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < DoubleEps;
+        }
+
+        private const float SingleEps = 1e-6f;
+
+        private static bool EqualWithEpsSingle(float x, float y)
+        {
+            // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
+            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
         protected Func<bool> GetComparerOne<T>(IRow r1, IRow r2, int col, Func<T, T, bool> fn)
@@ -1210,16 +1221,16 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CompareVec<T>(ref v1, ref v2, size, fn);
+                    return CompareVec<T>(in v1, in v2, size, fn);
                 };
         }
 
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<T, T, bool> fn)
+        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
         {
-            return CompareVec(ref v1, ref v2, size, (i, x, y) => fn(x, y));
+            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
         }
 
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
+        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
         {
             Contracts.Assert(size == 0 || v1.Length == size);
             Contracts.Assert(size == 0 || v2.Length == size);
@@ -1292,7 +1303,7 @@ namespace Microsoft.ML.Runtime.RunTests
             VBuffer<T> fvn = default(VBuffer<T>);
             vecGetter(ref fv);
             vecNGetter(ref fvn);
-            Assert.True(CompareVec(ref fv, ref fvn, size, compare));
+            Assert.True(CompareVec(in fv, in fvn, size, compare));
         }
 
 #if !CORECLR

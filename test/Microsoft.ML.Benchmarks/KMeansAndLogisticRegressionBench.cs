@@ -4,10 +4,13 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -45,7 +48,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_dataPath));
 
-                IDataView trans = new CategoricalEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
+                IDataView trans = new OneHotEncodingEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
                 trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);

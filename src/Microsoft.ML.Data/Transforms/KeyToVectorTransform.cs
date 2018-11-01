@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Conversions;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToVectorTransform), null, typeof(SignatureLoadRowMapper),
    KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed class KeyToVectorTransform : OneToOneTransformerBase
     {
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
-            public bool Bag = KeyToVectorEstimator.Defaults.Bag;
+            public bool Bag = KeyToVectorMappingEstimator.Defaults.Bag;
         }
 
         public class ColumnInfo
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string Output;
             public readonly bool Bag;
 
-            public ColumnInfo(string input, string output, bool bag = KeyToVectorEstimator.Defaults.Bag)
+            public ColumnInfo(string input, string output, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {
                 Input = input;
                 Output = output;
@@ -675,7 +676,7 @@ namespace Microsoft.ML.Runtime.Data
                     return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
 
                 JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);
-                if (_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1)
+                if (!(_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1))
                 {
                     // The concatenation case. We can still use fanout, but we just append them all together.
                     return PfaUtils.Call("a.flatMap", srcToken,
@@ -732,25 +733,25 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class KeyToVectorEstimator : TrivialEstimator<KeyToVectorTransform>
+    public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorTransform>
     {
         internal static class Defaults
         {
             public const bool Bag = false;
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
+        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
             : this(env, new KeyToVectorTransform(env, columns))
         {
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(source ?? name, name, bag)))
+        public KeyToVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
         {
         }
 
-        private KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorEstimator)), transformer)
+        private KeyToVectorMappingEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorMappingEstimator)), transformer)
         {
         }
 
@@ -890,7 +891,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = (IColInput)toOutput[i];
                     infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
                 }
-                return new KeyToVectorEstimator(env, infos);
+                return new KeyToVectorMappingEstimator(env, infos);
             }
         }
 

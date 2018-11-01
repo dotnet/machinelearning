@@ -1,11 +1,11 @@
-﻿using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
+﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.IO;
 using System.Linq;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var generator = new GaussianFourierSampler.Arguments();
 
-            var pipe = new RffEstimator(Env, new[]{
+            var pipe = new RandomFourierFeaturizingEstimator(Env, new[]{
                     new RffTransform.ColumnInfo("A", "RffA", 5, false),
                     new RffTransform.ColumnInfo("A", "RffB", 10, true, new LaplacianFourierSampler.Arguments())
                 });
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            var est = new RffEstimator(Env, new[]{
+            var est = new RandomFourierFeaturizingEstimator(Env, new[]{
                     new RffTransform.ColumnInfo("A", "RffA", 5, false),
                     new RffTransform.ColumnInfo("A", "RffB", 10, true,new LaplacianFourierSampler.Arguments())
                 });

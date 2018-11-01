@@ -5,8 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.Online;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, "Label", "Features");
             TestEstimatorCore(est, trainData);
 
-            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction:new HingeLoss.Arguments(), advancedSettings: s =>
+            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
             {
                 s.LearningRate = 0.5f;
             });

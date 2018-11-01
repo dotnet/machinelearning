@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.Online;
 using System;
 
 namespace Microsoft.ML
@@ -41,8 +41,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            var loss = new TrivialClassificationLossFactory(lossFunction ?? new LogLoss());
-            return new AveragedPerceptronTrainer(env, label, features, weights, loss, learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+            return new AveragedPerceptronTrainer(env, label, features, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory
@@ -67,7 +66,7 @@ namespace Microsoft.ML
     public static class OnlineGradientDescentExtensions
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Runtime.Learners.OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>

@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms
 
             private static Delegate GetIsNADelegate<T>(ColumnType type)
             {
-                return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
-                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+                var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
 
                 ValueGetter<bool> getter;
 
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms
                     (ref bool dst) =>
                     {
                         getSrc(ref src);
-                        dst = isNA(ref src);
+                        dst = isNA(in src);
                     };
             }
 
@@ -266,9 +266,9 @@ namespace Microsoft.ML.Transforms
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
-                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+                var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
                 var val = default(T);
-                var defaultIsNA = isNA(ref val);
+                var defaultIsNA = isNA(in val);
                 var src = default(VBuffer<T>);
                 var indices = new List<int>();
 
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Transforms
                         // Sense indicates if the values added to the indices list represent NAs or non-NAs.
                         bool sense;
                         getSrc(ref src);
-                        FindNAs(ref src, isNA, defaultIsNA, indices, out sense);
+                        FindNAs(in src, isNA, defaultIsNA, indices, out sense);
                         FillValues(src.Length, ref dst, indices, sense);
                     };
             }
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
             /// </summary>
-            private void FindNAs<T>(ref VBuffer<T> src, RefPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
+            private void FindNAs<T>(in VBuffer<T> src, InPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
             {
                 Host.AssertValue(isNA);
                 Host.AssertValue(indices);
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
                 {
                     for (int i = 0; i < srcCount; i++)
                     {
-                        if (isNA(ref srcValues[i]))
+                        if (isNA(in srcValues[i]))
                             indices.Add(i);
                     }
                     sense = true;
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms
                     var srcIndices = src.Indices;
                     for (int ii = 0; ii < srcCount; ii++)
                     {
-                        if (isNA(ref srcValues[ii]))
+                        if (isNA(in srcValues[ii]))
                             indices.Add(srcIndices[ii]);
                     }
                     sense = true;
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms
                     var srcIndices = src.Indices;
                     for (int ii = 0; ii < srcCount; ii++)
                     {
-                        if (!isNA(ref srcValues[ii]))
+                        if (!isNA(in srcValues[ii]))
                             indices.Add(srcIndices[ii]);
                     }
                     sense = false;
@@ -435,26 +435,26 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class NAIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
+    public sealed class MissingValueIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public NAIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+        public MissingValueIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), new NAIndicatorTransform(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">The name of the input column of the transformation.</param>
         /// <param name="output">The name of the column produced by the transformation.</param>
-        public NAIndicatorEstimator(IHostEnvironment env, string input, string output = null)
+        public MissingValueIndicatorEstimator(IHostEnvironment env, string input, string output = null)
             : this(env, (input, output ?? input))
         {
         }
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
@@ -542,7 +542,7 @@ namespace Microsoft.ML.Transforms
                     var col = (IColInput)toOutput[i];
                     columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
                 }
-                return new NAIndicatorEstimator(env, columnPairs);
+                return new MissingValueIndicatorEstimator(env, columnPairs);
             }
         }
 

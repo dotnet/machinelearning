@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     var columnArgument = new StringBuilder();
                     var columnNameQuoted = new StringBuilder();
-                    var epColumns = new List<ML.Legacy.Transforms.ConvertTransformColumn>();
+                    var epColumns = new List<ML.Legacy.Transforms.ConvertingTransformColumn>();
 
                     foreach (var column in columns)
                     {
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             columnNameQuoted.AppendFormat("{0}", column.ColumnName);
                         }
 
-                        epColumns.Add(new ML.Legacy.Transforms.ConvertTransformColumn
+                        epColumns.Add(new ML.Legacy.Transforms.ConvertingTransformColumn
                         {
                             Name = columnNameQuoted.ToString(),
                             Source = columnNameQuoted.ToString(),
@@ -880,7 +880,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var nodeInput = new ML.Legacy.Transforms.TextFeaturizer();
                     nodeInput.WordFeatureExtractor = new NGramNgramExtractor { NgramLength = 1 };
                     nodeInput.CharFeatureExtractor = new NGramNgramExtractor { NgramLength = 3 };
-                    nodeInput.Column = new ML.Legacy.Transforms.TextTransformColumn
+                    nodeInput.Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                     {
                         Name = dstColumn,
                         Source = new[] { srcColumn }
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var nodeInput = new ML.Legacy.Transforms.TextFeaturizer();
                     nodeInput.WordFeatureExtractor = new NGramNgramExtractor { NgramLength = 2 };
                     nodeInput.CharFeatureExtractor = new NGramNgramExtractor { NgramLength = 3 };
-                    nodeInput.Column = new ML.Legacy.Transforms.TextTransformColumn
+                    nodeInput.Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                     {
                         Name = dstColumn,
                         Source = new[] { srcColumn }
@@ -1144,7 +1144,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         featureCols.Add(columnDestRenamed);
                         var epInput = new ML.Legacy.Transforms.TextFeaturizer
                         {
-                            Column = new ML.Legacy.Transforms.TextTransformColumn
+                            Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                             {
                                 Name = columnDestRenamed,
                                 Source = new[] { columnNameSafe }

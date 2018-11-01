@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), typeof(UngroupTransform.Arguments), typeof(SignatureDataTransform),
     UngroupTransform.UserName, UngroupTransform.ShortName)]
@@ -20,7 +21,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(UngroupTransform.Summary, typeof(UngroupTransform), null, typeof(SignatureLoadDataTransform),
     UngroupTransform.UserName, UngroupTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
 
     // This can be thought of as an inverse of GroupTransform. For all specified vector columns
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
                     _pivotIndex[info.Index] = i;
                 }
 
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Runtime.Data.Schema.Create(this);
             }
 
             private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
@@ -613,7 +614,7 @@ namespace Microsoft.ML.Runtime.Data
                 // cachedIndex == row.Count || _pivotColPosition <= row.Indices[cachedIndex].
                 int cachedIndex = 0;
                 VBuffer<T> row = default(VBuffer<T>);
-                T naValue = Conversions.Instance.GetNAOrDefault<T>(itemType);
+                T naValue = Runtime.Data.Conversion.Conversions.Instance.GetNAOrDefault<T>(itemType);
                 return
                     (ref T value) =>
                     {

@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
 
@@ -25,7 +26,7 @@ using Microsoft.ML.Core.Data;
     SdcaMultiClassTrainer.LoadNameValue,
     SdcaMultiClassTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     // SDCA linear multiclass trainer.
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
@@ -57,7 +58,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaMultiClassTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
@@ -67,7 +71,7 @@ namespace Microsoft.ML.Runtime.Learners
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeU4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -78,7 +82,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         internal SdcaMultiClassTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, args, TrainerUtils.MakeU4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(env, args, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Host.CheckValue(labelColumn, nameof(labelColumn));
             Host.CheckValue(featureColumn, nameof(featureColumn));
@@ -171,7 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
                     }
 
                     // The output for the label class using current weights and bias.
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, in weights[label], biasReg[label] + biasUnreg[label]);
                     var instanceWeight = GetInstanceWeight(cursor);
 
                     // This will be the new dual variable corresponding to the label class.
@@ -197,7 +201,7 @@ namespace Microsoft.ML.Runtime.Learners
                         {
                             long dualIndex = iClass + dualIndexInitPos;
                             var dual = duals[dualIndex];
-                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
                             // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -219,7 +223,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                                 if (l1ThresholdZero)
                                 {
-                                    VectorUtils.AddMult(ref features, weights[iClass].Values, -primalUpdate);
+                                    VectorUtils.AddMult(in features, weights[iClass].Values, -primalUpdate);
                                     biasReg[iClass] -= primalUpdate;
                                 }
                                 else
@@ -252,7 +256,7 @@ namespace Microsoft.ML.Runtime.Learners
                     biasUnreg[label] += labelAdjustment * lambdaNInv * instanceWeight;
                     if (l1ThresholdZero)
                     {
-                        VectorUtils.AddMult(ref features, weights[label].Values, labelPrimalUpdate);
+                        VectorUtils.AddMult(in features, weights[label].Values, labelPrimalUpdate);
                         biasReg[label] += labelPrimalUpdate;
                     }
                     else
@@ -317,7 +321,7 @@ namespace Microsoft.ML.Runtime.Learners
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
                     var label = (int)cursor.Label;
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, in weights[label], biasReg[label] + biasUnreg[label]);
                     Double subLoss = 0;
                     Double subDualLoss = 0;
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
@@ -330,7 +334,7 @@ namespace Microsoft.ML.Runtime.Learners
                             continue;
                         }
 
-                        var currentClassOutput = WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                        var currentClassOutput = WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                         subLoss += _loss.Loss(labelOutput - currentClassOutput, 1);
                         Contracts.Assert(dualIndex == iClass + idx * numClasses);
                         var dual = duals[dualIndex++];
@@ -355,7 +359,7 @@ namespace Microsoft.ML.Runtime.Learners
             Double biasRegularizationAdjustment = 0;
             for (int iClass = 0; iClass < numClasses; iClass++)
             {
-                weightsL1Norm += VectorUtils.L1Norm(ref weights[iClass]) + Math.Abs(biasReg[iClass]);
+                weightsL1Norm += VectorUtils.L1Norm(in weights[iClass]) + Math.Abs(biasReg[iClass]);
                 weightsL2NormSquared += VectorUtils.NormSquared(weights[iClass]) + biasReg[iClass] * biasReg[iClass];
                 biasRegularizationAdjustment += biasReg[iClass] * biasUnreg[iClass];
             }

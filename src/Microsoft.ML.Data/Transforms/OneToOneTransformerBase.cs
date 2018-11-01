@@ -102,12 +102,8 @@ namespace Microsoft.ML.Runtime.Data
         public Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-
-            // Check that all the input columns are present and correct.
-            for (int i = 0; i < ColumnPairs.Length; i++)
-                CheckInput(inputSchema, i, out int col);
-
-            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+            var mapper = MakeRowMapper(inputSchema);
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);

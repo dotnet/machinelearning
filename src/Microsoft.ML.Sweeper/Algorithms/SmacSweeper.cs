@@ -13,8 +13,8 @@ using Microsoft.ML.Runtime.Sweeper;
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
 
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 {
                     Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, config, true);
                     VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                    leafValues.Add((Float)t.LeafValues[t.GetLeaf(ref features)]);
+                    leafValues.Add((Float)t.LeafValues[t.GetLeaf(in features)]);
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }

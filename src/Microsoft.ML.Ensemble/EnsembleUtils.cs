@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var name = data.Schema.Feature.Name;
             var view = LambdaColumnMapper.Create(
                 host, "FeatureSelector", data.Data, name, name, type, type,
-                (ref VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(ref src, features, card, ref dst));
+                (in VBuffer<Single> src, ref VBuffer<Single> dst) => SelectFeatures(in src, features, card, ref dst));
 
             var res = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
             return res;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         /// Fill dst with values selected from src if the indices of the src values are set in includedIndices,
         /// otherwise assign default(T). The length of dst will be equal to src.Length.
         /// </summary>
-        public static void SelectFeatures<T>(ref VBuffer<T> src, BitArray includedIndices, int cardinality, ref VBuffer<T> dst)
+        public static void SelectFeatures<T>(in VBuffer<T> src, BitArray includedIndices, int cardinality, ref VBuffer<T> dst)
         {
             Contracts.Assert(Utils.Size(includedIndices) == src.Length);
             Contracts.Assert(cardinality == Utils.GetCardinality(includedIndices));

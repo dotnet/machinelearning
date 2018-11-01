@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Reflection;
+using Float = System.Single;
 
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), typeof(RangeFilter.Arguments), typeof(SignatureDataTransform),
     RangeFilter.UserName, "RangeFilter")]
@@ -20,7 +19,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(RangeFilter.Summary, typeof(RangeFilter), null, typeof(SignatureLoadDataTransform),
     RangeFilter.UserName, RangeFilter.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     // REVIEW: Should we support filtering on multiple columns/vector typed columns?
     /// <summary>
@@ -421,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data
                         dst = _value;
                     };
                 bool identity;
-                _conv = Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
+                _conv = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<T, ulong>(Parent._type, NumberType.U8, out identity);
             }
 
             protected override Delegate GetGetter()
@@ -435,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(Parent._type.IsKey);
                 _srcGetter(ref _value);
                 ulong value = 0;
-                _conv(ref _value, ref value);
+                _conv(in _value, ref value);
                 if (value == 0 || value > (ulong)_count)
                     return false;
                 if (!CheckBounds(((Double)(uint)value - 0.5) / _count))

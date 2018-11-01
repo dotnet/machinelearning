@@ -216,12 +216,12 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = PredictCore();
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = PredictCore();
             prob = (score + 1) / 2;
@@ -436,12 +436,12 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = _raw;
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = _raw;
             prob = _prob;

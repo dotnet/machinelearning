@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,10 +27,10 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(HashTransformer), null, typeof(SignatureLoadRowMapper),
    "Hash Transform", HashTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <summary>
-    /// This transform can hash either single valued columns or vector columns. For vector columns,
+    /// This transformer can hash either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
@@ -44,18 +44,18 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = HashEstimator.Defaults.HashBits;
+            public int HashBits = HashingEstimator.Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = HashEstimator.Defaults.Seed;
+            public uint Seed = HashingEstimator.Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash",
                 ShortName = "ord")]
-            public bool Ordered = HashEstimator.Defaults.Ordered;
+            public bool Ordered = HashingEstimator.Defaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash = HashEstimator.Defaults.InvertHash;
+            public int InvertHash = HashingEstimator.Defaults.InvertHash;
         }
 
         public sealed class Column : OneToOneColumn
@@ -133,10 +133,10 @@ namespace Microsoft.ML.Transforms
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
             public ColumnInfo(string input, string output,
-                int hashBits = HashEstimator.Defaults.HashBits,
-                uint seed = HashEstimator.Defaults.Seed,
-                bool ordered = HashEstimator.Defaults.Ordered,
-                int invertHash = HashEstimator.Defaults.InvertHash)
+                int hashBits = HashingEstimator.Defaults.HashBits,
+                uint seed = HashingEstimator.Defaults.Seed,
+                bool ordered = HashingEstimator.Defaults.Ordered,
+                int invertHash = HashingEstimator.Defaults.InvertHash)
             {
                 if (invertHash < -1)
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
                 // uint: HashSeed
                 // byte: Ordered
                 HashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(HashEstimator.NumBitsMin <= HashBits && HashBits < HashEstimator.NumBitsLim);
+                Contracts.CheckDecode(HashingEstimator.NumBitsMin <= HashBits && HashBits < HashingEstimator.NumBitsLim);
                 Seed = ctx.Reader.ReadUInt32();
                 Ordered = ctx.Reader.ReadBoolByte();
             }
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Transforms
                 // uint: HashSeed
                 // byte: Ordered
 
-                Contracts.Assert(HashEstimator.NumBitsMin <= HashBits && HashBits < HashEstimator.NumBitsLim);
+                Contracts.Assert(HashingEstimator.NumBitsMin <= HashBits && HashBits < HashingEstimator.NumBitsLim);
                 ctx.Writer.Write(HashBits);
 
                 ctx.Writer.Write(Seed);
@@ -205,8 +205,8 @@ namespace Microsoft.ML.Transforms
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            if (!HashEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptParam(nameof(inputSchema), HashEstimator.ExpectedColumnType);
+            if (!HashingEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptParam(nameof(inputSchema), HashingEstimator.ExpectedColumnType);
         }
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Transforms
             foreach (var column in _columns)
             {
                 if (column.InvertHash != 0)
-                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashEstimator)} instead");
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashingEstimator)} instead");
             }
         }
 
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms
         #region Getters
         private ValueGetter<uint> ComposeGetterOne(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
-            Host.Assert(HashEstimator.IsColumnTypeValid(srcType));
+            Host.Assert(HashingEstimator.IsColumnTypeValid(srcType));
 
             var mask = (1U << _columns[iinfo].HashBits) - 1;
             uint seed = _columns[iinfo].Seed;
@@ -454,7 +454,7 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
             Host.Assert(srcType.IsVector);
-            Host.Assert(HashEstimator.IsColumnTypeValid(srcType.ItemType));
+            Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
 
             if (srcType.ItemType.IsKey)
             {
@@ -1173,7 +1173,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Estimator for <see cref="HashTransformer"/>
     /// </summary>
-    public sealed class HashEstimator : IEstimator<HashTransformer>
+    public sealed class HashingEstimator : IEstimator<HashTransformer>
     {
         internal const int NumBitsMin = 1;
         internal const int NumBitsLim = 32;
@@ -1198,25 +1198,28 @@ namespace Microsoft.ML.Transforms
         internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
 
         /// <summary>
-        /// Convinence constructor for simple one column case
+        /// Initializes a new instance of <see cref="HashingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the output column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
-        public HashEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public HashingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
             : this(env, new HashTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="HashingEstimator"/>.
+        /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public HashEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)
+        public HashingEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(HashEstimator));
+            _host = env.Register(nameof(HashingEstimator));
             _columns = columns.ToArray();
         }
 

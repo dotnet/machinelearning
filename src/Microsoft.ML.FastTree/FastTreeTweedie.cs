@@ -6,8 +6,8 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -26,7 +26,7 @@ using System.Text;
     "FastTree Tweedie Regression Executor",
     FastTreeTweediePredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     // The Tweedie boosting model follows the mathematics established in:
     // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
@@ -35,10 +35,10 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed partial class FastTreeTweedieTrainer
          : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, RegressionPredictionTransformer<FastTreeTweediePredictor>, FastTreeTweediePredictor>
     {
-        public const string LoadNameValue = "FastTreeTweedieRegression";
-        public const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
-        public const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
-        public const string ShortName = "fttweedie";
+        internal const string LoadNameValue = "FastTreeTweedieRegression";
+        internal const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
+        internal const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
+        internal const string ShortName = "fttweedie";
 
         private TestHistory _firstTestSetHistory;
         private Test _trainRegressionTest;
@@ -54,12 +54,22 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        public FastTreeTweedieTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -479,12 +489,12 @@ namespace Microsoft.ML.Runtime.FastTree
             return new FastTreeTweediePredictor(env, ctx);
         }
 
-        protected override void Map(ref VBuffer<float> src, ref float dst)
+        protected override void Map(in VBuffer<float> src, ref float dst)
         {
             // The value learnt and predicted by the trees is the log of the expected value,
             // as seen in equation 9 of the paper. So for the actual prediction, we take its
             // exponent.
-            base.Map(ref src, ref dst);
+            base.Map(in src, ref dst);
             // REVIEW: Some packages like R's GBM apparently clamp the input to the exponent
             // in the range [-19, 19]. We have historically taken a dim view of this sort of thing
             // ourselves, but if our views prove problematic we can reconsider. (An upper clamp of 19

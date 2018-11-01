@@ -6,21 +6,22 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Immutable;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Create the reader: define the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // A boolean column depicting the 'target label'.
                     IsOver50K: ctx.LoadBool(0),
                     // Three text columns.
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // We read the first 11 values as a single float vector.
                     FeatureVector: ctx.LoadFloat(0, 10),
                     // Separately, read the target variable.
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -227,7 +228,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -297,7 +298,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset will be grouped together as one Features column.
                     Features: ctx.LoadFloat(0, 3),
                     // Label: kind of iris.
@@ -377,7 +378,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
             var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
-                .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
             var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -411,7 +412,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     IsToxic: ctx.LoadBool(0),
                     Message: ctx.LoadText(1)
                 ), hasHeader: true);
@@ -469,7 +470,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     Label: ctx.LoadBool(0),
                     // We will load all the categorical features into one vector column of size 8.
                     CategoricalFeatures: ctx.LoadText(1, 8),
@@ -532,7 +533,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -589,7 +590,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(mlContext, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),

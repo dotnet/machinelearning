@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class QuantileRegressionTree : RegressionTree
     {
@@ -61,9 +60,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// Loads the sampled labels of this tree to the distribution array for the sparse instance type.
         /// By calling for all the trees, the distribution array will have all the samples from all the trees
         /// </summary>
-        public void LoadSampledLabels(ref VBuffer<Float> feat, Float[] distribution, Float[] weights, int sampleCount, int destinationIndex)
+        public void LoadSampledLabels(in VBuffer<Float> feat, Float[] distribution, Float[] weights, int sampleCount, int destinationIndex)
         {
-            int leaf = GetLeaf(ref feat);
+            int leaf = GetLeaf(in feat);
             LoadSampledLabels(distribution, weights, sampleCount, destinationIndex, leaf);
         }
 

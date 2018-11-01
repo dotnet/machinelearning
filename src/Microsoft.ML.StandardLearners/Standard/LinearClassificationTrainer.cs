@@ -15,7 +15,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
 using System.Threading;
@@ -38,7 +39,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(void), typeof(Sdca), null, typeof(SignatureEntryPointModule), "SDCA")]
 [assembly: LoadableClass(typeof(void), typeof(StochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), StochasticGradientDescentClassificationTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
     using Stopwatch = System.Diagnostics.Stopwatch;
@@ -129,14 +130,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected float WScaledDot(ref VBuffer<float> features, Double scaling, ref VBuffer<float> weights, float bias)
+        protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) * (float)scaling + bias;
+            return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
@@ -274,9 +275,9 @@ namespace Microsoft.ML.Runtime.Learners
             Args.Check(env);
         }
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
@@ -789,7 +790,7 @@ namespace Microsoft.ML.Runtime.Learners
                     for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                     {
                         var dual = duals[idx];
-                        var output = WDot(ref features, ref weights[0], biasReg[0] + biasUnreg[0]);
+                        var output = WDot(in features, in weights[0], biasReg[0] + biasUnreg[0]);
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
                         // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -811,7 +812,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                             if (l1ThresholdZero)
                             {
-                                VectorUtils.AddMult(ref features, weights[0].Values, primalUpdate);
+                                VectorUtils.AddMult(in features, weights[0].Values, primalUpdate);
                                 biasReg[0] += primalUpdate;
                             }
                             else
@@ -928,7 +929,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
-                    var output = WDot(ref features, ref weights[0], biasTotal);
+                    var output = WDot(in features, in weights[0], biasTotal);
                     Double subLoss = Loss.Loss(output, cursor.Label);
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
                     Double subDualLoss = Loss.DualLoss(cursor.Label, duals[idx]);
@@ -943,7 +944,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(Args.L1Threshold.HasValue);
             Double l2Const = Args.L2Const.Value;
             Double l1Threshold = Args.L1Threshold.Value;
-            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(ref weights[0]) + Math.Abs(biasReg[0]));
+            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
             var newDualLoss = dualLossSum.Sum / count - l2Regularizer - l2Const * biasUnreg[0] * biasReg[0];
@@ -1433,7 +1434,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LinearClassificationTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
@@ -1544,10 +1548,11 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
+            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
@@ -1682,21 +1687,17 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _args = new Arguments();
-            advancedSettings?.Invoke(_args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, _args);
-
-            if (advancedSettings != null)
-                CheckArgsAndAdvancedSettingMismatch(maxIterations, initLearningRate, l2Weight, loss, new Arguments(), _args);
-
-            // Apply the advanced args, if the user supplied any.
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
-            _args.WeightColumn = weightColumn;
             _args.MaxIterations = maxIterations;
             _args.InitLearningRate = initLearningRate;
             _args.L2Weight = l2Weight;
+
+            // Apply the advanced args, if the user supplied any.
+            advancedSettings?.Invoke(_args);
+
+            _args.FeatureColumn = featureColumn;
+            _args.LabelColumn = labelColumn;
+            _args.WeightColumn = weightColumn;
+
             if (loss != null)
                 _args.LossFunction = loss;
             _args.Check(env);
@@ -1717,30 +1718,6 @@ namespace Microsoft.ML.Runtime.Learners
             Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = args.Shuffle;
             _args = args;
-        }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// </summary>
-        internal void CheckArgsAndAdvancedSettingMismatch(int maxIterations,
-            double initLearningRate,
-            float l2Weight,
-            ISupportClassificationLossFactory loss,
-            Arguments snapshot,
-            Arguments currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, maxIterations, snapshot.MaxIterations, currentArgs.MaxIterations, nameof(maxIterations));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, initLearningRate, snapshot.InitLearningRate, currentArgs.InitLearningRate, nameof(initLearningRate));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, l2Weight, snapshot.L2Weight, currentArgs.L2Weight, nameof(l2Weight));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, loss, snapshot.LossFunction, currentArgs.LossFunction, nameof(loss));
-            }
         }
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -1819,7 +1796,7 @@ namespace Microsoft.ML.Runtime.Learners
                             count++;
                             var instanceWeight = cursor.Weight;
                             var features = cursor.Features;
-                            Double subLoss = lossFunc.Loss(WScaledDot(ref features, weightScaling, ref weights, bias), cursor.Label);
+                            Double subLoss = lossFunc.Loss(WScaledDot(in features, weightScaling, in weights, bias), cursor.Label);
 
                             if (cursor.Label > 0)
                                 lossSum.Add(subLoss * instanceWeight * positiveInstanceWeight);
@@ -1858,7 +1835,7 @@ namespace Microsoft.ML.Runtime.Learners
                         {
                             VBuffer<float> features = cursor.Features;
                             float label = cursor.Label;
-                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
+                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(in features, weightScaling, in weights, bias), label); // complexity: O(k)
 
                             //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
                             //on the same instance. A potentially better way to do weighted update is described in
@@ -1869,7 +1846,7 @@ namespace Microsoft.ML.Runtime.Learners
                             Double rate = ilr / (1 + ilr * l2Weight * (t++));
                             Double step = -derivative * rate;
                             weightScaling *= 1 - rate * l2Weight;
-                            VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
+                            VectorUtils.AddMult(in features, weights.Values, (float)(step / weightScaling));
                             bias += (float)step;
                         }
                         if (e == 1)
@@ -1934,8 +1911,8 @@ namespace Microsoft.ML.Runtime.Learners
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
-            var pred = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+            var pred = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
             return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));

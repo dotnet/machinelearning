@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Security;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -16,8 +12,13 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.SymSgd;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -27,7 +28,7 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.SymSgd
+namespace Microsoft.ML.Trainers.SymSgd
 {
     using TPredictor = IPredictorWithFeatureWeights<float>;
 
@@ -188,9 +189,9 @@ namespace Microsoft.ML.Runtime.SymSgd
             Host.CheckParam(weights.Length > 0, nameof(weights));
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights,
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 

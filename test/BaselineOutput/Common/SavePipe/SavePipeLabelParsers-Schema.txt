@@ -50,7 +50,7 @@
     Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
       [0] 'Wirtschaft', [1] 'Gesundheit', [2] 'Deutschland', [3] 'Ausland', [4] 'Unterhaltung', [5] 'Sport', [6] 'Technik & Wissen'
   FileLabel: Key<U4, 0-1>
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 4 columns:
   RawLabel: Text
   AutoLabel: Key<U4, 0-6>

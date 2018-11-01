@@ -44,26 +44,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF)) :
             Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
 
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        private const int Vector128Alignment = 16;
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static bool HasCompatibleAlignment(AlignedArray alignedArray)
-        {
-            Contracts.AssertValue(alignedArray);
-            Contracts.Assert(alignedArray.Size > 0);
-            return (alignedArray.CbAlign % Vector128Alignment) == 0;
-        }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe float* GetAlignedBase(AlignedArray alignedArray, float* unalignedBase)
-        {
-            Contracts.AssertValue(alignedArray);
-            float* alignedBase = unalignedBase + alignedArray.GetBase((long)unalignedBase);
-            Contracts.Assert(((long)alignedBase & (Vector128Alignment - 1)) == 0);
-            return alignedBase;
-        }
-
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         internal static unsafe Vector128<float> Load1(float* src, int* idx)
              => Sse.SetScalarVector128(src[idx[0]]);
@@ -137,17 +117,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // Multiply matrix times vector into vector.
         public static unsafe void MatMul(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
-            Contracts.Assert(crow % 4 == 0);
-            Contracts.Assert(ccol % 4 == 0);
-
             MatMul(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMul(float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMul(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* pmat = &mat[0])
+            Contracts.Assert(crow % 4 == 0);
+            Contracts.Assert(ccol % 4 == 0);
+
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
@@ -221,18 +201,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             length -= misalignment;
                         }
 
-                        if (length > 4)
+                        if (length > 3)
                         {
+                            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
                             remainder = length % 4;
-                            while (pSrcCurrent < pSrcEnd)
+
+                            // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                            // (due to semantics of the legacy encoding).
+                            // We don't need an assert, since the instruction will throw for unaligned inputs.
+                            while (pSrcCurrent + 4 <= pSrcEnd)
                             {
                                 Vector128<float> vector = Sse.LoadVector128(pSrcCurrent);
 
                                 float* pMatTemp = pMatCurrent;
-                                Vector128<float> x01 = Sse.Multiply(vector, Sse.LoadVector128(pMatTemp));
-                                Vector128<float> x11 = Sse.Multiply(vector, Sse.LoadVector128(pMatTemp += ccol));
-                                Vector128<float> x21 = Sse.Multiply(vector, Sse.LoadVector128(pMatTemp += ccol));
-                                Vector128<float> x31 = Sse.Multiply(vector, Sse.LoadVector128(pMatTemp += ccol));
+                                Vector128<float> x01 = Sse.Multiply(vector, Sse.LoadAlignedVector128(pMatTemp));
+                                Vector128<float> x11 = Sse.Multiply(vector, Sse.LoadAlignedVector128(pMatTemp += ccol));
+                                Vector128<float> x21 = Sse.Multiply(vector, Sse.LoadAlignedVector128(pMatTemp += ccol));
+                                Vector128<float> x31 = Sse.Multiply(vector, Sse.LoadAlignedVector128(pMatTemp += ccol));
 
                                 res0 = Sse.Add(res0, x01);
                                 res1 = Sse.Add(res1, x11);
@@ -245,11 +230,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                         else
                         {
+                            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                            // unaligned loads where we mask the input each time.
                             remainder = length;
                         }
 
                         if (remainder != 0)
                         {
+                            // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                            // unaligned load will read to the end of the array and then mask out any elements already processed
+
                             pMatCurrent -= (4 - remainder);
                             pSrcCurrent -= (4 - remainder);
 
@@ -285,24 +276,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPA(AlignedArray mat, int[] rgposSrc, AlignedArray src,
-                                        int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulP(AlignedArray mat, int[] rgposSrc, AlignedArray src,
+                                int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
+            MatMulP(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);
+        }
+
+        public static unsafe void MatMulP(ReadOnlySpan<float> mat, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> src,
+                                        int posMin, int iposMin, int iposEnd, Span<float> dst, int crow, int ccol)
+        {
+            Contracts.Assert(crow % 4 == 0);
+            Contracts.Assert(ccol % 4 == 0);
 
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
-            fixed (int* pposSrc = &rgposSrc[0])
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
+            fixed (int* pposSrc = &MemoryMarshal.GetReference(rgposSrc))
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
-
                 int* pposMin = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;
                 float* pDstEnd = pdst + crow;
@@ -310,7 +304,120 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pSrcCurrent = psrc - posMin;
                 float* pDstCurrent = pdst;
 
-                while (pDstCurrent < pDstEnd)
+                nuint address = (nuint)(pDstCurrent);
+                int misalignment = (int)(address % 16);
+
+                int length = crow;
+                int remainder = 0;
+
+                if ((misalignment & 3) != 0)
+                {
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+                    while (pDstCurrent < pDstEnd)
+                    {
+                        Sse.Store(pDstCurrent, SparseMultiplicationAcrossRow());
+                        pDstCurrent += 4;
+                        pm0 += 4 * ccol;
+                    }
+                }
+                else
+                {
+                    if (misalignment != 0)
+                    {
+                        // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
+
+                        misalignment >>= 2;
+                        misalignment = 4 - misalignment;
+
+                        Vector128<float> mask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
+
+                        float* pm1 = pm0 + ccol;
+                        float* pm2 = pm1 + ccol;
+                        float* pm3 = pm2 + ccol;
+                        Vector128<float> result = Sse.SetZeroVector128();
+
+                        int* ppos = pposMin;
+
+                        while (ppos < pposEnd)
+                        {
+                            int col = *ppos;
+                            Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+
+                            x1 = Sse.And(mask, x1);
+                            Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                            x2 = Sse.Multiply(x2, x1);
+                            result = Sse.Add(result, x2);
+                            ppos++;
+                        }
+
+                        Sse.Store(pDstCurrent, result);
+                        pDstCurrent += misalignment;
+                        pm0 += misalignment * ccol;
+                        length -= misalignment;
+                    }
+
+                    if (length > 3)
+                    {
+                        // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+                        remainder = length % 4;
+
+                        // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                        // (due to semantics of the legacy encoding).
+                        // We don't need an assert, since the instruction will throw for unaligned inputs.
+                        while (pDstCurrent < pDstEnd)
+                        {
+                            Sse.Store(pDstCurrent, SparseMultiplicationAcrossRow());
+                            pDstCurrent += 4;
+                            pm0 += 4 * ccol;
+                        }
+                    }
+                    else
+                    {
+                        // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                        // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
+                        remainder = length;
+                    }
+
+                    if (remainder != 0)
+                    {
+                        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                        // unaligned load will read to the end of the array and then mask out any elements already processed
+                        pDstCurrent -= (4 - remainder);
+                        pm0 -= (4 - remainder) * ccol;
+
+                        Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+                        Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
+
+                        float* pm1 = pm0 + ccol;
+                        float* pm2 = pm1 + ccol;
+                        float* pm3 = pm2 + ccol;
+                        Vector128<float> result = Sse.SetZeroVector128();
+
+                        int* ppos = pposMin;
+
+                        while (ppos < pposEnd)
+                        {
+                            int col = *ppos;
+                            Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+                            x1 = Sse.And(x1, trailingMask);
+
+                            Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                            x2 = Sse.Multiply(x2, x1);
+                            result = Sse.Add(result, x2);
+                            ppos++;
+                        }
+
+                        result = Sse.Add(result, Sse.And(leadingMask, Sse.LoadVector128(pDstCurrent)));
+
+                        Sse.Store(pDstCurrent, result);
+                        pDstCurrent += 4;
+                        pm0 += 4 * ccol;
+                    }
+                }
+
+                Vector128<float> SparseMultiplicationAcrossRow()
                 {
                     float* pm1 = pm0 + ccol;
                     float* pm2 = pm1 + ccol;
@@ -326,29 +433,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
                         x2 = Sse.Multiply(x2, x1);
                         result = Sse.Add(result, x2);
-
                         ppos++;
                     }
 
-                    Sse.StoreAligned(pDstCurrent, result);
-                    pDstCurrent += 4;
-                    pm0 += 4 * ccol;
+                    return result;
                 }
             }
         }
 
         public static unsafe void MatMulTran(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
-            Contracts.Assert(crow % 4 == 0);
-            Contracts.Assert(ccol % 4 == 0);
             MatMulTran(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMulTran(float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMulTran(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* pmat = &mat[0])
+            Contracts.Assert(crow % 4 == 0);
+            Contracts.Assert(ccol % 4 == 0);
+
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
@@ -376,6 +481,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if ((misalignment & 3) != 0)
                     {
+                        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
                         while (pDstCurrent < pDstEnd)
                         {
                             float* pMatTemp = pMatCurrent;
@@ -430,17 +536,21 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             pDstCurrent += misalignment;
                             length -= misalignment;
                         }
-                        if (length > 4)
+                        if (length > 3)
                         {
+                            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
                             remainder = length % 4;
                             while (pDstCurrent + 4 <= pDstEnd)
                             {
+                                // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                                // (due to semantics of the legacy encoding).
+                                // We don't need an assert, since the instruction will throw for unaligned inputs.
                                 float* pMatTemp = pMatCurrent;
 
-                                Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadVector128(pMatTemp));
-                                Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadVector128(pMatTemp += crow));
-                                Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadVector128(pMatTemp += crow));
-                                Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadVector128(pMatTemp += crow));
+                                Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadAlignedVector128(pMatTemp));
+                                Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadAlignedVector128(pMatTemp += crow));
+                                Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadAlignedVector128(pMatTemp += crow));
+                                Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadAlignedVector128(pMatTemp += crow));
 
                                 x02 = Sse.Add(x02, x12);
                                 x22 = Sse.Add(x22, x32);
@@ -453,13 +563,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                         else
                         {
+                            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                            // unaligned loads where we mask the input each time.
                             remainder = length;
                         }
 
                         if (remainder != 0)
                         {
+                            // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                            // unaligned load will read to the end of the array and then mask out any elements already processed
                             pMatCurrent -= (4 - remainder);
                             pDstCurrent -= (4 - remainder);
+
                             Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
 
                             float* pMatTemp = pMatCurrent;
@@ -567,17 +683,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             pDstCurrent += misalignment;
                             length -= misalignment;
                         }
-                        if (length > 4)
+                        if (length > 3)
                         {
                             remainder = length % 4;
                             while (pDstCurrent + 4 <= pDstEnd)
                             {
                                 float* pMatTemp = pMatCurrent;
 
-                                Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadVector128(pMatTemp));
-                                Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadVector128(pMatTemp += crow));
-                                Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadVector128(pMatTemp += crow));
-                                Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadVector128(pMatTemp += crow));
+                                Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadAlignedVector128(pMatTemp));
+                                Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadAlignedVector128(pMatTemp += crow));
+                                Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadAlignedVector128(pMatTemp += crow));
+                                Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadAlignedVector128(pMatTemp += crow));
 
                                 x02 = Sse.Add(x02, x12);
                                 x22 = Sse.Add(x22, x32);
@@ -639,10 +755,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
 
                 Vector128<float> scalarVector = Sse.SetAllVector128(scalar);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector);
@@ -727,7 +844,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         length -= misalignment;
                     }
 
-                    if (length > 4)
+                    if (length > 3)
                     {
                         // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
                         remainder = length % 4;
@@ -782,10 +899,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + count;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
 
                 Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector);
@@ -814,11 +932,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
 
                 Vector128<float> aVector = Sse.SetAllVector128(a);
                 Vector128<float> bVector = Sse.SetAllVector128(b);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, bVector);
@@ -1061,29 +1180,104 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe float SumU(ReadOnlySpan<float> src)
+        public static unsafe float Sum(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pSrc = &MemoryMarshal.GetReference(src))
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
+                float* pValues = pSrc;
+                int length = src.Length;
+
+                if (length < 4)
+                {
+                    // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
+
+                    float res = 0;
+
+                    switch (length)
+                    {
+                        case 3: res += pValues[2]; goto case 2;
+                        case 2: res += pValues[1]; goto case 1;
+                        case 1: res += pValues[0]; break;
+                    }
+
+                    return res;
+                }
 
                 Vector128<float> result = Sse.SetZeroVector128();
 
-                while (pSrcCurrent + 4 <= pSrcEnd)
+                nuint address = (nuint)(pValues);
+                int misalignment = (int)(address % 16);
+                int remainder = 0;
+
+                if ((misalignment & 3) != 0)
                 {
-                    result = Sse.Add(result, Sse.LoadVector128(pSrcCurrent));
-                    pSrcCurrent += 4;
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+
+                    remainder = length % 4;
+
+                    for (float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 4)
+                    {
+                        result = Sse.Add(result, Sse.LoadVector128(pValues));
+                    }
+                }
+                else
+                {
+                    if (misalignment != 0)
+                    {
+                        // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
+
+                        misalignment >>= 2;
+                        misalignment = 4 - misalignment;
+
+                        Vector128<float> mask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
+                        Vector128<float> temp = Sse.And(mask, Sse.LoadVector128(pValues));
+                        result = Sse.Add(result, temp);
+
+                        pValues += misalignment;
+                        length -= misalignment;
+                    }
+
+                    if (length > 3)
+                    {
+                        // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+
+                        remainder = length % 4;
+
+                        for (float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 4)
+                        {
+                            // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                            // (due to semantics of the legacy encoding).
+                            // We don't need an assert, since the instruction will throw for unaligned inputs.
+
+                            result = Sse.Add(result, Sse.LoadAlignedVector128(pValues));
+                        }
+                    }
+                    else
+                    {
+                        // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                        // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
+                        remainder = length;
+                    }
                 }
 
+                if (remainder != 0)
+                {
+                    // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                    // unaligned load will read to the end of the array and then mask out any elements already processed
+
+                    pValues -= (4 - remainder);
+
+                    Vector128<float> mask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+                    Vector128<float> temp = Sse.And(mask, Sse.LoadVector128(pValues));
+                    result = Sse.Add(result, temp);
+                }
+
+                // Sum all the elements together and return the result
                 result = VectorSum128(in result);
-
-                while (pSrcCurrent < pSrcEnd)
-                {
-                    result = Sse.AddScalar(result, Sse.LoadScalarVector128(pSrcCurrent));
-                    pSrcCurrent++;
-                }
-
                 return Sse.ConvertToSingle(result);
             }
         }

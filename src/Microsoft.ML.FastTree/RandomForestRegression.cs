@@ -7,8 +7,8 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -25,7 +25,7 @@ using System;
     "FastForest Regression Executor",
     FastForestRegressionPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public sealed class FastForestRegressionPredictor :
         FastTreePredictionWrapper,
@@ -100,24 +100,24 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void Map(ref VBuffer<float> src, ref float dst)
+        protected override void Map(in VBuffer<float> src, ref float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
+            dst = (float)TrainedEnsemble.GetOutput(in src) / TrainedEnsemble.NumTrees;
         }
 
         public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
         {
             return
-                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
                     float[] weights = null;
-                    var distribution = TrainedEnsemble.GetDistribution(ref src, _quantileSampleCount, out weights);
+                    var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
                     var values = dst.Values;
@@ -160,12 +160,22 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastForestRegression(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, true, advancedSettings)
+        public FastForestRegression(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));

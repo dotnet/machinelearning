@@ -17,7 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(LdaTransform.Summary, typeof(IDataTransform), typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
     "Latent Dirichlet Allocation Transform", "LdaTransform", "Lda")]
@@ -31,7 +31,7 @@ using Microsoft.ML.Core.Data;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(LdaTransform), null, typeof(SignatureLoadRowMapper),
     "Latent Dirichlet Allocation Transform", LdaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     // LightLDA transform: Big Topic Models on Modest Compute Clusters.
     // <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _ldaTrainer.AllocateDataMemory(docNum, corpusSize);
             }
 
-            public int FeedTrain(IExceptionContext ectx, ref VBuffer<Double> input)
+            public int FeedTrain(IExceptionContext ectx, in VBuffer<Double> input)
             {
                 Contracts.AssertValue(ectx);
 
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _ldaTrainer.Train(""); /* Need to pass in an empty string */
             }
 
-            public void Output(ref VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
+            public void Output(in VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
             {
                 // Prediction for a single document.
                 // LdaSingleBox.InitializeBeforeTest() is NOT thread-safe.
@@ -689,7 +689,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         // REVIEW: This will work, but there are opportunities for caching
                         // based on input.Counter that are probably worthwhile given how long inference takes.
                         getSrc(ref src);
-                        lda.Output(ref src, ref dst, numBurninIter, reset);
+                        lda.Output(in src, ref dst, numBurninIter, reset);
                     };
             }
         }
@@ -1007,7 +1007,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     for (int i = 0; i < _exes.Length; i++)
                     {
                         getters[i](ref src);
-                        docSizeCheck[i] += states[i].FeedTrain(Host, ref src);
+                        docSizeCheck[i] += states[i].FeedTrain(Host, in src);
                     }
                 }
                 for (int i = 0; i < _exes.Length; i++)

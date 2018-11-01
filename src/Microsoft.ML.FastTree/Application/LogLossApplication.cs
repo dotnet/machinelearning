@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.Runtime.CommandLine;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
 #if OLD_DATALOAD
     public class LogLossCommandLineArgs : TrainingCommandLineArgs

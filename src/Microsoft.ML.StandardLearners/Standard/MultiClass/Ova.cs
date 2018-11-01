@@ -149,17 +149,17 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
-                return MapLabelsCore(NumberType.U4, (ref uint val) => key == val, data);
+                return MapLabelsCore(NumberType.U4, (in uint val) => key == val, data);
             }
             if (lab.Type == NumberType.R4)
             {
                 float key = cls;
-                return MapLabelsCore(NumberType.R4, (ref float val) => key == val, data);
+                return MapLabelsCore(NumberType.R4, (in float val) => key == val, data);
             }
             if (lab.Type == NumberType.R8)
             {
                 Double key = cls;
-                return MapLabelsCore(NumberType.R8, (ref double val) => key == val, data);
+                return MapLabelsCore(NumberType.R8, (in double val) => key == val, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Runtime.Learners
                     maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
 
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Learners
                             values = new float[maps.Length];
 
                         var tmp = src;
-                        Parallel.For(0, maps.Length, i => maps[i](ref tmp, ref values[i]));
+                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref values[i]));
                         dst = new VBuffer<float>(maps.Length, values, dst.Indices);
                     };
             }
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Learners
                     maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Runtime.Learners
                             i =>
                             {
                                 float score = 0;
-                                maps[i](ref tmp, ref score, ref values[i]);
+                                maps[i](in tmp, ref score, ref values[i]);
                             });
                         Normalize(values, maps.Length);
                         dst = new VBuffer<float>(maps.Length, values, dst.Indices);

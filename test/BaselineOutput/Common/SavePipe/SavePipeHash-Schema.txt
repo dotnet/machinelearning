@@ -291,7 +291,7 @@
   VarHash6: Vec<Key<U4, 0-127>>
   SingleHash: Key<U4, 0-15>
   VarComb: Vec<Key<U4, 0-127>>
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 15 columns:
   SingleHash: Key<U4, 0-15>
   Hash0: Vec<Key<U4, 0-15>, 3>

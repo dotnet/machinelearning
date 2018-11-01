@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), typeof(WhiteningTransform.Arguments), typeof(SignatureDataTransform),
     "Whitening Transform", "WhiteningTransform", "Whitening")]
@@ -23,7 +24,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), null, typeof(SignatureLoadDataTransform),
     "Whitening Transform", WhiteningTransform.LoaderSignature, WhiteningTransform.LoaderSignatureOld)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Projections
 {
     public enum WhiteningKind
     {
@@ -541,12 +542,12 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == cslotSrc, "Invalid column size.");
-                    FillValues(model, ref src, ref dst, cslotDst);
+                    FillValues(model, in src, ref dst, cslotDst);
                 };
             return del;
         }
 
-        private static void FillValues(Float[] model, ref VBuffer<Float> src, ref VBuffer<Float> dst, int cdst)
+        private static void FillValues(Float[] model, in VBuffer<Float> src, ref VBuffer<Float> dst, int cdst)
         {
             int count = src.Count;
             int length = src.Length;

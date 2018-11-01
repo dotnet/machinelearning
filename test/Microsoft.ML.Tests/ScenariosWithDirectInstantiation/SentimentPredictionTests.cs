@@ -6,8 +6,9 @@ using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Transforms.Text;
 using System.Linq;
 using Xunit;
 
@@ -36,17 +37,17 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var trans = TextTransform.Create(env, new TextTransform.Arguments()
+                var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new TextFeaturizingEstimator.Column
                     {
                         Name = "Features",
                         Source = new[] { "SentimentText" }
                     },
                     OutputTokens = true,
                     KeepPunctuations = false,
-                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.L2,
+                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                     WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
                 },
@@ -99,17 +100,17 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var text = TextTransform.Create(env, new TextTransform.Arguments()
+                var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new TextFeaturizingEstimator.Column
                     {
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
                     },
                     OutputTokens = true,
                     KeepPunctuations= false,
-                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.None,
+                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                     CharFeatureExtractor = null,
                     WordFeatureExtractor = null,
                 },

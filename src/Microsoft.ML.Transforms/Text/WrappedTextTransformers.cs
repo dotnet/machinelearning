@@ -5,12 +5,11 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.TextAnalytics;
 using System;
 using System.Linq;
-using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
+using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Text
 {
 
     /// <summary>

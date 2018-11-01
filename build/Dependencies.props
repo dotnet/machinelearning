@@ -8,6 +8,7 @@
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
+    <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
   </PropertyGroup>
 
   <!-- Other/Non-Core Product Dependencies -->
@@ -38,7 +39,7 @@
   <!-- Test-only Dependencies -->
   <PropertyGroup>
     <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
-    <MicrosoftMLTestModelsPackageVersion>0.0.2-test</MicrosoftMLTestModelsPackageVersion>
+    <MicrosoftMLTestModelsPackageVersion>0.0.3-test</MicrosoftMLTestModelsPackageVersion>
   </PropertyGroup>
 
 </Project>

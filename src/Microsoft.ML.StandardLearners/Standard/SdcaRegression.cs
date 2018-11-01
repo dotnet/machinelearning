@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
@@ -22,7 +23,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     SdcaRegressionTrainer.LoadNameValue,
     SdcaRegressionTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
@@ -62,7 +63,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaRegressionTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
@@ -103,9 +107,10 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
             VBuffer<Float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            return new LinearRegressionPredictor(Host, ref maybeSparseWeights, bias[0]);
+            return new LinearRegressionPredictor(Host, in maybeSparseWeights, bias[0]);
         }
 
         protected override Float GetInstanceWeight(FloatLabelCursor cursor)

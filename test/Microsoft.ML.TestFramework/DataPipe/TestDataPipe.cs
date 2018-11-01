@@ -4,9 +4,10 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Float = System.Single;
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=AutoLabel{col=AutoLabel:RawLabel}",
                     "xf=Term{col=StringLabel:RawLabel terms={Wirtschaft,Gesundheit,Deutschland,Ausland,Unterhaltung,Sport,Technik & Wissen}}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=ChooseColumns{col=RawLabel col=AutoLabel col=StringLabel col=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=AutoLabel keepcol=StringLabel keepcol=FileLabel}"
                 });
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=ChooseColumns{col=RawLabel col=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
                 }, suffix: "1");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -81,7 +82,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=ChooseColumns{col=RawLabel col=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
                 }, suffix: "2");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -101,7 +102,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{key=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=ChooseColumns{col=RawLabel col=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
                 }, suffix: "3");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -127,7 +128,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                         string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
                         string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
-                        "xf=ChooseColumns{col=RawLabel col=FileLabelNum col=FileLabelKey}"
+                        "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
                 Env.PrintProgress();
@@ -152,7 +153,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=ChooseColumns{col=RawLabel col=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
                 }, suffix: "5");
 
             Done();
@@ -181,7 +182,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Schema baseline comparison fails")]
+        [Fact]
         public void SavePipeKeyToVec()
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=MarKeyU8:U8:MarKey col=CombKeyU1:U1:CombKey}",
                     "xf=KeyToVector{col={name=CombBagVec src=CombKey bag+} col={name=CombIndVec src=CombKey} col=MarVec:MarKey}",
                     "xf=KeyToVector{col={name=CombBagVecU1 src=CombKeyU1 bag+} col={name=CombIndVecU1 src=CombKeyU1} col=MarVecU8:MarKeyU8}",
-                    "xf=ChooseColumns{col=MarKey col=CombKey col=MarVec col=MarVecU8 col=CombBagVec col=CombBagVecU1 col=CombIndVec col=CombIndVecU1 col=Mar col=Comb}",
+                    "xf=SelectColumns{keepcol=MarKey keepcol=CombKey keepcol=MarVec keepcol=MarVecU8 keepcol=CombBagVec keepcol=CombBagVecU1 keepcol=CombIndVec keepcol=CombIndVecU1 keepcol=Mar keepcol=Comb}",
                 },
 
                 pipe =>
@@ -230,7 +231,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             {
                                 getters[i](ref v1);
                                 getters[i + 1](ref v2);
-                                Check(CompareVec(ref v1, ref v2, v1.Length, fn), "Mismatch");
+                                Check(CompareVec(in v1, in v2, v1.Length, fn), "Mismatch");
                             }
                         }
                     }
@@ -239,7 +240,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Schema baseline comparison fails")]
+        [Fact]
         public void SavePipeConcatUnknownLength()
         {
             string pathData = DeleteOutputPath("SavePipe", "ConcatUnknownLength.txt");
@@ -260,7 +261,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=Indicators type=R8}",
                     "xf=Convert{col=Known col=Single col=Unknown type=R8}",
                     "xf=Concat{col=All:Indicators,Known,Single,Unknown}",
-                    "xf=ChooseColumns{col=All}"
+                    "xf=SelectColumns{keepcol=All}"
                 });
 
             Done();
@@ -306,7 +307,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Schema baseline comparison fails")]
+        [Fact]
         public void SavePipeConcatWithAliases()
         {
             string pathData = GetDataPath("breast-cancer-withheader.txt");
@@ -316,7 +317,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "loader=Text{header+ col=A:0 col=B:1-9}",
                     "xf=Concat{col={name=All source[First]=A src=A source[Rest]=B}}",
                     "xf=Concat{col={name=All2 source=A source=B source[B]=B source[Vector]=B}}",
-                    "xf=DropColumns{col=A col=B}"
+                    "xf=SelectColumns{dropcol=A dropcol=B}"
                 });
             Done();
         }
@@ -348,7 +349,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, dictFile),
-                    "xf=ChooseColumns{col=Features}"
+                    "xf=SelectColumns{keepcol=Features}"
                 }, suffix: "Ngram");
 
             textSettings =
@@ -357,7 +358,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, dictFile),
-                    "xf=ChooseColumns{col=Features}"
+                    "xf=SelectColumns{keepcol=Features}"
                 }, suffix: "NgramHash");
 
 
@@ -368,7 +369,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, terms),
-                    "xf=ChooseColumns{col=Features}"
+                    "xf=SelectColumns{keepcol=Features}"
                 }, suffix: "NgramTerms");
 
             terms = "sport,baseball,padres,med,erythromycin";
@@ -378,7 +379,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, terms),
-                    "xf=ChooseColumns{col=Features}"
+                    "xf=SelectColumns{keepcol=Features}"
                 }, suffix: "NgramHashTermsDropNA");
 
             terms = "sport,baseball,mcgriff,med,erythromycin";
@@ -388,7 +389,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, terms),
-                    "xf=ChooseColumns{col=Features}"
+                    "xf=SelectColumns{keepcol=Features}"
                 }, suffix: "NgramTermsDropNA");
 
             terms = "hello";
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=T1:TX:0 col=T2:TX:1}",
                     string.Format(textSettings, terms),
-                    "xf=ChooseColumns{col=T1 col=T2 col=Features}"
+                    "xf=SelectColumns{keepcol=T1 keepcol=T2 keepcol=Features}"
                 }, suffix: "EmptyNgramTermsDropNA");
 
             Done();
@@ -441,9 +442,112 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Hash{bits=7 ordered+ col={name=VarHash3 src=VarU1} col={name=VarHash4 src=VarU2} col={name=VarHash5 src=VarU4} col={name=VarHash6 src=VarU8}}",
                     "xf=Hash{bits=4 col={name=SingleHash src=Single ordered+}}",
                     "xf=Concat{col=VarComb:VarHash1,VarHash2,VarHash3,VarHash4,VarHash5,VarHash6}",
-                    "xf=ChooseColumns{col=SingleHash col=Hash0 col=Hash1 col=Hash2 col=Hash3 col=Hash4 col=Hash5 col=Hash6 col=Hash7 col=Hash8 col=Hash9 col=Hash10 col=Hash11 col=Hash12 col=VarComb}",
+                    "xf=SelectColumns{keepcol=SingleHash keepcol=Hash0 keepcol=Hash1 keepcol=Hash2 keepcol=Hash3 keepcol=Hash4 keepcol=Hash5 keepcol=Hash6 keepcol=Hash7 keepcol=Hash8 keepcol=Hash9 keepcol=Hash10 keepcol=Hash11 keepcol=Hash12 keepcol=VarComb}",
                 }, logCurs: true);
 
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCountSelect()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[1-10]:1}",
+                    // Create a lot of unused slots.
+                    "xf=CatHash{col=OneInd:One bits=10}",
+                    // One is for the non-vector case and OneInd is reduced to a small size.
+                    "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
+                    // This tests the path where a no-op transform is created.
+                    "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
+                    // This tests counts greater than 1
+                    "xf=KeyToVector{col=Key}",
+                    "xf=CountFeatureSelection{col=Key count=100}",
+                });
+
+            Done();
+        }
+
+        [Fact(Skip = "Should be enabled after NAHandle is converted to use SelectColumnsTransform instead of DropColumnsTransform")]
+        public void SavePipeCountSelectWithSparse()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[1-10]:1}",
+                    // Create a lot of unused slots.
+                    "xf=CatHash{col=OneInd:One bits=10}",
+                    // Create more unused slots and test the sparse case.
+                    "xf=NAHandle{col=NumSparse:Num}",
+                    // This tests that Num and NumSparse remain the same,
+                    // One is for the non-vector case and OneInd is reduced to a small size.
+                    "xf=CountFeatureSelection{col=Num col=NumSparse col=One col=OneInd count=1}",
+                    // This tests the path where a no-op transform is created.
+                    "xf=CountFeatureSelection{col=Num col=NumSparse col=One col=OneInd count=1}",
+                    // This tests counts greater than 1
+                    "xf=KeyToVector{col=Key}",
+                    "xf=CountFeatureSelection{col=Key count=100}",
+                });
+
+            Done();
+        }
+
+        private bool VerifyMatch<TSrc, TDst>(TSrc src, TDst dst, ValueMapper<TSrc, TDst> conv, ValueMapper<TDst, TSrc> convBack)
+            where TSrc : struct
+            where TDst : struct
+        {
+            TDst v = default(TDst);
+            conv(in src, ref v);
+            if (EqualityComparer<TDst>.Default.Equals(dst, v))
+                return true;
+            TSrc vSrc = default;
+            convBack(in v, ref vSrc);
+            if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
+                return true;
+            Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");
+            return false;
+        }
+
+        [Fact(Skip = "Fails until issue #1342 is resolved.")]
+        public void SavePipeNgramHash()
+        {
+            string pathData = GetDataPath("lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=Label:TX:0 col=Attrs:TX:1-2 col=TextFeatures:TX:3-4 rows=100}",
+                    "xf=WordToken{col={name=Tokens src=TextFeatures}}",
+                    "xf=Cat{max=10 col={name=Cat src=Tokens kind=key}}",
+                    "xf=Hash{col={name=Hash src=Tokens bits=10} col={name=HashBig src=Tokens bits=31}}",
+                    "xf=NgramHash{col={name=NgramHashOne src=Cat bits=4 ngram=3 skips=2}}",
+                    "xf=NgramHash{col={name=HashNgram1 src=Cat src=Cat bits=10 ngram=3 skips=1}}",
+                    "xf=NgramHash{ngram=3 bits=8 col={name=HashNgram2 src=Hash src=Hash skips=1 ord-} col={name=HashNgram3 src=Cat src=Hash skips=2 ord- rehash+ all-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram4:HashBig,Hash rehash+}",
+                    "xf=NgramHash{bits=3 ngram=1 col={name=HashNgram5 src=Hash src=Hash} col={name=HashNgram6 src=Hash ord-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram7:HashBig,Hash rehash+ all- col={name=HashNgram8 src=Hash all+ ord-}}",
+                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8, hidden=-}",
+                });
+
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=CatU8:U8[0-100]:1-9 col=CatU2:U2[0-*]:3-5}",
+                    "xf=NgramHash{bits=5 col=NgramHash:CatU8 col=NgramHash2:CatU2}",
+                    "xf=SelectColumns{keepcol=NgramHash keepcol=NgramHash2 hidden=-}"
+                },
+                suffix: "-Convert");
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordTokenize()
+        {
+            TestCore(GetDataPath("lm.sample.txt"), false,
+                new[]
+                {
+                    "loader=Text{col=A:TX:2 col=B:TX:3}",
+                    "xf=wordToken{col={name=C source=A sep=space,-} col=D:B}",
+                    "xf=concat{col=Concat:C,D}",
+                    "xf=Select{dropcol=C dropcol=D}"
+                });
             Done();
         }
 
