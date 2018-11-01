@@ -20,7 +20,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(GroupTransform.Summary, typeof(GroupTransform), null, typeof(SignatureLoadDataTransform),
     GroupTransform.UserName, GroupTransform.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(GroupingOperations))]
+[assembly: EntryPointModule(typeof(Microsoft.ML.Transforms.GroupingOperations))]
 
 namespace Microsoft.ML.Transforms
 {

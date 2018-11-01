@@ -10,6 +10,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Transforms.Projections;
 
 namespace Microsoft.ML.Transforms
 {

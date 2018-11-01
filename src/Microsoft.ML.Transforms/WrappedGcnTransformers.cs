@@ -7,9 +7,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Projections;
 using System.Collections.Generic;
 using System.Linq;
-using static Microsoft.ML.Runtime.Data.LpNormNormalizerTransform;
+using static Microsoft.ML.Transforms.Projections.LpNormNormalizerTransform;
 
 namespace Microsoft.ML.Transforms
 {

@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 // REVIEW: This is a temporary hack code to allow loading old saved loader models. Delete it once it is no longer needed.
 
@@ -16,7 +13,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(IDataTransform), typeof(CompositeTransform), null, typeof(SignatureLoadDataTransform),
     "Composite Transform", CompositeTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public static class CompositeTransform
     {

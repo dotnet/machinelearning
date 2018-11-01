@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 
 [assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), typeof(WhiteningTransform.Arguments), typeof(SignatureDataTransform),
     "Whitening Transform", "WhiteningTransform", "Whitening")]
@@ -24,7 +24,7 @@ using Microsoft.ML.Transforms;
 [assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), null, typeof(SignatureLoadDataTransform),
     "Whitening Transform", WhiteningTransform.LoaderSignature, WhiteningTransform.LoaderSignatureOld)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Projections
 {
     public enum WhiteningKind
     {

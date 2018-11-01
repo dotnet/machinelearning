@@ -19,7 +19,7 @@ using System;
 
 [assembly: EntryPointModule(typeof(BootstrapSample))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This class approximates bootstrap sampling of a dataview.
