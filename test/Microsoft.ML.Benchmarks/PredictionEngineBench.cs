@@ -6,10 +6,9 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {
