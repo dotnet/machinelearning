@@ -1,0 +1,167 @@
+---- BoundLoader ----
+3 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+---- RowToRowMapperTransform ----
+4 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+---- RowToRowMapperTransform ----
+5 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  temp_IsMissing_000: Vec<Bool, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+---- RowToRowMapperTransform ----
+6 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  temp_IsMissing_000: Vec<Bool, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  temp_IsMissing_000: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+---- RowToRowMapperTransform ----
+7 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  temp_IsMissing_000: Vec<Bool, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  temp_IsMissing_000: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  temp_Replace_000: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+---- RowToRowMapperTransform ----
+8 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  temp_IsMissing_000: Vec<Bool, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  temp_IsMissing_000: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  temp_Replace_000: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  NumSparse: Vec<R4, 12>
+    Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
+      [10] 'IsMissing.capital-loss', [11] 'IsMissing.hours-per-week'
+---- SelectColumnsDataTransform ----
+5 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  NumSparse: Vec<R4, 12>
+    Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
+      [10] 'IsMissing.capital-loss', [11] 'IsMissing.hours-per-week'
+---- RowToRowMapperTransform ----
+6 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  NumSparse: Vec<R4, 12>
+    Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
+      [10] 'IsMissing.capital-loss', [11] 'IsMissing.hours-per-week'
+  NumSparse: Vec<R4, 12>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
+      [10] 'IsMissing.capital-loss', [11] 'IsMissing.hours-per-week'
+---- SelectColumnsDataTransform ----
+5 columns:
+  One: Text
+  Num: Vec<R4, 6>
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Num: Vec<R4, 6>
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
+  Cat: Vec<Text, 9>
+    Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
+      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+  NumSparse: Vec<R4, 12>
+    Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
+      [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
+      [10] 'IsMissing.capital-loss', [11] 'IsMissing.hours-per-week'

@@ -552,6 +552,22 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeDropColumns()
+        {
+            string pathData = GetDataPath("adult.train");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{header+ sep=, col=One:TX:0 col=Num:R4:0,2,4,10-12 col=Cat:TX:0~*}",
+                    "xf=MinMax{col=Num}",
+                    "xf=NAHandle{col=NumSparse:Num}",
+                    "xf=MinMax{col=NumSparse}",
+                    "xf=SelectColumns{dropcol=NumSparse hidden=+}",
+                });
+
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);

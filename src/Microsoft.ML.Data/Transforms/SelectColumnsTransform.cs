@@ -569,15 +569,11 @@ namespace Microsoft.ML.Transforms
                     // given an input of ABC and dropping column B will result in AC.
                     for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
                     {
-                        if (!keepHidden && inputSchema.IsHidden(colIdx))
-                            continue;
-
-                        if (selectedColumns.Contains(inputSchema[colIdx].Name))
+                        if (selectedColumns.Contains(inputSchema[colIdx].Name) && (!keepHidden || !inputSchema.IsHidden(colIdx)))
                             continue;
 
                         outputToInputMapping.Add(colIdx);
                     }
-
                 }
 
                 return outputToInputMapping.ToArray();
