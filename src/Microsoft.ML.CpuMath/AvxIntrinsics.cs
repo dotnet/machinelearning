@@ -793,7 +793,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
 
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + count;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
@@ -1002,7 +1002,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector256<float> a256 = Avx.SetAllVector256(a);
                 Vector256<float> b256 = Avx.SetAllVector256(b);

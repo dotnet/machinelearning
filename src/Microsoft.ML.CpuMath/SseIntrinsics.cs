@@ -755,7 +755,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector128<float> scalarVector = Sse.SetAllVector128(scalar);
 
@@ -899,7 +899,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + count;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
@@ -932,7 +932,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                var destinationEnd = pDstEnd - 4;
+                float* destinationEnd = pDstEnd - 4;
 
                 Vector128<float> aVector = Sse.SetAllVector128(a);
                 Vector128<float> bVector = Sse.SetAllVector128(b);
