@@ -10,7 +10,6 @@ using Microsoft.ML.Runtime.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -18,14 +17,17 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -36,7 +38,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -1002,7 +1003,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }).Data;
 
             ValueMapper<ReadOnlyMemory<char>, bool> labelToBinary =
-                (ref ReadOnlyMemory<char> src, ref bool dst) =>
+                (in ReadOnlyMemory<char> src, ref bool dst) =>
                 {
                     if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
                         dst = true;
@@ -1328,9 +1329,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter3(ref score0[3]);
                     getter4(ref score0[4]);
                     getterSaved(ref scoreSaved);
-                    Assert.True(CompareVBuffers(ref scoreSaved, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in scoreSaved, in score, ref dense1, ref dense2));
                     c(ref avg, score0, null);
-                    Assert.True(CompareVBuffers(ref avg, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in avg, in score, ref dense1, ref dense2));
                 }
                 Assert.False(curs0.MoveNext());
                 Assert.False(curs1.MoveNext());
@@ -1476,7 +1477,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        private static bool CompareVBuffers(ref VBuffer<Single> v1, ref VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
+        private static bool CompareVBuffers(in VBuffer<Single> v1, in VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
         {
             if (v1.Length != v2.Length)
                 return false;

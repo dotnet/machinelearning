@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, TextNormalizerEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public OutPipelineColumn(Scalar<string> input, TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
                 : base(new Reconciler(textCase, keepDiacritics, keepPunctuations, keepNumbers), input)
             {
                 Input = input;
@@ -189,12 +189,12 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly TextNormalizerEstimator.CaseNormalizationMode _textCase;
+            private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
             private readonly bool _keepDiacritics;
             private readonly bool _keepPunctuations;
             private readonly bool _keepNumbers;
 
-            public Reconciler(TextNormalizerEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
+            public Reconciler(TextNormalizingEstimator.CaseNormalizationMode textCase, bool keepDiacritics, bool keepPunctuations, bool keepNumbers)
             {
                 _textCase = textCase;
                 _keepDiacritics = keepDiacritics;
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new TextNormalizerEstimator(env, _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers, pairs.ToArray());
+                return new TextNormalizingEstimator(env, _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers, pairs.ToArray());
             }
         }
 
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         public static Scalar<string> NormalizeText(this Scalar<string> input,
-            TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizerEstimator.CaseNormalizationMode.Lower,
+            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.CaseNormalizationMode.Lower,
             bool keepDiacritics = false,
             bool keepPunctuations = true,
             bool keepNumbers = true) => new OutPipelineColumn(input, textCase, keepDiacritics, keepPunctuations, keepNumbers);

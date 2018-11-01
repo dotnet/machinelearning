@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
         public const string UserName = "Disagreement Diversity Measure";
         public const string LoadName = "DisagreementDiversityMeasure";
 
-        protected override Single GetDifference(ref Single valueX, ref Single valueY)
+        protected override Single GetDifference(in Single valueX, in Single valueY)
         {
             return (valueX > 0 && valueY < 0 || valueX < 0 && valueY > 0) ? 1 : 0;
         }

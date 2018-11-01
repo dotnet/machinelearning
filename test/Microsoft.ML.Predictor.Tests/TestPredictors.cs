@@ -20,6 +20,7 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Trainers.FastTree.Internal;
     using Microsoft.ML.Trainers.Online;
     using Microsoft.ML.Trainers.SymSgd;
+    using Microsoft.ML.Transforms.Categorical;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;

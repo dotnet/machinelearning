@@ -200,7 +200,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 {
                     matrixColumnIndexGetter(ref matrixColumnIndex);
                     matrixRowIndexGetter(ref matrixRowIndex);
-                    mapper(ref matrixColumnIndex, ref matrixRowIndex, ref value);
+                    mapper(in matrixColumnIndex, ref matrixRowIndex, ref value);
                 };
             return del;
         }
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Trainers.Recommender
             return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
-        private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
+        private void MapperCore(in uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
@@ -403,6 +403,7 @@ namespace Microsoft.ML.Trainers.Recommender
             MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+            MatrixRowIndexColumnType = trainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 

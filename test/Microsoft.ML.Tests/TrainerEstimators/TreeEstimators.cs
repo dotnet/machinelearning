@@ -10,6 +10,7 @@ using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {

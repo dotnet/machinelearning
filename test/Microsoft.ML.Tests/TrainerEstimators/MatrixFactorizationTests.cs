@@ -155,6 +155,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Value;
         }
 
+        internal class MatrixElementForScore
+        {
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = _synthesizedMatrixFirstColumnIndex)]
+            public uint MatrixColumnIndex;
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = _synthesizedMatrixFirstRowIndex)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorizationInMemoryData()
         {
@@ -170,7 +179,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
+                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -181,14 +191,39 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Train a matrix factorization model.
             var model = pipeline.Fit(dataView);
 
+            // Check if the expected types in the trained model are expected.
+            Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
+            Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
+            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
+            Assert.True(model.MatrixRowIndexColumnType.IsKey);
+            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
+            Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
+            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
+            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
+            Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
+            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Regression.Evaluate(prediction, label: nameof(MatrixElement.Value),
+                score: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
             Assert.True(metrics.L2 < 0.1);
+
+            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
+            var testMatrix = new List<MatrixElementForScore>() {
+                new MatrixElementForScore() { MatrixColumnIndex = 10, MatrixRowIndex = 7, Score = default },
+                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
+
+            // Again, convert the test data to a format supported by ML.NET.
+            var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
+
+            // Feed the test data into the model and then iterate through all predictions.
+            foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
+                Assert.True(pred.Score != 0);
         }
     }
 }

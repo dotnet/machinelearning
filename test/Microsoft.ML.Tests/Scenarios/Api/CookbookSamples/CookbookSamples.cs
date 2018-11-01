@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {

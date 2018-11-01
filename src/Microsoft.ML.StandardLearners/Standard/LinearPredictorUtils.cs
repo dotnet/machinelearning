@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// print the linear model as code
         /// </summary>
-        public static void SaveAsCode(TextWriter writer, ref VBuffer<Float> weights, Float bias,
+        public static void SaveAsCode(TextWriter writer, in VBuffer<Float> weights, Float bias,
             RoleMappedSchema schema, string codeVariable = "output")
         {
             Contracts.CheckValue(writer, nameof(writer));
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Learners
             int numNonZeroWeights = 0;
             writer.Write(codeVariable);
             writer.Write(" = ");
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Build a Bing TreeEnsemble .ini representation of the given predictor
         /// </summary>
-        public static string LinearModelAsIni(ref VBuffer<Float> weights, Float bias, IPredictor predictor = null,
+        public static string LinearModelAsIni(in VBuffer<Float> weights, Float bias, IPredictor predictor = null,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // TODO: Might need to consider a max line length for the Weights list, requiring us to split it up into
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             int numNonZeroWeights = 0;
             const string weightsSep = "\t";
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Output the weights of a linear model to a given writer
         /// </summary>
         public static string LinearModelAsText(
-            string userName, string loadName, string settings, ref VBuffer<Float> weights, Float bias,
+            string userName, string loadName, string settings, in VBuffer<Float> weights, Float bias,
             RoleMappedSchema schema = null, PlattCalibrator calibrator = null)
         {
             // Review: added a text description for each calibrator (not only Platt), would be nice to add to this method.
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Learners
             b.AppendLine();
 
             List<KeyValuePair<string, object>> weightValues = new List<KeyValuePair<string, object>>();
-            SaveLinearModelWeightsInKeyValuePairs(ref weights, bias, schema, weightValues);
+            SaveLinearModelWeightsInKeyValuePairs(in weights, bias, schema, weightValues);
             foreach (var weightValue in weightValues)
             {
                 Contracts.Assert(weightValue.Value is Float);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public static IEnumerable<KeyValuePair<string, Single>> GetSortedLinearModelFeatureNamesAndWeights(Single bias,
-            ref VBuffer<Single> weights, ref VBuffer<ReadOnlyMemory<char>> names)
+            in VBuffer<Single> weights, in VBuffer<ReadOnlyMemory<char>> names)
         {
             var orderedWeights = weights.Items()
                 .Where(weight => Math.Abs(weight.Value) >= Epsilon)
@@ -227,12 +227,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// Output the weights of a linear model to key value pairs.
         /// </summary>
         public static void SaveLinearModelWeightsInKeyValuePairs(
-            ref VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
+            in VBuffer<Float> weights, Float bias, RoleMappedSchema schema, List<KeyValuePair<string, object>> results)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Length, ref names);
 
-            var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, ref weights, ref names);
+            var pairs = GetSortedLinearModelFeatureNamesAndWeights(bias, in weights, in names);
 
             foreach (var kvp in pairs)
                 results.Add(new KeyValuePair<string, object>(kvp.Key, kvp.Value));

@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 Contracts.Assert(_writer != null);
                 _getter(ref _value);
-                _writer.Write(ref _value);
+                _writer.Write(in _value);
             }
 
             public override MemoryStream EndBlock()
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             MemoryStream uncompressedMem = _memPool.Get();
             using (IValueWriter<T> writer = codec.OpenWriter(uncompressedMem))
             {
-                writer.Write(ref value);
+                writer.Write(in value);
                 writer.Commit();
             }
             MemoryStream compressedMem = _memPool.Get();
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             fetchWriteEstimator = () =>
             {
                 getter(ref val);
-                specificWriter.Write(ref val);
+                specificWriter.Write(in val);
                 return specificWriter.GetCommitLengthEstimate();
             };
         }
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             using (var writer = codecT.OpenWriter(stream))
             {
-                writer.Write(ref value);
+                writer.Write(in value);
                 bytesWritten += (int)writer.GetCommitLengthEstimate();
                 writer.Commit();
             }

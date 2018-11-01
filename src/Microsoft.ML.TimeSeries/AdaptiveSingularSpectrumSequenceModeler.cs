@@ -221,12 +221,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             return new VersionInfo(
                 modelSignature: "SSAMODLR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Added saving _state and _nextPrediction
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModeler).Assembly.FullName);
         }
+
+        private const int VersionSavingStateAndPrediction = 0x00010002;
 
         /// <summary>
         /// The constructor for Adaptive SSA model.
@@ -333,6 +336,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _autoregressionNoiseVariance = model._autoregressionNoiseVariance;
             _observationNoiseMean = model._observationNoiseMean;
             _autoregressionNoiseMean = model._autoregressionNoiseMean;
+            _nextPrediction = model._nextPrediction;
             _maxTrendRatio = model._maxTrendRatio;
             _shouldStablize = model._shouldStablize;
             _shouldMaintainInfo = model._shouldMaintainInfo;
@@ -368,11 +372,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -404,6 +410,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _alpha = ctx.Reader.ReadFloatArray();
             _host.CheckDecode(Utils.Size(_alpha) == _windowSize - 1);
 
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+            {
+                _state = ctx.Reader.ReadFloatArray();
+                _host.CheckDecode(Utils.Size(_state) == _windowSize - 1);
+            }
+            else
+                _state = new Single[_windowSize - 1];
+
             ShouldComputeForecastIntervals = ctx.Reader.ReadBoolByte();
 
             _observationNoiseVariance = ctx.Reader.ReadSingle();
@@ -414,6 +428,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             _observationNoiseMean = ctx.Reader.ReadSingle();
             _autoregressionNoiseMean = ctx.Reader.ReadSingle();
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+                _nextPrediction = ctx.Reader.ReadSingle();
 
             _maxRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(1 <= _maxRank && _maxRank <= _windowSize - 1);
@@ -444,7 +460,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             _buffer = new FixedSizeQueue<Single>(_seriesLength);
-            _state = new Single[_windowSize - 1];
+
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
@@ -475,11 +491,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: _isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -494,11 +512,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write((byte)_rankSelectionMethod);
             ctx.Writer.WriteBoolByte(_wTrans != null);
             ctx.Writer.WriteFloatArray(_alpha);
+            ctx.Writer.WriteFloatArray(_state);
             ctx.Writer.WriteBoolByte(ShouldComputeForecastIntervals);
             ctx.Writer.Write(_observationNoiseVariance);
             ctx.Writer.Write(_autoregressionNoiseVariance);
             ctx.Writer.Write(_observationNoiseMean);
             ctx.Writer.Write(_autoregressionNoiseMean);
+            ctx.Writer.Write(_nextPrediction);
             ctx.Writer.Write(_maxRank);
             ctx.Writer.WriteBoolByte(_shouldStablize);
             ctx.Writer.WriteBoolByte(_shouldMaintainInfo);

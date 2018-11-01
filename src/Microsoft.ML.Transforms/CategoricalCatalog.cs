@@ -4,8 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML
 {
@@ -23,7 +22,9 @@ namespace Microsoft.ML
         /// <param name="outputKind">The conversion mode.</param>
         /// <returns></returns>
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                string inputColumn, string outputColumn = null, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
+                string inputColumn,
+                string outputColumn = null,
+                CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
 
         /// <summary>
@@ -45,7 +46,9 @@ namespace Microsoft.ML
         /// <param name="outputKind">The conversion mode.</param>
         /// <returns></returns>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
-                string inputColumn, string outputColumn = null, CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
+                string inputColumn,
+                string outputColumn = null,
+                CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
             => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
 
         /// <summary>
