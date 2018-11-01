@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.IO;
 using Xunit;
@@ -137,7 +138,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new LpNormalizer(env, "features", "lpnorm")
                 .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
-                .Append(new WhiteningEstimator(env, "features", "whitened"));
+                .Append(new VectorWhiteningEstimator(env, "features", "whitened"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv");
@@ -170,7 +171,7 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new WhiteningEstimator(env, "features", "whitened");
+            var est = new VectorWhiteningEstimator(env, "features", "whitened");
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Tests.Transformers
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new WhiteningEstimator(env, "features", "whitened");
+            var pipe = new VectorWhiteningEstimator(env, "features", "whitened");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

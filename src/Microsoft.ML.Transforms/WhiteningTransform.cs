@@ -12,26 +12,26 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-[assembly: LoadableClass(WhiteningTransform.Summary, typeof(IDataTransform), typeof(WhiteningTransform), typeof(WhiteningTransform.Arguments), typeof(SignatureDataTransform),
-    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature, "Whitening")]
+[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransform), typeof(VectorWhiteningTransform.Arguments), typeof(SignatureDataTransform),
+    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature, "Whitening")]
 
-[assembly: LoadableClass(WhiteningTransform.Summary, typeof(IDataTransform), typeof(WhiteningTransform), null, typeof(SignatureLoadDataTransform),
-    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature, WhiteningTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransform), null, typeof(SignatureLoadDataTransform),
+    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature, VectorWhiteningTransform.LoaderSignatureOld)]
 
-[assembly: LoadableClass(WhiteningTransform.Summary, typeof(WhiteningTransform), null, typeof(SignatureLoadModel),
-    WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature)]
+[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(VectorWhiteningTransform), null, typeof(SignatureLoadModel),
+    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(WhiteningTransform), null, typeof(SignatureLoadRowMapper),
-   WhiteningTransform.FriendlyName, WhiteningTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(VectorWhiteningTransform), null, typeof(SignatureLoadRowMapper),
+   VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Projections
 {
     public enum WhiteningKind
     {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class WhiteningTransform : OneToOneTransformerBase
+    public sealed class VectorWhiteningTransform : OneToOneTransformerBase
     {
         internal static class Defaults
         {
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
         internal const string Summary = "Apply PCA or ZCA whitening algorithm to the input.";
 
         internal const string FriendlyName = "Whitening Transform";
-        internal const string LoaderSignature = "WhiteningTransform";
+        internal const string LoaderSignature = "VectorWhiteningTransform";
         internal const string LoaderSignatureOld = "WhiteningFunction";
         private static VersionInfo GetVersionInfo()
         {
@@ -235,20 +235,20 @@ namespace Microsoft.ML.Transforms
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
-                loaderAssemblyName: typeof(WhiteningTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(VectorWhiteningTransform).Assembly.FullName);
         }
 
         private readonly ColInfo[] _infos;
 
         /// <summary>
-        /// Initializes a new <see cref="WhiteningTransform"/> object.
+        /// Initializes a new <see cref="VectorWhiteningTransform"/> object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="models">An array of whitening matrices corresponding to the i-th element of <paramref name="columns"/>.</param>
         /// <param name="invModels">An array of inverse whitening matrices corresponding to the i-th element of <paramref name="columns"/>.</param>
-        /// <param name="columns">Describes the settings for the transformer.</param>
-        internal WhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), GetColumnPairs(columns))
+        /// <param name="columns">Describes the settings of the transformation.</param>
+        internal VectorWhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
             _infos = columns;
@@ -256,8 +256,8 @@ namespace Microsoft.ML.Transforms
             _invModels = invModels;
         }
 
-        private WhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform)), ctx)
+        private VectorWhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), ctx)
         {
             Host.AssertValue(ctx);
 
@@ -285,19 +285,19 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureLoadModel
-        internal static WhiteningTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static VectorWhiteningTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
-            return new WhiteningTransform(env, ctx);
+            return new VectorWhiteningTransform(env, ctx);
         }
 
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             var infos = GetColumnInfos(args);
-            (var models, var invModels) = TrainWhiteningTransform(env, input, infos);
-            return new WhiteningTransform(env, models, invModels, infos).MakeDataTransform(input);
+            (var models, var invModels) = TrainVectorWhiteningTransform(env, input, infos);
+            return new VectorWhiteningTransform(env, models, invModels, infos).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -360,7 +360,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Computes the transformation matrices needed for whitening process from training data.
-        internal static (float[][] models, float[][] invModels) TrainWhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
+        internal static (float[][] models, float[][] invModels) TrainVectorWhiteningTransform(IHostEnvironment env, IDataView inputData, params ColInfo[] columns)
         {
             var models = new float[columns.Length][];
             var invModels = new float[columns.Length][];
@@ -619,11 +619,11 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : MapperBase
         {
-            private readonly WhiteningTransform _parent;
+            private readonly VectorWhiteningTransform _parent;
             private readonly int[] _cols;
             private readonly ColumnType[] _srcTypes;
 
-            public Mapper(WhiteningTransform parent, Schema inputSchema)
+            public Mapper(VectorWhiteningTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -731,17 +731,17 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class WhiteningEstimator : IEstimator<WhiteningTransform>
+    public sealed class VectorWhiteningEstimator : IEstimator<VectorWhiteningTransform>
     {
         private readonly IHost _host;
-        private readonly WhiteningTransform.ColInfo[] _infos;
+        private readonly VectorWhiteningTransform.ColInfo[] _infos;
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="columns"> Describes the settings for the transformer.</param>
-        public WhiteningEstimator(IHostEnvironment env, params WhiteningTransform.ColInfo[] columns)
+        /// <param name="columns"> Describes the settings of the transformation.</param>
+        public VectorWhiteningEstimator(IHostEnvironment env, params VectorWhiteningTransform.ColInfo[] columns)
         {
-            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(WhiteningTransform));
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform));
             _infos = columns;
         }
 
@@ -754,21 +754,21 @@ namespace Microsoft.ML.Transforms
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-        public WhiteningEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
-            WhiteningKind kind = WhiteningTransform.Defaults.Kind,
-            float eps = WhiteningTransform.Defaults.Eps,
-            int maxRows = WhiteningTransform.Defaults.MaxRows,
-            bool saveInverse = WhiteningTransform.Defaults.SaveInverse,
-            int pcaNum = WhiteningTransform.Defaults.PcaNum)
-            : this(env, new WhiteningTransform.ColInfo(inputColumn, outputColumn, kind, eps, maxRows, saveInverse, pcaNum))
+        public VectorWhiteningEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+            WhiteningKind kind = VectorWhiteningTransform.Defaults.Kind,
+            float eps = VectorWhiteningTransform.Defaults.Eps,
+            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = VectorWhiteningTransform.Defaults.SaveInverse,
+            int pcaNum = VectorWhiteningTransform.Defaults.PcaNum)
+            : this(env, new VectorWhiteningTransform.ColInfo(inputColumn, outputColumn, kind, eps, maxRows, saveInverse, pcaNum))
         {
         }
 
-        public WhiteningTransform Fit(IDataView input)
+        public VectorWhiteningTransform Fit(IDataView input)
         {
             // Build transformation matrices for whitening process, then construct a trained transform.
-            (var models, var invModels) = WhiteningTransform.TrainWhiteningTransform(_host, input, _infos);
-            return new WhiteningTransform(_host, models, invModels, _infos);
+            (var models, var invModels) = VectorWhiteningTransform.TrainVectorWhiteningTransform(_host, input, _infos);
+            return new VectorWhiteningTransform(_host, models, invModels, _infos);
         }
 
         /// <summary>
@@ -782,7 +782,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
-                var reason = WhiteningTransform.TestColumn(col.ItemType);
+                var reason = VectorWhiteningTransform.TestColumn(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptUserArg(nameof(inputSchema), reason);
                 result[colPair.Output] = new SchemaShape.Column(colPair.Output, col.Kind, col.ItemType, col.IsKey, null);
@@ -832,11 +832,11 @@ namespace Microsoft.ML.Transforms
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var infos = new WhiteningTransform.ColInfo[toOutput.Length];
+                var infos = new VectorWhiteningTransform.ColInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new WhiteningTransform.ColInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _saveInverse, _pcaNum);
+                    infos[i] = new VectorWhiteningTransform.ColInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _saveInverse, _pcaNum);
 
-                return new WhiteningEstimator(env, infos);
+                return new VectorWhiteningEstimator(env, infos);
             }
         }
 
@@ -847,10 +847,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = WhiteningTransform.Defaults.Eps,
-            int maxRows = WhiteningTransform.Defaults.MaxRows,
-            bool saveInverse = WhiteningTransform.Defaults.SaveInverse,
-            int pcaNum = WhiteningTransform.Defaults.PcaNum) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
+            float eps = VectorWhiteningTransform.Defaults.Eps,
+            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = VectorWhiteningTransform.Defaults.SaveInverse,
+            int pcaNum = VectorWhiteningTransform.Defaults.PcaNum) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to which the transform will be applied.</param>
@@ -858,8 +858,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = WhiteningTransform.Defaults.Eps,
-            int maxRows = WhiteningTransform.Defaults.MaxRows,
-            bool saveInverse = WhiteningTransform.Defaults.SaveInverse) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, WhiteningTransform.Defaults.PcaNum);
+            float eps = VectorWhiteningTransform.Defaults.Eps,
+            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
+            bool saveInverse = VectorWhiteningTransform.Defaults.SaveInverse) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, VectorWhiteningTransform.Defaults.PcaNum);
     }
 }
