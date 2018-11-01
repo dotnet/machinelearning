@@ -96,13 +96,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes an array of ints without the length prefix.
         /// </summary>
-        public static void WriteIntsNoCount(this BinaryWriter writer, int[] values, int count)
+        public static void WriteIntsNoCount(this BinaryWriter writer, ReadOnlySpan<int> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
@@ -264,15 +262,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Writes an array of Floats without the length prefix.
+        /// Writes a span of Floats without the length prefix.
         /// </summary>
-        public static void WriteFloatsNoCount(this BinaryWriter writer, float[] values, int count)
+        public static void WriteFloatsNoCount(this BinaryWriter writer, ReadOnlySpan<float> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 

@@ -175,11 +175,11 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < Rank; i++)
                 {
                     Eigenvectors[i] = ctx.Reader.ReadFloatArray(Dimension);
-                    Contracts.CheckDecode(FloatUtils.IsFinite(Eigenvectors[i], Eigenvectors[i].Length));
+                    Contracts.CheckDecode(FloatUtils.IsFinite(Eigenvectors[i]));
                 }
 
                 MeanProjected = ctx.Reader.ReadFloatArray();
-                Contracts.CheckDecode(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected, MeanProjected.Length)));
+                Contracts.CheckDecode(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected)));
             }
 
             public void Save(ModelSaveContext ctx)
@@ -199,10 +199,10 @@ namespace Microsoft.ML.Transforms.Projections
                 ctx.Writer.Write(Rank);
                 for (int i = 0; i < Rank; i++)
                 {
-                    Contracts.Assert(FloatUtils.IsFinite(Eigenvectors[i], Eigenvectors[i].Length));
-                    ctx.Writer.WriteFloatsNoCount(Eigenvectors[i], Dimension);
+                    Contracts.Assert(FloatUtils.IsFinite(Eigenvectors[i]));
+                    ctx.Writer.WriteFloatsNoCount(Eigenvectors[i].AsSpan(0, Dimension));
                 }
-                Contracts.Assert(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected, Rank)));
+                Contracts.Assert(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected)));
                 ctx.Writer.WriteFloatArray(MeanProjected);
             }
 
@@ -477,7 +477,8 @@ namespace Microsoft.ML.Transforms.Projections
                         weightGetters[iinfo]?.Invoke(ref weight);
                         columnGetters[iinfo](ref features);
 
-                        if (FloatUtils.IsFinite(weight) && weight >= 0 && (features.Count == 0 || FloatUtils.IsFinite(features.Values, features.Count)))
+                        var featureValues = features.GetValues();
+                        if (FloatUtils.IsFinite(weight) && weight >= 0 && (featureValues.Length == 0 || FloatUtils.IsFinite(featureValues)))
                         {
                             totalColWeight[iinfo] += weight;
 

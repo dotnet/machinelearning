@@ -180,12 +180,12 @@ namespace Microsoft.ML.Trainers.HalLearners
                     xty[0] += yi;
                     // Increment first element of lower triangular X'X
                     xtx[0] += 1;
-                    var values = cursor.Features.Values;
+                    var values = cursor.Features.GetValues();
 
                     if (cursor.Features.IsDense)
                     {
                         int ioff = 1;
-                        ch.Assert(cursor.Features.Count + 1 == m);
+                        ch.Assert(values.Length + 1 == m);
                         // Increment rest of first column of lower triangular X'X
                         for (int i = 1; i < m; i++)
                         {
@@ -203,8 +203,8 @@ namespace Microsoft.ML.Trainers.HalLearners
                     }
                     else
                     {
-                        var fIndices = cursor.Features.Indices;
-                        for (int ii = 0; ii < cursor.Features.Count; ++ii)
+                        var fIndices = cursor.Features.GetIndices();
+                        for (int ii = 0; ii < values.Length; ++ii)
                         {
                             int i = fIndices[ii] + 1;
                             int ioff = i * (i + 1) / 2;

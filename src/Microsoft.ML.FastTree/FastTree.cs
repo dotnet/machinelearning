@@ -1046,12 +1046,16 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Contracts.Assert(!values.IsDense);
             Contracts.Assert(Algorithms.FindFirstGE(binUpperBounds, 0) == 0);
-            for (int i = 0; i < values.Count; ++i)
+            var valuesValues = values.GetValues();
+            var valuesIndices = values.GetIndices();
+            List<KeyValuePair<int, int>> result = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < valuesValues.Length; ++i)
             {
-                int ge = Algorithms.FindFirstGE(binUpperBounds, values.Values[i]);
+                int ge = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i]);
                 if (ge != 0)
-                    yield return new KeyValuePair<int, int>(values.Indices[i], ge);
+                    result.Add(new KeyValuePair<int, int>(valuesIndices[i], ge));
             }
+            return result;
         }
 
         private FeatureFlockBase CreateOneHotFlock(IChannel ch,
@@ -1238,10 +1242,11 @@ namespace Microsoft.ML.Trainers.FastTree
 
             IntArray bins = null;
 
+            var valuesValues = values.GetValues();
             var numBitsNeeded = IntArray.NumBitsNeeded(binUpperBounds.Length);
             if (numBitsNeeded == IntArrayBits.Bits0)
                 bins = new Dense0BitIntArray(values.Length);
-            else if (!values.IsDense && zeroBin == 0 && values.Count < (1 - sparsifyThreshold) * values.Length)
+            else if (!values.IsDense && zeroBin == 0 && valuesValues.Length < (1 - sparsifyThreshold) * values.Length)
             {
                 // Special code to go straight from our own sparse format to a sparse IntArray.
                 // Note: requires zeroBin to be 0 because that's what's assumed in FastTree code
@@ -1261,23 +1266,23 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     else
                         Array.Clear(binnedValues, 0, values.Length);
-                    for (int i = 0; i < values.Count; ++i)
+                    var valuesIndices = values.GetIndices();
+                    for (int i = 0; i < valuesValues.Length; ++i)
                     {
-                        if ((binnedValues[values.Indices[i]] = Algorithms.FindFirstGE(binUpperBounds, values.Values[i])) == 0)
+                        if ((binnedValues[valuesIndices[i]] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i])) == 0)
                             firstBinCount++;
                     }
                     if (zeroBin == 0)
-                        firstBinCount += values.Length - values.Count;
+                        firstBinCount += values.Length - valuesValues.Length;
                 }
                 else
                 {
-                    Double[] denseValues = values.Values;
-                    for (int i = 0; i < values.Length; i++)
+                    for (int i = 0; i < valuesValues.Length; i++)
                     {
-                        if (denseValues[i] == 0)
+                        if (valuesValues[i] == 0)
                             binnedValues[i] = zeroBin;
                         else
-                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, denseValues[i]);
+                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i]);
                         if (binnedValues[i] == 0)
                             firstBinCount++;
                     }
@@ -1537,15 +1542,17 @@ namespace Microsoft.ML.Trainers.FastTree
                                                 Double firstBin = bup[0];
                                                 GetFeatureValues(catCursor, iFeatureLocal, catGetter, ref temp, ref doubleTemp, copier);
                                                 bool add = false;
-                                                for (int index = 0; index < doubleTemp.Count; ++index)
+                                                var doubleTempValues = doubleTemp.GetValues();
+                                                var doubleTempIndices = doubleTemp.GetIndices();
+                                                for (int index = 0; index < doubleTempValues.Length; ++index)
                                                 {
-                                                    if (doubleTemp.Values[index] <= firstBin)
+                                                    if (doubleTempValues[index] <= firstBin)
                                                         continue;
 
-                                                    int iindex = doubleTemp.IsDense ? index : doubleTemp.Indices[index];
+                                                    int iindex = doubleTemp.IsDense ? index : doubleTempIndices[index];
                                                     int last = lastOn[iindex];
 
-                                                    if (doubleTemp.Values[index] != 1 || (last != -1 && last >= iFeature))
+                                                    if (doubleTempValues[index] != 1 || (last != -1 && last >= iFeature))
                                                     {
                                                         catRangeIndex += 2;
                                                         pending.Clear();
@@ -1617,10 +1624,12 @@ namespace Microsoft.ML.Trainers.FastTree
                             trans.GetSingleSlotValue<Float>(labelIdx, ref temp);
                             slotDropper?.DropSlots(ref temp, ref temp);
 
-                            for (int i = 0; i < temp.Count; ++i)
+                            var tempValues = temp.GetValues();
+                            var tempIndices = temp.GetIndices();
+                            for (int i = 0; i < tempValues.Length; ++i)
                             {
-                                int ii = temp.IsDense ? i : temp.Indices[i];
-                                var label = temp.Values[i];
+                                int ii = temp.IsDense ? i : tempIndices[i];
+                                var label = tempValues[i];
                                 if (UsingMaxLabel && !(0 <= label && label <= MaxLabel))
                                     throw Host.Except("Found invalid label {0}. Value should be between 0 and {1}, inclusive.", label, MaxLabel);
                                 ratings[ii] = (short)label;
@@ -1901,7 +1910,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             if (_weights != null)
                                 _weights.Add(cursor.Weight);
                             _targetsList.Add((short)cursor.Label);
-                            featureValues += cursor.Features.Count;
+                            featureValues += cursor.Features.GetValues().Length;
 
                             if (featureValues > featureValuesWarnThreshold && !featureValuesWarned)
                             {

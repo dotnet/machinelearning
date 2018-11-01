@@ -397,7 +397,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                                  CategoricalSplitFeatureRanges[indexLocal].Length == 2);
 
                 writer.WriteIntArray(CategoricalSplitFeatures[indexLocal]);
-                writer.WriteIntsNoCount(CategoricalSplitFeatureRanges[indexLocal], 2);
+                writer.WriteIntsNoCount(CategoricalSplitFeatureRanges[indexLocal].AsSpan(0, 2));
             }
 
             writer.WriteUIntArray(Thresholds);
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             // REVIEW: This really should validate feat.Length!
             if (feat.IsDense)
                 return GetLeafCore(feat.Values);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values);
+            return GetLeafCore(feat.GetIndices(), feat.GetValues());
         }
 
         /// <summary>
@@ -779,7 +779,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             if (feat.IsDense)
                 return GetLeafCore(feat.Values, root: root);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values, root: root);
+            return GetLeafCore(feat.GetIndices(), feat.GetValues(), root: root);
         }
 
         /// <summary>
@@ -797,8 +797,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
             if (feat.IsDense)
                 return GetLeafCore(feat.Values, path);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values, path);
-
+            return GetLeafCore(feat.GetIndices(), feat.GetValues(), path);
         }
 
         private Float GetFeatureValue(Float x, int node)
@@ -896,13 +895,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return ~node;
         }
 
-        private int GetLeafCore(int count, int[] featIndices, Float[] featValues, List<int> path = null, int root = 0)
+        private int GetLeafCore(ReadOnlySpan<int> featIndices, ReadOnlySpan<Float> featValues, List<int> path = null, int root = 0)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(featIndices) >= count);
-            Contracts.Assert(Utils.Size(featValues) >= count);
+            Contracts.Assert(featIndices.Length == featValues.Length);
             Contracts.Assert(path == null || path.Count == 0);
             Contracts.Assert(root >= 0);
+
+            int count = featValues.Length;
 
             // check for an empty tree
             if (NumLeaves == 1)

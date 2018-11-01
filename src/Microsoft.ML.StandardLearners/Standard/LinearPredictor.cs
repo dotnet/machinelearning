@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal LinearPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
             : base(env, name)
         {
-            Host.CheckParam(FloatUtils.IsFinite(weights.Values, weights.Count), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
+            Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
             Host.CheckParam(FloatUtils.IsFinite(bias), nameof(bias), "Cannot initialize linear predictor with non-finite bias");
 
             Weight = weights;

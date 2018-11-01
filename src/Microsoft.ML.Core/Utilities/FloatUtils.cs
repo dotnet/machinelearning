@@ -438,14 +438,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.IsFinite();
         }
 
-        public static bool IsFinite(Double[] values, int count)
+        public static bool IsFinite(ReadOnlySpan<Double> values)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(values) >= count);
-
             // Assuming that non-finites are rare, this is faster than testing on each item.
             Double sum = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
             {
                 var v = values[i];
                 sum += v - v;
@@ -454,14 +451,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         // REVIEW: Consider implementing using SSE.
-        public static bool IsFinite(Single[] values, int count)
+        public static bool IsFinite(ReadOnlySpan<Single> values)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(values) >= count);
-
             // Assuming that non-finites are rare, this is faster than testing on each item.
             Single sum = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
             {
                 var v = values[i];
                 sum += v - v;

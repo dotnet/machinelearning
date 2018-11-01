@@ -82,7 +82,7 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 Host.CheckParam(centroids[i].Length == _dimensionality,
                     nameof(centroids), "Inconsistent dimensions found among centroids");
-                Host.CheckParam(FloatUtils.IsFinite(centroids[i].Values, centroids[i].Count),
+                Host.CheckParam(FloatUtils.IsFinite(centroids[i].GetValues()),
                     nameof(centroids), "Cannot initialize K-means predictor with non-finite centroid coordinates");
                 if (copyIn)
                     centroids[i].CopyTo(ref _centroids[i]);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 Host.CheckDecode(0 <= count && count <= _dimensionality);
                 var indices = count < _dimensionality ? ctx.Reader.ReadIntArray(count) : null;
                 var values = ctx.Reader.ReadFloatArray(count);
-                Host.CheckDecode(FloatUtils.IsFinite(values, count));
+                Host.CheckDecode(FloatUtils.IsFinite(values));
                 _centroids[i] = new VBuffer<Float>(_dimensionality, count, values, indices);
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
@@ -179,17 +179,17 @@ namespace Microsoft.ML.Trainers.KMeans
             for (int i = 0; i < _k; i++)
             {
                 Host.Assert(_dimensionality == _centroids[i].Length);
+                var values = _centroids[i].GetValues();
                 if (_centroids[i].IsDense)
                 {
-                    var values = _centroids[i].Values;
-                    for (int j = 0; j < _dimensionality; j++)
+                    for (int j = 0; j < values.Length; j++)
                     {
                         if (j != 0)
                             writer.Write('\t');
                         writer.Write(values[j]);
                     }
                 }
-                else if (_centroids[i].Count > 0)
+                else if (values.Length > 0)
                 {
                     // Sparse and non-empty, write as key:value pairs.
                     bool isFirst = true;
@@ -237,11 +237,12 @@ namespace Microsoft.ML.Trainers.KMeans
             for (int i = 0; i < _k; i++)
             {
                 Contracts.Assert(_centroids[i].Length == _dimensionality);
-                writer.Write(_centroids[i].Count);
+                var values = _centroids[i].GetValues();
+                writer.Write(values.Length);
                 if (!_centroids[i].IsDense)
-                    writer.WriteIntsNoCount(_centroids[i].Indices, _centroids[i].Count);
-                Contracts.Assert(FloatUtils.IsFinite(_centroids[i].Values, _centroids[i].Count));
-                writer.WriteFloatsNoCount(_centroids[i].Values, _centroids[i].Count);
+                    writer.WriteIntsNoCount(_centroids[i].GetIndices());
+                Contracts.Assert(FloatUtils.IsFinite(values));
+                writer.WriteFloatsNoCount(values);
             }
         }
 

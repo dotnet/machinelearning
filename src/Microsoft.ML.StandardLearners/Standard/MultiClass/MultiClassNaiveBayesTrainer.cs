@@ -317,7 +317,7 @@ namespace Microsoft.ML.Trainers
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i], _featureCount);
+                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
             }
 
             ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb, _labelCount);

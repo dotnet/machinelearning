@@ -199,13 +199,14 @@ namespace Microsoft.ML.Runtime.Learners
             if (!hasStdErrors)
                 return;
 
-            _env.Assert(_coeffStdError.Value.Count == _paramCount);
-            ctx.Writer.WriteFloatsNoCount(_coeffStdError.Value.Values, _paramCount);
+            var coeffStdErrorValues = _coeffStdError.Value.GetValues();
+            _env.Assert(coeffStdErrorValues.Length == _paramCount);
+            ctx.Writer.WriteFloatsNoCount(coeffStdErrorValues);
             ctx.Writer.Write(_coeffStdError.Value.Length);
             if (_coeffStdError.Value.IsDense)
                 return;
 
-            ctx.Writer.WriteIntsNoCount(_coeffStdError.Value.Indices, _paramCount);
+            ctx.Writer.WriteIntsNoCount(_coeffStdError.Value.GetIndices());
         }
 
         public static bool TryGetBiasStatistics(LinearModelStatistics stats, Single bias, out Single stdError, out Single zScore, out Single pValue)
