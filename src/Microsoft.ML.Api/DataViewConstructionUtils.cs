@@ -306,13 +306,20 @@ namespace Microsoft.ML.Runtime.Api
 
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
             {
+                // Make sure the function is dealing with key.
+                Host.Check(colType.IsKey);
+                // Following equations work only with contiguous key type.
+                Host.Check(colType.AsKey.Contiguous);
+                // Following equations work only with unsigned integers.
+                Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
+                    typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
+
                 // Convert delegate function to a function which can fetch the underlying value.
                 var peek = peekDel as Peek<TRow, TDst>;
                 Host.AssertValue(peek);
-                Host.Check(colType.IsKey);
 
                 TDst rawKeyValue = default;
-                ulong key = 0; // the key value as ulong
+                ulong key = 0; // the raw key value as ulong
                 ulong min = colType.AsKey.Min;
                 ulong max = min + (ulong)colType.AsKey.Count - 1;
                 ulong result = 0; // the result as ulong
