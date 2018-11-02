@@ -111,10 +111,10 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 Contracts.Check(PosSample != null && NegSample != null, "Must call Finish() before computing AUC");
-                return ComputWeightedAucCore(out unweighted);
+                return ComputeWeightedAucCore(out unweighted);
             }
 
-            protected abstract Double ComputWeightedAucCore(out double unweighted);
+            protected abstract Double ComputeWeightedAucCore(out double unweighted);
         }
 
         protected sealed class UnweightedAucAggregator : AucAggregatorBase<Single>
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override Double ComputWeightedAucCore(out Double unweighted)
+            protected override Double ComputeWeightedAucCore(out Double unweighted)
             {
                 Contracts.AssertValue(PosSample);
                 Contracts.AssertValue(NegSample);
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override Double ComputWeightedAucCore(out Double unweighted)
+            protected override Double ComputeWeightedAucCore(out Double unweighted)
             {
                 Contracts.AssertValue(PosSample);
                 Contracts.AssertValue(NegSample);
