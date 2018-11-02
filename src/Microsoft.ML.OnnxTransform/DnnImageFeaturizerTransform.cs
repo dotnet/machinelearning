@@ -29,6 +29,7 @@ namespace Microsoft.ML.Transforms
             AlexNet = 3
         }
 
+        // Each main DNN model has preprocessing required based on the model type, these are simple models which do that.
         private static Dictionary<DnnImageModel, string> _modelsPrep = new Dictionary<DnnImageModel, string>()
         {
             { DnnImageModel.ResNet18, "ResNetPreprocess.onnx" },
@@ -37,6 +38,7 @@ namespace Microsoft.ML.Transforms
             { DnnImageModel.AlexNet, "AlexNetPreprocess.onnx" }
         };
 
+        // The main DNN model
         private static Dictionary<DnnImageModel, string> _modelsMain = new Dictionary<DnnImageModel, string>()
         {
             { DnnImageModel.ResNet18, "ResNet18.onnx" },
@@ -45,6 +47,7 @@ namespace Microsoft.ML.Transforms
             { DnnImageModel.AlexNet, "AlexNet.onnx" }
         };
 
+        // Currently OnnxTransform requires each ONNX model to be in it's own directory, this stores that.
         private static Dictionary<string, string> _modelDirs = new Dictionary<string, string>()
         {
             { "ResNetPreprocess.onnx", "ResNetPrepOnnx" },
@@ -55,6 +58,8 @@ namespace Microsoft.ML.Transforms
             { "AlexNet.onnx", "AlexNetOnnx" },
         };
 
+        // The actual transformations happen by applying the preprocessing model followed by the DNN model.
+        // OnnxTransform is used to run those models, and this transform just combines them for convinience.
         public DnnImageFeaturizerEstimator(IHostEnvironment env, DnnImageModel model, string input, string output)
         {
             _host = env.Register(nameof(DnnImageFeaturizerEstimator));
@@ -66,6 +71,7 @@ namespace Microsoft.ML.Transforms
             _modelChain = _modelChain.Append(mainEstimator);
         }
 
+        // Downloads the models if necessary from the CDN
         private string EnsureModelFile(IHostEnvironment env, string modelFileName, DnnImageModel kind)
         {
             using (var ch = _host.Start("Ensuring resources"))
