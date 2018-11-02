@@ -282,7 +282,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     {
         // Potential drop location for another peg, together with its energy improvement.
         // PlacePegs uses a heap of these. Note that this is a struct so size matters.
-        private struct Segment
+        private readonly struct Segment
         {
             public readonly int Min;
             public readonly int Split;
