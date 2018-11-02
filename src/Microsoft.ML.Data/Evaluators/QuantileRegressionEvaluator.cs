@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
             t = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
             if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType.IsText)
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref slotNames);
-            return new Aggregator(Host, LossFunction, schema.Weight != null, scoreInfo.Type.VectorSize, ref slotNames, stratName);
+            return new Aggregator(Host, LossFunction, schema.Weight != null, scoreInfo.Type.VectorSize, in slotNames, stratName);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -132,13 +132,13 @@ namespace Microsoft.ML.Runtime.Data
                     TotalLoss = VBufferUtils.CreateDense<Double>(size);
                 }
 
-                protected override void UpdateCore(Float label, ref VBuffer<Float> score, ref VBuffer<Double> loss, Float weight)
+                protected override void UpdateCore(Float label, in VBuffer<Float> score, in VBuffer<Double> loss, Float weight)
                 {
-                    AddL1AndL2Loss(label, ref score, weight);
-                    AddCustomLoss(weight, ref loss);
+                    AddL1AndL2Loss(label, in score, weight);
+                    AddCustomLoss(weight, in loss);
                 }
 
-                private void AddL1AndL2Loss(Float label, ref VBuffer<Float> score, Float weight)
+                private void AddL1AndL2Loss(Float label, in VBuffer<Float> score, Float weight)
                 {
                     Contracts.Check(score.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private void AddCustomLoss(Float weight, ref VBuffer<Double> loss)
+                private void AddCustomLoss(Float weight, in VBuffer<Double> loss)
                 {
                     Contracts.Check(loss.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
                         TotalLoss.Values[loss.Indices[i]] += loss.Values[i] * weight;
                 }
 
-                protected override void Normalize(ref VBuffer<Double> src, ref VBuffer<Double> dst)
+                protected override void Normalize(in VBuffer<Double> src, ref VBuffer<Double> dst)
                 {
                     Contracts.Assert(SumWeights > 0);
                     Contracts.Assert(src.IsDense);
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Data
             public override CountersBase WeightedCounters { get { return _weightedCounters; } }
 
             public Aggregator(IHostEnvironment env, IRegressionLoss lossFunction, bool weighted, int size,
-                ref VBuffer<ReadOnlyMemory<char>> slotNames, string stratName)
+                in VBuffer<ReadOnlyMemory<char>> slotNames, string stratName)
                 : base(env, lossFunction, weighted, stratName)
             {
                 Host.Assert(size > 0);
@@ -225,16 +225,16 @@ namespace Microsoft.ML.Runtime.Data
                 _slotNames = slotNames;
             }
 
-            protected override void ApplyLossFunction(ref VBuffer<float> score, float label, ref VBuffer<Double> loss)
+            protected override void ApplyLossFunction(in VBuffer<float> score, float label, ref VBuffer<Double> loss)
             {
                 VBufferUtils.PairManipulator<Float, Double> lossFn =
                     (int slot, Float src, ref Double dst) => dst = LossFunction.Loss(src, label);
-                VBufferUtils.ApplyWith(ref score, ref loss, lossFn);
+                VBufferUtils.ApplyWith(in score, ref loss, lossFn);
             }
 
-            protected override bool IsNaN(ref VBuffer<Float> score)
+            protected override bool IsNaN(in VBuffer<Float> score)
             {
-                return VBufferUtils.HasNaNs(ref score);
+                return VBufferUtils.HasNaNs(in score);
             }
 
             public override void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params VBuffer<Double>[] metric)
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         updateCacheIfNeeded();
                         dst = new VBuffer<Double>(_scoreSize, 0, dst.Values, dst.Indices);
-                        VBufferUtils.ApplyWith(ref l1, ref dst, sqr);
+                        VBufferUtils.ApplyWith(in l1, ref dst, sqr);
                     };
                 getters[L2Col] = l2Fn;
             }
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data
                     var name = data.Schema.GetColumnName(i);
                     var index = _index ?? type.VectorSize / 2;
                     output = LambdaColumnMapper.Create(Host, "Quantile Regression", output, name, name, type, NumberType.R8,
-                        (ref VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
+                        (in VBuffer<Double> src, ref Double dst) => dst = src.GetItemOrDefault(index));
                     output = new ChooseColumnsByIndexTransform(Host,
                         new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = new[] { i } }, output);
                 }

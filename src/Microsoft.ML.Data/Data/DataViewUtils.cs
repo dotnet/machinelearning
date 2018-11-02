@@ -1342,7 +1342,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
             {
                 var error = $"Cannot display {colType}";
-                conversion = (ref T src, ref StringBuilder builder) =>
+                conversion = (in T src, ref StringBuilder builder) =>
                 {
                     if (builder == null)
                         builder = new StringBuilder();
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref ReadOnlyMemory<char> value) =>
                 {
                     floatGetter(ref v);
-                    conversion(ref v, ref dst);
+                    conversion(in v, ref dst);
                     string text = dst.ToString();
                     value = text.AsMemory();
                 };
@@ -1384,7 +1384,7 @@ namespace Microsoft.ML.Runtime.Data
                             x =>
                             {
                                 var v = x.Value;
-                                conversion(ref v, ref dst);
+                                conversion(in v, ref dst);
                                 return dst.ToString();
                             }));
                     value = string.Format("<{0}{1}>", stringRep, suffix).AsMemory();

@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 {
                     Float[] transformedParams = SweeperProbabilityUtils.ParameterSetAsFloatArray(_host, _sweepParameters, config, true);
                     VBuffer<Float> features = new VBuffer<Float>(transformedParams.Length, transformedParams);
-                    leafValues.Add((Float)t.LeafValues[t.GetLeaf(ref features)]);
+                    leafValues.Add((Float)t.LeafValues[t.GetLeaf(in features)]);
                 }
                 datasetLeafValues.Add(leafValues.ToArray());
             }

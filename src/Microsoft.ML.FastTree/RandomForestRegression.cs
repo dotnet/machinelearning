@@ -100,24 +100,24 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void Map(ref VBuffer<float> src, ref float dst)
+        protected override void Map(in VBuffer<float> src, ref float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
+            dst = (float)TrainedEnsemble.GetOutput(in src) / TrainedEnsemble.NumTrees;
         }
 
         public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
         {
             return
-                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
                     float[] weights = null;
-                    var distribution = TrainedEnsemble.GetDistribution(ref src, _quantileSampleCount, out weights);
+                    var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
                     var values = dst.Values;

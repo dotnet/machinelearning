@@ -12,6 +12,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.IO;

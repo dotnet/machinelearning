@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks

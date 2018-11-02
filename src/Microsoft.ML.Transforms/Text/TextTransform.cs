@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    using CaseNormalizationMode = TextNormalizerEstimator.CaseNormalizationMode;
+    using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
     using StopWordsCol = StopWordsRemoverTransform.Column;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
@@ -95,16 +96,16 @@ namespace Microsoft.ML.Transforms.Text
             public IStopWordsRemoverFactory StopWordsRemover;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseNormalizationMode TextCase = TextNormalizerEstimator.Defaults.TextCase;
+            public CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
-            public bool KeepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics;
+            public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep punctuation marks or remove them.", ShortName = "punc", SortOrder = 7)]
-            public bool KeepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations;
+            public bool KeepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 8)]
-            public bool KeepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers;
+            public bool KeepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the transformed text tokens as an additional column.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
             public bool OutputTokens;
@@ -324,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
                     xfCols[i] = (textCols[i], dstCols[i]);
                 }
 
-                view = new TextNormalizerEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
+                view = new TextNormalizingEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
 
                 textCols = dstCols;
             }

@@ -131,8 +131,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
-            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
 
             Initialize(env);
         }
@@ -150,8 +152,10 @@ namespace Microsoft.ML.Trainers.FastTree
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
-            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
+            // with memory consumption more than 5GB, GC get stuck in infinite loop.
+            // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
+            // mechanism to detect that we are running in Scope.
+            AllowGC = true;
 
             Initialize(env);
         }
@@ -1029,17 +1033,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="values">The values for one particular feature value across all examples</param>
         /// <param name="maxBins">The maximum number of bins to find</param>
         /// <param name="minDocsPerLeaf"></param>
-        /// <param name="distinctValues">The working array of distinct values, a temporary buffer that should be called
-        /// to multiple invocations of this method, but not meant to be useful to the caller. This method will reallocate
-        /// the array to a new size if necessary. Passing in null at first is acceptable.</param>
-        /// <param name="distinctCounts">Similar working array, but for distinct counts</param>
         /// <param name="upperBounds">The bin upper bounds, maximum length will be <paramref name="maxBins"/></param>
         /// <returns>Whether finding the bins was successful or not. It will be unsuccessful iff <paramref name="values"/>
         /// has any missing values. In that event, the out parameters will be left as null.</returns>
-        protected static bool CalculateBins(BinFinder binFinder, ref VBuffer<double> values, int maxBins, int minDocsPerLeaf,
-            ref double[] distinctValues, ref int[] distinctCounts, out double[] upperBounds)
+        protected static bool CalculateBins(BinFinder binFinder, in VBuffer<double> values, int maxBins, int minDocsPerLeaf,
+            out double[] upperBounds)
         {
-            return binFinder.FindBins(ref values, maxBins, minDocsPerLeaf, out upperBounds);
+            return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
         }
 
         private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(VBuffer<double> values, Double[] binUpperBounds)
@@ -1068,7 +1068,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 int fi = features[0];
                 var values = instanceList[fi];
                 values.CopyTo(NumExamples, ref temp);
-                return CreateSingletonFlock(ch, ref temp, binnedValues, BinUpperBounds[fi]);
+                return CreateSingletonFlock(ch, in temp, binnedValues, BinUpperBounds[fi]);
             }
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
@@ -1221,7 +1221,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="binnedValues">A working array of length equal to the length of the input feature vector</param>
         /// <param name="binUpperBounds">The upper bounds of the binning of this feature.</param>
         /// <returns>A derived binned derived feature vector.</returns>
-        protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, ref VBuffer<double> values, int[] binnedValues,
+        protected static SingletonFeatureFlock CreateSingletonFlock(IChannel ch, in VBuffer<double> values, int[] binnedValues,
             Double[] binUpperBounds)
         {
             Contracts.AssertValue(ch);
@@ -1334,11 +1334,11 @@ namespace Microsoft.ML.Trainers.FastTree
                 if (identity)
                 {
                     ValueMapper<VBuffer<T1>, VBuffer<T1>> identityResult =
-                        (ref VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
+                        (in VBuffer<T1> src, ref VBuffer<T1> dst) => src.CopyTo(ref dst);
                     return (ValueMapper<VBuffer<T1>, VBuffer<T2>>)(object)identityResult;
                 }
                 return
-                    (ref VBuffer<T1> src, ref VBuffer<T2> dst) =>
+                    (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
                         var indices = dst.Indices;
                         var values = dst.Values;
@@ -1351,7 +1351,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             }
                             Utils.EnsureSize(ref values, src.Count);
                             for (int i = 0; i < src.Count; ++i)
-                                conv(ref src.Values[i], ref values[i]);
+                                conv(in src.Values[i], ref values[i]);
                         }
                         dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
                     };
@@ -1437,8 +1437,6 @@ namespace Microsoft.ML.Trainers.FastTree
 
                                     // Perhaps we should change the binning to just work over singles.
                                     VBuffer<double> doubleTemp = default(VBuffer<double>);
-                                    double[] distinctValues = null;
-                                    int[] distinctCounts = null;
                                     var copier = GetCopier<Float, Double>(NumberType.Float, NumberType.R8);
                                     int iFeature = 0;
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
@@ -1460,9 +1458,8 @@ namespace Microsoft.ML.Trainers.FastTree
                                             ch.Assert(maxBins > 0);
                                             finder = finder ?? new BinFinder();
                                             // Must copy over, as bin calculation is potentially destructive.
-                                            copier(ref temp, ref doubleTemp);
-                                            hasMissing = !CalculateBins(finder, ref doubleTemp, maxBins, 0,
-                                                ref distinctValues, ref distinctCounts,
+                                            copier(in temp, ref doubleTemp);
+                                            hasMissing = !CalculateBins(finder, in doubleTemp, maxBins, 0,
                                                 out BinUpperBounds[iFeature]);
                                         }
                                         else
@@ -1586,7 +1583,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                             if (upperBounds.Length == 1)
                                                 continue; //trivial feature, skip it.
 
-                                            flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
+                                            flocks.Add(CreateSingletonFlock(ch, in doubleTemp, binnedValues, upperBounds));
                                         }
                                     }
                                 }
@@ -1600,7 +1597,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                         if (upperBounds.Length == 1)
                                             continue; //trivial feature, skip it.
 
-                                        flocks.Add(CreateSingletonFlock(ch, ref doubleTemp, binnedValues, upperBounds));
+                                        flocks.Add(CreateSingletonFlock(ch, in doubleTemp, binnedValues, upperBounds));
                                     }
                                 }
 
@@ -1642,7 +1639,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             trans.GetSingleSlotValue<ulong>(groupIdx, ref groupIds);
                             slotDropper?.DropSlots(ref groupIds, ref groupIds);
 
-                            ConstructBoundariesAndQueryIds(ref groupIds, out boundaries, out qids);
+                            ConstructBoundariesAndQueryIds(in groupIds, out boundaries, out qids);
                         }
                         else
                         {
@@ -1685,7 +1682,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 Contracts.Assert(cursor.Position == iFeature);
 
                 getter(ref temp);
-                copier(ref temp, ref doubleTemp);
+                copier(in temp, ref doubleTemp);
             }
 
             private static ValueGetter<VBuffer<T>> SubsetGetter<T>(ValueGetter<VBuffer<T>> getter, SlotDropper slotDropper)
@@ -1742,7 +1739,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 return new SlotDropper(temp.Length, minSlots.ToArray(), maxSlots.ToArray());
             }
 
-            private static void ConstructBoundariesAndQueryIds(ref VBuffer<ulong> groupIds, out int[] boundariesArray, out ulong[] qidsArray)
+            private static void ConstructBoundariesAndQueryIds(in VBuffer<ulong> groupIds, out int[] boundariesArray, out ulong[] qidsArray)
             {
                 List<ulong> qids = new List<ulong>();
                 List<int> boundaries = new List<int>();
@@ -1934,8 +1931,6 @@ namespace Microsoft.ML.Trainers.FastTree
                     BinFinder binFinder = new BinFinder();
                     VBuffer<double> temp = default(VBuffer<double>);
                     int len = _numExamples;
-                    double[] distinctValues = null;
-                    int[] distinctCounts = null;
                     bool[] localConstructBinFeatures = parallelTraining.GetLocalBinConstructionFeatures(NumFeatures);
                     int iFeature = 0;
                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, NumFeatures));
@@ -1949,8 +1944,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         // REVIEW: In principle we could also put the min docs per leaf information
                         // into here, and collapse bins somehow as we determine the bins, so that "trivial"
                         // bins on the head or tail of the bin distribution are never actually considered.
-                        CalculateBins(binFinder, ref temp, maxBins, _minDocsPerLeaf,
-                            ref distinctValues, ref distinctCounts,
+                        CalculateBins(binFinder, in temp, maxBins, _minDocsPerLeaf,
                             out double[] binUpperBounds);
                         BinUpperBounds[iFeature] = binUpperBounds;
                     }
@@ -2110,7 +2104,7 @@ namespace Microsoft.ML.Trainers.FastTree
                         var values = _instanceList[iFeature];
                         _instanceList[iFeature] = null;
                         values.CopyTo(NumExamples, ref temp);
-                        yield return CreateSingletonFlock(ch, ref temp, binnedValues, bup);
+                        yield return CreateSingletonFlock(ch, in temp, binnedValues, bup);
                     }
                     yield break;
                 }
@@ -2921,14 +2915,14 @@ namespace Microsoft.ML.Trainers.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        protected virtual void Map(ref VBuffer<Float> src, ref Float dst)
+        protected virtual void Map(in VBuffer<Float> src, ref Float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (Float)TrainedEnsemble.GetOutput(ref src);
+            dst = (Float)TrainedEnsemble.GetOutput(in src);
         }
 
         public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
@@ -2940,22 +2934,22 @@ namespace Microsoft.ML.Trainers.FastTree
 
             BufferBuilder<Float> builder = null;
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
-                    WhatTheFeatureMap(ref src, ref dst, ref builder);
+                    WhatTheFeatureMap(in src, ref dst, ref builder);
                     Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
 
-        private void WhatTheFeatureMap(ref VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
+        private void WhatTheFeatureMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            TrainedEnsemble.GetFeatureContributions(ref src, ref dst, ref builder);
+            TrainedEnsemble.GetFeatureContributions(in src, ref dst, ref builder);
         }
 
         /// <summary>
@@ -3209,7 +3203,7 @@ namespace Microsoft.ML.Trainers.FastTree
             foreach (RegressionTree tree in TrainedEnsemble.Trees)
             {
                 writer.Write("double treeOutput{0}=", i);
-                SaveTreeAsCode(tree, writer, ref names);
+                SaveTreeAsCode(tree, writer, in names);
                 writer.Write(";\n");
                 i++;
             }
@@ -3222,13 +3216,13 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<ReadOnlyMemory<char>> names)
+        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, in VBuffer<ReadOnlyMemory<char>> names)
         {
-            ToCSharp(tree, writer, 0, ref names);
+            ToCSharp(tree, writer, 0, in names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<ReadOnlyMemory<char>> names)
+        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, in VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3242,9 +3236,9 @@ namespace Microsoft.ML.Trainers.FastTree
                     name = $"f{tree.SplitFeature(node)}";
 
                 writer.Write("(({0} > {1}) ? ", name, FloatUtils.ToRoundTripString(tree.RawThreshold(node)));
-                ToCSharp(tree, writer, tree.GetGtChildForNode(node), ref names);
+                ToCSharp(tree, writer, tree.GetGtChildForNode(node), in names);
                 writer.Write(" : ");
-                ToCSharp(tree, writer, tree.GetLteChildForNode(node), ref names);
+                ToCSharp(tree, writer, tree.GetLteChildForNode(node), in names);
                 writer.Write(")");
             }
         }
@@ -3302,9 +3296,9 @@ namespace Microsoft.ML.Trainers.FastTree
         /// internal nodes in the path from the root to that leaf. If 'path' is null a new list is initialized. All elements
         /// in 'path' are cleared before filling in the current path nodes.
         /// </summary>
-        public int GetLeaf(int treeId, ref VBuffer<Float> features, ref List<int> path)
+        public int GetLeaf(int treeId, in VBuffer<Float> features, ref List<int> path)
         {
-            return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(ref features, ref path);
+            return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
         public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
@@ -3342,9 +3336,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
             public int NumLeaves => _regTree.NumLeaves;
 
-            public int GetLeaf(ref VBuffer<Float> feat)
+            public int GetLeaf(in VBuffer<Float> feat)
             {
-                return _regTree.GetLeaf(ref feat);
+                return _regTree.GetLeaf(in feat);
             }
 
             public INode GetNode(int nodeId, bool isLeaf, IEnumerable<string> featuresNames = null)

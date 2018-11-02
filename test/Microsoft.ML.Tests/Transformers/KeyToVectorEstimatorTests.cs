@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -58,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToVectorEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
+            var pipe = new KeyToVectorMappingEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
                 new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatC", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatCNonBag", false));
@@ -121,7 +122,7 @@ namespace Microsoft.ML.Tests.Transformers
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = new KeyToVectorEstimator(Env,
+            var pipe = new KeyToVectorMappingEstimator(Env,
                  new KeyToVectorTransform.ColumnInfo("TA", "CatA", true),
                  new KeyToVectorTransform.ColumnInfo("TB", "CatB", false),
                  new KeyToVectorTransform.ColumnInfo("TC", "CatC", false),
@@ -232,7 +233,7 @@ namespace Microsoft.ML.Tests.Transformers
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToVectorEstimator(Env,
+            var pipe = new KeyToVectorMappingEstimator(Env,
                 new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
                 new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true)
             );
