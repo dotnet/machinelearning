@@ -793,7 +793,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                float* destinationEnd = pDstEnd - 4;
+                float* pVectorizationEnd = pDstEnd - 4;
 
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
 
@@ -808,7 +808,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scalarVector128 = Sse.SetAllVector128(scalar);
 
-                if (pDstCurrent <= destinationEnd)
+                if (pDstCurrent <= pVectorizationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector128);
@@ -957,7 +957,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + count;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
-                float* destinationEnd = pDstEnd - 4;
+                float* pVectorizationEnd = pDstEnd - 4;
 
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
@@ -973,7 +973,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pDstCurrent <= destinationEnd)
+                if (pDstCurrent <= pVectorizationEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector128);
@@ -1002,7 +1002,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
-                float* destinationEnd = pDstEnd - 4;
+                float* pVectorizationEnd = pDstEnd - 4;
 
                 Vector256<float> a256 = Avx.SetAllVector256(a);
                 Vector256<float> b256 = Avx.SetAllVector256(b);
@@ -1020,7 +1020,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> a128 = Sse.SetAllVector128(a);
                 Vector128<float> b128 = Sse.SetAllVector128(b);
 
-                if (pDstCurrent <= destinationEnd)
+                if (pDstCurrent <= pVectorizationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, b128);
