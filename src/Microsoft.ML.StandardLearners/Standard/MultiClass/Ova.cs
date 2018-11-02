@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (_args.UseProbabilities)
             {
-                var calibratedModel = transformer.Model as TScalarPredictor;
+                var calibratedModel = transformer.Model as TDistPredictor;
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
