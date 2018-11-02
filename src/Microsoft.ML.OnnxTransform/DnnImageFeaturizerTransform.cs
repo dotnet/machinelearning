@@ -31,28 +31,28 @@ namespace Microsoft.ML.Transforms
 
         private static Dictionary<DnnImageModel, string> _modelsPrep = new Dictionary<DnnImageModel, string>()
         {
-            { DnnImageModel.ResNet18, "resnetPreprocess.onnx" },
-            { DnnImageModel.ResNet50, "resnetPreprocess.onnx" },
-            { DnnImageModel.ResNet101, "resnetPreprocess.onnx" },
-            { DnnImageModel.AlexNet, "alexnetPreprocess.onnx" }
+            { DnnImageModel.ResNet18, "ResNetPreprocess.onnx" },
+            { DnnImageModel.ResNet50, "ResNetPreprocess.onnx" },
+            { DnnImageModel.ResNet101, "ResNetPreprocess.onnx" },
+            { DnnImageModel.AlexNet, "AlexNetPreprocess.onnx" }
         };
 
         private static Dictionary<DnnImageModel, string> _modelsMain = new Dictionary<DnnImageModel, string>()
         {
-            { DnnImageModel.ResNet18, "resnet18.onnx" },
-            { DnnImageModel.ResNet50, "resnet50.onnx" },
-            { DnnImageModel.ResNet101, "resnet101.onnx" },
-            { DnnImageModel.AlexNet, "alexnet.onnx" }
+            { DnnImageModel.ResNet18, "ResNet18.onnx" },
+            { DnnImageModel.ResNet50, "ResNet50.onnx" },
+            { DnnImageModel.ResNet101, "ResNet101.onnx" },
+            { DnnImageModel.AlexNet, "AlexNet.onnx" }
         };
 
         private static Dictionary<string, string> _modelDirs = new Dictionary<string, string>()
         {
-            { "resnetPreprocess.onnx", "ResNetPrep" },
-            { "alexnetPreprocess.onnx", "AlexNetPrep" },
-            { "resnet18.onnx", "ResNet18" },
-            { "resnet50.onnx", "ResNet50" },
-            { "resnet101.onnx", "ResNet101" },
-            { "alexnet.onnx", "AlexNet" },
+            { "ResNetPreprocess.onnx", "ResNetPrepOnnx" },
+            { "AlexNetPreprocess.onnx", "AlexNetPrepOnnx" },
+            { "ResNet18.onnx", "ResNet18Onnx" },
+            { "ResNet50.onnx", "ResNet50Onnx" },
+            { "ResNet101.onnx", "ResNet101Onnx" },
+            { "AlexNet.onnx", "AlexNetOnnx" },
         };
 
         public DnnImageFeaturizerEstimator(IHostEnvironment env, DnnImageModel model, string input, string output)
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms
         {
             using (var ch = _host.Start("Ensuring resources"))
             {
-                var dir = _modelDirs[modelFileName];
+                var dir = Path.Combine("image", _modelDirs[modelFileName]);
                 var url = $"{dir}/{modelFileName}";
                 var ensureModel = ResourceManagerUtils.Instance.EnsureResource(_host, ch, url, modelFileName, dir, Timeout);
                 ensureModel.Wait();
