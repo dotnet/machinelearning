@@ -297,13 +297,6 @@ namespace Microsoft.ML.Runtime.Api
                     peek(GetCurrentRowObject(), Position, ref dst));
             }
 
-            private ValueGetter<TDst> CreateDirectGetter<TDst>(Delegate peekDel)
-            {
-                var peek = peekDel as Peek<TRow, TDst>;
-                Host.AssertValue(peek);
-                return (ref TDst dst) => peek(GetCurrentRowObject(), Position, ref dst);
-            }
-
             private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
             {
                 // Make sure the function is dealing with key.
