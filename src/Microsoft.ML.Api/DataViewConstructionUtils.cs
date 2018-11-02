@@ -217,12 +217,15 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             ValueGetter<uint> rawGetter = CreateDirectGetter<uint>(peek);
                             uint rawKeyValue = 0;
-                            uint min = (uint)colType.AsKey.Min;
-                            uint max = min + (uint)colType.AsKey.Count - 1;
+                            ulong min = colType.AsKey.Min;
+                            ulong max = min + (ulong)colType.AsKey.Count - 1;
                             ValueGetter<uint> getter = (ref uint dst) =>
                             {
                                 rawGetter(ref rawKeyValue);
-                                dst = rawKeyValue - min + 1;
+                                if (min <= rawKeyValue && rawKeyValue <= max)
+                                    dst = (uint)(rawKeyValue - min + 1);
+                                else
+                                    dst = 0;
                             };
                             return getter;
                         }
@@ -230,13 +233,16 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             ValueGetter<byte> rawGetter = CreateDirectGetter<byte>(peek);
                             byte rawKeyValue = 0;
-                            uint min = (uint)colType.AsKey.Min;
-                            uint max = min + (uint)colType.AsKey.Count - 1;
-                            ValueGetter<uint> getter = (ref uint dst) =>
+                            ulong min = colType.AsKey.Min;
+                            ulong max = min + (ulong)colType.AsKey.Count + 1;
+                            ValueGetter<byte> getter = (ref byte dst) =>
                             {
                                 rawGetter(ref rawKeyValue);
                                 // U2 (byte) input, rawKeyValue, gets converted to uint eventually.
-                                dst = rawKeyValue - min + 1;
+                                if (min <= rawKeyValue && rawKeyValue <= max)
+                                    dst = (byte)(rawKeyValue - min + 1);
+                                else
+                                    dst = 0;
                             };
                             return getter;
                         }
@@ -244,16 +250,23 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             ValueGetter<bool> rawGetter = CreateDirectGetter<bool>(peek);
                             bool rawKeyValue = false;
-                            uint min = (uint)colType.AsKey.Min;
-                            uint max = min + (uint)colType.AsKey.Count - 1;
-                            ValueGetter<uint> getter = (ref uint dst) =>
+                            ulong tmp = 0;
+                            ulong min = colType.AsKey.Min;
+                            ulong max = min + (ulong)colType.AsKey.Count - 1;
+                            ValueGetter<bool> getter = (ref bool dst) =>
                             {
                                 rawGetter(ref rawKeyValue);
                                 // U1 (byte) input, rawKeyValue, gets converted to uint eventually.
-                                if (rawKeyValue)
-                                    dst = 1 - min + 1;
+                                tmp = rawKeyValue ? 1UL : 0UL;
+                                if (min <= tmp && tmp <= max)
+                                    if (rawKeyValue)
+                                        // rawKeyValue is true, which is 1.
+                                        dst = (1 - min + 1) > 0;
+                                    else
+                                        // rawKeyValue is false, which is 0.
+                                        dst = (0 - min + 1) > 0;
                                 else
-                                    dst = 0 - min + 1;
+                                    dst = false;
                             };
                             return getter;
                         }
@@ -266,10 +279,15 @@ namespace Microsoft.ML.Runtime.Api
                             ValueGetter<ulong> getter = (ref ulong dst) =>
                             {
                                 rawGetter(ref rawKeyValue);
-                                dst = rawKeyValue - min + 1;
+                                if (min <= rawKeyValue && rawKeyValue <= max)
+                                    dst = rawKeyValue - min + 1;
+                                else
+                                    dst = 0;
                             };
                             return getter;
                         }
+                        else
+                            throw Host.ExceptNotSupp("Key type '{0}' is not yet supported.", keyRawType.Name);
                     }
                 }
                 else
