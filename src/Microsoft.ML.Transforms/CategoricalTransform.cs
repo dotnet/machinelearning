@@ -368,7 +368,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
-        private struct Config
+        private readonly struct Config
         {
             public readonly KeyValueOrder Order;
             public readonly int Max;

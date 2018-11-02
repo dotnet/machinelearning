@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// is the minimum at a point when all waiters have registered, the event
         /// will be signaled.
         /// </summary>
-        private struct WaitStats
+        private readonly struct WaitStats
         {
             public readonly long Line;
             public readonly ManualResetEventSlim Event;

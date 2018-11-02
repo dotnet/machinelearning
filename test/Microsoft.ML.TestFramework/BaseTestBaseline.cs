@@ -306,7 +306,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// When hardware dependent baseline values should be tolerated, scope the code
         /// that does the comparisons with an instance of this disposable struct.
         /// </summary>
-        protected struct MismatchContext : IDisposable
+        protected readonly struct MismatchContext : IDisposable
         {
             // The test class instance.
             private readonly BaseTestBaseline _host;

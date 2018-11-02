@@ -693,7 +693,7 @@ namespace Microsoft.ML.Transforms.Projections
 
     public static class RffExtenensions
     {
-        private struct Config
+        private readonly struct Config
         {
             public readonly int NewDim;
             public readonly bool UseSin;

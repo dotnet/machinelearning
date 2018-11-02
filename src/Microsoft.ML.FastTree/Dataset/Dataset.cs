@@ -912,7 +912,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             private readonly Dataset _dataset;
             private readonly FeatureFlockBase.FlockForwardIndexerBase[] _flockIndexers;
 
-            public struct Row
+            public readonly struct Row
             {
                 private readonly RowForwardIndexer _indexer;
                 private readonly int _rowIndex;

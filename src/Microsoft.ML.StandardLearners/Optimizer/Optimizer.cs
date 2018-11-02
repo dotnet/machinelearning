@@ -547,7 +547,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return (Float)(p1.A - (p1.A - p0.A) * num / denom);
             }
 
-            private struct PointValueDeriv
+            private readonly struct PointValueDeriv
             {
                 public readonly Float A;
                 public readonly Float V;

@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly GroupingColumn[] Columns;
 

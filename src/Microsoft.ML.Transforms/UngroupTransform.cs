@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public struct PivotColumnInfo
+            public readonly struct PivotColumnInfo
             {
                 public readonly string Name;
                 public readonly int Index;

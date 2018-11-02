@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
         /// but also maintain the order in which it was inserted, assuming that
         /// we're using something like a hashset where order is not preserved.
         /// </summary>
-        private struct Pair
+        private readonly struct Pair
         {
             public readonly T Value;
             public readonly int Order;

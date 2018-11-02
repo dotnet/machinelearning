@@ -924,7 +924,7 @@ namespace Microsoft.ML.Runtime.CommandLine
             }
         }
 
-        private struct ArgumentHelpStrings
+        private readonly struct ArgumentHelpStrings
         {
             public readonly string Syntax;
             public readonly string Help;

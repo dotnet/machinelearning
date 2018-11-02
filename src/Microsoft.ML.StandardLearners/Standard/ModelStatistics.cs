@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// Represents a coefficient statistics object.
     /// </summary>
-    public struct CoefficientStatistics
+    public readonly struct CoefficientStatistics
     {
         public readonly string Name;
         public readonly Single Estimate;

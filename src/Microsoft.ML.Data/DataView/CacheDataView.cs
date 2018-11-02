@@ -653,7 +653,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new TrivialWaiter(parent));
             }
 
-            public struct Wrapper : IWaiter
+            public readonly struct Wrapper : IWaiter
             {
                 private readonly TrivialWaiter _waiter;
 
@@ -722,7 +722,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new WaiterWaiter(parent, pred));
             }
 
-            public struct Wrapper : IWaiter
+            public readonly struct Wrapper : IWaiter
             {
                 private readonly WaiterWaiter _waiter;
 
@@ -836,7 +836,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new SequenceIndex<TWaiter>(waiter));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly SequenceIndex<TWaiter> _index;
 
@@ -927,7 +927,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new RandomIndex<TWaiter>(waiter, perm));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly RandomIndex<TWaiter> _index;
 
@@ -1097,7 +1097,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new BlockSequenceIndex<TWaiter>(waiter, scheduler));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly BlockSequenceIndex<TWaiter> _index;
 
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new BlockRandomIndex<TWaiter>(waiter, scheduler, perm));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly BlockRandomIndex<TWaiter> _index;
 

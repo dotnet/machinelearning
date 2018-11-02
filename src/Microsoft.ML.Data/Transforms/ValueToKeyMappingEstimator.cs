@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
         private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
-        private struct Config
+        private readonly struct Config
         {
             public readonly KeyValueOrder Order;
             public readonly int Max;

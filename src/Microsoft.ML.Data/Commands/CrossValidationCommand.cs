@@ -354,7 +354,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class FoldHelper
         {
-            public struct FoldResult
+            public readonly struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
                 public readonly Schema ScoreSchema;

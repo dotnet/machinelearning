@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// A channel message.
     /// </summary>
-    public struct ChannelMessage
+    public readonly struct ChannelMessage
     {
         public readonly ChannelMessageKind Kind;
         public readonly MessageSensitivity Sensitivity;

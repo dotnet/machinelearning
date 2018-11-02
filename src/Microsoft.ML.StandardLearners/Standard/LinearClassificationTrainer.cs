@@ -1134,7 +1134,7 @@ namespace Microsoft.ML.Trainers
         protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
-            private struct Entry
+            private readonly struct Entry
             {
                 public readonly long ItNext;
                 public readonly UInt128 Value;

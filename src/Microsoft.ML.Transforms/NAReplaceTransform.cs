@@ -999,7 +999,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public static class NAReplacerExtensions
     {
-        private struct Config
+        private readonly struct Config
         {
             public readonly bool ImputeBySlot;
             public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;

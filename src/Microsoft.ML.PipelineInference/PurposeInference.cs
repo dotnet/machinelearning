@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct Column
+        public readonly struct Column
         {
             public readonly int ColumnIndex;
             public readonly ColumnPurpose Purpose;
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly Column[] Columns;
 

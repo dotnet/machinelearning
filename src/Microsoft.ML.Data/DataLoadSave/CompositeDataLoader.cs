@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
             public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
         }
 
-        private struct TransformEx
+        private readonly struct TransformEx
         {
             public readonly string Tag;
             public readonly string ArgsString;

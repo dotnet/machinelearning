@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Data
             // abort situations.
             private const int TimeOut = 100;
 
-            private struct LineBatch
+            private readonly struct LineBatch
             {
                 public readonly string Path;
                 // Total lines, up to the first line of this batch.
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private struct LineInfo
+            private readonly struct LineInfo
             {
                 public readonly long Line;
                 public readonly string Text;
