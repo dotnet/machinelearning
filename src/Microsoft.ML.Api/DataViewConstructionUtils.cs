@@ -207,87 +207,15 @@ namespace Microsoft.ML.Runtime.Api
                         Host.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));
                     else
                         Host.Assert(colType.RawType == outputType);
-                    del = CreateDirectGetterDelegate<int>;
 
-                    if (colType.IsKey)
+                    if (!colType.IsKey)
+                        del = CreateDirectGetterDelegate<int>;
+                    else
                     {
                         var keyRawType = colType.RawType;
                         Host.Assert(colType.AsKey.Contiguous);
-                        if (keyRawType == typeof(uint))
-                        {
-                            ValueGetter<uint> rawGetter = CreateDirectGetter<uint>(peek);
-                            uint rawKeyValue = 0;
-                            ulong min = colType.AsKey.Min;
-                            ulong max = min + (ulong)colType.AsKey.Count - 1;
-                            ValueGetter<uint> getter = (ref uint dst) =>
-                            {
-                                rawGetter(ref rawKeyValue);
-                                if (min <= rawKeyValue && rawKeyValue <= max)
-                                    dst = (uint)(rawKeyValue - min + 1);
-                                else
-                                    dst = 0;
-                            };
-                            return getter;
-                        }
-                        else if (keyRawType == typeof(byte))
-                        {
-                            ValueGetter<byte> rawGetter = CreateDirectGetter<byte>(peek);
-                            byte rawKeyValue = 0;
-                            ulong min = colType.AsKey.Min;
-                            ulong max = min + (ulong)colType.AsKey.Count + 1;
-                            ValueGetter<byte> getter = (ref byte dst) =>
-                            {
-                                rawGetter(ref rawKeyValue);
-                                // U2 (byte) input, rawKeyValue, gets converted to uint eventually.
-                                if (min <= rawKeyValue && rawKeyValue <= max)
-                                    dst = (byte)(rawKeyValue - min + 1);
-                                else
-                                    dst = 0;
-                            };
-                            return getter;
-                        }
-                        else if (keyRawType == typeof(bool))
-                        {
-                            ValueGetter<bool> rawGetter = CreateDirectGetter<bool>(peek);
-                            bool rawKeyValue = false;
-                            ulong tmp = 0;
-                            ulong min = colType.AsKey.Min;
-                            ulong max = min + (ulong)colType.AsKey.Count - 1;
-                            ValueGetter<bool> getter = (ref bool dst) =>
-                            {
-                                rawGetter(ref rawKeyValue);
-                                // U1 (byte) input, rawKeyValue, gets converted to uint eventually.
-                                tmp = rawKeyValue ? 1UL : 0UL;
-                                if (min <= tmp && tmp <= max)
-                                    if (rawKeyValue)
-                                        // rawKeyValue is true, which is 1.
-                                        dst = (1 - min + 1) > 0;
-                                    else
-                                        // rawKeyValue is false, which is 0.
-                                        dst = (0 - min + 1) > 0;
-                                else
-                                    dst = false;
-                            };
-                            return getter;
-                        }
-                        else if (keyRawType == typeof(ulong))
-                        {
-                            ValueGetter<ulong> rawGetter = CreateDirectGetter<ulong>(peek);
-                            ulong rawKeyValue = 0;
-                            ulong min = colType.AsKey.Min;
-                            ulong max = min + (ulong)colType.AsKey.Count - 1;
-                            ValueGetter<ulong> getter = (ref ulong dst) =>
-                            {
-                                rawGetter(ref rawKeyValue);
-                                if (min <= rawKeyValue && rawKeyValue <= max)
-                                    dst = rawKeyValue - min + 1;
-                                else
-                                    dst = 0;
-                            };
-                            return getter;
-                        }
-                        else
-                            throw Host.ExceptNotSupp("Key type '{0}' is not yet supported.", keyRawType.Name);
+                        Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
+                        return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
                     }
                 }
                 else
@@ -374,6 +302,31 @@ namespace Microsoft.ML.Runtime.Api
                 var peek = peekDel as Peek<TRow, TDst>;
                 Host.AssertValue(peek);
                 return (ref TDst dst) => peek(GetCurrentRowObject(), Position, ref dst);
+            }
+
+            private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
+            {
+                // Convert delegate function to a function which can fetch the underlying value.
+                var peek = peekDel as Peek<TRow, TDst>;
+                Host.AssertValue(peek);
+                Host.Check(colType.IsKey);
+
+                TDst rawKeyValue = default;
+                ulong key = 0; // the key value as ulong
+                ulong min = colType.AsKey.Min;
+                ulong max = min + (ulong)colType.AsKey.Count - 1;
+                ulong result = 0; // the result as ulong
+                ValueGetter<TDst> getter = (ref TDst dst) =>
+                {
+                    peek(GetCurrentRowObject(), Position, ref rawKeyValue);
+                    key = (ulong)Convert.ChangeType(rawKeyValue, typeof(ulong));
+                    if (min <= key && key <= max)
+                        result = key - min + 1;
+                    else
+                        result = 0;
+                    dst = (TDst)Convert.ChangeType(result, typeof(TDst));
+                };
+                return getter;
             }
 
             protected abstract TRow GetCurrentRowObject();
