@@ -250,9 +250,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 nameof(MatrixElementZeroBased.MatrixColumnIndex), nameof(MatrixElementZeroBased.MatrixRowIndex),
                 advancedSettings: s =>
                 {
-                    s.NumIterations = 10;
+                    s.NumIterations = 100;
                     s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
                     s.K = 32;
+                    s.Eta = 0.5;
                 });
 
             // Train a matrix factorization model.
@@ -270,26 +271,38 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.True(matRowKeyType.Min == 0);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
-            // Create matrix examples for testing prediction
-            var testMatrix = new List<MatrixElementZeroBasedForScore>();
-            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
-                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
-                    testMatrix.Add(new MatrixElementZeroBasedForScore() { MatrixColumnIndex = i, MatrixRowIndex = j, Score = default });
-
-            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-            var testDataView = ComponentCreation.CreateDataView(Env, testMatrix);
-
             // Apply the trained model to the training set
             var prediction = model.Transform(dataView);
 
-            foreach (var pred in prediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
-                Assert.True(!float.IsNaN(pred.Score));
-
-            // Calculate regression matrices for the prediction result
+            // Calculate regression matrices for the prediction result. It's a global
             var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
 
-            // Native test. Just check the pipeline runs.
-            Assert.True(metrics.L2 < 0.1);
+            // Make sure the prediction error is not too large.
+            Assert.InRange(metrics.L2, 0, 0.1);
+
+            foreach (var pred in prediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+                // Test data contains no out-of-range indexes (i.e., all indexes can be found in the training matrix),
+                // so NaN should never happen.
+                Assert.True(!float.IsNaN(pred.Score));
+
+            // Create out-of-range examples and make sure their predictions are all NaN
+            var invalidTestMatrix = new List<MatrixElementZeroBasedForScore>()
+            {
+                // An example with a matrix column index just greater than the maximum allowed value
+                new MatrixElementZeroBasedForScore() { MatrixColumnIndex = _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount, MatrixRowIndex = _synthesizedMatrixFirstRowIndex, Score = default },
+                // An example with a matrix row index just greater than the maximum allowed value
+                new MatrixElementZeroBasedForScore() { MatrixColumnIndex = _synthesizedMatrixFirstColumnIndex, MatrixRowIndex = _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount, Score = default }
+            };
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var invalidTestDataView = ComponentCreation.CreateDataView(mlContext, invalidTestMatrix);
+
+            // Apply the trained model to the examples with out-of-range indexes. 
+            var invalidPrediction = model.Transform(invalidTestDataView);
+
+            foreach (var pred in invalidPrediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+                // The presence of out-of-range indexes may lead to NaN
+                Assert.True(float.IsNaN(pred.Score));
         }
     }
 }

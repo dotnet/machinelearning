@@ -208,6 +208,69 @@ namespace Microsoft.ML.Runtime.Api
                     else
                         Host.Assert(colType.RawType == outputType);
                     del = CreateDirectGetterDelegate<int>;
+
+                    if (colType.IsKey)
+                    {
+                        var keyRawType = colType.RawType;
+                        Host.Assert(colType.AsKey.Contiguous);
+                        if (keyRawType == typeof(uint))
+                        {
+                            ValueGetter<uint> rawGetter = CreateDirectGetter<uint>(peek);
+                            uint rawKeyValue = 0;
+                            uint min = (uint)colType.AsKey.Min;
+                            uint max = min + (uint)colType.AsKey.Count - 1;
+                            ValueGetter<uint> getter = (ref uint dst) =>
+                            {
+                                rawGetter(ref rawKeyValue);
+                                dst = rawKeyValue - min + 1;
+                            };
+                            return getter;
+                        }
+                        else if (keyRawType == typeof(byte))
+                        {
+                            ValueGetter<byte> rawGetter = CreateDirectGetter<byte>(peek);
+                            byte rawKeyValue = 0;
+                            uint min = (uint)colType.AsKey.Min;
+                            uint max = min + (uint)colType.AsKey.Count - 1;
+                            ValueGetter<uint> getter = (ref uint dst) =>
+                            {
+                                rawGetter(ref rawKeyValue);
+                                // U2 (byte) input, rawKeyValue, gets converted to uint eventually.
+                                dst = rawKeyValue - min + 1;
+                            };
+                            return getter;
+                        }
+                        else if (keyRawType == typeof(bool))
+                        {
+                            ValueGetter<bool> rawGetter = CreateDirectGetter<bool>(peek);
+                            bool rawKeyValue = false;
+                            uint min = (uint)colType.AsKey.Min;
+                            uint max = min + (uint)colType.AsKey.Count - 1;
+                            ValueGetter<uint> getter = (ref uint dst) =>
+                            {
+                                rawGetter(ref rawKeyValue);
+                                // U1 (byte) input, rawKeyValue, gets converted to uint eventually.
+                                if (rawKeyValue)
+                                    dst = 1 - min + 1;
+                                else
+                                    dst = 0 - min + 1;
+                            };
+                            return getter;
+                        }
+                        else if (keyRawType == typeof(ulong))
+                        {
+                            ValueGetter<ulong> rawGetter = CreateDirectGetter<ulong>(peek);
+                            ulong rawKeyValue = 0;
+                            ulong min = colType.AsKey.Min;
+                            ulong max = min + (ulong)colType.AsKey.Count - 1;
+                            ValueGetter<ulong> getter = (ref ulong dst) =>
+                            {
+                                rawGetter(ref rawKeyValue);
+                                dst = rawKeyValue - min + 1;
+                            };
+                            return getter;
+                        }
+                    }
                 }
                 else
                 {
@@ -286,6 +349,13 @@ namespace Microsoft.ML.Runtime.Api
                 Host.AssertValue(peek);
                 return (ValueGetter<TDst>)((ref TDst dst) =>
                     peek(GetCurrentRowObject(), Position, ref dst));
+            }
+
+            private ValueGetter<TDst> CreateDirectGetter<TDst>(Delegate peekDel)
+            {
+                var peek = peekDel as Peek<TRow, TDst>;
+                Host.AssertValue(peek);
+                return (ref TDst dst) => peek(GetCurrentRowObject(), Position, ref dst);
             }
 
             protected abstract TRow GetCurrentRowObject();
