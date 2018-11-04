@@ -121,10 +121,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn); ;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

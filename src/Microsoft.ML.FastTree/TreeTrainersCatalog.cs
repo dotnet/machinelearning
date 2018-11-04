@@ -10,7 +10,7 @@ using System;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// FastTree <see cref="TrainContextBase"/> extension methods.
+    /// Tree <see cref="TrainContextBase"/> extension methods.
     /// </summary>
     public static class TreeExtensions
     {
@@ -27,8 +27,8 @@ namespace Microsoft.ML
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeRegressionTrainer FastTree(this RegressionContext.RegressionTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -54,8 +54,8 @@ namespace Microsoft.ML
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeBinaryClassificationTrainer FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -71,7 +71,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="ctx">The <see cref="RankingContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
@@ -82,9 +82,9 @@ namespace Microsoft.ML
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeRankingTrainer FastTree(this RankingContext.RankingTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string groupId = DefaultColumnNames.GroupId,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
+            string groupId ,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -100,21 +100,17 @@ namespace Microsoft.ML
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static BinaryClassificationGamTrainer GeneralizedAdditiveMethods(this RegressionContext.RegressionTrainers ctx,
+        public static BinaryClassificationGamTrainer GeneralizedAdditiveMethods(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string label = DefaultColumnNames.Label,
             string features = DefaultColumnNames.Features,
             string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
             int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
             double learningRate = Defaults.LearningRates,
             Action<BinaryClassificationGamTrainer.Arguments> advancedSettings = null)
@@ -125,23 +121,19 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="RegressionGamTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
         /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static RegressionGamTrainer GeneralizedAdditiveMethods(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+        public static RegressionGamTrainer GeneralizedAdditiveMethods(this RegressionContext.RegressionTrainers ctx,
+            string label,
+            string features,
             string weights = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
             int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
             double learningRate = Defaults.LearningRates,
             Action<RegressionGamTrainer.Arguments> advancedSettings = null)
@@ -164,8 +156,8 @@ namespace Microsoft.ML
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static FastTreeTweedieTrainer FastTreeTweedie(this RegressionContext.RegressionTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -176,6 +168,60 @@ namespace Microsoft.ML
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
             return new FastTreeTweedieTrainer(env, label, features, weights, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
+        }
+
+        /// <summary>
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestRegression"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="label">The label column.</param>
+        /// <param name="features">The features column.</param>
+        /// <param name="weights">The optional weights column.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        public static FastForestRegression FastForest(this RegressionContext.RegressionTrainers ctx,
+            string label,
+            string features,
+            string weights = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<FastForestRegression.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new FastForestRegression(env, label, features, weights, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
+        }
+
+        /// <summary>
+        /// Predict a target using a decision tree regression model trained with the <see cref="FastForestClassification"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
+        /// <param name="label">The label column.</param>
+        /// <param name="features">The features column.</param>
+        /// <param name="weights">The optional weights column.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        public static FastForestClassification FastForest(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            string label,
+            string features,
+            string weights = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<FastForestClassification.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new FastForestClassification(env, label, features, weights,numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
         }
     }
 }
