@@ -26,7 +26,8 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static FieldAwareFactorizationMachineTrainer FieldAwareFactorizationMachine(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-                string label, string[] features,
+                string label,
+                string[] features,
                 string weights = null,
                 Action<FieldAwareFactorizationMachineTrainer.Arguments> advancedSettings = null)
         {

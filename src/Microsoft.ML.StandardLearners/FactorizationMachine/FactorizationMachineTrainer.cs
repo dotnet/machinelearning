@@ -139,8 +139,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, string labelColumn, string[] featureColumns,
-            string weightColumn = null, TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
+        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
+            string labelColumn,
+            string[] featureColumns,
+            string weightColumn = null,
+            TrainerEstimatorContext context = null,
+            Action<Arguments> advancedSettings = null)
             : base(env, LoadName)
         {
             var args = new Arguments();

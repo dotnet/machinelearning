@@ -83,7 +83,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public MulticlassLogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
+        public MulticlassLogisticRegression(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
             string weightColumn = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,

@@ -29,8 +29,8 @@ namespace Microsoft.ML
         /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static AveragedPerceptronTrainer AveragedPerceptron(
             this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             IClassificationLoss lossFunction = null,
             float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
@@ -79,8 +79,8 @@ namespace Microsoft.ML
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public static OnlineGradientDescentTrainer OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             IRegressionLoss lossFunction = null,
             float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
