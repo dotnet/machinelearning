@@ -30,8 +30,8 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static LightGbmRegressorTrainer LightGbm(this RegressionContext.RegressionTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -60,8 +60,8 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static LightGbmBinaryTrainer LightGbm(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -92,9 +92,9 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static LightGbmRankingTrainer LightGbm(this RankingContext.RankingTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
-            string groupId = DefaultColumnNames.GroupId,
+            string label,
+            string features,
+            string groupId,
             string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
@@ -124,8 +124,8 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,

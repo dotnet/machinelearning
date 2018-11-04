@@ -29,8 +29,8 @@ namespace Microsoft.ML
         /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            string label = DefaultColumnNames.Label,
-            string features = DefaultColumnNames.Features,
+            string label,
+            string features,
             string weights = null,
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,

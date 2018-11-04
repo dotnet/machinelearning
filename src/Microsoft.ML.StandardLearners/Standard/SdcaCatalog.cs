@@ -31,7 +31,9 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionContext.RegressionTrainers ctx,
-        string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features, string weights = null,
+            string label,
+            string features,
+            string weights = null,
             ISupportSdcaRegressionLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
@@ -40,7 +42,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SdcaRegressionTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaRegressionTrainer(env, label, features, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
         }
     }
 
@@ -75,7 +77,8 @@ namespace Microsoft.ML
         /// </example>
         public static LinearClassificationTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-                string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
+                string label,
+                string features,
                 string weights = null,
                 ISupportSdcaClassificationLoss loss = null,
                 float? l2Const = null,
@@ -86,7 +89,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LinearClassificationTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new LinearClassificationTrainer(env, label, features, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
         }
     }
 
@@ -109,8 +112,8 @@ namespace Microsoft.ML
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public static SdcaMultiClassTrainer StochasticDualCoordinateAscent(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
-                    string label = DefaultColumnNames.Label,
-                    string features = DefaultColumnNames.Features,
+                    string label,
+                    string features,
                     string weights = null,
                     ISupportSdcaClassificationLoss loss = null,
                     float? l2Const = null,
@@ -120,7 +123,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SdcaMultiClassTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaMultiClassTrainer(env, label, features, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
         }
     }
 }

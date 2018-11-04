@@ -68,8 +68,8 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaRegressionTrainer(IHostEnvironment env,
-            string featureColumn,
             string labelColumn,
+            string featureColumn,
             string weightColumn = null,
             ISupportSdcaRegressionLoss loss = null,
             float? l2Const = null,
