@@ -148,12 +148,12 @@ Label	Workclass	education	marital-status
 
 This is how you can read this data:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(14),
         // Three text columns.
@@ -303,6 +303,52 @@ private class InspectedRow
 }
 ```
 
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        // A boolean column depicting the 'label'.
+        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        // Three text columns.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+        new TextLoader.Column("Education", DataKind.TX, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true
+});
+
+// Start creating our processing pipeline. For now, let's just concatenate all the text columns
+// together into one.
+var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
+
+// Let's verify that the data has been read correctly. 
+// First, we read the data file.
+var data = reader.Read(dataPath);
+
+// Fit our data pipeline and transform data with it.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// 'transformedData' is a 'promise' of data. Let's actually read it.
+var someRows = transformedData
+    // Convert to an enumerable of user-defined type. 
+    .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+    // Take a couple values as an array.
+    .Take(4).ToArray();
+
+// Extract the 'AllFeatures' column.
+// This will give the entire dataset: make sure to only take several row
+// in case the dataset is huge. The is similar to the static API, except
+// you have to specify the column name and type.
+var featureColumns = transformedData.GetColumn<string[]>(mlContext, "AllFeatures")
+    .Take(20).ToArray();
+```
 ## How do I train a regression model?
 
 Generally, in order to train any model in ML.NET, you will go through three steps:
