@@ -29,15 +29,15 @@ namespace Microsoft.ML.Trainers
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter." +
-                "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm." +
-                "A amall value could cause over-fitting.")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter. " +
+                "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. " +
+                "A small value could cause over-fitting.")]
             [TGUI(SuggestedSweeps = "0.01,0.05,0.1,0.5,1")]
             [TlcModule.SweepableDiscreteParam("Lambda", new object[] { 0.01f, 0.05f, 0.1f, 0.5f, 1f })]
             public double Lambda = 0.1;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n," +
-                "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively." +
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
+                "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
                 "This value is also known as the rank of matrix factorization.")]
             [TGUI(SuggestedSweeps = "8,16,64,128")]
             [TlcModule.SweepableDiscreteParam("K", new object[] { 8, 16, 64, 128 })]
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 10, 20, 40 })]
             public int NumIterations = 20;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate. It specifies the speed of the training algorithm." +
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate. It specifies the speed of the training algorithm. " +
                 "Small value may increate the number of iterations needed to achieve a reasonable result. Large value may lead to numerical difficulty such as a infinity value.")]
             [TGUI(SuggestedSweeps = "0.001,0.01,0.1")]
             [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
