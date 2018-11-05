@@ -543,7 +543,6 @@ var mlContext = new MLContext();
 var reader = new TextLoader(mlContext, new TextLoader.Arguments
 {
     Column = new[] {
-        // We read the first 11 values as a single float vector.
         new TextLoader.Column("SepalLength", DataKind.R4, 0),
         new TextLoader.Column("SepalWidth", DataKind.R4, 1),
         new TextLoader.Column("PetalLength", DataKind.R4, 2),
@@ -825,6 +824,42 @@ var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
 // Inspect one column of the resulting dataset.
 var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
+```
+
+You can achive the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        // The four features of the Iris dataset will be grouped together as one Features column.
+        new TextLoader.Column("Features", DataKind.R4, 0, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Read the training data.
+var trainData = reader.Read(dataPath);
+
+// Apply all kinds of standard ML.NET normalization to the raw features.
+var pipeline =
+    mlContext.Transforms.Normalize(
+        new NormalizingEstimator.MinMaxColumn("Features", "MinMaxNormalized", fixZero: true),
+        new NormalizingEstimator.MeanVarColumn("Features", "MeanVarNormalized", fixZero: true),
+        new NormalizingEstimator.BinningColumn("Features", "BinNormalized", numBins: 256));
+
+// Let's train our pipeline of normalizers, and then apply it to the same data.
+var normalizedData = pipeline.Fit(trainData).Transform(trainData);
+
+// Inspect one column of the resulting dataset.
+var meanVarValues = normalizedData.GetColumn<float[]>(mlContext, "MeanVarNormalized").ToArray();
 ```
 
 ## How do I train my model on categorical data?
