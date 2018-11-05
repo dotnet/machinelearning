@@ -90,7 +90,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
 
         /// <summary>
-        /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be used as matrix's column index.
+        /// The name of variable (i.e., Column in a <see cref="IDataView"/> type system) used be as matrix's column index.
         /// </summary>
         public readonly string MatrixColumnIndexName;
 
