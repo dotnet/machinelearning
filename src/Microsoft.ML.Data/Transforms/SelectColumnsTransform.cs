@@ -56,7 +56,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep, cannot be set with <paramref name="dropColumns"/>.</param>
         /// <param name="dropColumns">The array of column names to drop, cannot be set with <paramref name="keepColumns"/>.</param>
-        /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns.</param>
+        /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns. The argument is
+        /// ignored if the Estimator is in "drop mode".</param>
         /// <param name="ignoreMissing">If false will check for any columns given in <paramref name="keepColumns"/>
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
