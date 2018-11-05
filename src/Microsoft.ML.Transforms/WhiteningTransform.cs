@@ -347,6 +347,11 @@ namespace Microsoft.ML.Transforms.Projections
                 // REMOVE AFTER DEBUGGING
                 ch.Info("Computing covariance matrix...");
                 ch.Info("data = " + ArrayPrint(data));
+                ch.Info("ccol = " + ccol.ToString());
+                ch.Info("crow = " + crow.ToString());
+                ch.Info("Layout = " + Layout.ToString());
+                ch.Info("Trans = " + Mkl.Transpose.Trans.ToString());
+                ch.Info("NoTrans = " + Mkl.Transpose.NoTrans.ToString());
 
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
                     ccol, ccol, crow, 1 / (Float)crow, data, ccol, data, ccol, 0, u, ccol);
