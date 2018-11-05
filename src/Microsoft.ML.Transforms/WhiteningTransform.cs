@@ -356,7 +356,11 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 // REMOVE AFTER DEBUGGING
                 if (rowCounts[iinfo] == 0)
+                {
+                    _models[iinfo] = new float[Infos[iinfo].TypeSrc.ValueCount * Infos[iinfo].TypeSrc.ValueCount];
+                    InvModels[iinfo] = new float[Infos[iinfo].TypeSrc.ValueCount * Infos[iinfo].TypeSrc.ValueCount];
                     continue;
+                }
 
                 var ex = _exes[iinfo];
                 var data = columnData[iinfo];
