@@ -104,15 +104,16 @@ Below are some of the highlights from this release.
       evaluation. More information can be found in
       [#1098](https://github.com/dotnet/machinelearning/issues/1098).
     * Example usage can be found
-      [here](https://github.com/dotnet/machinelearning/blob/d68388a1c9994a5b429b194b64b2b0782834cb78/docs/code/MlNetCookBook.md)
+      [here](https://github.com/dotnet/machinelearning/blob/d68388a1c9994a5b429b194b64b2b0782834cb78/docs/code/MlNetCookBook.md).
 
 * Open sourced [NimbusML](https://github.com/microsoft/nimbusml): experimental
   Python bindings for ML.NET. 
 
-    * Some teams at Microsoft found it useful to use ML.NET capabilities in
-      Python environments. NimbusML provides Python APIs to ML.NET and easily
-      integrates into [scikit-learn](http://scikit-learn.org/stable/)
-      pipelines. 
+    * NimbusML makes it easy for data scientists to train models in Python and
+      hand them off to .NET developers to include in their apps and services
+      using ML.NET. 
+    * NimbusML components easily integrate into
+      [scikit-learn](http://scikit-learn.org/stable/) pipelines. 
     * Note that NimbusML is an experimental project without the same support
       level as ML.NET.
 
