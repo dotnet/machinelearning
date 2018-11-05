@@ -39,7 +39,8 @@ phases:
     - task: CopyFiles@2
       displayName: Stage build logs
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/msbuild.log
+        sourceFolder: $(Build.SourcesDirectory)
+        contents: msbuild.log
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build logs
