@@ -943,6 +943,63 @@ var fullLearningPipeline = learningPipeline
 var model = fullLearningPipeline.Fit(data);
 ```
 
+You can achive the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        new TextLoader.Column("Label", DataKind.BL, 0),
+        // We will load all the categorical features into one vector column of size 8.
+        new TextLoader.Column("CategoricalFeatures", DataKind.TX, 1, 8),
+        // Similarly, load all numerical features into one vector of size 6.
+        new TextLoader.Column("NumericalFeatures", DataKind.R4, 9, 14),
+        // Let's also separately load the 'Workclass' column.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+    },
+    HasHeader = true
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Inspect the categorical columns to check that they are correctly read.
+var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
+
+// Build several alternative featurization pipelines.
+var dynamicPipeline =
+    // Convert each categorical feature into one-hot encoding independently.
+    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
+    // Convert all categorical features into indices, and build a 'word bag' of these.
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot", CategoricalTransform.OutputKind.Bag))
+    // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
+    .Append(new CountFeatureSelector(mlContext, "WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+
+// Let's train our pipeline, and then apply it to the same data.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var categoricalBags = transformedData.GetColumn<float[]>(mlContext, "CategoricalBag").Take(10).ToArray();
+var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHotTrimmed").Take(10).ToArray();
+
+// Of course, if we want to train the model, we will need to compose a single float vector of all the features.
+// Here's how we could do this:
+
+var fullLearningPipeline = dynamicPipeline
+    // Concatenate two of the 3 categorical pipelines, and the numeric features.
+    .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+    // Now we're ready to train. We chose our FastTree trainer for this classification task.
+    .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
+
+// Train the model.
+var model = fullLearningPipeline.Fit(data);
+```
+
 ## How do I train my model on textual data?
 
 Generally speaking, *all ML.NET learners expect the features as a float vector*. So, if some of your data is not natively a float, you will need to convert to floats. 
