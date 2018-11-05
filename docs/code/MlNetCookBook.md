@@ -405,6 +405,45 @@ var learningPipeline = reader.MakeNewEstimator()
 var model = learningPipeline.Fit(trainData);
 ```
 
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        // We read the first 11 values as a single float vector.
+        new TextLoader.Column("FeatureVector", DataKind.R4, 0, 10),
+
+        // Separately, read the target variable.
+        new TextLoader.Column("Target", DataKind.R4, 11),
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true,
+    // Default separator is tab, but we need a semicolon.
+    Separator = ";"
+});
+
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+var trainData = reader.Read(trainDataPath);
+
+// Step two: define the learning pipeline. 
+
+// We 'start' the pipeline with the output of the reader.
+var dynamicPipeline =
+    // First 'normalize' the data (rescale to be
+    // between -1 and 1 for all examples), and then train the model.
+    mlContext.Transforms.Normalize("FeatureVector")
+    // Add the SDCA regression trainer.
+    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"))
+
+// Step three. Train the pipeline.
+var model = dynamicPipeline.Fit(trainData);
+```
 ## How do I verify the model quality?
 
 This is the first question that arises after you train the model: how good it actually is?
