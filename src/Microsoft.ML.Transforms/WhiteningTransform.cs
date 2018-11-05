@@ -319,6 +319,16 @@ namespace Microsoft.ML.Transforms.Projections
             return columnData;
         }
 
+        // REMOVE AFTER DEBUG: prints array of floats
+        private string ArrayPrint(Float[] array)
+        {
+            string str = "[";
+            foreach (var val in array)
+                str += val.ToString() + " ";
+            str += "]";
+            return str;
+        }
+
         private void TrainModels(Float[][] columnData, int[] rowCounts, IChannel ch)
         {
             Host.AssertValue(ch);
@@ -337,13 +347,19 @@ namespace Microsoft.ML.Transforms.Projections
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
                     ccol, ccol, crow, 1 / (Float)crow, data, ccol, data, ccol, 0, u, ccol);
 
+                // REMOVE AFTER DEBUGGING:
+                ch.Info("cov mat = " + ArrayPrint(u));
+
                 ch.Info("Computing SVD...");
                 var eigValues = new Float[ccol]; // Eigenvalues.
                 var unconv = new Float[ccol]; // Superdiagonal unconverged values (if any). Not used but seems to be required by MKL.
-                // After the next call, values in U will be ovewritten by left eigenvectors.
-                // Each column in U will be an eigenvector.
+                                              // After the next call, values in U will be ovewritten by left eigenvectors.
+                                              // Each column in U will be an eigenvector.
                 int r = Mkl.Svd(Layout, Mkl.SvdJob.MinOvr, Mkl.SvdJob.None,
                     ccol, ccol, u, ccol, eigValues, null, ccol, null, ccol, unconv);
+                // REMOVE AFTER DEBUGGING:
+                ch.Info("cov mat = " + ArrayPrint(eigValues));
+                ch.Info("r = " + r.ToString());
                 ch.Assert(r == 0);
                 if (r > 0)
                     throw ch.Except("SVD did not converge.");
