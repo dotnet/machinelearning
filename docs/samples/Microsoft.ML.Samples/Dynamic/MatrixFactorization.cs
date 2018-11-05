@@ -97,11 +97,12 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"RMS - {metrics.Rms}");
             Console.WriteLine($"RSquared - {metrics.RSquared}");
 
-            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
-            // If any of row and column indexes are out-of-range (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
+            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it can be anything
+            // (here we use Score=0 and it will be overwritten by the true prediction). If any of row and column indexes are out-of-range
+            // (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
             var testMatrix = new List<MatrixElementForScore>() {
-                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = default },
-                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
+                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = 0 },
+                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = 0 } };
 
             // Again, convert the test data to a format supported by ML.NET.
             var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);
