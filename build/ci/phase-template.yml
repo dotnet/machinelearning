@@ -43,7 +43,7 @@ phases:
         contents: 
           ?(msbuild.*|binclash.log|init-tools.log)
         targetFolder: $(Build.ArtifactStagingDirectory)
-        - task: CopyFiles@2
+    - task: CopyFiles@2
       displayName: Stage more build logs
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
