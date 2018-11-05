@@ -354,6 +354,10 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
+                // REMOVE AFTER DEBUGGING
+                if (rowCounts[iinfo] == 0)
+                    continue;
+
                 var ex = _exes[iinfo];
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
