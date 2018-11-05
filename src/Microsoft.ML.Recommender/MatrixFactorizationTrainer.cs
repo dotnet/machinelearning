@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Latent space dimension (denoted by k). If the factorized matrix is m-by-n, " +
                 "two factor matrices found by matrix factorization are m-by-k and k-by-n, respectively. " +
-                "This value is also known as the rank of matrix factorization.")]
+                "This value is also known as the rank of matrix factorization because k is generally much smaller than m and n.")]
             [TGUI(SuggestedSweeps = "8,16,64,128")]
             [TlcModule.SweepableDiscreteParam("K", new object[] { 8, 16, 64, 128 })]
             public int K = 8;
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers
             public int NumIterations = 20;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate. It specifies the speed of the training algorithm. " +
-                "Small value may increate the number of iterations needed to achieve a reasonable result. Large value may lead to numerical difficulty such as a infinity value.")]
+                "Small value may increase the number of iterations needed to achieve a reasonable result. Large value may lead to numerical difficulty such as a infinity value.")]
             [TGUI(SuggestedSweeps = "0.001,0.01,0.1")]
             [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
             public double Eta = 0.1;
