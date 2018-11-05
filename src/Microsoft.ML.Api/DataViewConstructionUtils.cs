@@ -207,7 +207,16 @@ namespace Microsoft.ML.Runtime.Api
                         Host.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));
                     else
                         Host.Assert(colType.RawType == outputType);
-                    del = CreateDirectGetterDelegate<int>;
+
+                    if (!colType.IsKey)
+                        del = CreateDirectGetterDelegate<int>;
+                    else
+                    {
+                        var keyRawType = colType.RawType;
+                        Host.Assert(colType.AsKey.Contiguous);
+                        Func<Delegate, ColumnType, Delegate> delForKey = CreateKeyGetterDelegate<uint>;
+                        return Utils.MarshalInvoke(delForKey, keyRawType, peek, colType);
+                    }
                 }
                 else
                 {
@@ -286,6 +295,38 @@ namespace Microsoft.ML.Runtime.Api
                 Host.AssertValue(peek);
                 return (ValueGetter<TDst>)((ref TDst dst) =>
                     peek(GetCurrentRowObject(), Position, ref dst));
+            }
+
+            private Delegate CreateKeyGetterDelegate<TDst>(Delegate peekDel, ColumnType colType)
+            {
+                // Make sure the function is dealing with key.
+                Host.Check(colType.IsKey);
+                // Following equations work only with contiguous key type.
+                Host.Check(colType.AsKey.Contiguous);
+                // Following equations work only with unsigned integers.
+                Host.Check(typeof(TDst) == typeof(ulong) || typeof(TDst) == typeof(uint) ||
+                    typeof(TDst) == typeof(byte) || typeof(TDst) == typeof(bool));
+
+                // Convert delegate function to a function which can fetch the underlying value.
+                var peek = peekDel as Peek<TRow, TDst>;
+                Host.AssertValue(peek);
+
+                TDst rawKeyValue = default;
+                ulong key = 0; // the raw key value as ulong
+                ulong min = colType.AsKey.Min;
+                ulong max = min + (ulong)colType.AsKey.Count - 1;
+                ulong result = 0; // the result as ulong
+                ValueGetter<TDst> getter = (ref TDst dst) =>
+                {
+                    peek(GetCurrentRowObject(), Position, ref rawKeyValue);
+                    key = (ulong)Convert.ChangeType(rawKeyValue, typeof(ulong));
+                    if (min <= key && key <= max)
+                        result = key - min + 1;
+                    else
+                        result = 0;
+                    dst = (TDst)Convert.ChangeType(result, typeof(TDst));
+                };
+                return getter;
             }
 
             protected abstract TRow GetCurrentRowObject();
