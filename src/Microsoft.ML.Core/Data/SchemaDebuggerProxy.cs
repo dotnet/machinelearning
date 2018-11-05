@@ -15,7 +15,6 @@ namespace Microsoft.ML.Core.Data
     internal sealed class SchemaDebuggerProxy
     {
         [System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.RootHidden)]
-
         public Schema.Column[] Columns { get; }
 
         public SchemaDebuggerProxy(Schema schema)

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.ML.Data
@@ -22,8 +23,8 @@ namespace Microsoft.ML.Data
         }
 
         public Schema Schema { get; }
-        public ColumnInfo[] ColumnView { get; }
-        public RowInfo[] RowView { get; }
+        public ImmutableArray<ColumnInfo> ColumnView { get; }
+        public ImmutableArray<RowInfo> RowView { get; }
 
         internal DataDebuggerPreview(IDataView data, int maxRows = Defaults.MaxRows)
         {
@@ -55,8 +56,8 @@ namespace Microsoft.ML.Data
                     count++;
                 }
             }
-            RowView = rows.ToArray();
-            ColumnView = Enumerable.Range(0, n).Select(c => new ColumnInfo(data.Schema[c], columns[c].ToArray())).ToArray();
+            RowView = rows.ToImmutableArray();
+            ColumnView = Enumerable.Range(0, n).Select(c => new ColumnInfo(data.Schema[c], columns[c].ToArray())).ToImmutableArray();
         }
 
         public override string ToString()
@@ -96,17 +97,14 @@ namespace Microsoft.ML.Data
 
         public sealed class ColumnInfo
         {
-            public string Name { get; }
-            public ColumnType Type { get; }
+            public Schema.Column Column { get; }
             public object[] Values { get; }
 
-            public override string ToString()
-                => $"{Name}: {Type}";
+            public override string ToString() => $"{Column.Name}: {Column.Type}";
 
             internal ColumnInfo(Schema.Column column, object[] values)
             {
-                Name = column.Name;
-                Type = column.Type;
+                Column = column;
                 Values = values;
             }
         }

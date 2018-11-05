@@ -25,7 +25,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_Visibility()
         {
-            List<int> x = new List<int> { 1, 2, 3, 5 };
             var ml = new MLContext(seed: 1, conc: 1);
             var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features", s => s.OutputTokens = true));
