@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -370,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc, TextType.Instance,
-                (ref TSrc src, ref ReadOnlyMemory<char> dst) => dst = value.AsMemory());
+                (in TSrc src, ref ReadOnlyMemory<char> dst) => dst = value.AsMemory());
         }
 
         /// <summary>
@@ -404,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(typeSrc.RawType == typeof(TSrc));
             return LambdaColumnMapper.Create(env, registrationName, input, inputColName, outputColName, typeSrc,
-                new KeyType(DataKind.U4, 0, keyCount), (ref TSrc src, ref uint dst) =>
+                new KeyType(DataKind.U4, 0, keyCount), (in TSrc src, ref uint dst) =>
                 {
                     if (value < 0 || value > keyCount)
                         dst = 0;
@@ -505,7 +507,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (def.Equals(default(T)))
                 {
                     mapper =
-                        (ref VBuffer<T> src, ref VBuffer<T> dst) =>
+                        (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
 
@@ -531,7 +533,7 @@ namespace Microsoft.ML.Runtime.Data
                             naIndices.Add(j);
                     }
                     mapper =
-                        (ref VBuffer<T> src, ref VBuffer<T> dst) =>
+                        (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
                             var values = dst.Values;
@@ -620,7 +622,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var keyMapperCur = keyValueMappers[i];
                 ValueMapper<uint, uint> mapper =
-                    (ref uint src, ref uint dst) =>
+                    (in uint src, ref uint dst) =>
                     {
                         if (src == 0 || src > keyMapperCur.Length)
                             dst = 0;
@@ -651,7 +653,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!views[i].Schema.TryGetColumnIndex(columnName, out var index))
                     throw env.Except($"Data view {i} doesn't contain a column '{columnName}'");
                 ValueMapper<uint, uint> mapper =
-                    (ref uint src, ref uint dst) =>
+                    (in uint src, ref uint dst) =>
                     {
                         if (src > keyCount)
                             dst = 0;
@@ -687,7 +689,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var keyMapperCur = keyValueMappers[i];
                 ValueMapper<VBuffer<uint>, VBuffer<uint>> mapper =
-                    (ref VBuffer<uint> src, ref VBuffer<uint> dst) =>
+                    (in VBuffer<uint> src, ref VBuffer<uint> dst) =>
                     {
                         var values = dst.Values;
                         if (Utils.Size(values) < src.Count)
@@ -853,7 +855,7 @@ namespace Microsoft.ML.Runtime.Data
                             // In the event that no slot names were recorded here, then slotNames will be
                             // the default, length 0 vector.
                             firstDvSlotNames.TryGetValue(name, out slotNames);
-                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, ref slotNames))
+                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, in slotNames))
                                 variableSizeVectorColumnNamesList.Add(name);
                         }
                         else
@@ -931,7 +933,7 @@ namespace Microsoft.ML.Runtime.Data
                                  variableSizeVectorColumnName, type);
 
                         // Drop the old column that does not have variable length.
-                        idv = new DropColumnsTransform(env, new DropColumnsTransform.Arguments() { Column = new[] { variableSizeVectorColumnName } }, idv);
+                        idv = SelectColumnsTransform.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };
@@ -949,7 +951,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
-            ColumnType type, ref VBuffer<ReadOnlyMemory<char>> firstDvSlotNames)
+            ColumnType type, in VBuffer<ReadOnlyMemory<char>> firstDvSlotNames)
         {
             if (cachedSize != type.VectorSize)
                 return false;
@@ -966,7 +968,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     var result = true;
-                    VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
+                    VBufferUtils.ForEachEitherDefined(in currSlotNames, in firstDvSlotNames,
                         (slot, val1, val2) => result = result && val1.Span.SequenceEqual(val2.Span));
                     return result;
                 }
@@ -982,7 +984,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
                        variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
-                       (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
+                       (in VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
         private static List<string> GetMetricNames(IChannel ch, Schema schema, IRow row, Func<int, bool> ignoreCol,
@@ -1057,8 +1059,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    var dropArgs = new DropColumnsTransform.Arguments() { Column = nonAveragedCols.ToArray() };
-                    data = new DropColumnsTransform(env, dropArgs, data);
+                    data = SelectColumnsTransform.CreateDrop(env, data, nonAveragedCols.ToArray());
                 }
                 idvList.Add(data);
             }
@@ -1732,9 +1733,7 @@ namespace Microsoft.ML.Runtime.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            var dropArgs = new DropColumnsTransform.Arguments();
-            dropArgs.Column = new[] { data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal) };
-            data = new DropColumnsTransform(env, dropArgs, data);
+            data = SelectColumnsTransform.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
             return data;
         }
     }

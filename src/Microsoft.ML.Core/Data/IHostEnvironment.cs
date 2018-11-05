@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML.Runtime
 {
@@ -72,6 +73,12 @@ namespace Microsoft.ML.Runtime
         /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
         /// </summary>
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
+
+        /// <summary>
+        /// Get the MEF composition container. This can be used to instantiate user-provided 'parts' when the model
+        /// is being loaded, or the components are otherwise created via dependency injection.
+        /// </summary>
+        CompositionContainer GetCompositionContainer();
     }
 
     /// <summary>
@@ -169,7 +176,7 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// A channel message.
     /// </summary>
-    public struct ChannelMessage
+    public readonly struct ChannelMessage
     {
         public readonly ChannelMessageKind Kind;
         public readonly MessageSensitivity Sensitivity;

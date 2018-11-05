@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -18,6 +13,12 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
@@ -31,7 +32,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadRowMapper),
     WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
     public sealed class WordEmbeddingsTransform : OneToOneTransformerBase
@@ -781,38 +782,59 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class WordEmbeddingsEstimator : IEstimator<WordEmbeddingsTransform>
+    /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
+    public sealed class WordEmbeddingsExtractorEstimator : IEstimator<WordEmbeddingsTransform>
     {
         private readonly IHost _host;
         private readonly WordEmbeddingsTransform.ColumnInfo[] _columns;
         private readonly WordEmbeddingsTransform.PretrainedModelKind? _modelKind;
         private readonly string _customLookupTable;
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        /// <summary>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="inputColumn">The input column.</param>
+        /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
            WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
-            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
+            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
-            : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
+        /// <summary>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="inputColumn">The input column.</param>
+        /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
+        /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
+            : this(env, customModelFile, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env,
+        /// <summary>
+        /// Extracts word embeddings.
+        /// </summary>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env,
             WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe, params WordEmbeddingsTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
             _modelKind = modelKind;
             _customLookupTable = null;
             _columns = columns;
         }
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsTransform.ColumnInfo[] columns)
+        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
             _modelKind = null;
             _customLookupTable = customModelFile;
             _columns = columns;
@@ -917,9 +939,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
                 if (customLookup)
-                    return new WordEmbeddingsEstimator(env, _customLookupTable, cols);
+                    return new WordEmbeddingsExtractorEstimator(env, _customLookupTable, cols);
                 else
-                    return new WordEmbeddingsEstimator(env, _modelKind.Value, cols);
+                    return new WordEmbeddingsExtractorEstimator(env, _modelKind.Value, cols);
             }
         }
     }

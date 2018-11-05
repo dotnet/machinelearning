@@ -41,8 +41,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            var loss = new TrivialClassificationLossFactory(lossFunction ?? new LogLoss());
-            return new AveragedPerceptronTrainer(env, label, features, weights, loss, learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+            return new AveragedPerceptronTrainer(env, label, features, weights, lossFunction ?? new LogLoss(), learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory

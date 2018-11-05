@@ -23,9 +23,6 @@ set _json=%~dp0config.json
 
 pushd "%~dp0"
 call "%_dotnet%" "%_toolRuntime%\run.exe" "%_json%" %*
-
-:: Terminate all dotnet build processes.
-call "%_dotnet%" "build-server" "shutdown"
 popd
 
 exit /b %ERRORLEVEL%

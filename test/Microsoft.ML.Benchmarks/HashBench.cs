@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Learners;
 using System.Linq;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Benchmarks
 
         private const int Count = 100_000;
 
-        private readonly IHostEnvironment _env = new LocalEnvironment();
+        private readonly IHostEnvironment _env = new MLContext();
 
         private Counted _counted;
         private ValueGetter<uint> _getter;

@@ -14,13 +14,14 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
     null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Recommender
+namespace Microsoft.ML.Trainers.Recommender
 {
     /// <summary>
     /// <see cref="MatrixFactorizationPredictor"/> stores two factor matrices, P and Q, for approximating the training matrix, R, by P * Q,
@@ -199,7 +200,7 @@ namespace Microsoft.ML.Runtime.Recommender
                 {
                     matrixColumnIndexGetter(ref matrixColumnIndex);
                     matrixRowIndexGetter(ref matrixRowIndex);
-                    mapper(ref matrixColumnIndex, ref matrixRowIndex, ref value);
+                    mapper(in matrixColumnIndex, ref matrixRowIndex, ref value);
                 };
             return del;
         }
@@ -227,7 +228,7 @@ namespace Microsoft.ML.Runtime.Recommender
             return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
-        private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
+        private void MapperCore(in uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
@@ -402,6 +403,7 @@ namespace Microsoft.ML.Runtime.Recommender
             MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+            MatrixRowIndexColumnType = trainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 

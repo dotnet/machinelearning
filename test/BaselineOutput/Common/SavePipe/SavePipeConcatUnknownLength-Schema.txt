@@ -4,7 +4,7 @@
   Single: I4
   Text: Text
   Unknown: Vec<I4>
----- DelimitedTokenizeTransform ----
+---- RowToRowMapperTransform ----
 5 columns:
   Known: Vec<I4, 3>
   Single: I4
@@ -33,7 +33,7 @@
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
   Indicators: Vec<R4, *, 6>
     Metadata 'IsNormalized': Bool: '1'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 8 columns:
   Known: Vec<I4, 3>
   Single: I4
@@ -47,7 +47,7 @@
     Metadata 'IsNormalized': Bool: '1'
   Indicators: Vec<R8, *, 6>
     Metadata 'IsNormalized': Bool: '1'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 11 columns:
   Known: Vec<I4, 3>
   Known: Vec<R8, 3>
@@ -82,6 +82,6 @@
   Indicators: Vec<R8, *, 6>
     Metadata 'IsNormalized': Bool: '1'
   All: Vec<R8>
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 1 columns:
   All: Vec<R8>

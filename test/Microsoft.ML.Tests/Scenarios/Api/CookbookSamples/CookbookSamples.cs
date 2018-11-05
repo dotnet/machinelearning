@@ -11,16 +11,17 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Immutable;
+using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -377,7 +378,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
             var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
-                .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
             var dynamicModel = dynamicLearningPipeline.Fit(trainData);

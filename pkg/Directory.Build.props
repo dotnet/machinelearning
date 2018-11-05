@@ -35,6 +35,11 @@
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" Pack="true" PackagePath="runtimes" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IncludeMLNetNotices)' != 'false'">
+    <Content Include="$(RepoRoot)\THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="\" />
+    <Content Include="$(RepoRoot)\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(IsSymbolsPackage)' != 'true'">
     <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\**\*.pdb" />
     <Content Remove="$(PackageAssetsPath)$(PackageIdFolderName)\**\*.dwarf" />

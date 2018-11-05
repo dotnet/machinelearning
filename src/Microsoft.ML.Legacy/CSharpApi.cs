@@ -11768,12 +11768,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies whether to keep or remove hidden columns.
             /// </summary>
-            public bool KeepHidden { get; set; } = true;
+            public bool KeepHidden { get; set; } = false;
 
             /// <summary>
             /// Specifies whether to ignore columns that are missing from the input.
             /// </summary>
-            public bool IgnoreMissing { get; set; } = true;
+            public bool IgnoreMissing { get; set; } = false;
 
             /// <summary>
             /// Input dataset
@@ -11828,7 +11828,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
+        public sealed partial class ConvertingTransformColumn : OneToOneColumn<ConvertingTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
@@ -11886,15 +11886,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11902,7 +11902,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:type:src)
             /// </summary>
-            public ConvertTransformColumn[] Column { get; set; }
+            public ConvertingTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The result type
@@ -16711,7 +16711,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum TextTransformLanguage
+        public enum TextFeaturizingEstimatorLanguage
         {
             English = 1,
             French = 2,
@@ -16722,14 +16722,14 @@ namespace Microsoft.ML
             Japanese = 7
         }
 
-        public enum TextNormalizerEstimatorCaseNormalizationMode
+        public enum TextNormalizingEstimatorCaseNormalizationMode
         {
             Lower = 0,
             Upper = 1,
             None = 2
         }
 
-        public enum TextTransformTextNormKind
+        public enum TextFeaturizingEstimatorTextNormKind
         {
             None = 0,
             L1 = 1,
@@ -16738,7 +16738,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
+        public sealed partial class TextFeaturizingEstimatorColumn : ManyToOneColumn<TextFeaturizingEstimatorColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -16771,8 +16771,8 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
-        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="TextTransform"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="FeaturizeTextEstimator"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="FeaturizeTextEstimator"]/*' />
         public sealed partial class TextFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
@@ -16787,19 +16787,19 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextTransformColumn>.Create(name, source);
+                Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextFeaturizingEstimatorColumn>.Create(name, source);
             }
 
 
             /// <summary>
             /// New column definition (optional form: name:srcs).
             /// </summary>
-            public TextTransformColumn Column { get; set; }
+            public TextFeaturizingEstimatorColumn Column { get; set; }
 
             /// <summary>
             /// Dataset language or 'AutoDetect' to detect language per row.
             /// </summary>
-            public TextTransformLanguage Language { get; set; } = TextTransformLanguage.English;
+            public TextFeaturizingEstimatorLanguage Language { get; set; } = TextFeaturizingEstimatorLanguage.English;
 
             /// <summary>
             /// Stopwords remover.
@@ -16810,7 +16810,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Casing text using the rules of the invariant culture.
             /// </summary>
-            public TextNormalizerEstimatorCaseNormalizationMode TextCase { get; set; } = TextNormalizerEstimatorCaseNormalizationMode.Lower;
+            public TextNormalizingEstimatorCaseNormalizationMode TextCase { get; set; } = TextNormalizingEstimatorCaseNormalizationMode.Lower;
 
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
@@ -16852,7 +16852,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize vectors (rows) individually by rescaling them to unit norm.
             /// </summary>
-            public TextTransformTextNormKind VectorNormalizer { get; set; } = TextTransformTextNormKind.L2;
+            public TextFeaturizingEstimatorTextNormKind VectorNormalizer { get; set; } = TextFeaturizingEstimatorTextNormKind.L2;
 
             /// <summary>
             /// Input dataset

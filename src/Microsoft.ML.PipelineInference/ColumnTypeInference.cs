@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public ReadOnlyMemory<char>[] RawData { get { return _data; } }
         }
 
-        public struct Column
+        public readonly struct Column
         {
             public readonly int ColumnIndex;
             public readonly string SuggestedName;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly Column[] Columns;
             public readonly bool HasHeader;
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             .All(x =>
                             {
                                 bool value;
-                                return Conversions.Instance.TryParse(ref x, out value);
+                                return Conversions.Instance.TryParse(in x, out value);
                             })
                             )
                         {
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         col.SuggestedType = BoolType.Instance;
                         bool first;
 
-                        col.HasHeader = !Conversions.Instance.TryParse(ref col.RawData[0], out first);
+                        col.HasHeader = !Conversions.Instance.TryParse(in col.RawData[0], out first);
                     }
                 }
             }
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             .All(x =>
                             {
                                 Single value;
-                                return Conversions.Instance.TryParse(ref x, out value);
+                                return Conversions.Instance.TryParse(in x, out value);
                             })
                             )
                         {

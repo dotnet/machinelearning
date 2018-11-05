@@ -14,28 +14,30 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
-    TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
+[assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(TextFeaturizingEstimator), typeof(TextFeaturizingEstimator.Arguments), typeof(SignatureDataTransform),
+    TextFeaturizingEstimator.UserName, "TextTransform", TextFeaturizingEstimator.LoaderSignature)]
 
-[assembly: LoadableClass(TextTransform.Summary, typeof(ITransformer), typeof(TextTransform), null, typeof(SignatureLoadModel),
-    TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
+[assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(ITransformer), typeof(TextFeaturizingEstimator), null, typeof(SignatureLoadModel),
+    TextFeaturizingEstimator.UserName, "TextTransform", TextFeaturizingEstimator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
-    using CaseNormalizationMode = TextNormalizerEstimator.CaseNormalizationMode;
+    using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
     using StopWordsCol = StopWordsRemoverTransform.Column;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
-    /// <include file='doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
-    public sealed class TextTransform : IEstimator<ITransformer>
+    /// <include file='doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
+    public sealed class TextFeaturizingEstimator  : IEstimator<ITransformer>
     {
         /// <summary>
         /// Text language. This enumeration is serialized.
@@ -94,16 +96,16 @@ namespace Microsoft.ML.Runtime.Data
             public IStopWordsRemoverFactory StopWordsRemover;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseNormalizationMode TextCase = TextNormalizerEstimator.Defaults.TextCase;
+            public CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
-            public bool KeepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics;
+            public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep punctuation marks or remove them.", ShortName = "punc", SortOrder = 7)]
-            public bool KeepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations;
+            public bool KeepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 8)]
-            public bool KeepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers;
+            public bool KeepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the transformed text tokens as an additional column.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
             public bool OutputTokens;
@@ -151,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
 
         /// <summary>
-        /// A distilled version of the TextTransform Arguments, with all fields marked readonly and
+        /// A distilled version of the TextFeaturizingEstimator  Arguments, with all fields marked readonly and
         /// only the exact set of information needed to construct the transforms preserved.
         /// </summary>
         private sealed class TransformApplierParams
@@ -170,13 +172,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly TermLoaderArguments Dictionary;
 
             public StopWordsRemoverTransform.Language StopwordsLanguage
-            {
-                get
-                {
-                    return (StopWordsRemoverTransform.Language)
-                        Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
-                }
-            }
+                =>(StopWordsRemoverTransform.Language) Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
 
             public LpNormNormalizerTransform.NormalizerKind LpNormalizerKind
             {
@@ -238,7 +234,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             #endregion
 
-            public TransformApplierParams(TextTransform parent)
+            public TransformApplierParams(TextFeaturizingEstimator  parent)
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
@@ -267,17 +263,17 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public TextTransform(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public TextFeaturizingEstimator (IHostEnvironment env, string inputColumn, string outputColumn = null,
             Action<Settings> advancedSettings = null)
             : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
         {
         }
 
-        public TextTransform(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+        public TextFeaturizingEstimator (IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
             Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TextTransform));
+            _host = env.Register(nameof(TextFeaturizingEstimator ));
             _host.CheckValue(inputColumns, nameof(inputColumns));
             _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
             _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
@@ -329,7 +325,7 @@ namespace Microsoft.ML.Runtime.Data
                     xfCols[i] = (textCols[i], dstCols[i]);
                 }
 
-                view = new TextNormalizerEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
+                view = new TextNormalizingEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
 
                 textCols = dstCols;
             }
@@ -346,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
                     tempCols.Add(col.Output);
                 }
 
-                view = new WordTokenizeEstimator(h, xfCols).Fit(view).Transform(view);
+                view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -375,8 +371,8 @@ namespace Microsoft.ML.Runtime.Data
                 tempCols.Add(dstCol);
                 view = tparams.WordExtractorFactory.Create(h, view, new[] {
                     new ExtractorColumn()
-{
-    Name = dstCol,
+                    {
+                        Name = dstCol,
                         Source = wordTokCols,
                         FriendlyNames = _inputColumns
                     }});
@@ -409,8 +405,8 @@ namespace Microsoft.ML.Runtime.Data
                     tempCols.Add(charFeatureCol);
                     view = tparams.CharExtractorFactory.Create(h, view, new[] {
                         new ExtractorColumn()
-{
-    Source = charTokCols,
+                        {
+                            Source = charTokCols,
                             FriendlyNames = _inputColumns,
                             Name = charFeatureCol
                         }});
@@ -479,9 +475,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            view = new DropColumnsTransform(h,
-                new DropColumnsTransform.Arguments() { Column = tempCols.ToArray() }, view);
-
+            view = SelectColumnsTransform.CreateDrop(h, view, tempCols.ToArray());
             return new Transformer(_host, input, view);
         }
 
@@ -534,7 +528,7 @@ namespace Microsoft.ML.Runtime.Data
                 s.VectorNormalizer = args.VectorNormalizer;
             };
 
-            var estimator = new TextTransform(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
+            var estimator = new TextFeaturizingEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
             estimator._stopWordsRemover = args.StopWordsRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
@@ -677,7 +671,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new TextTransform(env, inputs, outputNames[outCol], _settings);
+                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
             }
         }
     }
@@ -694,12 +688,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="otherInputs">Additional data.</param>
         /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
         /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValueOrNull(otherInputs);
             otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new TextTransform.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
+            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

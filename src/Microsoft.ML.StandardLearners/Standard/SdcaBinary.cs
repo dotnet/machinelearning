@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
 using System.Threading;
@@ -129,14 +130,14 @@ namespace Microsoft.ML.Trainers
 
         protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected float WScaledDot(ref VBuffer<float> features, Double scaling, ref VBuffer<float> weights, float bias)
+        protected float WScaledDot(in VBuffer<float> features, Double scaling, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) * (float)scaling + bias;
+            return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
@@ -274,9 +275,9 @@ namespace Microsoft.ML.Trainers
             Args.Check(env);
         }
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in VBuffer<float> features, in VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
@@ -789,7 +790,7 @@ namespace Microsoft.ML.Trainers
                     for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                     {
                         var dual = duals[idx];
-                        var output = WDot(ref features, ref weights[0], biasReg[0] + biasUnreg[0]);
+                        var output = WDot(in features, in weights[0], biasReg[0] + biasUnreg[0]);
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
                         // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -811,7 +812,7 @@ namespace Microsoft.ML.Trainers
 
                             if (l1ThresholdZero)
                             {
-                                VectorUtils.AddMult(ref features, weights[0].Values, primalUpdate);
+                                VectorUtils.AddMult(in features, weights[0].Values, primalUpdate);
                                 biasReg[0] += primalUpdate;
                             }
                             else
@@ -928,7 +929,7 @@ namespace Microsoft.ML.Trainers
                 {
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
-                    var output = WDot(ref features, ref weights[0], biasTotal);
+                    var output = WDot(in features, in weights[0], biasTotal);
                     Double subLoss = Loss.Loss(output, cursor.Label);
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
                     Double subDualLoss = Loss.DualLoss(cursor.Label, duals[idx]);
@@ -943,7 +944,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(Args.L1Threshold.HasValue);
             Double l2Const = Args.L2Const.Value;
             Double l1Threshold = Args.L1Threshold.Value;
-            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(ref weights[0]) + Math.Abs(biasReg[0]));
+            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
             var newDualLoss = dualLossSum.Sum / count - l2Regularizer - l2Const * biasUnreg[0] * biasReg[0];
@@ -1133,7 +1134,7 @@ namespace Microsoft.ML.Trainers
         protected sealed class IdToIdxLookup
         {
             // Utilizing this struct gives better cache behavior than using parallel arrays.
-            private struct Entry
+            private readonly struct Entry
             {
                 public readonly long ItNext;
                 public readonly UInt128 Value;
@@ -1547,10 +1548,11 @@ namespace Microsoft.ML.Trainers
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+            // below should be `in weights[0]`, but can't because of https://github.com/dotnet/roslyn/issues/29371
+            VBufferUtils.CreateMaybeSparseCopy(weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
+            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
                 return predictor;
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
@@ -1794,7 +1796,7 @@ namespace Microsoft.ML.Trainers
                             count++;
                             var instanceWeight = cursor.Weight;
                             var features = cursor.Features;
-                            Double subLoss = lossFunc.Loss(WScaledDot(ref features, weightScaling, ref weights, bias), cursor.Label);
+                            Double subLoss = lossFunc.Loss(WScaledDot(in features, weightScaling, in weights, bias), cursor.Label);
 
                             if (cursor.Label > 0)
                                 lossSum.Add(subLoss * instanceWeight * positiveInstanceWeight);
@@ -1833,7 +1835,7 @@ namespace Microsoft.ML.Trainers
                         {
                             VBuffer<float> features = cursor.Features;
                             float label = cursor.Label;
-                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
+                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(in features, weightScaling, in weights, bias), label); // complexity: O(k)
 
                             //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
                             //on the same instance. A potentially better way to do weighted update is described in
@@ -1844,7 +1846,7 @@ namespace Microsoft.ML.Trainers
                             Double rate = ilr / (1 + ilr * l2Weight * (t++));
                             Double step = -derivative * rate;
                             weightScaling *= 1 - rate * l2Weight;
-                            VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
+                            VectorUtils.AddMult(in features, weights.Values, (float)(step / weightScaling));
                             bias += (float)step;
                         }
                         if (e == 1)
@@ -1909,8 +1911,8 @@ namespace Microsoft.ML.Trainers
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
-            var pred = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+            var pred = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
             return new ParameterMixingCalibratedPredictor(Host, pred, new PlattCalibrator(Host, -1, 0));

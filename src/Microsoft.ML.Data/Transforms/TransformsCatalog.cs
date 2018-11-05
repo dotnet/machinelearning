@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Microsoft.ML.Runtime
 {
     /// <summary>
@@ -18,9 +13,9 @@ namespace Microsoft.ML.Runtime
         internal IHostEnvironment Environment { get; }
 
         public CategoricalTransforms Categorical { get; }
-        public Conversions Conversion { get; }
+        public ConversionTransforms Conversion { get; }
         public TextTransforms Text { get; }
-        public ProjectionTransforms Projections { get; }
+        public ProjectionTransforms Projection { get; }
 
         internal TransformsCatalog(IHostEnvironment env)
         {
@@ -28,9 +23,9 @@ namespace Microsoft.ML.Runtime
             Environment = env;
 
             Categorical = new CategoricalTransforms(this);
-            Conversion = new Conversions(this);
+            Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
-            Projections = new ProjectionTransforms(this);
+            Projection = new ProjectionTransforms(this);
         }
 
         public abstract class SubCatalogBase
@@ -57,9 +52,9 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// The catalog of rescaling operations.
         /// </summary>
-        public sealed class Conversions : SubCatalogBase
+        public sealed class ConversionTransforms : SubCatalogBase
         {
-            public Conversions(TransformsCatalog owner) : base(owner)
+            public ConversionTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }

@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Learners
                 new LinearSvm(Host, new LinearSvm.Arguments());
         }
 
-        protected IDataView MapLabelsCore<T>(ColumnType type, RefPredicate<T> equalsTarget, RoleMappedData data)
+        protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
         {
             Host.AssertValue(type);
             Host.Assert(type.RawType == typeof(T));
@@ -105,18 +105,18 @@ namespace Microsoft.ML.Runtime.Learners
 
             var lab = data.Schema.Label;
 
-            RefPredicate<T> isMissing;
+            InPredicate<T> isMissing;
             if (!Args.ImputeMissingLabelsAsNegative && Conversions.Instance.TryGetIsNAPredicate(type, out isMissing))
             {
                 return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
                     lab.Name, lab.Name, type, NumberType.Float,
-                    (ref T src, ref float dst) =>
-                        dst = equalsTarget(ref src) ? 1 : (isMissing(ref src) ? float.NaN : default(float)));
+                    (in T src, ref float dst) =>
+                        dst = equalsTarget(in src) ? 1 : (isMissing(in src) ? float.NaN : default(float)));
             }
             return LambdaColumnMapper.Create(Host, "Label mapper", data.Data,
                 lab.Name, lab.Name, type, NumberType.Float,
-                (ref T src, ref float dst) =>
-                    dst = equalsTarget(ref src) ? 1 : default(float));
+                (in T src, ref float dst) =>
+                    dst = equalsTarget(in src) ? 1 : default(float));
         }
 
         protected TScalarTrainer GetTrainer()

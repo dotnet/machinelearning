@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 while (cursor.MoveNext())
                 {
                     Utils.EnsureSize(ref preds, count + 1);
-                    map(ref cursor.Features, ref preds[count]);
+                    map(in cursor.Features, ref preds[count]);
                     count++;
                 }
             }

@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     Contracts.Check(score.Length == scoreLength);
-                    int index = VectorUtils.ArgMin(ref score);
+                    int index = VectorUtils.ArgMin(in score);
                     if (index < 0)
                         dst = 0;
                     else

@@ -1,0 +1,22 @@
+---- BoundLoader ----
+2 columns:
+  A: Text
+  B: Text
+---- RowToRowMapperTransform ----
+4 columns:
+  A: Text
+  B: Text
+  C: Vec<Text>
+  D: Vec<Text>
+---- RowToRowMapperTransform ----
+5 columns:
+  A: Text
+  B: Text
+  C: Vec<Text>
+  D: Vec<Text>
+  Concat: Vec<Text>
+---- SelectColumnsDataTransform ----
+3 columns:
+  A: Text
+  B: Text
+  Concat: Vec<Text>

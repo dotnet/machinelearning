@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,7 @@ using System.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(PcaTransform), null, typeof(SignatureEntryPointModule), PcaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms.PCA
+namespace Microsoft.ML.Transforms.Projections
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformerBase
@@ -44,19 +44,19 @@ namespace Microsoft.ML.Transforms.PCA
             public Column[] Column;
 
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight", Purpose = SpecialPurpose.ColumnName)]
-            public string WeightColumn = PcaEstimator.Defaults.WeightColumn;
+            public string WeightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k")]
-            public int Rank = PcaEstimator.Defaults.Rank;
+            public int Rank = PrincipalComponentAnalysisEstimator.Defaults.Rank;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", ShortName = "over")]
-            public int Oversampling = PcaEstimator.Defaults.Oversampling;
+            public int Oversampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean")]
-            public bool Center = PcaEstimator.Defaults.Center;
+            public bool Center = PrincipalComponentAnalysisEstimator.Defaults.Center;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation")]
-            public int Seed = PcaEstimator.Defaults.Seed;
+            public int Seed = PrincipalComponentAnalysisEstimator.Defaults.Seed;
         }
 
         public class Column : OneToOneColumn
@@ -120,10 +120,10 @@ namespace Microsoft.ML.Transforms.PCA
             /// <param name="seed">The seed for random number generation.</param>
             public ColumnInfo(string input,
                               string output,
-                              string weightColumn = PcaEstimator.Defaults.WeightColumn,
-                              int rank = PcaEstimator.Defaults.Rank,
-                              int overSampling = PcaEstimator.Defaults.Oversampling,
-                              bool center = PcaEstimator.Defaults.Center,
+                              string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
+                              int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
+                              int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
+                              bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
                               int? seed = null)
             {
                 Input = input;
@@ -482,10 +482,10 @@ namespace Microsoft.ML.Transforms.PCA
                             totalColWeight[iinfo] += weight;
 
                             if (center[iinfo])
-                                VectorUtils.AddMult(ref features, mean[iinfo], weight);
+                                VectorUtils.AddMult(in features, mean[iinfo], weight);
 
                             for (int i = 0; i < omega[iinfo].Length; i++)
-                                VectorUtils.AddMult(ref features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
+                                VectorUtils.AddMult(in features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, in features));
                         }
                     }
                 }
@@ -619,13 +619,13 @@ namespace Microsoft.ML.Transforms.PCA
                 ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
                     {
                         srcGetter(ref src);
-                        TransformFeatures(Host, ref src, ref dst, _parent._transformInfos[iinfo]);
+                        TransformFeatures(Host, in src, ref dst, _parent._transformInfos[iinfo]);
                     };
 
                 return dstGetter;
             }
 
-            private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
+            private static void TransformFeatures(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
             {
                 ectx.Check(src.Length == transformInfo.Dimension);
 
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Transforms.PCA
 
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
+                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Transforms.PCA
         }
     }
 
-    public sealed class PcaEstimator : IEstimator<PcaTransform>
+    public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
         internal static class Defaults
         {
@@ -685,7 +685,7 @@ namespace Microsoft.ML.Transforms.PCA
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public PcaEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
@@ -693,10 +693,10 @@ namespace Microsoft.ML.Transforms.PCA
         {
         }
 
-        public PcaEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
+        public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(PcaEstimator));
+            _host = env.Register(nameof(PrincipalComponentAnalysisEstimator));
             _columns = columns;
         }
 
@@ -756,7 +756,7 @@ namespace Microsoft.ML.Transforms.PCA
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputColName = inputNames[outCol.Input];
                 var outputColName = outputNames[outCol];
-                return new PcaEstimator(env, inputColName, outputColName,
+                return new PrincipalComponentAnalysisEstimator(env, inputColName, outputColName,
                                          _colInfo.WeightColumn, _colInfo.Rank, _colInfo.Oversampling,
                                          _colInfo.Center, _colInfo.Seed);
             }
@@ -775,10 +775,10 @@ namespace Microsoft.ML.Transforms.PCA
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
         public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PcaEstimator.Defaults.WeightColumn,
-            int rank = PcaEstimator.Defaults.Rank,
-            int overSampling = PcaEstimator.Defaults.Oversampling,
-            bool center = PcaEstimator.Defaults.Center,
+            string weightColumn = PrincipalComponentAnalysisEstimator.Defaults.WeightColumn,
+            int rank = PrincipalComponentAnalysisEstimator.Defaults.Rank,
+            int overSampling = PrincipalComponentAnalysisEstimator.Defaults.Oversampling,
+            bool center = PrincipalComponentAnalysisEstimator.Defaults.Center,
             int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
     }
 }

@@ -4,8 +4,10 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using Xunit;
@@ -37,9 +39,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 j.SepalLength = i.SepalLength;
                 j.SepalWidth = i.SepalWidth;
             };
-            var pipeline = new ConcatEstimator(ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new MyLambdaTransform<IrisData, IrisData>(ml, action), TransformerScope.TrainTest)
-                .Append(new TermEstimator(ml, "Label"), TransformerScope.TrainTest)
+            var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(new CustomMappingEstimator<IrisData, IrisData>(ml, action, null), TransformerScope.TrainTest)
+                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
                 .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 

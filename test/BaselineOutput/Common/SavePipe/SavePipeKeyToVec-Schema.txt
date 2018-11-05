@@ -46,7 +46,7 @@
       [0] 'Black', [1] 'White', [2] 'Male', [3] 'Female'
     Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
       [0] 'Race', [1] 'Gen.sex', [2] 'Race'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 8 columns:
   Mar: Text
   Race: Text
@@ -172,7 +172,7 @@
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 7>: Length=7, Count=7
       [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Widowed', [3] 'Divorced', [4] 'Separated', [5] 'Married-spouse-absent', [6] 'Married-AF-spouse'
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 10 columns:
   MarKey: Key<U4, 0-6>
     Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7

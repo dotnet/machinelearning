@@ -82,16 +82,16 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                 {
                     g1(ref v1);
                     g2(ref v2);
-                    return CompareVec<T>(ref v1, ref v2, size, fn);
+                    return CompareVec<T>(in v1, in v2, size, fn);
                 };
         }
 
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<T, T, bool> fn)
+        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
         {
-            return CompareVec(ref v1, ref v2, size, (i, x, y) => fn(x, y));
+            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
         }
 
-        protected bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
+        protected bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
         {
             Contracts.Assert(size == 0 || v1.Length == size);
             Contracts.Assert(size == 0 || v2.Length == size);

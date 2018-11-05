@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(typeof(AnomalyDetectionEvaluator), typeof(AnomalyDetectionEvaluator), typeof(AnomalyDetectionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Anomaly Detection Evaluator", AnomalyDetectionEvaluator.LoadName, "AnomalyDetection", "Anomaly")]
@@ -20,8 +21,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using Float = System.Single;
-
     public sealed class AnomalyDetectionEvaluator : EvaluatorBase<AnomalyDetectionEvaluator.Aggregator>
     {
         public sealed class Arguments
@@ -212,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public abstract class CountersBase
             {
-                protected struct Info
+                protected readonly struct Info
                 {
                     public readonly Single Label;
                     public readonly Single Score;
@@ -704,59 +703,42 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            var args = new ChooseColumnsTransform.Arguments();
-            var cols = new List<ChooseColumnsTransform.Column>()
-                {
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = string.Format(FoldDrAtKFormat, _k),
-                        Source = AnomalyDetectionEvaluator.OverallMetrics.DrAtK
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = string.Format(FoldDrAtPFormat, _p),
-                        Source = AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = string.Format(FoldDrAtNumAnomaliesFormat, numAnomalies),
-                        Source=AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name=AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name=AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name=AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos
-                    },
-                    new ChooseColumnsTransform.Column()
-                    {
-                        Name = BinaryClassifierEvaluator.Auc
-                    }
-                };
+            var kFormatName = string.Format(FoldDrAtKFormat, _k);
+            var pFormatName = string.Format(FoldDrAtPFormat, _p);
+            var numAnomName = string.Format(FoldDrAtNumAnomaliesFormat, numAnomalies);
 
-            args.Column = cols.ToArray();
-            IDataView fold = new ChooseColumnsTransform(Host, args, overall);
+            (string Source, string Name)[] cols =
+            {
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtK, kFormatName),
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr, pFormatName),
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos, numAnomName)
+            };
+
+            // List of columns to keep, note that the order specified determines the order of the output
+            var colsToKeep = new List<string>();
+            colsToKeep.Add(kFormatName);
+            colsToKeep.Add(pFormatName);
+            colsToKeep.Add(numAnomName);
+            colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK);
+            colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP);
+            colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
+            colsToKeep.Add(BinaryClassifierEvaluator.Auc);
+
+            overall = new CopyColumnsTransform(Host, cols).Transform(overall);
+            IDataView fold = SelectColumnsTransform.CreateKeep(Host, overall, colsToKeep.ToArray());
+
             string weightedFold;
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
         }
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            var args = new DropColumnsTransform.Arguments();
-            args.Column = new[]
-            {
-                AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
-                AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,
-                AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP,
-                AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos
-            };
-            return new DropColumnsTransform(Host, args, overall);
+            return SelectColumnsTransform.CreateDrop(Host,
+                                                    overall,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtP,
+                                                    AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
         }
 
         protected override IEnumerable<string> GetPerInstanceColumnsToSave(RoleMappedSchema schema)

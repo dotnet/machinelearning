@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
                                     len++;
                                     Ch.Assert(len <= _len);
                                     getter(ref value);
-                                    if (isDefault(ref value))
+                                    if (isDefault(in value))
                                         continue;
                                     Utils.EnsureSize(ref indices, ++count);
                                     indices[count - 1] = len;
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.Data
                 var type = _view.Schema.GetColumnType(_colCurr);
                 Ch.Assert(type.ItemType.RawType == typeof(T));
                 Ch.Assert(type.ValueCount > 0);
-                RefPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
                 int vecLen = type.ValueCount;
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Runtime.Data
                                         if (rbuff.IsDense)
                                         {
                                             // Store it as sparse. We will densify later, if we must.
-                                            if (!isDefault(ref rbuff.Values[s]))
+                                            if (!isDefault(in rbuff.Values[s]))
                                             {
                                                 indices[_counts[s]] = rowNum;
                                                 values[_counts[s]++] = rbuff.Values[s];
@@ -630,7 +630,7 @@ namespace Microsoft.ML.Runtime.Data
                                             int ii = _rbuffIndices[r];
                                             if (ii < rbuff.Count && rbuff.Indices[ii] == s)
                                             {
-                                                if (!isDefault(ref rbuff.Values[ii]))
+                                                if (!isDefault(in rbuff.Values[ii]))
                                                 {
                                                     indices[_counts[s]] = rowNum;
                                                     values[_counts[s]++] = rbuff.Values[ii];
