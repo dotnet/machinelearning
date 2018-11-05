@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public override string ToString() => ExpertType.Name;
         }
 
-        public struct TransformString : IEquatable<TransformString>
+        public readonly struct TransformString : IEquatable<TransformString>
         {
             public readonly string Kind;
             public readonly string Settings;
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly SuggestedTransform[] SuggestedTransforms;
 
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct Column
+        public readonly struct Column
         {
             public readonly Data.ColumnType Type;
             public readonly string Name;

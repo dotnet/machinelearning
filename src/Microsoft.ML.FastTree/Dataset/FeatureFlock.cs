@@ -24,7 +24,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     /// are then used in <see cref="LeastSquaresRegressionTreeLearner"/> to find splitting on which bin will yield the
     /// best least squares solution
     /// </summary>
-    public struct PerBinStats
+    public readonly struct PerBinStats
     {
         /// <summary>Sum of all target values in a partition for the bin.</summary>
         public readonly Double SumTargets;

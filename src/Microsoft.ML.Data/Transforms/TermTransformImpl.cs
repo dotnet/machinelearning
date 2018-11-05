@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public override void ParseAddTermArg(ref ReadOnlyMemory<char> terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public override void ParseAddTermArg(string[] terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();

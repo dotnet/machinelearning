@@ -259,7 +259,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <typeparam name="TLeaf">The base type in the base world.</typeparam>
         private static class NameUtil<TLeaf>
         {
-            private struct Info
+            private readonly struct Info
             {
                 public readonly Type Type;
                 public readonly object Item;
