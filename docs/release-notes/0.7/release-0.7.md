@@ -111,7 +111,7 @@ Below are some of the highlights from this release.
 
     * Some teams at Microsoft found it useful to use ML.NET capabilities in
       Python environments. NimbusML provides Python APIs to ML.NET and easily
-      integrates into [Scikit-Learn](http://scikit-learn.org/stable/)
+      integrates into [scikit-learn](http://scikit-learn.org/stable/)
       pipelines. 
     * Note that NimbusML is an experimental project without the same support
       level as ML.NET.
