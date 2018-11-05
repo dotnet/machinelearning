@@ -36,5 +36,20 @@ phases:
         testRunTitle: Machinelearning_Tests_$(_phaseName)_$(_configuration)_$(Build.BuildNumber)
         configuration: $(_configuration)
         mergeTestResults: true
+    - task: CopyFiles@2
+      displayName: Stage build logs
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)
+        contents:
+          msbuild.*
+          binclash.log
+          init-tools.log
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: PublishBuildArtifacts@1
+      displayName: Publish build logs
+      inputs:
+        pathToPublish: $(Build.ArtifactStagingDirectory)
+        artifactName: Build logs
+        artifactType: container
     - script: $(_buildScript) -buildPackages
       displayName: Build Packages
