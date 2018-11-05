@@ -254,6 +254,7 @@ namespace Microsoft.ML.Runtime.Api
             protected readonly IChannel Ch;
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
+            private readonly Action[] _timeseriesValuePropagators;
 
             public long Batch => _input.Batch;
 
@@ -276,6 +277,22 @@ namespace Microsoft.ML.Runtime.Api
                 _setters = new Action<TRow>[n];
                 for (int i = 0; i < n; i++)
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
+
+                var list = new List<Action>();
+                for (int i = 0; i < input.Schema.ColumnCount; i++)
+                {
+                    var colType = input.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TimeSeriesColumn, i);
+                    if (colType != null)
+                    {
+                        colType = input.Schema.GetColumnType(i);
+                        MethodInfo meth = ((Func<IRow, int, Action>)CreateGetter<int>).GetMethodInfo().
+                            GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
+
+                        list.Add((Action) meth.Invoke(this, new object[] { input, i }));
+                    }
+                }
+
+                _timeseriesValuePropagators = list.ToArray();
             }
 
             public ValueGetter<UInt128> GetIdGetter()
@@ -436,6 +453,16 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
+            private static Action CreateGetter<TDst>(IRow input, int col)
+            {
+                var getter = input.GetGetter<TDst>(col);
+                TDst value = default(TDst);
+                return () =>
+                {
+                    getter(ref value);
+                };
+            }
+
             private Action<TRow> CreateVBufferToVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
@@ -456,6 +483,9 @@ namespace Microsoft.ML.Runtime.Api
             {
                 foreach (var setter in _setters)
                     setter(row);
+
+                foreach (var propagator in _timeseriesValuePropagators)
+                    propagator();
             }
 
             public bool IsColumnActive(int col)

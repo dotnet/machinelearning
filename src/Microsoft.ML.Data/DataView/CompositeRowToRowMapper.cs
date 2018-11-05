@@ -84,6 +84,7 @@ namespace Microsoft.ML.Runtime.Data
                     // We want the last disposer to be called first, so the order of the addition here is important.
                 }
             }
+
             return result;
         }
 

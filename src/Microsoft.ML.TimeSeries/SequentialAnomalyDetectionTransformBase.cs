@@ -572,6 +572,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 var meta = new Schema.Metadata.Builder();
                 meta.AddSlotNames(_parent._outputLength, GetSlotNames);
+                ValueGetter<bool> getter = (ref bool dst) =>
+                {
+                    dst = true;
+                };
+                meta.Add(new Schema.Column(MetadataUtils.Kinds.TimeSeriesColumn, BoolType.Instance, null), getter);
                 var info = new Schema.Column[1];
                 info[0] = new Schema.Column(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
                 return info;
@@ -610,6 +615,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
                 ProcessData processData = _parent.WindowSize > 0 ?
                     (ProcessData) state.Process : state.ProcessWithoutBuffer;
+
+                state.Row = input;
                 ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
                 {
                     TInput src = default;

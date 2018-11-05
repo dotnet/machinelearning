@@ -63,6 +63,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private bool _isIniatilized;
 
+            private long _previousPosition;
+
+            public IRow Row;
+
             /// <summary>
             /// This method sets the window size and initializes the buffer only once.
             /// Since the class needs to implement a default constructor, this methods provides a mechanism to initialize the window size and buffer.
@@ -89,6 +93,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 InitializeStateCore();
                 _isIniatilized = true;
+                _previousPosition = -1;
             }
 
             /// <summary>
@@ -103,16 +108,26 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 RowCounter = 0;
                 WindowedBuffer.Clear();
                 InitialWindowedBuffer.Clear();
+                _previousPosition = -1;
             }
 
             public void Process(ref TInput input, ref TOutput output)
             {
+                bool updateState = false;
+                if (Row.Position > _previousPosition)
+                {
+                    _previousPosition = Row.Position;
+                    updateState = true;
+                }
+
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
-                    InitialWindowedBuffer.AddLast(input);
+                    if (updateState)
+                        InitialWindowedBuffer.AddLast(input);
+
                     SetNaOutput(ref output);
 
-                    if (InitialWindowedBuffer.Count >= InitialWindowSize - WindowSize)
+                    if (InitialWindowedBuffer.Count >= InitialWindowSize - WindowSize && updateState)
                         WindowedBuffer.AddLast(input);
 
                     if (InitialWindowedBuffer.Count == InitialWindowSize)
@@ -121,16 +136,28 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 else
                 {
                     TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output);
-                    WindowedBuffer.AddLast(input);
-                    IncrementRowCounter();
+                    if (updateState)
+                    {
+                        WindowedBuffer.AddLast(input);
+                        IncrementRowCounter();
+                    }
                 }
             }
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output)
             {
+                bool updateState = false;
+                if (Row.Position > _previousPosition)
+                {
+                    _previousPosition = Row.Position;
+                    updateState = true;
+                }
+
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
-                    InitialWindowedBuffer.AddLast(input);
+                    if (updateState)
+                        InitialWindowedBuffer.AddLast(input);
+
                     SetNaOutput(ref output);
 
                     if (InitialWindowedBuffer.Count == InitialWindowSize)
@@ -139,7 +166,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 else
                 {
                     TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output);
-                    IncrementRowCounter();
+                    if (updateState)
+                        IncrementRowCounter();
                 }
             }
 
@@ -186,7 +214,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public string OutputColumnName;
         protected ColumnType OutputColumnType;
 
-        public bool IsRowToRowMapper => false;
+        public bool IsRowToRowMapper => true;
 
         /// <summary>
         /// The main constructor for the sequential transform
@@ -280,19 +308,24 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
-            throw new InvalidOperationException("Not a RowToRowMapper.");
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema));
         }
 
-        public sealed class SequentialDataTransform : TransformBase, ITransformTemplate
+        public sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
         {
             private readonly IRowMapper _mapper;
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
             private readonly IDataTransform _transform;
             private readonly ColumnBindings _bindings;
 
-            public SequentialDataTransform(IHost host, SequentialTransformerBase<TInput, TOutput, TState> parent, IDataView input, IRowMapper mapper)
-                :base(parent.Host, input)
+            private MetadataDispatcher Metadata { get; }
+
+            public SequentialDataTransform(IHost host, SequentialTransformerBase<TInput, TOutput, TState> parent,
+                IDataView input, IRowMapper mapper)
+                : base(parent.Host, input)
             {
+                Metadata = new MetadataDispatcher(1);
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
@@ -372,6 +405,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 return new SequentialDataTransform(Contracts.CheckRef(env, nameof(env)).Register("SequentialDataTransform"), _parent, newSource, _mapper);
             }
+
+            public Schema InputSchema => Source.Schema;
+            public Func<int, bool> GetDependencies(Func<int, bool> predicate)
+            {
+                for (int i = 0; i < Schema.ColumnCount; i++)
+                {
+                    if (predicate(i))
+                        return col => true;
+                }
+                return col => false;
+            }
+
+            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
+                new SimpleRow(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer));
+
         }
 
         /// <summary>
