@@ -17,12 +17,14 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Category = "Access";
         internal const string DiagnosticId = "MSML_NoBestFriendInternal";
 
-        private const string Title = "Cross-assembly internal access requires.";
+        private const string Title = "Cross-assembly internal access requires referenced item to have " + AttributeName + " attribute.";
         private const string Format = "Access of '{0}' is a cross assembly internal " +
             "reference, and the declaring assembly wants these accesses to be on something " +
             "with the attribute " + AttributeName + ".";
         private const string Description =
-            "The ML.NET .";
+            "The identifier indicated is defined as an internal member of an assembly that has the " +
+            AssemblyAttributeName + " assembly-level attribute set. Even with friend access to that " +
+            "assembly, such a usage requires that the item have the " + AttributeName + " on it.";
 
         private static DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
@@ -44,13 +46,13 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             var model = context.SemanticModel;
             var comp = model.Compilation;
 
-            // Get the symbols of the key types we are analyzing. If we can't find any of them there is
-            // no point in going further.
-            var attrType = comp.GetTypeByMetadataName(AttributeName);
-            if (attrType == null)
+            // Get the symbols of the key types we are analyzing. If we can't find either
+            // of them there is no point in going further.
+            var bestFriendAttributeType = comp.GetTypeByMetadataName(AttributeName);
+            if (bestFriendAttributeType == null)
                 return;
-            var assemblyAttrType = comp.GetTypeByMetadataName(AssemblyAttributeName);
-            if (assemblyAttrType == null)
+            var wantsToBeBestFriendsAttributeType = comp.GetTypeByMetadataName(AssemblyAttributeName);
+            if (wantsToBeBestFriendsAttributeType == null)
                 return;
 
             var myAssembly = comp.Assembly;
@@ -87,12 +89,12 @@ namespace Microsoft.ML.InternalCodeAnalyzer
                 // further.
                 if (!assemblyHasAttrMap.TryGetValue(symbolAssembly, out bool assemblyWantsBestFriends))
                 {
-                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => a.AttributeClass == assemblyAttrType);
+                    assemblyWantsBestFriends = symbolAssembly.GetAttributes().Any(a => a.AttributeClass == wantsToBeBestFriendsAttributeType);
                     assemblyHasAttrMap[symbolAssembly] = assemblyWantsBestFriends;
                 }
                 if (!assemblyWantsBestFriends)
                     continue;
-                if (symbol.GetAttributes().Any(a => a.AttributeClass == attrType))
+                if (symbol.GetAttributes().Any(a => a.AttributeClass == bestFriendAttributeType))
                 {
                     // You're not just a friend, you're my best friend!
                     continue;
