@@ -532,6 +532,47 @@ var learningPipeline = reader.MakeNewEstimator()
 var model = learningPipeline.Fit(trainData).AsDynamic;
 ```
 
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        // We read the first 11 values as a single float vector.
+        new TextLoader.Column("SepalLength", DataKind.R4, 0),
+        new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+        new TextLoader.Column("PetalLength", DataKind.R4, 2),
+        new TextLoader.Column("PetalWidth", DataKind.R4, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Retrieve the training data.
+var trainData = reader.Read(irisDataPath);
+
+// Build the training pipeline.
+var dynamicPipeline =
+    // Concatenate all the features together into one column 'Features'.
+    mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+    // Note that the label is text, so it needs to be converted to key.
+    .Append(new ValueToKeyMappingEstimator(mlContext, "Label"), TransformerScope.TrainTest)
+    // Use the multi-class SDCA model to predict the label using features.
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    // Apply the inverse conversion from 'PredictedLabel' key back to string value.
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+// Train the model.
+var model = dynamicPipeline.Fit(trainData);
+```
+
 Now, in order to use [schema comprehension](SchemaComprehension.md) for prediction, we define a pair of classes like following:
 ```csharp
 private class IrisInput
