@@ -392,13 +392,7 @@ namespace Microsoft.ML.Transforms
             return transform.Transform(input);
         }
 
-        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, params string[] keepColumns)
-        {
-            var transform = new SelectColumnsTransform(env, keepColumns, null);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
-
-        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, bool keepHidden, params string[] keepColumns)
+        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
         {
             var transform = new SelectColumnsTransform(env, keepColumns, null, keepHidden);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
@@ -407,12 +401,6 @@ namespace Microsoft.ML.Transforms
         public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
         {
             var transform = new SelectColumnsTransform(env, null, dropColumns);
-            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
-        }
-
-        public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, bool keepHidden, params string[] dropColumns)
-        {
-            var transform = new SelectColumnsTransform(env, null, dropColumns, keepHidden);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
@@ -567,9 +555,11 @@ namespace Microsoft.ML.Transforms
                     // Handles the drop case, removing any columns specified from the input
                     // In the case of drop, the order of the output is modeled after the input
                     // given an input of ABC and dropping column B will result in AC.
+                    // In drop mode, we drop all columns with the specified names and keep all the rest,
+                    // ignoring the keepHidden argument.
                     for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
                     {
-                        if (selectedColumns.Contains(inputSchema[colIdx].Name) && (!keepHidden || !inputSchema.IsHidden(colIdx)))
+                        if (selectedColumns.Contains(inputSchema[colIdx].Name))
                             continue;
 
                         outputToInputMapping.Add(colIdx);
