@@ -338,6 +338,15 @@ namespace Microsoft.ML.Transforms.Projections
             return str;
         }
 
+        private string ArrayPrint(int[] array)
+        {
+            string str = "[";
+            foreach (var val in array)
+                str += val.ToString() + " ";
+            str += "]";
+            return str;
+        }
+
         private void TrainModels(Float[][] columnData, int[] rowCounts, IChannel ch)
         {
             Host.AssertValue(ch);
