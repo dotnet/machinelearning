@@ -329,6 +329,15 @@ namespace Microsoft.ML.Transforms.Projections
             return str;
         }
 
+        private string ArrayPrint(string[] array)
+        {
+            string str = "[";
+            foreach (var val in array)
+                str += val + " ";
+            str += "]";
+            return str;
+        }
+
         private void TrainModels(Float[][] columnData, int[] rowCounts, IChannel ch)
         {
             Host.AssertValue(ch);
@@ -343,6 +352,10 @@ namespace Microsoft.ML.Transforms.Projections
 
                 // Compute covariance matrix (sigma).
                 var u = new Float[ccol * ccol];
+
+                // REMOVE AFTER DEBUGGING:
+                ch.Info("Infos Name = " + ArrayPrint(Infos.Select(x => x.Name).ToArray()));
+                ch.Info("Infos Source = " + ArrayPrint(Infos.Select(x => x.Source).ToArray()));
 
                 // REMOVE AFTER DEBUGGING
                 ch.Info("Computing covariance matrix...");
