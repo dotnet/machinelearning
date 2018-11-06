@@ -67,6 +67,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Fit our data pipeline and transform data with it.
             var transformedData = dataPipeline.Fit(data).Transform(data);
 
+            // 'transformedData' is a 'promise' of data. Let's actually read it.
+            var someRows = transformedData.AsDynamic
+                // Convert to an enumerable of user-defined type. 
+                .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+                // Take a couple values as an array.
+                .Take(4).ToArray();
+
             // Extract the 'AllFeatures' column.
             // This will give the entire dataset: make sure to only take several row
             // in case the dataset is huge.
@@ -694,6 +701,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         {
             [ColumnName("Data")]
             public string PredictedClass { get; set; }
+        }
+
+        private class InspectedRow
+        {
+            public bool IsOver50K { get; set; }
+            public string Workclass { get; set; }
+            public string Education { get; set; }
+            public string MaritalStatus { get; set; }
+            public string[] AllFeatures { get; set; }
         }
     }
 }
