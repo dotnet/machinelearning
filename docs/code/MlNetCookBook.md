@@ -826,7 +826,7 @@ var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
 ```
 
-You can achive the same results using the dynamic API.
+You can achieve the same results using the dynamic API.
 ```csharp
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
 // as a catalog of available operations and as the source of randomness.
@@ -943,7 +943,7 @@ var fullLearningPipeline = learningPipeline
 var model = fullLearningPipeline.Fit(data);
 ```
 
-You can achive the same results using the dynamic API.
+You can achieve the same results using the dynamic API.
 ```csharp
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
 // as a catalog of available operations and as the source of randomness.
@@ -1070,7 +1070,7 @@ var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray()
 var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 ```
 
-You can achive the same results using the dynamic API.
+You can achieve the same results using the dynamic API.
 ```csharp
 // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
 // as a catalog of available operations and as the source of randomness.
@@ -1188,6 +1188,59 @@ var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 ```
 
+You can achieve the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        // We read the first 11 values as a single float vector.
+        new TextLoader.Column("SepalLength", DataKind.R4, 0),
+        new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+        new TextLoader.Column("PetalLength", DataKind.R4, 2),
+        new TextLoader.Column("PetalWidth", DataKind.R4, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Build the training pipeline.
+var dynamicPipeline =
+    // Concatenate all the features together into one column 'Features'.
+    mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+    // Note that the label is text, so it needs to be converted to key.
+    .Append(new ValueToKeyMappingEstimator(mlContext, "Label"), TransformerScope.TrainTest)
+    // Use the multi-class SDCA model to predict the label using features.
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+
+// Split the data 90:10 into train and test sets, train and evaluate.
+var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+
+// Train the model.
+var model = dynamicPipeline.Fit(trainData);
+// Compute quality metrics on the test set.
+var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData));
+Console.WriteLine(metrics.AccuracyMicro);
+
+// Now run the 5-fold cross-validation experiment, using the same pipeline.
+var cvResults = mlContext.MulticlassClassification.CrossValidate(data, dynamicPipeline, numFolds: 5);
+
+// The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
+// Let's compute the average micro-accuracy.
+var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+Console.WriteLine(microAccuracies.Average());
+
+```
 ## Can I mix and match static and dynamic pipelines?
 
 Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.
