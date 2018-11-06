@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LogisticRegression(env, featuresName, labelName, weightsName,
+                    var trainer = new LogisticRegression(env, labelName, featuresName, weightsName,
                         l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings);
 
                     if (onFit != null)

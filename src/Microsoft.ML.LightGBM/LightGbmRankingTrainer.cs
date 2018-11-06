@@ -91,9 +91,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="label">The name of the label column.</param>
-        /// <param name="feature">The name of the feature column.</param>
+        /// <param name="features">The name of the feature column.</param>
         /// <param name="groupId">The name of the column containing the group ID. </param>
-        /// <param name="weight">The name of the column containing the initial weight.</param>
+        /// <param name="weights">The name of the optional column containing the initial weights.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -104,15 +104,15 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LightGbmRankingTrainer(IHostEnvironment env,
             string label,
-            string feature,
+            string features,
             string groupId,
-            string weight = null,
+            string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(label), feature, weight, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(label), features, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
             Host.CheckNonEmpty(groupId, nameof(groupId));
         }

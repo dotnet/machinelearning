@@ -104,8 +104,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="label">The name of the label column.</param>
-        /// <param name="feature">The name of the feature column.</param>
-        /// <param name="weight">The name for the column containing the initial weight.</param>
+        /// <param name="features">The name of the feature column.</param>
+        /// <param name="weights">The name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -114,16 +114,16 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// The settings here will override the ones provided in the direct signature,
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        public LightGbmBinaryTrainer(IHostEnvironment env, 
+        public LightGbmBinaryTrainer(IHostEnvironment env,
             string label,
-            string feature,
-            string weight = null,
+            string features,
+            string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(label), feature, weight, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(label), features, weights, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
         }
 

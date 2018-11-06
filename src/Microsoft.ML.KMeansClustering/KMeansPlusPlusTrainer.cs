@@ -95,15 +95,19 @@ namespace Microsoft.ML.Trainers.KMeans
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the example weights.</param>
+        /// <param name="features">The name of the feature column.</param>
+        /// <param name="weights">The name for the optional column containing the example weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="clustersCount">The number of clusters.</param>
-        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, int clustersCount = Defaults.K, string weightColumn = null, Action<Arguments> advancedSettings = null)
+        public KMeansPlusPlusTrainer(IHostEnvironment env,
+            string features,
+            int clustersCount = Defaults.K,
+            string weights = null,
+            Action<Arguments> advancedSettings = null)
             : this(env, new Arguments
             {
-                FeatureColumn = featureColumn,
-                WeightColumn = weightColumn,
+                FeatureColumn = features,
+                WeightColumn = weights,
                 K = clustersCount
             }, advancedSettings)
         {

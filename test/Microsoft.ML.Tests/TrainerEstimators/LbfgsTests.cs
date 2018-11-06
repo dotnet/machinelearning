@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new LogisticRegression(Env, "Features", "Label"));
+            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }

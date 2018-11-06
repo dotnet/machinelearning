@@ -52,8 +52,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="label">The name of the label column.</param>
-        /// <param name="feature">The name of the feature column.</param>
-        /// <param name="weight">The name for the example weight column.</param>
+        /// <param name="features">The name of the feature column.</param>
+        /// <param name="weights">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
@@ -61,19 +61,19 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env,
-            string feature,
             string label,
-            string weight = null,
+            string features,
+            string weights = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, feature, TrainerUtils.MakeBoolScalarLabel(label), weight, advancedSettings,
+            : base(env, features, TrainerUtils.MakeBoolScalarLabel(label), weights, advancedSettings,
                   l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
         {
-            Host.CheckNonEmpty(feature, nameof(feature));
+            Host.CheckNonEmpty(features, nameof(features));
             Host.CheckNonEmpty(label, nameof(label));
 
             _posWeight = 0;
