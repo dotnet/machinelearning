@@ -40,21 +40,19 @@ phases:
       displayName: Stage build logs
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
-        contents: 
-          ?(msbuild.*|binclash.log|init-tools.log)
+        contents: '?(msbuild.*|binclash.log|init-tools.log)'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
-      displayName: Stage more build logs
+      displayName: Stage test output
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)
-        contents: 
-          bin/**/Microsoft.ML.Predictor.Tests/netcoreapp2.1/TestOutput/**/*
+        sourceFolder: $(Build.SourcesDirectory)/bin
+        contents: '**/TestOutput/**/*'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
-      displayName: Publish build logs
+      displayName: Publish build and test logs
       inputs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
-        artifactName: Build logs
+        artifactName: ${{ parameters.name }} $(_configuration) logs
         artifactType: container
     - script: $(_buildScript) -buildPackages
       displayName: Build Packages
