@@ -1070,6 +1070,60 @@ var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray()
 var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 ```
 
+You can achive the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
+{
+    Column = new[] {
+        new TextLoader.Column("IsToxic", DataKind.BL, 0),
+        new TextLoader.Column("Message", DataKind.TX, 1),
+    },
+    HasHeader = true
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Inspect the message texts that are read from the file.
+var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
+
+// Apply various kinds of text operations supported by ML.NET.
+var dynamicPipeline =
+    // One-stop shop to run the full text featurization.
+    mlContext.Transforms.Text.FeaturizeText("Message", "TextFeatures")
+
+    // Normalize the message for later transforms
+    .Append(mlContext.Transforms.Text.NormalizeText("Message", "NormalizedMessage"))
+
+    // NLP pipeline 1: bag of words.
+    .Append(new WordBagEstimator(mlContext, "NormalizedMessage", "BagOfWords"))
+
+    // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
+    .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams", 
+                ngramLength: 2, allLengths: false))
+
+    // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
+    .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
+    .Append(new WordBagEstimator(mlContext, "MessageChars", "BagOfTrichar", 
+                ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf))
+
+    // NLP pipeline 4: word embeddings.
+    .Append(mlContext.Transforms.Text.ExtractWordEmbeedings("NormalizedMessage", "Embeddings", 
+                WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D));
+
+// Let's train our pipeline, and then apply it to the same data.
+// Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
+var unigrams = transformedData.GetColumn<float[]>(mlContext, "BagOfWords").Take(10).ToArray();
+```
 ## How do I train using cross-validation?
 
 [Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is a useful technique for ML applications. It helps estimate the variance of the model quality from one run to another and also eliminates the need to extract a separate test set for evaluation.
