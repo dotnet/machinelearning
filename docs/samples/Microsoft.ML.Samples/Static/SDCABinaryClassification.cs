@@ -66,7 +66,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Read the data, and leave 10% out, so we can use them for testing
             var data = reader.Read(dataFilePath);
-            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.BinaryClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Create the Estimator
             var learningPipeline = reader.MakeNewEstimator()
