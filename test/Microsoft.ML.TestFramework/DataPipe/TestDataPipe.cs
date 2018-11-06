@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private static VBuffer<Double> dataDoubleSparse = new VBuffer<Double>(5, 3, new double[] { -0.0, 0, 1 }, new[] { 0, 3, 4 });
         private static uint[] resultsDoubleSparse = new uint[] { 21, 21, 21, 21, 31 };
 
-        [Fact(Skip = "Schema baseline comparison fails")]
+        [Fact()]
         public void SavePipeLabelParsers()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=AutoLabel{col=AutoLabel:RawLabel}",
                     "xf=Term{col=StringLabel:RawLabel terms={Wirtschaft,Gesundheit,Deutschland,Ausland,Unterhaltung,Sport,Technik & Wissen}}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=AutoLabel keepcol=StringLabel keepcol=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=AutoLabel keepcol=StringLabel keepcol=FileLabel hidden=-}"
                 });
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
                 }, suffix: "1");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
                 }, suffix: "2");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{key=- col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
                 }, suffix: "3");
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -125,15 +125,14 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 TestCore(pathData, true,
                     new[] {
-                        "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
-                        string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
-                        string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
-                        "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey}"
+                            "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
+                            string.Format("xf=TermLookup{{key=- col=FileLabelNum:RawLabel data={{{0}}}}}", mappingPathData),
+                            string.Format("xf=TermLookup{{col=FileLabelKey:RawLabel data={{{0}}}}}", mappingPathData),
+                            "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
                 Env.PrintProgress();
             }
-
             CheckEqualityNormalized("SavePipe", name);
 
             mappingPathData = DeleteOutputPath("SavePipe", "Mapping.txt");
@@ -153,7 +152,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
                     string.Format("xf=TermLookup{{col=FileLabel:RawLabel data={{{0}}}}}", mappingPathData),
-                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel}"
+                    "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabel hidden=-}"
                 }, suffix: "5");
 
             Done();
@@ -419,7 +418,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Schema baseline comparison fails")]
+        [Fact()]
         public void SavePipeHash()
         {
             string pathData = DeleteOutputPath("SavePipe", "HashTransform.txt");
@@ -548,6 +547,56 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=concat{col=Concat:C,D}",
                     "xf=Select{dropcol=C dropcol=D}"
                 });
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordHash()
+        {
+            string pathData = GetDataPath(@"lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=One:TX:4 col=Two:TX:3 rows=101}",
+                    "xf=WordHashBag{bits=5",
+                    "  col=F11:5:One col={name=F12 src=One ngram=4} col={name=F13 src=Two ngram=3 skips=2 bits=15}",
+                    "  col=F21:Two,One col={name=F22 src=Two src=One ngram=4} col={name=F23 src=Two src=One bits=15 ngram=3 skips=2}",
+                    "  col={name=F31 src=Two src=One ord-} col={name=F32 src=Two src=One ngram=4 ord-} col={name=F33 src=Two src=One ngram=3 skips=2 ord-}",
+                    "}",
+                    "xf=SelectColumns{keepcol=F21 keepcol=F22 keepcol=F23 keepcol=F31 keepcol=F32 keepcol=F33 keepcol=F11 keepcol=F12 keepcol=F13 hidden=-}",
+                },
+                (pipe) =>
+                {
+                    // Column F13 contains the ngram counts of column Two, and column F23 contains the ngram counts
+                    // of columns Two and One. Therefore, make sure that the ngrams in column Two were hashed to the same 
+                    // slots in F13 as they were in column F23. We do this by checking that for every slot, F23 is >= F13.
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        int col1;
+                        bool tmp1 = c.Schema.TryGetColumnIndex("F13", out col1);
+                        if (!Check(tmp1, "Column F13 not found!"))
+                            return;
+                        int col2;
+                        bool tmp2 = c.Schema.TryGetColumnIndex("F23", out col2);
+                        if (!Check(tmp2, "Column F23 not found!"))
+                            return;
+
+                        var get1 = c.GetGetter<VBuffer<Float>>(col1);
+                        var get2 = c.GetGetter<VBuffer<Float>>(col2);
+                        VBuffer<Float> bag1 = default(VBuffer<Float>);
+                        VBuffer<Float> bag2 = default(VBuffer<Float>);
+                        while (c.MoveNext())
+                        {
+                            get1(ref bag1);
+                            get2(ref bag2);
+                            if (!CompareVec(ref bag1, ref bag2, bag1.Length, (x1, x2) => x1 <= x2))
+                            {
+                                Fail("Values don't match in columns F13, F23");
+                                return;
+                            }
+                        }
+                    }
+                });
+
             Done();
         }
 
