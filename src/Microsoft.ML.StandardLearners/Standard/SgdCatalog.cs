@@ -40,7 +40,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new StochasticGradientDescentClassificationTrainer(env, features, label, weights, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
+            return new StochasticGradientDescentClassificationTrainer(env, label, features, weights, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
         }
     }
 }
