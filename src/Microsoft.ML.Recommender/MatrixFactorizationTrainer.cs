@@ -78,11 +78,13 @@ namespace Microsoft.ML.Trainers
     ///     </list>
     /// </p>
     /// <p>Example code can be found by searching for <i>MatrixFactorization</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
     /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs "A matrix factorization example.")]
     /// ]]>
     /// </format>
+    /// </example>
     /// </summary>
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
