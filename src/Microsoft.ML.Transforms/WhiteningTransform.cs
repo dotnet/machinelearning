@@ -244,7 +244,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// Initializes a new <see cref="VectorWhiteningTransform"/> object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="models">An array of whitening matrices corresponding to the i-th element of <paramref name="columns"/>.</param>
+        /// <param name="models">An array of whitening matrices where models[i] is learned from the i-th element of <paramref name="columns"/>.</param>
         /// <param name="invModels">An array of inverse whitening matrices corresponding to the i-th element of <paramref name="columns"/>.</param>
         /// <param name="columns">Describes the settings of the transformation.</param>
         internal VectorWhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColInfo[] columns)
