@@ -588,7 +588,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             get1(ref bag1);
                             get2(ref bag2);
-                            if (!CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => x1 <= x2))
+                            if (!CompareVec(ref bag1, ref bag2, bag1.Length, (x1, x2) => x1 <= x2))
                             {
                                 Fail("Values don't match in columns F13, F23");
                                 return;
