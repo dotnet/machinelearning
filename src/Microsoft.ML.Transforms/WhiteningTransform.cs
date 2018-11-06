@@ -388,6 +388,9 @@ namespace Microsoft.ML.Transforms.Projections
                 if(!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
                 srcTypes[i] = inputSchema.GetColumnType(cols[i]);
+                var reason = TestColumn(srcTypes[i]);
+                if (reason != null)
+                    throw env.ExceptParam(nameof(inputData.Schema), reason);
             }
         }
 
@@ -456,7 +459,9 @@ namespace Microsoft.ML.Transforms.Projections
             return columnData;
         }
 
-        // Performs whitening training for each column separately.
+        // Performs whitening training for each column separately. Notice that for both PCA and ZCA, _models and _invModels
+        // will have dimension input_vec_size x input_vec_size. In the getter, the matrix will be truncated to only keep
+        // PcaNum columns, and thus produce the desired output size.
         private static void TrainModels(IHostEnvironment env, IChannel ch, float[][] columnData, int[] rowCounts,
             ref float[][] models, ref float[][] invModels, ColumnType[] srcTypes, params ColInfo[] columns)
         {
@@ -468,6 +473,15 @@ namespace Microsoft.ML.Transforms.Projections
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
                 int ccol = srcTypes[iinfo].ValueCount;
+
+                // If there is no training data, simply initialize the model matrices.
+                if (crow == 0)
+                {
+                    var matrixSize = ccol * ccol;
+                    models[iinfo] = new float[matrixSize];
+                    invModels[iinfo] = new float[matrixSize];
+                    continue;
+                }
 
                 // Compute covariance matrix (sigma).
                 var u = new float[ccol * ccol];
@@ -583,6 +597,8 @@ namespace Microsoft.ML.Transforms.Projections
                 ColMajor = 102
             }
 
+            // The allowed value of Transpose is specified in Intel's MLK library. See transa parameter in this
+            // [doc](https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemm) for details.
             public enum Transpose
             {
                 NoTrans = 111,
@@ -590,6 +606,8 @@ namespace Microsoft.ML.Transforms.Projections
                 ConjTrans = 113
             }
 
+            // The allowed value of SvdJob is specified in Intel's MLK library. See jobvt parameter in this
+            // [doc](https://software.intel.com/en-us/node/521150) for details.
             public enum SvdJob : byte
             {
                 None = (byte)'N',
@@ -636,10 +654,9 @@ namespace Microsoft.ML.Transforms.Projections
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
-                    ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[i];
-                    ValidateModel(Host, _parent._models[i], outType);
+                    ValidateModel(Host, _parent._models[i], _srcTypes[i]);
                     if (info.SaveInv)
-                        ValidateModel(Host, _parent._invModels[i], outType);
+                        ValidateModel(Host, _parent._invModels[i], _srcTypes[i]);
                 }
             }
 
@@ -651,7 +668,10 @@ namespace Microsoft.ML.Transforms.Projections
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var info = _parent._infos[iinfo];
-                    // For ZCA the output type is the same as the input type. For PCA the size of the output vector is determined by PCANum.
+                    // For PCA, the transform equation is y=U^Tx, where "^T" denotes matrix transpose, x is an 1-D vector (i.e., the input column), and U=[u_1, ..., u_PcaNum]
+                    // is a n-by-PcaNum matrix. The symbol u_k is the k-th largest (in terms of the associated eigenvalue) eigenvector of (1/m)*\sum_{i=1}^m x_ix_i^T,
+                    // where x_i is the whitened column at the i-th row and we have m rows in the training data.
+                    // For ZCA, the transform equation is the same, but U=[u_1, ..., u_n], so we retain all eigenvectors.
                     ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
                     result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, outType, null);
                 }
@@ -669,6 +689,8 @@ namespace Microsoft.ML.Transforms.Projections
                 var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
                 var src = default(VBuffer<float>);
                 int cslotSrc = _srcTypes[iinfo].ValueCount;
+                // Notice that here that the learned matrices in _models will have the same size for both PCA and ZCA,
+                // so we perform a truncation of the matrix in FillValues, that only keeps PcaNum columns.
                 int cslotDst = (ex.Kind == WhiteningKind.Pca && ex.PcaNum > 0) ? ex.PcaNum : _srcTypes[iinfo].ValueCount;
                 var model = _parent._models[iinfo];
                 ValueGetter<VBuffer<float>> del =
