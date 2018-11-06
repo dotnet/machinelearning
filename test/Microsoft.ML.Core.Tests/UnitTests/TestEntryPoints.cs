@@ -2520,7 +2520,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new SdcaBinaryTrainer.Arguments()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
