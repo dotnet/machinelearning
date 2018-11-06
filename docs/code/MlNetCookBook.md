@@ -401,7 +401,7 @@ var learningPipeline = reader.MakeNewEstimator()
         // the the same call.
         Prediction: mlContext.Regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
-// Step three. Train the pipeline.
+// Step three. Fit the pipeline to the training data.
 var model = learningPipeline.Fit(trainData);
 ```
 
@@ -441,7 +441,7 @@ var dynamicPipeline =
     // Add the SDCA regression trainer.
     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"))
 
-// Step three. Train the pipeline.
+// Step three. Fit the pipeline to the training data.
 var model = dynamicPipeline.Fit(trainData);
 ```
 ## How do I verify the model quality?
@@ -565,7 +565,7 @@ var dynamicPipeline =
     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"), TransformerScope.TrainTest)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
-    // Apply the inverse conversion from 'PredictedLabel' key back to string value.
+    // Apply the inverse conversion from 'PredictedLabel' column back to string value.
     .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 // Train the model.
@@ -967,7 +967,7 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 // Read the data.
 var data = reader.Read(dataPath);
 
-// Inspect the categorical columns to check that they are correctly read.
+// Inspect the first 10 records of the categorical columns to check that they are correctly read.
 var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
