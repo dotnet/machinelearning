@@ -36,6 +36,8 @@ namespace Microsoft.ML.Samples.Dynamic
             }
         }
 
+        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
+        // IidSpikeDetector is applied then to identify spiking points in the series.
         public static void IidSpikeDetectorTransform()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -93,6 +95,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0       5.00    0.50
         }
 
+        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
+        // SsaSpikeDetector is applied then to identify spiking points in the series.
         public static void SsaSpikeDetectorTransform()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -158,6 +162,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0       0.00    0.50
         }
 
+        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
+        // SsaChangePointDetector is applied then to identify points where data distribution changed.
         public static void SsaChangePointDetectorTransform()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -222,6 +228,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 7       0       0.00    0.50    0.00
         }
 
+        // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
+        // IidChangePointDetector is applied then to identify points where data distribution changed.
         public static void IidChangePointDetectorTransform()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
