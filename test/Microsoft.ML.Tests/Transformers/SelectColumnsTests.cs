@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, "A", "C");
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "A", "C");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             // Expected output will be CA
-            var est = new ColumnSelectingEstimator(Env, "C", "A");
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "C", "A");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, null, new string[] { "A", "C" });
+            var est = ColumnSelectingEstimator.DropColumns(Env, "A", "C");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, new[] {"D", "G"});
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "D", "G");
             Assert.Throws<ArgumentOutOfRangeException>(() => est.Fit(dataView));
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(new ColumnSelectingEstimator(Env, new[]{"C", "A" }));
+            var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, new[] { "A", "B" });
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "A", "B");
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {

@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
-        public ColumnSelectingEstimator(IHostEnvironment env, params string[] keepColumns)
+        private ColumnSelectingEstimator(IHostEnvironment env, params string[] keepColumns)
             : this(env, keepColumns, null, SelectColumnsTransform.Defaults.KeepHidden, SelectColumnsTransform.Defaults.IgnoreMissing)
         { }
 
