@@ -56,7 +56,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range =6-11,16-86)]
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range=6-11,16-86)]
         /// ]]>
         /// </format>
         /// </example>
