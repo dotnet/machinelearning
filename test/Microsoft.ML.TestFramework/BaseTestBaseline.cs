@@ -551,14 +551,20 @@ namespace Microsoft.ML.Runtime.RunTests
                 // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
                 // (1.82844949 - 1.8284502) = -0.00000071
 
+                double delta2 = 0;
                 if (!inRange)
                 {
-                    delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    inRange = delta >= -allowedVariance && delta <= allowedVariance;
+                    delta2 = Math.Round(f1 - f2, digitsOfPrecision);
+                    inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
                 }
 
                 if(!inRange)
                 {
+                    Fail(_allowMismatch, $"Output and baseline mismatch at line {i}." + Environment.NewLine +
+                        $"Values to compare are {firstCollection[i]} and {secondCollection[i]}" + Environment.NewLine +
+                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                        $"\t delta: {delta}" + Environment.NewLine +
+                        $"\t delta2: {delta2}" +Environment.NewLine);
                     return false;
                 }
             }
