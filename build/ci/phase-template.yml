@@ -40,7 +40,13 @@ phases:
       displayName: Stage build logs
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
-        contents: '?(msbuild.*|binclash.log|init-tools.log|bin/**/TestOutput/**/*)'
+        contents: '?(msbuild.*|binclash.log|init-tools.log)'
+        targetFolder: $(Build.ArtifactStagingDirectory)
+    - task: CopyFiles@2
+      displayName: Stage test output
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/bin
+        contents: '**/TestOutput/**/*'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs
