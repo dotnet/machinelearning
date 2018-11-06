@@ -37,15 +37,11 @@ namespace Microsoft.ML.Tests
                 const int size = 10;
                 List<Data> data = new List<Data>(size);
                 var dataView = env.CreateStreamingDataView(data);
-                List<Data> tempData = new List<Data>();
                 for (int i = 0; i < size / 2; i++)
-                    tempData.Add(new Data(5));
+                    data.Add(new Data(5));
 
                 for (int i = 0; i < size / 2; i++)
-                    tempData.Add(new Data((float)(5 + i * 1.1)));
-
-                foreach (var d in tempData)
-                    data.Add(new Data(d.Value));
+                    data.Add(new Data((float)(5 + i * 1.1)));
 
                 var args = new IidChangePointDetector.Arguments()
                 {
