@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public ReadOnlyMemory<char>[] RawData { get { return _data; } }
         }
 
-        public struct Column
+        public readonly struct Column
         {
             public readonly int ColumnIndex;
             public readonly string SuggestedName;
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly Column[] Columns;
             public readonly bool HasHeader;

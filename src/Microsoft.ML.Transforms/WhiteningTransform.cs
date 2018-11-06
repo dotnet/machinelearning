@@ -483,6 +483,15 @@ namespace Microsoft.ML.Transforms.Projections
                     continue;
                 }
 
+                // If there is no training data, simply initialize the model matrices.
+                if (crow == 0)
+                {
+                    var matrixSize = ccol * ccol;
+                    _models[iinfo] = new float[matrixSize];
+                    InvModels[iinfo] = new float[matrixSize];
+                    continue;
+                }
+
                 // Compute covariance matrix (sigma).
                 var u = new float[ccol * ccol];
                 ch.Info("Computing covariance matrix...");

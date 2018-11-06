@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// </summary>
     public sealed class SupervisedBinFinder
     {
-        private struct ValuePair<T> : IComparable<ValuePair<T>>
+        private readonly struct ValuePair<T> : IComparable<ValuePair<T>>
             where T : IComparable<T>
         {
             public readonly T Value;

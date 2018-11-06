@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime
         /// there will be performance implications. There shouldn't be, since checks rarely happen in
         /// tight loops.
         /// </summary>
-        private struct SensitiveExceptionContext : IExceptionContext
+        private readonly struct SensitiveExceptionContext : IExceptionContext
         {
             /// <summary>
             /// We will run this instances <see cref="IExceptionContext.Process{TException}(TException)"/> first.
