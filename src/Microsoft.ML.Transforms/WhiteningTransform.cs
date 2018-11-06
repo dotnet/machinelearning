@@ -319,34 +319,6 @@ namespace Microsoft.ML.Transforms.Projections
             return columnData;
         }
 
-        // REMOVE AFTER DEBUG: prints array of floats
-        private string ArrayPrint(Float[] array)
-        {
-            string str = "[";
-            foreach (var val in array)
-                str += val.ToString() + " ";
-            str += "]";
-            return str;
-        }
-
-        private string ArrayPrint(string[] array)
-        {
-            string str = "[";
-            foreach (var val in array)
-                str += val + " ";
-            str += "]";
-            return str;
-        }
-
-        private string ArrayPrint(int[] array)
-        {
-            string str = "[";
-            foreach (var val in array)
-                str += val.ToString() + " ";
-            str += "]";
-            return str;
-        }
-
         private void TrainModels(Float[][] columnData, int[] rowCounts, IChannel ch)
         {
             Host.AssertValue(ch);
@@ -354,40 +326,26 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
-                // REMOVE AFTER DEBUGGING
-                if (rowCounts[iinfo] == 0)
-                {
-                    _models[iinfo] = new float[Infos[iinfo].TypeSrc.ValueCount * Infos[iinfo].TypeSrc.ValueCount];
-                    InvModels[iinfo] = new float[Infos[iinfo].TypeSrc.ValueCount * Infos[iinfo].TypeSrc.ValueCount];
-                    continue;
-                }
-
                 var ex = _exes[iinfo];
                 var data = columnData[iinfo];
                 int crow = rowCounts[iinfo];
                 int ccol = Infos[iinfo].TypeSrc.ValueCount;
 
+                // If there is no training data, simply initialize the model matrices.
+                if (crow == 0)
+                {
+                    var matrixSize = ccol * ccol;
+                    _models[iinfo] = new float[matrixSize];
+                    InvModels[iinfo] = new float[matrixSize];
+                    continue;
+                }
+
                 // Compute covariance matrix (sigma).
                 var u = new Float[ccol * ccol];
 
-                // REMOVE AFTER DEBUGGING:
-                ch.Info("Infos Name = " + ArrayPrint(Infos.Select(x => x.Name).ToArray()));
-                ch.Info("Infos Source = " + ArrayPrint(Infos.Select(x => x.Source).ToArray()));
-
-                // REMOVE AFTER DEBUGGING
                 ch.Info("Computing covariance matrix...");
-                ch.Info("data = " + ArrayPrint(data));
-                ch.Info("ccol = " + ccol.ToString());
-                ch.Info("crow = " + crow.ToString());
-                ch.Info("Layout = " + Layout.ToString());
-                ch.Info("Trans = " + Mkl.Transpose.Trans.ToString());
-                ch.Info("NoTrans = " + Mkl.Transpose.NoTrans.ToString());
-
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
                     ccol, ccol, crow, 1 / (Float)crow, data, ccol, data, ccol, 0, u, ccol);
-
-                // REMOVE AFTER DEBUGGING:
-                ch.Info("cov mat = " + ArrayPrint(u));
 
                 ch.Info("Computing SVD...");
                 var eigValues = new Float[ccol]; // Eigenvalues.
@@ -396,10 +354,6 @@ namespace Microsoft.ML.Transforms.Projections
                                               // Each column in U will be an eigenvector.
                 int r = Mkl.Svd(Layout, Mkl.SvdJob.MinOvr, Mkl.SvdJob.None,
                     ccol, ccol, u, ccol, eigValues, null, ccol, null, ccol, unconv);
-                // REMOVE AFTER DEBUGGING:
-                ch.Info("eig mat = " + ArrayPrint(eigValues));
-                ch.Info("r = " + r.ToString());
-
                 ch.Assert(r == 0);
                 if (r > 0)
                     throw ch.Except("SVD did not converge.");
