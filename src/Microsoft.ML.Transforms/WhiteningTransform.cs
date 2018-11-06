@@ -331,6 +331,15 @@ namespace Microsoft.ML.Transforms.Projections
                 int crow = rowCounts[iinfo];
                 int ccol = Infos[iinfo].TypeSrc.ValueCount;
 
+                // If there is no training data, simply initialize the model matrices.
+                if (crow == 0)
+                {
+                    var matrixSize = ccol * ccol;
+                    _models[iinfo] = new float[matrixSize];
+                    InvModels[iinfo] = new float[matrixSize];
+                    continue;
+                }
+
                 // Compute covariance matrix (sigma).
                 var u = new Float[ccol * ccol];
                 ch.Info("Computing covariance matrix...");
