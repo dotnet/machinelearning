@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
                 var newMapper = _mapperFactory(newSource.Schema);
                 return new RowToRowMapperTransform(env.Register(nameof(RowToRowMapperTransform)), newSource, newMapper, _mapperFactory);
             }
-            // Revert to serialization;
+            // Revert to serialization. This was how it worked in all the cases, now it's only when we can't re-create the mapper.
             using (var stream = new MemoryStream())
             {
                 using (var rep = RepositoryWriter.CreateNew(stream, env))
