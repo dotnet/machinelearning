@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return false;
         }
 
-        [Fact(Skip = "Fails until issue #1342 is resolved.")]
+        [Fact]
         public void SavePipeNgramHash()
         {
             string pathData = GetDataPath("lm.sample.txt");
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=NgramHash{bits=6 col=HashNgram4:HashBig,Hash rehash+}",
                     "xf=NgramHash{bits=3 ngram=1 col={name=HashNgram5 src=Hash src=Hash} col={name=HashNgram6 src=Hash ord-}}",
                     "xf=NgramHash{bits=6 col=HashNgram7:HashBig,Hash rehash+ all- col={name=HashNgram8 src=Hash all+ ord-}}",
-                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8, hidden=-}",
+                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8 hidden=-}",
                 });
 
             TestCore(null, true,
