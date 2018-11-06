@@ -487,8 +487,8 @@ namespace Microsoft.ML.Transforms.Projections
                 if (crow == 0)
                 {
                     var matrixSize = ccol * ccol;
-                    _models[iinfo] = new float[matrixSize];
-                    InvModels[iinfo] = new float[matrixSize];
+                    models[iinfo] = new float[matrixSize];
+                    invModels[iinfo] = new float[matrixSize];
                     continue;
                 }
 
