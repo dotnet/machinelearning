@@ -16,7 +16,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, with partial functionality.
+ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow and LightGBM related functionality.
 
 The current release is 0.7. Check out the [release notes](docs/release-notes/0.7/release-0.7.md) to see what's new.
 
