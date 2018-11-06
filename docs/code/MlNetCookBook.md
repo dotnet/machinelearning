@@ -416,7 +416,7 @@ var trainData = reader.Read(trainDataPath);
 // We 'start' the pipeline with the output of the reader.
 var learningPipeline = reader.MakeNewEstimator()
     // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
-    // between -1 and 1 for all examples), and then train the model.
+    // between -1 and 1 for all examples)
     .Append(r => (
         // Retain the 'Target' column for evaluation purposes.
         r.Target,
@@ -459,7 +459,7 @@ var trainData = reader.Read(trainDataPath);
 // We 'start' the pipeline with the output of the reader.
 var dynamicPipeline =
     // First 'normalize' the data (rescale to be
-    // between -1 and 1 for all examples), and then train the model.
+    // between -1 and 1 for all examples)
     mlContext.Transforms.Normalize("FeatureVector")
     // Add the SDCA regression trainer.
     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
@@ -607,7 +607,7 @@ var dynamicPipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
-    .Append(new ValueToKeyMappingEstimator(mlContext, "Label"), TransformerScope.TrainTest)
+    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -1265,7 +1265,7 @@ var dynamicPipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
-    .Append(new ValueToKeyMappingEstimator(mlContext, "Label"), TransformerScope.TrainTest)
+    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
