@@ -36,4 +36,4 @@ phases:
     name: MacOS
     buildScript: ./build.sh
     queue:
-      name: Hosted macOS
+      name: DotNetCore-Mac
