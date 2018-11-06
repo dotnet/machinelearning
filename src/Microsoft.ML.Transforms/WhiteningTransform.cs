@@ -342,7 +342,6 @@ namespace Microsoft.ML.Transforms.Projections
 
                 // Compute covariance matrix (sigma).
                 var u = new Float[ccol * ccol];
-
                 ch.Info("Computing covariance matrix...");
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
                     ccol, ccol, crow, 1 / (Float)crow, data, ccol, data, ccol, 0, u, ccol);
