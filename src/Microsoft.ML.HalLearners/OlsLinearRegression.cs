@@ -68,13 +68,16 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="feature">The name of the feature column.</param>
+        /// <param name="weight">The name for the example weight column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public OlsLinearRegressionTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
+        public OlsLinearRegressionTrainer(IHostEnvironment env,
+            string label,
+            string feature,
+            string weight = null,
+            Action<Arguments> advancedSettings = null)
+            : this(env, ArgsInit(feature, label, weight, advancedSettings))
         {
         }
 

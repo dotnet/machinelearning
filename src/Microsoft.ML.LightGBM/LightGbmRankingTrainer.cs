@@ -90,10 +90,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// Initializes a new instance of <see cref="LightGbmRankingTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name of the column containing the group ID. </param>
-        /// <param name="weightColumn">The name of the column containing the initial weight.</param>
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="feature">The name of the feature column.</param>
+        /// <param name="groupId">The name of the column containing the group ID. </param>
+        /// <param name="weight">The name of the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -103,18 +103,18 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LightGbmRankingTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string groupIdColumn,
-            string weightColumn = null,
+            string label,
+            string feature,
+            string groupId,
+            string weight = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(label), feature, weight, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
-            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
+            Host.CheckNonEmpty(groupId, nameof(groupId));
         }
 
         protected override void CheckDataValid(IChannel ch, RoleMappedData data)

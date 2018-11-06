@@ -154,20 +154,23 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="feature">The name of the feature column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(labelColumn))
+        public SymSgdClassificationTrainer(IHostEnvironment env,
+            string label,
+            string feature,
+            Action<Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(feature),
+                  TrainerUtils.MakeBoolScalarLabel(label))
         {
             _args = new Arguments();
 
             // Apply the advanced args, if the user supplied any.
             _args.Check(Host);
             advancedSettings?.Invoke(_args);
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
+            _args.FeatureColumn = feature;
+            _args.LabelColumn = label;
 
             Info = new TrainerInfo();
         }

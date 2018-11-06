@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new MulticlassLogisticRegression(env, LabelColumn,FeatureColumn))
+                        env => new MulticlassLogisticRegression(env, LabelColumn, FeatureColumn))
                 };
             }
         }

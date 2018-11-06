@@ -121,8 +121,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Host.CheckValue(args, nameof(args));
 
             // override with the advanced settings.
-            if (advancedSettings != null)
-                advancedSettings.Invoke(args);
+            advancedSettings?.Invoke(args);
 
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
 

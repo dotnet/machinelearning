@@ -51,10 +51,10 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaMultiClassTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="labelColumn">The label, or dependent variable.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="label">The label, or dependent variable.</param>
+        /// <param name="features">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
-        /// <param name="weightColumn">The optional example weights.</param>
+        /// <param name="weight">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
@@ -63,19 +63,19 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaMultiClassTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string weightColumn = null,
+            string label,
+            string features,
+            string weights = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
+             : base(env, features, TrainerUtils.MakeU4ScalarColumn(label), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(features, nameof(features));
+            Host.CheckNonEmpty(label, nameof(label));
             _loss = loss ?? Args.LossFunction.CreateComponent(env);
             Loss = _loss;
         }
