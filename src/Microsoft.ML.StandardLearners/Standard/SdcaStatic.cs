@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCA.cs?range=6-10,18-72 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs?range=6-10,18-72 "The SDCA regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,

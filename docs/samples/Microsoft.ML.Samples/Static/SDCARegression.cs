@@ -13,7 +13,7 @@
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public static class Trainers
+    public partial class TrainersSamples
     {
         public static void SdcaRegression()
         {
