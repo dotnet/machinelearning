@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of ISchema.
+    /// Utilities for implementing and using the metadata API of <see cref="ISchema"/>.
     /// </summary>
     public static class MetadataUtils
     {
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
 
             bool isValid = false;
             categoricalFeatures = null;
-            if (!schema.GetColumnType(colIndex).IsKnownSizeVector)
+            if (!(schema.GetColumnType(colIndex) is VectorType vecType && vecType.Size > 0))
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Runtime.Data
                 VBuffer<int> catIndices = default(VBuffer<int>);
                 schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
-                int columnSlotsCount = schema.GetColumnType(colIndex).AsVector.VectorSizeCore;
+                int columnSlotsCount = vecType.Size;
                 if (catIndices.Length > 0 && catIndices.Length % 2 == 0 && catIndices.Length <= columnSlotsCount * 2)
                 {
                     int previousEndIndex = -1;

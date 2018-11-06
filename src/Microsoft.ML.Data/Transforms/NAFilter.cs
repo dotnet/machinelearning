@@ -208,11 +208,11 @@ namespace Microsoft.ML.Transforms
                 return true;
             if (itemType.IsKey)
                 return true;
-            if (itemType.IsTimeSpan)
+            if (itemType is TimeSpanType)
                 return true;
-            if (itemType.IsDateTime)
+            if (itemType is DateTimeType)
                 return true;
-            if (itemType.IsDateTimeZone)
+            if (itemType is DateTimeOffsetType)
                 return true;
             return false;
         }

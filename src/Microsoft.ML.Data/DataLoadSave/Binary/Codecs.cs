@@ -827,13 +827,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             public int WriteParameterization(Stream stream)
             {
                 int total = _factory.WriteCodec(stream, _innerCodec);
-                int count = _type.DimCount;
+                int count = _type.Dimensions.Length;
                 total += sizeof(int) * (1 + count);
                 using (BinaryWriter writer = _factory.OpenBinaryWriter(stream))
                 {
                     writer.Write(count);
                     for (int i = 0; i < count; i++)
-                        writer.Write(_type.GetDim(i));
+                        writer.Write(_type.Dimensions[i]);
                 }
                 return total;
             }
@@ -1163,7 +1163,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                     type = new VectorType(itemType, dims);
                 }
                 else
+                {
+                    // In prior times, in the case where the VectorType was of single rank, *and* of unknown length,
+                    // then the vector type would be considered to have a dimension count of 0, for some reason.
+                    // This can no longer occur, but in the case where we read an older file we have to account for
+                    // the fact that nothing may have been written.
                     type = new VectorType(itemType);
+                }
             }
             // Next create the vbuffer codec.
             Type codecType = typeof(VBufferCodec<>).MakeGenericType(itemType.RawType);
