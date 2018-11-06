@@ -6,13 +6,13 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,6 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -659,32 +658,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
             // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
-        }
-
-        [Fact]
-        public void ReadData()
-        {
-            ReadDataDynamic(GetDataPath("generated_regression_dataset.csv"));
-        }
-
-        private void ReadDataDynamic(string dataPath)
-        {
-            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
-            // as a catalog of available operations and as the source of randomness.
-            var mlContext = new MLContext();
-
-            // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
-	                // We read the first 10 values as a single float vector.
-                    new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
-                    // Separately, read the target variable.
-                    new TextLoader.Column("Target", DataKind.R4, 10)
-                },
-                // Default separator is tab, but we need a comma.
-                s => s.Separator = ",");
-
-            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var data = reader.Read(new MultiFileSource(dataPath));
         }
 
         private class CustomerChurnInfo

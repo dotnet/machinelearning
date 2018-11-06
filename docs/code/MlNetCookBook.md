@@ -117,7 +117,7 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
         // Three text columns.
         new TextLoader.Column("Workclass", DataKind.TX, 1),
         new TextLoader.Column("Education", DataKind.TX, 2),
@@ -166,6 +166,29 @@ var reader = mlContext.Data.TextReader(ctx => (
 var data = reader.Read(exampleFile1, exampleFile2);
 ```
 
+The code is very similar using the dynamic API:
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // A boolean column depicting the 'label'.
+        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        // Three text columns.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+        new TextLoader.Column("Education", DataKind.TX, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true
+});
+
+var data = reader.Read(exampleFile1, exampleFile2);
+```
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
@@ -439,7 +462,7 @@ var dynamicPipeline =
     // between -1 and 1 for all examples), and then train the model.
     mlContext.Transforms.Normalize("FeatureVector")
     // Add the SDCA regression trainer.
-    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"))
+    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
 
 // Step three. Fit the pipeline to the training data.
 var model = dynamicPipeline.Fit(trainData);
@@ -457,6 +480,13 @@ Assuming the example above was used to train the model, here's how you calculate
 var testData = reader.Read(testDataPath);
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+```
+Calculating the metrics with the dynamic API is as follows.
+```csharp
+// Read the test dataset.
+var testData = reader.Read(testDataPath);
+// Calculate metrics of the model on the test data.
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
 ```
 
 ## How do I save and load the model?
@@ -480,6 +510,21 @@ using (var stream = File.OpenRead(modelPath))
     loadedModel = mlContext.Model.Load(stream);
 ```
 
+You can use the dynamic API to achieve the same.
+```csharp
+using (var stream = File.Create(modelPath))
+{
+    // Saving and loading happens to 'dynamic' models.
+    mlContext.Model.Save(model, stream);
+}
+
+// Potentially, the lines below can be in a different process altogether.
+
+// When you load the model, it's a 'dynamic' transformer. 
+ITransformer loadedModel;
+using (var stream = File.OpenRead(modelPath))
+    loadedModel = mlContext.Model.Load(stream);
+```
 ## How do I use the model to make one prediction?
 
 Since any ML.NET model is a transformer, you can of course use `model.Transform` to apply the model to the 'data view' and obtain predictions this way. 
@@ -566,7 +611,7 @@ var dynamicPipeline =
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
-    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
 
 // Train the model.
 var model = dynamicPipeline.Fit(trainData);
@@ -975,7 +1020,7 @@ var dynamicPipeline =
     // Convert each categorical feature into one-hot encoding independently.
     mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
     // Convert all categorical features into indices, and build a 'word bag' of these.
-    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot", CategoricalTransform.OutputKind.Bag))
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", CategoricalTransform.OutputKind.Bag))
     // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
     .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
     .Append(new CountFeatureSelector(mlContext, "WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
@@ -1104,16 +1149,17 @@ var dynamicPipeline =
     .Append(new WordBagEstimator(mlContext, "NormalizedMessage", "BagOfWords"))
 
     // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
-    .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams", 
+    .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams",
                 ngramLength: 2, allLengths: false))
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
     .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-    .Append(new WordBagEstimator(mlContext, "MessageChars", "BagOfTrichar", 
+    .Append(new NgramEstimator(mlContext, "MessageChars", "BagOfTrichar",
                 ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
-    .Append(mlContext.Transforms.Text.ExtractWordEmbeedings("NormalizedMessage", "Embeddings", 
+    .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
+    .Append(mlContext.Transforms.Text.ExtractWordEmbeedings("TokenizedMessage", "Embeddings",
                 WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D));
 
 // Let's train our pipeline, and then apply it to the same data.
