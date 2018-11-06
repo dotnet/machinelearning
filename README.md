@@ -20,7 +20,7 @@ ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/do
 
 The current release is 0.7. Check out the [release notes](docs/release-notes/0.7/release-0.7.md) to see what's new.
 
-First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework.
+First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.2 or later, but 4.7.2 or later is recommended.
 
 Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
 ```
