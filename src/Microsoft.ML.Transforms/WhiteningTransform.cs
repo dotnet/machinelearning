@@ -772,7 +772,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
-        /// <param name="eps">Whitening constant, prevents division by zero.</param>
+        /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
