@@ -199,8 +199,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             ctx.Writer.Write(Bias);
             ctx.Writer.Write(Weight.Length);
-            ctx.Writer.WriteIntArray(Weight.Indices, Weight.IsDense ? 0 : Weight.Count);
-            ctx.Writer.WriteFloatArray(Weight.Values, Weight.Count);
+            ctx.Writer.WriteIntArray(Weight.GetIndices());
+            ctx.Writer.WriteSingleArray(Weight.GetValues());
         }
 
         public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)

@@ -703,9 +703,9 @@ namespace Microsoft.ML.Trainers.HalLearners
             Contracts.Assert(Weight.Length + 1 == _standardErrors.Length);
             Contracts.Assert(Weight.Length + 1 == _tValues.Length);
             Contracts.Assert(Weight.Length + 1 == _pValues.Length);
-            ctx.Writer.WriteDoublesNoCount(_standardErrors, m);
-            ctx.Writer.WriteDoublesNoCount(_tValues, m);
-            ctx.Writer.WriteDoublesNoCount(_pValues, m);
+            ctx.Writer.WriteDoublesNoCount(_standardErrors.AsSpan(0, m));
+            ctx.Writer.WriteDoublesNoCount(_tValues.AsSpan(0, m));
+            ctx.Writer.WriteDoublesNoCount(_pValues.AsSpan(0, m));
         }
 
         private static void TValueCheckDecode(Double param, Double tvalue)

@@ -779,7 +779,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             for (int i = 0; i < _numFeatures; i++)
             {
-                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i], _binUpperBounds[i].Length);
+                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i]);
                 Host.Assert(_binUpperBounds[i].Length == _binEffects[i].Length);
             }
             ctx.Writer.Write(_inputFeatureToDatasetFeatureMap.Count);

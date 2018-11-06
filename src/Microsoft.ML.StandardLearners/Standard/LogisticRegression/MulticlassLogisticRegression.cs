@@ -602,7 +602,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             ctx.Writer.Write(_numFeatures);
             ctx.Writer.Write(_numClasses);
-            ctx.Writer.WriteFloatsNoCount(_biases.AsSpan(0, _numClasses));
+            ctx.Writer.WriteSinglesNoCount(_biases.AsSpan(0, _numClasses));
             // _weights == _weighsDense means we checked that all vectors in _weights
             // are actually dense, and so we assigned the same object, or it came dense
             // from deserialization.
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Runtime.Learners
                 foreach (var fv in _weights)
                 {
                     Host.Assert(fv.Length == _numFeatures);
-                    ctx.Writer.WriteFloatsNoCount(fv.GetValues());
+                    ctx.Writer.WriteSinglesNoCount(fv.GetValues());
                 }
             }
             else
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Runtime.Learners
                         }
                         else
                         {
-                            ctx.Writer.WriteFloatsNoCount(fw.GetValues());
+                            ctx.Writer.WriteSinglesNoCount(fw.GetValues());
                             count += fw.Count;
                         }
                     }

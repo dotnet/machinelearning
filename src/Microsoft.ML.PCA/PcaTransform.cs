@@ -200,10 +200,10 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < Rank; i++)
                 {
                     Contracts.Assert(FloatUtils.IsFinite(Eigenvectors[i]));
-                    ctx.Writer.WriteFloatsNoCount(Eigenvectors[i].AsSpan(0, Dimension));
+                    ctx.Writer.WriteSinglesNoCount(Eigenvectors[i].AsSpan(0, Dimension));
                 }
                 Contracts.Assert(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected)));
-                ctx.Writer.WriteFloatArray(MeanProjected);
+                ctx.Writer.WriteSingleArray(MeanProjected);
             }
 
             public void ProjectMean(float[] mean)

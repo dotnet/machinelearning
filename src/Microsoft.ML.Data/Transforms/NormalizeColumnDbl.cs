@@ -275,8 +275,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             ctx.Writer.Write(sizeof(TFloat));
             ctx.Writer.WriteBoolByte(useLog);
             ctx.Writer.Write(mean.Length);
-            ctx.Writer.WriteDoublesNoCount(mean, mean.Length);
-            ctx.Writer.WriteDoublesNoCount(stddev, mean.Length);
+            ctx.Writer.WriteDoublesNoCount(mean);
+            ctx.Writer.WriteDoublesNoCount(stddev.AsSpan(0, mean.Length));
 
             ctx.SaveTextStream("CdfNormalizer.txt",
                 writer =>

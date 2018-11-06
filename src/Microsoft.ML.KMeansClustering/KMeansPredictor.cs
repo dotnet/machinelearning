@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 if (!_centroids[i].IsDense)
                     writer.WriteIntsNoCount(_centroids[i].GetIndices());
                 Contracts.Assert(FloatUtils.IsFinite(values));
-                writer.WriteFloatsNoCount(values);
+                writer.WriteSinglesNoCount(values);
             }
         }
 

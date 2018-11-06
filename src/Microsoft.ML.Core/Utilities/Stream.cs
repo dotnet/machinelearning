@@ -61,40 +61,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Writes a length prefixed array of ints.
+        /// Writes a length prefixed span of ints.
         /// </summary>
-        public static void WriteIntArray(this BinaryWriter writer, int[] values)
+        public static void WriteIntArray(this BinaryWriter writer, ReadOnlySpan<int> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (int val in values)
-                writer.Write(val);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of ints.
-        /// </summary>
-        public static void WriteIntArray(this BinaryWriter writer, int[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
         /// <summary>
-        /// Writes an array of ints without the length prefix.
+        /// Writes a span of ints without the length prefix.
         /// </summary>
         public static void WriteIntsNoCount(this BinaryWriter writer, ReadOnlySpan<int> values)
         {
@@ -105,48 +84,25 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Writes a length prefixed array of uints.
+        /// Writes a length prefixed span of uints.
         /// </summary>
-        public static void WriteUIntArray(this BinaryWriter writer, uint[] values)
+        public static void WriteUIntArray(this BinaryWriter writer, ReadOnlySpan<uint> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (uint val in values)
-                writer.Write(val);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of uints.
-        /// </summary>
-        public static void WriteUIntArray(this BinaryWriter writer, uint[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
         /// <summary>
-        /// Writes an array of uints without the length prefix.
+        /// Writes a span of uints without the length prefix.
         /// </summary>
-        public static void WriteUIntsNoCount(this BinaryWriter writer, uint[] values, int count)
+        public static void WriteUIntsNoCount(this BinaryWriter writer, ReadOnlySpan<uint> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
@@ -168,6 +124,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             // This method doesn't write the length of the binary array.
             writer.Write(values);
+        }
+
+        /// <summary>
+        /// Writes a length prefixed span of bytes.
+        /// </summary>
+        public static void WriteByteArray(this BinaryWriter writer, ReadOnlySpan<byte> values)
+        {
+            Contracts.AssertValue(writer);
+
+            writer.Write(values.Length);
+
+            for (int i = 0; i < values.Length; i++)
+                writer.Write(values[i]);
         }
 
         /// <summary>
@@ -196,56 +165,21 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Writes a length prefixed array of Floats.
+        /// Writes a length prefixed span of Floats.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, float[] values)
+        public static void WriteSingleArray(this BinaryWriter writer, ReadOnlySpan<float> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (var val in values)
-                writer.Write(val);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of Floats.
-        /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, float[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
         /// <summary>
-        /// Writes a specified number of floats starting at the specified index from an array.
-        /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, float[] values, int start, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValue(values);
-            Contracts.Assert(0 <= start && start < values.Length);
-            Contracts.Assert(0 < count && count <= values.Length - start);
-
-            for (int i = 0; i < count; i++)
-                writer.Write(values[start + i]);
-        }
-
-        /// <summary>
         /// Writes a length prefixed array of Floats.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, IEnumerable<float> values, int count)
+        public static void WriteSingleArray(this BinaryWriter writer, IEnumerable<float> values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(values);
@@ -264,7 +198,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a span of Floats without the length prefix.
         /// </summary>
-        public static void WriteFloatsNoCount(this BinaryWriter writer, ReadOnlySpan<float> values)
+        public static void WriteSinglesNoCount(this BinaryWriter writer, ReadOnlySpan<float> values)
         {
             Contracts.AssertValue(writer);
 
@@ -273,160 +207,61 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Writes a length prefixed array of singles.
+        /// Writes a length prefixed span of doubles.
         /// </summary>
-        public static void WriteSingleArray(this BinaryWriter writer, float[] values)
+        public static void WriteDoubleArray(this BinaryWriter writer, ReadOnlySpan<double> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (var val in values)
-                writer.Write(val);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of singles.
-        /// </summary>
-        public static void WriteSingleArray(this BinaryWriter writer, float[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
         /// <summary>
-        /// Writes an array of singles without the length prefix.
+        /// Writes a span of doubles without the length prefix.
         /// </summary>
-        public static void WriteSinglesNoCount(this BinaryWriter writer, float[] values, int count)
+        public static void WriteDoublesNoCount(this BinaryWriter writer, ReadOnlySpan<double> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i]);
         }
 
         /// <summary>
-        /// Writes a length prefixed array of doubles.
+        /// Writes a length prefixed span of bools as bytes with 0/1 values.
         /// </summary>
-        public static void WriteDoubleArray(this BinaryWriter writer, double[] values)
+        public static void WriteBoolByteArray(this BinaryWriter writer, ReadOnlySpan<bool> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (double val in values)
-                writer.Write(val);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of doubles.
-        /// </summary>
-        public static void WriteDoubleArray(this BinaryWriter writer, double[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
-                writer.Write(values[i]);
-        }
-
-        /// <summary>
-        /// Writes an array of doubles without the length prefix.
-        /// </summary>
-        public static void WriteDoublesNoCount(this BinaryWriter writer, double[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            for (int i = 0; i < count; i++)
-                writer.Write(values[i]);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of bools as bytes with 0/1 values.
-        /// </summary>
-        public static void WriteBoolByteArray(this BinaryWriter writer, bool[] values)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
-
-            writer.Write(values.Length);
-            foreach (bool val in values)
-                writer.Write(val ? (byte)1 : (byte)0);
-        }
-
-        /// <summary>
-        /// Writes a length prefixed array of bools as bytes with 0/1 values.
-        /// </summary>
-        public static void WriteBoolByteArray(this BinaryWriter writer, bool[] values, int count)
-        {
-            Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
-
-            writer.Write(count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i] ? (byte)1 : (byte)0);
         }
 
         /// <summary>
-        /// Writes an array of bools as bytes with 0/1 values, without the length prefix.
+        /// Writes a span of bools as bytes with 0/1 values, without the length prefix.
         /// </summary>
-        public static void WriteBoolBytesNoCount(this BinaryWriter writer, bool[] values, int count)
+        public static void WriteBoolBytesNoCount(this BinaryWriter writer, ReadOnlySpan<bool> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-            Contracts.Assert(0 <= count & count <= Utils.Size(values));
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
                 writer.Write(values[i] ? (byte)1 : (byte)0);
         }
 
         /// <summary>
-        /// Writes a length prefixed array of chars.
+        /// Writes a length prefixed span of chars.
         /// </summary>
-        public static void WriteCharArray(this BinaryWriter writer, char[] values)
+        public static void WriteCharArray(this BinaryWriter writer, ReadOnlySpan<char> values)
         {
             Contracts.AssertValue(writer);
-            Contracts.AssertValueOrNull(values);
-
-            if (values == null)
-            {
-                writer.Write(0);
-                return;
-            }
 
             writer.Write(values.Length);
-            foreach (var val in values)
-                writer.Write((short)val);
+            for (int i = 0; i < values.Length; i++)
+                writer.Write((short)values[i]);
         }
 
         /// <summary>

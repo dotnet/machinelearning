@@ -401,8 +401,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
 
             writer.WriteUIntArray(Thresholds);
-            writer.WriteFloatArray(RawThresholds);
-            writer.WriteFloatArray(DefaultValueForMissing);
+            writer.WriteSingleArray(RawThresholds);
+            writer.WriteSingleArray(DefaultValueForMissing);
             writer.WriteDoubleArray(LeafValues);
 
             writer.WriteDoubleArray(_splitGain);

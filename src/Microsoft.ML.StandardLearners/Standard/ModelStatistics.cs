@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             var coeffStdErrorValues = _coeffStdError.Value.GetValues();
             _env.Assert(coeffStdErrorValues.Length == _paramCount);
-            ctx.Writer.WriteFloatsNoCount(coeffStdErrorValues);
+            ctx.Writer.WriteSinglesNoCount(coeffStdErrorValues);
             ctx.Writer.Write(_coeffStdError.Value.Length);
             if (_coeffStdError.Value.IsDense)
                 return;
