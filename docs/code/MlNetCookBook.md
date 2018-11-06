@@ -113,7 +113,7 @@ If the schema of the data is not known at compile time, or too cumbersome, you c
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // A boolean column depicting the 'label'.
@@ -310,7 +310,7 @@ You can also use the dynamic API to create the equivalent of the previous pipeli
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // A boolean column depicting the 'label'.
@@ -413,7 +413,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // We read the first 11 values as a single float vector.
@@ -540,7 +540,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         new TextLoader.Column("SepalLength", DataKind.R4, 0),
@@ -833,7 +833,7 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // The four features of the Iris dataset will be grouped together as one Features column.
@@ -950,7 +950,7 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         new TextLoader.Column("Label", DataKind.BL, 0),
@@ -1077,7 +1077,7 @@ You can achieve the same results using the dynamic API.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         new TextLoader.Column("IsToxic", DataKind.BL, 0),
@@ -1196,7 +1196,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // We read the first 11 values as a single float vector.
