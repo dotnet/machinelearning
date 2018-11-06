@@ -316,7 +316,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 var item = args.Column[i];
                 var tempResultType = item.ResultType ?? args.ResultType;
                 DataKind kind;
-                KeyRange range = item.KeyRange ?? (item.Range != null ? KeyRange.Parse(item.Range) : null) ?? args.KeyRange ?? (args.Range != null ? KeyRange.Parse(args.Range) : null);
+                KeyRange range = item.KeyRange ??
+                    (item.Range != null ? KeyRange.Parse(item.Range) : null) ??
+                    (item.ResultType == null ?
+                    (args.KeyRange ??
+                    (args.Range != null ? KeyRange.Parse(args.Range) : null)) : null);
                 if (tempResultType == null)
                 {
                     if (range == null)

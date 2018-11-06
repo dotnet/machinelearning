@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -596,6 +598,77 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }
                 });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWithKey()
+        {
+            var dataPath = GetDataPath("breast-cancer-withheader.txt");
+            TestCore(dataPath, true,
+                new[] {
+                    "loader=Text{header=+",
+                    "  col=Label:U1[0-1]:0",
+                    "  col=Features:U2:1-*",
+                    "  col=A:U1[1-5]:1",
+                    "  col=B:U1[3-8]:2",
+                    "  col=C:U4[0-5]:3",
+                    "  col=D:U1[1-*]:4",
+                    "  col=E:[3-*]:5",
+                    "  col=F:U1[0-*]:6",
+                    "}",
+                    "xf=Convert{col=Label2:U2[0-1]:Label col=Features2:Features type=Num}",
+                },
+
+                pipe =>
+                {
+                    var argsText = new TextLoader.Arguments();
+                    bool tmp = CmdParser.ParseArguments(Env,
+                        " header=+" +
+                        " col=Label:TX:0" +
+                        " col=Features:TX:1-*" +
+                        " col=A:TX:1" +
+                        " col=B:TX:2" +
+                        " col=C:TX:3" +
+                        " col=D:TX:4" +
+                        " col=E:TX:5" +
+                        " col=F:TX:6",
+                        argsText);
+                    Check(tmp, "Parsing argsText failed!");
+                    IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
+
+                    var argsConv = new ConvertingTransform.Arguments();
+                    tmp = CmdParser.ParseArguments(Env,
+                        " col=Label:U1[0-1]:Label" +
+                        " col=Features:U2:Features" +
+                        " col=A:U1[1-5]:A" +
+                        " col=B:U1[3-8]:B" +
+                        " col=C:[0-5]:C" +
+                        " col=D:U1[1-*]:D" +
+                        " col=E" +
+                        " col=F:U1[0-*]:F" +
+                        " key={min=3}",
+                        argsConv);
+                    Check(tmp, "Parsing argsConv failed!");
+                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+
+                    argsConv = new ConvertingTransform.Arguments();
+                    tmp = CmdParser.ParseArguments(Env,
+                        " col=Label2:U2:Label col=Features2:Num:Features",
+                        argsConv);
+                    Check(tmp, "Parsing argsConv(2) failed!");
+                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+
+                    var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
+
+                    IDataView view1 = SelectColumnsTransform.CreateKeep(Env, pipe, colsChoose);
+                    view2 = SelectColumnsTransform.CreateKeep(Env, view2, colsChoose);
+
+                    CheckSameValues(view1, view2);
+                },
+
+                logCurs: true);
 
             Done();
         }
