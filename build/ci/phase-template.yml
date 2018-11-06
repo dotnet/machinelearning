@@ -40,18 +40,21 @@ phases:
         mergeTestResults: true
     - task: CopyFiles@2
       displayName: Stage build logs
+      condition: failed()
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: '?(msbuild.*|binclash.log|init-tools.log)'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage test output
+      condition: failed()
       inputs:
         sourceFolder: $(Build.SourcesDirectory)/bin
         contents: '**/TestOutput/**/*'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs
+      condition: failed()
       inputs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
