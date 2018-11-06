@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="models">An array of whitening matrices where models[i] is learned from the i-th element of <paramref name="columns"/>.</param>
-        /// <param name="invModels">An array of inverse whitening matrices, the i-th element being the inverse whitening matrix of models[i].</param>
+        /// <param name="invModels">An array of inverse whitening matrices, the i-th element being the inverse matrix of models[i].</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
         internal VectorWhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), GetColumnPairs(columns))
