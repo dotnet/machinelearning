@@ -96,6 +96,12 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCABinaryClassification.cs?range=6-11,19-113 "The SDCA binary classification example.")]
+        /// ]]></format>
+        /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
                     this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                     Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
