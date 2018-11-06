@@ -417,14 +417,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var reader = mlContext.Data.TextReader(new TextLoader.Arguments
             {
                 Column = new[] {
-        // We read the first 11 values as a single float vector.
-        new TextLoader.Column("SepalLength", DataKind.R4, 0),
-        new TextLoader.Column("SepalWidth", DataKind.R4, 1),
-        new TextLoader.Column("PetalLength", DataKind.R4, 2),
-        new TextLoader.Column("PetalWidth", DataKind.R4, 3),
-        // Label: kind of iris.
-        new TextLoader.Column("Label", DataKind.TX, 4),
-    },
+                    // We read the first 11 values as a single float vector.
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth", DataKind.R4, 3),
+                    // Label: kind of iris.
+                    new TextLoader.Column("Label", DataKind.TX, 4),
+                },
                 // Default separator is tab, but the dataset has comma.
                 Separator = ","
             });
@@ -458,7 +458,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
             Console.WriteLine(microAccuracies.Average());
         }
-
  
         [Fact]
         public void ReadData()
