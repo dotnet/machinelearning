@@ -188,13 +188,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
+        /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
-        /// <param name="trainingWindowSize">The change history length.</param>
-        /// <param name="seasonalityWindowSize">The change history length.</param>
+        /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
+        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
+        /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for spike detection.")]
+        /// ]]>
+        /// </format>
         public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)

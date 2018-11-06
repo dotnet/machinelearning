@@ -3979,7 +3979,7 @@
         {
           "Name": "ChangeHistoryLength",
           "Type": "Int",
-          "Desc": "The change history length.",
+          "Desc": "The length of the sliding window on p-values for computing the martingale score.",
           "Aliases": [
             "wnd"
           ],
@@ -4483,7 +4483,7 @@
         {
           "Name": "ChangeHistoryLength",
           "Type": "Int",
-          "Desc": "The change history length.",
+          "Desc": "The length of the sliding window on p-values for computing the martingale score.",
           "Aliases": [
             "wnd"
           ],
