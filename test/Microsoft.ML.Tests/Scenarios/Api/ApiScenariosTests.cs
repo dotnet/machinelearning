@@ -57,7 +57,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             return new TextLoader.Arguments()
             {
                 Separator = "comma",
-                HasHeader = true,
                 Column = new[]
                 {
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
