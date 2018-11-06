@@ -349,8 +349,8 @@ namespace Microsoft.ML.Transforms.Projections
                 ch.Info("Computing SVD...");
                 var eigValues = new Float[ccol]; // Eigenvalues.
                 var unconv = new Float[ccol]; // Superdiagonal unconverged values (if any). Not used but seems to be required by MKL.
-                                              // After the next call, values in U will be ovewritten by left eigenvectors.
-                                              // Each column in U will be an eigenvector.
+                // After the next call, values in U will be ovewritten by left eigenvectors.
+                // Each column in U will be an eigenvector.
                 int r = Mkl.Svd(Layout, Mkl.SvdJob.MinOvr, Mkl.SvdJob.None,
                     ccol, ccol, u, ccol, eigValues, null, ccol, null, ccol, unconv);
                 ch.Assert(r == 0);
