@@ -245,8 +245,8 @@ namespace Microsoft.ML.Transforms.Projections
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="models">An array of whitening matrices where models[i] is learned from the i-th element of <paramref name="columns"/>.</param>
-        /// <param name="invModels">An array of inverse whitening matrices corresponding to the i-th element of <paramref name="columns"/>.</param>
-        /// <param name="columns">Describes the settings of the transformation.</param>
+        /// <param name="invModels">An array of inverse whitening matrices, the i-th element being the inverse whitening matrix of models[i].</param>
+        /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
         internal VectorWhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), GetColumnPairs(columns))
         {
@@ -765,7 +765,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="columns"> Describes the settings of the transformation.</param>
+        /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
         public VectorWhiteningEstimator(IHostEnvironment env, params VectorWhiteningTransform.ColInfo[] columns)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform));
