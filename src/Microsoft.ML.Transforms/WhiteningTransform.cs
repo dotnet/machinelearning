@@ -671,7 +671,7 @@ namespace Microsoft.ML.Transforms.Projections
                     // For PCA, the transform equation is y=U^Tx, where "^T" denotes matrix transpose, x is an 1-D vector (i.e., the input column), and U=[u_1, ..., u_PcaNum]
                     // is a n-by-PcaNum matrix. The symbol u_k is the k-th largest (in terms of the associated eigenvalue) eigenvector of (1/m)*\sum_{i=1}^m x_ix_i^T,
                     // where x_i is the whitened column at the i-th row and we have m rows in the training data.
-                    // For ZCA, the transform equation is the same, but U=[u_1, ..., u_n], so we retain all eigenvectors.
+                    // For ZCA, the transform equation is y = US^{-1/2}U^Tx, where U=[u_1, ..., u_n] (we retain all eigenvectors) and S is a diagonal matrix whose i-th diagonal element is the eigenvalues of u_i. The first U^Tx rotates x to another linear space (bases are u_1, ..., u_n), then S^{-1/2} is applied to ensure unit variance, and finally we rotate the scaled result back to the original space using U (note that UU^T is identity matrix so U is the inverse rotation of U^T).
                     ColumnType outType = (info.Kind == WhiteningKind.Pca && info.PcaNum > 0) ? new VectorType(NumberType.Float, info.PcaNum) : _srcTypes[iinfo];
                     result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, outType, null);
                 }
