@@ -67,8 +67,9 @@ namespace Microsoft.ML.Runtime.Data
         public Type RawType { get; }
 
         /// <summary>
-        /// The DataKind corresponding to RawType, if there is one (zero otherwise). It is equivalent
-        /// to the result produced by DataKindExtensions.TryGetDataKind(RawType, out kind).
+        /// The <see cref="DataKind"/> corresponding to <see cref="RawType"/>, if there is one (<c>default</c> otherwise).
+        /// It is equivalent to the result produced by <see cref="DataKindExtensions.TryGetDataKind(Type, out DataKind)"/>.
+        /// For external code it would be preferable to operate over <see cref="RawType"/>.
         /// </summary>
         [BestFriend]
         internal DataKind RawKind { get; }
@@ -80,19 +81,19 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsPrimitive { get; }
 
         /// <summary>
-        /// Equivalent to "this as PrimitiveType".
+        /// Equivalent to <c>as <see cref="PrimitiveType"/></c>.
         /// </summary>
         [BestFriend]
         internal PrimitiveType AsPrimitive => IsPrimitive ? (PrimitiveType)this : null;
 
         /// <summary>
-        /// Whether this type is a standard numeric type.
+        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
         /// </summary>
         [BestFriend]
         internal bool IsNumber { get; }
 
         /// <summary>
-        /// Whether this type is the standard text type.
+        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
         /// </summary>
         [BestFriend]
         internal bool IsText
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard boolean type.
+        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
         /// </summary>
         [BestFriend]
         internal bool IsBool
@@ -134,12 +135,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Whether this type is a key type, which implies that the order of values is not significant,
         /// and arithmetic is non-sensical. A key type can define a cardinality.
+        /// External code should use <c>is <see cref="KeyType"/></c>.
         /// </summary>
         [BestFriend]
         internal bool IsKey { get; }
 
         /// <summary>
-        /// Equivalent to "this as KeyType".
+        /// Equivalent to <c>as <see cref="KeyType"/></c>.
         /// </summary>
         [BestFriend]
         internal KeyType AsKey => IsKey ? (KeyType)this : null;
@@ -165,27 +167,26 @@ namespace Microsoft.ML.Runtime.Data
         internal bool IsVector { get; }
 
         /// <summary>
-        /// Equivalent to "this as VectorType".
+        /// Equivalent to <c>as <see cref="VectorType"/></c>.
         /// </summary>
         [BestFriend]
         internal VectorType AsVector => IsVector ? (VectorType)this : null;
 
         /// <summary>
-        /// For non-vector types, this returns the column type itself (i.e., return this).
+        /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
         /// </summary>
         [BestFriend]
         internal ColumnType ItemType => ItemTypeCore;
 
         /// <summary>
         /// Whether this is a vector type with known size. Returns false for non-vector types.
-        /// Equivalent to VectorSize > 0.
+        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
         /// </summary>
         [BestFriend]
         internal bool IsKnownSizeVector => VectorSize > 0;
 
         /// <summary>
-        /// Zero return means either it's not a vector or the size is unknown. Equivalent to
-        /// IsVector ? ValueCount : 0 and to IsKnownSizeVector ? ValueCount : 0.
+        /// Zero return means either it's not a vector or the size is unknown.
         /// </summary>
         [BestFriend]
         internal int VectorSize => VectorSizeCore;

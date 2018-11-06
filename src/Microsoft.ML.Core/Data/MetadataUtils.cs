@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of <see cref="ISchema"/>.
+    /// Utilities for implementing and using the metadata API of <see cref="Schema"/>.
     /// </summary>
     public static class MetadataUtils
     {
