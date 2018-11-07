@@ -116,7 +116,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             GenerateInput(writer, entryPointInfo, catalog);
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
         }
 
         private void GenerateEnums(IndentedTextWriter writer, Type inputType, string currentNamespace)
@@ -150,31 +150,33 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 }
 
                 _generatedClasses.MarkAsGenerated(type.FullName);
-                writer.Write("{");
+                writer.WriteLine("{");
                 writer.Indent();
                 var names = Enum.GetNames(type);
                 var values = Enum.GetValues(type);
-                string prefix = "";
+                var lines = new List<string>();
                 for (int i = 0; i < names.Length; i++)
                 {
                     var name = names[i];
                     if (type.GetField(name).GetCustomAttribute<HideEnumValueAttribute>() != null)
                         continue;
                     var value = values.GetValue(i);
-                    writer.WriteLine(prefix);
                     if (enumType == typeof(int))
-                        writer.Write($"{name} = {(int)value}");
+                        lines.Add($"{name} = {(int)value}");
                     else
                     {
                         Contracts.Assert(enumType == typeof(byte));
-                        writer.Write($"{name} = {(byte)value}");
+                        lines.Add($"{name} = {(byte)value}");
                     }
-                    prefix = ",";
                 }
-                writer.WriteLine();
+                for (int i = 0; i < lines.Count - 1; i++)
+                {
+                    writer.WriteLine($"{lines[i]},");
+                }
+                writer.WriteLine($"{lines[lines.Count-1]}");
                 writer.Outdent();
                 writer.WriteLine("}");
-                writer.WriteLine();
+                writer.WriteLineNoTabs();
             }
         }
 
@@ -222,7 +224,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 GenerateInputFields(writer, type, catalog, currentNamespace);
                 writer.Outdent();
                 writer.WriteLine("}");
-                writer.WriteLine();
+                writer.WriteLineNoTabs();
             }
         }
 
@@ -283,7 +285,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine($"{fieldName} = ManyToOneColumn<{apiName}>.Create(name, source);");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
 
             Contracts.Assert(columnType == null);
 
@@ -347,7 +349,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine($"{fieldName} = OneToOneColumn<{generatedType}>.Create(inputColumn);");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             writer.WriteLine($"public void Add{fieldName}(string outputColumn, string inputColumn)");
             writer.WriteLine("{");
             writer.Indent();
@@ -361,7 +363,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 writer.WriteLine($"{fieldName} = OneToOneColumn<{generatedType}>.Create(outputColumn, inputColumn);");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
 
             Contracts.Assert(columnType == null);
 
@@ -381,7 +383,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
 
             GenerateEnums(writer, entryPointInfo.InputType, _defaultNamespace + entryPointMetadata.Namespace);
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             GenerateClasses(writer, entryPointInfo.InputType, catalog, _defaultNamespace + entryPointMetadata.Namespace);
             CSharpGeneratorUtils.GenerateSummary(writer, entryPointInfo.Description, entryPointInfo.XmlInclude);
 
@@ -391,14 +393,14 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"public sealed partial class {entryPointMetadata.ClassName}{classBase}");
             writer.WriteLine("{");
             writer.Indent();
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             if (entryPointInfo.InputKinds != null && entryPointInfo.InputKinds.Any(t => typeof(Legacy.ILearningPipelineLoader).IsAssignableFrom(t)))
                 CSharpGeneratorUtils.GenerateLoaderAddInputMethod(writer, entryPointMetadata.ClassName);
 
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, entryPointMetadata.ClassName, out Type transformType);
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             GenerateInputFields(writer, entryPointInfo.InputType, catalog, _defaultNamespace + entryPointMetadata.Namespace);
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
 
             GenerateOutput(writer, entryPointInfo, out HashSet<string> outputVariableNames);
             GenerateApplyFunction(writer, entryPointMetadata.ClassName, transformType, outputVariableNames, entryPointInfo.InputKinds);
@@ -442,7 +444,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("throw new InvalidOperationException($\"{ nameof(" + className + ")} only supports an { nameof(ILearningPipelineDataStep)} as an input.\");");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
 
             if (isTransform)
             {
@@ -461,7 +463,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
 
             //Pipeline step.
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             if (isTransform && !isCalibrator)
                 writer.WriteLine($"private class {pipelineStep} : ILearningPipelineDataStep");
             else
@@ -484,7 +486,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
 
             if (isTransform && !isCalibrator)
             {
@@ -514,7 +516,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (fieldInfo.FieldType == typeof(JArray))
                 {
                     writer.WriteLine($"public Experiment {CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}");
-                    writer.WriteLine();
+                    writer.WriteLineNoTabs();
                     continue;
                 }
 
@@ -543,12 +545,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.WriteLine(sweepableParamAttr.ToString());
                 }
 
-                writer.Write($"public {inputTypeString} {CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}");
+                var line = $"public {inputTypeString} {CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}";
                 var defaultValue = CSharpGeneratorUtils.GetValue(catalog, fieldInfo.FieldType, fieldInfo.GetValue(defaults), _generatedClasses, rootNameSpace);
                 if (defaultValue != null)
-                    writer.Write($" = {defaultValue};");
-                writer.WriteLine();
-                writer.WriteLine();
+                    line += $" = {defaultValue};";
+                writer.WriteLine(line);
+                writer.WriteLineNoTabs();
             }
         }
 
@@ -576,7 +578,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 var outputTypeString = CSharpGeneratorUtils.GetOutputType(fieldInfo.FieldType);
                 outputVariableNames.Add(CSharpGeneratorUtils.Capitalize(outputAttr.Name ?? fieldInfo.Name));
                 writer.WriteLine($"public {outputTypeString} {CSharpGeneratorUtils.Capitalize(outputAttr.Name ?? fieldInfo.Name)} {{ get; set; }} = new {outputTypeString}();");
-                writer.WriteLine();
+                writer.WriteLineNoTabs();
             }
 
             writer.Outdent();
@@ -586,15 +588,15 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         private void GenerateComponentKind(IndentedTextWriter writer, string kind)
         {
             writer.WriteLine($"public abstract class {kind} : ComponentKind {{}}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
         }
 
         private void GenerateComponent(IndentedTextWriter writer, ComponentCatalog.ComponentInfo component, ComponentCatalog catalog)
         {
             GenerateEnums(writer, component.ArgumentType, "Runtime");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             GenerateClasses(writer, component.ArgumentType, catalog, "Runtime");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             CSharpGeneratorUtils.GenerateSummary(writer, component.Description);
             writer.WriteLine($"public sealed class {CSharpGeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
@@ -603,7 +605,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
         }
     }
 }

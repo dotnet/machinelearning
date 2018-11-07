@@ -388,7 +388,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Linq;");
             writer.WriteLine("using Microsoft.ML.Runtime.CommandLine;");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             writer.WriteLine("namespace Microsoft.ML");
             writer.WriteLine("{");
             writer.Indent();
@@ -417,14 +417,14 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("return output;");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             writer.WriteLine($"public void Add({inputOuputClassName} input, {inputOuputClassName}.Output output)");
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine($"_jsonNodes.Add(Serialize(\"{className}\", input, output));");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
         }
 
         public static void GenerateLoaderAddInputMethod(IndentedTextWriter writer, string className)
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("Model = null;");
             writer.Outdent();
             writer.WriteLine("}");
-            writer.WriteLine();
+            writer.WriteLineNoTabs();
             writer.WriteLine("public Var<IDataView> Data { get; }");
             writer.WriteLine("public Var<ITransformModel> Model { get; }");
             writer.Outdent();

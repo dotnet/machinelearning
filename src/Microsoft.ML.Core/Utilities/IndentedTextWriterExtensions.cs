@@ -40,5 +40,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             --wrt.Indent;
         }
+
+        public static void WriteLineNoTabs(this IndentedTextWriter wrt)
+        {
+            wrt.WriteLineNoTabs(string.Empty);
+        }
     }
 }
