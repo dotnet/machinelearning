@@ -194,12 +194,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
             Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
-            Assert.True(model.MatrixRowIndexColumnType.IsKey);
-            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
+            Assert.True(model.MatrixColumnIndexColumnType is KeyType);
+            Assert.True(model.MatrixRowIndexColumnType is KeyType);
+            var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
             Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
+            var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
             Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
@@ -224,6 +224,108 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Feed the test data into the model and then iterate through all predictions.
             foreach (var pred in model.Transform(testDataView).AsEnumerable<MatrixElementForScore>(mlContext, false))
                 Assert.True(pred.Score != 0);
+        }
+
+        internal class MatrixElementZeroBased
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            public uint MatrixRowIndex;
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
+            public float Value;
+        }
+
+        internal class MatrixElementZeroBasedForScore
+        {
+            // Matrix column index starts from 0 and is at most _synthesizedMatrixColumnCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixColumnCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixColumnCount, Min = 0)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 0 and is at most _synthesizedMatrixRowCount-1.
+            // Contieuous=true means that all values from 0 to _synthesizedMatrixRowCount-1 are allowed keys.
+            [KeyType(Contiguous = true, Count = _synthesizedMatrixRowCount, Min = 0)]
+            public uint MatrixRowIndex;
+            public float Score;
+        }
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        public void MatrixFactorizationInMemoryDataZeroBaseIndex()
+        {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value).
+            // Iterators i and j are column and row indexes, respectively.
+            var dataMatrix = new List<MatrixElementZeroBased>();
+            for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElementZeroBased() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElementZeroBased.Value),
+                nameof(MatrixElementZeroBased.MatrixColumnIndex), nameof(MatrixElementZeroBased.MatrixRowIndex),
+                advancedSettings: s =>
+                {
+                    s.NumIterations = 100;
+                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                    s.K = 32;
+                    s.Eta = 0.5;
+                });
+
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
+
+            // Check if the expected types in the trained model are expected.
+            Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
+            Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyType;
+            Assert.NotNull(matColKeyType);
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
+            Assert.NotNull(matRowKeyType);
+            Assert.True(matColKeyType.Min == 0);
+            Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
+            Assert.True(matRowKeyType.Min == 0);
+            Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
+
+            // Apply the trained model to the training set
+            var prediction = model.Transform(dataView);
+
+            // Calculate regression matrices for the prediction result. It's a global
+            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+
+            // Make sure the prediction error is not too large.
+            Assert.InRange(metrics.L2, 0, 0.1);
+
+            foreach (var pred in prediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+                // Test data contains no out-of-range indexes (i.e., all indexes can be found in the training matrix),
+                // so NaN should never happen.
+                Assert.True(!float.IsNaN(pred.Score));
+
+            // Create out-of-range examples and make sure their predictions are all NaN
+            var invalidTestMatrix = new List<MatrixElementZeroBasedForScore>()
+            {
+                // An example with a matrix column index just greater than the maximum allowed value
+                new MatrixElementZeroBasedForScore() { MatrixColumnIndex = _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount, MatrixRowIndex = _synthesizedMatrixFirstRowIndex, Score = default },
+                // An example with a matrix row index just greater than the maximum allowed value
+                new MatrixElementZeroBasedForScore() { MatrixColumnIndex = _synthesizedMatrixFirstColumnIndex, MatrixRowIndex = _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount, Score = default }
+            };
+
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var invalidTestDataView = ComponentCreation.CreateDataView(mlContext, invalidTestMatrix);
+
+            // Apply the trained model to the examples with out-of-range indexes. 
+            var invalidPrediction = model.Transform(invalidTestDataView);
+
+            foreach (var pred in invalidPrediction.AsEnumerable<MatrixElementZeroBasedForScore>(mlContext, false))
+                // The presence of out-of-range indexes may lead to NaN
+                Assert.True(float.IsNaN(pred.Score));
         }
     }
 }

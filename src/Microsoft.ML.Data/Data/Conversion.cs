@@ -565,7 +565,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
         }
 
-        public TryParseMapper<TDst> GetParseConversion<TDst>(ColumnType typeDst)
+        public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.IsStandardScalar || typeDst.IsKey, nameof(typeDst),
@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (min > uu || uu > max)
             {
                 dst = 0;
-                return true;
+                return false;
             }
 
             dst = uu - min + 1;
@@ -1428,8 +1428,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DT dst)
@@ -1443,8 +1442,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DZ dst)
@@ -1459,8 +1457,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
 
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         // These throw an exception for unparsable and overflow values.
@@ -1546,14 +1543,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(in TX src, out BL dst)
         {
             var span = src.Span;
-
-            if (!span.IsEmpty && IsStdMissing(ref span))
-            {
-                dst = false;
-                return false;
-            }
-
-            Contracts.Assert(!IsStdMissing(ref span));
 
             char ch;
             switch (src.Length)

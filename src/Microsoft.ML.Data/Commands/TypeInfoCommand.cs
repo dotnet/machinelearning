@@ -36,7 +36,7 @@ namespace Microsoft.ML.Data.Commands
             _host.CheckValue(args, nameof(args));
         }
 
-        private struct TypeNaInfo
+        private readonly struct TypeNaInfo
         {
             public readonly bool HasNa;
             public readonly bool DefaultIsNa;

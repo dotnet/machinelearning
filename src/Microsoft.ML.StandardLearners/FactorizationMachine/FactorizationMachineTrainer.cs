@@ -498,8 +498,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                     throw Host.Except($"{defaultName} column '{column.Name}' is not compatible");
             }
 
-            if (LabelColumn != null)
-                CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
+            CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
 
             foreach (var feat in FeatureColumns)
             {

@@ -6,6 +6,10 @@
     <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
     <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <IncludeMLNetNotices>false</IncludeMLNetNotices>
+  </PropertyGroup>
   
   <ItemGroup>
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />

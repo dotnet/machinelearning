@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
         public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
         {
             var mapper = CreatePerInstanceRowMapper(data.Schema);
-            return new RowToRowMapperTransform(Host, data.Data, mapper);
+            return new RowToRowMapperTransform(Host, data.Data, mapper, null);
         }
 
         protected abstract IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema);

@@ -12,6 +12,10 @@
     <PackageTags>$(PackageTags) TensorFlow</PackageTags>
     <!-- TODO: consider PackageIconUrl -->
   </PropertyGroup>
+
+  <PropertyGroup>
+    <IncludeMLNetNotices>false</IncludeMLNetNotices>
+  </PropertyGroup>
   
   <ItemGroup>
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
