@@ -563,6 +563,7 @@ namespace Microsoft.ML.Transforms.Projections
                         getSrc(ref src);
                         TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
+
             }
 
             private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
@@ -607,7 +608,7 @@ namespace Microsoft.ML.Transforms.Projections
                 if (src.IsDense)
                 {
                     featuresAligned.CopyFrom(src.Values, 0, src.Length);
-                    CpuMathUtils.MatTimesSrc(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                    CpuMathUtils.MatrixTimesSource(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                         transformInfo.NewDim);
                 }
                 else
@@ -615,7 +616,7 @@ namespace Microsoft.ML.Transforms.Projections
                     // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                     // no need to zero them out.
                     featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                    CpuMathUtils.MatTimesSrc(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                         src.Count, productAligned, transformInfo.NewDim);
                 }
 
