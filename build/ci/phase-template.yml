@@ -6,6 +6,7 @@ parameters:
 
 phases:
   - phase: ${{ parameters.name }}
+    timeoutInMinutes: 30
     variables:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
@@ -20,7 +21,6 @@ phases:
           _configuration: Release
           _config_short: R
       ${{ insert }}: ${{ parameters.queue }}
-    timeoutInMinutes: 30
     steps:
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
