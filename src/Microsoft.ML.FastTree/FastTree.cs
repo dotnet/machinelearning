@@ -1042,18 +1042,16 @@ namespace Microsoft.ML.Trainers.FastTree
             return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
         }
 
-        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(VBuffer<double> values, Double[] binUpperBounds)
+        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(ReadOnlySpan<double> values, ReadOnlySpan<int> indices, Double[] binUpperBounds)
         {
-            Contracts.Assert(!values.IsDense);
+            Contracts.Assert(values.Length == indices.Length);
             Contracts.Assert(Algorithms.FindFirstGE(binUpperBounds, 0) == 0);
-            var valuesValues = values.GetValues();
-            var valuesIndices = values.GetIndices();
-            List<KeyValuePair<int, int>> result = new List<KeyValuePair<int, int>>();
-            for (int i = 0; i < valuesValues.Length; ++i)
+            var result = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < values.Length; ++i)
             {
-                int ge = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i]);
+                int ge = Algorithms.FindFirstGE(binUpperBounds, values[i]);
                 if (ge != 0)
-                    result.Add(new KeyValuePair<int, int>(valuesIndices[i], ge));
+                    result.Add(new KeyValuePair<int, int>(indices[i], ge));
             }
             return result;
         }
@@ -1250,7 +1248,7 @@ namespace Microsoft.ML.Trainers.FastTree
             {
                 // Special code to go straight from our own sparse format to a sparse IntArray.
                 // Note: requires zeroBin to be 0 because that's what's assumed in FastTree code
-                var nonZeroValues = NonZeroBinnedValuesForSparse(values, binUpperBounds);
+                var nonZeroValues = NonZeroBinnedValuesForSparse(valuesValues, values.GetIndices(), binUpperBounds);
                 bins = new DeltaSparseIntArray(values.Length, numBitsNeeded, nonZeroValues);
             }
             else
