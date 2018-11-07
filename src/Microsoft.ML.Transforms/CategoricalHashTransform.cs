@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Categorical
             int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
             CategoricalTransform.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
         {
-            return new OneHotHashEncodingEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
+            return new OneHotHashEncodingEstimator(env, name, source, hashBits, invertHash, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -240,10 +240,16 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public OneHotHashEncodingEstimator(IHostEnvironment env, string inputColumn,
-            string outputColumn = null, CategoricalTransform.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
+        public OneHotHashEncodingEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn,
+            int hashBits,
+            int invertHash,
+            CategoricalTransform.OutputKind outputKind)
+            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind, hashBits, invertHash: invertHash))
         {
         }
 
