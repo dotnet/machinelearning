@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime
@@ -93,13 +92,5 @@ namespace Microsoft.ML.Runtime
         /// <returns>The trained predictor</returns>
         public static TPredictor Train<TPredictor>(this ITrainer<TPredictor> trainer, RoleMappedData trainData) where TPredictor : IPredictor
             => trainer.Train(new TrainContext(trainData));
-    }
-
-    /// <summary>
-    /// An interface that combines multiple predictors into a single predictor.
-    /// </summary>
-    public interface IModelCombiner
-    {
-        IPredictor CombineModels(IEnumerable<IPredictor> models);
     }
 }

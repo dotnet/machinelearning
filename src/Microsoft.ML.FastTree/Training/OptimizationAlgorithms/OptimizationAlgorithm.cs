@@ -26,7 +26,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public delegate void PreScoreUpdateHandler(IChannel ch);
         public PreScoreUpdateHandler PreScoreUpdateEvent;
 
-        public Ensemble Ensemble;
+        public TreeEnsemble Ensemble;
 
         public ScoreTracker TrainingScores;
         public List<ScoreTracker> TrackedScores;
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         public Random DropoutRng;
         public bool UseFastTrainingScoresUpdate;
 
-        public OptimizationAlgorithm(Ensemble ensemble, Dataset trainData, double[] initTrainScores)
+        public OptimizationAlgorithm(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores)
         {
             Ensemble = ensemble;
             TrainingScores = ConstructScoreTracker("train", trainData, initTrainScores);

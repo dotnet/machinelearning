@@ -55,7 +55,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
-        protected Ensemble TrainedEnsemble;
+        protected TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
         protected RoleMappedData ValidData;
         protected IParallelTraining ParallelTraining;
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected double[] InitValidScores;
         protected double[][] InitTestScores;
         //protected int Iteration;
-        protected Ensemble Ensemble;
+        protected TreeEnsemble Ensemble;
 
         protected bool HasValidSet => ValidSet != null;
 
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private void InitializeEnsemble()
         {
-            Ensemble = new Ensemble();
+            Ensemble = new TreeEnsemble();
         }
 
         /// <summary>
@@ -914,7 +914,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// of features we actually trained on. This can be null in the event that no filtering
         /// occurred.
         /// </summary>
-        /// <seealso cref="Ensemble.RemapFeatures"/>
+        /// <seealso cref="TreeEnsemble.RemapFeatures"/>
         public int[] FeatureMap;
 
         protected readonly IHost Host;
@@ -2810,7 +2810,7 @@ namespace Microsoft.ML.Trainers.FastTree
         ISingleCanSaveOnnx
     {
         //The below two properties are necessary for tree Visualizer
-        public Ensemble TrainedEnsemble { get; }
+        public TreeEnsemble TrainedEnsemble { get; }
         public int NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
@@ -2834,7 +2834,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public bool CanSavePfa => true;
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-        protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
+        protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
         {
             Host.CheckValue(trainedEnsemble, nameof(trainedEnsemble));
@@ -2871,7 +2871,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (ctx.Header.ModelVerWritten >= VerCategoricalSplitSerialized)
                 categoricalSplits = true;
 
-            TrainedEnsemble = new Ensemble(ctx, usingDefaultValues, categoricalSplits);
+            TrainedEnsemble = new TreeEnsemble(ctx, usingDefaultValues, categoricalSplits);
             MaxSplitFeatIdx = FindMaxFeatureIndex(TrainedEnsemble);
 
             InnerArgs = ctx.LoadStringOrNull();
@@ -3264,7 +3264,7 @@ namespace Microsoft.ML.Trainers.FastTree
             bldr.GetResult(ref weights);
         }
 
-        private static int FindMaxFeatureIndex(Ensemble ensemble)
+        private static int FindMaxFeatureIndex(TreeEnsemble ensemble)
         {
             int ifeatMax = 0;
             for (int i = 0; i < ensemble.NumTrees; i++)
