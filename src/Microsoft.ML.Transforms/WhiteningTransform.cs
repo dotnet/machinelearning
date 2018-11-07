@@ -306,7 +306,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private static (string input, string output)[] GetColumnPairs(ColInfo[] columns)
             => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Projections
         // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
         internal static string TestColumn(ColumnType t)
         {
-            if ((t.IsVector && !t.IsKnownSizeVector && (t.AsVector.DimCount > 1)) || t.ItemType != NumberType.R4)
+            if ((t.IsVector && !t.IsKnownSizeVector && (t.AsVector.Dimensions.Length > 1)) || t.ItemType != NumberType.R4)
                 return "Expected float or float vector of known size";
 
             if ((long)t.ValueCount * t.ValueCount > Utils.ArrayMaxSize)
@@ -641,8 +641,8 @@ namespace Microsoft.ML.Transforms.Projections
                 int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema)
+            => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
