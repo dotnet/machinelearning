@@ -33,29 +33,29 @@ namespace Microsoft.ML
         public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RffTransform.ColumnInfo[] columns)
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <summary>
+        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Whitening constant, prevents division by zero.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, IHostEnvironment env, string inputColumn, string outputColumn,
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
             WhiteningKind kind = VectorWhiteningTransform.Defaults.Kind,
             float eps = VectorWhiteningTransform.Defaults.Eps,
             int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
-            bool saveInverse = VectorWhiteningTransform.Defaults.SaveInverse,
             int pcaNum = VectorWhiteningTransform.Defaults.PcaNum)
-            => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, saveInverse, pcaNum);
+            => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
 
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <summary>
+        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
-        /// <param name="env">The environment.</param>
         /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, IHostEnvironment env, params VectorWhiteningTransform.ColInfo[] columns)
-            => new VectorWhiteningEstimator(env, columns);
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningTransform.ColumnInfo[] columns)
+            => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }
