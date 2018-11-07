@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Learners
         // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
-        private VBuffer<Single>? _coeffStdError;
+        private readonly VBuffer<Single>? _coeffStdError;
 
         public long TrainingExampleCount => _trainingExampleCount;
 
@@ -91,11 +91,6 @@ namespace Microsoft.ML.Runtime.Learners
         public Single NullDeviance => _nullDeviance;
 
         public int ParametersCount => _paramCount;
-
-        public Double[] Hessian;
-
-        // Indices of bias and non-zero weight slots.
-        public int[] WeightIndices;
 
         internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
         {
@@ -215,7 +210,6 @@ namespace Microsoft.ML.Runtime.Learners
 
         /// <summary>
         /// Computes the standart deviation, Z-Score and p-Value.
-        /// Should be called after <see cref="ComputeStd(LinearBinaryPredictor, IChannel, float)"/>.
         /// </summary>
         public static bool TryGetBiasStatistics(LinearModelStatistics stats, Single bias, out Single stdError, out Single zScore, out Single pValue)
         {
@@ -233,93 +227,6 @@ namespace Microsoft.ML.Runtime.Learners
             zScore = bias / stdError;
             pValue = 1.0f - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
             return true;
-        }
-
-        /// <summary>
-        /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
-        /// p-value and z-Score.
-        /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
-        /// </summary>
-        /// <param name="model">A <see cref="LinearBinaryPredictor"/> obtained as a result of training with <see cref="LogisticRegression"/>.</param>
-        /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
-        /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public static void ComputeStd(LinearBinaryPredictor model, IChannel ch, float l2Weight = LogisticRegression.Arguments.Defaults.L2Weight)
-        {
-            Contracts.AssertValue(ch);
-            Contracts.AssertValue(model.Statistics, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
-            Contracts.Assert(l2Weight > 0);
-
-            int numSelectedParams = model.Statistics.ParametersCount;
-
-            double[] hessian = model.Statistics.Hessian;
-            double[,] matrixHessian = new double[numSelectedParams, numSelectedParams];
-
-            int hessianLength = 0;
-            int dimention = numSelectedParams - 1;
-
-            for (int row = dimention; row >= 0; row--)
-            {
-                for (int col = 0; col <= dimention; col++)
-                {
-                    if ((row + col) <= dimention)
-                    {
-                        if ((row + col) == dimention)
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                        }
-                        else
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                            matrixHessian[dimention - col, dimention - row] = hessian[hessianLength];
-                        }
-                        hessianLength++;
-                    }
-                    else
-                        continue;
-                }
-            }
-
-            var h = Matrix<double>.Build.DenseOfArray(matrixHessian);
-            var invers = h.Inverse();
-
-            float[] stdErrorValues2 = new float[numSelectedParams];
-            stdErrorValues2[0] = (float)Math.Sqrt(invers[0, numSelectedParams - 1]);
-
-            for (int i = 1; i < numSelectedParams; i++)
-            {
-                // Initialize with inverse Hessian.
-                // The diagonal of the inverse Hessian.
-                stdErrorValues2[i] = (Single)invers[i, numSelectedParams - i - 1];
-            }
-
-            if (l2Weight > 0)
-            {
-                // Iterate through all entries of inverse Hessian to make adjustment to variance.
-                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
-                // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3228544/
-                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf
-                int ioffset = 1;
-                for (int iRow = 1; iRow < numSelectedParams; iRow++)
-                {
-                    for (int iCol = 0; iCol <= iRow; iCol++)
-                    {
-                        float entry = (float)invers[iRow, numSelectedParams - iCol - 1];
-                        var adjustment = -l2Weight * entry * entry;
-                        stdErrorValues2[iRow] -= adjustment;
-
-                        if (0 < iCol && iCol < iRow)
-                            stdErrorValues2[iCol] -= adjustment;
-                        ioffset++;
-                    }
-                }
-            }
-
-            for (int i = 1; i < numSelectedParams; i++)
-                stdErrorValues2[i] = (float)Math.Sqrt(stdErrorValues2[i]);
-
-            var currentWeightsCount = model.Weights2.Count + 1; // adding one for the bias
-            VBuffer<float> stdErrors = new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues2, model.Statistics.WeightIndices);
-            model.Statistics.SetCoeffStdError(stdErrors);
         }
 
         private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, in VBuffer<Single> weights, in VBuffer<ReadOnlyMemory<char>> names,
@@ -379,12 +286,6 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     dst = new VBuffer<ReadOnlyMemory<char>>(stats.ParametersCount - 1, values, dst.Indices);
                 };
-        }
-
-        public void SetCoeffStdError(VBuffer<Single> coeffStdError)
-        {
-            _env.Assert(coeffStdError.Count == _paramCount);
-            _coeffStdError = coeffStdError;
         }
 
         private IEnumerable<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema)

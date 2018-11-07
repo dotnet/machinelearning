@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using MathNet.Numerics.LinearAlgebra;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -42,6 +43,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
+
+            public IComputeLRTrainingStd StdComputer;
         }
 
         private double _posWeight;
@@ -78,6 +81,9 @@ namespace Microsoft.ML.Runtime.Learners
 
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
+
+            if (Args.StdComputer == null)
+                Args.StdComputer = new ComputeLRTrainingStd();
         }
 
         /// <summary>
@@ -88,6 +94,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
+
+            if (Args.StdComputer == null)
+                Args.StdComputer = new ComputeLRTrainingStd();
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -329,9 +338,14 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                 }
             }
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
-            _stats.Hessian = hessian;
-            _stats.WeightIndices = weightIndices;
+
+            if (Args.StdComputer == null)
+                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            else
+            {
+                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Count, ch, L2Weight);
+                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
+            }
         }
 
         protected override void ProcessPriorDistribution(float label, float weight)
@@ -396,6 +410,102 @@ namespace Microsoft.ML.Runtime.Learners
                 () => new LogisticRegression(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
+        }
+    }
+
+    public interface IComputeLRTrainingStd
+    {
+        VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
+    }
+
+    public sealed class ComputeLRTrainingStd: IComputeLRTrainingStd
+    {
+        /// <summary>
+        /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
+        /// p-value and z-Score.
+        /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
+        /// </summary>
+        /// <param name="hessian"></param>
+        /// <param name="weightIndices"></param>
+        /// <param name="numSelectedParams"></param>
+        /// <param name="currentWeightsCount"></param>
+        /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
+        /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
+        public VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
+        {
+            Contracts.AssertValue(ch);
+            Contracts.AssertValue(hessian, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
+            Contracts.AssertNonEmpty(weightIndices);
+            Contracts.Assert(numSelectedParams > 0);
+            Contracts.Assert(currentWeightsCount > 0);
+            Contracts.Assert(l2Weight > 0);
+
+            double[,] matrixHessian = new double[numSelectedParams, numSelectedParams];
+
+            int hessianLength = 0;
+            int dimention = numSelectedParams - 1;
+
+            for (int row = dimention; row >= 0; row--)
+            {
+                for (int col = 0; col <= dimention; col++)
+                {
+                    if ((row + col) <= dimention)
+                    {
+                        if ((row + col) == dimention)
+                        {
+                            matrixHessian[row, col] = hessian[hessianLength];
+                        }
+                        else
+                        {
+                            matrixHessian[row, col] = hessian[hessianLength];
+                            matrixHessian[dimention - col, dimention - row] = hessian[hessianLength];
+                        }
+                        hessianLength++;
+                    }
+                    else
+                        continue;
+                }
+            }
+
+            var h = Matrix<double>.Build.DenseOfArray(matrixHessian);
+            var invers = h.Inverse();
+
+            float[] stdErrorValues2 = new float[numSelectedParams];
+            stdErrorValues2[0] = (float)Math.Sqrt(invers[0, numSelectedParams - 1]);
+
+            for (int i = 1; i < numSelectedParams; i++)
+            {
+                // Initialize with inverse Hessian.
+                // The diagonal of the inverse Hessian.
+                stdErrorValues2[i] = (Single)invers[i, numSelectedParams - i - 1];
+            }
+
+            if (l2Weight > 0)
+            {
+                // Iterate through all entries of inverse Hessian to make adjustment to variance.
+                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
+                // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3228544/
+                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf
+                int ioffset = 1;
+                for (int iRow = 1; iRow < numSelectedParams; iRow++)
+                {
+                    for (int iCol = 0; iCol <= iRow; iCol++)
+                    {
+                        float entry = (float)invers[iRow, numSelectedParams - iCol - 1];
+                        var adjustment = -l2Weight * entry * entry;
+                        stdErrorValues2[iRow] -= adjustment;
+
+                        if (0 < iCol && iCol < iRow)
+                            stdErrorValues2[iCol] -= adjustment;
+                        ioffset++;
+                    }
+                }
+            }
+
+            for (int i = 1; i < numSelectedParams; i++)
+                stdErrorValues2[i] = (float)Math.Sqrt(stdErrorValues2[i]);
+
+            return new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues2, weightIndices);
         }
     }
 }

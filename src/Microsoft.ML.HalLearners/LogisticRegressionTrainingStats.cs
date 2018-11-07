@@ -11,39 +11,42 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using Mkl = OlsLinearRegressionTrainer.Mkl;
 
-    public static class LogisticRegressionTrainingStats
+    public sealed class ComputeLRTrainingStdThroughHal : IComputeLRTrainingStd
     {
         /// <summary>
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
-        /// p-value and z-Score.
-        /// This function performs the same calculations as <see cref="ComputeStd(LinearBinaryPredictor, IChannel, float)"/> but it is faster than it, because it makes use of Intel's MKL.
+        /// p-value and z-Score, making use of Intel's MKL for the matrix operations.
         /// </summary>
-        /// <param name="model">A <see cref="LinearBinaryPredictor"/> obtained as a result of training with <see cref="LogisticRegression"/>.</param>
+        /// <param name="hessian"></param>
+        /// <param name="weightIndices"></param>
+        /// <param name="numSelectedParams"></param>
+        /// <param name="currentWeightsCount"></param>
         /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
         /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public static void ComputeStd(LinearBinaryPredictor model, IChannel ch, float l2Weight = LogisticRegression.Arguments.Defaults.L2Weight)
+        public VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
-            Contracts.AssertValue(model.Statistics, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
+            Contracts.AssertValue(hessian, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
+            Contracts.AssertNonEmpty(weightIndices);
+            Contracts.Assert(numSelectedParams > 0);
+            Contracts.Assert(currentWeightsCount > 0);
             Contracts.Assert(l2Weight > 0);
-
-            int numSelectedParams = model.Statistics.ParametersCount;
 
             // Apply Cholesky Decomposition to find the inverse of the Hessian.
             Double[] invHessian = null;
             try
             {
                 // First, find the Cholesky decomposition LL' of the Hessian.
-                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, model.Statistics.Hessian);
+                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, hessian);
                 // Note that hessian is already modified at this point. It is no longer the original Hessian,
                 // but instead represents the Cholesky decomposition L.
                 // Also note that the following routine is supposed to consume the Cholesky decomposition L instead
                 // of the original information matrix.
-                Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, model.Statistics.Hessian);
+                Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numSelectedParams, hessian);
                 // At this point, hessian should contain the inverse of the original Hessian matrix.
                 // Swap hessian with invHessian to avoid confusion in the following context.
-                Utils.Swap(ref model.Statistics.Hessian, ref invHessian);
-                Contracts.Assert(model.Statistics.Hessian == null);
+                Utils.Swap(ref hessian, ref invHessian);
+                Contracts.Assert(hessian == null);
             }
             catch (DllNotFoundException)
             {
@@ -86,9 +89,7 @@ namespace Microsoft.ML.Runtime.Learners
                 stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
 
             // currentWeights vector size is Weights2 + the bias
-            var currentWeightsCount = model.Weights2.Count + 1;
-            VBuffer<float> stdErrors = new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues, model.Statistics.WeightIndices);
-            model.Statistics.SetCoeffStdError(stdErrors);
+            return new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues, weightIndices);
         }
     }
 }
