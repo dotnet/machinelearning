@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="ignoreMissing">If false will check for any columns given in <paramref name="keepColumns"/>
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
-        public ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
+        internal ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
                                     string[] dropColumns, bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
                                     bool ignoreMissing = SelectColumnsTransform.Defaults.IgnoreMissing)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnSelectingEstimator)),
