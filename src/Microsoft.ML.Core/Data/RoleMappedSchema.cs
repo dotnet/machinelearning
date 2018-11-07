@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
         /// be used when possible for consistency reasons. However, practitioners should not be afraid to declare custom
         /// roles if approppriate for their task.
         /// </summary>
-        public struct ColumnRole
+        public readonly struct ColumnRole
         {
             /// <summary>
             /// Role for features. Commonly used as the independent variables given to trainers, and scorers.

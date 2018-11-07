@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Core.Tests.UnitTests;
 using Microsoft.ML.Runtime.Data;
@@ -15,7 +10,6 @@ using Microsoft.ML.Runtime.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -23,17 +17,27 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Projections;
+using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -126,8 +130,8 @@ namespace Microsoft.ML.Runtime.RunTests
             expected = Env.CreateTransform("KeyToVector{col=F1}", expected);
             expected = Env.CreateTransform("Concat{col=Features:F1,F2,Rest}", expected);
 
-            expected = Env.CreateTransform("ChooseColumns{col=Features}", expected);
-            result = Env.CreateTransform("ChooseColumns{col=Features}", result);
+            expected = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", expected);
+            result = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", result);
             CheckSameValues(result, expected);
             Done();
         }
@@ -245,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
+        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -434,24 +438,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointInputArgsChecks()
-        {
-            var input = new DropColumnsTransform.KeepArguments();
-            try
-            {
-                EntryPointUtils.CheckInputArgs(Env, input);
-                Assert.False(true);
-            }
-            catch
-            {
-            }
-
-            input.Data = new EmptyDataView(Env, new Schema(new[] { new Schema.Column("ColA", NumberType.R4, null) }));
-            input.Column = new string[0];
-            EntryPointUtils.CheckInputArgs(Env, input);
-        }
-
-        [Fact]
         public void EntryPointCreateEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -487,9 +473,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = new DropColumnsTransform(Env,
-                    new DropColumnsTransform.Arguments() { Column = new[] { MetadataUtils.Const.ScoreValueKind.Score } },
-                    individualScores[i]);
+                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -769,7 +753,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
@@ -867,7 +851,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var hasScoreCol = binaryScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int scoreIndex);
             Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Binary ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
@@ -876,7 +860,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with regression ensemble does not have a score column");
             type = regressionScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Regression ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
@@ -884,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with anomaly detection ensemble does not have a score column");
             type = anomalyScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Anomaly detection ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
@@ -1019,7 +1003,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }).Data;
 
             ValueMapper<ReadOnlyMemory<char>, bool> labelToBinary =
-                (ref ReadOnlyMemory<char> src, ref bool dst) =>
+                (in ReadOnlyMemory<char> src, ref bool dst) =>
                 {
                     if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
                         dst = true;
@@ -1038,10 +1022,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextTransform.Create(Env,
-                        new TextTransform.Arguments()
+                    data = TextFeaturizingEstimator.Create(Env,
+                        new TextFeaturizingEstimator.Arguments()
                         {
-                            Column = new TextTransform.Column() { Name = "Features", Source = new[] { "Text" } },
+                            Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
                             StopWordsRemover = new PredefinedStopWordsRemoverFactory()
                         }, data);
                 }
@@ -1238,7 +1222,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizingEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
@@ -1345,9 +1329,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     getter3(ref score0[3]);
                     getter4(ref score0[4]);
                     getterSaved(ref scoreSaved);
-                    Assert.True(CompareVBuffers(ref scoreSaved, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in scoreSaved, in score, ref dense1, ref dense2));
                     c(ref avg, score0, null);
-                    Assert.True(CompareVBuffers(ref avg, ref score, ref dense1, ref dense2));
+                    Assert.True(CompareVBuffers(in avg, in score, ref dense1, ref dense2));
                 }
                 Assert.False(curs0.MoveNext());
                 Assert.False(curs1.MoveNext());
@@ -1493,7 +1477,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        private static bool CompareVBuffers(ref VBuffer<Single> v1, ref VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
+        private static bool CompareVBuffers(in VBuffer<Single> v1, in VBuffer<Single> v2, ref VBuffer<Single> dense1, ref VBuffer<Single> dense2)
         {
             if (v1.Length != v2.Length)
                 return false;
@@ -2162,7 +2146,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Key1',
                         'Source': 'Key',
-                        'Range': '[5-10,21-24]'
+                        'Range': '1-10'
                       }
                       ]",
                     @"'Column': [
@@ -2536,7 +2520,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new SdcaBinaryTrainer.Arguments()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -3864,7 +3848,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
             {
                 Data = dataView,
                 Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },

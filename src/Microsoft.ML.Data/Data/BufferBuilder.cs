@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Data
             SetActiveRangeImpl(0, length);
         }
 
-        public void AddFeatures(int index, ref VBuffer<T> buffer)
+        public void AddFeatures(int index, in VBuffer<T> buffer)
         {
             Contracts.Check(0 <= index && index <= _length - buffer.Length);
 

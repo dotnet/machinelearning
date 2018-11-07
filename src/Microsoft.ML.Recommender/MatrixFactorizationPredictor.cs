@@ -13,14 +13,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
-using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
     null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Recommender
+namespace Microsoft.ML.Trainers.Recommender
 {
     /// <summary>
     /// <see cref="MatrixFactorizationPredictor"/> stores two factor matrices, P and Q, for approximating the training matrix, R, by P * Q,
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Recommender
                 {
                     matrixColumnIndexGetter(ref matrixColumnIndex);
                     matrixRowIndexGetter(ref matrixRowIndex);
-                    mapper(ref matrixColumnIndex, ref matrixRowIndex, ref value);
+                    mapper(in matrixColumnIndex, ref matrixRowIndex, ref value);
                 };
             return del;
         }
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.Recommender
             return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
-        private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
+        private void MapperCore(in uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
@@ -346,9 +346,12 @@ namespace Microsoft.ML.Runtime.Recommender
                 var getters = new Delegate[1];
                 if (active[0])
                 {
+                    // First check if expected columns are ok and then create getters to acccess those columns' values.
                     CheckInputSchema(input.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
-                    var matrixColumnIndexGetter = input.GetGetter<uint>(_matrixColumnIndexColumnIndex);
-                    var matrixRowIndexGetter = input.GetGetter<uint>(_matrixRowIndexCololumnIndex);
+                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixColumnIndexColumnIndex);
+                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixRowIndexCololumnIndex);
+
+                    // Assign the getter of the prediction score. It maps a pair of matrix column index and matrix row index to a scalar.
                     getters[0] = _parent.GetGetter(matrixColumnIndexGetter, matrixRowIndexGetter);
                 }
                 return getters;
@@ -402,6 +405,7 @@ namespace Microsoft.ML.Runtime.Recommender
             MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
                 throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+            MatrixRowIndexColumnType = trainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 

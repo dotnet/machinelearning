@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ using System.Text;
 [assembly: LoadableClass(NormalizeTransform.BinNormalizerSummary, typeof(NormalizeTransform.BinColumnFunction), null, typeof(SignatureLoadColumnFunction),
     "Bin Normalizer", NormalizeTransform.BinColumnFunction.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Normalizers
 {
     public sealed partial class NormalizeTransform
     {
@@ -228,24 +229,24 @@ namespace Microsoft.ML.Runtime.Data
             public int MinBinSize = Defaults.MinBinSize;
         }
 
-        public const string MinMaxNormalizerSummary = "Normalizes the data based on the observed minimum and maximum values of the data.";
-        public const string MeanVarNormalizerSummary = "Normalizes the data based on the computed mean and variance of the data.";
-        public const string LogMeanVarNormalizerSummary = "Normalizes the data based on the computed mean and variance of the logarithm of the data.";
-        public const string BinNormalizerSummary = "The values are assigned into equidensity bins and a value is mapped to its bin_number/number_of_bins.";
-        public const string SupervisedBinNormalizerSummary = "Similar to BinNormalizer, but calculates bins based on correlation with the label column, not equi-density. "
+        internal const string MinMaxNormalizerSummary = "Normalizes the data based on the observed minimum and maximum values of the data.";
+        internal const string MeanVarNormalizerSummary = "Normalizes the data based on the computed mean and variance of the data.";
+        internal const string LogMeanVarNormalizerSummary = "Normalizes the data based on the computed mean and variance of the logarithm of the data.";
+        internal const string BinNormalizerSummary = "The values are assigned into equidensity bins and a value is mapped to its bin_number/number_of_bins.";
+        internal const string SupervisedBinNormalizerSummary = "Similar to BinNormalizer, but calculates bins based on correlation with the label column, not equi-density. "
             + "The new value is bin_number / number_of_bins.";
 
-        public const string MinMaxNormalizerUserName = "Min-Max Normalizer";
-        public const string MeanVarNormalizerUserName = "MeanVar Normalizer";
-        public const string LogMeanVarNormalizerUserName = "LogMeanVar Normalizer";
-        public const string BinNormalizerUserName = "Binning Normalizer";
-        public const string SupervisedBinNormalizerUserName = "Supervised Binning Normalizer";
+        internal const string MinMaxNormalizerUserName = "Min-Max Normalizer";
+        internal const string MeanVarNormalizerUserName = "MeanVar Normalizer";
+        internal const string LogMeanVarNormalizerUserName = "LogMeanVar Normalizer";
+        internal const string BinNormalizerUserName = "Binning Normalizer";
+        internal const string SupervisedBinNormalizerUserName = "Supervised Binning Normalizer";
 
-        public const string MinMaxNormalizerShortName = "MinMax";
-        public const string MeanVarNormalizerShortName = "MeanVar";
-        public const string LogMeanVarNormalizerShortName = "LogMeanVar";
-        public const string BinNormalizerShortName = "Bin";
-        public const string SupervisedBinNormalizerShortName = "SupBin";
+        internal const string MinMaxNormalizerShortName = "MinMax";
+        internal const string MeanVarNormalizerShortName = "MeanVar";
+        internal const string LogMeanVarNormalizerShortName = "LogMeanVar";
+        internal const string BinNormalizerShortName = "Bin";
+        internal const string SupervisedBinNormalizerShortName = "SupBin";
 
         /// <summary>
         /// A helper method to create a MinMax normalizer.
@@ -258,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(env, nameof(env));
 
-            var normalizer = new Normalizer(env, new Normalizer.MinMaxColumn(source ?? name, name));
+            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(source ?? name, name));
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -299,13 +300,13 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new Normalizer.MinMaxColumn(
+                .Select(col => new NormalizingEstimator.MinMaxColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
-            var normalizer = new Normalizer(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -319,13 +320,13 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new Normalizer.MeanVarColumn(
+                .Select(col => new NormalizingEstimator.MeanVarColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
-            var normalizer = new Normalizer(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -339,13 +340,13 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new Normalizer.LogMeanVarColumn(
+                .Select(col => new NormalizingEstimator.LogMeanVarColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf))
                 .ToArray();
-            var normalizer = new Normalizer(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -359,14 +360,14 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new Normalizer.BinningColumn(
+                .Select(col => new NormalizingEstimator.BinningColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero,
                     col.NumBins ?? args.NumBins))
                 .ToArray();
-            var normalizer = new Normalizer(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -703,10 +704,10 @@ namespace Microsoft.ML.Runtime.Data
             {
                 TFloat tmp = default(TFloat);
                 _getSrc(ref tmp);
-                return ProcessValue(ref tmp);
+                return ProcessValue(in tmp);
             }
 
-            protected virtual bool ProcessValue(ref TFloat val)
+            protected virtual bool ProcessValue(in TFloat val)
             {
                 Host.Assert(Rem >= 0);
                 if (Rem == 0)
@@ -738,10 +739,10 @@ namespace Microsoft.ML.Runtime.Data
             public bool ProcessValue()
             {
                 _getSrc(ref _buffer);
-                return ProcessValue(ref _buffer);
+                return ProcessValue(in _buffer);
             }
 
-            protected virtual bool ProcessValue(ref VBuffer<TFloat> buffer)
+            protected virtual bool ProcessValue(in VBuffer<TFloat> buffer)
             {
                 Host.Assert(Rem >= 0);
                 if (Rem == 0)
@@ -858,13 +859,13 @@ namespace Microsoft.ML.Runtime.Data
             {
                 TFloat colValue = default(TFloat);
                 _colGetterSrc(ref colValue);
-                var result = AcceptColumnValue(ref colValue);
+                var result = AcceptColumnValue(in colValue);
                 if (result)
                     ColValues.Add(colValue);
                 return result;
             }
 
-            protected abstract bool AcceptColumnValue(ref TFloat colValue);
+            protected abstract bool AcceptColumnValue(in TFloat colValue);
         }
 
         private abstract class VecColumnSupervisedBinFunctionBuilderBase<TFloat> : SupervisedBinFunctionBuilderBase
@@ -893,7 +894,7 @@ namespace Microsoft.ML.Runtime.Data
             protected override bool AcceptColumnValue()
             {
                 _colValueGetter(ref _buffer);
-                bool result = AcceptColumnValue(ref _buffer);
+                bool result = AcceptColumnValue(in _buffer);
                 if (result)
                 {
                     if (_buffer.IsDense)
@@ -924,7 +925,7 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            protected abstract bool AcceptColumnValue(ref VBuffer<TFloat> buffer);
+            protected abstract bool AcceptColumnValue(in VBuffer<TFloat> buffer);
         }
 
         internal static partial class MinMaxUtils
@@ -935,14 +936,14 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new Normalizer.MinMaxColumn(
+                return CreateBuilder(new NormalizingEstimator.MinMaxColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.Column[icol].FixZero ?? args.FixZero), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(Normalizer.MinMaxColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 if (srcType.IsNumber)
@@ -971,7 +972,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new Normalizer.MeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.MeanVarColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
@@ -979,7 +980,7 @@ namespace Microsoft.ML.Runtime.Data
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(Normalizer.MeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -1011,14 +1012,14 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new Normalizer.LogMeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.LogMeanVarColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(Normalizer.LogMeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -1050,7 +1051,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new Normalizer.BinningColumn(
+                return CreateBuilder(new NormalizingEstimator.BinningColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
@@ -1058,7 +1059,7 @@ namespace Microsoft.ML.Runtime.Data
                     args.Column[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(Normalizer.BinningColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);

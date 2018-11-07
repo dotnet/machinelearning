@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
@@ -28,7 +29,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features", s => s.OutputTokens = true));
 
-            var data = pipeline.FitAndRead(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+            var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var data = pipeline.Fit(src).Read(src);
 
             var textColumn = data.GetColumn<string>(ml, "SentimentText").Take(20);
             var transformedTextColumn = data.GetColumn<string[]>(ml, "Features_TransformedText").Take(20);

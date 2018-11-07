@@ -97,17 +97,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsTimeSpan)
+                else if (type is TimeSpanType)
                 {
                     ValueMapper<TimeSpan, StringBuilder> c = MapTimeSpan;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsDateTime)
+                else if (type is DateTimeType)
                 {
                     ValueMapper<DateTime, StringBuilder> c = MapDateTime;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsDateTimeZone)
+                else if (type is DateTimeOffsetType)
                 {
                     ValueMapper<DateTimeOffset, StringBuilder> c = MapDateTimeZone;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
@@ -116,28 +116,28 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Conv = Conversions.Instance.GetStringConversion<T>(type);
 
                 var d = default(T);
-                Conv(ref d, ref Sb);
+                Conv(in d, ref Sb);
                 Default = Sb.ToString();
             }
 
-            protected void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb)
+            protected void MapText(in ReadOnlyMemory<char> src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapText(src.Span, ref sb, Sep);
             }
 
-            protected void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
+            protected void MapTimeSpan(in TimeSpan src, ref StringBuilder sb)
             {
-                TextSaverUtils.MapTimeSpan(ref src, ref sb);
+                TextSaverUtils.MapTimeSpan(in src, ref sb);
             }
 
-            protected void MapDateTime(ref DateTime src, ref StringBuilder sb)
+            protected void MapDateTime(in DateTime src, ref StringBuilder sb)
             {
-                TextSaverUtils.MapDateTime(ref src, ref sb);
+                TextSaverUtils.MapDateTime(in src, ref sb);
             }
 
-            protected void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
+            protected void MapDateTimeZone(in DateTimeOffset src, ref StringBuilder sb)
             {
-                TextSaverUtils.MapDateTimeZone(ref src, ref sb);
+                TextSaverUtils.MapDateTimeZone(in src, ref sb);
             }
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     for (int i = 0; i < _src.Length; i++)
                     {
-                        Conv(ref _src.Values[i], ref Sb);
+                        Conv(in _src.Values[i], ref Sb);
                         appendItem(Sb, i);
                     }
                 }
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     for (int i = 0; i < _src.Count; i++)
                     {
-                        Conv(ref _src.Values[i], ref Sb);
+                        Conv(in _src.Values[i], ref Sb);
                         appendItem(Sb, _src.Indices[i]);
                     }
                 }
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     var name = _slotNames.Values[i];
                     if (name.IsEmpty)
                         continue;
-                    MapText(ref name, ref Sb);
+                    MapText(in name, ref Sb);
                     int index = _slotNames.IsDense ? i : _slotNames.Indices[i];
                     appendItem(Sb, index);
                 }
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
             {
                 _getSrc(ref _src);
-                Conv(ref _src, ref Sb);
+                Conv(in _src, ref Sb);
                 appendItem(Sb, 0);
                 length = 1;
             }
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
                 var span = _columnName.AsMemory();
-                MapText(ref span, ref Sb);
+                MapText(in span, ref Sb);
                 appendItem(Sb, 0);
                 length = 1;
             }
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        internal static void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
+        internal static void MapTimeSpan(in TimeSpan src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             sb.AppendFormat("\"{0:c}\"", src);
         }
 
-        internal static void MapDateTime(ref DateTime src, ref StringBuilder sb)
+        internal static void MapDateTime(in DateTime src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
@@ -866,7 +866,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             sb.AppendFormat("\"{0:o}\"", src);
         }
 
-        internal static void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
+        internal static void MapDateTimeZone(in DateTimeOffset src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();

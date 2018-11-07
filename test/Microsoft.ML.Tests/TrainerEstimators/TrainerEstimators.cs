@@ -4,11 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank:10);
+            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank: 10);
 
             TestEstimatorCore(pipeline, data);
             Done();
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextTransform(Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator(Env, "SentimentText", "Features");
 
             return (pipeline, data);
         }
@@ -138,7 +139,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }).Read(GetDataPath(TestDatasets.adultRanking.trainFilename));
 
             // Pipeline.
-            var pipeline = new TermEstimator(Env, new[]{
+            var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
                                     new TermTransform.ColumnInfo("Workclass", "Group"),
                                     new TermTransform.ColumnInfo("Label", "Label0") });
 
@@ -176,20 +177,17 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private (IEstimator<ITransformer>, IDataView) GetMultiClassPipeline()
         {
-
             var data = new TextLoader(Env, new TextLoader.Arguments()
             {
                 Separator = "comma",
-                HasHeader = true,
                 Column = new[]
                         {
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
                             new TextLoader.Column("Label", DataKind.Text, 4)
                         }
-                })
-                .Read(GetDataPath(IrisDataPath));
+            }).Read(GetDataPath(IrisDataPath));
 
-            var pipeline = new TermEstimator(Env, "Label");
+            var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 
             return (pipeline, data);
         }

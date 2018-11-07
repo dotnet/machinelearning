@@ -109,7 +109,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null)
         {
@@ -160,12 +160,12 @@ namespace Microsoft.ML.Transforms
             return transform.Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, Schema.Create(schema));
+        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(_host, this, schema);
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
@@ -294,14 +294,14 @@ namespace Microsoft.ML.Transforms
             }
         }
     }
-    public sealed class OnnxEstimator : TrivialEstimator<OnnxTransform>
+    public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxEstimator(IHostEnvironment env, string modelFile, string input, string output)
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string input, string output)
            : this(env, new OnnxTransform(env, modelFile, input, output))
         {
         }
 
-        public OnnxEstimator(IHostEnvironment env, OnnxTransform transformer)
+        public OnnxScoringEstimator(IHostEnvironment env, OnnxTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)), transformer)
         {
         }
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new OnnxEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
+                return new OnnxScoringEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
             }
         }
 

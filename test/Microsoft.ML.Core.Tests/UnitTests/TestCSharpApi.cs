@@ -504,7 +504,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 b = schema.TryGetColumnIndex("Fold Index", out foldCol);
                 Assert.True(b);
                 var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, countCol);
-                Assert.True(type != null && type.ItemType.IsText && type.VectorSize == 10);
+                Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
                 var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
                 Assert.True(slotNames.Values.Select((s, i) => ReadOnlyMemoryUtils.EqualsStr(i.ToString(), s)).All(x => x));
@@ -813,7 +813,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         Assert.True(b);
                         getter(ref val);
                         foldGetter(ref fold);
-                        sumBldr.AddFeatures(0, ref val);
+                        sumBldr.AddFeatures(0, in val);
                         Assert.True(ReadOnlyMemoryUtils.EqualsStr("Fold " + f, fold));
                     }
                     var sum = default(VBuffer<double>);
@@ -992,7 +992,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var schema = data.Schema;
                 Assert.Equal(3, schema.ColumnCount);
                 Assert.Equal("Softmax", schema.GetColumnName(2));
-                Assert.Equal(10, schema.GetColumnType(2).VectorSize);
+                Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
             }
         }
     }

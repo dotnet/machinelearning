@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.IO;
 
 namespace Microsoft.ML.Runtime.Data
@@ -179,6 +181,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public readonly ChannelProviderBase Parent;
 
+            private bool _disposed;
+
             protected PipeBase(ChannelProviderBase parent, string shortName,
                 Action<IMessageSource, TMessage> dispatch)
                 : base(shortName, parent.FullName, parent.Verbose)
@@ -192,10 +196,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Dispose()
             {
-                DisposeCore();
+                if(!_disposed)
+                {
+                    Dispose(true);
+                    _disposed = true;
+                }
             }
 
-            protected virtual void DisposeCore()
+            protected virtual void Dispose(bool disposing)
             {
             }
 
@@ -687,5 +695,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!removeLastNewLine)
                 writer.WriteLine();
         }
+
+        public virtual CompositionContainer GetCompositionContainer() => new CompositionContainer();
     }
 }

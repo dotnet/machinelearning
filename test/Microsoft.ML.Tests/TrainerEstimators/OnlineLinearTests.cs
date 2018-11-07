@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, "Label", "Features");
             TestEstimatorCore(est, trainData);
 
-            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction:new HingeLoss.Arguments(), advancedSettings: s =>
+            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
             {
                 s.LearningRate = 0.5f;
             });

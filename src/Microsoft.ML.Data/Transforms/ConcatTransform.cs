@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -34,9 +35,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class ConcatTransform : ITransformer, ICanSaveModel
     {
-        public const string Summary = "Concatenates one or more columns of the same item type.";
-        public const string UserName = "Concat Transform";
-        public const string LoadName = "Concat";
+        internal const string Summary = "Concatenates one or more columns of the same item type.";
+        internal const string UserName = "Concat Transform";
+        internal const string LoadName = "Concat";
 
         internal const string LoaderSignature = "ConcatTransform";
         internal const string LoaderSignatureOld = "ConcatFunction";
@@ -397,9 +398,9 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
         private IDataTransform MakeDataTransform(IDataView input)
-            => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
 
-        public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, Schema.Create(inputSchema));
+        public IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
@@ -411,13 +412,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ConcatTransform(env, ctx).MakeRowMapper(inputSchema);
+            => new ConcatTransform(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
-            return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
         public bool IsRowToRowMapper => true;
@@ -425,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa

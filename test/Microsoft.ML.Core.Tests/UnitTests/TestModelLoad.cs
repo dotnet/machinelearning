@@ -18,8 +18,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void LoadOriginalBinaryLoaderModel()
         {
-            using (var env = new LocalEnvironment()
-                .AddStandardComponents())
+            var env = new MLContext().AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
@@ -37,8 +36,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void LoadOldConcatTransformModel()
         {
-            using (var env = new LocalEnvironment()
-                .AddStandardComponents())
+            var env = new MLContext().AddStandardComponents();
             using (var modelStream = File.OpenRead(Path.Combine("TestModels", "ConcatTransform.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
@@ -48,8 +46,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal("Label", result.Schema[0].Name);
                 Assert.Equal("Features", result.Schema[1].Name);
                 Assert.Equal("Features", result.Schema[2].Name);
-                Assert.Equal(9, result.Schema[1].Type.VectorSize);
-                Assert.Equal(18, result.Schema[2].Type.VectorSize);
+                Assert.Equal(9, (result.Schema[1].Type as VectorType)?.Size);
+                Assert.Equal(18, (result.Schema[2].Type as VectorType)?.Size);
             }
         }
     }

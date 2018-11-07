@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="MetadataUtils.Kinds.KeyValues"/> metadata. Note that we do not copy
         /// the input key names, but instead take a reference to it.
         /// </summary>
-        public SequencePredictorSchema(ColumnType type, ref VBuffer<ReadOnlyMemory<char>> keyNames, string scoreColumnKind)
+        public SequencePredictorSchema(ColumnType type, in VBuffer<ReadOnlyMemory<char>> keyNames, string scoreColumnKind)
             : base(type, scoreColumnKind)
         {
             if (keyNames.Length > 0)

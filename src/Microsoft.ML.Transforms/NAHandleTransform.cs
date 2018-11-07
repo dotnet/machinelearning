@@ -2,21 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 [assembly: LoadableClass(NAHandleTransform.Summary, typeof(IDataTransform), typeof(NAHandleTransform), typeof(NAHandleTransform.Arguments), typeof(SignatureDataTransform),
     NAHandleTransform.FriendlyName, "NAHandleTransform", NAHandleTransform.ShortName, "NA", DocName = "transform/NAHandle.md")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAHandle"]'/>
     public static class NAHandleTransform
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var replaceCols = new List<NAReplaceTransform.ColumnInfo>();
             var naIndicatorCols = new List<NAIndicatorTransform.Column>();
-            var naConvCols = new List<ConvertTransform.Column>();
+            var naConvCols = new List<ConvertingTransform.ColumnInfo>();
             var concatCols = new List<ConcatTransform.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Column.Length, "IsMissing");
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema.GetColumnType(inputCol);
-                if (!Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate conv, out bool identity))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
                         BoolType.Instance, replaceType.ItemType);
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new ConvertTransform.Column() { Name = tmpIsMissingColName, Source = tmpIsMissingColName, ResultType = replaceType.ItemType.RawKind });
+                    naConvCols.Add(new ConvertingTransform.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
@@ -219,7 +219,8 @@ namespace Microsoft.ML.Runtime.Data
             if (naConvCols.Count > 0)
             {
                 h.AssertValue(output);
-                output = new ConvertTransform(h, new ConvertTransform.Arguments() { Column = naConvCols.ToArray() }, output);
+                //REVIEW: all this need to be converted to estimatorChain as soon as we done with dropcolumns.
+                output = new ConvertingTransform(h, naConvCols.ToArray()).Transform(output) as IDataTransform;
             }
             // Create the NAReplace transform.
             output = NAReplaceTransform.Create(env, output ?? input, replaceCols.ToArray());
@@ -230,7 +231,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
-                output = new DropColumnsTransform(h, new DropColumnsTransform.Arguments() { Column = dropCols.ToArray() }, output);
+                output = SelectColumnsTransform.CreateDrop(h, output, dropCols.ToArray());
 
             return output;
         }

@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature, LdaTransform.ShortName, DocName = "transform/LdaTransform.md")]
@@ -24,7 +25,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 [assembly: LoadableClass(typeof(LdaTransform), null, typeof(SignatureLoadDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.TextAnalytics
+namespace Microsoft.ML.Transforms.Text
 {
     // LightLDA transform: Big Topic Models on Modest Compute Clusters.
     // <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
@@ -574,7 +575,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     for (int i = 0; i < Infos.Length; i++)
                     {
                         getters[i](ref src);
-                        docSizeCheck[i] += states[i].FeedTrain(Host, ref src);
+                        docSizeCheck[i] += states[i].FeedTrain(Host, in src);
                     }
                 }
                 for (int i = 0; i < Infos.Length; i++)
@@ -781,7 +782,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _ldaTrainer.AllocateDataMemory(docNum, corpusSize);
             }
 
-            public int FeedTrain(IExceptionContext ectx, ref VBuffer<Double> input)
+            public int FeedTrain(IExceptionContext ectx, in VBuffer<Double> input)
             {
                 Contracts.AssertValue(ectx);
 
@@ -830,7 +831,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _ldaTrainer.Train(""); /* Need to pass in an empty string */
             }
 
-            public void Output(ref VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
+            public void Output(in VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
             {
                 // Prediction for a single document.
                 // LdaSingleBox.InitializeBeforeTest() is NOT thread-safe.
@@ -967,7 +968,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     // REVIEW: This will work, but there are opportunities for caching
                     // based on input.Counter that are probably worthwhile given how long inference takes.
                     getSrc(ref src);
-                    lda.Output(ref src, ref dst, numBurninIter, reset);
+                    lda.Output(in src, ref dst, numBurninIter, reset);
                 };
         }
     }

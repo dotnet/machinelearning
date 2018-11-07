@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class LambdaFilter
     {
         public static IDataView Create<TSrc>(IHostEnvironment env, string name, IDataView input,
-            string src, ColumnType typeSrc, RefPredicate<TSrc> predicate)
+            string src, ColumnType typeSrc, InPredicate<TSrc> predicate)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(name, nameof(name));
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 Func<IHostEnvironment, string, IDataView, int,
-                    RefPredicate<int>, ValueMapper<int, int>, Impl<int, int>> del = CreateImpl<int, int>;
+                    InPredicate<int>, ValueMapper<int, int>, Impl<int, int>> del = CreateImpl<int, int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition()
                     .MakeGenericMethod(typeOrig.RawType, typeof(TSrc));
                 impl = (IDataView)meth.Invoke(null, new object[] { env, name, input, colSrc, predicate, conv });
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static Impl<T1, T2> CreateImpl<T1, T2>(
             IHostEnvironment env, string name, IDataView input, int colSrc,
-            RefPredicate<T2> pred, ValueMapper<T1, T2> conv)
+            InPredicate<T2> pred, ValueMapper<T1, T2> conv)
         {
             return new Impl<T1, T2>(env, name, input, colSrc, pred, conv);
         }
@@ -77,11 +77,11 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Impl<T1, T2> : FilterBase
         {
             private readonly int _colSrc;
-            private readonly RefPredicate<T2> _pred;
+            private readonly InPredicate<T2> _pred;
             private readonly ValueMapper<T1, T2> _conv;
 
             public Impl(IHostEnvironment env, string name, IDataView input,
-                int colSrc, RefPredicate<T2> pred, ValueMapper<T1, T2> conv = null)
+                int colSrc, InPredicate<T2> pred, ValueMapper<T1, T2> conv = null)
                 : base(env, name, input)
             {
                 Host.AssertValue(pred);
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Data
             private sealed class RowCursor : LinkedRowFilterCursorBase
             {
                 private readonly ValueGetter<T1> _getSrc;
-                private readonly RefPredicate<T1> _pred;
+                private readonly InPredicate<T1> _pred;
                 private T1 _src;
 
                 public RowCursor(Impl<T1, T2> parent, IRowCursor input, bool[] active)
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (parent._conv == null)
                     {
                         Ch.Assert(typeof(T1) == typeof(T2));
-                        _pred = (RefPredicate<T1>)(Delegate)parent._pred;
+                        _pred = (InPredicate<T1>)(Delegate)parent._pred;
                     }
                     else
                     {
@@ -168,10 +168,10 @@ namespace Microsoft.ML.Runtime.Data
                         var pred = parent._pred;
                         var conv = parent._conv;
                         _pred =
-                            (ref T1 src) =>
+                            (in T1 src) =>
                             {
-                                conv(ref _src, ref val);
-                                return pred(ref val);
+                                conv(in _src, ref val);
+                                return pred(in val);
                             };
                     }
                 }
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
                 protected override bool Accept()
                 {
                     _getSrc(ref _src);
-                    return _pred(ref _src);
+                    return _pred(in _src);
                 }
             }
 

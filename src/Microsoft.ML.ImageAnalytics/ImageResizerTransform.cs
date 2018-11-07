@@ -253,7 +253,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -284,8 +284,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -426,21 +425,21 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImageResizerEstimator : TrivialEstimator<ImageResizerTransform>
+    public sealed class ImageResizingEstimator : TrivialEstimator<ImageResizerTransform>
     {
-        public ImageResizerEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        public ImageResizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int imageWidth, int imageHeight, ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop, ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
             : this(env, new ImageResizerTransform(env, inputColumn, outputColumn, imageWidth, imageHeight, resizing, cropAnchor))
         {
         }
 
-        public ImageResizerEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
+        public ImageResizingEstimator(IHostEnvironment env, params ImageResizerTransform.ColumnInfo[] columns)
             : this(env, new ImageResizerTransform(env, columns))
         {
         }
 
-        public ImageResizerEstimator(IHostEnvironment env, ImageResizerTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizerEstimator)), transformer)
+        public ImageResizingEstimator(IHostEnvironment env, ImageResizerTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageResizingEstimator)), transformer)
         {
         }
 
@@ -509,7 +508,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         var outCol = (OutPipelineColumn)toOutput[i];
                         cols[i] = outCol.MakeColumnInfo(inputNames[outCol._input], outputNames[outCol]);
                     }
-                    return new ImageResizerEstimator(env, cols);
+                    return new ImageResizingEstimator(env, cols);
                 }
             }
         }

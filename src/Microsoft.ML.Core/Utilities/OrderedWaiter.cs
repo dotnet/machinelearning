@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// This is an event-line pair. The intended usage is, when the line
         /// is hit by the containing ordered waiter, the thread will be hit.
         /// </summary>
-        private struct WaitStats
+        private readonly struct WaitStats
         {
             public readonly long Line;
             public readonly ManualResetEventSlim Event;

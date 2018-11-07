@@ -4,17 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
-using System.Reflection;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 [assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), typeof(ShuffleTransform.Arguments), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
@@ -22,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), null, typeof(SignatureLoadDataTransform),
     "Shuffle Transform", ShuffleTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This is a transform that, given any input dataview (even an unshufflable one) will,
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    protected override void Copy(ref VBuffer<T> src, ref VBuffer<T> dst)
+                    protected override void Copy(in VBuffer<T> src, ref VBuffer<T> dst)
                     {
                         src.CopyTo(ref dst);
                     }
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    protected override void Copy(ref T src, ref T dst)
+                    protected override void Copy(in T src, ref T dst)
                     {
                         dst = src;
                     }
@@ -452,10 +452,10 @@ namespace Microsoft.ML.Runtime.Data
                 public void Fetch(int idx, ref T value)
                 {
                     Contracts.Assert(0 <= idx && idx < Buffer.Length);
-                    Copy(ref Buffer[idx], ref value);
+                    Copy(in Buffer[idx], ref value);
                 }
 
-                protected abstract void Copy(ref T src, ref T dst);
+                protected abstract void Copy(in T src, ref T dst);
             }
 
             // The number of examples to have in each synchronization block. This should be >= 1.

@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref TDst dst) =>
                 {
                     getter(ref src);
-                    conv(ref src, ref dst);
+                    conv(in src, ref dst);
                 };
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref StringBuilder dst) =>
                 {
                     getter(ref src);
-                    conv(ref src, ref dst);
+                    conv(in src, ref dst);
                 };
         }
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.Data
                     // REVIEW: This would be faster if there were loops for each std conversion.
                     // Consider adding those to the Conversions class.
                     for (int i = 0; i < count; i++)
-                        conv(ref src.Values[i], ref values[i]);
+                        conv(in src.Values[i], ref values[i]);
 
                     if (!src.IsDense)
                     {

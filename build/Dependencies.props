@@ -8,6 +8,7 @@
     <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
+    <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
   </PropertyGroup>
 
   <!-- Other/Non-Core Product Dependencies -->

@@ -250,9 +250,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.Check(typeof(TDist) == typeof(Float));
             var map = GetMapper<TIn, Float>();
             ValueMapper<TIn, Float, Float> del =
-                (ref TIn src, ref Float score, ref Float prob) =>
+                (in TIn src, ref Float score, ref Float prob) =>
                 {
-                    map(ref src, ref score);
+                    map(in src, ref score);
                     prob = Calibrator.PredictProbability(score);
                 };
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
@@ -1489,7 +1489,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     public class PavCalibratorTrainer : CalibratorTrainerBase
     {
         // a piece of the piecwise function
-        private struct Piece
+        private readonly struct Piece
         {
             public readonly Float MinX; // end of interval.
             public readonly Float MaxX; // beginning of interval.
@@ -1743,7 +1743,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
     public sealed class CalibrationDataStore : IEnumerable<CalibrationDataStore.DataItem>
     {
-        public struct DataItem
+        public readonly struct DataItem
         {
             // The actual binary label of this example.
             public readonly bool Target;

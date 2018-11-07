@@ -64,7 +64,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=48-49)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=50-51)]
         /// ]]></format>
         /// </example>
         /// <example>
@@ -73,7 +73,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=6-9,14-77)]
         /// ]]></format>
         /// </example>
-        public static LinearClassificationTrainer StochasticDualCoordinateAscent(
+        public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
                 string weights = null,
@@ -81,12 +81,12 @@ namespace Microsoft.ML
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
-                Action<LinearClassificationTrainer.Arguments> advancedSettings = null
+                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null
             )
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LinearClassificationTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaBinaryTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
         }
     }
 

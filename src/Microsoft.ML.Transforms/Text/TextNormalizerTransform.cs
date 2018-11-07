@@ -17,17 +17,17 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-[assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(IDataTransform), typeof(TextNormalizerTransform), typeof(TextNormalizerTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
-[assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(IDataTransform), typeof(TextNormalizerTransform), null, typeof(SignatureLoadDataTransform),
-    "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(TextNormalizerTransform), null, typeof(SignatureLoadModel),
-     "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+[assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(TextNormalizingTransformer), null, typeof(SignatureLoadModel),
+     "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(TextNormalizerTransform), null, typeof(SignatureLoadRowMapper),
-   "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadRowMapper),
+   "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms.Text
     /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
     /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
     /// </summary>
-    public sealed class TextNormalizerTransform : OneToOneTransformerBase
+    public sealed class TextNormalizingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -60,23 +60,23 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 1)]
-            public TextNormalizerEstimator.CaseNormalizationMode TextCase = TextNormalizerEstimator.Defaults.TextCase;
+            public TextNormalizingEstimator.CaseNormalizationMode TextCase = TextNormalizingEstimator.Defaults.TextCase;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.",
                 ShortName = "diac", SortOrder = 1)]
-            public bool KeepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics;
+            public bool KeepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep punctuation marks or remove them.", ShortName = "punc", SortOrder = 2)]
-            public bool KeepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations;
+            public bool KeepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 2)]
-            public bool KeepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers;
+            public bool KeepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers;
         }
 
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
             " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
-        internal const string LoaderSignature = nameof(TextNormalizerTransform);
+        internal const string LoaderSignature = "TextNormalizerTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -86,22 +86,22 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TextNormalizerTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(TextNormalizingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "TextNormalizer";
         public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
-        private readonly TextNormalizerEstimator.CaseNormalizationMode _textCase;
+        private readonly TextNormalizingEstimator.CaseNormalizationMode _textCase;
         private readonly bool _keepDiacritics;
         private readonly bool _keepPunctuations;
         private readonly bool _keepNumbers;
 
-        public TextNormalizerTransform(IHostEnvironment env,
-            TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizerEstimator.Defaults.TextCase,
-            bool keepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics,
-            bool keepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations,
-            bool keepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers,
+        public TextNormalizingTransformer(IHostEnvironment env,
+            TextNormalizingEstimator.CaseNormalizationMode textCase = TextNormalizingEstimator.Defaults.TextCase,
+            bool keepDiacritics = TextNormalizingEstimator.Defaults.KeepDiacritics,
+            bool keepPunctuations = TextNormalizingEstimator.Defaults.KeepPunctuations,
+            bool keepNumbers = TextNormalizingEstimator.Defaults.KeepNumbers,
             params (string input, string output)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
@@ -115,8 +115,8 @@ namespace Microsoft.ML.Transforms.Text
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            if (!TextNormalizerEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizerEstimator.ExpectedColumnType, type.ToString());
+            if (!TextNormalizingEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, TextNormalizingEstimator.ExpectedColumnType, type.ToString());
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -140,16 +140,16 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadModel.
-        private static TextNormalizerTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static TextNormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new TextNormalizerTransform(host, ctx);
+            return new TextNormalizingTransformer(host, ctx);
         }
 
-        private TextNormalizerTransform(IHost host, ModelLoadContext ctx)
+        private TextNormalizingTransformer(IHost host, ModelLoadContext ctx)
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -159,8 +159,8 @@ namespace Microsoft.ML.Transforms.Text
             // bool: whether to keep diacritics
             // bool: whether to keep punctuations
             // bool: whether to keep numbers
-            _textCase = (TextNormalizerEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
-            host.CheckDecode(Enum.IsDefined(typeof(TextNormalizerEstimator.CaseNormalizationMode), _textCase));
+            _textCase = (TextNormalizingEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
+            host.CheckDecode(Enum.IsDefined(typeof(TextNormalizingEstimator.CaseNormalizationMode), _textCase));
 
             _keepDiacritics = ctx.Reader.ReadBoolByte();
             _keepPunctuations = ctx.Reader.ReadBoolByte();
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
                 var item = args.Column[i];
                 cols[i] = (item.Source ?? item.Name, item.Name);
             }
-            return new TextNormalizerTransform(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
+            return new TextNormalizingTransformer(env, args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -190,16 +190,16 @@ namespace Microsoft.ML.Transforms.Text
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
             private readonly ColumnType[] _types;
-            private readonly TextNormalizerTransform _parent;
+            private readonly TextNormalizingTransformer _parent;
 
-            public Mapper(TextNormalizerTransform parent, Schema inputSchema)
+            public Mapper(TextNormalizingTransformer parent, Schema inputSchema)
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -377,9 +377,9 @@ namespace Microsoft.ML.Transforms.Text
                             ch = CombinedDiacriticsMap[ch];
                     }
 
-                    if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Lower)
+                    if (_parent._textCase == TextNormalizingEstimator.CaseNormalizationMode.Lower)
                         ch = CharUtils.ToLowerInvariant(ch);
-                    else if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Upper)
+                    else if (_parent._textCase == TextNormalizingEstimator.CaseNormalizationMode.Upper)
                         ch = CharUtils.ToUpperInvariant(ch);
 
                     if (ch != src.Span[i])
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Transforms.Text
         }
     }
 
-    public sealed class TextNormalizerEstimator : TrivialEstimator<TextNormalizerTransform>
+    public sealed class TextNormalizingEstimator : TrivialEstimator<TextNormalizingTransformer>
     {
         /// <summary>
         /// Case normalization mode of text. This enumeration is serialized.
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public TextNormalizerEstimator(IHostEnvironment env,
+        public TextNormalizingEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
             CaseNormalizationMode textCase = Defaults.TextCase,
@@ -485,13 +485,13 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
         /// <param name="columns">Pairs of columns to run the text normalization on.</param>
-        public TextNormalizerEstimator(IHostEnvironment env,
+        public TextNormalizingEstimator(IHostEnvironment env,
             CaseNormalizationMode textCase = Defaults.TextCase,
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
             bool keepNumbers = Defaults.KeepNumbers,
             params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), new TextNormalizerTransform(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizingEstimator)), new TextNormalizingTransformer(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, columns))
         {
         }
 
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, TextNormalizerEstimator.ExpectedColumnType, col.ItemType.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, TextNormalizingEstimator.ExpectedColumnType, col.ItemType.ToString());
                 result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
             }
             return new SchemaShape(result.Values);

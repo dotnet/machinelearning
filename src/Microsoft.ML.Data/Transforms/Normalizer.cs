@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -21,9 +22,9 @@ using System.Linq;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizerTransformer), null, typeof(SignatureLoadRowMapper),
     "", NormalizerTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed class Normalizer : IEstimator<NormalizerTransformer>
+    public sealed class NormalizingEstimator : IEstimator<NormalizerTransformer>
     {
         internal static class Defaults
         {
@@ -162,23 +163,41 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly ColumnBase[] _columns;
 
-        public Normalizer(IHostEnvironment env, string columnName, NormalizerMode mode = NormalizerMode.MinMax)
-            : this(env, mode, (columnName, columnName))
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        public NormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NormalizerMode mode = NormalizerMode.MinMax)
+            : this(env, mode, (inputColumn, outputColumn ?? inputColumn))
         {
         }
 
-        public Normalizer(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
+        /// <param name="columns">An array of (inputColumn, outputColumn) tuples.</param>
+        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(Normalizer));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
             _columns = columns.Select(x => ColumnBase.Create(x.inputColumn, x.outputColumn, mode)).ToArray();
         }
 
-        public Normalizer(IHostEnvironment env, params ColumnBase[] columns)
+        /// <summary>
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
+        /// <param name="columns">An array of <see cref="ColumnBase"/> defining the inputs to the Normalizer, and their settings.</param>
+        public NormalizingEstimator(IHostEnvironment env, params ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(Normalizer));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
 
             _columns = columns.ToArray();
@@ -313,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
             ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
-        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, Normalizer.ColumnBase[] columns)
+        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -419,7 +438,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -458,8 +477,7 @@ namespace Microsoft.ML.Runtime.Data
         public new IDataTransform MakeDataTransform(IDataView input)
             => base.MakeDataTransform(input);
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {

@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Security;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -18,6 +14,11 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security;
 
 [assembly: LoadableClass(typeof(SymSgdClassificationTrainer), typeof(SymSgdClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -188,9 +189,9 @@ namespace Microsoft.ML.Trainers.SymSgd
             Host.CheckParam(weights.Length > 0, nameof(weights));
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights,
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// This struct holds the information about the size, label and isDense of each instance
         /// to be able to pass it to the native code.
         /// </summary>
-        private struct InstanceProperties
+        private readonly struct InstanceProperties
         {
             public readonly int FeatureCount;
             public readonly float Label;

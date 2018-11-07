@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -146,8 +146,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 loaderAssemblyName: typeof(ImageLoaderTransform).Assembly.FullName);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
@@ -212,17 +211,17 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
     }
 
-    public sealed class ImageLoaderEstimator : TrivialEstimator<ImageLoaderTransform>
+    public sealed class ImageLoadingEstimator : TrivialEstimator<ImageLoaderTransform>
     {
         private readonly ImageType _imageType;
 
-        public ImageLoaderEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
+        public ImageLoadingEstimator(IHostEnvironment env, string imageFolder, params (string input, string output)[] columns)
             : this(env, new ImageLoaderTransform(env, imageFolder, columns))
         {
         }
 
-        public ImageLoaderEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoaderEstimator)), transformer)
+        public ImageLoadingEstimator(IHostEnvironment env, ImageLoaderTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ImageLoadingEstimator)), transformer)
         {
             _imageType = new ImageType();
         }
@@ -256,7 +255,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             /// <summary>
-            /// Reconciler to an <see cref="ImageLoaderEstimator"/> for the <see cref="PipelineColumn"/>.
+            /// Reconciler to an <see cref="ImageLoadingEstimator"/> for the <see cref="PipelineColumn"/>.
             /// </summary>
             /// <remarks>
             /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
@@ -296,7 +295,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         var outCol = (OutPipelineColumn)toOutput[i];
                         cols[i] = (inputNames[outCol._input], outputNames[outCol]);
                     }
-                    return new ImageLoaderEstimator(env, _relTo, cols);
+                    return new ImageLoadingEstimator(env, _relTo, cols);
                 }
             }
         }

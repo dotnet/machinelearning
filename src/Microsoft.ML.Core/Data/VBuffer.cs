@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     /// is passed to a row cursor getter, the callee is free to take ownership of
     /// and re-use the arrays (Values and Indices).
     /// </summary>
-    public struct VBuffer<T>
+    public readonly struct VBuffer<T>
     {
         /// <summary>
         /// The logical length of the buffer.
@@ -424,11 +424,6 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<T>(length, values, dst.Indices);
         }
 
-        public static void Copy(ref VBuffer<T> src, ref VBuffer<T> dst)
-        {
-            src.CopyTo(ref dst);
-        }
-
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
             return VBufferUtils.Items(Values, Indices, Length, Count, all);
@@ -463,5 +458,8 @@ namespace Microsoft.ML.Runtime.Data
                 return Values[index];
             return default(T);
         }
+
+        public override string ToString()
+            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
     }
 }

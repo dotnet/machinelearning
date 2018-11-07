@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// Represents a coefficient statistics object.
     /// </summary>
-    public struct CoefficientStatistics
+    public readonly struct CoefficientStatistics
     {
         public readonly string Name;
         public readonly Single Estimate;
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Learners
             _nullDeviance = nullDeviance;
         }
 
-        public LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, ref VBuffer<Single> coeffStdError)
+        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, in VBuffer<Single> coeffStdError)
             : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
             _env.Assert(coeffStdError.Count == _paramCount);
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Learners
             return true;
         }
 
-        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, ref VBuffer<Single> weights, ref VBuffer<ReadOnlyMemory<char>> names,
+        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, in VBuffer<Single> weights, in VBuffer<ReadOnlyMemory<char>> names,
             ref VBuffer<Single> estimate, ref VBuffer<Single> stdErr, ref VBuffer<Single> zScore, ref VBuffer<Single> pValue, out ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames)
         {
             if (!stats._coeffStdError.HasValue)
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public void AddStatsColumns(List<IColumn> list, LinearBinaryPredictor parent, RoleMappedSchema schema, ref VBuffer<ReadOnlyMemory<char>> names)
+        public void AddStatsColumns(List<IColumn> list, LinearBinaryPredictor parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValue(list);
             _env.AssertValueOrNull(parent);
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Learners
             var zScore = default(VBuffer<Single>);
             var pValue = default(VBuffer<Single>);
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
-            GetUnorderedCoefficientStatistics(parent.Statistics, ref weights, ref names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
+            GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
                 new VectorType(TextType.Instance, stdErr.Length), getSlotNames);

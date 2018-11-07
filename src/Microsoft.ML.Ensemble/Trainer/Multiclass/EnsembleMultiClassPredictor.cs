@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
 
             ValueMapper<VBuffer<Single>, VBuffer<Single>> del =
-                (ref VBuffer<Single> src, ref VBuffer<Single> dst) =>
+                (in VBuffer<Single> src, ref VBuffer<Single> dst) =>
                 {
                     if (_inputType.VectorSize > 0)
                         Host.Check(src.Length == _inputType.VectorSize);
@@ -132,11 +132,11 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref features[i]);
-                            maps[i](ref features[i], ref predictions[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref features[i]);
+                            maps[i](in features[i], ref predictions[i]);
                         }
                         else
-                            maps[i](ref tmp, ref predictions[i]);
+                            maps[i](in tmp, ref predictions[i]);
 
                         // individual maps delegates will return always the same VBuffer length
                         Host.Check(predictions[i].Length == _mappers[i].OutputType.VectorSize);

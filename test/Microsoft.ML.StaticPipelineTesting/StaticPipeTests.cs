@@ -10,7 +10,9 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.PCA;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -208,7 +210,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
-                P("friend", new KeyType(DataKind.U4, 0, 3)));
+                P("friend", new KeyType(typeof(uint), 0, 3)));
             var view = new EmptyDataView(env, schema);
 
             view.AssertStatic(env, c => new
@@ -232,7 +234,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
-                P("friend", new KeyType(DataKind.U4, 0, 3)));
+                P("friend", new KeyType(typeof(uint), 0, 3)));
             var view = new EmptyDataView(env, schema);
 
             Assert.ThrowsAny<Exception>(() =>
@@ -267,23 +269,23 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
             var meta1 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, 3), ref metaValues1);
             uint value1 = 2;
-            var col1 = RowColumnUtils.GetColumn("stay", new KeyType(DataKind.U4, 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
+            var col1 = RowColumnUtils.GetColumn("stay", new KeyType(typeof(uint), 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             var meta2 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(NumberType.I4, 4), ref metaValues2);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(DataKind.U1, 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));
+            var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(typeof(byte), 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
             var metaValues3 = (float)2;
             var meta3 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, NumberType.R4, ref metaValues3);
             var value3 = (ushort)1;
-            var col3 = RowColumnUtils.GetColumn("and", new KeyType(DataKind.U2, 0, 2), ref value3, RowColumnUtils.GetRow(counted, meta3));
+            var col3 = RowColumnUtils.GetColumn("and", new KeyType(typeof(ushort), 0, 2), ref value3, RowColumnUtils.GetRow(counted, meta3));
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
-            var col4 = RowColumnUtils.GetColumn("listen", new VectorType(new KeyType(DataKind.U4, 0, 2)), ref value4);
+            var col4 = RowColumnUtils.GetColumn("listen", new VectorType(new KeyType(typeof(uint), 0, 2)), ref value4);
 
             // Finally compose a trivial data view out of all this.
             var row = RowColumnUtils.GetRow(counted, col1, col2, col3, col4);
@@ -420,7 +422,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = new ChooseColumnsTransform(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
+                IDataView v = SelectColumnsTransform.CreateKeep(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
                 v = TakeFilter.Create(env, v, 10);
                 var saver = new TextSaver(env, new TextSaver.Arguments()
                 {
@@ -454,9 +456,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("valuesKey", out int valuesCol));
             Assert.True(schema.TryGetColumnIndex("valuesKeyKey", out int valuesKeyCol));
 
-            Assert.Equal(3, schema.GetColumnType(labelCol).KeyCount);
-            Assert.True(schema.GetColumnType(valuesCol).ItemType.IsKey);
-            Assert.True(schema.GetColumnType(valuesKeyCol).ItemType.IsKey);
+            Assert.Equal(3, (schema.GetColumnType(labelCol) as KeyType)?.Count);
+            Assert.True(schema.GetColumnType(valuesCol) is VectorType valuesVecType && valuesVecType.ItemType is KeyType);
+            Assert.True(schema.GetColumnType(valuesKeyCol) is VectorType valuesKeyVecType && valuesKeyVecType.ItemType is KeyType);
 
             var labelKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelCol);
             var valuesKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesCol);
@@ -464,9 +466,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(labelKeyType);
             Assert.NotNull(valuesKeyType);
             Assert.NotNull(valuesKeyKeyType);
-            Assert.True(labelKeyType.IsVector && labelKeyType.ItemType == TextType.Instance);
-            Assert.True(valuesKeyType.IsVector && valuesKeyType.ItemType == NumberType.Float);
-            Assert.True(valuesKeyKeyType.IsVector && valuesKeyKeyType.ItemType == NumberType.Float);
+            Assert.True(labelKeyType is VectorType labelVecType && labelVecType.ItemType == TextType.Instance);
+            Assert.True(valuesKeyType is VectorType valuesVecType2 && valuesVecType2.ItemType == NumberType.Float);
+            Assert.True(valuesKeyKeyType is VectorType valuesKeyVecType2 && valuesKeyVecType2.ItemType == NumberType.Float);
             // Because they're over exactly the same data, they ought to have the same cardinality and everything.
             Assert.True(valuesKeyKeyType.Equals(valuesKeyType));
         }
@@ -499,9 +501,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int i = 0; i < idx.Length; ++i)
             {
                 var type = schema.GetColumnType(idx[i]);
-                Assert.True(type.VectorSize > 0, $"Col c{i} had unexpected type {type}");
-                types[i] = type.AsVector;
-                Assert.Equal(expectedLen[i], type.VectorSize);
+                types[i] = type as VectorType;
+                Assert.True(types[i]?.Size > 0, $"Col c{i} had unexpected type {type}");
+                Assert.Equal(expectedLen[i], types[i].Size);
             }
             Assert.Equal(TextType.Instance, types[0].ItemType);
             Assert.Equal(TextType.Instance, types[1].ItemType);
@@ -531,12 +533,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("tokens", out int tokensCol));
             var type = schema.GetColumnType(tokensCol);
-            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
-
+            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
             Assert.True(schema.TryGetColumnIndex("chars", out int charsCol));
             type = schema.GetColumnType(charsCol);
-            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsKey);
-            Assert.True(type.ItemType.AsKey.RawKind == DataKind.U2);
+            Assert.True(type is VectorType vecType2 && vecType2.Size == 0 && vecType2.ItemType is KeyType
+                    && vecType2.ItemType.RawType == typeof(ushort));
         }
 
         [Fact]
@@ -561,11 +562,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
             var type = schema.GetColumnType(stopwordsCol);
-            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+            Assert.True(type is VectorType vecType && vecType.Size == 0 && vecType.ItemType == TextType.Instance);
 
             Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
             type = schema.GetColumnType(normTextCol);
-            Assert.True(type.IsText && !type.IsVector);
+            Assert.Equal(TextType.Instance, type);
         }
 
         [Fact]
@@ -590,11 +591,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
             var type = schema.GetColumnType(bagofwordCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType && vecType.Size > 0&& vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
             type = schema.GetColumnType(bagofhashedwordCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
         [Fact]
@@ -619,11 +620,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
             var type = schema.GetColumnType(ngramsCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
             type = schema.GetColumnType(ngramshashCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
 
@@ -650,19 +651,19 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
             var type = schema.GetColumnType(lpnormCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
             type = schema.GetColumnType(gcnormCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
             type = schema.GetColumnType(zcawhitenedCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType3 && vecType3.Size > 0 && vecType3.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
             type = schema.GetColumnType(pcswhitenedCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
         }
 
         [Fact]
@@ -689,8 +690,8 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
-        }
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
+}
 
         [Fact]
         public void FeatureSelection()
@@ -714,11 +715,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
             var type = schema.GetColumnType(bagofwordCountCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 
             Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
             type = schema.GetColumnType(bagofwordMiCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType2 && vecType2.Size > 0 && vecType2.ItemType is NumberType);
         }
 
         [Fact]
@@ -771,7 +772,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
             var type = schema.GetColumnType(pcaCol);
-            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+            Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
         [Fact]
@@ -817,7 +818,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     Assert.True(!VectorFloat[i][j] && !VectorDoulbe[i][j]);
             }
         }
-        
+
         [Fact]
         public void TextNormalizeStatic()
         {
@@ -833,7 +834,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     norm: r.text.NormalizeText(),
-                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizerEstimator.CaseNormalizationMode.Upper),
+                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizingEstimator.CaseNormalizationMode.Upper),
                     norm_KeepDiacritics: r.text.NormalizeText(keepDiacritics: true),
                     norm_NoPuctuations: r.text.NormalizeText(keepPunctuations: false),
                     norm_NoNumbers: r.text.NormalizeText(keepNumbers: false)));
@@ -842,20 +843,20 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("norm", out int norm));
             var type = schema.GetColumnType(norm);
-            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(type is TextType);
 
             Assert.True(schema.TryGetColumnIndex("norm_Upper", out int normUpper));
             type = schema.GetColumnType(normUpper);
-            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(type is TextType);
             Assert.True(schema.TryGetColumnIndex("norm_KeepDiacritics", out int diacritics));
             type = schema.GetColumnType(diacritics);
-            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(type is TextType);
             Assert.True(schema.TryGetColumnIndex("norm_NoPuctuations", out int punct));
             type = schema.GetColumnType(punct);
-            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(type is TextType);
             Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
             type = schema.GetColumnType(numbers);
-            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(type is TextType);
         }
 
         [Fact]
@@ -874,8 +875,36 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("pca", out int pca));
             var type = schema[pca].Type;
-            Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
-            Assert.True(type.VectorSize == 5);
+            Assert.Equal(new VectorType(NumberType.R4, 5), type);
+        }
+
+        [Fact]
+        public void TestConvertStatic()
+        {
+            MLContext ml = new MLContext();
+            const string content = "0 hello 3.14159 -0 2\n"
+               + "1 1 2 4 15";
+            var dataSource = new BytesStreamSource(content);
+
+            var text = ml.Data.TextReader(ctx => (
+               label: ctx.LoadBool(0),
+               text: ctx.LoadText(1),
+               numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
+                dataSource, separator: ' ');
+            var data = text.Read(dataSource);
+            var est = text.MakeNewEstimator().Append(r => (floatLabel: r.label.ToFloat(), txtFloat: r.text.ToFloat(), num: r.numericFeatures.ToFloat()));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("floatLabel", out int floatLabel));
+            var type = schema[floatLabel].Type;
+            Assert.Equal(NumberType.R4, type);
+            Assert.True(schema.TryGetColumnIndex("txtFloat", out int txtFloat));
+            type = schema[txtFloat].Type;
+            Assert.Equal(NumberType.R4, type);
+            Assert.True(schema.TryGetColumnIndex("num", out int num));
+            type = schema[num].Type;
+            Assert.Equal(new VectorType(NumberType.R4, 3), type);
         }
     }
 }

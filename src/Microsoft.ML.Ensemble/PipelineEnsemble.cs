@@ -659,13 +659,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (!mdType.Equals(keyValuesType))
                     throw env.Except("Label column of model {0} has different key value type than model 0", i);
                 rmd.Schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, labelInfo.Index, ref curLabelNames);
-                if (!AreEqual(ref labelNames, ref curLabelNames))
+                if (!AreEqual(in labelNames, in curLabelNames))
                     throw env.Except("Label of model {0} has different values than model 0", i);
             }
             return classCount;
         }
 
-        private static bool AreEqual<T>(ref VBuffer<T> v1, ref VBuffer<T> v2)
+        private static bool AreEqual<T>(in VBuffer<T> v1, in VBuffer<T> v2)
             where T : IEquatable<T>
         {
             if (v1.Length != v2.Length)

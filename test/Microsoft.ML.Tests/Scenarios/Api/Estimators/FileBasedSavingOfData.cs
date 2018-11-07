@@ -26,19 +26,24 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
 
             var ml = new MLContext(seed: 1, conc: 1);
+            var src = new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename));
             var trainData = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
-                .FitAndRead(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                .Fit(src).Read(src);
 
-            using (var file = File.Create(GetOutputPath("i.idv")))
-                trainData.SaveAsBinary(ml, file);
+            var path = DeleteOutputPath("i.idv");
+            using (var file = File.Create(path))
+            {
+                var saver = new BinarySaver(ml, new BinarySaver.Arguments());
+                using (var ch = ((IHostEnvironment)ml).Start("SaveData"))
+                    DataSaverUtils.SaveDataView(ch, saver, trainData, file);
+            }
 
             var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1);
-            var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource("i.idv"));
+            var loadedTrainData = new BinaryLoader(ml, new BinaryLoader.Arguments(), new MultiFileSource(path));
 
             // Train.
             var model = trainer.Fit(loadedTrainData);
-            DeleteOutputPath("i.idv");
         }
     }
 }
