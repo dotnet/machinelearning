@@ -154,9 +154,9 @@ namespace Microsoft.ML.Transforms.Projections
 
             internal ColumnInfo(Column item, Arguments args)
             {
-                Input = item.Source;
+                Input = item.Source ?? item.Name;
                 Contracts.CheckValue(Input, nameof(Input));
-                Output = item.Name ?? item.Source;
+                Output = item.Name;
                 Contracts.CheckValue(Output, nameof(Output));
                 Kind = item.Kind ?? args.Kind;
                 Contracts.CheckUserArg(Kind == WhiteningKind.Pca || Kind == WhiteningKind.Zca, nameof(item.Kind));
