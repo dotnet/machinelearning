@@ -75,12 +75,10 @@ namespace Microsoft.ML.Runtime.Numeric
             var bottomHeap = new Heap<KeyValuePair<int, Float>>((left, right) => right.Value > left.Value, bottom + 1);
             bool isDense = a.IsDense;
 
-            var aValues = a.GetValues();
-            var aIndices = a.GetIndices();
             for (int i = 0; i < a.Count; i++)
             {
-                int idx = isDense ? i : aIndices[i];
-                var value = aValues[i];
+                int idx = isDense ? i : a.Indices[i];
+                var value = a.Values[i];
 
                 if (value < 0 && bottom > 0)
                 {
@@ -110,21 +108,22 @@ namespace Microsoft.ML.Runtime.Numeric
             }
 
             var newCount = topHeap.Count + bottomHeap.Count;
-            var mutation = VBufferMutationContext.Create(ref a, a.Length, newCount);
-            var indices = mutation.Indices;
+            var indices = a.Indices;
+            Utils.EnsureSize(ref indices, newCount);
+            Contracts.Assert(Utils.Size(a.Values) >= newCount);
             int count = 0;
             while (topHeap.Count > 0)
             {
                 var pair = topHeap.Pop();
                 indices[count] = pair.Key;
-                mutation.Values[count++] = pair.Value;
+                a.Values[count++] = pair.Value;
             }
 
             while (bottomHeap.Count > 0)
             {
                 var pair = bottomHeap.Pop();
                 indices[count] = pair.Key;
-                mutation.Values[count++] = pair.Value;
+                a.Values[count++] = pair.Value;
             }
 
             Contracts.Assert(count == newCount);
@@ -133,7 +132,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 for (var i = 0; i < newCount; i++)
                 {
-                    var value = mutation.Values[i];
+                    var value = a.Values[i];
                     var absValue = Math.Abs(value);
                     if (absValue > absMax)
                         absMax = absValue;
@@ -143,13 +142,13 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     var ratio = 1 / absMax;
                     for (var i = 0; i < newCount; i++)
-                        mutation.Values[i] = ratio * mutation.Values[i];
+                        a.Values[i] = ratio * a.Values[i];
                 }
             }
 
             if (indices != null)
                 Array.Sort(indices, a.Values, 0, newCount);
-            mutation.Complete(ref a);
+            a = new VBuffer<float>(a.Length, newCount, a.Values, indices);
         }
 
         /// <summary>

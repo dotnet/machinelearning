@@ -720,7 +720,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 // Major case 2, with src.Dense.
                 if (!dst.IsDense)
+                {
                     Densify(ref dst);
+                    mutation = VBufferMutationContext.Create(ref dst, dst.Length, dst.Count);
+                }
+
                 // Both are now dense. Both cases of outer are covered.
                 for (int i = 0; i < srcValues.Length; i++)
                     manip(i, srcValues[i], ref mutation.Values[i]);

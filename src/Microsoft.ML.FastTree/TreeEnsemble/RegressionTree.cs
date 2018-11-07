@@ -798,7 +798,6 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             if (feat.IsDense)
                 return GetLeafCore(feat.GetValues(), path);
             return GetLeafCore(feat.GetIndices(), feat.GetValues(), path);
-
         }
 
         private Float GetFeatureValue(Float x, int node)
@@ -907,7 +906,6 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             if (NumLeaves == 1)
                 return 0;
 
-            int count = featIndices.Length;
             int node = root;
 
             while (node >= 0)
@@ -922,13 +920,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
                     //REVIEW: Consider experimenting with bitmap instead of doing log(n) binary search.
                     int newNode = LteChild[node];
-                    int end = Utils.FindIndexSorted(featIndices, 0, count, CategoricalSplitFeatureRanges[node][1]);
-                    for (int i = Utils.FindIndexSorted(featIndices, 0, count, CategoricalSplitFeatureRanges[node][0]);
+                    int end = featIndices.FindIndexSorted(0, count, CategoricalSplitFeatureRanges[node][1]);
+                    for (int i = featIndices.FindIndexSorted(0, count, CategoricalSplitFeatureRanges[node][0]);
                          i < count && i <= end;
                          ++i)
                     {
                         int index = featIndices[i];
-                        if (Utils.TryFindIndexSorted(CategoricalSplitFeatures[node], 0, CategoricalSplitFeatures[node].Length, index, out int ii))
+                        if (CategoricalSplitFeatures[node].TryFindIndexSorted(0, CategoricalSplitFeatures[node].Length, index, out int ii))
                         {
                             Float val = GetFeatureValue(featValues[i], node);
                             if (val > 0.0f)
@@ -946,7 +944,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     Float val = 0;
                     int ifeat = SplitFeatures[node];
 
-                    int ii = Utils.FindIndexSorted(featIndices, 0, count, ifeat);
+                    int ii = featIndices.FindIndexSorted(0, count, ifeat);
                     if (ii < count && featIndices[ii] == ifeat)
                         val = featValues[ii];
                     val = GetFeatureValue(val, node);

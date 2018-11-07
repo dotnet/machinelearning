@@ -31,9 +31,20 @@ namespace Microsoft.ML.Runtime.Data
         public readonly int Count;
 
         /// <summary>
+        /// The values. Only the first Count of these are valid.
+        /// </summary>
+        public T[] Values => _values;
+
+        /// <summary>
+        /// The indices. For a dense representation, this array is not used. For a sparse representation
+        /// it is parallel to values and specifies the logical indices for the corresponding values.
+        /// </summary>
+        public int[] Indices => _indices;
+
+        /// <summary>
         /// The explicitly represented values.
         /// </summary>
-        public ReadOnlySpan<T> GetValues() => Values.AsSpan(0, Count);
+        public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, Count);
 
         /// <summary>
         /// The indices. For a dense representation, this array is not used. For a sparse representation
@@ -45,7 +56,7 @@ namespace Microsoft.ML.Runtime.Data
         ///  - non-zeros values 98 and 76 respectively at the 4th and 6th coordinates
         ///  - zeros at all other coordinates
         /// </remarks>
-        public ReadOnlySpan<int> GetIndices() => IsDense ? default : Indices.AsSpan(0, Count);
+        public ReadOnlySpan<int> GetIndices() => IsDense ? default : _indices.AsSpan(0, Count);
 
         /// <summary>
         /// Gets a value indicating whether every logical element is explicitly
@@ -112,7 +123,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyToDense(ref VBuffer<T> dst)
         {
-            var mutation = VBufferMutationContext.Create(ref dst, Length, Count);
+            // create a dense mutation context
+            var mutation = VBufferMutationContext.Create(ref dst, Length, Length);
 
             if (!IsDense)
                 CopyTo(mutation.Values);
@@ -545,8 +557,10 @@ namespace Microsoft.ML.Runtime.Data
             _values = values;
             _indices = indices;
 
+            bool isDense = logicalLength == physicalValuesCount;
+
             Values = _values.AsSpan(0, physicalValuesCount);
-            Indices = _indices.AsSpan(0, physicalValuesCount);
+            Indices = isDense ? default : _indices.AsSpan(0, physicalValuesCount);
         }
 
         public void Complete(ref VBuffer<T> destintation)

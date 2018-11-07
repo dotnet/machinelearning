@@ -788,7 +788,6 @@ namespace Microsoft.ML.Trainers.KMeans
                 // The final chosen points, to be approximately clustered to determine starting
                 // centroids.
                 VBuffer<float>[] clusters = new VBuffer<float>[totalSamples];
-                VBuffer<float>[] readOnlyClusters = null;
 
                 // L2s, kept for distance trick.
                 float[] clustersL2s = new float[totalSamples];
@@ -861,9 +860,6 @@ namespace Microsoft.ML.Trainers.KMeans
                             clusterCount++;
                         }
                         ch.Assert(clusterCount - clusterPrevCount <= numSamplesPerRound);
-
-                        KMeansUtils.UpdateReadOnlyCache(clusters, ref readOnlyClusters);
-
                         logicalExternalRounds++;
                         pCh.Checkpoint(logicalExternalRounds, numRounds + 2);
                     }
@@ -1321,11 +1317,9 @@ namespace Microsoft.ML.Trainers.KMeans
             Initialize(ch, cursorFactory, totalTrainingInstances, numThreads, k, dimensionality, accelMemBudgetInMb,
                 out state, out workState, out reducedState);
             float[] centroidL2s = new float[k];
-            VBuffer<float>[] readOnlyCentroids = new VBuffer<float>[centroids.Length];
-            KMeansUtils.UpdateReadOnlyCache(centroids, ref readOnlyCentroids);
 
             for (int i = 0; i < k; i++)
-                centroidL2s[i] = VectorUtils.NormSquared(in readOnlyCentroids[i]);
+                centroidL2s[i] = VectorUtils.NormSquared(in centroids[i]);
 
             using (var pch = host.StartProgressChannel("KMeansTrain"))
             {
@@ -1352,7 +1346,7 @@ namespace Microsoft.ML.Trainers.KMeans
                             ops[i] = new Action(() =>
                             {
                                 using (var cursor = set[chunkId])
-                                    ProcessChunk(cursor, state, workState[chunkId], k, readOnlyCentroids, centroidL2s);
+                                    ProcessChunk(cursor, state, workState[chunkId], k, centroids, centroidL2s);
                             });
                         }
 
@@ -1364,7 +1358,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     else
                     {
                         using (var cursor = cursorFactory.Create())
-                            ProcessChunk(cursor, state, reducedState, k, readOnlyCentroids, centroidL2s);
+                            ProcessChunk(cursor, state, reducedState, k, centroids, centroidL2s);
                     }
 
                     WorkChunkState.Reduce(workState, reducedState);
@@ -1401,13 +1395,11 @@ namespace Microsoft.ML.Trainers.KMeans
                     }
 #endif
                     reducedState.UpdateClusters(centroids, centroidL2s, state.Delta, ref state.DeltaMax);
-                    KMeansUtils.UpdateReadOnlyCache(centroids, ref readOnlyCentroids);
-
                     isConverged = reducedState.AverageScoreDelta < convergenceThreshold;
                     state.Iteration++;
 
                     if (state.Iteration % 100 == 0)
-                        KMeansUtils.VerifyModelConsistency(readOnlyCentroids);
+                        KMeansUtils.VerifyModelConsistency(centroids);
                 }
             }
         }
@@ -1803,24 +1795,6 @@ namespace Microsoft.ML.Trainers.KMeans
         {
             foreach (var centroid in centroids)
                 Contracts.Check(centroid.Items().Select(x => x.Value).All(FloatUtils.IsFinite), "Model training failed: non-finite coordinates are generated");
-        }
-
-        /// <summary>
-        /// Checks that all coordinates of all centroids are finite, and throws otherwise
-        /// </summary>
-        public static void VerifyModelConsistency(VBuffer<float>[] centroids)
-        {
-            for (int i = 0; i < centroids.Length; i++)
-                Contracts.Check(centroids[i].GetValues().All(FloatUtils.IsFinite), "Model training failed: non-finite coordinates are generated");
-        }
-
-        public static void UpdateReadOnlyCache(VBuffer<float>[] source, ref VBuffer<float>[] destination)
-        {
-            Utils.EnsureSize(ref destination, source.Length);
-            for (int i = 0; i < source.Length; i++)
-            {
-                destination[i] = source[i];
-            }
         }
     }
 }
