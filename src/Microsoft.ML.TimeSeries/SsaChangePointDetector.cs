@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for changepoint detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,167-229)]
         /// ]]>
         /// </format>
         /// </example>
