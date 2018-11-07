@@ -26,13 +26,12 @@ namespace Microsoft.ML.Transforms
     {
         private readonly IHost _host;
         private readonly Action<TSrc, TDst> _mapAction;
-        private readonly InternalSchemaDefinition _addedSchema;
         private readonly string _contractName;
 
-        internal InternalSchemaDefinition AddedSchema => _addedSchema;
+        internal InternalSchemaDefinition AddedSchema { get; }
+        internal SchemaDefinition InputSchemaDefinition { get; }
 
         public bool IsRowToRowMapper => true;
-        private readonly SchemaDefinition _inputSchemaDefinition;
         /// <summary>
         /// Create a custom mapping of input columns to output columns.
         /// </summary>
@@ -52,14 +51,14 @@ namespace Microsoft.ML.Transforms
             _host.CheckValueOrNull(outputSchemaDefinition);
 
             _mapAction = mapAction;
-            _inputSchemaDefinition = inputSchemaDefinition;
+            InputSchemaDefinition = inputSchemaDefinition;
 
             var outSchema = outputSchemaDefinition == null
                ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
                : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
             _contractName = contractName;
-            _addedSchema = outSchema;
+            AddedSchema = outSchema;
         }
 
         public void Save(ModelSaveContext ctx)
@@ -108,18 +107,18 @@ namespace Microsoft.ML.Transforms
                 _inputSchema = inputSchema;
 
                 var emptyDataView = new EmptyDataView(_host, inputSchema);
-                _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent._inputSchemaDefinition);
+                _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
-                var result = new Delegate[_parent._addedSchema.Columns.Length];
+                var result = new Delegate[_parent.AddedSchema.Columns.Length];
                 if (!Enumerable.Range(0, result.Length).Any(activeOutput))
                     return result;
 
-                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent._addedSchema);
+                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 IRowReadableAs<TSrc> inputRow = _typedSrc.GetRow(input);
 
                 TSrc src = new TSrc();
@@ -160,7 +159,7 @@ namespace Microsoft.ML.Transforms
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                if (Enumerable.Range(0, _parent._addedSchema.Columns.Length).Any(activeOutput))
+                if (Enumerable.Range(0, _parent.AddedSchema.Columns.Length).Any(activeOutput))
                 {
                     // If any output column is requested, then we activate all input columns that we need.
                     return _typedSrc.GetDependencies(col => false);
@@ -171,7 +170,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema.Column[] GetOutputColumns()
             {
-                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent._addedSchema);
+                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.
                 return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => dstRow.Schema[x]).ToArray();
             }
@@ -206,6 +205,23 @@ namespace Microsoft.ML.Transforms
             var addedSchemaShape = SchemaShape.Create(new Schema(addedCols));
 
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
+            foreach (var col in inputDef.Columns)
+            {
+                if (!result.TryGetValue(col.ColumnName, out var column))
+                    throw Contracts.ExceptSchemaMismatch(nameof(inputSchema), "input", col.ColumnName);
+
+                SchemaShape.GetColumnTypeShape(col.ColumnType, out var vecKind, out var itemType, out var isKey);
+                // Special treatment for vectors: if we expect variable vector, we also allow fixed-size vector.
+                if (itemType != column.ItemType || isKey != column.IsKey
+                    || vecKind == SchemaShape.Column.VectorKind.Scalar && column.Kind != SchemaShape.Column.VectorKind.Scalar
+                    || vecKind == SchemaShape.Column.VectorKind.Vector && column.Kind != SchemaShape.Column.VectorKind.Vector
+                    || vecKind == SchemaShape.Column.VectorKind.VariableVector && column.Kind == SchemaShape.Column.VectorKind.Scalar)
+                {
+                    throw Contracts.ExceptSchemaMismatch(nameof(inputSchema), "input", col.ColumnName, col.ColumnType.ToString(), column.GetTypeString());
+                }
+            }
+
             foreach (var addedCol in addedSchemaShape.Columns)
                 result[addedCol.Name] = addedCol;
 
