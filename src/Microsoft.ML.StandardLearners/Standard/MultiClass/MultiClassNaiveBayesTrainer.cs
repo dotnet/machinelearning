@@ -28,7 +28,6 @@ using System.Linq;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' />
     public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>, MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";

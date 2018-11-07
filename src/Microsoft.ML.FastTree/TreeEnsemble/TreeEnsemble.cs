@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    public class Ensemble
+    public class TreeEnsemble
     {
         private readonly string _firstInputInitializationContent;
         private readonly List<RegressionTree> _trees;
@@ -28,12 +28,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         public int NumTrees => _trees.Count;
 
-        public Ensemble()
+        public TreeEnsemble()
         {
             _trees = new List<RegressionTree>();
         }
 
-        public Ensemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
+        public TreeEnsemble(ModelLoadContext ctx, bool usingDefaultValues, bool categoricalSplits)
         {
             // REVIEW: Verify the contents of the ensemble, both during building,
             // and during deserialization.
