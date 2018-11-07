@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return ComposeGetterVec(input, iinfo, srcCol, srcType);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
         private static HashTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)

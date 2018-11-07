@@ -194,13 +194,13 @@ namespace Microsoft.ML.Scenarios
                 var schema = TensorFlowUtils.GetModelSchema(env, model_location);
                 Assert.Equal(86, schema.ColumnCount);
                 Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
-                var type = schema.GetColumnType(col).AsVector;
-                Assert.Equal(2, type.DimCount);
-                Assert.Equal(28, type.GetDim(0));
-                Assert.Equal(28, type.GetDim(1));
+                var type = (VectorType)schema.GetColumnType(col);
+                Assert.Equal(2, type.Dimensions.Length);
+                Assert.Equal(28, type.Dimensions[0]);
+                Assert.Equal(28, type.Dimensions[1]);
                 var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
                 Assert.NotNull(metadataType);
-                Assert.True(metadataType.IsText);
+                Assert.True(metadataType is TextType);
                 ReadOnlyMemory<char> opType = default;
                 schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
                 Assert.Equal("Placeholder", opType.ToString());
@@ -208,15 +208,11 @@ namespace Microsoft.ML.Scenarios
                 Assert.Null(metadataType);
 
                 Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
-                type = schema.GetColumnType(col).AsVector;
-                Assert.Equal(4, type.DimCount);
-                Assert.Equal(5, type.GetDim(0));
-                Assert.Equal(5, type.GetDim(1));
-                Assert.Equal(1, type.GetDim(2));
-                Assert.Equal(32, type.GetDim(3));
+                type = (VectorType)schema.GetColumnType(col);
+                Assert.Equal(new[] { 5, 5, 1, 32 }, type.Dimensions);
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
                 Assert.NotNull(metadataType);
-                Assert.True(metadataType.IsText);
+                Assert.True(metadataType is TextType);
                 schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
                 Assert.Equal("Identity", opType.ToString());
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
@@ -227,14 +223,11 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal("conv2d/kernel", inputOps.Values[0].ToString());
 
                 Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
-                type = schema.GetColumnType(col).AsVector;
-                Assert.Equal(3, type.DimCount);
-                Assert.Equal(28, type.GetDim(0));
-                Assert.Equal(28, type.GetDim(1));
-                Assert.Equal(32, type.GetDim(2));
+                type = (VectorType)schema.GetColumnType(col);
+                Assert.Equal(new[] { 28, 28, 32 }, type.Dimensions);
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
                 Assert.NotNull(metadataType);
-                Assert.True(metadataType.IsText);
+                Assert.True(metadataType is TextType);
                 schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
                 Assert.Equal("Conv2D", opType.ToString());
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
@@ -245,12 +238,11 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.Values[1].ToString());
 
                 Assert.True(schema.TryGetColumnIndex("Softmax", out col));
-                type = schema.GetColumnType(col).AsVector;
-                Assert.Equal(1, type.DimCount);
-                Assert.Equal(10, type.GetDim(0));
+                type = (VectorType)schema.GetColumnType(col);
+                Assert.Equal(new[] { 10 }, type.Dimensions);
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
                 Assert.NotNull(metadataType);
-                Assert.True(metadataType.IsText);
+                Assert.True(metadataType is TextType);
                 schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
                 Assert.Equal("Softmax", opType.ToString());
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
@@ -265,10 +257,8 @@ namespace Microsoft.ML.Scenarios
                 for (int i = 0; i < schema.ColumnCount; i++)
                 {
                     Assert.Equal(name.ToString(), schema.GetColumnName(i));
-                    type = schema.GetColumnType(i).AsVector;
-                    Assert.Equal(2, type.DimCount);
-                    Assert.Equal(2, type.GetDim(0));
-                    Assert.Equal(2, type.GetDim(1));
+                    type = (VectorType)schema.GetColumnType(i);
+                    Assert.Equal(new[] { 2, 2 }, type.Dimensions);
                     name++;
                 }
             }
@@ -787,9 +777,9 @@ namespace Microsoft.ML.Scenarios
                 var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
                 var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = schema.GetColumnType(column).AsVector;
-                var imageHeight = type.GetDim(0);
-                var imageWidth = type.GetDim(1);
+                var type = (VectorType)schema.GetColumnType(column);
+                var imageHeight = type.Dimensions[0];
+                var imageWidth = type.Dimensions[1];
 
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -853,9 +843,9 @@ namespace Microsoft.ML.Scenarios
                 var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
                 var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = schema.GetColumnType(column).AsVector;
-                var imageHeight = type.GetDim(0);
-                var imageWidth = type.GetDim(1);
+                var type = (VectorType)schema.GetColumnType(column);
+                var imageHeight = type.Dimensions[0];
+                var imageWidth = type.Dimensions[1];
 
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);

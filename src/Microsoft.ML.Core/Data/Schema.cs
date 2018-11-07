@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace Microsoft.ML.Runtime.Data
     /// - Metadata. The metadata itself is a 'single-row dataset' (namely, an instance of <see cref="Metadata"/>), that contains its own schema
     /// and values.
     /// </summary>
+    [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
     public sealed class Schema : ISchema
     {
         private readonly Column[] _columns;
@@ -72,6 +74,11 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
+        public override string ToString()
+        {
+            return $"{ColumnCount} columns";
+        }
+
         /// <summary>
         /// This class describes one column in the schema.
         /// </summary>
@@ -102,11 +109,19 @@ namespace Microsoft.ML.Runtime.Data
                 Type = type;
                 Metadata = metadata;
             }
+
+            public override string ToString()
+            {
+                var metadataString = (Metadata == null || Metadata.Schema.ColumnCount == 0) ?
+                    null : $" {{{string.Join(", ", Metadata.Schema.GetColumns().Select(x => x.column.Name))}}}";
+                return $"{Name}: {Type}{metadataString}";
+            }
         }
 
         /// <summary>
         /// The metadata of one <see cref="Column"/>.
         /// </summary>
+        [System.Diagnostics.DebuggerTypeProxy(typeof(MetadataDebuggerProxy))]
         public sealed class Metadata
         {
             private readonly (Column column, Delegate getter)[] _values;
@@ -164,6 +179,8 @@ namespace Microsoft.ML.Runtime.Data
                     throw MetadataUtils.ExceptGetMetadata();
                 GetGetter<TValue>(col)(ref value);
             }
+
+            public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
 
             /// <summary>
             /// The class that incrementally builds a <see cref="Metadata"/>.
