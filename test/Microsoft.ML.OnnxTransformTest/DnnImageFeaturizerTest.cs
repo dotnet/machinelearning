@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class DnnImageFeaturizerTests : TestDataPipeBase
+   /* public class DnnImageFeaturizerTests : TestDataPipeBase
     {
         private const int inputSize = 3 * 224 * 224;
 
@@ -136,5 +136,5 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
-    }
+    }*/
 }
