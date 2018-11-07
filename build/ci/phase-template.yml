@@ -6,12 +6,12 @@ parameters:
 
 phases:
   - phase: ${{ parameters.name }}
-    timeoutInMinutes: 30
     variables:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
       _arch: ${{ parameters.architecture }}
     queue:
+      timeoutInMinutes: 30
       parallel: 99
       matrix:
         Build_Debug:
