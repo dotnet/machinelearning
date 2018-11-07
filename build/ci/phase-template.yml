@@ -28,6 +28,7 @@ phases:
         displayName: Install runtime dependencies
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests
+      timeout: 30 # in minutes
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
@@ -40,21 +41,21 @@ phases:
         mergeTestResults: true
     - task: CopyFiles@2
       displayName: Stage build logs
-      condition: failed()
+      condition: not(succeeded())
       inputs:
         sourceFolder: $(Build.SourcesDirectory)
         contents: '?(msbuild.*|binclash.log|init-tools.log)'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: CopyFiles@2
       displayName: Stage test output
-      condition: failed()
+      condition: not(succeeded())
       inputs:
         sourceFolder: $(Build.SourcesDirectory)/bin
         contents: '**/TestOutput/**/*'
         targetFolder: $(Build.ArtifactStagingDirectory)
     - task: PublishBuildArtifacts@1
       displayName: Publish build and test logs
-      condition: failed()
+      condition: not(succeeded())
       inputs:
         pathToPublish: $(Build.ArtifactStagingDirectory)
         artifactName: ${{ parameters.name }} $(_config_short)
