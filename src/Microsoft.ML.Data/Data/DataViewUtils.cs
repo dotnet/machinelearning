@@ -1154,7 +1154,7 @@ namespace Microsoft.ML.Runtime.Data
             private IRowCursor _currentCursor;
             private bool _disposed;
 
-            private struct CursorStats
+            private readonly struct CursorStats
             {
                 public readonly long Batch;
                 public readonly int CursorIdx;

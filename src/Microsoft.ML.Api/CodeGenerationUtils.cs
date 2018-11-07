@@ -75,11 +75,11 @@ namespace Microsoft.ML.Runtime.Api
             target.Append(indent);
             target.AppendFormat("public {0} {1}", generatedCsTypeName, fieldName);
 
-            if (appendInitializer && colType.IsKnownSizeVector && !useVBuffer)
+            if (appendInitializer && colType is VectorType vecColType && vecColType.Size > 0 && !useVBuffer)
             {
                 Contracts.Assert(generatedCsTypeName.EndsWith("[]"));
                 var csItemType = generatedCsTypeName.Substring(0, generatedCsTypeName.Length - 2);
-                target.AppendFormat(" = new {0}[{1}]", csItemType, colType.VectorSize);
+                target.AppendFormat(" = new {0}[{1}]", csItemType, vecColType.Size);
             }
             target.AppendLine(";");
         }
@@ -109,17 +109,13 @@ namespace Microsoft.ML.Runtime.Api
         {
             Contracts.AssertValue(colType);
             Contracts.AssertValue(attributes);
-            if (colType.IsVector)
+            if (colType is VectorType vecColType)
             {
-                if (colType.IsKnownSizeVector)
+                if (vecColType.Size > 0)
                 {
                     // By default, arrays are assumed variable length, unless a [VectorType(dim1, dim2, ...)]
                     // attribute is applied to the fields.
-                    var vectorType = colType.AsVector;
-                    var dimensions = new int[vectorType.DimCount];
-                    for (int i = 0; i < dimensions.Length; i++)
-                        dimensions[i] = vectorType.GetDim(i);
-                    attributes.Add(string.Format("[VectorType({0})]", string.Join(", ", dimensions)));
+                    attributes.Add(string.Format("[VectorType({0})]", string.Join(", ", vecColType.Dimensions)));
                 }
 
                 var itemType = GetBackingTypeName(colType.ItemType, false, attributes);

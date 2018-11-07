@@ -238,7 +238,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// This struct holds the information about the size, label and isDense of each instance
         /// to be able to pass it to the native code.
         /// </summary>
-        private struct InstanceProperties
+        private readonly struct InstanceProperties
         {
             public readonly int FeatureCount;
             public readonly float Label;

@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var data = TextLoader.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Read(dataPath);
-            IEstimator<ITransformer> est = new LinearClassificationTrainer(Env, "Label", "Features", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
+            IEstimator<ITransformer> est = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(est, data.AsDynamic);
 
             est = new SdcaRegressionTrainer(Env, "Label", "Features", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);

@@ -88,7 +88,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         /// <param name="actualResults">The Diagnostics found by the compiler after running the analyzer on the source code</param>
         /// <param name="analyzer">The analyzer that was being run on the sources</param>
         /// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
-        private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
+        protected static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
         {
             int expectedCount = expectedResults.Length;
             int actualCount = actualResults.Count();
@@ -265,7 +265,7 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         private static readonly MetadataReference MLNetCoreReference = RefFromType<Runtime.IHostEnvironment>();
         private static readonly MetadataReference MLNetDataReference = RefFromType<Runtime.Model.ModelLoadContext>();
 
-        private static MetadataReference RefFromType<TType>()
+        protected static MetadataReference RefFromType<TType>()
             => MetadataReference.CreateFromFile(typeof(TType).Assembly.Location);
 
         internal const string DefaultFilePathPrefix = "Test";
@@ -292,14 +292,11 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         /// <param name="analyzer">The analyzer to run on the documents</param>
         /// <param name="documents">The Documents that the analyzer will be run on</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, Document[] documents)
+        protected static Diagnostic[] GetSortedDiagnosticsFromDocuments(DiagnosticAnalyzer analyzer, IEnumerable<Document> documents)
         {
             var projects = new HashSet<Project>();
 
-            foreach (var document in documents)
-            {
-                projects.Add(document.Project);
-            }
+            projects.UnionWith(documents.Select(d => d.Project));
 
             var diagnostics = new List<Diagnostic>();
             foreach (var project in projects)
@@ -307,25 +304,10 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
                 var comp = project.GetCompilationAsync().Result;
                 var compilationWithAnalyzers = comp.WithAnalyzers(ImmutableArray.Create(analyzer));
                 var diags = compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync().Result;
-                foreach (var diag in diags)
-                {
-                    if (diag.Location == Location.None || diag.Location.IsInMetadata)
-                    {
-                        diagnostics.Add(diag);
-                    }
-                    else
-                    {
-                        for (int i = 0; i < documents.Length; i++)
-                        {
-                            var document = documents[i];
-                            var tree = document.GetSyntaxTreeAsync().Result;
-                            if (tree == diag.Location.SourceTree)
-                            {
-                                diagnostics.Add(diag);
-                            }
-                        }
-                    }
-                }
+                var projectTrees = new HashSet<SyntaxTree>(documents.Select(r => r.GetSyntaxTreeAsync().Result));
+
+                diagnostics.AddRange(diags.Where(d =>
+                d.Location == Location.None || d.Location.IsInMetadata || projectTrees.Contains(d.Location.SourceTree)));
             }
 
             var results = SortDiagnostics(diagnostics);
@@ -381,13 +363,26 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         /// <returns>A Project created out of the Documents created from the source strings</returns>
         private static Project CreateProject(string[] sources)
         {
+            Solution sol = null;
+            return CreateProject(TestProjectName, ref sol, sources);
+        }
+
+        /// <summary>
+        /// Create a project using the input strings as sources.
+        /// </summary>
+        /// <param name="sources">Classes in the form of strings</param>
+        /// <returns>A Project created out of the Documents created from the source strings</returns>
+        internal static Project CreateProject(string projectName, ref Solution solution, params string[] sources)
+        {
             string fileNamePrefix = DefaultFilePathPrefix;
 
-            ProjectId projectId = ProjectId.CreateNewId(debugName: TestProjectName);
+            ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
 
-            var solution = new AdhocWorkspace()
-                .CurrentSolution
-                .AddProject(projectId, TestProjectName, TestProjectName, LanguageNames.CSharp)
+            if (solution == null)
+                solution = new AdhocWorkspace().CurrentSolution;
+
+            solution = solution
+                .AddProject(projectId, projectName, projectName, LanguageNames.CSharp)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, StandardReference)
                 .AddMetadataReference(projectId, RuntimeReference)

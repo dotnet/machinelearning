@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-            var sdcaTrainer = new LinearClassificationTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
+            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
 
             pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
 
-            var sdcaTrainer = new LinearClassificationTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
             pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 

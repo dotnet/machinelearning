@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var initPredictor = new LinearClassificationTrainer(Env,"Label", "Features").Fit(transformedData);
+            var initPredictor = new SdcaBinaryTrainer(Env, "Label", "Features").Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
             var withInitPredictor = new SymSgdClassificationTrainer(Env, "Label", "Features").Train(transformedData, initialPredictor: initPredictor.Model);

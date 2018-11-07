@@ -97,17 +97,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsTimeSpan)
+                else if (type is TimeSpanType)
                 {
                     ValueMapper<TimeSpan, StringBuilder> c = MapTimeSpan;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsDateTime)
+                else if (type is DateTimeType)
                 {
                     ValueMapper<DateTime, StringBuilder> c = MapDateTime;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
-                else if (type.IsDateTimeZone)
+                else if (type is DateTimeOffsetType)
                 {
                     ValueMapper<DateTimeOffset, StringBuilder> c = MapDateTimeZone;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;

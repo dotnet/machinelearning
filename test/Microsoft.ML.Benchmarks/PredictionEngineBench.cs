@@ -91,7 +91,7 @@ namespace Microsoft.ML.Benchmarks
                 IDataView data = reader.Read(_sentimentDataPath);
 
                 var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+                    .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(_breastCancerDataPath);
 
-                var pipeline = new LinearClassificationTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
+                var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 
                 var model = pipeline.Fit(data);
 

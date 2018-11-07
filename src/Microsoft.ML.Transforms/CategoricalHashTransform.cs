@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private const bool DefOrdered = OneHotHashEncodingEstimator.Defaults.Ordered;
         private const int DefInvertHash = OneHotHashEncodingEstimator.Defaults.InvertHash;
 
-        private struct Config
+        private readonly struct Config
         {
             public readonly int HashBits;
             public readonly uint Seed;
