@@ -12,22 +12,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PreprocessFile Include="$(MSBuildThisFileDirectory)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    <PreprocessFile Include="$(OutDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
-    DestinationFile="$(MSBuildThisFileDirectory)ResNetPrepOnnx/ResNetPreprocess.onnx" />
+    DestinationFile="$(OutDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    DestinationDir="$(OutDir)/ResNetPrepOnnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ModelFile Include="$(MSBuildThisFileDirectory)ResNet18Onnx/ResNet18.onnx"
+    <ModelFile Include="$(OutDir)/ResNet18Onnx/ResNet18.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx"
-    DestinationFile="$(MSBuildThisFileDirectory)ResNet18Onnx/ResNet18.onnx" />
+    DestinationFile="$(OutDir)/ResNet18Onnx/ResNet18.onnx"
+    DestinationDir="$(OutDir)/ResNet18Onnx" />
   </ItemGroup>
 
   <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
-    <DownloadFilesFromUrl Items="@(PreprocessFile)"
-                         DestinationDir="ResNetPrepOnnx"
-                         TreatErrorsAsWarnings="true"/>
+    <MakeDir Directories="%(PreprocessFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(PreprocessFile)"/>
   </Target>
 
   <Target Name="DownloadMainModels" 
@@ -35,9 +36,8 @@
           AfterTargets="Build"
           Inputs="@(ModelFile)" Outputs="%(ModelFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(ModelFile.DestinationFile)" />
-    <DownloadFilesFromUrl Items="@(ModelFile)"
-                         DestinationDir="ResNet18Onnx"
-                         TreatErrorsAsWarnings="true"/>
+    <MakeDir Directories="%(ModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ModelFile)"/>
   </Target>
 
 </Project>
