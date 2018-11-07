@@ -94,7 +94,7 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
-        /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="features">The name of the feature column.</param>
         /// <param name="weights">The name for the optional column containing the example weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
