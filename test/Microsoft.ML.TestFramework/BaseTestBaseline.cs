@@ -495,9 +495,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
 
                     count++;
-                    GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
+                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
-                    if (line1 != line2)
+                    if (!inRange || line1 != line2)
                     {
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
@@ -509,19 +509,26 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private bool GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            
+
             MatchCollection firstCollection = MatchNumbers.Matches(firstString);
             MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
-                MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
+            {
+                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
+                {
+                    return false;
+                }
+            }
+
             firstString = MatchNumbers.Replace(firstString, "%Number%");
             secondString = MatchNumbers.Replace(secondString, "%Number%");
+            return true;
         }
 
-        private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {
@@ -544,12 +551,25 @@ namespace Microsoft.ML.Runtime.RunTests
                 // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
                 // (1.82844949 - 1.8284502) = -0.00000071
 
+                double delta2 = 0;
                 if (!inRange)
                 {
-                    delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                    delta2 = Math.Round(f1 - f2, digitsOfPrecision);
+                    inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
+                }
+
+                if (!inRange)
+                {
+                    Fail(_allowMismatch, $"Output and baseline mismatch at line {i}." + Environment.NewLine +
+                        $"Values to compare are {firstCollection[i]} and {secondCollection[i]}" + Environment.NewLine +
+                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                        $"\t delta: {delta}" + Environment.NewLine +
+                        $"\t delta2: {delta2}" + Environment.NewLine);
+                    return false;
                 }
             }
+
+            return true;
         }
 
         private static double Round(double value, int digitsOfPrecision)

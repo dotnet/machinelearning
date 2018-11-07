@@ -55,13 +55,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             ColumnType t;
             t = GetType(data.Schema, "f1");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 1);
+            Assert.True(t is VectorType vt1 && vt1.ItemType == NumberType.R4 && vt1.Size == 1);
             t = GetType(data.Schema, "f2");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 2);
+            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberType.R4 && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 5);
+            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
             t = GetType(data.Schema, "f4");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 0);
+            Assert.True(t is VectorType vt4 && vt4.ItemType == NumberType.R4 && vt4.Size == 0);
 
             data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f1", "f2", "f3", "f4" });
 
@@ -111,9 +111,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             ColumnType t;
             t = GetType(data.Schema, "f2");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 2);
+            Assert.True(t is VectorType vt2 && vt2.ItemType == NumberType.R4 && vt2.Size == 2);
             t = GetType(data.Schema, "f3");
-            Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 5);
+            Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
 
             data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f2", "f3" });
 
