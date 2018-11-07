@@ -69,9 +69,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             _numClass = -1;
         }
 
-        private Ensemble GetBinaryEnsemble(int classID)
+        private TreeEnsemble GetBinaryEnsemble(int classID)
         {
-            var res = new Ensemble();
+            var res = new TreeEnsemble();
             for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numClass)
             {
                 // Ignore dummy trees.

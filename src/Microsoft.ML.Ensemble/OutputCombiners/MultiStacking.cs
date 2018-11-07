@@ -8,10 +8,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiStacking), typeof(MultiStacking.Arguments), typeof(SignatureCombiner),
@@ -50,17 +48,6 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             internal override IComponentFactory<ITrainer<TVectorPredictor>> GetPredictorFactory() => BasePredictorType;
 
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
-
-            public Arguments()
-            {
-                // REVIEW: Perhaps we can have a better non-parametetric learner.
-                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
-                    env => new Ova(env, new Ova.Arguments()
-                    {
-                        PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                            e => new FastTreeBinaryClassificationTrainer(e, DefaultColumnNames.Label, DefaultColumnNames.Features))
-                    }));
-            }
         }
 
         public MultiStacking(IHostEnvironment env, Arguments args)

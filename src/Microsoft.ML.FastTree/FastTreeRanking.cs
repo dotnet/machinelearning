@@ -1114,7 +1114,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeRankingPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRankingPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

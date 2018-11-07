@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             _host.CheckValue(models, nameof(models));
 
-            var ensemble = new Ensemble();
+            var ensemble = new TreeEnsemble();
             int modelCount = 0;
             int featureCount = -1;
             bool binaryClassifier = false;

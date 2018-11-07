@@ -14,8 +14,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         void SetTreeScores(int idx, double[] scores);
 
-        bool Compress(IChannel ch, Ensemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression);
+        bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression);
 
-        Ensemble GetCompressedEnsemble();
+        TreeEnsemble GetCompressedEnsemble();
     }
 }

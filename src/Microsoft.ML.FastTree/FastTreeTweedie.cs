@@ -465,7 +465,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010003;
 
-        internal FastTreeTweediePredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeTweediePredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
