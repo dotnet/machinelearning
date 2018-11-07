@@ -458,5 +458,8 @@ namespace Microsoft.ML.Runtime.Data
                 return Values[index];
             return default(T);
         }
+
+        public override string ToString()
+            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
     }
 }
