@@ -1,46 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
-  
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.DnnImageFeaturizer.ResNet18</IncludeInPackage>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PreprocessFile Include="$(MSBuildThisFileDirectory)/src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    <PreprocessFile Include="$(MSBuildThisFileDirectory)/ResNetPrepOnnx/ResNetPreprocess.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
-    DestinationFile="$(MSBuildThisFileDirectory)/src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNetPrepOnnx/ResNetPreprocess.onnx" />
+    DestinationFile="$(MSBuildThisFileDirectory)ResNetPrepOnnx/ResNetPreprocess.onnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ModelFile Include="$(MSBuildThisFileDirectory)/src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNet18Onnx/ResNet18.onnx"
+    <ModelFile Include="$(MSBuildThisFileDirectory)ResNet18Onnx/ResNet18.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx"
-    DestinationFile="$(MSBuildThisFileDirectory)/src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNet18Onnx/ResNet18.onnx" />
+    DestinationFile="$(MSBuildThisFileDirectory)ResNet18Onnx/ResNet18.onnx" />
   </ItemGroup>
 
   <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
     <DownloadFilesFromUrl Items="@(PreprocessFile)"
-                         DestinationDir="src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNetPrepOnnx"
+                         DestinationDir="ResNetPrepOnnx"
                          TreatErrorsAsWarnings="true"/>
   </Target>
 
   <Target Name="DownloadMainModels" 
           DependsOnTargets="DownloadPrepModels"
-          Inputs="@(PreprocessFile)" Outputs="%(ModelFile.DestinationFile)">
+          AfterTargets="Build"
+          Inputs="@(ModelFile)" Outputs="%(ModelFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(ModelFile.DestinationFile)" />
     <DownloadFilesFromUrl Items="@(ModelFile)"
-                         DestinationDir="src/Microsoft.ML.DnnImageFeaturizer.ResNet18/ResNet18Onnx"
+                         DestinationDir="ResNet18Onnx"
                          TreatErrorsAsWarnings="true"/>
   </Target>
 
-  <Target Name="Build"
-        DependsOnTargets="DownloadMainModels" />
 </Project>
