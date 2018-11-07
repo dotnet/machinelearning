@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public abstract class ColumnType : IEquatable<ColumnType>
     {
-        // This private constructor sets all the _isXxx flags. It is invoked by other ctors.
+        // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
         private ColumnType()
         {
             IsPrimitive = this is PrimitiveType;

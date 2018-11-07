@@ -17,7 +17,6 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var dict = new Dictionary<ColumnType, string>();
             // add PrimitiveTypes, KeyType & corresponding VectorTypes
-            //PrimitiveType tmp;
             VectorType tmp1, tmp2;
             var types = new PrimitiveType[] { NumberType.I1, NumberType.I2, NumberType.I4, NumberType.I8,
                 NumberType.U1, NumberType.U2, NumberType.U4, NumberType.U8, NumberType.UG,
