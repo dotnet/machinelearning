@@ -152,7 +152,8 @@ namespace Microsoft.ML.Tests
                 var names1 = default(VBuffer<ReadOnlyMemory<char>>);
                 var names2 = default(VBuffer<ReadOnlyMemory<char>>);
                 var type1 = result.Schema.GetColumnType(termIndex);
-                int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+                var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
+                int size = (itemType1 as KeyType)?.Count ?? -1;
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);

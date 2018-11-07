@@ -153,8 +153,7 @@ namespace Microsoft.ML.Transforms
         {
             // Item type must have an NA value that exists and is not equal to its default value.
             Func<ColumnType, string> func = TestType<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
-            return (string)meth.Invoke(null, new object[] { type.ItemType });
+            return Utils.MarshalInvoke(func, type.ItemType.RawType, type.ItemType);
         }
 
         private static string TestType<T>(ColumnType type)
@@ -339,7 +338,7 @@ namespace Microsoft.ML.Transforms
                     case ReplacementKind.Mean:
                     case ReplacementKind.Minimum:
                     case ReplacementKind.Maximum:
-                        if (!type.ItemType.IsNumber && !type.ItemType.IsTimeSpan && !type.ItemType.IsDateTime)
+                        if (!type.ItemType.IsNumber)
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
                         imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);

@@ -828,20 +828,23 @@ namespace Microsoft.ML.Transforms
                         throw _host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
                     var type = inputSchema.GetColumnType(_inputColIndices[i]);
-                    if (type.IsVector && type.VectorSize == 0)
-                        throw _host.Except($"Variable length input columns not supported");
+                    if (type is VectorType vecType && vecType.Size == 0)
+                        throw _host.Except("Variable length input columns not supported");
 
-                    _isInputVector[i] = type.IsVector;
+                    _isInputVector[i] = type is VectorType;
+                    if (!_isInputVector[i]) // Temporary pending fix of issue #1542. In its current state, the below code would fail anyway with a naked exception if this check was not here.
+                        throw _host.Except("Non-vector columns not supported");
+                    vecType = (VectorType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.ItemType != expectedType)
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
 
-                    var colTypeDims = Enumerable.Range(0, type.AsVector.DimCount + 1).Select(d => d == 0 ? 1 : (long)type.AsVector.GetDim(d - 1)).ToArray();
+                    var colTypeDims = vecType.Dimensions.Prepend(1).Select(dim => (long)dim).ToArray();
                     if (shape == null)
                         _fullySpecifiedShapes[i] = new TFShape(colTypeDims);
-                    else if (type.AsVector.DimCount == 1)
+                    else if (vecType.Dimensions.Length == 1)
                     {
                         // If the column is one dimension we make sure that the total size of the TF shape matches.
                         // Compute the total size of the known dimensions of the shape.

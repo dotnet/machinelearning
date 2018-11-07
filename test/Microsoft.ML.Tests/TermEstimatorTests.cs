@@ -146,7 +146,8 @@ namespace Microsoft.ML.Tests
             result.Schema.TryGetColumnIndex("T", out int termIndex);
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var type1 = result.Schema.GetColumnType(termIndex);
-            int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
+            var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
+            int size = itemType1 is KeyType keyType ? keyType.Count : -1;
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
             Assert.True(names1.Count > 0);
         }

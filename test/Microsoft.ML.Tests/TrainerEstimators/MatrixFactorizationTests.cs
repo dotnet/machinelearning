@@ -194,12 +194,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == "MatrixColumnIndex");
             Assert.True(model.MatrixRowIndexColumnName == "MatrixRowIndex");
-            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
-            Assert.True(model.MatrixRowIndexColumnType.IsKey);
-            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
+            Assert.True(model.MatrixColumnIndexColumnType is KeyType);
+            Assert.True(model.MatrixRowIndexColumnType is KeyType);
+            var matColKeyType = (KeyType)model.MatrixColumnIndexColumnType;
             Assert.True(matColKeyType.Min == _synthesizedMatrixFirstColumnIndex);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
+            var matRowKeyType = (KeyType)model.MatrixRowIndexColumnType;
             Assert.True(matRowKeyType.Min == _synthesizedMatrixFirstRowIndex);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
@@ -285,12 +285,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Check if the expected types in the trained model are expected.
             Assert.True(model.MatrixColumnIndexColumnName == nameof(MatrixElementZeroBased.MatrixColumnIndex));
             Assert.True(model.MatrixRowIndexColumnName == nameof(MatrixElementZeroBased.MatrixRowIndex));
-            Assert.True(model.MatrixColumnIndexColumnType.IsKey);
-            Assert.True(model.MatrixRowIndexColumnType.IsKey);
-            var matColKeyType = model.MatrixColumnIndexColumnType.AsKey;
+            var matColKeyType = model.MatrixColumnIndexColumnType as KeyType;
+            Assert.NotNull(matColKeyType);
+            var matRowKeyType = model.MatrixRowIndexColumnType as KeyType;
+            Assert.NotNull(matRowKeyType);
             Assert.True(matColKeyType.Min == 0);
             Assert.True(matColKeyType.Count == _synthesizedMatrixColumnCount);
-            var matRowKeyType = model.MatrixRowIndexColumnType.AsKey;
             Assert.True(matRowKeyType.Min == 0);
             Assert.True(matRowKeyType.Count == _synthesizedMatrixRowCount);
 
