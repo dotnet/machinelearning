@@ -552,17 +552,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull< LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -698,14 +688,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         // REVIEW: Destroy.

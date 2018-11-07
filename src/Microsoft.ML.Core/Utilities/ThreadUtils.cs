@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static partial class Utils
+    internal static partial class Utils
     {
         public static Thread CreateBackgroundThread(ParameterizedThreadStart start)
         {

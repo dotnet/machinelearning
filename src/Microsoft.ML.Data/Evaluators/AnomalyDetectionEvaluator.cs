@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected IEnumerable<Info> ReverseHeap(Heap<Info> heap)
+                private protected Info[] ReverseHeap(Heap<Info> heap)
                 {
                     var res = new Info[heap.Count];
                     while (heap.Count > 0)

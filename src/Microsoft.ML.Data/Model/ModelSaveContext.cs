@@ -37,12 +37,14 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// The strings that will be saved in the main stream's string table.
         /// </summary>
-        public readonly NormStr.Pool Strings;
+        [BestFriend]
+        internal readonly NormStr.Pool Strings;
 
         /// <summary>
         /// The main stream's model header.
         /// </summary>
-        public ModelHeader Header;
+        [BestFriend]
+        internal ModelHeader Header;
 
         /// <summary>
         /// The min file position of the main stream.

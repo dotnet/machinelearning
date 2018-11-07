@@ -5,13 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Command;
 
 [assembly: LoadableClass(SweepCommand.Summary, typeof(SweepCommand), typeof(SweepCommand.Arguments), typeof(SignatureCommand),

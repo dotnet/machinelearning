@@ -7,12 +7,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(SynthConfigRunner), typeof(SynthConfigRunner.Arguments), typeof(SignatureConfigRunner),
     "", "Synth")]

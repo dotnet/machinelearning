@@ -428,8 +428,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     NumericColumnFeatures.Add(new ColumnStatistics { Column = column, Stats = stats });
                 else
                 {
-                    NonNumericColumnLengthFeature.Push(new ColumnStatistics { Column = column, Stats = stats });
-                    NonNumericColumnSpacesFeature.Push(new ColumnStatistics { Column = column, Stats = spacesStats });
+                    NonNumericColumnLengthFeature.Add(new ColumnStatistics { Column = column, Stats = stats });
+                    NonNumericColumnSpacesFeature.Add(new ColumnStatistics { Column = column, Stats = spacesStats });
                 }
             }
 

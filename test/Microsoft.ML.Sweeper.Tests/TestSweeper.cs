@@ -653,7 +653,7 @@ namespace Microsoft.ML.Sweeper.RunTests
 
                     sweeps = sweeper.ProposeSweeps(5, results);
                 }
-                Assert.True(Utils.Size(sweeps) <= 5);
+                Assert.True(sweeps.Length <= 5);
             }
         }
 
