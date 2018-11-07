@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
                   new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
 
-            _selectPredicate = (name) => (keepColumns!=null) ? keepColumns.Contains(name) : !dropColumns.Contains(name);
+            _selectPredicate = (name) => (keepColumns != null) ? keepColumns.Contains(name) : !dropColumns.Contains(name);
         }
 
         /// <summary>
@@ -96,14 +96,14 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMissing && !SelectColumnsTransform.IsSchemaValid(inputSchema.Columns.Select(x=>x.Name),
+            if (!Transformer.IgnoreMissing && !SelectColumnsTransform.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
                                                                                     Transformer.SelectColumns,
                                                                                     out IEnumerable<string> invalidColumns))
             {
-                  throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            var columns = inputSchema.Columns.Where(c=>_selectPredicate(c.Name));
+            var columns = inputSchema.Columns.Where(c => _selectPredicate(c.Name));
             return new SchemaShape(columns);
         }
     }
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public SelectColumnsTransform(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
-                                        bool keepHidden=Defaults.KeepHidden, bool ignoreMissing=Defaults.IgnoreMissing)
+                                        bool keepHidden = Defaults.KeepHidden, bool ignoreMissing = Defaults.IgnoreMissing)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransform));
             _host.CheckValueOrNull(keepColumns);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x => x.column.Name),
                                                                 SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x => x.column.Name),
                                                     SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            if (!IgnoreMissing && !IsSchemaValid(input.Schema.GetColumns().Select(x=>x.column.Name),
+            if (!IgnoreMissing && !IsSchemaValid(input.Schema.GetColumns().Select(x => x.column.Name),
                                                     SelectColumns, out IEnumerable<string> invalidColumns))
             {
                 throw _host.ExceptSchemaMismatch(nameof(input), "input", string.Join(",", invalidColumns));
@@ -497,10 +497,10 @@ namespace Microsoft.ML.Transforms
 
             public Schema Schema { get; }
 
-            public Mapper(SelectColumnsTransform transform, ISchema inputSchema)
+            public Mapper(SelectColumnsTransform transform, Schema inputSchema)
             {
                 _host = transform._host.Register(nameof(Mapper));
-                _inputSchema = Runtime.Data.Schema.Create(inputSchema);
+                _inputSchema = inputSchema;
 
                 _outputToInputMap = BuildOutputToInputMap(transform.SelectColumns,
                                                             transform.KeepColumns,
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Transforms
                     // column name-> list of column indices. This dictionary is used for
                     // building the final mapping.
                     var columnDict = new Dictionary<string, List<int>>();
-                    for(int colIdx = 0; colIdx < inputSchema.ColumnCount; ++colIdx)
+                    for (int colIdx = 0; colIdx < inputSchema.ColumnCount; ++colIdx)
                     {
                         if (!keepHidden && inputSchema.IsHidden(colIdx))
                             continue;
@@ -551,11 +551,11 @@ namespace Microsoft.ML.Transforms
 
                     // Since the ordering matters, iterate through the selected columns
                     // finding the associated index that should be used.
-                    foreach(var columnName in selectedColumns)
+                    foreach (var columnName in selectedColumns)
                     {
                         if (columnDict.TryGetValue(columnName, out List<int> columnList))
                         {
-                            foreach(var colIdx in columnList)
+                            foreach (var colIdx in columnList)
                             {
                                 outputToInputMapping.Add(colIdx);
                             }
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms
                     // Handles the drop case, removing any columns specified from the input
                     // In the case of drop, the order of the output is modeled after the input
                     // given an input of ABC and dropping column B will result in AC.
-                    for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
+                    for (int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
                     {
                         if (!keepHidden && inputSchema.IsHidden(colIdx))
                             continue;
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Transforms
             private static Schema GenerateOutputSchema(IEnumerable<int> map,
                                                         Schema inputSchema)
             {
-                var outputColumns = map.Select(x=>inputSchema[x]);
+                var outputColumns = map.Select(x => inputSchema[x]);
                 return new Schema(outputColumns);
             }
         }
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Transforms
             public bool IsColumnActive(int col) => true;
         }
 
-        private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper
+        private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
         {
             private readonly IHost _host;
             private readonly SelectColumnsTransform _transform;
@@ -699,6 +699,9 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
                 return new Row(input, _mapper);
             }
+
+            public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+                => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor

@@ -79,14 +79,14 @@ namespace Microsoft.ML.Transforms
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
-            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), simplerMapper);
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), simplerMapper, MakeRowMapper);
         }
 
         private IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);

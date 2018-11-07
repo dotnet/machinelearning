@@ -388,7 +388,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         /// <summary>
         /// Convenience constructor for public facing API.
@@ -712,8 +712,8 @@ namespace Microsoft.ML.Transforms.Categorical
             return _unboundMaps[iinfo];
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-          => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema)
+          => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {

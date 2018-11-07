@@ -398,9 +398,9 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
         private IDataTransform MakeDataTransform(IDataView input)
-            => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
 
-        public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, Schema.Create(inputSchema));
+        public IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ConcatTransform(env, ctx).MakeRowMapper(inputSchema);
+            => new ConcatTransform(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema), MakeRowMapper);
         }
 
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
