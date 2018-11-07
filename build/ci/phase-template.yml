@@ -20,6 +20,7 @@ phases:
           _configuration: Release
           _config_short: R
       ${{ insert }}: ${{ parameters.queue }}
+    timeoutInMinutes: 30
     steps:
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
@@ -28,7 +29,6 @@ phases:
         displayName: Install runtime dependencies
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests
-      timeout: 30 # in minutes
     - task: PublishTestResults@2
       displayName: Publish Test Results
       condition: succeededOrFailed()
