@@ -47,6 +47,12 @@ namespace Microsoft.ML.Runtime.Data
         /// The indices. For a dense representation, this array is not used. For a sparse representation
         /// it is parallel to values and specifies the logical indices for the corresponding values.
         /// </summary>
+        /// <remarks>
+        /// For example, if GetIndices() returns [3, 5] and GetValues() produces [98, 76], this VBuffer
+        /// stands for a vector with:
+        ///  - non-zeros values 98 and 76 respectively at the 4th and 6th coordinates
+        ///  - zeros at all other coordinates
+        /// </remarks>
         public ReadOnlySpan<int> GetIndices() => IsDense ? default : Indices.AsSpan(0, Count);
 
         /// <summary>
