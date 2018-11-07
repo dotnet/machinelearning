@@ -94,10 +94,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
-            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper);
+            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper, MakeRowMapper);
         }
 
-        protected abstract IRowMapper MakeRowMapper(ISchema schema);
+        protected abstract IRowMapper MakeRowMapper(Schema schema);
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
         protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         protected abstract class MapperBase : IRowMapper

@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime
             /// <summary>
             /// Used for dictionary lookup based on signature and name.
             /// </summary>
-            internal struct Key : IEquatable<Key>
+            internal readonly struct Key : IEquatable<Key>
             {
                 public readonly string Name;
                 public readonly Type Signature;

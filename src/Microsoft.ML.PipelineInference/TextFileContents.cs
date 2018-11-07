@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
     /// </summary>
     public static class TextFileContents
     {
-        public struct ColumnSplitResult
+        public readonly struct ColumnSplitResult
         {
             public readonly bool IsSuccess;
             public readonly string Separator;

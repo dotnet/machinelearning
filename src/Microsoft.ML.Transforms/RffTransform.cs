@@ -430,7 +430,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private RffTransform(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms.Projections
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
@@ -563,6 +563,7 @@ namespace Microsoft.ML.Transforms.Projections
                         getSrc(ref src);
                         TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
+
             }
 
             private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
@@ -607,7 +608,7 @@ namespace Microsoft.ML.Transforms.Projections
                 if (src.IsDense)
                 {
                     featuresAligned.CopyFrom(src.Values, 0, src.Length);
-                    CpuMathUtils.MatTimesSrc(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                    CpuMathUtils.MatrixTimesSource(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                         transformInfo.NewDim);
                 }
                 else
@@ -615,7 +616,7 @@ namespace Microsoft.ML.Transforms.Projections
                     // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                     // no need to zero them out.
                     featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                    CpuMathUtils.MatTimesSrc(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                         src.Count, productAligned, transformInfo.NewDim);
                 }
 
@@ -693,7 +694,7 @@ namespace Microsoft.ML.Transforms.Projections
 
     public static class RffExtenensions
     {
-        private struct Config
+        private readonly struct Config
         {
             public readonly int NewDim;
             public readonly bool UseSin;

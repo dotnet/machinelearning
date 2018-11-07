@@ -4424,7 +4424,7 @@ namespace Microsoft.ML
             public string Name { get; set; }
 
             /// <summary>
-            /// The change history length.
+            /// The length of the sliding window on p-values for computing the martingale score.
             /// </summary>
             public int ChangeHistoryLength { get; set; } = 20;
 
@@ -4883,7 +4883,7 @@ namespace Microsoft.ML
             public string Name { get; set; }
 
             /// <summary>
-            /// The change history length.
+            /// The length of the sliding window on p-values for computing the martingale score.
             /// </summary>
             public int ChangeHistoryLength { get; set; } = 20;
 

@@ -401,10 +401,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count <= src.Length);
+            Contracts.AssertNonEmpty(source);
+            Contracts.Assert(count <= source.Length);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count <= indices.Length);
             Contracts.AssertNonEmpty(v);
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (float* psrc = &MemoryMarshal.GetReference(source))
                 fixed (int* pi = &MemoryMarshal.GetReference(indices))
                 fixed (float* pd1 = &MemoryMarshal.GetReference(v))
                 fixed (float* pd2 = &MemoryMarshal.GetReference(w))

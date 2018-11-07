@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class RecipeInference
     {
-        public struct SuggestedRecipe
+        public readonly struct SuggestedRecipe
         {
             public readonly string Description;
             public readonly TransformInference.SuggestedTransform[] Transforms;
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public override string ToString() => Description;
         }
 
-        public struct InferenceResult
+        public readonly struct InferenceResult
         {
             public readonly SuggestedRecipe[] SuggestedRecipes;
             public InferenceResult(SuggestedRecipe[] suggestedRecipes)
@@ -328,7 +328,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 else
                 {
                     learner.LoadableClassInfo =
-                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(LinearClassificationTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(SdcaBinaryTrainer.LoadNameValue);
                     var epInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
