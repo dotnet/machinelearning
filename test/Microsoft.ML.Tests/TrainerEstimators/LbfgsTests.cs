@@ -50,7 +50,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryPredictor;
             var stats = linearModel.Statistics;
-
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
             Assert.Equal(0.0f, stdError);
@@ -58,14 +57,37 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Assert.Equal(0.0f, pValue);
 
             using (var ch = Env.Start("Calcuating STD for LR."))
-                linearModel.ComputeExtendedTrainingStatistics(ch);
+                LinearModelStatistics.ComputeStd(linearModel, ch);
 
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out stdError, out zScore, out pValue);
 
-            Assert.True(stdError > 0);
-            Assert.True(zScore > 0);
+            Assert.True(stdError == 0.250672936f);
+            Assert.True(zScore == 7.97852373f);
+        }
 
-            Done();
+        [Fact]
+        public void TestLogisticRegressionStats_MKL()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+
+            pipe = pipe.Append(new LogisticRegression(Env, "Features", "Label", advancedSettings: s => { s.ShowTrainingStats = true; }));
+            var transformerChain = pipe.Fit(dataView) as TransformerChain<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>>;
+
+            var linearModel = transformerChain.LastTransformer.Model.SubPredictor as LinearBinaryPredictor;
+            var stats = linearModel.Statistics;
+            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
+
+            Assert.Equal(0.0f, stdError);
+            Assert.Equal(0.0f, zScore);
+            Assert.Equal(0.0f, pValue);
+
+            using (var ch = Env.Start("Calcuating STD for LR."))
+                LogisticRegressionTrainingStats.ComputeStd(linearModel, ch);
+
+            LinearModelStatistics.TryGetBiasStatistics(stats, 2, out stdError, out zScore, out pValue);
+
+            Assert.True(stdError == 0.250672936f);
+            Assert.True(zScore == 7.97852373f);
         }
     }
 }

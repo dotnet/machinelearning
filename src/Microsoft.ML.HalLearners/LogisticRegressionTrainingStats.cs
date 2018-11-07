@@ -11,12 +11,17 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using Mkl = OlsLinearRegressionTrainer.Mkl;
 
-    /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
-    /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
     public static class LogisticRegressionTrainingStats
     {
-
-        public static void ComputeExtendedTrainingStatistics(this LinearBinaryPredictor model, IChannel ch, float l2Weight = LogisticRegression.Arguments.Defaults.L2Weight)
+        /// <summary>
+        /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
+        /// p-value and z-Score.
+        /// This function performs the same calculations as <see cref="ComputeStd(LinearBinaryPredictor, IChannel, float)"/> but it is faster than it, because it makes use of Intel's MKL.
+        /// </summary>
+        /// <param name="model">A <see cref="LinearBinaryPredictor"/> obtained as a result of training with <see cref="LogisticRegression"/>.</param>
+        /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
+        /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
+        public static void ComputeStd(LinearBinaryPredictor model, IChannel ch, float l2Weight = LogisticRegression.Arguments.Defaults.L2Weight)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(model.Statistics, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
@@ -58,8 +63,8 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Iterate through all entries of inverse Hessian to make adjustment to variance.
                 // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
-                // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3228544/
-                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf
+                // http://www.aloki.hu/pdf/0402_171179.pdf (Equations 11 and 25)
+                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf (Section "Significance testing in ridge logistic regression")
                 int ioffset = 1;
                 for (int iRow = 1; iRow < numSelectedParams; iRow++)
                 {
@@ -80,7 +85,9 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 1; i < numSelectedParams; i++)
                 stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
 
-           VBuffer<float> stdErrors = new VBuffer<float>(model.Weights2.Count, numSelectedParams, stdErrorValues, model.Statistics.WeightIndices);
+            // currentWeights vector size is Weights2 + the bias
+            var currentWeightsCount = model.Weights2.Count + 1;
+            VBuffer<float> stdErrors = new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues, model.Statistics.WeightIndices);
             model.Statistics.SetCoeffStdError(stdErrors);
         }
     }

@@ -22,6 +22,7 @@
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
     <TensorFlowVersion>1.10.0</TensorFlowVersion>
+    <MathNumericPackageVersion>4.6.0</MathNumericPackageVersion>
   </PropertyGroup>
 
   <!-- Code Analyzer Dependencies -->
