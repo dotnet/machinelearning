@@ -508,7 +508,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private VBuffer<T> CreateVBuffer<T>(T[] array)
         {
@@ -556,8 +556,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx
         {

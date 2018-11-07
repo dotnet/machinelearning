@@ -576,7 +576,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
         {
@@ -691,12 +691,12 @@ namespace Microsoft.ML.Transforms
             return Transform(new EmptyDataView(_host, inputSchema)).Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, schema);
+        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(_host, this, schema);
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
