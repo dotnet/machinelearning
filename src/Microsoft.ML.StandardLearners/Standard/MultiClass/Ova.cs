@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
+        public Ova(IHostEnvironment env, Func<TScalarTrainer> binaryEstimator, string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
          : base(env,

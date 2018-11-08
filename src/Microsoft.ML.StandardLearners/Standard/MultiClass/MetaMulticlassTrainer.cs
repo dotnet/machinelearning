@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.Online;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -54,7 +55,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public TrainerInfo Info { get; }
 
-        public TScalarTrainer PredictorType;
+        public Func<TScalarTrainer> ScalarTrainerFunc;
 
         /// <summary>
         /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
@@ -66,17 +67,18 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="singleEstimator">The binary estimator.</param>
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
         internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null,
-            TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
+            Func<TScalarTrainer> singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(name);
             Host.CheckValue(args, nameof(args));
             Args = args;
+            ScalarTrainerFunc = singleEstimator;
 
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
             // Create the first trainer so errors in the args surface early.
-            _trainer = singleEstimator ?? CreateTrainer();
+            _trainer = singleEstimator() ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
 
@@ -90,9 +92,10 @@ namespace Microsoft.ML.Runtime.Learners
 
         private TScalarTrainer CreateTrainer()
         {
-            return Args.PredictorType != null ?
-                Args.PredictorType.CreateComponent(Host) :
-                new LinearSvm(Host, new LinearSvm.Arguments());
+            if (ScalarTrainerFunc != null)
+                return ScalarTrainerFunc();
+            else
+                return Args.PredictorType != null ? Args.PredictorType.CreateComponent(Host) : new LinearSvm(Host, new LinearSvm.Arguments());
         }
 
         protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)

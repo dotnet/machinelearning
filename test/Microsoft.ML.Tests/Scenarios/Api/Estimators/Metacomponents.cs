@@ -28,10 +28,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
             var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var ftTrainer = ml.BinaryClassification.Trainers.FastTree(advancedSettings: (s) => { s.NumThreads = 1; });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
-                .Append(new Ova(ml, sdcaTrainer))
+                .Append(new Ova(ml, () => ftTrainer))
                 .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data);
