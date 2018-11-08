@@ -171,7 +171,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(dataSource);
 
             var est = new LpNormalizingEstimator(env, "features", "lpNorm1")
-                .Append(new LpNormalizingEstimator(env, "features", "lpNorm2", normKind: LpNormalizingTransform.NormalizerKind.L1Norm, subMean: true));
+                .Append(new LpNormalizingEstimator(env, "features", "lpNorm2", normKind: LpNormEstimatorBase.NormalizerKind.L1Norm, subMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");

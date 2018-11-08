@@ -12690,7 +12690,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
+        public sealed partial class LpNormalizingTransformGcnColumn : OneToOneColumn<LpNormalizingTransformGcnColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Normalize by standard deviation rather than L2 norm
@@ -12751,15 +12751,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformGcnColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12767,7 +12767,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LpNormNormalizerTransformGcnColumn[] Column { get; set; }
+            public LpNormalizingTransformGcnColumn[] Column { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -14369,7 +14369,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum LpNormNormalizerTransformNormalizerKind : byte
+        public enum LpNormEstimatorBaseNormalizerKind : byte
         {
             L2Norm = 0,
             StdDev = 1,
@@ -14378,12 +14378,12 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class LpNormNormalizerTransformColumn : OneToOneColumn<LpNormNormalizerTransformColumn>, IOneToOneColumn
+        public sealed partial class LpNormalizingTransformColumn : OneToOneColumn<LpNormalizingTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public LpNormNormalizerTransformNormalizerKind? NormKind { get; set; }
+            public LpNormEstimatorBaseNormalizerKind? NormKind { get; set; }
 
             /// <summary>
             /// Subtract mean from each value before normalizing
@@ -14434,15 +14434,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14450,12 +14450,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LpNormNormalizerTransformColumn[] Column { get; set; }
+            public LpNormalizingTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// The norm to use to normalize each sample
             /// </summary>
-            public LpNormNormalizerTransformNormalizerKind NormKind { get; set; } = LpNormNormalizerTransformNormalizerKind.L2Norm;
+            public LpNormEstimatorBaseNormalizerKind NormKind { get; set; } = LpNormEstimatorBaseNormalizerKind.L2Norm;
 
             /// <summary>
             /// Subtract mean from each value before normalizing
