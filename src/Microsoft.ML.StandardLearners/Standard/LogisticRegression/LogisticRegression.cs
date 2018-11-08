@@ -41,9 +41,23 @@ namespace Microsoft.ML.Runtime.Learners
 
         public sealed class Arguments : ArgumentsBase
         {
+            /// <summary>
+            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// If you have a large number of learned training parameters(more than 500),
+            /// generating the training statistics might take a few seconds.
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="IComputeLRTrainingStd"/>
+            /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
 
+            /// <summary>
+            /// The instance of <see cref="IComputeLRTrainingStd"/> that computes the training statistics at the end of training.
+            /// If you have a large number of learned training parameters(more than 500),
+            /// generating the training statistics might take a few seconds.
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="IComputeLRTrainingStd"/>
+            /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
+            /// </summary>
             public IComputeLRTrainingStd StdComputer;
         }
 
@@ -413,8 +427,21 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
+    /// <summary>
+    /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
+    /// p-value and z-Score.
+    /// If you need fast calculations, use the <see cref="IComputeLRTrainingStd"/> implementation in the Microsoft.ML.HALLearners package,
+    /// which makes use of hardware acceleration.
+    /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
+    /// </summary>
     public interface IComputeLRTrainingStd
     {
+        /// <summary>
+        /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
+        /// p-value and z-Score.
+        /// If you need fast calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
+        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
+        /// </summary>
         VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
     }
 
@@ -424,6 +451,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
         /// p-value and z-Score.
         /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
+        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
         /// <param name="hessian"></param>
         /// <param name="weightIndices"></param>

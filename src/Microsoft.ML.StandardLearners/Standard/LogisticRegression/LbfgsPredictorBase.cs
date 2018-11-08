@@ -92,14 +92,14 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Enforce non-negative weights", ShortName = "nn", SortOrder = 90)]
             public bool EnforceNonNegativity = Defaults.EnforceNonNegativity;
 
-            public static class Defaults
+            internal static class Defaults
             {
-                public const float L2Weight = 1;
-                public const float L1Weight = 1;
-                public const float OptTol = 1e-7f;
-                public const int MemorySize = 20;
-                public const int MaxIterations = int.MaxValue;
-                public const bool EnforceNonNegativity = false;
+                internal const float L2Weight = 1;
+                internal const float L1Weight = 1;
+                internal const float OptTol = 1e-7f;
+                internal const int MemorySize = 20;
+                internal const int MaxIterations = int.MaxValue;
+                internal const bool EnforceNonNegativity = false;
             }
         }
 
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         protected virtual int ClassCount => 1;
-        public int BiasCount => ClassCount;
+        protected int BiasCount => ClassCount;
         protected int WeightCount => ClassCount * NumFeatures;
         protected virtual Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
             out VBuffer<float> init, out ITerminationCriterion terminationCriterion)

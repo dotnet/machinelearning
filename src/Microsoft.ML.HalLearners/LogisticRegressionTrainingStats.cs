@@ -15,7 +15,9 @@ namespace Microsoft.ML.Runtime.Learners
     {
         /// <summary>
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,
-        /// p-value and z-Score, making use of Intel's MKL for the matrix operations.
+        /// p-value and z-Score.
+        /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
+        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
         /// <param name="hessian"></param>
         /// <param name="weightIndices"></param>
