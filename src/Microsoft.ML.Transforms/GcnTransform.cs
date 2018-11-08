@@ -144,6 +144,9 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one Gcn column pair.
+        /// </summary>
         public sealed class GcnColumnInfo : ColumnInfoBase
         {
             public GcnColumnInfo(string input, string output,
@@ -154,7 +157,9 @@ namespace Microsoft.ML.Transforms.Projections
             {
             }
         }
-
+        /// <summary>
+        /// Describes how the transformer handles one LpNorm column pair.
+        /// </summary>
         public sealed class LpNormColumnInfo : ColumnInfoBase
         {
             public LpNormColumnInfo(string input, string output,
@@ -174,6 +179,9 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
+        /// <summary>
+        /// Describes base class for one column pair.
+        /// </summary>
         public abstract class ColumnInfoBase
         {
             public readonly string Input;
@@ -298,13 +306,16 @@ namespace Microsoft.ML.Transforms.Projections
             return null;
         }
 
+        /// <summary>
+        /// Create a <see cref="LpNormalizingTransform"/> that takes multiple pairs of columns.
+        /// </summary>
         public LpNormalizingTransform(IHostEnvironment env, params ColumnInfoBase[] columns) :
            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingTransform)), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
         }
 
-        // Factory method for SignatureDataTransform.
+        // Factory method for SignatureDataTransform for GcnArguments class/>
         public static IDataTransform Create(IHostEnvironment env, GcnArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -332,6 +343,7 @@ namespace Microsoft.ML.Transforms.Projections
             return new LpNormalizingTransform(env, cols).MakeDataTransform(input);
         }
 
+        // Factory method for SignatureDataTransform for Arguments class/>
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -388,9 +400,7 @@ namespace Microsoft.ML.Transforms.Projections
             var columnsLength = ColumnPairs.Length;
             _columns = new ColumnInfoLoaded[columnsLength];
             for (int i = 0; i < columnsLength; i++)
-            {
                 _columns[i] = new ColumnInfoLoaded(ctx, ColumnPairs[i].input, ColumnPairs[i].output, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
-            }
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -443,6 +453,7 @@ namespace Microsoft.ML.Transforms.Projections
                     var builder = new Schema.Metadata.Builder();
                     builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                     ValueGetter<bool> getter = (ref bool dst) => dst = true;
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
                     result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
@@ -728,8 +739,14 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
+    /// <summary>
+    /// Base estimator class for LpNorm and Gcn normalizers.
+    /// </summary>
     public abstract class LpNormEstimatorBase : TrivialEstimator<LpNormalizingTransform>
     {
+        /// <summary>
+        /// The kind of unit norm vectors are rescaled to. This enumeration is serialized.
+        /// </summary>
         public enum NormalizerKind : byte
         {
             L2Norm = 0,
@@ -747,11 +764,15 @@ namespace Microsoft.ML.Transforms.Projections
             public const float Scale = 1;
         }
 
+        /// <summary>
+        /// Create a <see cref="LpNormEstimatorBase"/> that takes multiple pairs of columns.
+        /// </summary>
         public LpNormEstimatorBase(IHostEnvironment env, params LpNormalizingTransform.ColumnInfoBase[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingEstimator)), new LpNormalizingTransform(env, columns))
         {
 
         }
+
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -773,6 +794,9 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
+    /// <summary>
+    /// Lp Normalizing estimator allow you take columns and normalize them individually by rescaling them to unit norm.
+    /// </summary>
     public sealed class LpNormalizingEstimator : LpNormEstimatorBase
     {
         /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
@@ -798,12 +822,18 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <summary>
+        /// Create a <see cref="LpNormalizingEstimator"/> that takes multiple pairs of columns.
+        /// </summary>
         public LpNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransform.LpNormColumnInfo[] columns)
             : base(env, columns)
         {
         }
     }
 
+    /// <summary>
+    /// Gcn Normalizing estimator allow you take columns and performs global constrast normalization on them.
+    /// </summary>
     public sealed class GcnNormalizingEstimator : LpNormEstimatorBase
     {
         /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
@@ -831,6 +861,9 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <summary>
+        /// Create a <see cref="GcnNormalizingEstimator"/> that takes multiple pairs of columns.
+        /// </summary>
         public GcnNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransform.GcnColumnInfo[] columns) :
             base(env, columns)
         {
@@ -839,7 +872,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Extensions for statically typed LpNormalizer estimator.
+    /// Extensions for statically typed <see cref="LpNormalizingEstimator"/>.
     /// </summary>
     public static class LpNormNormalizerExtensions
     {
@@ -891,7 +924,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Extensions for statically typed GcNormalizer estimator.
+    /// Extensions for statically typed <see cref="GcnNormalizingEstimator"/>.
     /// </summary>
     public static class GcNormalizerExtensions
     {

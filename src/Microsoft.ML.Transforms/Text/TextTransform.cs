@@ -416,6 +416,7 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.VectorNormalizer != TextNormKind.None)
             {
                 var xfCols = new List<LpNormalizingTransform.LpNormColumnInfo>(2);
+
                 if (charFeatureCol != null)
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
@@ -431,6 +432,7 @@ namespace Microsoft.ML.Transforms.Text
                     xfCols.Add(new LpNormalizingTransform.LpNormColumnInfo(wordFeatureCol, dstCol, normalizerKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
+
                 if (xfCols.Count > 0)
                     view = new LpNormalizingTransform(h, xfCols.ToArray()).Transform(view);
             }
