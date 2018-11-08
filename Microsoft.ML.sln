@@ -134,7 +134,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.SamplesUtils", "src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj", "{11A5210E-2EA7-42F1-80DB-827762E9C781}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Recommender", "src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj", "{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnImageFeaturizer.ResNet18", "src\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.csproj", "{DBE14184-DC09-41E6-8BE7-D8529D9DF750}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.DnnImageFeaturizer.ResNet18", "src\Microsoft.ML.DnnImageFeaturizer.ResNet18\Microsoft.ML.DnnImageFeaturizer.ResNet18.csproj", "{9222FC9D-599A-49A5-B685-08CC9A5C81D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -512,14 +513,14 @@ Global
 		{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
 		{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Debug-Intrinsics|Any CPU.ActiveCfg = Debug-Intrinsics|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Debug-Intrinsics|Any CPU.Build.0 = Debug-Intrinsics|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Release-Intrinsics|Any CPU.ActiveCfg = Release-Intrinsics|Any CPU
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7}.Release-Intrinsics|Any CPU.Build.0 = Release-Intrinsics|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -576,7 +577,7 @@ Global
 		{ECB71297-9DF1-48CE-B93A-CD969221F9B6} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
 		{11A5210E-2EA7-42F1-80DB-827762E9C781} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
-		{DBE14184-DC09-41E6-8BE7-D8529D9DF750} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{9222FC9D-599A-49A5-B685-08CC9A5C81D7} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
