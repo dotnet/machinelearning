@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 5);
+            CheckEquality("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
             Done();
         }
 
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("NormalizerEstimator", "whitened.tsv", digitsOfPrecision: 5 );
+            CheckEquality("NormalizerEstimator", "whitened.tsv", digitsOfPrecision: 4);
             Done();
         }
 
