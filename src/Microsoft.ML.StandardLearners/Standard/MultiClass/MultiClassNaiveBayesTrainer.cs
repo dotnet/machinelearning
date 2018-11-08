@@ -312,15 +312,15 @@ namespace Microsoft.ML.Trainers
             // int: _featureCount
             // int[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            ctx.Writer.WriteIntArray(_labelHistogram, _labelCount);
+            ctx.Writer.WriteIntArray(_labelHistogram.AsSpan(0, _labelCount));
             ctx.Writer.Write(_featureCount);
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i], _featureCount);
+                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
             }
 
-            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb, _labelCount);
+            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb.AsSpan(0, _labelCount));
         }
 
         private static double[] CalculateAbsentFeatureLogProbabilities(int[] labelHistogram, int[][] featureHistogram, int featureCount)

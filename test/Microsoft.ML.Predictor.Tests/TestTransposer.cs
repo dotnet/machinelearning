@@ -41,8 +41,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         Assert.True(0 <= offset && offset < rc && offset == cursor.Position);
                         getter(ref temp);
-                        for (int i = 0; i < temp.Count; ++i)
-                            retval[(temp.IsDense ? i : temp.Indices[i]) * rc + offset] = temp.Values[i];
+                        var tempValues = temp.GetValues();
+                        var tempIndices = temp.GetIndices();
+                        for (int i = 0; i < tempValues.Length; ++i)
+                            retval[(temp.IsDense ? i : tempIndices[i]) * rc + offset] = tempValues[i];
                         offset++;
                     }
                 }
