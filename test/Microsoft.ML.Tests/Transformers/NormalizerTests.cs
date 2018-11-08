@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Projections;
 using System;
 using System.IO;
 using Xunit;
@@ -136,10 +138,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new LpNormalizer(env, "features", "lpnorm")
                 .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
-                .Append(new Whitening(env, "features", "whitened"));
+                .Append(new VectorWhiteningEstimator(env, "features", "whitened"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
-            var outputPath = GetOutputPath("Text", "lpnorm_gcnorm_whitened.tsv");
+            var outputPath = GetOutputPath("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
@@ -150,7 +152,69 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
+            CheckEquality("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
+            Done();
+        }
+
+        [Fact]
+        public void WhiteningWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var data = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var invalidData = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var est = new VectorWhiteningEstimator(env, "features", "whitened1")
+                .Append(new VectorWhiteningEstimator(env, "features", "whitened2", kind: WhiteningKind.Pca, pcaNum: 5));
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "whitened1", "whitened2");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("NormalizerEstimator", "whitened.tsv", digitsOfPrecision: 4);
+            Done();
+        }
+
+        [Fact]
+        public void TestWhiteningCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=whitening{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestWhiteningOldSavingAndLoading()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var dataView = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource).AsDynamic;
+            var pipe = new VectorWhiteningEstimator(env, "features", "whitened");
+
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+            }
             Done();
         }
     }
