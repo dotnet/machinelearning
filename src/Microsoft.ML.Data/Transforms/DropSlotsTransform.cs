@@ -16,10 +16,16 @@ using System.Reflection;
 using System.Text;
 
 [assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
-    "Drop Slots Transform", "DropSlots", "DropSlotsTransform")]
+    DropSlotsTransform.FriendlyName, "DropSlots", "DropSlotsTransform")]
 
 [assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
-    "Drop Slots Transform", DropSlotsTransform.LoaderSignature)]
+    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
+
+[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadModel),
+    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(DropSlotsTransform), null, typeof(SignatureLoadRowMapper),
+   DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
@@ -182,7 +188,8 @@ namespace Microsoft.ML.Transforms
 
         internal const string Summary = "Removes the selected slots from the column.";
 
-        public const string LoaderSignature = "DropSlotsTransform";
+        internal const string FriendlyName = "Drop Slots Transform";
+        internal const string LoaderSignature = "DropSlotsTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
