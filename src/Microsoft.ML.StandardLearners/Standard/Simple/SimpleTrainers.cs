@@ -70,11 +70,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<RandomPredictor> Fit(IDataView input)
         {
-            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
-
-            RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
+            RoleMappedData trainRoles = new RoleMappedData(input);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
         public override RandomPredictor Train(TrainContext context)
@@ -270,11 +268,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<PriorPredictor> Fit(IDataView input)
         {
-            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
-
-            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, feature: null, label: _labelColumnName, weight: _weightColumnName);
+            RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
         public override PriorPredictor Train(TrainContext context)

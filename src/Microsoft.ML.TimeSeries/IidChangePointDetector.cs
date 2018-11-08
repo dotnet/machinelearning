@@ -201,11 +201,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
         /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for changepoint detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,231-293
         /// ]]>
         /// </format>
+        /// </example>
         public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
