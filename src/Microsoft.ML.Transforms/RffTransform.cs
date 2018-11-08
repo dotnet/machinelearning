@@ -463,7 +463,7 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Source,
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
                         item.NewDim ?? args.NewDim,
                         item.UseSin ?? args.UseSin,

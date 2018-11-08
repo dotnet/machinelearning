@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
-using System;
+using Microsoft.ML.Transforms.Projections;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -134,8 +135,8 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizer(env, "features", "lpnorm")
-                .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
+            var est = new LpNormalizingEstimator(env, "features", "lpnorm")
+                .Append(new GcnNormalizingEstimator(env, "features", "gcnorm"))
                 .Append(new Whitening(env, "features", "whitened"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -152,6 +153,128 @@ namespace Microsoft.ML.Tests.Transformers
 
             CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
             Done();
+        }
+
+        [Fact]
+        public void LpNormWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var data = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var invalidData = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var est = new LpNormalizingEstimator(env, "features", "lpNorm1")
+                .Append(new LpNormalizingEstimator(env, "features", "lpNorm2", normKind: LpNormalizingTransform.NormalizerKind.L1Norm, subMean: true));
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "lpNorm1", "lpNorm2");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("NormalizerEstimator", "lpNorm.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void GcnWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var data = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var invalidData = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource);
+
+            var est = new GcnNormalizingEstimator(env, "features", "gcnNorm1")
+                .Append(new GcnNormalizingEstimator(env, "features", "gcnNorm2", subMean: false, useStdDev: true, scale: 3));
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "gcnNorm1", "gcnNorm2");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("NormalizerEstimator", "gcnNorm.tsv", digitsOfPrecision: 4);
+            Done();
+        }
+
+        [Fact]
+        public void TestLpNormCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=LpNormNormalizer{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestLpNormOldSavingAndLoading()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var dataView = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource).AsDynamic;
+            var pipe = new LpNormalizingEstimator(env, "features", "whitened");
+
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+            }
+        }
+
+        [Fact]
+        public void TestGcnNormCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=GcnTransform{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestGcnNormOldSavingAndLoading()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var dataView = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(dataSource).AsDynamic;
+            var pipe = new GcnNormalizingEstimator(env, "features", "whitened");
+
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+            }
         }
     }
 }

@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms
             int maxRows = 100 * 1000,
             bool saveInverse = false,
             int pcaNum = 0)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizer)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(Whitening)))
         {
             foreach (var (input, output) in columns)
             {

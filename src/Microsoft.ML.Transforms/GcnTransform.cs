@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -9,19 +10,29 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Projections;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using Float = System.Single;
+using static Microsoft.ML.Transforms.Projections.LpNormalizingTransform;
 
-[assembly: LoadableClass(LpNormNormalizerTransform.GcnSummary, typeof(LpNormNormalizerTransform), typeof(LpNormNormalizerTransform.GcnArguments), typeof(SignatureDataTransform),
-    LpNormNormalizerTransform.UserNameGn, "GcnTransform", LpNormNormalizerTransform.ShortNameGn)]
+[assembly: LoadableClass(LpNormalizingTransform.GcnSummary, typeof(IDataTransform),typeof(LpNormalizingTransform), typeof(LpNormalizingTransform.GcnArguments), typeof(SignatureDataTransform),
+    LpNormalizingTransform.UserNameGn, "GcnTransform", LpNormalizingTransform.ShortNameGn)]
 
-[assembly: LoadableClass(LpNormNormalizerTransform.GcnSummary, typeof(LpNormNormalizerTransform), null, typeof(SignatureLoadDataTransform),
-    LpNormNormalizerTransform.UserNameGn, LpNormNormalizerTransform.LoaderSignature, LpNormNormalizerTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(LpNormalizingTransform.GcnSummary, typeof(IDataTransform),typeof(LpNormalizingTransform), null, typeof(SignatureLoadDataTransform),
+    LpNormalizingTransform.UserNameGn, LpNormalizingTransform.LoaderSignature, LpNormalizingTransform.LoaderSignatureOld)]
 
-[assembly: LoadableClass(LpNormNormalizerTransform.Summary, typeof(LpNormNormalizerTransform), typeof(LpNormNormalizerTransform.Arguments), typeof(SignatureDataTransform),
-    LpNormNormalizerTransform.UserNameLP, "LpNormNormalizer", LpNormNormalizerTransform.ShortNameLP)]
+[assembly: LoadableClass(LpNormalizingTransform.Summary, typeof(IDataTransform),typeof(LpNormalizingTransform), typeof(LpNormalizingTransform.Arguments), typeof(SignatureDataTransform),
+    LpNormalizingTransform.UserNameLP, "LpNormNormalizer", LpNormalizingTransform.ShortNameLP)]
+
+[assembly: LoadableClass(LpNormalizingTransform.Summary, typeof(LpNormalizingTransform), null, typeof(SignatureLoadModel),
+    LpNormalizingTransform.UserNameGn, LpNormalizingTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(LpNormalizingTransform), null, typeof(SignatureLoadRowMapper),
+   LpNormalizingTransform.UserNameGn, LpNormalizingTransform.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(LpNormalization))]
 
@@ -40,11 +51,8 @@ namespace Microsoft.ML.Transforms.Projections
     ///    Usage examples and Matlab code:
     ///    <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
     /// </summary>
-    public sealed class LpNormNormalizerTransform : OneToOneTransformBase
+    public sealed class LpNormalizingTransform : OneToOneTransformerBase
     {
-        /// <summary>
-        /// The kind of unit norm vectors are rescaled to. This enumeration is serialized.
-        /// </summary>
         public enum NormalizerKind : byte
         {
             L2Norm = 0,
@@ -53,13 +61,13 @@ namespace Microsoft.ML.Transforms.Projections
             LInf = 3
         }
 
-        private static class Defaults
+        internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;
             public const bool LpSubMean = false;
             public const bool GcnSubMean = true;
             public const bool UseStdDev = false;
-            public const Float Scale = 1;
+            public const float Scale = 1;
         }
 
         public sealed class Arguments : TransformInputBase
@@ -86,7 +94,7 @@ namespace Microsoft.ML.Transforms.Projections
             public bool UseStdDev = Defaults.UseStdDev;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale features by this value")]
-            public Float Scale = Defaults.Scale;
+            public float Scale = Defaults.Scale;
         }
 
         public abstract class ColumnBase : OneToOneColumn
@@ -133,7 +141,7 @@ namespace Microsoft.ML.Transforms.Projections
             public bool? UseStdDev;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Scale features by this value")]
-            public Float? Scale;
+            public float? Scale;
 
             public static GcnColumn Parse(string str)
             {
@@ -154,66 +162,8 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        private sealed class ColInfoEx
-        {
-            public readonly bool SubtractMean;
-            public readonly NormalizerKind NormKind;
-            public readonly Float Scale;
-
-            public ColInfoEx(Column col, Arguments args)
-            {
-                SubtractMean = col.SubMean ?? args.SubMean;
-                NormKind = col.NormKind ?? args.NormKind;
-                Scale = 1;
-            }
-
-            public ColInfoEx(GcnColumn col, GcnArguments args)
-            {
-                SubtractMean = col.SubMean ?? args.SubMean;
-                NormKind = (col.UseStdDev ?? args.UseStdDev) ? NormalizerKind.StdDev : NormalizerKind.L2Norm;
-                Scale = col.Scale ?? args.Scale;
-                Contracts.CheckUserArg(0 < Scale && Scale < Float.PositiveInfinity, nameof(args.Scale), "scale must be a positive finite value");
-            }
-
-            public ColInfoEx(ModelLoadContext ctx, bool normKindSerialized)
-            {
-                Contracts.AssertValue(ctx);
-
-                // *** Binary format ***
-                // byte: subMean
-                // byte: NormKind
-                // Float: scale
-                SubtractMean = ctx.Reader.ReadBoolByte();
-                byte normKindVal = ctx.Reader.ReadByte();
-                Contracts.CheckDecode(Enum.IsDefined(typeof(NormalizerKind), normKindVal));
-                NormKind = (NormalizerKind)normKindVal;
-                // Note: In early versions, a bool option (useStd) to whether to normalize by StdDev rather than
-                // L2 norm was used. normKind was added in version=verVectorNormalizerSupported.
-                // normKind was defined in a way such that the serialized boolean (0: use StdDev, 1: use L2) is
-                // still valid.
-                Contracts.CheckDecode(normKindSerialized ||
-                    (NormKind == NormalizerKind.L2Norm || NormKind == NormalizerKind.StdDev));
-                Scale = ctx.Reader.ReadFloat();
-                Contracts.CheckDecode(0 < Scale && Scale < Float.PositiveInfinity);
-            }
-
-            public void Save(ModelSaveContext ctx)
-            {
-                Contracts.AssertValue(ctx);
-
-                // *** Binary format ***
-                // byte: subMean
-                // byte: NormKind
-                // Float: scale
-                ctx.Writer.WriteBoolByte(SubtractMean);
-                ctx.Writer.Write((byte)NormKind);
-                Contracts.Assert(0 < Scale && Scale < Float.PositiveInfinity);
-                ctx.Writer.Write(Scale);
-            }
-        }
-
         internal const string GcnSummary = "Performs a global contrast normalization on input values: Y = (s * X - M) / D, where s is a scale, M is mean and D is "
-            + "either L2 norm or standard deviation.";
+           + "either L2 norm or standard deviation.";
         internal const string UserNameGn = "Global Contrast Normalization Transform";
         internal const string ShortNameGn = "Gcn";
 
@@ -232,251 +182,369 @@ namespace Microsoft.ML.Transforms.Projections
             return new VersionInfo(
                 modelSignature: "GCNORMAF",
                 // verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Added arguments for Lp-norm (vector/row-wise) normalizer
-                verReadableCur: 0x00010002,
+                // verWrittenCur: 0x00010002, // Added arguments for Lp-norm (vector/row-wise) normalizer
+                verWrittenCur: 0x00010003, // Dropped sizeof(Float).
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
-                loaderAssemblyName: typeof(LpNormNormalizerTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(LpNormalizingTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "LpNormNormalizer";
 
         // REVIEW: should this be an argument instead?
-        private const Float MinScale = (Float)1e-8;
+        private const float MinScale = (float)1e-8;
 
-        private readonly ColInfoEx[] _exes;
-
-        /// <summary>
-        /// A helper method to create GlobalContrastNormalizer transform for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
-        /// <param name="scale">Scale features by this value.</param>
-        public static IDataTransform CreateGlobalContrastNormalizer(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            bool subMean = Defaults.GcnSubMean,
-            bool useStdDev = Defaults.UseStdDev,
-            Float scale = Defaults.Scale)
+        public sealed class ColumnInfo
         {
-            var args = new GcnArguments()
+            public readonly string Input;
+            public readonly string Output;
+            public readonly bool SubtractMean;
+            public readonly NormalizerKind NormKind;
+            public readonly float Scale;
+
+            public ColumnInfo(string input, string output, bool subMean = Defaults.LpSubMean, NormalizerKind normalizerKind = Defaults.NormKind)
+               : this(input, output, subMean, normalizerKind, 1)
             {
-                Column = new[] { new GcnColumn(){
-                        Source = source ?? name,
-                        Name = name
-                    }
-                },
-                SubMean = subMean,
-                UseStdDev = useStdDev,
-                Scale = scale
-            };
-            return new LpNormNormalizerTransform(env, args, input);
+            }
+
+            public ColumnInfo(string input, string output, bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
+             : this(input, output, subMean, useStdDev ? NormalizerKind.StdDev : NormalizerKind.L2Norm, scale)
+            {
+            }
+
+            private ColumnInfo(string input, string output, bool subMean, NormalizerKind normalizerKind, float scale)
+            {
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
+                Input = input;
+                Output = output;
+                SubtractMean = subMean;
+                Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), "scale must be a positive finite value");
+                Scale = scale;
+                NormKind = normalizerKind;
+            }
+
+            internal ColumnInfo(ModelLoadContext ctx, string input, string output, bool normKindSerialized)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.CheckNonWhiteSpace(input, nameof(input));
+                Contracts.CheckNonWhiteSpace(output, nameof(output));
+                Input = input;
+                Output = output;
+
+                // *** Binary format ***
+                // byte: subMean
+                // byte: NormKind
+                // Float: scale
+                SubtractMean = ctx.Reader.ReadBoolByte();
+                byte normKindVal = ctx.Reader.ReadByte();
+                Contracts.CheckDecode(Enum.IsDefined(typeof(NormalizerKind), normKindVal));
+                NormKind = (NormalizerKind)normKindVal;
+                // Note: In early versions, a bool option (useStd) to whether to normalize by StdDev rather than
+                // L2 norm was used. normKind was added in version=verVectorNormalizerSupported.
+                // normKind was defined in a way such that the serialized boolean (0: use StdDev, 1: use L2) is
+                // still valid.
+                Contracts.CheckDecode(normKindSerialized ||
+                        (NormKind == NormalizerKind.L2Norm || NormKind == NormalizerKind.StdDev));
+                Scale = ctx.Reader.ReadFloat();
+                Contracts.CheckDecode(0 < Scale && Scale < float.PositiveInfinity);
+            }
+
+            internal void Save(ModelSaveContext ctx)
+            {
+                Contracts.AssertValue(ctx);
+                // *** Binary format ***
+                // byte: subMean
+                // byte: NormKind
+                // Float: scale
+                ctx.Writer.WriteBoolByte(SubtractMean);
+                ctx.Writer.Write((byte)NormKind);
+                Contracts.Assert(0 < Scale && Scale < float.PositiveInfinity);
+                ctx.Writer.Write(Scale);
+            }
         }
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public LpNormNormalizerTransform(IHostEnvironment env, GcnArguments args, IDataView input)
-            : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
-                input, TestIsFloatVector)
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        private readonly ColumnInfo[] _columns;
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(args.Column[i], args);
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            var inType = inputSchema.GetColumnType(srcCol);
+            var reason = TestColumn(inType);
+            if (reason != null)
+                throw Host.ExceptParam(nameof(inputSchema), reason);
+        }
 
-            // REVIEW: for now check only global (default) values. Move to Bindings/ColInfoEx?
-            if (!args.SubMean && args.UseStdDev)
+        // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
+        internal static string TestColumn(ColumnType type)
+        {
+            if ((type.IsVector && !type.IsKnownSizeVector && (type.AsVector.Dimensions.Length > 1)) || type.ItemType != NumberType.R4)
+                return "Expected float or float vector of known size";
+
+            if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)
+                return "Vector size exceeds limit";
+
+            return null;
+        }
+
+        public LpNormalizingTransform(IHostEnvironment env, params ColumnInfo[] columns) :
+           base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingTransform)), GetColumnPairs(columns))
+        {
+            _columns = columns.ToArray();
+        }
+
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, GcnArguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
             {
-                using (var ch = Host.Start("Argument validation"))
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = args.Column[i];
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                        item.Name,
+                        item.SubMean ?? args.SubMean,
+                        item.UseStdDev ?? args.UseStdDev,
+                        item.Scale ?? args.Scale);
+                };
+                if (!args.SubMean && args.UseStdDev)
                 {
                     ch.Warning("subMean parameter is false while useStd is true. It is advisable to set subMean to true in case useStd is set to true.");
                 }
             }
-            SetMetadata();
+            return new LpNormalizingTransform(env, cols).MakeDataTransform(input);
         }
-
-        /// <summary>
-        /// A helper method to create LpNormNormalizer transform for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="normKind">The norm to use to normalize each sample.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
-        public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            NormalizerKind normKind = Defaults.NormKind,
-            bool subMean = Defaults.LpSubMean)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
-            var args = new Arguments()
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
             {
-                Column = new[] { new Column(){
-                        Source = source ?? name,
-                        Name = name
-                    }
-                },
-                SubMean = subMean,
-                NormKind = normKind
-            };
-            return new LpNormNormalizerTransform(env, args, input);
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = args.Column[i];
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                        item.Name,
+                        item.SubMean ?? args.SubMean,
+                        item.NormKind ?? args.NormKind);
+                };
+            }
+            return new LpNormalizingTransform(env, cols).MakeDataTransform(input);
         }
 
-        public LpNormNormalizerTransform(IHostEnvironment env, Arguments args, IDataView input)
-        : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
-            input, TestIsFloatVector)
+        // Factory method for SignatureLoadModel.
+        private static LpNormalizingTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(nameof(RffTransform));
 
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(args.Column[i], args);
-            SetMetadata();
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            if (ctx.Header.ModelVerWritten <= 0x00010002)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
+            return new LpNormalizingTransform(host, ctx);
         }
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
 
-        private LpNormNormalizerTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsFloatItem)
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+
+        private LpNormalizingTransform(IHost host, ModelLoadContext ctx)
+         : base(host, ctx)
         {
-            Host.AssertValue(ctx);
 
             // *** Binary format ***
             // <prefix handled in static Create method>
             // <base>
-            // foreach added column
-            //   ColInfoEx
-
-            Host.AssertNonEmpty(Infos);
-            _exes = new ColInfoEx[Infos.Length];
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i] = new ColInfoEx(ctx, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
-            SetMetadata();
-        }
-
-        public static LpNormNormalizerTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Float));
-                    return new LpNormNormalizerTransform(h, ctx, input);
-                });
+            // <columns>
+            var columnsLength = ColumnPairs.Length;
+            _columns = new ColumnInfo[columnsLength];
+            for (int i = 0; i < columnsLength; i++)
+            {
+                _columns[i] = new ColumnInfo(ctx, ColumnPairs[i].input, ColumnPairs[i].output, ctx.Header.ModelVerWritten >= VerVectorNormalizerSupported);
+            }
         }
 
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
             // <base>
-            // foreach added column
-            //   ColInfoEx
-            ctx.Writer.Write(sizeof(Float));
-            SaveBase(ctx);
-            Host.Assert(_exes.Length == Infos.Length);
-            for (int i = 0; i < _exes.Length; i++)
-                _exes[i].Save(ctx);
+            // <columns>
+            SaveColumns(ctx);
+
+            Host.Assert(_columns.Length == ColumnPairs.Length);
+            foreach (var col in _columns)
+                col.Save(ctx);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Check(0 <= iinfo & iinfo < Infos.Length);
-            return Infos[iinfo].TypeSrc;
-        }
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
-        private void SetMetadata()
+        private sealed class Mapper : MapperBase
         {
-            var md = Metadata;
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            private readonly ColumnType[] _srcTypes;
+            private readonly int[] _srcCols;
+            private readonly ColumnType[] _types;
+            private readonly LpNormalizingTransform _parent;
+
+            public Mapper(LpNormalizingTransform parent, Schema inputSchema)
+                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source, MetadataUtils.Kinds.SlotNames))
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
+                _parent = parent;
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _srcCols = new int[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    var srcCol = inputSchema[_srcCols[i]];
+                    _srcTypes[i] = srcCol.Type;
+                    _types[i] = srcCol.Type;
+                }
             }
-            md.Seal();
-        }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var info = Infos[iinfo];
-            var ex = _exes[iinfo];
-            Host.Assert(0 < ex.Scale && ex.Scale < Float.PositiveInfinity);
-            Host.Assert(info.TypeSrc.IsVector);
-
-            var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
-            var src = default(VBuffer<Float>);
-            ValueGetter<VBuffer<Float>> del;
-            Float scale = ex.Scale;
-
-            if (ex.SubtractMean)
+            public override Schema.Column[] GetOutputColumns()
             {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var builder = new Schema.Metadata.Builder();
+                    builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                    ValueGetter<bool> getter = (ref bool dst) => dst = true;
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                }
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+
+                var ex = _parent._columns[iinfo];
+                Host.Assert(0 < ex.Scale && ex.Scale < float.PositiveInfinity);
+                Host.Assert(_srcTypes[iinfo].IsVector);
+
+                var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
+                var src = default(VBuffer<float>);
+                ValueGetter<VBuffer<float>> del;
+                float scale = ex.Scale;
+
+                if (ex.SubtractMean)
+                {
+                    switch (ex.NormKind)
+                    {
+                        case NormalizerKind.StdDev:
+                            del =
+                                (ref VBuffer<float> dst) =>
+                                {
+                                    getSrc(ref src);
+                                    var mean = Mean(src.Values, src.Count, src.Length);
+                                    var divisor = StdDev(src.Values, src.Count, src.Length, mean);
+                                    FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                                };
+                            return del;
+                        case NormalizerKind.L2Norm:
+                            del =
+                               (ref VBuffer<float> dst) =>
+                               {
+                                   getSrc(ref src);
+                                   var mean = Mean(src.Values, src.Count, src.Length);
+                                   var divisor = L2Norm(src.Values, src.Count, mean);
+                                   FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               };
+                            return del;
+                        case NormalizerKind.L1Norm:
+                            del =
+                               (ref VBuffer<float> dst) =>
+                               {
+                                   getSrc(ref src);
+                                   var mean = Mean(src.Values, src.Count, src.Length);
+                                   var divisor = L1Norm(src.Values, src.Count, mean);
+                                   FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               };
+                            return del;
+                        case NormalizerKind.LInf:
+                            del =
+                               (ref VBuffer<float> dst) =>
+                               {
+                                   getSrc(ref src);
+                                   var mean = Mean(src.Values, src.Count, src.Length);
+                                   var divisor = LInfNorm(src.Values, src.Count, mean);
+                                   FillValues(Host, ref src, ref dst, divisor, scale, mean);
+                               };
+                            return del;
+                        default:
+                            Host.Assert(false, "Unsupported normalizer type");
+                            goto case NormalizerKind.L2Norm;
+                    }
+                }
+
                 switch (ex.NormKind)
                 {
                     case NormalizerKind.StdDev:
                         del =
-                            (ref VBuffer<Float> dst) =>
+                            (ref VBuffer<float> dst) =>
                             {
                                 getSrc(ref src);
-                                Float mean = Mean(src.Values, src.Count, src.Length);
-                                Float divisor = StdDev(src.Values, src.Count, src.Length, mean);
-                                FillValues(Host, in src, ref dst, divisor, scale, mean);
+                                var divisor = StdDev(src.Values, src.Count, src.Length);
+                                FillValues(Host, ref src, ref dst, divisor, scale);
                             };
                         return del;
                     case NormalizerKind.L2Norm:
                         del =
-                           (ref VBuffer<Float> dst) =>
+                           (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               Float mean = Mean(src.Values, src.Count, src.Length);
-                               Float divisor = L2Norm(src.Values, src.Count, mean);
-                               FillValues(Host, in src, ref dst, divisor, scale, mean);
+                               var divisor = L2Norm(src.Values, src.Count);
+                               FillValues(Host, ref src, ref dst, divisor, scale);
                            };
                         return del;
                     case NormalizerKind.L1Norm:
                         del =
-                           (ref VBuffer<Float> dst) =>
+                           (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               Float mean = Mean(src.Values, src.Count, src.Length);
-                               Float divisor = L1Norm(src.Values, src.Count, mean);
-                               FillValues(Host, in src, ref dst, divisor, scale, mean);
+                               var divisor = L1Norm(src.Values, src.Count);
+                               FillValues(Host, ref src, ref dst, divisor, scale);
                            };
                         return del;
                     case NormalizerKind.LInf:
                         del =
-                           (ref VBuffer<Float> dst) =>
+                           (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               Float mean = Mean(src.Values, src.Count, src.Length);
-                               Float divisor = LInfNorm(src.Values, src.Count, mean);
-                               FillValues(Host, in src, ref dst, divisor, scale, mean);
+                               var divisor = LInfNorm(src.Values, src.Count);
+                               FillValues(Host, ref src, ref dst, divisor, scale);
                            };
                         return del;
                     default:
@@ -485,196 +553,153 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            switch (ex.NormKind)
+            private static void FillValues(IExceptionContext ectx, ref VBuffer<float> src, ref VBuffer<float> dst, float divisor, float scale, float offset = 0)
             {
-                case NormalizerKind.StdDev:
-                    del =
-                        (ref VBuffer<Float> dst) =>
-                        {
-                            getSrc(ref src);
-                            Float divisor = StdDev(src.Values, src.Count, src.Length);
-                            FillValues(Host, in src, ref dst, divisor, scale);
-                        };
-                    return del;
-                case NormalizerKind.L2Norm:
-                    del =
-                       (ref VBuffer<Float> dst) =>
-                       {
-                           getSrc(ref src);
-                           Float divisor = L2Norm(src.Values, src.Count);
-                           FillValues(Host, in src, ref dst, divisor, scale);
-                       };
-                    return del;
-                case NormalizerKind.L1Norm:
-                    del =
-                       (ref VBuffer<Float> dst) =>
-                       {
-                           getSrc(ref src);
-                           Float divisor = L1Norm(src.Values, src.Count);
-                           FillValues(Host, in src, ref dst, divisor, scale);
-                       };
-                    return del;
-                case NormalizerKind.LInf:
-                    del =
-                       (ref VBuffer<Float> dst) =>
-                       {
-                           getSrc(ref src);
-                           Float divisor = LInfNorm(src.Values, src.Count);
-                           FillValues(Host, in src, ref dst, divisor, scale);
-                       };
-                    return del;
-                default:
-                    Host.Assert(false, "Unsupported normalizer type");
-                    goto case NormalizerKind.L2Norm;
-            }
-        }
+                int count = src.Count;
+                int length = src.Length;
+                ectx.Assert(Utils.Size(src.Values) >= count);
+                ectx.Assert(divisor >= 0);
 
-        private static void FillValues(IExceptionContext ectx, in VBuffer<Float> src, ref VBuffer<Float> dst, Float divisor, Float scale, Float offset = 0)
-        {
-            int count = src.Count;
-            int length = src.Length;
-            ectx.Assert(Utils.Size(src.Values) >= count);
-            ectx.Assert(divisor >= 0);
-
-            if (count == 0)
-            {
-                dst = new VBuffer<Float>(length, 0, dst.Values, dst.Indices);
-                return;
-            }
-            ectx.Assert(count > 0);
-            ectx.Assert(length > 0);
-
-            Float normScale = scale;
-            if (divisor > 0)
-                normScale /= divisor;
-
-            // Don't normalize small values.
-            if (normScale < MinScale)
-                normScale = 1;
-
-            if (offset == 0)
-            {
-                var dstValues = dst.Values;
-                if (Utils.Size(dstValues) < count)
-                    dstValues = new Float[count];
-                var dstIndices = dst.Indices;
-                if (!src.IsDense)
+                if (count == 0)
                 {
-                    if (Utils.Size(dstIndices) < count)
-                        dstIndices = new int[count];
-                    Array.Copy(src.Indices, dstIndices, count);
+                    dst = new VBuffer<float>(length, 0, dst.Values, dst.Indices);
+                    return;
+                }
+                ectx.Assert(count > 0);
+                ectx.Assert(length > 0);
+
+                float normScale = scale;
+                if (divisor > 0)
+                    normScale /= divisor;
+
+                // Don't normalize small values.
+                if (normScale < MinScale)
+                    normScale = 1;
+
+                if (offset == 0)
+                {
+                    var dstValues = dst.Values;
+                    if (Utils.Size(dstValues) < count)
+                        dstValues = new float[count];
+                    var dstIndices = dst.Indices;
+                    if (!src.IsDense)
+                    {
+                        if (Utils.Size(dstIndices) < count)
+                            dstIndices = new int[count];
+                        Array.Copy(src.Indices, dstIndices, count);
+                    }
+
+                    CpuMathUtils.Scale(normScale, src.Values, dstValues, count);
+                    dst = new VBuffer<float>(length, count, dstValues, dstIndices);
+
+                    return;
                 }
 
-                CpuMathUtils.Scale(normScale, src.Values, dstValues, count);
-                dst = new VBuffer<Float>(length, count, dstValues, dstIndices);
+                // Subtracting the mean requires a dense representation.
+                src.CopyToDense(ref dst);
 
-                return;
+                if (normScale != 1)
+                    CpuMathUtils.ScaleAdd(normScale, -offset, dst.Values.AsSpan(0, length));
+                else
+                    CpuMathUtils.Add(-offset, dst.Values.AsSpan(0, length));
             }
 
-            // Subtracting the mean requires a dense representation.
-            src.CopyToDense(ref dst);
-
-            if (normScale != 1)
-                CpuMathUtils.ScaleAdd(normScale, -offset, dst.Values.AsSpan(0, length));
-            else
-                CpuMathUtils.Add(-offset, dst.Values.AsSpan(0, length));
-        }
-
-        /// <summary>
-        /// Compute Standard Deviation. In case of both subMean and useStd are true, we technically need to compute variance
-        /// based on centered values (i.e. after subtracting the mean). But since the centered
-        /// values mean is approximately zero, we can use variance of non-centered values.
-        /// </summary>
-        private static Float StdDev(Float[] values, int count, int length)
-        {
-            Contracts.Assert(0 <= count && count <= length);
-            if (count == 0)
-                return 0;
-            // We need a mean to compute variance.
-            Float tmpMean = CpuMathUtils.Sum(values.AsSpan(0, count)) / length;
-            Float sumSq = 0;
-            if (count != length && tmpMean != 0)
+            /// <summary>
+            /// Compute Standard Deviation. In case of both subMean and useStd are true, we technically need to compute variance
+            /// based on centered values (i.e. after subtracting the mean). But since the centered
+            /// values mean is approximately zero, we can use variance of non-centered values.
+            /// </summary>
+            private static float StdDev(float[] values, int count, int length)
             {
-                // Sparse representation.
-                Float meanSq = tmpMean * tmpMean;
-                sumSq = (length - count) * meanSq;
+                Contracts.Assert(0 <= count && count <= length);
+                if (count == 0)
+                    return 0;
+                // We need a mean to compute variance.
+                var tmpMean = CpuMathUtils.Sum(values.AsSpan(0, count)) / length;
+                float sumSq = 0;
+                if (count != length && tmpMean != 0)
+                {
+                    // Sparse representation.
+                    float meanSq = tmpMean * tmpMean;
+                    sumSq = (length - count) * meanSq;
+                }
+                sumSq += CpuMathUtils.SumSq(tmpMean, values.AsSpan(0, count));
+                return MathUtils.Sqrt(sumSq / length);
             }
-            sumSq += CpuMathUtils.SumSq(tmpMean, values.AsSpan(0, count));
-            return MathUtils.Sqrt(sumSq / length);
-        }
 
-        /// <summary>
-        /// Compute Standard Deviation.
-        /// We have two overloads of StdDev instead of one with <see cref="Nullable{Float}"/> mean for perf reasons.
-        /// </summary>
-        private static Float StdDev(Float[] values, int count, int length, Float mean)
-        {
-            Contracts.Assert(0 <= count && count <= length);
-            if (count == 0)
-                return 0;
-            Float sumSq = 0;
-            if (count != length && mean != 0)
+            /// <summary>
+            /// Compute Standard Deviation.
+            /// We have two overloads of StdDev instead of one with <see cref="Nullable{Float}"/> mean for perf reasons.
+            /// </summary>
+            private static float StdDev(float[] values, int count, int length, float mean)
             {
-                // Sparse representation.
-                Float meanSq = mean * mean;
-                sumSq = (length - count) * meanSq;
+                Contracts.Assert(0 <= count && count <= length);
+                if (count == 0)
+                    return 0;
+                float sumSq = 0;
+                if (count != length && mean != 0)
+                {
+                    // Sparse representation.
+                    float meanSq = mean * mean;
+                    sumSq = (length - count) * meanSq;
+                }
+                sumSq += CpuMathUtils.SumSq(mean, values.AsSpan(0, count));
+                return MathUtils.Sqrt(sumSq / length);
             }
-            sumSq += CpuMathUtils.SumSq(mean, values.AsSpan(0, count));
-            return MathUtils.Sqrt(sumSq / length);
-        }
 
-        /// <summary>
-        /// Compute L2-norm. L2-norm computation doesn't subtract the mean from the source values.
-        /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
-        /// </summary>
-        private static Float L2Norm(Float[] values, int count, Float mean = 0)
-        {
-            if (count == 0)
-                return 0;
-            return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values.AsSpan(0, count)));
-        }
+            /// <summary>
+            /// Compute L2-norm. L2-norm computation doesn't subtract the mean from the source values.
+            /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            /// </summary>
+            private static float L2Norm(float[] values, int count, float mean = 0)
+            {
+                if (count == 0)
+                    return 0;
+                return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values.AsSpan(0, count)));
+            }
 
-        /// <summary>
-        /// Compute L1-norm. L1-norm computation doesn't subtract the mean from the source values.
-        /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
-        /// </summary>
-        private static Float L1Norm(Float[] values, int count, Float mean = 0)
-        {
-            if (count == 0)
-                return 0;
-            return CpuMathUtils.SumAbs(mean, values.AsSpan(0, count));
-        }
+            /// <summary>
+            /// Compute L1-norm. L1-norm computation doesn't subtract the mean from the source values.
+            /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            /// </summary>
+            private static float L1Norm(float[] values, int count, float mean = 0)
+            {
+                if (count == 0)
+                    return 0;
+                return CpuMathUtils.SumAbs(mean, values.AsSpan(0, count));
+            }
 
-        /// <summary>
-        /// Compute LInf-norm. LInf-norm computation doesn't subtract the mean from the source values.
-        /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
-        /// </summary>
-        private static Float LInfNorm(Float[] values, int count, Float mean = 0)
-        {
-            if (count == 0)
-                return 0;
-            return CpuMathUtils.MaxAbsDiff(mean, values.AsSpan(0, count));
-        }
+            /// <summary>
+            /// Compute LInf-norm. LInf-norm computation doesn't subtract the mean from the source values.
+            /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
+            /// </summary>
+            private static float LInfNorm(float[] values, int count, float mean = 0)
+            {
+                if (count == 0)
+                    return 0;
+                return CpuMathUtils.MaxAbsDiff(mean, values.AsSpan(0, count));
+            }
 
-        private static Float Mean(Float[] src, int count, int length)
-        {
-            if (length == 0 || count == 0)
-                return 0;
-            return CpuMathUtils.Sum(src.AsSpan(0, count)) / length;
+            private static float Mean(float[] src, int count, int length)
+            {
+                if (length == 0 || count == 0)
+                    return 0;
+                return CpuMathUtils.Sum(src.AsSpan(0, count)) / length;
+            }
         }
     }
 
     public static class LpNormalization
     {
         [TlcModule.EntryPoint(Name = "Transforms.LpNormalizer",
-            Desc = LpNormNormalizerTransform.Summary,
-            UserName = LpNormNormalizerTransform.UserNameLP,
-            ShortName = LpNormNormalizerTransform.ShortNameLP,
+            Desc = LpNormalizingTransform.Summary,
+            UserName = LpNormalizingTransform.UserNameLP,
+            ShortName = LpNormalizingTransform.ShortNameLP,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""LpNormalize""]/*' />" })]
-        public static CommonOutputs.TransformOutput Normalize(IHostEnvironment env, LpNormNormalizerTransform.Arguments input)
+        public static CommonOutputs.TransformOutput Normalize(IHostEnvironment env, LpNormalizingTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LpNormalize", input);
-            var xf = new LpNormNormalizerTransform(h, input, input.Data);
+            var xf = LpNormalizingTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -683,19 +708,227 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.GlobalContrastNormalizer",
-            Desc = LpNormNormalizerTransform.GcnSummary,
-            UserName = LpNormNormalizerTransform.UserNameGn,
-            ShortName = LpNormNormalizerTransform.ShortNameGn,
+            Desc = LpNormalizingTransform.GcnSummary,
+            UserName = LpNormalizingTransform.UserNameGn,
+            ShortName = LpNormalizingTransform.ShortNameGn,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""GcNormalize""]/*' />" })]
-        public static CommonOutputs.TransformOutput GcNormalize(IHostEnvironment env, LpNormNormalizerTransform.GcnArguments input)
+        public static CommonOutputs.TransformOutput GcNormalize(IHostEnvironment env, LpNormalizingTransform.GcnArguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "GcNormalize", input);
-            var xf = new LpNormNormalizerTransform(h, input, input.Data);
+            var xf = LpNormalizingTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
                 OutputData = xf
             };
         }
+    }
+
+    public sealed class LpNormalizingEstimator : TrivialEstimator<LpNormalizingTransform>
+    {
+        /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        public LpNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, normKind, subMean)
+        {
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
+        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        public LpNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false)
+             : this(env, columns.Select(x => new LpNormalizingTransform.ColumnInfo(x.input, x.output, subMean, normKind)).ToArray())
+        {
+        }
+
+        public LpNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransform.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizingEstimator)), new LpNormalizingTransform(env, columns))
+        {
+
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.Input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
+                var reason = LpNormalizingTransform.TestColumn(col.ItemType);
+                if (reason != null)
+                    throw Host.ExceptUserArg(nameof(inputSchema), reason);
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                result[colPair.Output] = new SchemaShape.Column(colPair.Output, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    public sealed class GcnNormalizingEstimator : TrivialEstimator<LpNormalizingTransform>
+    {
+        /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
+        public GcnNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool subMean = true, bool useStdDev = false, float scale = 1)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, subMean, useStdDev, scale)
+        {
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
+        public GcnNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns, bool subMean = true, bool useStdDev = false, float scale = 1)
+            : this(env, columns.Select(x => new LpNormalizingTransform.ColumnInfo(x.input, x.output, subMean, useStdDev, scale)).ToArray())
+        {
+        }
+
+        public GcnNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransform.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(GcnNormalizingEstimator)), new LpNormalizingTransform(env, columns))
+        {
+
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.Input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
+                var reason = LpNormalizingTransform.TestColumn(col.ItemType);
+                if (reason != null)
+                    throw Host.ExceptUserArg(nameof(inputSchema), reason);
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                result[colPair.Output] = new SchemaShape.Column(colPair.Output, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    /// <summary>
+    /// Extensions for statically typed LpNormalizer estimator.
+    /// </summary>
+    public static class LpNormNormalizerExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, NormalizerKind normKind, bool subMean)
+                : base(new Reconciler(normKind, subMean), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly NormalizerKind _normKind;
+            private readonly bool _subMean;
+
+            public Reconciler(NormalizerKind normKind, bool subMean)
+            {
+                _normKind = normKind;
+                _subMean = subMean;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new LpNormalizingEstimator(env, pairs.ToArray(), _normKind, _subMean);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        public static Vector<float> LpNormalize(this Vector<float> input, NormalizerKind normKind = NormalizerKind.L2Norm, bool subMean = false) => new OutPipelineColumn(input, normKind, subMean);
+    }
+
+    /// <summary>
+    /// Extensions for statically typed GcNormalizer estimator.
+    /// </summary>
+    public static class GcNormalizerExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, bool subMean, bool useStdDev, float scale)
+                : base(new Reconciler(subMean, useStdDev, scale), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly bool _subMean;
+            private readonly bool _useStdDev;
+            private readonly float _scale;
+
+            public Reconciler(bool subMean, bool useStdDev, float scale)
+            {
+                _subMean = subMean;
+                _useStdDev = useStdDev;
+                _scale = scale;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new GcnNormalizingEstimator(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
+        public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
+            bool subMean = true,
+            bool useStdDev = false,
+            float scale = 1) => new OutPipelineColumn(input, subMean, useStdDev, scale);
     }
 }

@@ -217,7 +217,7 @@
         Scaling inputs to unit norms is a common operation for text classification or clustering.
         For more information see: <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf"></a>
       </remarks>
-      <seealso cref=" Microsoft.ML.Transforms.GlobalContrastNormalizer"></seealso>
+      <seealso cref=" Microsoft.ML.Transforms.Projections.GcnNormalizingEstimator"></seealso>
       <example>
         <code language="csharp">
           pipeline.Add(new LpNormalizer(&quot;FeatureCol&quot;)
@@ -239,7 +239,7 @@
         For more information see: 
         <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">An Analysis of Single-Layer Networks in Unsupervised Feature Learning</a>
       </remarks>
-      <seealso cref=" Microsoft.ML.Transforms.LpNormalizer"></seealso>
+      <seealso cref="Microsoft.ML.Transforms.Projections.LpNormalizingEstimator"></seealso>
       <example>
         <code language="csharp">
           pipeline.Add(new GlobalContrastNormalizer(&quot;FeatureCol&quot;)
