@@ -24,6 +24,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static int GetVectorAlignment()
             => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
+        /// <summary>
+        /// Multiplies a matrix times a source.
+        /// </summary>
+        /// <param name="transpose"></param>
+        /// <param name="matrix"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="stride"></param>
         public static void MatrixTimesSource(bool transpose, AlignedArray matrix, AlignedArray source, AlignedArray destination, int stride)
         {
             Contracts.Assert(matrix.Size == destination.Size * source.Size);
@@ -88,6 +96,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        /// <summary>
+        /// Multiplies a matrix times a source.
+        /// </summary>
+        /// <param name="matrix"></param>
+        /// <param name="rgposSrc"></param>
+        /// <param name="sourceValues"></param>
+        /// <param name="posMin"></param>
+        /// <param name="iposMin"></param>
+        /// <param name="iposLimit"></param>
+        /// <param name="destination"></param>
+        /// <param name="stride"></param>
         public static void MatrixTimesSource(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
@@ -132,6 +151,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        /// <summary>
+        /// Adds a value to a destination.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="destination"></param>
         public static void Add(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -153,6 +177,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        /// <summary>
+        /// Scales a value to a destination.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="destination"></param>
         public static void Scale(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -174,7 +203,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        // destination = value * source
+        /// <summary>
+        /// Scales a values by a source to a destination.
+        /// destination = value * source
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="count"></param>
         public static void Scale(float value, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
