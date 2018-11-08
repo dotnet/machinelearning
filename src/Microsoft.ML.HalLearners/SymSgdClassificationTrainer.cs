@@ -350,15 +350,13 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
 
             /// <summary>
-            /// Tries to add array <paramref name="instArray"/> to the storage without violating the restriction of memorySize.
+            /// Tries to add span <paramref name="instArray"/> to the storage without violating the restriction of memorySize.
             /// </summary>
-            /// <param name="instArray">The array to be added</param>
-            /// <param name="instArrayLength">Length of the array. <paramref name="instArray"/>.Length is unreliable since TLC cursoring
-            /// has its own allocation mechanism.</param>
+            /// <param name="instArray">The span to be added</param>
             /// <returns>Return if the allocation was successful</returns>
-            public bool AddToStorage(T[] instArray, int instArrayLength)
+            public bool AddToStorage(ReadOnlySpan<T> instArray)
             {
-                _ch.Assert(0 < instArrayLength && instArrayLength <= Utils.Size(instArray));
+                var instArrayLength = instArray.Length;
                 _ch.Assert(instArrayLength * _sizeofT * 2 < _trainer.AcceleratedMemoryBudgetBytes);
                 if (instArrayLength > _veryLongArrayLength)
                 {
@@ -398,7 +396,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     _indexInCurArray = 0;
                     _storageIndex++;
                 }
-                Array.Copy(instArray, 0, _storage[_storageIndex].Buffer, _indexInCurArray, instArrayLength);
+                instArray.CopyTo(_storage[_storageIndex].Buffer.AsSpan(_indexInCurArray));
                 _indexInCurArray += instArrayLength;
                 return true;
             }
@@ -525,7 +523,8 @@ namespace Microsoft.ML.Trainers.SymSgd
 
                 while (_cursorMoveNext)
                 {
-                    int featureCount = _cursor.Features.Count;
+                    var featureValues = _cursor.Features.GetValues();
+                    int featureCount = featureValues.Length;
                     // If the instance has no feature, ignore it!
                     if (featureCount == 0)
                     {
@@ -546,10 +545,10 @@ namespace Microsoft.ML.Trainers.SymSgd
                     bool couldLoad = true;
                     if (!_cursor.Features.IsDense)
                         // If it is a sparse instance, load its indices to instIndices buffer
-                        couldLoad = _instIndices.AddToStorage(_cursor.Features.Indices, featureCount);
+                        couldLoad = _instIndices.AddToStorage(_cursor.Features.GetIndices());
                     // Load values of an instance into instValues
                     if (couldLoad)
-                        couldLoad = _instValues.AddToStorage(_cursor.Features.Values, featureCount);
+                        couldLoad = _instValues.AddToStorage(featureValues);
 
                     // If the load was successful, load the instance properties to instanceProperties
                     if (couldLoad)

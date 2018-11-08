@@ -3818,9 +3818,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     pathsGetter(ref pathIndicators);
 
                     Assert.Equal(5, treeValues.Length);
-                    Assert.Equal(5, treeValues.Count);
+                    Assert.Equal(5, treeValues.GetValues().Length);
                     Assert.Equal(20, leafIndicators.Length);
-                    Assert.Equal(5, leafIndicators.Count);
+                    Assert.Equal(5, leafIndicators.GetValues().Length);
                     Assert.Equal(15, pathIndicators.Length);
                 }
             }
@@ -3863,8 +3863,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 while (cursor.MoveNext())
                 {
                     featGetter(ref feat);
-                    Assert.True(feat.Count == 150);
-                    Assert.True(feat.Values[0] != 0);
+                    Assert.Equal(150, feat.GetValues().Length);
+                    Assert.NotEqual(0, feat.GetValues()[0]);
                 }
             }
         }

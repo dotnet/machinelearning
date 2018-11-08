@@ -476,13 +476,13 @@ namespace Microsoft.ML.Trainers.PCA
             if (_mean.IsDense) // centered
             {
                 writer.WriteBoolByte(true);
-                writer.WriteFloatsNoCount(_mean.Values, _dimension);
+                writer.WriteSinglesNoCount(_mean.GetValues().Slice(0, _dimension));
             }
             else
                 writer.WriteBoolByte(false);
 
             for (int i = 0; i < _rank; ++i)
-                writer.WriteFloatsNoCount(_eigenVectors[i].Values, _dimension);
+                writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
         public static PcaPredictor Create(IHostEnvironment env, ModelLoadContext ctx)

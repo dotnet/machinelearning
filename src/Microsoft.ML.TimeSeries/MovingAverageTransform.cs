@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             base.Save(ctx);
             ctx.Writer.Write(_lag);
             Host.Assert(_weights == null || Utils.Size(_weights) == WindowSize + 1 - _lag);
-            ctx.Writer.WriteFloatArray(_weights);
+            ctx.Writer.WriteSingleArray(_weights);
         }
 
         private static Single ComputeMovingAverageUniformInitialisation(FixedSizeQueue<Single> others, Single input, int lag,

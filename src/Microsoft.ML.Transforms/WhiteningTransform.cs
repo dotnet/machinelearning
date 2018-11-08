@@ -485,9 +485,9 @@ namespace Microsoft.ML.Transforms.Projections
                 _exes[i].Save(ctx);
             for (int i = 0; i < _models.Length; i++)
             {
-                ctx.Writer.WriteFloatArray(_models[i]);
+                ctx.Writer.WriteSingleArray(_models[i]);
                 if (_exes[i].SaveInv)
-                    ctx.Writer.WriteFloatArray(InvModels[i]);
+                    ctx.Writer.WriteSingleArray(InvModels[i]);
             }
         }
 

@@ -1442,8 +1442,8 @@ namespace Microsoft.ML.Runtime.Data
                         throw Ctx.Except("Caching expected vector of size {0}, but {1} encountered.", _uniformLength, _temp.Length);
                     Ctx.Assert(_uniformLength == 0 || _uniformLength == _temp.Length);
                     if (!_temp.IsDense)
-                        _indices.AddRange(_temp.Indices, _temp.Count);
-                    _values.AddRange(_temp.Values, _temp.Count);
+                        _indices.AddRange(_temp.GetIndices());
+                    _values.AddRange(_temp.GetValues());
                     int rowCount = _rowCount + 1;
                     Utils.EnsureSize(ref _indexBoundaries, rowCount + 1);
                     Utils.EnsureSize(ref _valueBoundaries, rowCount + 1);

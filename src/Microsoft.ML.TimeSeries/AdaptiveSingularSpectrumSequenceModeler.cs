@@ -511,8 +511,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(_discountFactor);
             ctx.Writer.Write((byte)_rankSelectionMethod);
             ctx.Writer.WriteBoolByte(_wTrans != null);
-            ctx.Writer.WriteFloatArray(_alpha);
-            ctx.Writer.WriteFloatArray(_state);
+            ctx.Writer.WriteSingleArray(_alpha);
+            ctx.Writer.WriteSingleArray(_state);
             ctx.Writer.WriteBoolByte(ShouldComputeForecastIntervals);
             ctx.Writer.Write(_observationNoiseVariance);
             ctx.Writer.Write(_autoregressionNoiseVariance);
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var tempArray = new Single[_rank * _windowSize];
                 int iv = 0;
                 _wTrans.CopyTo(tempArray, ref iv);
-                ctx.Writer.WriteFloatArray(tempArray);
+                ctx.Writer.WriteSingleArray(tempArray);
             }
         }
 

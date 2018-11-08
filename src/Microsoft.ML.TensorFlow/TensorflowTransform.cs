@@ -724,7 +724,7 @@ namespace Microsoft.ML.Transforms
                 Session.Graph.ToGraphDef(buffer);
                 ctx.SaveBinaryStream("TFModel", w =>
                 {
-                    w.WriteByteArray(buffer.ToArray());
+                    w.WriteByteArray(buffer.ToSpan());
                 });
             }
             else

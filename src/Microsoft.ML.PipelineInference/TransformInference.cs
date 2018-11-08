@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     while (cursor.MoveNext())
                     {
                         getter(ref value);
-                        if (value.Count > 0 && value.Values.Any(Single.IsNaN))
+                        if (VBufferUtils.HasNaNs(value))
                             return true;
                     }
                     return false;

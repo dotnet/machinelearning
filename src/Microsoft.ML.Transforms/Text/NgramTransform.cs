@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(Enum.IsDefined(typeof(WeightingCriteria), Weighting));
                 ctx.Writer.Write((int)Weighting);
                 Contracts.Assert(Utils.Size(NonEmptyLevels) == NgramLength);
-                ctx.Writer.WriteBoolBytesNoCount(NonEmptyLevels, NgramLength);
+                ctx.Writer.WriteBoolBytesNoCount(NonEmptyLevels);
             }
         }
 
