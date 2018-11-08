@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(infoEx.SlotDropper.SlotsMin.Length == infoEx.SlotDropper.SlotsMax.Length);
                 Host.Assert(AreRangesValid(i));
                 ctx.Writer.WriteIntArray(infoEx.SlotDropper.SlotsMin);
-                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax, infoEx.SlotDropper.SlotsMax.Length);
+                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax);
             }
         }
 

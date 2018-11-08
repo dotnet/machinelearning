@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             ctx.Writer.Write(sizeof(Float));
             ctx.Writer.Write(_binSize);
             ctx.Writer.Write(_min);
-            ctx.Writer.WriteFloatArray(_binProbs);
+            ctx.Writer.WriteSingleArray(_binProbs);
         }
 
         /// <summary>

@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             //     int: metric name (id of the metric name in the string table)
 
             ctx.Writer.Write(Models.Length);
-            ctx.Writer.WriteFloatArray(Weights);
+            ctx.Writer.WriteSingleArray(Weights);
 
             // Save other streams.
             for (int i = 0; i < Models.Length; i++)

@@ -189,10 +189,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
         private static extern unsafe LLBuffer TF_GetBuffer(LLBuffer* buffer);
 
         /// <summary>
-        /// Returns a byte array representing the data wrapped by this buffer.
+        /// Returns a readonly span representing the data wrapped by this buffer.
         /// </summary>
         /// <returns>The array.</returns>
-        public byte[] ToArray()
+        public ReadOnlySpan<byte> ToSpan()
         {
             if (handle == IntPtr.Zero)
                 return null;
@@ -201,10 +201,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 var lb = (LLBuffer*)handle;
 
-                var result = new byte[(int)lb->length];
-                Marshal.Copy(lb->data, result, 0, (int)lb->length);
-
-                return result;
+                return new ReadOnlySpan<byte>(lb->data.ToPointer(), (int)lb->length);
             }
         }
     }

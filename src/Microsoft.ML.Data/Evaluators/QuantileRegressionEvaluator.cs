@@ -142,12 +142,13 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Check(score.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
+                    var scoreValues = score.GetValues();
                     if (score.IsDense)
                     {
                         // Both are dense.
-                        for (int i = 0; i < score.Length; i++)
+                        for (int i = 0; i < scoreValues.Length; i++)
                         {
-                            var diff = Math.Abs((Double)label - score.Values[i]);
+                            var diff = Math.Abs((Double)label - scoreValues[i]);
                             var weightedDiff = diff * weight;
                             TotalL1Loss.Values[i] += weightedDiff;
                             TotalL2Loss.Values[i] += diff * weightedDiff;
@@ -156,12 +157,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // score is sparse, and _totalL1Loss is dense.
-                    for (int i = 0; i < score.Count; i++)
+                    var scoreIndices = score.GetIndices();
+                    for (int i = 0; i < scoreValues.Length; i++)
                     {
-                        var diff = Math.Abs((Double)label - score.Values[i]);
+                        var diff = Math.Abs((Double)label - scoreValues[i]);
                         var weightedDiff = diff * weight;
-                        TotalL1Loss.Values[score.Indices[i]] += weightedDiff;
-                        TotalL2Loss.Values[score.Indices[i]] += diff * weightedDiff;
+                        TotalL1Loss.Values[scoreIndices[i]] += weightedDiff;
+                        TotalL2Loss.Values[scoreIndices[i]] += diff * weightedDiff;
                     }
                 }
 
@@ -169,17 +171,19 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Check(loss.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
+                    var lossValues = loss.GetValues();
                     if (loss.IsDense)
                     {
                         // Both are dense.
-                        for (int i = 0; i < loss.Length; i++)
-                            TotalLoss.Values[i] += loss.Values[i] * weight;
+                        for (int i = 0; i < lossValues.Length; i++)
+                            TotalLoss.Values[i] += lossValues[i] * weight;
                         return;
                     }
 
                     // loss is sparse, and _totalL1Loss is dense.
-                    for (int i = 0; i < loss.Count; i++)
-                        TotalLoss.Values[loss.Indices[i]] += loss.Values[i] * weight;
+                    var lossIndices = loss.GetIndices();
+                    for (int i = 0; i < lossValues.Length; i++)
+                        TotalLoss.Values[lossIndices[i]] += lossValues[i] * weight;
                 }
 
                 protected override void Normalize(in VBuffer<Double> src, ref VBuffer<Double> dst)

@@ -1,0 +1,13 @@
+  Bad value at line 19 in column B
+  Bad value at line 19 in column E
+  Bad value at line 21 in column B
+  Bad value at line 21 in column E
+  Bad value at line 22 in column A
+  Bad value at line 22 in column C
+  Bad value at line 23 in column B
+  Bad value at line 23 in column E
+  Bad value at line 24 in column A
+  Bad value at line 24 in column B
+  Suppressing further bad value messages
+Processed 683 rows with 1245 bad values and 0 format errors
+Cursored through 683 rows

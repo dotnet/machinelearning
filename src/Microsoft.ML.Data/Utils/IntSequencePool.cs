@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             for (int id = 0; id < _idLim; id++)
                 Contracts.Assert(_start[id] <= _start[id + 1]);
 #endif
-            writer.WriteIntsNoCount(_start, _idLim + 1);
+            writer.WriteIntsNoCount(_start.AsSpan(0, _idLim + 1));
             writer.WriteBytesNoCount(_bytes, _start[_idLim]);
         }
 
