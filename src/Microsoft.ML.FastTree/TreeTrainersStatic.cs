@@ -85,6 +85,12 @@ namespace Microsoft.ML.StaticPipe
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[FastTree](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FastTreeBinaryClassification.cs?range=6-11,19-115)]
+        /// ]]></format>
+        /// </example>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,

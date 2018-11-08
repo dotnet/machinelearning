@@ -193,9 +193,9 @@ namespace Microsoft.ML.Tests
                 var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
                 var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = schema.GetColumnType(column).AsVector;
-                var imageHeight = type.GetDim(0);
-                var imageWidth = type.GetDim(1);
+                var type = (VectorType)schema.GetColumnType(column);
+                var imageHeight = type.Dimensions[0];
+                var imageWidth = type.Dimensions[1];
 
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);

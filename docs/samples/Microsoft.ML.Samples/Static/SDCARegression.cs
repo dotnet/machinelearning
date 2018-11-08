@@ -9,11 +9,11 @@
         using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
-// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
+// If you change the existing content, check that the files referencing it in the XML documentation are still correct, as they reference
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public static class Trainers
+    public partial class TrainersSamples
     {
         public static void SdcaRegression()
         {

@@ -24,16 +24,18 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var type = view.Schema.GetColumnType(col);
             int rc = checked((int)DataViewUtils.ComputeRowCount(view));
-            Assert.True(type.ItemType.RawType == typeof(T));
-            Assert.True(type.ValueCount > 0);
-            T[] retval = new T[rc * type.ValueCount];
+            var vecType = type as VectorType;
+            var itemType = vecType?.ItemType ?? type;
+            Assert.Equal(typeof(T), itemType.RawType);
+            Assert.NotEqual(0, vecType?.Size);
+            T[] retval = new T[rc * (vecType?.Size ?? 1)];
 
             using (var cursor = view.GetRowCursor(c => c == col))
             {
-                if (type.IsVector)
+                if (type is VectorType)
                 {
                     var getter = cursor.GetGetter<VBuffer<T>>(col);
-                    VBuffer<T> temp = default(VBuffer<T>);
+                    VBuffer<T> temp = default;
                     int offset = 0;
                     while (cursor.MoveNext())
                     {
@@ -60,21 +62,20 @@ namespace Microsoft.ML.Runtime.RunTests
         private static void TransposeCheckHelper<T>(IDataView view, int viewCol, ITransposeDataView trans)
         {
             int col = viewCol;
-            var type = trans.TransposeSchema.GetSlotType(col);
-            var colType = trans.Schema.GetColumnType(col);
+            VectorType type = trans.TransposeSchema.GetSlotType(col);
+            ColumnType colType = trans.Schema.GetColumnType(col);
             Assert.Equal(view.Schema.GetColumnName(viewCol), trans.Schema.GetColumnName(col));
-            var expectedType = view.Schema.GetColumnType(viewCol);
-            // Unfortunately can't use equals because column type equality is a simple reference comparison. :P
+            ColumnType expectedType = view.Schema.GetColumnType(viewCol);
             Assert.Equal(expectedType, colType);
-            Assert.Equal(DataViewUtils.ComputeRowCount(view), (long)type.VectorSize);
             string desc = string.Format("Column {0} named '{1}'", col, trans.Schema.GetColumnName(col));
+            Assert.Equal(DataViewUtils.ComputeRowCount(view), (long)type.Size);
             Assert.True(typeof(T) == type.ItemType.RawType, $"{desc} had wrong type for slot cursor");
-            Assert.True(type.IsVector, $"{desc} expected to be vector but is not");
-            Assert.True(type.VectorSize > 0, $"{desc} expected to be known sized vector but is not");
-            Assert.True(0 != colType.ValueCount, $"{desc} expected to have fixed size, but does not");
-            int rc = type.VectorSize;
+            Assert.True(type.Size > 0, $"{desc} expected to be known sized vector but is not");
+            int valueCount = (colType as VectorType)?.Size ?? 1;
+            Assert.True(0 != valueCount, $"{desc} expected to have fixed size, but does not");
+            int rc = type.Size;
             T[] expectedVals = NaiveTranspose<T>(view, viewCol);
-            T[] vals = new T[rc * colType.ValueCount];
+            T[] vals = new T[rc * valueCount];
             Contracts.Assert(vals.Length == expectedVals.Length);
             using (var cursor = trans.GetSlotCursor(col))
             {
@@ -89,7 +90,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     temp.CopyTo(vals, offset);
                     offset += rc;
                 }
-                Assert.True(colType.ValueCount == offset / rc, $"{desc} slot cursor yielded fewer than expected values");
+                Assert.True(valueCount == offset / rc, $"{desc} slot cursor yielded fewer than expected values");
             }
             for (int i = 0; i < vals.Length; ++i)
                 Assert.Equal(expectedVals[i], vals[i]);
