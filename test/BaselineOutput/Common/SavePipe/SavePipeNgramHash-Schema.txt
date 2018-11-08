@@ -7,7 +7,7 @@
   TextFeatures: Vec<Text, 2>
     Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
----- DelimitedTokenizeTransform ----
+---- RowToRowMapperTransform ----
 4 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -164,7 +164,7 @@
   HashNgram7: Vec<R4, 64>
   HashNgram8: Vec<R4, 64>
 ---- SelectColumnsDataTransform ----
-8 columns:
+9 columns:
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>
@@ -173,3 +173,4 @@
   HashNgram5: Vec<R4, 8>
   HashNgram6: Vec<R4, 8>
   HashNgram7: Vec<R4, 64>
+  HashNgram8: Vec<R4, 64>
