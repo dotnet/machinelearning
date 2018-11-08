@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Transforms
     /// If all the slots are to be dropped, a vector valued column will be changed to a vector of length 1 (a scalar column will retain its type) and
     /// the value will be the default value.
     /// </summary>
-    public sealed class DropSlotsTransform : OneToOneTransformBase
+    public sealed class DropSlotsTransform : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -198,36 +199,49 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Extra information for each column (in addition to ColumnInfo).
         /// </summary>
-        private sealed class ColInfoEx
+        public sealed class ColumnInfo
         {
+            public readonly string Input;
+            public readonly string Output;
             public readonly SlotDropper SlotDropper;
             // Track if all the slots of the column are to be dropped.
             public readonly bool Suppressed;
             public readonly ColumnType TypeDst;
             public readonly int[] CategoricalRanges;
 
-            public ColInfoEx(SlotDropper slotDropper, bool suppressed, ColumnType typeDst, int[] categoricalRanges)
+            public ColumnInfo(string input, string output, SlotDropper slotDropper, bool suppressed, ColumnType typeDst, int[] categoricalRanges)
             {
+                // TODO need to add checks
+                Input = input;
+                Output = output;
                 Contracts.AssertValue(slotDropper);
                 SlotDropper = slotDropper;
                 Suppressed = suppressed;
                 TypeDst = typeDst;
                 CategoricalRanges = categoricalRanges;
             }
+
+            public ColumnInfo(Column column)
+            {
+                // TODO add checks
+                Input = column.Source ?? column.Name;
+                Output = column.Name;
+                SlotDropper = args.;
+                Suppressed = suppressed;
+                TypeDst = typeDst;
+                CategoricalRanges = categoricalRanges;
+            }
         }
 
-        private readonly ColInfoEx[] _exes;
+        private readonly ColumnInfo[] _columns;
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public DropSlotsTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(Contracts.CheckRef(env, nameof(env)), RegistrationName, env.CheckRef(args, nameof(args)).Column, input, null)
+        internal DropSlotsTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns.Select(colInfo => (colInfo.Input, colInfo.Output)).ToArray())
         {
             Host.CheckNonEmpty(args.Column, nameof(args.Column));
 
-            var size = Infos.Length;
-            _exes = new ColInfoEx[size];
+            var size = ColumnPairs.Length;
+            _columns = new ColumnInfo[size];
             for (int i = 0; i < size; i++)
             {
                 var col = args.Column[i];
@@ -239,9 +253,8 @@ namespace Microsoft.ML.Transforms
                 ColumnType typeDst;
                 int[] categoricalRanges;
                 ComputeType(Source.Schema, slotsMin, slotsMax, i, slotDropper, out suppressed, out typeDst, out categoricalRanges);
-                _exes[i] = new ColInfoEx(slotDropper, suppressed, typeDst, categoricalRanges);
+                _columns[i] = new ColumnInfo(slotDropper, suppressed, typeDst, categoricalRanges);
             }
-            Metadata.Seal();
         }
 
         public static DropSlotsTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -255,7 +268,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private DropSlotsTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, null)
+            : base(host, ctx)
         {
             Host.AssertValue(ctx);
             // *** Binary format ***
@@ -263,9 +276,9 @@ namespace Microsoft.ML.Transforms
             // for each added column
             //   int[]: slotsMin
             //   int[]: slotsMax (no count)
-            Host.AssertNonEmpty(Infos);
-            var size = Infos.Length;
-            _exes = new ColInfoEx[size];
+            Host.AssertNonEmpty(ColumnPairs);
+            var size = ColumnPairs.Length;
+            _columns = new ColumnInfo[size];
             for (int i = 0; i < size; i++)
             {
                 int[] slotsMin = ctx.Reader.ReadIntArray();
@@ -276,7 +289,7 @@ namespace Microsoft.ML.Transforms
                 SlotDropper slotDropper = new SlotDropper(Infos[i].TypeSrc.ValueCount, slotsMin, slotsMax);
                 int[] categoricalRanges;
                 ComputeType(input.Schema, slotsMin, slotsMax, i, slotDropper, out suppressed, out typeDst, out categoricalRanges);
-                _exes[i] = new ColInfoEx(slotDropper, suppressed, typeDst, categoricalRanges);
+                _columns[i] = new ColumnInfo(slotDropper, suppressed, typeDst, categoricalRanges);
                 Host.CheckDecode(AreRangesValid(i));
             }
             Metadata.Seal();
@@ -293,10 +306,10 @@ namespace Microsoft.ML.Transforms
             // for each added column
             //   int[]: slotsMin
             //   int[]: slotsMax (no count)
-            SaveBase(ctx);
-            for (int i = 0; i < Infos.Length; i++)
+            SaveColumns(ctx);
+            for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                var infoEx = _exes[i];
+                var infoEx = _columns[i];
                 Host.Assert(infoEx.SlotDropper.SlotsMin.Length == infoEx.SlotDropper.SlotsMax.Length);
                 Host.Assert(AreRangesValid(i));
                 ctx.Writer.WriteIntArray(infoEx.SlotDropper.SlotsMin);
@@ -357,11 +370,11 @@ namespace Microsoft.ML.Transforms
             Contracts.AssertNonEmpty(slotsMin);
             Contracts.AssertNonEmpty(slotsMax);
             Contracts.Assert(slotsMin.Length == slotsMax.Length);
-            Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Contracts.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
 
             categoricalRanges = null;
             // Register for metadata. Propagate the IsNormalized metadata.
-            using (var bldr = Metadata.BuildMetadata(iinfo, input, Infos[iinfo].Source,
+            using (var bldr = Metadata.BuildMetadata(iinfo, input, ColumnPairs[iinfo].input,
                 MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
             {
                 var typeSrc = Infos[iinfo].TypeSrc;
@@ -412,7 +425,7 @@ namespace Microsoft.ML.Transforms
 
         private bool AreRangesValid(int iinfo)
         {
-            var infoEx = _exes[iinfo];
+            var infoEx = _columns[iinfo];
             var prevmax = -2;
             for (int i = 0; i < infoEx.SlotDropper.SlotsMin.Length; i++)
             {
@@ -431,32 +444,32 @@ namespace Microsoft.ML.Transforms
 
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return _exes[iinfo].TypeDst;
+            Host.Assert(0 <= iinfo & iinfo < ColumnPairs.Length);
+            return _columns[iinfo].TypeDst;
         }
 
         private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
 
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
-            var infoEx = _exes[iinfo];
+            var infoEx = _columns[iinfo];
             infoEx.SlotDropper.DropSlots(ref names, ref dst);
         }
 
         private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
         {
-            if (_exes[iinfo].CategoricalRanges != null)
+            if (_columns[iinfo].CategoricalRanges != null)
             {
-                GetCategoricalSlotRangesCore(iinfo, _exes[iinfo].SlotDropper.SlotsMin,
-                    _exes[iinfo].SlotDropper.SlotsMax, _exes[iinfo].CategoricalRanges, ref dst);
+                GetCategoricalSlotRangesCore(iinfo, _columns[iinfo].SlotDropper.SlotsMin,
+                    _columns[iinfo].SlotDropper.SlotsMax, _columns[iinfo].CategoricalRanges, ref dst);
             }
         }
 
         private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<int> dst)
         {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             Host.Assert(slotsMax != null && slotsMin != null);
             Host.Assert(slotsMax.Length == slotsMin.Length);
 
@@ -607,8 +620,8 @@ namespace Microsoft.ML.Transforms
 
         protected override void ActivateSourceColumns(int iinfo, bool[] active)
         {
-            if (!_exes[iinfo].Suppressed)
-                active[Infos[iinfo].Source] = true;
+            if (!_columns[iinfo].Suppressed)
+                active[ColumnPairs[iinfo].input] = true;
         }
 
         protected override bool WantParallelCursors(Func<int, bool> predicate)
@@ -616,14 +629,14 @@ namespace Microsoft.ML.Transforms
             Host.AssertValue(predicate);
 
             // Parallel helps when some, but not all, slots are dropped.
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 int col = ColumnIndex(iinfo);
                 if (!predicate(col))
                     continue;
 
-                var ex = _exes[iinfo];
-                var info = Infos[iinfo];
+                var ex = _columns[iinfo];
+                var info = ColumnPairs[iinfo];
                 Contracts.Assert(ex.TypeDst.IsVector == info.TypeSrc.IsVector);
                 Contracts.Assert(ex.TypeDst.IsKnownSizeVector == info.TypeSrc.IsKnownSizeVector);
                 Contracts.Assert(!ex.TypeDst.IsKnownSizeVector || ex.TypeDst.ValueCount <= info.TypeSrc.ValueCount);
@@ -642,18 +655,18 @@ namespace Microsoft.ML.Transforms
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             disposer = null;
 
             var typeSrc = Infos[iinfo].TypeSrc;
 
             if (!typeSrc.IsVector)
             {
-                if (_exes[iinfo].Suppressed)
+                if (_columns[iinfo].Suppressed)
                     return MakeOneTrivialGetter(input, iinfo);
-                return GetSrcGetter(typeSrc, input, Infos[iinfo].Source);
+                return GetSrcGetter(typeSrc, input, ColumnPairs[iinfo].input);
             }
-            if (_exes[iinfo].Suppressed)
+            if (_columns[iinfo].Suppressed)
                 return MakeVecTrivialGetter(input, iinfo);
             return MakeVecGetter(input, iinfo);
         }
@@ -661,9 +674,9 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeOneTrivialGetter(IRow input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             Host.Assert(!Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(_exes[iinfo].Suppressed);
+            Host.Assert(_columns[iinfo].Suppressed);
 
             Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.RawType);
@@ -684,9 +697,9 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeVecTrivialGetter(IRow input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(_exes[iinfo].Suppressed);
+            Host.Assert(_columns[iinfo].Suppressed);
 
             Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
@@ -707,9 +720,9 @@ namespace Microsoft.ML.Transforms
         private Delegate MakeVecGetter(IRow input, int iinfo)
         {
             Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(!_exes[iinfo].Suppressed);
+            Host.Assert(!_columns[iinfo].Suppressed);
 
             Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
@@ -719,13 +732,13 @@ namespace Microsoft.ML.Transforms
         private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
         {
             var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
-            var typeDst = _exes[iinfo].TypeDst;
+            var typeDst = _columns[iinfo].TypeDst;
             int srcValueCount = Infos[iinfo].TypeSrc.ValueCount;
             if (typeDst.IsKnownSizeVector && typeDst.ValueCount == srcValueCount)
                 return srcGetter;
 
             var buffer = default(VBuffer<TDst>);
-            var infoEx = _exes[iinfo];
+            var infoEx = _columns[iinfo];
             return
                 (ref VBuffer<TDst> value) =>
                 {
