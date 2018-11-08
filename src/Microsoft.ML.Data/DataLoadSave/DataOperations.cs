@@ -48,46 +48,46 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
-        /// must be between <paramref name="minimum"/> and <paramref name="maximum"/>, inclusive.
+        /// must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
-        /// <param name="minimum">The inclusive lower bound.</param>
-        /// <param name="maximum">The inclusive upper bound.</param>
-        public IDataView FilterByColumn(IDataView input, string columnName, double minimum = double.NegativeInfinity, double maximum = double.PositiveInfinity)
+        /// <param name="lowerBound">The inclusive lower bound.</param>
+        /// <param name="upperBound">The exclusive upper bound.</param>
+        public IDataView FilterByColumn(IDataView input, string columnName, double lowerBound = double.NegativeInfinity, double upperBound = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
-            Environment.CheckParam(minimum <= maximum, nameof(maximum), "Must be no less than minimum");
+            Environment.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
 
             var type = input.Schema[columnName].Type;
             if (!type.IsNumber)
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "number", type.ToString());
-            return new RangeFilter(Environment, input, columnName, minimum, maximum);
+            return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
 
         /// <summary>
         /// Keep only those rows that satisfy the range condition: the value of a key column <paramref name="columnName"/>
-        /// (treated as a fraction of the entire key range) must be between <paramref name="minimum"/> and <paramref name="maximum"/>, inclusive.
+        /// (treated as a fraction of the entire key range) must be between <paramref name="lowerBound"/> and <paramref name="upperBound"/>, inclusive.
         /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization'
         /// (for example, hashing).
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <param name="columnName">The name of a column to use for filtering.</param>
-        /// <param name="minimum">The inclusive lower bound.</param>
-        /// <param name="maximum">The inclusive upper bound.</param>
-        public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double minimum = 0, double maximum = 1)
+        /// <param name="lowerBound">The inclusive lower bound.</param>
+        /// <param name="upperBound">The exclusive upper bound.</param>
+        public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double lowerBound = 0, double upperBound = 1)
         {
             Environment.CheckValue(input, nameof(input));
             Environment.CheckNonEmpty(columnName, nameof(columnName));
-            Environment.CheckParam(0 <= minimum && minimum <= 1, nameof(minimum), "Must be in [0, 1]");
-            Environment.CheckParam(0 <= maximum && maximum <= 1, nameof(maximum), "Must be in [0, 1]");
-            Environment.CheckParam(minimum <= maximum, nameof(maximum), "Must be no less than minimum");
+            Environment.CheckParam(0 <= lowerBound && lowerBound <= 1, nameof(lowerBound), "Must be in [0, 1]");
+            Environment.CheckParam(0 <= upperBound && upperBound <= 2, nameof(upperBound), "Must be in [0, 2]");
+            Environment.CheckParam(lowerBound <= upperBound, nameof(upperBound), "Must be no less than lowerBound");
 
             var type = input.Schema[columnName].Type;
             if (type.KeyCount == 0)
                 throw Environment.ExceptSchemaMismatch(nameof(columnName), "filter", columnName, "a known cardinality key", type.ToString());
-            return new RangeFilter(Environment, input, columnName, minimum, maximum);
+            return new RangeFilter(Environment, input, columnName, lowerBound, upperBound, false);
         }
     }
 }
