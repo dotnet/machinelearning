@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn
 {
@@ -20,7 +21,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     internal abstract class UnsafeTypeOps<T>
     {
         public abstract int Size { get; }
-        public abstract void Apply(T[] array, Action<IntPtr> func);
+        public abstract void Apply(ReadOnlySpan<T> array, Action<IntPtr> func);
         public abstract void Write(T a, BinaryWriter writer);
         public abstract T Read(BinaryReader reader);
     }
@@ -54,9 +55,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class SByteUnsafeTypeOps : UnsafeTypeOps<sbyte>
         {
             public override int Size { get { return sizeof(sbyte); } }
-            public override unsafe void Apply(sbyte[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<sbyte> array, Action<IntPtr> func)
             {
-                fixed (sbyte* pArray = array)
+                fixed (sbyte* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(sbyte a, BinaryWriter writer) { writer.Write(a); }
@@ -66,9 +67,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class ByteUnsafeTypeOps : UnsafeTypeOps<Byte>
         {
             public override int Size { get { return sizeof(Byte); } }
-            public override unsafe void Apply(Byte[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<Byte> array, Action<IntPtr> func)
             {
-                fixed (Byte* pArray = array)
+                fixed (Byte* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(Byte a, BinaryWriter writer) { writer.Write(a); }
@@ -78,9 +79,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class Int16UnsafeTypeOps : UnsafeTypeOps<short>
         {
             public override int Size { get { return sizeof(short); } }
-            public override unsafe void Apply(short[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<short> array, Action<IntPtr> func)
             {
-                fixed (short* pArray = array)
+                fixed (short* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(short a, BinaryWriter writer) { writer.Write(a); }
@@ -90,9 +91,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class UInt16UnsafeTypeOps : UnsafeTypeOps<UInt16>
         {
             public override int Size { get { return sizeof(UInt16); } }
-            public override unsafe void Apply(UInt16[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<UInt16> array, Action<IntPtr> func)
             {
-                fixed (UInt16* pArray = array)
+                fixed (UInt16* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(UInt16 a, BinaryWriter writer) { writer.Write(a); }
@@ -102,9 +103,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class Int32UnsafeTypeOps : UnsafeTypeOps<int>
         {
             public override int Size { get { return sizeof(int); } }
-            public override unsafe void Apply(int[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<int> array, Action<IntPtr> func)
             {
-                fixed (int* pArray = array)
+                fixed (int* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(int a, BinaryWriter writer) { writer.Write(a); }
@@ -114,9 +115,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class UInt32UnsafeTypeOps : UnsafeTypeOps<UInt32>
         {
             public override int Size { get { return sizeof(UInt32); } }
-            public override unsafe void Apply(UInt32[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<UInt32> array, Action<IntPtr> func)
             {
-                fixed (UInt32* pArray = array)
+                fixed (UInt32* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(UInt32 a, BinaryWriter writer) { writer.Write(a); }
@@ -126,9 +127,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class Int64UnsafeTypeOps : UnsafeTypeOps<long>
         {
             public override int Size { get { return sizeof(long); } }
-            public override unsafe void Apply(long[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<long> array, Action<IntPtr> func)
             {
-                fixed (long* pArray = array)
+                fixed (long* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(long a, BinaryWriter writer) { writer.Write(a); }
@@ -138,9 +139,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class UInt64UnsafeTypeOps : UnsafeTypeOps<UInt64>
         {
             public override int Size { get { return sizeof(UInt64); } }
-            public override unsafe void Apply(UInt64[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<UInt64> array, Action<IntPtr> func)
             {
-                fixed (UInt64* pArray = array)
+                fixed (UInt64* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(UInt64 a, BinaryWriter writer) { writer.Write(a); }
@@ -150,9 +151,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class SingleUnsafeTypeOps : UnsafeTypeOps<Single>
         {
             public override int Size { get { return sizeof(Single); } }
-            public override unsafe void Apply(Single[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<Single> array, Action<IntPtr> func)
             {
-                fixed (Single* pArray = array)
+                fixed (Single* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(Single a, BinaryWriter writer) { writer.Write(a); }
@@ -162,9 +163,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class DoubleUnsafeTypeOps : UnsafeTypeOps<Double>
         {
             public override int Size { get { return sizeof(Double); } }
-            public override unsafe void Apply(Double[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<Double> array, Action<IntPtr> func)
             {
-                fixed (Double* pArray = array)
+                fixed (Double* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
             public override void Write(Double a, BinaryWriter writer) { writer.Write(a); }
@@ -174,9 +175,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class TimeSpanUnsafeTypeOps : UnsafeTypeOps<TimeSpan>
         {
             public override int Size { get { return sizeof(long); } }
-            public override unsafe void Apply(TimeSpan[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<TimeSpan> array, Action<IntPtr> func)
             {
-                fixed (TimeSpan* pArray = array)
+                fixed (TimeSpan* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
 
@@ -191,9 +192,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         private sealed class UgUnsafeTypeOps : UnsafeTypeOps<UInt128>
         {
             public override int Size { get { return 2 * sizeof(ulong); } }
-            public override unsafe void Apply(UInt128[] array, Action<IntPtr> func)
+            public override unsafe void Apply(ReadOnlySpan<UInt128> array, Action<IntPtr> func)
             {
-                fixed (UInt128* pArray = array)
+                fixed (UInt128* pArray = &MemoryMarshal.GetReference(array))
                     func(new IntPtr(pArray));
             }
 

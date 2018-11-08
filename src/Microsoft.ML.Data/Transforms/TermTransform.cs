@@ -677,7 +677,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             Host.Assert(_unboundMaps.Length == _textMetadata.Length);
             Host.Assert(_textMetadata.Length == ColumnPairs.Length);
-            ctx.Writer.WriteBoolBytesNoCount(_textMetadata, _textMetadata.Length);
+            ctx.Writer.WriteBoolBytesNoCount(_textMetadata);
 
             // REVIEW: Should we do separate sub models for each dictionary?
             const string dir = "Vocabulary";

@@ -820,8 +820,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsNA
 
         #region HasNA
-        private bool HasNA(in VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (R4.IsNaN(src.Values[i])) return true; } return false; }
-        private bool HasNA(in VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (R8.IsNaN(src.Values[i])) return true; } return false; }
+        private bool HasNA(in VBuffer<R4> src) { var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (R4.IsNaN(srcValues[i])) return true; } return false; }
+        private bool HasNA(in VBuffer<R8> src) { var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (R8.IsNaN(srcValues[i])) return true; } return false; }
         #endregion HasNA
 
         #region IsDefault
@@ -844,10 +844,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsDefault
 
         #region HasZero
-        private bool HasZero(in VBuffer<U1> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U2> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U4> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U8> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U1> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U2> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U4> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U8> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
         #endregion HasZero
 
         #region GetNA

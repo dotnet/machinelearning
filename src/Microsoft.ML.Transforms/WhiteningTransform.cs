@@ -580,9 +580,9 @@ namespace Microsoft.ML.Transforms.Projections
                 _columns[i].Save(ctx);
             for (int i = 0; i < _models.Length; i++)
             {
-                ctx.Writer.WriteFloatArray(_models[i]);
+                ctx.Writer.WriteSingleArray(_models[i]);
                 if (_columns[i].SaveInv)
-                    ctx.Writer.WriteFloatArray(_invModels[i]);
+                    ctx.Writer.WriteSingleArray(_invModels[i]);
             }
         }
 

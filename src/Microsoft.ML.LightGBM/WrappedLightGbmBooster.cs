@@ -170,9 +170,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return cats.ToArray();
         }
 
-        public Ensemble GetModel(int[] categoricalFeatureBoudaries)
+        public TreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
         {
-            Ensemble res = new Ensemble();
+            TreeEnsemble res = new TreeEnsemble();
             string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;
