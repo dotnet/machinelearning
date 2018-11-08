@@ -113,7 +113,7 @@ namespace Microsoft.ML.Transforms
 
                 var type = schema.GetColumnType(index);
                 if (!TestType(type))
-                    throw Host.ExceptUserArg(nameof(args.Column), "Column '{0}' does not have compatible numeric type", src);
+                    throw Host.ExceptUserArg(nameof(args.Column), $"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Transforms
 
                 var type = schema.GetColumnType(index);
                 if (!TestType(type))
-                    throw Host.Except("Column '{0}' does not have compatible numeric type", src);
+                    throw Host.Except($"Column '{src}' has type {type} which does not support missing values, so we cannot filter on them", src);
 
                 _infos[i] = new ColInfo(index, type);
                 _srcIndexToInfoIndex.Add(index, i);
@@ -187,32 +187,12 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.AssertValue(type);
 
-            var itemType = type.ItemType;
-            if (itemType.IsNumber)
-            {
-                switch (itemType.RawKind)
-                {
-                case DataKind.I1:
-                case DataKind.I2:
-                case DataKind.I4:
-                case DataKind.I8:
-                case DataKind.R4:
-                case DataKind.R8:
-                    return true;
-                }
-                return false;
-            }
-            if (itemType.IsText)
+            var itemType = (type as VectorType)?.ItemType ?? type;
+            if (itemType == NumberType.R4)
                 return true;
-            if (itemType.IsBool)
+            if (itemType == NumberType.R8)
                 return true;
-            if (itemType.IsKey)
-                return true;
-            if (itemType.IsTimeSpan)
-                return true;
-            if (itemType.IsDateTime)
-                return true;
-            if (itemType.IsDateTimeZone)
+            if (itemType is KeyType)
                 return true;
             return false;
         }
@@ -287,15 +267,15 @@ namespace Microsoft.ML.Transforms
                     Contracts.AssertValue(info);
 
                     MethodInfo meth;
-                    if (!info.Type.IsVector)
+                    if (info.Type is VectorType vecType)
                     {
-                        Func<RowCursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
+                        Func<RowCursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
+                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vecType.ItemType.RawType);
                     }
                     else
                     {
-                        Func<RowCursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
-                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.ItemType.RawType);
+                        Func<RowCursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
+                        meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
                     }
                     return (Value)meth.Invoke(null, new object[] { cursor, info });
                 }
@@ -304,7 +284,7 @@ namespace Microsoft.ML.Transforms
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(!info.Type.IsVector);
+                    Contracts.Assert(!(info.Type is VectorType));
                     Contracts.Assert(info.Type.RawType == typeof(T));
 
                     var getSrc = cursor.Input.GetGetter<T>(info.Index);
@@ -316,8 +296,8 @@ namespace Microsoft.ML.Transforms
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
-                    Contracts.Assert(info.Type.IsVector);
-                    Contracts.Assert(info.Type.ItemType.RawType == typeof(T));
+                    Contracts.Assert(info.Type is VectorType);
+                    Contracts.Assert(info.Type.RawType == typeof(VBuffer<T>));
 
                     var getSrc = cursor.Input.GetGetter<VBuffer<T>>(info.Index);
                     var hasBad = Runtime.Data.Conversion.Conversions.Instance.GetHasMissingPredicate<T>((VectorType)info.Type);

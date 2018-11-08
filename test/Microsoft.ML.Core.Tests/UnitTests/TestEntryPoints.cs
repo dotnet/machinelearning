@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var hasScoreCol = binaryScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int scoreIndex);
             Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Binary ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with regression ensemble does not have a score column");
             type = regressionScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Regression ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with anomaly detection ensemble does not have a score column");
             type = anomalyScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Anomaly detection ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
@@ -2520,7 +2520,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new SdcaBinaryTrainer.Arguments()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -3818,9 +3818,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     pathsGetter(ref pathIndicators);
 
                     Assert.Equal(5, treeValues.Length);
-                    Assert.Equal(5, treeValues.Count);
+                    Assert.Equal(5, treeValues.GetValues().Length);
                     Assert.Equal(20, leafIndicators.Length);
-                    Assert.Equal(5, leafIndicators.Count);
+                    Assert.Equal(5, leafIndicators.GetValues().Length);
                     Assert.Equal(15, pathIndicators.Length);
                 }
             }
@@ -3863,8 +3863,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 while (cursor.MoveNext())
                 {
                     featGetter(ref feat);
-                    Assert.True(feat.Count == 150);
-                    Assert.True(feat.Values[0] != 0);
+                    Assert.Equal(150, feat.GetValues().Length);
+                    Assert.NotEqual(0, feat.GetValues()[0]);
                 }
             }
         }

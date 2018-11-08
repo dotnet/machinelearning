@@ -364,18 +364,17 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 (ref Bitmap dst) =>
                 {
                     getSrc(ref src);
-                    if (src.Count == 0)
+                    if (src.GetValues().Length == 0)
                     {
                         dst = null;
                         return;
                     }
                     VBuffer<TValue> dense = default;
                     src.CopyToDense(ref dense);
-                    var values = dense.Values;
+                    var values = dense.GetValues();
                     dst = new Bitmap(width, height);
                     dst.SetResolution(width, height);
                     int cpix = height * width;
-                    int planes = dense.Count / cpix;
                     int position = 0;
 
                     for (int x = 0; x < width; x++)

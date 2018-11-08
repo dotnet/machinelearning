@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal LinearPredictor(IHostEnvironment env, string name, in VBuffer<Float> weights, Float bias)
             : base(env, name)
         {
-            Host.CheckParam(FloatUtils.IsFinite(weights.Values, weights.Count), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
+            Host.CheckParam(FloatUtils.IsFinite(weights.GetValues()), nameof(weights), "Cannot initialize linear predictor with non-finite weights");
             Host.CheckParam(FloatUtils.IsFinite(bias), nameof(bias), "Cannot initialize linear predictor with non-finite bias");
 
             Weight = weights;
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             ctx.Writer.Write(Bias);
             ctx.Writer.Write(Weight.Length);
-            ctx.Writer.WriteIntArray(Weight.Indices, Weight.IsDense ? 0 : Weight.Count);
-            ctx.Writer.WriteFloatArray(Weight.Values, Weight.Count);
+            ctx.Writer.WriteIntArray(Weight.GetIndices());
+            ctx.Writer.WriteSingleArray(Weight.GetValues());
         }
 
         public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)

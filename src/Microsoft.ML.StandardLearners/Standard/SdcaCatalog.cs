@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLossSDCARegressionLossFunction"/>.</param>
+        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <param name="advancedSettings">A delegate to set more settings.
         /// The settings here will override the ones provided in the direct method signature,
         /// if both are present and have different values.
@@ -73,7 +73,7 @@ namespace Microsoft.ML
         ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=6-9,14-77)]
         /// ]]></format>
         /// </example>
-        public static LinearClassificationTrainer StochasticDualCoordinateAscent(
+        public static SdcaBinaryTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
                 string weights = null,
@@ -81,12 +81,12 @@ namespace Microsoft.ML
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
-                Action<LinearClassificationTrainer.Arguments> advancedSettings = null
+                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null
             )
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new LinearClassificationTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+            return new SdcaBinaryTrainer(env, features, label, weights, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
         }
     }
 
