@@ -20,8 +20,8 @@ namespace Microsoft.ML.Transforms
             var tempCol = "onnxDnnPrep";
             var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            var prepEstimator = new OnnxEstimator(model.Env, Path.Combine(execDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), model.Input, tempCol);
-            var mainEstimator = new OnnxEstimator(model.Env, Path.Combine(execDir, "ResNet18Onnx", "ResNet18.onnx"), tempCol, model.Output);
+            var prepEstimator = new OnnxScoringEstimator(model.Env, Path.Combine(execDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), model.Input, tempCol);
+            var mainEstimator = new OnnxScoringEstimator(model.Env, Path.Combine(execDir, "ResNet18Onnx", "ResNet18.onnx"), tempCol, model.Output);
             modelChain = modelChain.Append(prepEstimator);
             modelChain = modelChain.Append(mainEstimator);
             return modelChain;
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms
             var modelChain = new EstimatorChain<OnnxTransform>();
             var tempCol = "onnxDnnPrep";
 
-            var prepEstimator = new OnnxEstimator(model.Env, Path.Combine(modelDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), model.Input, tempCol);
-            var mainEstimator = new OnnxEstimator(model.Env, Path.Combine(modelDir, "ResNet18Onnx", "ResNet18.onnx"), tempCol, model.Output);
+            var prepEstimator = new OnnxScoringEstimator(model.Env, Path.Combine(modelDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), model.Input, tempCol);
+            var mainEstimator = new OnnxScoringEstimator(model.Env, Path.Combine(modelDir, "ResNet18Onnx", "ResNet18.onnx"), tempCol, model.Output);
             modelChain = modelChain.Append(prepEstimator);
             modelChain = modelChain.Append(mainEstimator);
             return modelChain;
