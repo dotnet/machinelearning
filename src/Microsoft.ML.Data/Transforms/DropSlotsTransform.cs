@@ -631,127 +631,176 @@ namespace Microsoft.ML.Transforms
                 active[ColumnPairs[iinfo].input] = true;
         }
 
-        protected override bool WantParallelCursors(Func<int, bool> predicate)
+        //protected override bool WantParallelCursors(Func<int, bool> predicate)
+        //{
+        //    Host.AssertValue(predicate);
+
+        //    // Parallel helps when some, but not all, slots are dropped.
+        //    for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
+        //    {
+        //        int col = ColumnIndex(iinfo);
+        //        if (!predicate(col))
+        //            continue;
+
+        //        var ex = _columns[iinfo];
+        //        var info = ColumnPairs[iinfo];
+        //        Contracts.Assert(ex.TypeDst.IsVector == info.TypeSrc.IsVector);
+        //        Contracts.Assert(ex.TypeDst.IsKnownSizeVector == info.TypeSrc.IsKnownSizeVector);
+        //        Contracts.Assert(!ex.TypeDst.IsKnownSizeVector || ex.TypeDst.ValueCount <= info.TypeSrc.ValueCount);
+        //        if (!ex.Suppressed &&
+        //            (!ex.TypeDst.IsKnownSizeVector || ex.TypeDst.ValueCount != info.TypeSrc.ValueCount))
+        //        {
+        //            return true;
+        //        }
+        //    }
+
+        //    // No real work to do.
+        //    return false;
+        //}
+
+        protected override IRowMapper MakeRowMapper(Schema schema)
+            => new Mapper(this, schema);
+
+        private sealed class Mapper : MapperBase
         {
-            Host.AssertValue(predicate);
+            private readonly DropSlotsTransform _parent;
+            private readonly int[] _cols;
+            private readonly ColumnType[] _srcTypes;
 
-            // Parallel helps when some, but not all, slots are dropped.
-            for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
+            public Mapper(DropSlotsTransform parent, Schema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                int col = ColumnIndex(iinfo);
-                if (!predicate(col))
-                    continue;
+                _parent = parent;
+                _cols = new int[_parent.ColumnPairs.Length];
+                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
 
-                var ex = _columns[iinfo];
-                var info = ColumnPairs[iinfo];
-                Contracts.Assert(ex.TypeDst.IsVector == info.TypeSrc.IsVector);
-                Contracts.Assert(ex.TypeDst.IsKnownSizeVector == info.TypeSrc.IsKnownSizeVector);
-                Contracts.Assert(!ex.TypeDst.IsKnownSizeVector || ex.TypeDst.ValueCount <= info.TypeSrc.ValueCount);
-                if (!ex.Suppressed &&
-                    (!ex.TypeDst.IsKnownSizeVector || ex.TypeDst.ValueCount != info.TypeSrc.ValueCount))
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    return true;
+                    if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
+                    // TODO check that the types are ok if needed
                 }
             }
 
-            // No real work to do.
-            return false;
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-            disposer = null;
-
-            var typeSrc = Infos[iinfo].TypeSrc;
-
-            if (!typeSrc.IsVector)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
-                if (_columns[iinfo].Suppressed)
-                    return MakeOneTrivialGetter(input, iinfo);
-                return GetSrcGetter(typeSrc, input, ColumnPairs[iinfo].input);
-            }
-            if (_columns[iinfo].Suppressed)
-                return MakeVecTrivialGetter(input, iinfo);
-            return MakeVecGetter(input, iinfo);
-        }
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
 
-        private Delegate MakeOneTrivialGetter(IRow input, int iinfo)
-        {
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-            Host.Assert(!Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(_columns[iinfo].Suppressed);
+                var typeSrc = _srcTypes[iinfo];
 
-            Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[0]);
-        }
-
-        private ValueGetter<TDst> MakeOneTrivialGetter<TDst>()
-        {
-            return OneTrivialGetter;
-        }
-
-        // Delegates onto instance methods are more efficient than delegates onto static methods.
-        private void OneTrivialGetter<TDst>(ref TDst value)
-        {
-            value = default(TDst);
-        }
-
-        private Delegate MakeVecTrivialGetter(IRow input, int iinfo)
-        {
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(_columns[iinfo].Suppressed);
-
-            Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[0]);
-        }
-
-        private ValueGetter<VBuffer<TDst>> MakeVecTrivialGetter<TDst>()
-        {
-            return VecTrivialGetter;
-        }
-
-        // Delegates onto instance methods are more efficient than delegates onto static methods.
-        private void VecTrivialGetter<TDst>(ref VBuffer<TDst> value)
-        {
-            value = new VBuffer<TDst>(1, 0, value.Values, value.Indices);
-        }
-
-        private Delegate MakeVecGetter(IRow input, int iinfo)
-        {
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(!_columns[iinfo].Suppressed);
-
-            Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
-        }
-
-        private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
-        {
-            var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
-            var typeDst = _columns[iinfo].TypeDst;
-            int srcValueCount = Infos[iinfo].TypeSrc.ValueCount;
-            if (typeDst.IsKnownSizeVector && typeDst.ValueCount == srcValueCount)
-                return srcGetter;
-
-            var buffer = default(VBuffer<TDst>);
-            var infoEx = _columns[iinfo];
-            return
-                (ref VBuffer<TDst> value) =>
+                if (!typeSrc.IsVector)
                 {
-                    srcGetter(ref buffer);
-                    infoEx.SlotDropper.DropSlots(ref buffer, ref value);
-                };
+                    if (_parent._columns[iinfo].Suppressed)
+                        return MakeOneTrivialGetter(input, iinfo);
+                    return GetSrcGetter(typeSrc, input, _cols[iinfo]);
+                }
+                if (_parent._columns[iinfo].Suppressed)
+                    return MakeVecTrivialGetter(input, iinfo);
+                return MakeVecGetter(input, iinfo);
+            }
+
+            private Delegate MakeOneTrivialGetter(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                Host.Assert(!_srcTypes[iinfo].IsVector);
+                Host.Assert(_columns[iinfo].Suppressed);
+
+                Func<ValueGetter<int>> del = MakeOneTrivialGetter<int>;
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].RawType);
+                return (Delegate)methodInfo.Invoke(this, new object[0]);
+            }
+
+            private ValueGetter<TDst> MakeOneTrivialGetter<TDst>()
+            {
+                return OneTrivialGetter;
+            }
+
+            // Delegates onto instance methods are more efficient than delegates onto static methods.
+            private void OneTrivialGetter<TDst>(ref TDst value)
+            {
+                value = default(TDst);
+            }
+
+            private Delegate MakeVecTrivialGetter(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                Host.Assert(_srcTypes[iinfo].IsVector);
+                Host.Assert(_columns[iinfo].Suppressed);
+
+                Func<ValueGetter<VBuffer<int>>> del = MakeVecTrivialGetter<int>;
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                return (Delegate)methodInfo.Invoke(this, new object[0]);
+            }
+
+            private ValueGetter<VBuffer<TDst>> MakeVecTrivialGetter<TDst>()
+            {
+                return VecTrivialGetter;
+            }
+
+            // Delegates onto instance methods are more efficient than delegates onto static methods.
+            private void VecTrivialGetter<TDst>(ref VBuffer<TDst> value)
+            {
+                value = new VBuffer<TDst>(1, 0, value.Values, value.Indices);
+            }
+
+            private Delegate MakeVecGetter(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                Host.Assert(_srcTypes[iinfo].IsVector);
+                Host.Assert(!_columns[iinfo].Suppressed);
+
+                Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
+            }
+
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
+            {
+                var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
+                var typeDst = _columns[iinfo].TypeDst;
+                int srcValueCount = _srcTypes[iinfo].ValueCount;
+                if (typeDst.IsKnownSizeVector && typeDst.ValueCount == srcValueCount)
+                    return srcGetter;
+
+                var buffer = default(VBuffer<TDst>);
+                var infoEx = _columns[iinfo];
+                return
+                    (ref VBuffer<TDst> value) =>
+                    {
+                        srcGetter(ref buffer);
+                        infoEx.SlotDropper.DropSlots(ref buffer, ref value);
+                    };
+            }
+
+            private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                int src = _cols[iinfo];
+                Host.Assert(input.IsColumnActive(src));
+                return input.GetGetter<T>(src);
+            }
+
+            private Delegate GetSrcGetter(ColumnType typeDst, IRow row, int iinfo)
+            {
+                Host.CheckValue(typeDst, nameof(typeDst));
+                Host.CheckValue(row, nameof(row));
+
+                Func<IRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
+                return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
+            }
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
