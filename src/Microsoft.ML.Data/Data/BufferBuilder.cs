@@ -392,11 +392,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(0 <= index && index <= _length - buffer.Length);
 
-            int count = buffer.Count;
+            var values = buffer.GetValues();
+            int count = values.Length;
             if (count == 0)
                 return;
 
-            var values = buffer.GetValues();
             if (buffer.IsDense)
             {
                 Contracts.Assert(count == buffer.Length);

@@ -190,11 +190,12 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
                 length = _slotCount;
-                if (_slotNames.Count == 0)
-                    return;
                 var slotNamesValues = _slotNames.GetValues();
+                if (slotNamesValues.Length == 0)
+                    return;
+
                 var slotNamesIndices = _slotNames.GetIndices();
-                for (int i = 0; i < _slotNames.Count; i++)
+                for (int i = 0; i < slotNamesValues.Length; i++)
                 {
                     var name = slotNamesValues[i];
                     if (name.IsEmpty)

@@ -704,13 +704,16 @@ namespace Microsoft.ML.Runtime.Data
                 Utils.EnsureSize(ref _cbuff, vecLen);
                 for (int s = 0; s < vecLen; ++s)
                 {
-                    var temp = new VBuffer<T>(_len, _counts[s], _values[s], _indices[s]);
-                    if (temp.Count < _len / 2)
+                    int count = _counts[s];
+                    T[] values = _values[s];
+                    int[] indices = _indices[s];
+                    var temp = new VBuffer<T>(_len, count, values, indices);
+                    if (count < _len / 2)
                     {
                         // Already sparse enough, I guess. Swap out the arrays.
                         Utils.Swap(ref temp, ref _cbuff[s]);
-                        _indices[s] = temp.Indices ?? new int[_len];
-                        _values[s] = temp.Values ?? new T[_len];
+                        _indices[s] = indices ?? new int[_len];
+                        _values[s] = values ?? new T[_len];
                         Ch.Assert(_indices[s].Length == _len);
                         Ch.Assert(_values[s].Length == _len);
                     }
@@ -1273,12 +1276,12 @@ namespace Microsoft.ML.Runtime.Data
                                 (ref VBuffer<T> value) =>
                                 {
                                     EnsureValid();
-                                    var values = value.Values;
+                                    VBufferMutationContext<T> mutation;
                                     if (_inputValue.IsDense)
                                     {
-                                        Utils.EnsureSize(ref values, len);
-                                        Array.Copy(_inputValue.Values, min, values, 0, len);
-                                        value = new VBuffer<T>(len, values, value.Indices);
+                                        mutation = VBufferMutationContext.Create(ref value, len);
+                                        _inputValue.GetValues().Slice(min, len).CopyTo(mutation.Values);
+                                        mutation.Complete(ref value);
                                         return;
                                     }
                                     // In the sparse case we have ranges on Indices/Values to consider.
@@ -1287,20 +1290,25 @@ namespace Microsoft.ML.Runtime.Data
                                     int scount = slim - smin;
                                     if (scount == 0)
                                     {
-                                        value = new VBuffer<T>(len, 0, value.Values, value.Indices);
+                                        VBufferMutationContext.Create(ref value, len, 0)
+                                            .Complete(ref value);
                                         return;
                                     }
-                                    var indices = value.Indices;
-                                    Utils.EnsureSize(ref indices, scount);
-                                    Utils.EnsureSize(ref values, scount);
-                                    Array.Copy(_inputValue.Indices, smin, indices, 0, scount);
-                                    if (min != 0)
+
+                                    mutation = VBufferMutationContext.Create(ref value, len, scount);
+                                    bool isDense = len == scount;
+                                    if (!isDense)
                                     {
-                                        for (int i = 0; i < scount; ++i)
-                                            indices[i] -= min;
+                                        _inputValue.GetIndices().Slice(smin, scount).CopyTo(mutation.Indices);
+
+                                        if (min != 0)
+                                        {
+                                            for (int i = 0; i < scount; ++i)
+                                                mutation.Indices[i] -= min;
+                                        }
                                     }
-                                    Array.Copy(_inputValue.Values, smin, values, 0, scount);
-                                    value = new VBuffer<T>(len, scount, values, indices);
+                                    _inputValue.GetValues().Slice(smin, scount).CopyTo(mutation.Values);
+                                    mutation.Complete(ref value);
                                 };
                         }
 
@@ -1314,15 +1322,14 @@ namespace Microsoft.ML.Runtime.Data
                             // and end of each slice.
                             if (_inputValue.IsDense)
                                 return;
-                            if (_inputValue.Count == 0)
+                            var indices = _inputValue.GetIndices();
+                            if (indices.Length == 0)
                             {
                                 // Handle this separately, since _inputValue.Indices might be null
                                 // in this case, and then we may as well short circuit it anyway.
                                 Array.Clear(_srcIndicesLims, 0, _srcIndicesLims.Length);
                                 return;
                             }
-                            var indices = _inputValue.Indices;
-                            Contracts.AssertValue(indices);
 
                             int ii = 0;
                             for (int i = 0; i < Lims.Length; ++i)
@@ -1331,7 +1338,7 @@ namespace Microsoft.ML.Runtime.Data
                                 // REVIEW: Would some form of bisection search be better
                                 // than this scan? Possibly if the search were to happen across
                                 // all lims at the same time, somehow.
-                                while (ii < _inputValue.Count && indices[ii] < lim)
+                                while (ii < indices.Length && indices[ii] < lim)
                                     ii++;
                                 _srcIndicesLims[i] = ii;
                             }

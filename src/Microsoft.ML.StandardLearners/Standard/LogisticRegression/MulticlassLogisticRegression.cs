@@ -218,8 +218,9 @@ namespace Microsoft.ML.Runtime.Learners
                 float mult = weight * (modelProb - probLabel);
                 VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
-                Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-                grad.Values[c] += mult;
+                var mutation = VBufferMutationContext.CreateFromBuffer(ref grad);
+                Contracts.Assert(mutation.Values.Length >= BiasCount && (grad.IsDense || mutation.Indices[BiasCount - 1] == BiasCount - 1));
+                mutation.Values[c] += mult;
             }
 
             Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");
@@ -663,10 +664,10 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            var fwValues = fw.GetValues();
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
                                 if (fwValues[i] != 0)
                                 {
@@ -677,8 +678,8 @@ namespace Microsoft.ML.Runtime.Learners
                         }
                         else
                         {
-                            ctx.Writer.WriteSinglesNoCount(fw.GetValues());
-                            count += fw.Count;
+                            ctx.Writer.WriteSinglesNoCount(fwValues);
+                            count += fwValues.Length;
                         }
                     }
                     Host.Assert(count == numIndices);

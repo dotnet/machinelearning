@@ -501,12 +501,30 @@ namespace Microsoft.ML.Runtime.Data
                 Utils.EnsureSize(ref indices, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewIndices);
             }
 
-            return new VBufferMutationContext<T>(newLogicalLength, valuesCount.Value, values, indices);
+            return new VBufferMutationContext<T>(
+                newLogicalLength,
+                valuesCount.Value,
+                values,
+                indices,
+                createdNewValues,
+                createdNewIndices);
         }
     }
 
     public static class VBufferMutationContext
     {
+        public static VBufferMutationContext<T> CreateFromBuffer<T>(
+            ref VBuffer<T> destination)
+        {
+            return destination.GetMutableContext(
+                destination.Length,
+                destination.Count,
+                maxValuesCapacity: null,
+                keepOldOnResize: false,
+                out bool _,
+                out bool _);
+        }
+
         public static VBufferMutationContext<T> Create<T>(
             ref VBuffer<T> destination,
             int newLogicalLength,
@@ -551,7 +569,15 @@ namespace Microsoft.ML.Runtime.Data
         public readonly Span<T> Values;
         public readonly Span<int> Indices;
 
-        internal VBufferMutationContext(int logicalLength, int physicalValuesCount, T[] values, int[] indices)
+        public bool CreatedNewValues { get;}
+        public bool CreatedNewIndices { get;}
+
+        internal VBufferMutationContext(int logicalLength,
+            int physicalValuesCount,
+            T[] values,
+            int[] indices,
+            bool createdNewValues,
+            bool createdNewIndices)
         {
             _logicalLength = logicalLength;
             _values = values;
@@ -561,6 +587,9 @@ namespace Microsoft.ML.Runtime.Data
 
             Values = _values.AsSpan(0, physicalValuesCount);
             Indices = isDense ? default : _indices.AsSpan(0, physicalValuesCount);
+
+            CreatedNewValues = createdNewValues;
+            CreatedNewIndices = createdNewIndices;
         }
 
         public void Complete(ref VBuffer<T> destintation)

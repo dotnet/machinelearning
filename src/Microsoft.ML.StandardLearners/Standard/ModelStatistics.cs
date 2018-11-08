@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Learners
         internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, in VBuffer<Single> coeffStdError)
             : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
-            _env.Assert(coeffStdError.Count == _paramCount);
+            _env.Assert(coeffStdError.GetValues().Length == _paramCount);
             _coeffStdError = coeffStdError;
         }
 

@@ -829,10 +829,11 @@ namespace Microsoft.ML.Trainers
                                         : 0;
                                 }
 
+                                var featureValues = features.GetValues();
                                 if (features.IsDense)
-                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, features.Count, features.GetValues(), l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
-                                else if (features.Count > 0)
-                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, features.Count, features.GetValues(), features.GetIndices(), l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                else if (featureValues.Length > 0)
+                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
                             }
 
                             break;

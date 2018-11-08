@@ -615,7 +615,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
+                        keyNamesVBuffer.CopyTo(ref dst);
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
             for (int i = 0; i < dvCount; i++)
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
+                        keyNamesVBuffer.CopyTo(ref dst);
 
             for (int i = 0; i < dvCount; i++)
             {

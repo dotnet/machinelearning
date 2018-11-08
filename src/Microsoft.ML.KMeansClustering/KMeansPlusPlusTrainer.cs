@@ -396,7 +396,7 @@ namespace Microsoft.ML.Trainers.KMeans
                             "Not enough distinct instances to populate {0} clusters (only found {1} distinct instances)", k, i);
                     }
 
-                    candidate.CopyTo(centroids[i].Values);
+                    candidate.CopyToDense(ref centroids[i]);
                     centroidL2s[i] = cachedCandidateL2 ?? VectorUtils.NormSquared(candidate);
                 }
             }
@@ -1389,8 +1389,10 @@ namespace Microsoft.ML.Trainers.KMeans
 
                         for (int i = 0; i < k; i++)
                         {
+                            var reducedStateCacheValues = reducedState.CachedSumDebug[i].GetValues();
+                            var cachedSumCopyValues = cachedSumCopy[i].GetValues();
                             for (int j = 0; j < dimensionality; j++)
-                                Contracts.Assert(AlmostEq(reducedState.CachedSumDebug[i].Values[j], cachedSumCopy[i].Values[j]));
+                                Contracts.Assert(AlmostEq(reducedStateCacheValues[j], cachedSumCopyValues[j]));
                         }
                     }
 #endif
