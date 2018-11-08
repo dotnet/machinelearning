@@ -469,25 +469,21 @@ namespace Microsoft.ML.Transforms.Projections
                 int crow = rowCounts[iinfo];
                 int ccol = srcTypes[iinfo].ValueCount;
 
-                // If there is no training data, simply initialize the model matrices.
+                // If there is no training data, simply initialize the model matrices to identity matrices.
                 if (crow == 0)
                 {
                     var matrixSize = ccol * ccol;
                     models[iinfo] = new float[matrixSize];
                     invModels[iinfo] = new float[matrixSize];
+                    for (int i = 0; i < ccol; i++)
+                    {
+                        models[iinfo][i * ccol + i] = 1;
+                        invModels[iinfo][i * ccol + i] = 1;
+                    }
                     continue;
                 }
 
-                // If there is no training data, simply initialize the model matrices.
-                if (crow == 0)
-                {
-                    var matrixSize = ccol * ccol;
-                    models[iinfo] = new float[matrixSize];
-                    invModels[iinfo] = new float[matrixSize];
-                    continue;
-                }
-
-                // Compute covariance matrix (sigma).
+                // Compute covariance matrix.
                 var u = new float[ccol * ccol];
                 ch.Info("Computing covariance matrix...");
                 Mkl.Gemm(Layout, Mkl.Transpose.Trans, Mkl.Transpose.NoTrans,
