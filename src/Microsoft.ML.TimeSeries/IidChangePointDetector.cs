@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for changepoint detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidChangePointDetectorTransform.cs "Timeseries examples for changepoint detection.")]
         /// ]]>
         /// </format>
         public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,

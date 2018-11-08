@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for spike detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaSpikeDetectorTransform.cs "Timeseries examples for spike detection.")]
         /// ]]>
         /// </format>
         public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
