@@ -121,6 +121,21 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
 
+            /// <summary>
+            /// Source slot index range of the column to drop.
+            /// </summary>
+            /// <param name="min">Start index.</param>
+            /// <param name="max">End index. If null it means int.MaxValue - 1.</param>
+            public Range(int min, int? max)
+            {
+                Min = min;
+                Max = max;
+            }
+
+            internal Range()
+            {
+            }
+
             public static Range Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
@@ -186,10 +201,59 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        internal const string Summary = "Removes the selected slots from the column.";
+        /// <summary>
+        /// Extra information for each column (in addition to ColumnInfo).
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            public readonly string Input;
+            public readonly string Output;
+            public readonly int[] SlotsMin;
+            public readonly int[] SlotsMax;
 
+            public ColumnInfo(string input, string output, Range[] slots)
+            {
+                foreach (var range in slots)
+                    Contracts.Assert(range.IsValid());
+                Input = input;
+                Output = output;
+                GetSlotsMinMax(slots, out SlotsMin, out SlotsMax);
+            }
+
+            internal ColumnInfo(string input, string output, int[] slotsMin, int[] slotsMax)
+            {
+                Input = input;
+                Output = output;
+                SlotsMin = slotsMin;
+                SlotsMax = slotsMax;
+            }
+
+            internal ColumnInfo(Column column)
+            {
+                Input = column.Source ?? column.Name;
+                Output = column.Name;
+                GetSlotsMinMax(column.Slots, out SlotsMin, out SlotsMax);
+            }
+
+            //internal void Save(IHost host, ModelSaveContext ctx)
+            //{
+            //    // addd checks before saving
+            //    ctx.Writer.WriteIntArray(SlotsMin);
+            //    ctx.Writer.WriteIntsNoCount(SlotsMax, SlotsMax.Length);
+            //}
+
+            //internal void Load(ModelLoadContext ctx)
+            //{
+            //    // add checks after loading
+            //}
+        }
+
+        private readonly ColumnInfo[] _columns;
+        private const string RegistrationName = "DropSlots";
+        internal const string Summary = "Removes the selected slots from the column.";
         internal const string FriendlyName = "Drop Slots Transform";
         internal const string LoaderSignature = "DropSlotsTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -201,81 +265,20 @@ namespace Microsoft.ML.Transforms
                 loaderAssemblyName: typeof(DropSlotsTransform).Assembly.FullName);
         }
 
-        private const string RegistrationName = "DropSlots";
-
         /// <summary>
-        /// Extra information for each column (in addition to ColumnInfo).
+        /// Initializes a new <see cref="DropSlotsTransform"/> object.
         /// </summary>
-        public sealed class ColumnInfo
+        internal DropSlotsTransform(IHostEnvironment env, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            public readonly string Input;
-            public readonly string Output;
-            public readonly SlotDropper SlotDropper;
-            // Track if all the slots of the column are to be dropped.
-            public readonly bool Suppressed;
-            public readonly ColumnType TypeDst;
-            public readonly int[] CategoricalRanges;
-
-            public ColumnInfo(string input, string output, SlotDropper slotDropper, bool suppressed, ColumnType typeDst, int[] categoricalRanges)
-            {
-                // TODO need to add checks
-                Input = input;
-                Output = output;
-                Contracts.AssertValue(slotDropper);
-                SlotDropper = slotDropper;
-                Suppressed = suppressed;
-                TypeDst = typeDst;
-                CategoricalRanges = categoricalRanges;
-            }
-
-            public ColumnInfo(Column column)
-            {
-                // TODO add checks
-                Input = column.Source ?? column.Name;
-                Output = column.Name;
-                SlotDropper = args.;
-                Suppressed = suppressed;
-                TypeDst = typeDst;
-                CategoricalRanges = categoricalRanges;
-            }
+            Host.AssertNonEmpty(ColumnPairs);
+            _columns = columns;
+            foreach (var colPair in columns)
+                Host.CheckUserArg(AreRangesValid(colPair), nameof(colPair), "The range min and max must be non-negative and min must be less than or equal to max.");
         }
 
-        private readonly ColumnInfo[] _columns;
-
-        internal DropSlotsTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns.Select(colInfo => (colInfo.Input, colInfo.Output)).ToArray())
-        {
-            Host.CheckNonEmpty(args.Column, nameof(args.Column));
-
-            var size = ColumnPairs.Length;
-            _columns = new ColumnInfo[size];
-            for (int i = 0; i < size; i++)
-            {
-                var col = args.Column[i];
-                int[] slotsMin;
-                int[] slotsMax;
-                GetSlotsMinMax(col, out slotsMin, out slotsMax);
-                SlotDropper slotDropper = new SlotDropper(Infos[i].TypeSrc.ValueCount, slotsMin, slotsMax);
-                bool suppressed;
-                ColumnType typeDst;
-                int[] categoricalRanges;
-                ComputeType(Source.Schema, slotsMin, slotsMax, i, slotDropper, out suppressed, out typeDst, out categoricalRanges);
-                _columns[i] = new ColumnInfo(slotDropper, suppressed, typeDst, categoricalRanges);
-            }
-        }
-
-        public static DropSlotsTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new DropSlotsTransform(h, ctx, input));
-        }
-
-        private DropSlotsTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx)
+        private DropSlotsTransform(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), ctx)
         {
             Host.AssertValue(ctx);
             // *** Binary format ***
@@ -291,16 +294,33 @@ namespace Microsoft.ML.Transforms
                 int[] slotsMin = ctx.Reader.ReadIntArray();
                 Host.CheckDecode(Utils.Size(slotsMin) > 0);
                 int[] slotsMax = ctx.Reader.ReadIntArray(slotsMin.Length);
-                bool suppressed;
-                ColumnType typeDst;
-                SlotDropper slotDropper = new SlotDropper(Infos[i].TypeSrc.ValueCount, slotsMin, slotsMax);
-                int[] categoricalRanges;
-                ComputeType(input.Schema, slotsMin, slotsMax, i, slotDropper, out suppressed, out typeDst, out categoricalRanges);
-                _columns[i] = new ColumnInfo(slotDropper, suppressed, typeDst, categoricalRanges);
-                Host.CheckDecode(AreRangesValid(i));
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, slotsMin, slotsMax);
+                Host.Assert(AreRangesValid(_columns[i]));
             }
-            Metadata.Seal();
         }
+
+        // Factory method for SignatureLoadModel
+        internal static DropSlotsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new DropSlotsTransform(env, ctx);
+        }
+
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            var columns = args.Column.Select(column => new ColumnInfo(column)).ToArray();
+            return new DropSlotsTransform(env, columns).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -316,22 +336,21 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                var infoEx = _columns[i];
-                Host.Assert(infoEx.SlotDropper.SlotsMin.Length == infoEx.SlotDropper.SlotsMax.Length);
-                Host.Assert(AreRangesValid(i));
-                ctx.Writer.WriteIntArray(infoEx.SlotDropper.SlotsMin);
-                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax, infoEx.SlotDropper.SlotsMax.Length);
+                var colPair = _columns[i];
+                Host.Assert(colPair.SlotsMin.Length == colPair.SlotsMax.Length);
+                Host.Assert(AreRangesValid(_columns[i]));
+                ctx.Writer.WriteIntArray(colPair.SlotsMin);
+                ctx.Writer.WriteIntsNoCount(colPair.SlotsMax, colPair.SlotsMax.Length);
             }
         }
 
-        private void GetSlotsMinMax(Column col, out int[] slotsMin, out int[] slotsMax)
+        private static void GetSlotsMinMax(Range[] slots, out int[] slotsMin, out int[] slotsMax)
         {
-            slotsMin = new int[col.Slots.Length];
-            slotsMax = new int[col.Slots.Length];
-            for (int j = 0; j < col.Slots.Length; j++)
+            slotsMin = new int[slots.Length];
+            slotsMax = new int[slots.Length];
+            for (int j = 0; j < slots.Length; j++)
             {
-                var range = col.Slots[j];
-                Host.CheckUserArg(range.IsValid(), nameof(col.Slots), "The range min and max must be non-negative and min must be less than or equal to max.");
+                var range = slots[j];
                 slotsMin[j] = range.Min;
                 // There are two reasons for setting the max to int.MaxValue - 1:
                 // 1. max is an index, so it has to be strictly less than int.MaxValue.
@@ -340,7 +359,7 @@ namespace Microsoft.ML.Transforms
             }
             Array.Sort(slotsMin, slotsMax);
             var iDst = 0;
-            for (int j = 1; j < col.Slots.Length; j++)
+            for (int j = 1; j < slots.Length; j++)
             {
                 if (slotsMin[j] <= slotsMax[iDst] + 1)
                     slotsMax[iDst] = Math.Max(slotsMax[iDst], slotsMax[j]);
@@ -356,280 +375,32 @@ namespace Microsoft.ML.Transforms
             Array.Resize(ref slotsMax, iDst);
         }
 
-        /// <summary>
-        /// Computes the types (column and slotnames), the length reduction, categorical feature indices
-        /// and whether the column is suppressed.
-        /// The slotsMin and slotsMax arrays should be sorted and the intervals should not overlap.
-        /// </summary>
-        /// <param name="input">The input schema</param>
-        /// <param name="slotsMin">The beginning indices of the ranges of slots to be dropped</param>
-        /// <param name="slotsMax">The end indices of the ranges of slots to be dropped</param>
-        /// <param name="iinfo">The column index in Infos</param>
-        /// <param name="slotDropper">The slots to be dropped.</param>
-        /// <param name="suppressed">Whether the column is suppressed (all slots dropped)</param>
-        /// <param name="type">The column type</param>
-        /// <param name="categoricalRanges">Categorical feature indices.</param>
-        private void ComputeType(Schema input, int[] slotsMin, int[] slotsMax, int iinfo,
-            SlotDropper slotDropper, out bool suppressed, out ColumnType type, out int[] categoricalRanges)
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+            => columns.Select(c => (c.Input, c.Output ?? c.Input)).ToArray();
+
+        private static bool AreRangesValid(ColumnInfo colPair)
         {
-            Contracts.AssertValue(slotDropper);
-            Contracts.AssertValue(input);
-            Contracts.AssertNonEmpty(slotsMin);
-            Contracts.AssertNonEmpty(slotsMax);
-            Contracts.Assert(slotsMin.Length == slotsMax.Length);
-            Contracts.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-
-            categoricalRanges = null;
-            // Register for metadata. Propagate the IsNormalized metadata.
-            using (var bldr = Metadata.BuildMetadata(iinfo, input, ColumnPairs[iinfo].input,
-                MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
-            {
-                var typeSrc = Infos[iinfo].TypeSrc;
-                if (!typeSrc.IsVector)
-                {
-                    type = typeSrc;
-                    suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
-                }
-                else if (!typeSrc.IsKnownSizeVector)
-                {
-                    type = typeSrc;
-                    suppressed = false;
-                }
-                else
-                {
-                    Host.Assert(typeSrc.IsKnownSizeVector);
-                    var dstLength = slotDropper.DstLength;
-                    var hasSlotNames = input.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
-                    type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
-                    suppressed = dstLength == 0;
-
-                    if (hasSlotNames && dstLength > 0)
-                    {
-                        // Add slot name metadata.
-                        bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                            new VectorType(TextType.Instance, dstLength), GetSlotNames);
-                    }
-                }
-
-                if (!suppressed)
-                {
-                    if (MetadataUtils.TryGetCategoricalFeatureIndices(Source.Schema, Infos[iinfo].Source, out categoricalRanges))
-                    {
-                        VBuffer<int> dst = default(VBuffer<int>);
-                        GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
-                        // REVIEW: cache dst as opposed to caculating it again.
-                        if (dst.Length > 0)
-                        {
-                            Contracts.Assert(dst.Length % 2 == 0);
-
-                            bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
-                                MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
-                        }
-                    }
-                }
-            }
-        }
-
-        private bool AreRangesValid(int iinfo)
-        {
-            var infoEx = _columns[iinfo];
             var prevmax = -2;
-            for (int i = 0; i < infoEx.SlotDropper.SlotsMin.Length; i++)
+            for (int i = 0; i < colPair.SlotsMin.Length; i++)
             {
-                if (!(0 <= infoEx.SlotDropper.SlotsMin[i] && infoEx.SlotDropper.SlotsMin[i] < int.MaxValue))
+                if (!(0 <= colPair.SlotsMin[i] && colPair.SlotsMin[i] < int.MaxValue))
                     return false;
-                if (!(0 <= infoEx.SlotDropper.SlotsMax[i] && infoEx.SlotDropper.SlotsMax[i] < int.MaxValue))
+                if (!(0 <= colPair.SlotsMax[i] && colPair.SlotsMax[i] < int.MaxValue))
                     return false;
-                if (!(infoEx.SlotDropper.SlotsMin[i] <= infoEx.SlotDropper.SlotsMax[i]))
+                if (!(colPair.SlotsMin[i] <= colPair.SlotsMax[i]))
                     return false;
-                if (!(infoEx.SlotDropper.SlotsMin[i] - 1 > prevmax))
+                if (!(colPair.SlotsMin[i] - 1 > prevmax))
                     return false;
-                prevmax = infoEx.SlotDropper.SlotsMax[i];
+                prevmax = colPair.SlotsMax[i];
             }
             return true;
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < ColumnPairs.Length);
-            return _columns[iinfo].TypeDst;
-        }
-
-        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
-        {
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-
-            var names = default(VBuffer<ReadOnlyMemory<char>>);
-            Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
-            var infoEx = _columns[iinfo];
-            infoEx.SlotDropper.DropSlots(ref names, ref dst);
-        }
-
-        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
-        {
-            if (_columns[iinfo].CategoricalRanges != null)
-            {
-                GetCategoricalSlotRangesCore(iinfo, _columns[iinfo].SlotDropper.SlotsMin,
-                    _columns[iinfo].SlotDropper.SlotsMax, _columns[iinfo].CategoricalRanges, ref dst);
-            }
-        }
-
-        private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<int> dst)
-        {
-            Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
-            Host.Assert(slotsMax != null && slotsMin != null);
-            Host.Assert(slotsMax.Length == slotsMin.Length);
-
-            Contracts.Assert(catRanges.Length > 0 && catRanges.Length % 2 == 0);
-
-            var ranges = new int[catRanges.Length];
-            catRanges.CopyTo(ranges, 0);
-            int rangesIndex = 0;
-            int dropSlotsIndex = 0;
-            int previousDropSlotsIndex = 0;
-            int droppedSlotsCount = 0;
-            bool combine = false;
-            int min = -1;
-            int max = -1;
-            List<int> newCategoricalSlotRanges = new List<int>();
-
-            // Six possible ways a drop slot range interacts with categorical slots range.
-            //
-            //                    +--------------Drop-------------+
-            //                    |                               |
-            //
-            //                +---Drop---+   +---Drop---+   +---Drop---+
-            //  +---Drop---+  |          |   |          |   |          |  +---Drop---+
-            //  |          |       |____________Range____________|        |          |
-            //
-            // The below code is better understood as a state machine.
-
-            while (dropSlotsIndex < slotsMin.Length && rangesIndex < ranges.Length)
-            {
-                Contracts.Assert(rangesIndex % 2 == 0);
-                Contracts.Assert(ranges[rangesIndex] <= ranges[rangesIndex + 1]);
-
-                if (slotsMax[dropSlotsIndex] < ranges[rangesIndex])
-                    dropSlotsIndex++;
-                else if (slotsMin[dropSlotsIndex] > ranges[rangesIndex + 1])
-                {
-                    if (combine)
-                    {
-                        CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
-                            ranges[rangesIndex + 1] - droppedSlotsCount, out min, out max);
-                    }
-                    else
-                    {
-                        Contracts.Assert(min == -1 && max == -1);
-                        min = ranges[rangesIndex] - droppedSlotsCount;
-                        max = ranges[rangesIndex + 1] - droppedSlotsCount;
-                    }
-
-                    newCategoricalSlotRanges.Add(min);
-                    newCategoricalSlotRanges.Add(max);
-                    min = max = -1;
-                    rangesIndex += 2;
-                    combine = false;
-                }
-                else if (slotsMin[dropSlotsIndex] <= ranges[rangesIndex] &&
-                         slotsMax[dropSlotsIndex] >= ranges[rangesIndex + 1])
-                {
-                    rangesIndex += 2;
-                    if (combine)
-                    {
-                        Contracts.Assert(min >= 0 && min <= max);
-                        newCategoricalSlotRanges.Add(min);
-                        newCategoricalSlotRanges.Add(max);
-                        min = max = -1;
-                        combine = false;
-                    }
-
-                    Contracts.Assert(min == -1 && max == -1);
-
-                }
-                else if (slotsMin[dropSlotsIndex] > ranges[rangesIndex] &&
-                         slotsMax[dropSlotsIndex] < ranges[rangesIndex + 1])
-                {
-                    if (combine)
-                    {
-                        CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
-                            slotsMin[dropSlotsIndex] - 1 - droppedSlotsCount, out min, out max);
-                    }
-                    else
-                    {
-                        Contracts.Assert(min == -1 && max == -1);
-
-                        min = ranges[rangesIndex] - droppedSlotsCount;
-                        max = slotsMin[dropSlotsIndex] - 1 - droppedSlotsCount;
-                        combine = true;
-                    }
-
-                    ranges[rangesIndex] = slotsMax[dropSlotsIndex] + 1;
-                    dropSlotsIndex++;
-                }
-                else if (slotsMax[dropSlotsIndex] < ranges[rangesIndex + 1])
-                {
-                    ranges[rangesIndex] = slotsMax[dropSlotsIndex] + 1;
-                    dropSlotsIndex++;
-                }
-                else
-                    ranges[rangesIndex + 1] = slotsMin[dropSlotsIndex] - 1;
-
-                if (previousDropSlotsIndex < dropSlotsIndex)
-                {
-                    Contracts.Assert(dropSlotsIndex - previousDropSlotsIndex == 1);
-                    droppedSlotsCount += slotsMax[previousDropSlotsIndex] - slotsMin[previousDropSlotsIndex] + 1;
-                    previousDropSlotsIndex = dropSlotsIndex;
-                }
-            }
-
-            Contracts.Assert(rangesIndex % 2 == 0);
-
-            if (combine)
-            {
-                Contracts.Assert(rangesIndex < ranges.Length - 1);
-                CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
-                    ranges[rangesIndex + 1] - droppedSlotsCount, out min, out max);
-
-                newCategoricalSlotRanges.Add(min);
-                newCategoricalSlotRanges.Add(max);
-                rangesIndex += 2;
-                combine = false;
-                min = max = -1;
-            }
-
-            Contracts.Assert(min == -1 && max == -1);
-
-            for (int i = rangesIndex; i < ranges.Length; i++)
-                newCategoricalSlotRanges.Add(ranges[i] - droppedSlotsCount);
-
-            Contracts.Assert(newCategoricalSlotRanges.Count % 2 == 0);
-            Contracts.Assert(newCategoricalSlotRanges.TrueForAll(x => x >= 0));
-            Contracts.Assert(0 <= droppedSlotsCount && droppedSlotsCount <= slotsMax[slotsMax.Length - 1] + 1);
-
-            if (newCategoricalSlotRanges.Count > 0)
-                dst = new VBuffer<int>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
-        }
-
-        private void CombineRanges(
-            int minRange1, int maxRange1, int minRange2, int maxRange2,
-            out int newRangeMin, out int newRangeMax)
-        {
-            Contracts.Assert(minRange2 >= 0 && maxRange2 >= 0);
-            Contracts.Assert(minRange2 <= maxRange2);
-            Contracts.Assert(minRange1 >= 0 && maxRange1 >= 0);
-            Contracts.Assert(minRange1 <= maxRange1);
-            Contracts.Assert(maxRange1 + 1 == minRange2);
-
-            newRangeMin = minRange1;
-            newRangeMax = maxRange2;
-        }
-
-        protected override void ActivateSourceColumns(int iinfo, bool[] active)
-        {
-            if (!_columns[iinfo].Suppressed)
-                active[ColumnPairs[iinfo].input] = true;
-        }
+        //protected override void ActivateSourceColumns(int iinfo, bool[] active)
+        //{
+        //    if (!_columns[iinfo].Suppressed)
+        //        active[ColumnPairs[iinfo].input] = true;
+        //}
 
         //protected override bool WantParallelCursors(Func<int, bool> predicate)
         //{
@@ -667,6 +438,12 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _cols;
             private readonly ColumnType[] _srcTypes;
 
+            private readonly SlotDropper _slotDropper;
+            // Track if all the slots of the column are to be dropped.
+            private readonly bool _suppressed;
+            private readonly ColumnType _typeDst;
+            private readonly int[] _categoricalRanges;
+
             public Mapper(DropSlotsTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
@@ -681,6 +458,256 @@ namespace Microsoft.ML.Transforms
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
                     // TODO check that the types are ok if needed
                 }
+            }
+
+            /// <summary>
+            /// Computes the types (column and slotnames), the length reduction, categorical feature indices
+            /// and whether the column is suppressed.
+            /// The slotsMin and slotsMax arrays should be sorted and the intervals should not overlap.
+            /// </summary>
+            /// <param name="input">The input schema</param>
+            /// <param name="slotsMin">The beginning indices of the ranges of slots to be dropped</param>
+            /// <param name="slotsMax">The end indices of the ranges of slots to be dropped</param>
+            /// <param name="iinfo">The column index in Infos</param>
+            /// <param name="slotDropper">The slots to be dropped.</param>
+            /// <param name="suppressed">Whether the column is suppressed (all slots dropped)</param>
+            /// <param name="type">The column type</param>
+            /// <param name="categoricalRanges">Categorical feature indices.</param>
+            private void ComputeType(Schema input, int[] slotsMin, int[] slotsMax, int iinfo,
+                SlotDropper slotDropper, out bool suppressed, out ColumnType type, out int[] categoricalRanges)
+            {
+                Contracts.AssertValue(slotDropper);
+                Contracts.AssertValue(input);
+                Contracts.AssertNonEmpty(slotsMin);
+                Contracts.AssertNonEmpty(slotsMax);
+                Contracts.Assert(slotsMin.Length == slotsMax.Length);
+                Contracts.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
+
+                categoricalRanges = null;
+                // Register for metadata. Propagate the IsNormalized metadata.
+                using (var bldr = Metadata.BuildMetadata(iinfo, input, ColumnPairs[iinfo].input,
+                    MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
+                {
+                    var typeSrc = Infos[iinfo].TypeSrc;
+                    if (!typeSrc.IsVector)
+                    {
+                        type = typeSrc;
+                        suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
+                    }
+                    else if (!typeSrc.IsKnownSizeVector)
+                    {
+                        type = typeSrc;
+                        suppressed = false;
+                    }
+                    else
+                    {
+                        Host.Assert(typeSrc.IsKnownSizeVector);
+                        var dstLength = slotDropper.DstLength;
+                        var hasSlotNames = input.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
+                        type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                        suppressed = dstLength == 0;
+
+                        if (hasSlotNames && dstLength > 0)
+                        {
+                            // Add slot name metadata.
+                            bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
+                                new VectorType(TextType.Instance, dstLength), GetSlotNames);
+                        }
+                    }
+
+                    if (!suppressed)
+                    {
+                        if (MetadataUtils.TryGetCategoricalFeatureIndices(Source.Schema, Infos[iinfo].Source, out categoricalRanges))
+                        {
+                            VBuffer<int> dst = default(VBuffer<int>);
+                            GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
+                            // REVIEW: cache dst as opposed to caculating it again.
+                            if (dst.Length > 0)
+                            {
+                                Contracts.Assert(dst.Length % 2 == 0);
+
+                                bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
+                                    MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
+                            }
+                        }
+                    }
+                }
+            }
+
+            protected override ColumnType GetColumnTypeCore(int iinfo)
+            {
+                Host.Assert(0 <= iinfo & iinfo < ColumnPairs.Length);
+                return _columns[iinfo].TypeDst;
+            }
+
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
+            {
+                Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
+
+                var names = default(VBuffer<ReadOnlyMemory<char>>);
+                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
+                var infoEx = _columns[iinfo];
+                infoEx.SlotDropper.DropSlots(ref names, ref dst);
+            }
+
+            private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
+            {
+                if (_columns[iinfo].CategoricalRanges != null)
+                {
+                    GetCategoricalSlotRangesCore(iinfo, _columns[iinfo].SlotDropper.SlotsMin,
+                        _columns[iinfo].SlotDropper.SlotsMax, _columns[iinfo].CategoricalRanges, ref dst);
+                }
+            }
+
+            private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<int> dst)
+            {
+                Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
+                Host.Assert(slotsMax != null && slotsMin != null);
+                Host.Assert(slotsMax.Length == slotsMin.Length);
+
+                Contracts.Assert(catRanges.Length > 0 && catRanges.Length % 2 == 0);
+
+                var ranges = new int[catRanges.Length];
+                catRanges.CopyTo(ranges, 0);
+                int rangesIndex = 0;
+                int dropSlotsIndex = 0;
+                int previousDropSlotsIndex = 0;
+                int droppedSlotsCount = 0;
+                bool combine = false;
+                int min = -1;
+                int max = -1;
+                List<int> newCategoricalSlotRanges = new List<int>();
+
+                // Six possible ways a drop slot range interacts with categorical slots range.
+                //
+                //                    +--------------Drop-------------+
+                //                    |                               |
+                //
+                //                +---Drop---+   +---Drop---+   +---Drop---+
+                //  +---Drop---+  |          |   |          |   |          |  +---Drop---+
+                //  |          |       |____________Range____________|        |          |
+                //
+                // The below code is better understood as a state machine.
+
+                while (dropSlotsIndex < slotsMin.Length && rangesIndex < ranges.Length)
+                {
+                    Contracts.Assert(rangesIndex % 2 == 0);
+                    Contracts.Assert(ranges[rangesIndex] <= ranges[rangesIndex + 1]);
+
+                    if (slotsMax[dropSlotsIndex] < ranges[rangesIndex])
+                        dropSlotsIndex++;
+                    else if (slotsMin[dropSlotsIndex] > ranges[rangesIndex + 1])
+                    {
+                        if (combine)
+                        {
+                            CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
+                                ranges[rangesIndex + 1] - droppedSlotsCount, out min, out max);
+                        }
+                        else
+                        {
+                            Contracts.Assert(min == -1 && max == -1);
+                            min = ranges[rangesIndex] - droppedSlotsCount;
+                            max = ranges[rangesIndex + 1] - droppedSlotsCount;
+                        }
+
+                        newCategoricalSlotRanges.Add(min);
+                        newCategoricalSlotRanges.Add(max);
+                        min = max = -1;
+                        rangesIndex += 2;
+                        combine = false;
+                    }
+                    else if (slotsMin[dropSlotsIndex] <= ranges[rangesIndex] &&
+                             slotsMax[dropSlotsIndex] >= ranges[rangesIndex + 1])
+                    {
+                        rangesIndex += 2;
+                        if (combine)
+                        {
+                            Contracts.Assert(min >= 0 && min <= max);
+                            newCategoricalSlotRanges.Add(min);
+                            newCategoricalSlotRanges.Add(max);
+                            min = max = -1;
+                            combine = false;
+                        }
+
+                        Contracts.Assert(min == -1 && max == -1);
+
+                    }
+                    else if (slotsMin[dropSlotsIndex] > ranges[rangesIndex] &&
+                             slotsMax[dropSlotsIndex] < ranges[rangesIndex + 1])
+                    {
+                        if (combine)
+                        {
+                            CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
+                                slotsMin[dropSlotsIndex] - 1 - droppedSlotsCount, out min, out max);
+                        }
+                        else
+                        {
+                            Contracts.Assert(min == -1 && max == -1);
+
+                            min = ranges[rangesIndex] - droppedSlotsCount;
+                            max = slotsMin[dropSlotsIndex] - 1 - droppedSlotsCount;
+                            combine = true;
+                        }
+
+                        ranges[rangesIndex] = slotsMax[dropSlotsIndex] + 1;
+                        dropSlotsIndex++;
+                    }
+                    else if (slotsMax[dropSlotsIndex] < ranges[rangesIndex + 1])
+                    {
+                        ranges[rangesIndex] = slotsMax[dropSlotsIndex] + 1;
+                        dropSlotsIndex++;
+                    }
+                    else
+                        ranges[rangesIndex + 1] = slotsMin[dropSlotsIndex] - 1;
+
+                    if (previousDropSlotsIndex < dropSlotsIndex)
+                    {
+                        Contracts.Assert(dropSlotsIndex - previousDropSlotsIndex == 1);
+                        droppedSlotsCount += slotsMax[previousDropSlotsIndex] - slotsMin[previousDropSlotsIndex] + 1;
+                        previousDropSlotsIndex = dropSlotsIndex;
+                    }
+                }
+
+                Contracts.Assert(rangesIndex % 2 == 0);
+
+                if (combine)
+                {
+                    Contracts.Assert(rangesIndex < ranges.Length - 1);
+                    CombineRanges(min, max, ranges[rangesIndex] - droppedSlotsCount,
+                        ranges[rangesIndex + 1] - droppedSlotsCount, out min, out max);
+
+                    newCategoricalSlotRanges.Add(min);
+                    newCategoricalSlotRanges.Add(max);
+                    rangesIndex += 2;
+                    combine = false;
+                    min = max = -1;
+                }
+
+                Contracts.Assert(min == -1 && max == -1);
+
+                for (int i = rangesIndex; i < ranges.Length; i++)
+                    newCategoricalSlotRanges.Add(ranges[i] - droppedSlotsCount);
+
+                Contracts.Assert(newCategoricalSlotRanges.Count % 2 == 0);
+                Contracts.Assert(newCategoricalSlotRanges.TrueForAll(x => x >= 0));
+                Contracts.Assert(0 <= droppedSlotsCount && droppedSlotsCount <= slotsMax[slotsMax.Length - 1] + 1);
+
+                if (newCategoricalSlotRanges.Count > 0)
+                    dst = new VBuffer<int>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
+            }
+
+            private void CombineRanges(
+                int minRange1, int maxRange1, int minRange2, int maxRange2,
+                out int newRangeMin, out int newRangeMax)
+            {
+                Contracts.Assert(minRange2 >= 0 && maxRange2 >= 0);
+                Contracts.Assert(minRange2 <= maxRange2);
+                Contracts.Assert(minRange1 >= 0 && maxRange1 >= 0);
+                Contracts.Assert(minRange1 <= maxRange1);
+                Contracts.Assert(maxRange1 + 1 == minRange2);
+
+                newRangeMin = minRange1;
+                newRangeMax = maxRange2;
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
