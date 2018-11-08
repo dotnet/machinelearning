@@ -37,14 +37,14 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Whether the trainer supports validation set via <see cref="TrainContext.ValidationSet"/>. Not implementing
-        /// this interface and returning <c>true</c> from this property is an indication the trainer does not support
+        /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
         /// that.
         /// </summary>
         public bool SupportsValidation { get; }
 
         /// <summary>
-        /// Whether the trainer supports test set via <see cref="TrainContext.TestSet"/>. Not implementing
-        /// this interface and returning <c>true</c> from this property is an indication the trainer does not support
+        /// Whether the trainer can use test set via <see cref="TrainContext.TestSet"/>. Not implementing
+        /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
         /// that.
         /// </summary>
         public bool SupportsTest { get; }

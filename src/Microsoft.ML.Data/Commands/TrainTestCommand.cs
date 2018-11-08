@@ -162,18 +162,16 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            // In addition to the training set, some trainers can accept two data sets, validation set and test set,
+            // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
             // in training phase. The major difference between validation set and test set is that training process may
             // indirectly use validation set to improve the model but the learned model should totally independent of test set.
             // Similar to validation set, the trainer can report the scores computed using test set.
             RoleMappedData testDataUsedInTrainer = null;
             if (!string.IsNullOrWhiteSpace(Args.TestFile))
             {
-                if (!trainer.Info.SupportsTest)
-                {
-                    ch.Warning("Ignoring testFile: Trainer does not accept test dataset.");
-                }
-                else
+                // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
+                // because this is TrainTest command.
+                if (trainer.Info.SupportsTest)
                 {
                     ch.Trace("Constructing the test pipeline");
                     IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: Args.TestFile);
