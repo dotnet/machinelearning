@@ -316,18 +316,16 @@ namespace Microsoft.ML.Transforms.Text
                         getSrc(ref src);
                         terms.Clear();
 
-                        for (int i = 0; i < src.Count; i++)
-                            AddTerms(src.Values[i], separators, terms);
+                        var srcValues = src.GetValues();
+                        for (int i = 0; i < srcValues.Length; i++)
+                            AddTerms(srcValues[i], separators, terms);
 
-                        var values = dst.Values;
-                        if (terms.Count > 0)
+                        var mutation = VBufferMutationContext.Create(ref dst, terms.Count);
+                        for (int i = 0; i < terms.Count; i++)
                         {
-                            if (Utils.Size(values) < terms.Count)
-                                values = new ReadOnlyMemory<char>[terms.Count];
-                            terms.CopyTo(values);
+                            mutation.Values[i] = terms[i];
                         }
-
-                        dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
+                        mutation.Complete(ref dst);
                     };
             }
 

@@ -1357,20 +1357,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 return
                     (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
-                        var indices = dst.Indices;
-                        var values = dst.Values;
-                        if (src.Count > 0)
+                        var srcValues = src.GetValues();
+                        var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
+                        if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)
                             {
-                                Utils.EnsureSize(ref indices, src.Count);
-                                Array.Copy(src.Indices, indices, src.Count);
+                                src.GetIndices().CopyTo(mutation.Indices);
                             }
-                            Utils.EnsureSize(ref values, src.Count);
-                            for (int i = 0; i < src.Count; ++i)
-                                conv(in src.Values[i], ref values[i]);
+                            for (int i = 0; i < srcValues.Length; ++i)
+                                conv(in srcValues[i], ref mutation.Values[i]);
                         }
-                        dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
+                        mutation.Complete(ref dst);
                     };
             }
 

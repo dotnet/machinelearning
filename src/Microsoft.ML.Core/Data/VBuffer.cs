@@ -20,15 +20,15 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int[] _indices;
 
         /// <summary>
-        /// The logical length of the buffer.
-        /// </summary>
-        public readonly int Length;
-
-        /// <summary>
         /// The number of items explicitly represented. This is == Length when the representation
         /// is dense and &lt; Length when sparse.
         /// </summary>
-        public readonly int Count;
+        private readonly int _count;
+
+        /// <summary>
+        /// The logical length of the buffer.
+        /// </summary>
+        public readonly int Length;
 
         /// <summary>
         /// The values. Only the first Count of these are valid.
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The explicitly represented values.
         /// </summary>
-        public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, Count);
+        public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, _count);
 
         /// <summary>
         /// The indices. For a dense representation, this array is not used. For a sparse representation
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Data
         ///  - non-zeros values 98 and 76 respectively at the 4th and 6th coordinates
         ///  - zeros at all other coordinates
         /// </remarks>
-        public ReadOnlySpan<int> GetIndices() => IsDense ? default : _indices.AsSpan(0, Count);
+        public ReadOnlySpan<int> GetIndices() => IsDense ? default : _indices.AsSpan(0, _count);
 
         /// <summary>
         /// Gets a value indicating whether every logical element is explicitly
@@ -66,8 +66,8 @@ namespace Microsoft.ML.Runtime.Data
         {
             get
             {
-                Contracts.Assert(Count <= Length);
-                return Count == Length;
+                Contracts.Assert(_count <= Length);
+                return _count == Length;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(indices);
 
             Length = length;
-            Count = length;
+            _count = length;
             _values = values;
             _indices = indices;
         }
@@ -113,7 +113,7 @@ namespace Microsoft.ML.Runtime.Data
 #endif
 
             Length = length;
-            Count = count;
+            _count = count;
             _values = values;
             _indices = indices;
         }
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyTo(ref VBuffer<T> dst)
         {
-            var mutation = VBufferMutationContext.Create(ref dst, Length, Count);
+            var mutation = VBufferMutationContext.Create(ref dst, Length, _count);
             if (IsDense)
             {
                 if (Length > 0)
@@ -150,10 +150,10 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                if (Count > 0)
+                if (_count > 0)
                 {
-                    _values.AsSpan(0, Count).CopyTo(mutation.Values);
-                    _indices.AsSpan(0, Count).CopyTo(mutation.Indices);
+                    _values.AsSpan(0, _count).CopyTo(mutation.Values);
+                    _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
                 }
                 mutation.Complete(ref dst);
             }
@@ -180,10 +180,10 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 int copyCount = 0;
-                if (Count > 0)
+                if (_count > 0)
                 {
-                    int copyMin = _indices.FindIndexSorted(0, Count, srcMin);
-                    int copyLim = _indices.FindIndexSorted(copyMin, Count, srcMin + length);
+                    int copyMin = _indices.FindIndexSorted(0, _count, srcMin);
+                    int copyLim = _indices.FindIndexSorted(copyMin, _count, srcMin + length);
                     Contracts.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
                     var mutation = VBufferMutationContext.Create(ref dst, length, copyCount);
@@ -400,14 +400,14 @@ namespace Microsoft.ML.Runtime.Data
                 return;
             }
 
-            if (Count == 0)
+            if (_count == 0)
             {
                 dst.Slice(ivDst, Length).Clear();
                 return;
             }
 
             int iv = 0;
-            for (int islot = 0; islot < Count; islot++)
+            for (int islot = 0; islot < _count; islot++)
             {
                 int slot = _indices[islot];
                 Contracts.Assert(slot >= iv);
@@ -437,12 +437,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
-            return VBufferUtils.Items(_values, _indices, Length, Count, all);
+            return VBufferUtils.Items(_values, _indices, Length, _count, all);
         }
 
         public IEnumerable<T> DenseValues()
         {
-            return VBufferUtils.DenseValues(_values, _indices, Length, Count);
+            return VBufferUtils.DenseValues(_values, _indices, Length, _count);
         }
 
         public void GetItemOrDefault(int slot, ref T dst)
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.Data
             int index;
             if (IsDense)
                 dst = _values[slot];
-            else if (Count > 0 && _indices.TryFindIndexSorted(0, Count, slot, out index))
+            else if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
                 dst = _values[index];
             else
                 dst = default(T);
@@ -465,17 +465,17 @@ namespace Microsoft.ML.Runtime.Data
             int index;
             if (IsDense)
                 return _values[slot];
-            if (Count > 0 && _indices.TryFindIndexSorted(0, Count, slot, out index))
+            if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
                 return _values[index];
             return default(T);
         }
 
         public override string ToString()
-            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
+            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {_count} explicit values";
 
         internal VBufferMutationContext<T> GetMutableContext()
         {
-            return GetMutableContext(Length, Count, null, false, false);
+            return GetMutableContext(Length, _count, null, false, false);
         }
 
         internal VBufferMutationContext<T> GetMutableContext(

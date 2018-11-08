@@ -274,32 +274,26 @@ namespace Microsoft.ML.Transforms
 
         private static void FillValues(Float input, ref VBuffer<Float> result)
         {
-            var values = result.Values;
-            var indices = result.Indices;
-
             if (input == 0)
             {
-                result = new VBuffer<Float>(2, 0, values, indices);
+                VBufferMutationContext.Create(ref result, 2, 0)
+                    .Complete(ref result);
                 return;
             }
 
-            if (Utils.Size(values) < 1)
-                values = new Float[1];
-            if (Utils.Size(indices) < 1)
-                indices = new int[1];
-
+            var mutation = VBufferMutationContext.Create(ref result, 2, 1);
             if (Float.IsNaN(input))
             {
-                values[0] = 1;
-                indices[0] = 1;
+                mutation.Values[0] = 1;
+                mutation.Indices[0] = 1;
             }
             else
             {
-                values[0] = input;
-                indices[0] = 0;
+                mutation.Values[0] = input;
+                mutation.Indices[0] = 0;
             }
 
-            result = new VBuffer<Float>(2, 1, values, indices);
+            mutation.Complete(ref result);
         }
 
         // This converts in place.
@@ -308,18 +302,14 @@ namespace Microsoft.ML.Transforms
             int size = buffer.Length;
             ectx.Check(0 <= size & size < int.MaxValue / 2);
 
-            int count = buffer.Count;
-            var values = buffer.Values;
-            var indices = buffer.Indices;
+            var values = buffer.GetValues();
+            var mutation = VBufferMutationContext.Create(ref buffer, size * 2, values.Length);
             int iivDst = 0;
-            if (count >= size)
+            if (buffer.IsDense)
             {
                 // Currently, it's dense. We always produce sparse.
-                ectx.Assert(Utils.Size(values) >= size);
-                if (Utils.Size(indices) < size)
-                    indices = new int[size];
 
-                for (int ivSrc = 0; ivSrc < count; ivSrc++)
+                for (int ivSrc = 0; ivSrc < values.Length; ivSrc++)
                 {
                     ectx.Assert(iivDst <= ivSrc);
                     var val = values[ivSrc];
@@ -327,13 +317,13 @@ namespace Microsoft.ML.Transforms
                         continue;
                     if (Float.IsNaN(val))
                     {
-                        values[iivDst] = 1;
-                        indices[iivDst] = 2 * ivSrc + 1;
+                        mutation.Values[iivDst] = 1;
+                        mutation.Indices[iivDst] = 2 * ivSrc + 1;
                     }
                     else
                     {
-                        values[iivDst] = val;
-                        indices[iivDst] = 2 * ivSrc;
+                        mutation.Values[iivDst] = val;
+                        mutation.Indices[iivDst] = 2 * ivSrc;
                     }
                     iivDst++;
                 }
@@ -341,11 +331,10 @@ namespace Microsoft.ML.Transforms
             else
             {
                 // Currently, it's sparse.
-                ectx.Assert(Utils.Size(values) >= count);
-                ectx.Assert(Utils.Size(indices) >= count);
 
+                var indices = buffer.GetIndices();
                 int ivPrev = -1;
-                for (int iivSrc = 0; iivSrc < count; iivSrc++)
+                for (int iivSrc = 0; iivSrc < values.Length; iivSrc++)
                 {
                     ectx.Assert(iivDst <= iivSrc);
                     var val = values[iivSrc];
@@ -356,20 +345,20 @@ namespace Microsoft.ML.Transforms
                     ivPrev = iv;
                     if (Float.IsNaN(val))
                     {
-                        values[iivDst] = 1;
-                        indices[iivDst] = 2 * iv + 1;
+                        mutation.Values[iivDst] = 1;
+                        mutation.Indices[iivDst] = 2 * iv + 1;
                     }
                     else
                     {
-                        values[iivDst] = val;
-                        indices[iivDst] = 2 * iv;
+                        mutation.Values[iivDst] = val;
+                        mutation.Indices[iivDst] = 2 * iv;
                     }
                     iivDst++;
                 }
             }
 
-            ectx.Assert(0 <= iivDst & iivDst <= count);
-            buffer = new VBuffer<Float>(size * 2, iivDst, values, indices);
+            ectx.Assert(0 <= iivDst & iivDst <= values.Length);
+            mutation.Complete(ref buffer, iivDst);
         }
     }
 }

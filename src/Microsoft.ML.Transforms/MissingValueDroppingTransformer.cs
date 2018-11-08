@@ -229,110 +229,110 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertValue(isNA);
 
+            var srcValues = src.GetValues();
             int newCount = 0;
-            for (int i = 0; i < src.Count; i++)
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
+                if (!isNA(in srcValues[i]))
                     newCount++;
             }
-            Host.Assert(newCount <= src.Count);
+            Host.Assert(newCount <= srcValues.Length);
 
             if (newCount == 0)
             {
-                dst = new VBuffer<TDst>(0, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, 0)
+                    .Complete(ref dst);
                 return;
             }
 
-            if (newCount == src.Count)
+            if (newCount == srcValues.Length)
             {
                 Utils.Swap(ref src, ref dst);
                 if (!dst.IsDense)
                 {
-                    Host.Assert(dst.Count == newCount);
-                    dst = new VBuffer<TDst>(dst.Count, dst.Values, dst.Indices);
+                    Host.Assert(dst.GetValues().Length == newCount);
+                    VBufferMutationContext.Create(ref dst, newCount)
+                        .Complete(ref dst);
                 }
                 return;
             }
 
             int iDst = 0;
-            var values = dst.Values;
-            if (Utils.Size(values) < newCount)
-                values = new TDst[newCount];
 
             // Densifying sparse vectors since default value equals NA and hence should be dropped.
-            for (int i = 0; i < src.Count; i++)
+            var mutation = VBufferMutationContext.Create(ref dst, newCount);
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
-                    values[iDst++] = src.Values[i];
+                if (!isNA(in srcValues[i]))
+                    mutation.Values[iDst++] = srcValues[i];
             }
             Host.Assert(iDst == newCount);
 
-            dst = new VBuffer<TDst>(newCount, values, dst.Indices);
+            mutation.Complete(ref dst);
         }
 
         private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
         {
             Host.AssertValue(isNA);
 
+            var srcValues = src.GetValues();
             int newCount = 0;
-            for (int i = 0; i < src.Count; i++)
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
+                if (!isNA(in srcValues[i]))
                     newCount++;
             }
-            Host.Assert(newCount <= src.Count);
+            Host.Assert(newCount <= srcValues.Length);
 
             if (newCount == 0)
             {
-                dst = new VBuffer<TDst>(src.Length - src.Count, 0, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, src.Length - srcValues.Length, 0)
+                    .Complete(ref dst);
                 return;
             }
 
-            if (newCount == src.Count)
+            if (newCount == srcValues.Length)
             {
                 Utils.Swap(ref src, ref dst);
                 return;
             }
 
-            var values = dst.Values;
-            if (Utils.Size(values) < newCount)
-                values = new TDst[newCount];
-
             int iDst = 0;
             if (src.IsDense)
             {
-                for (int i = 0; i < src.Count; i++)
+                var mutation = VBufferMutationContext.Create(ref dst, newCount);
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (!isNA(in src.Values[i]))
+                    if (!isNA(in srcValues[i]))
                     {
-                        values[iDst] = src.Values[i];
+                        mutation.Values[iDst] = srcValues[i];
                         iDst++;
                     }
                 }
                 Host.Assert(iDst == newCount);
-                dst = new VBuffer<TDst>(newCount, values, dst.Indices);
+                mutation.Complete(ref dst);
             }
             else
             {
-                var indices = dst.Indices;
-                if (Utils.Size(indices) < newCount)
-                    indices = new int[newCount];
+                var newLength = src.Length - srcValues.Length - newCount;
+                var mutation = VBufferMutationContext.Create(ref dst, newLength, newCount);
 
+                var srcIndices = src.GetIndices();
                 int offset = 0;
-                for (int i = 0; i < src.Count; i++)
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (!isNA(in src.Values[i]))
+                    if (!isNA(in srcValues[i]))
                     {
-                        values[iDst] = src.Values[i];
-                        indices[iDst] = src.Indices[i] - offset;
+                        mutation.Values[iDst] = srcValues[i];
+                        mutation.Indices[iDst] = srcIndices[i] - offset;
                         iDst++;
                     }
                     else
                         offset++;
                 }
                 Host.Assert(iDst == newCount);
-                Host.Assert(offset == src.Count - newCount);
-                dst = new VBuffer<TDst>(src.Length - offset, newCount, values, indices);
+                Host.Assert(offset == srcValues.Length - newCount);
+                mutation.Complete(ref dst);
             }
         }
     }

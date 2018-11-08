@@ -315,14 +315,15 @@ namespace Microsoft.ML.Transforms.Text
                 if (_slotNamesTypes[i] != null)
                 {
                     GetSlotNames(i, ref ngramsNames);
-                    Host.Assert(_ngramMaps[i].Count == ngramsNames.Count);
+                    Host.Assert(_ngramMaps[i].Count == ngramsNames.GetValues().Length);
                     Host.Assert(ngramsNames.IsDense);
                     ctx.SaveTextStream(string.Format("{0}-ngrams.txt", Infos[i].Name),
                         writer =>
                         {
-                            writer.WriteLine("# Number of Ngrams terms = {0}", ngramsNames.Count);
-                            for (int j = 0; j < ngramsNames.Count; j++)
-                                writer.WriteLine("{0}\t{1}", j, ngramsNames.Values[j]);
+                            var ngramNameValues = ngramsNames.GetValues();
+                            writer.WriteLine("# Number of Ngrams terms = {0}", ngramNameValues.Length);
+                            for (int j = 0; j < ngramNameValues.Length; j++)
+                                writer.WriteLine("{0}\t{1}", j, ngramNameValues[j]);
                         });
                 }
             }
