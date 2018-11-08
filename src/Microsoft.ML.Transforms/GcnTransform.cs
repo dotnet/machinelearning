@@ -334,11 +334,9 @@ namespace Microsoft.ML.Transforms.Projections
                         item.SubMean ?? args.SubMean,
                         item.UseStdDev ?? args.UseStdDev,
                         item.Scale ?? args.Scale);
-                };
-                if (!args.SubMean && args.UseStdDev)
-                {
-                    ch.Warning("subMean parameter is false while useStd is true. It is advisable to set subMean to true in case useStd is set to true.");
                 }
+                if (!args.SubMean && args.UseStdDev)
+                    ch.Warning("subMean parameter is false while useStd is true. It is advisable to set subMean to true in case useStd is set to true.");
             }
             return new LpNormalizingTransform(env, cols).MakeDataTransform(input);
         }
@@ -361,7 +359,7 @@ namespace Microsoft.ML.Transforms.Projections
                         item.Name,
                         item.SubMean ?? args.SubMean,
                         item.NormKind ?? args.NormKind);
-                };
+                }
             }
             return new LpNormalizingTransform(env, cols).MakeDataTransform(input);
         }
