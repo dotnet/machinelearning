@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests
             builder.AddColumn("Floats", NumberType.R4, new float[] { 1, 2, 3 });
             var data = builder.GetDataView();
 
-            var data1 = ML.Data.FilterByColumn(data, "Floats", upperBound: 4);
+            var data1 = ML.Data.FilterByColumn(data, "Floats", upperBound: 2.8);
             var cnt = data1.GetColumn<float>(ML, "Floats").Count();
             Assert.Equal(2L, cnt);
 
