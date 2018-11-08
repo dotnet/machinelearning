@@ -15,10 +15,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using System.Reflection;
 
 namespace Microsoft.ML.Tests
 {
-   /* public class DnnImageFeaturizerTests : TestDataPipeBase
+    public class DnnImageFeaturizerTests : TestDataPipeBase
     {
         private const int inputSize = 3 * 224 * 224;
 
@@ -75,7 +76,9 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new DnnImageFeaturizerEstimator(Env, DnnImageFeaturizerEstimator.DnnImageModel.ResNet18, "data_0", "output_1");
+            var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ResNet18(Path.Combine(execDir, "..", "..",
+                "Microsoft.ML.DnnImageFeaturizer.ResNet18", "netstandard2.0")), "data_0", "output_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -110,12 +113,13 @@ namespace Microsoft.ML.Tests
                     name: ctx.LoadText(1)))
                     .Read(dataFile);
 
-                // Note that CamelCase column names are there to match the TF graph node names.
+                var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var pipe = data.MakeNewEstimator()
                     .Append(row => (
                         row.name,
                         data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(DnnImageFeaturizerEstimator.DnnImageModel.ResNet18)));
+                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ResNet18(Path.Combine(execDir, "..", "..",
+                                 "Microsoft.ML.DnnImageFeaturizer.ResNet18", "netstandard2.0")))));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
@@ -136,5 +140,5 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
-    }*/
+    }
 }

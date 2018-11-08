@@ -10,8 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(OutDir)\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNet18Onnx" /> 
-    <Content Include="$(OutDir)\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNetPrepOnnx" /> 
+    <Content Include="$(OutDir)\..\..\Microsoft.ML.DnnImageFeaturizer.ResNet18\netstandard2.0\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNet18Onnx" /> 
+    <Content Include="$(OutDir)\..\..\Microsoft.ML.DnnImageFeaturizer.ResNet18\netstandard2.0\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNetPrepOnnx" /> 
   </ItemGroup>  
 
 </Project>
