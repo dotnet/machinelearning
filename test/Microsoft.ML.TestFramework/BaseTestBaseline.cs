@@ -535,35 +535,40 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
-                // this follows the IEEE recommendations for how to compare floating point numbers
-                double allowedVariance = Math.Pow(10, -digitsOfPrecision);
-                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
-                // limitting to the digits we care about. 
-                delta = Math.Round(delta, digitsOfPrecision);
-
-                bool inRange = delta > -allowedVariance && delta < allowedVariance;
-
-                // for some cases, rounding up is not beneficial
-                // so checking on whether the difference is significant prior to rounding, and failing only then. 
-                // example, for 5 digits of precision. 
-                // F1 = 1.82844949 Rounds to 1.8284
-                // F2 = 1.8284502  Rounds to 1.8285
-                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
-                // (1.82844949 - 1.8284502) = -0.00000071
-
-                if (!inRange)
-                {
-                    delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    inRange = delta >= -allowedVariance && delta <= allowedVariance;
-                }
-
-                if(!inRange)
+                if(!CompareNumbersWithTolerance(f1, f2, digitsOfPrecision))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        public bool CompareNumbersWithTolerance(double expected, double actual, int digitsOfPrecision = DigitsOfPrecision)
+        {
+            // this follows the IEEE recommendations for how to compare floating point numbers
+            double allowedVariance = Math.Pow(10, -digitsOfPrecision);
+            double delta = Round(expected, digitsOfPrecision) - Round(actual, digitsOfPrecision);
+            // limitting to the digits we care about. 
+            delta = Math.Round(delta, digitsOfPrecision);
+
+            bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+            // for some cases, rounding up is not beneficial
+            // so checking on whether the difference is significant prior to rounding, and failing only then. 
+            // example, for 5 digits of precision. 
+            // F1 = 1.82844949 Rounds to 1.8284
+            // F2 = 1.8284502  Rounds to 1.8285
+            // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+            // (1.82844949 - 1.8284502) = -0.00000071
+
+            if (!inRange)
+            {
+                delta = Math.Round(expected - actual, digitsOfPrecision);
+                inRange = delta >= -allowedVariance && delta <= allowedVariance;
+            }
+
+            return inRange;
         }
 
         private static double Round(double value, int digitsOfPrecision)
