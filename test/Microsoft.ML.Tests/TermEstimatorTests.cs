@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests
             var itemType1 = (type1 as VectorType)?.ItemType ?? type1;
             int size = itemType1 is KeyType keyType ? keyType.Count : -1;
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
-            Assert.True(names1.Count > 0);
+            Assert.True(names1.GetValues().Length > 0);
         }
 
         [Fact]

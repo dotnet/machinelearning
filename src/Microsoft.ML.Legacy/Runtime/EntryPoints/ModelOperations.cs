@@ -6,6 +6,8 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Learners;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(ModelOperations), null, typeof(SignatureEntryPointModule), "ModelOperations")]
 
@@ -122,6 +124,39 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public static ApplyTransformModelOutput Apply(IHostEnvironment env, ApplyTransformModelInput input)
         {
             return new ApplyTransformModelOutput() { OutputData = input.TransformModel.Apply(env, input.Data) };
+        }
+
+        [TlcModule.EntryPoint(Name = "Models.OvaModelCombiner", Desc = "Combines a sequence of PredictorModels into a single model")]
+        public static PredictorModelOutput CombineOvaModels(IHostEnvironment env, CombineOvaPredictorModelsInput input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register("CombineOvaModels");
+            host.CheckValue(input, nameof(input));
+            EntryPointUtils.CheckInputArgs(host, input);
+            host.CheckNonEmpty(input.ModelArray, nameof(input.ModelArray));
+            // Something tells me we should put normalization as part of macro expansion, but since i get
+            // subgraph instead of learner it's a bit tricky to get learner and decide should we add
+            // normalization node or not, plus everywhere in code we leave that reposnsibility to TransformModel.
+            var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
+            using (var ch = host.Start("CombineOvaModels"))
+            {
+                var schema = normalizedView.Schema;
+                var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
+                    input.LabelColumn,
+                    DefaultColumnNames.Label);
+                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.FeatureColumn),
+                    input.FeatureColumn, DefaultColumnNames.Features);
+                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
+                    input.WeightColumn, DefaultColumnNames.Weight);
+                var data = new RoleMappedData(normalizedView, label, feature, null, weight);
+
+                return new PredictorModelOutput
+                {
+                    PredictorModel = new PredictorModel(env, data, input.TrainingData,
+                    OvaPredictor.Create(host, input.UseProbabilities,
+                            input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
+                };
+            }
         }
     }
 }

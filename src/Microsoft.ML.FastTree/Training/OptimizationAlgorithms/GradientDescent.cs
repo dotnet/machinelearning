@@ -22,7 +22,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         private double[] _droppedScores;
         private double[] _scores;
 
-        public GradientDescent(Ensemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public GradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores)
         {
             _gradientWrapper = gradientWrapper;

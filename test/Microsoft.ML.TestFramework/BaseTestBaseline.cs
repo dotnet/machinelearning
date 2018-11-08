@@ -517,12 +517,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
             if (firstCollection.Count == secondCollection.Count)
             {
-                if(!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
+                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
                 {
                     return false;
                 }
             }
-                
+
             firstString = MatchNumbers.Replace(firstString, "%Number%");
             secondString = MatchNumbers.Replace(secondString, "%Number%");
             return true;
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
-                if(!CompareNumbersWithTolerance(f1, f2, digitsOfPrecision))
+                if(!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
                 {
                     return false;
                 }
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        public bool CompareNumbersWithTolerance(double expected, double actual, int digitsOfPrecision = DigitsOfPrecision)
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
         {
             // this follows the IEEE recommendations for how to compare floating point numbers
             double allowedVariance = Math.Pow(10, -digitsOfPrecision);
@@ -562,11 +562,23 @@ namespace Microsoft.ML.Runtime.RunTests
             // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
             // (1.82844949 - 1.8284502) = -0.00000071
 
-            if (!inRange)
-            {
-                delta = Math.Round(expected - actual, digitsOfPrecision);
-                inRange = delta >= -allowedVariance && delta <= allowedVariance;
-            }
+                double delta2 = 0;
+                if (!inRange)
+                {
+                    delta2 = Math.Round(expected - actual, digitsOfPrecision);
+                    inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
+                }
+
+                if (!inRange)
+                {
+                    var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
+
+                    Fail(_allowMismatch, message +
+                            $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                            $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                            $"\t delta: {delta}" + Environment.NewLine +
+                            $"\t delta2: {delta2}" + Environment.NewLine);
+                }
 
             return inRange;
         }

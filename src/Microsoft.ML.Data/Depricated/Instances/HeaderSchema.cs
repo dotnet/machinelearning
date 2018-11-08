@@ -199,18 +199,15 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
-            string[] names = new string[slotNames.Count];
-            for (int i = 0; i < slotNames.Count; ++i)
-                names[i] = !slotNames.Values[i].IsEmpty ? slotNames.Values[i].ToString() : null;
+            var slotNameValues = slotNames.GetValues();
+            string[] names = new string[slotNameValues.Length];
+            for (int i = 0; i < slotNameValues.Length; ++i)
+                names[i] = !slotNameValues[i].IsEmpty ? slotNameValues[i].ToString() : null;
             if (slotNames.IsDense)
                 return new Dense(names.Length, names);
 
-            int[] indices = slotNames.Indices;
-            if (indices == null)
-                indices = new int[0];
-            else if (indices.Length != slotNames.Count)
-                Array.Resize(ref indices, slotNames.Count);
-            return new Sparse(slotNames.Length, slotNames.Count, indices, names);
+            ReadOnlySpan<int> indices = slotNames.GetIndices();
+            return new Sparse(slotNames.Length, slotNameValues.Length, indices.ToArray(), names);
         }
 
         public const string LoaderSignature = "FeatureNamesExec";
@@ -239,19 +236,21 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             // int[]: ids of names (matches either number of features or number of indices)
 
             ctx.Writer.Write(names.Length);
+            var nameValues = names.GetValues();
             if (names.IsDense)
             {
                 ctx.Writer.Write(-1);
-                for (int i = 0; i < names.Length; i++)
-                    ctx.SaveStringOrNull(names.Values[i].ToString());
+                for (int i = 0; i < nameValues.Length; i++)
+                    ctx.SaveStringOrNull(nameValues[i].ToString());
             }
             else
             {
-                ctx.Writer.Write(names.Count);
-                for (int ii = 0; ii < names.Count; ii++)
-                    ctx.Writer.Write(names.Indices[ii]);
-                for (int ii = 0; ii < names.Count; ii++)
-                    ctx.SaveStringOrNull(names.Values[ii].ToString());
+                var nameIndices = names.GetIndices();
+                ctx.Writer.Write(nameValues.Length);
+                for (int ii = 0; ii < nameIndices.Length; ii++)
+                    ctx.Writer.Write(nameIndices[ii]);
+                for (int ii = 0; ii < nameValues.Length; ii++)
+                    ctx.SaveStringOrNull(nameValues[ii].ToString());
             }
         }
 

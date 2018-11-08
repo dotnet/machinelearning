@@ -155,8 +155,8 @@ namespace Microsoft.ML.Trainers.Recommender
             ctx.Writer.Write(_approximationRank);
             _host.Check(Utils.Size(_leftFactorMatrix) == _numberOfRows * _approximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
             _host.Check(Utils.Size(_rightFactorMatrix) == _numberofColumns * _approximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
-            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix, _numberOfRows * _approximationRank);
-            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix, _numberofColumns * _approximationRank);
+            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix.AsSpan(0, _numberOfRows * _approximationRank));
+            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix.AsSpan(0, _numberofColumns * _approximationRank));
         }
 
         /// <summary>

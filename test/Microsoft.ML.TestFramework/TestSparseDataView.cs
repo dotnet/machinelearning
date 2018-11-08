@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     while (cur.MoveNext())
                     {
                         getter(ref value);
-                        Assert.True(value.Count == 3);
+                        Assert.True(value.GetValues().Length == 3);
                         ++n;
                     }
                 }
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     while (cur.MoveNext())
                     {
                         getter(ref value);
-                        Assert.True(value.Count == 3);
+                        Assert.True(value.GetValues().Length == 3);
                         ++n;
                     }
                 }
