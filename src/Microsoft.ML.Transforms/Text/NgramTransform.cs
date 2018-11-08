@@ -350,7 +350,14 @@ namespace Microsoft.ML.Transforms.Text
             var md = Metadata;
             for (int iinfo = 0; iinfo < _exes.Length; iinfo++)
             {
-                types[iinfo] = new VectorType(NumberType.Float, _ngramMaps[iinfo].Count);
+                var vectorSize = _ngramMaps[iinfo].Count;
+                if (vectorSize == 0)
+                {
+                    // If we the ngram map is empty, we should output the fixed-size vector of size 0. This is not a
+                    // valid VectorType (it would be considered variable), so we make it size 1 in this case.
+                    vectorSize = 1;
+                }
+                types[iinfo] = new VectorType(NumberType.Float, vectorSize);
                 var info = Infos[iinfo];
                 if (!Source.Schema.HasKeyNames(info.Source, info.TypeSrc.ItemType.KeyCount))
                     continue;
