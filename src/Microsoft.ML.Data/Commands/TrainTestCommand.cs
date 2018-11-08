@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
+            // In addition to the training set, some trainers can accept two data sets, validation set and test set,
             // in training phase. The major difference between validation set and test set is that training process may
             // indirectly use validation set to improve the model but the learned model should totally independent of test set.
             // Similar to validation set, the trainer can report the scores computed using test set.

@@ -60,7 +60,7 @@ namespace Microsoft.ML.Trainers.FastTree
         protected RoleMappedData ValidData;
         /// <summary>
         /// If not null, it's a test data set passed in from training context. It will be converted to one element in
-        /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/>.
+        /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
         /// </summary>
         protected RoleMappedData TestData;
         protected IParallelTraining ParallelTraining;
