@@ -436,10 +436,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var values = dst.GetValues();
             var mutation = VBufferMutationContext.Create(
                 ref dst,
-                dst.Length,
-                out bool createdNewValues, out bool _);
+                dst.Length);
 
-            if (!createdNewValues)
+            if (!mutation.CreatedNewValues)
             {
                 // Densify in place.
                 for (int i = values.Length; --i >= 0; )

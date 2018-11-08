@@ -383,11 +383,8 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (src.Length > 0 && src.IsDense)
                 {
                     // Due to sparsity preservation from src, dst must be dense, in the same way.
-                    var mutation = VBufferMutationContext.Create(ref dst,
-                        src.Length,
-                        out bool createdNewValues,
-                        out bool _);
-                    if (!createdNewValues) // We need to clear it
+                    var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                    if (!mutation.CreatedNewValues) // We need to clear it
                         mutation.Values.Clear();
                     mutation.Complete(ref dst);
                 }

@@ -473,13 +473,16 @@ namespace Microsoft.ML.Runtime.Data
         public override string ToString()
             => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
 
+        internal VBufferMutationContext<T> GetMutableContext()
+        {
+            return GetMutableContext(Length, Count, null, false);
+        }
+
         internal VBufferMutationContext<T> GetMutableContext(
             int newLogicalLength,
             int? valuesCount,
             int? maxValuesCapacity,
-            bool keepOldOnResize,
-            out bool createdNewValues,
-            out bool createdNewIndices)
+            bool keepOldOnResize)
         {
             Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength));
             Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount));
@@ -488,10 +491,12 @@ namespace Microsoft.ML.Runtime.Data
             int maxCapacity = maxValuesCapacity ?? newLogicalLength;
 
             T[] values = _values;
+            bool createdNewValues;
             Utils.EnsureSize(ref values, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewValues);
 
             int[] indices = _indices;
             bool isDense = newLogicalLength == valuesCount.Value;
+            bool createdNewIndices;
             if (isDense)
             {
                 createdNewIndices = false;
@@ -516,13 +521,7 @@ namespace Microsoft.ML.Runtime.Data
         public static VBufferMutationContext<T> CreateFromBuffer<T>(
             ref VBuffer<T> destination)
         {
-            return destination.GetMutableContext(
-                destination.Length,
-                destination.Count,
-                maxValuesCapacity: null,
-                keepOldOnResize: false,
-                out bool _,
-                out bool _);
+            return destination.GetMutableContext();
         }
 
         public static VBufferMutationContext<T> Create<T>(
@@ -536,27 +535,7 @@ namespace Microsoft.ML.Runtime.Data
                 newLogicalLength,
                 valuesCount,
                 maxValuesCapacity,
-                keepOldOnResize,
-                out bool _,
-                out bool _);
-        }
-
-        public static VBufferMutationContext<T> Create<T>(
-            ref VBuffer<T> destination,
-            int newLogicalLength,
-            out bool createdNewValues,
-            out bool createdNewIndices,
-            int? valuesCount = null,
-            int? maxValuesCapacity = null,
-            bool keepOldOnResize = false)
-        {
-            return destination.GetMutableContext(
-                newLogicalLength,
-                valuesCount,
-                maxValuesCapacity,
-                keepOldOnResize,
-                out createdNewValues,
-                out createdNewIndices);
+                keepOldOnResize);
         }
     }
 
