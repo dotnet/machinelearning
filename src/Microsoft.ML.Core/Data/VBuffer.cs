@@ -475,14 +475,15 @@ namespace Microsoft.ML.Runtime.Data
 
         internal VBufferMutationContext<T> GetMutableContext()
         {
-            return GetMutableContext(Length, Count, null, false);
+            return GetMutableContext(Length, Count, null, false, false);
         }
 
         internal VBufferMutationContext<T> GetMutableContext(
             int newLogicalLength,
             int? valuesCount,
             int? maxValuesCapacity,
-            bool keepOldOnResize)
+            bool keepOldOnResize,
+            bool requireIndicesOnDense)
         {
             Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength));
             Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount));
@@ -497,7 +498,7 @@ namespace Microsoft.ML.Runtime.Data
             int[] indices = _indices;
             bool isDense = newLogicalLength == valuesCount.Value;
             bool createdNewIndices;
-            if (isDense)
+            if (isDense && !requireIndicesOnDense)
             {
                 createdNewIndices = false;
             }
@@ -511,6 +512,7 @@ namespace Microsoft.ML.Runtime.Data
                 valuesCount.Value,
                 values,
                 indices,
+                requireIndicesOnDense,
                 createdNewValues,
                 createdNewIndices);
         }
@@ -529,13 +531,15 @@ namespace Microsoft.ML.Runtime.Data
             int newLogicalLength,
             int? valuesCount = null,
             int? maxValuesCapacity = null,
-            bool keepOldOnResize = false)
+            bool keepOldOnResize = false,
+            bool requireIndicesOnDense = false)
         {
             return destination.GetMutableContext(
                 newLogicalLength,
                 valuesCount,
                 maxValuesCapacity,
-                keepOldOnResize);
+                keepOldOnResize,
+                requireIndicesOnDense);
         }
     }
 
@@ -555,6 +559,7 @@ namespace Microsoft.ML.Runtime.Data
             int physicalValuesCount,
             T[] values,
             int[] indices,
+            bool requireIndicesOnDense,
             bool createdNewValues,
             bool createdNewIndices)
         {
@@ -565,15 +570,22 @@ namespace Microsoft.ML.Runtime.Data
             bool isDense = logicalLength == physicalValuesCount;
 
             Values = _values.AsSpan(0, physicalValuesCount);
-            Indices = isDense ? default : _indices.AsSpan(0, physicalValuesCount);
+            Indices = !isDense || requireIndicesOnDense ? _indices.AsSpan(0, physicalValuesCount) : default;
 
             CreatedNewValues = createdNewValues;
             CreatedNewIndices = createdNewIndices;
         }
 
-        public void Complete(ref VBuffer<T> destintation)
+        public void Complete(ref VBuffer<T> destintation, int? physicalValuesCount = null)
         {
-            destintation = new VBuffer<T>(_logicalLength, Values.Length, _values, _indices);
+            int count = Values.Length;
+            if (physicalValuesCount.HasValue)
+            {
+                Contracts.Check(physicalValuesCount.Value <= count, "Updating physicalValuesCount during Complete cannot be greater than the original physicalValuesCount value used in Create.");
+                count = physicalValuesCount.Value;
+            }
+
+            destintation = new VBuffer<T>(_logicalLength, count, _values, _indices);
         }
     }
 }

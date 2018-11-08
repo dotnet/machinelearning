@@ -94,8 +94,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     }
                 }
 
-                // TODO: eerhardt - this should be new VBuffer(src.Length, count);
-                mutation.Complete(ref dst);
+                mutation.Complete(ref dst, count);
             }
         }
     }

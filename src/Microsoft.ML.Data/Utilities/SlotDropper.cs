@@ -146,13 +146,17 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // Sparse case.
             // Approximate new count is min(#indices, newLength).
-            var newCount = Math.Min(src.Count, newLength);
+            var newCount = Math.Min(srcValues.Length, newLength);
             var indices = dst.GetIndices();
             var srcIndices = src.GetIndices();
 
             Contracts.Assert(newCount <= src.Length);
 
-            mutation = VBufferMutationContext.Create(ref dst, newLength, newCount);
+            mutation = VBufferMutationContext.Create(
+                ref dst,
+                newLength,
+                newCount,
+                requireIndicesOnDense: true);
 
             int iiDst = 0;
             int iiSrc = 0;
@@ -162,7 +166,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             // REVIEW: Consider using a BitArray with the slots to keep instead of SlotsMax. It would
             // only make sense when the number of ranges is greater than the number of slots divided by 32.
             int max = SlotsMax[iRange];
-            while (iiSrc < src.Count)
+            while (iiSrc < srcValues.Length)
             {
                 // Copy (with offset) the elements before the current range.
                 var index = srcIndices[iiSrc];
@@ -206,10 +210,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            mutation.Complete(ref dst);
-            // now change the ValuesCount to iiDst to be correct
-            VBufferMutationContext.Create(ref dst, newLength, iiDst)
-                .Complete(ref dst);
+            mutation.Complete(ref dst, iiDst);
         }
     }
 }
