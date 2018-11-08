@@ -246,9 +246,9 @@ namespace Microsoft.ML.Transforms.Categorical
         public OneHotHashEncodingEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn,
-            int hashBits,
-            int invertHash,
-            CategoricalTransform.OutputKind outputKind)
+            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
+            int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
+            CategoricalTransform.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
             : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind, hashBits, invertHash: invertHash))
         {
         }

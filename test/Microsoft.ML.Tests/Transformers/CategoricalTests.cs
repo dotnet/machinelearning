@@ -65,6 +65,20 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void CategoricalOneHotHashEncoding()
+        {
+            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+
+            var mlContext = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(mlContext, data);
+
+            var pipe = mlContext.Transforms.Categorical.OneHotHashEncoding("A", "CatA", 16, 0, CategoricalTransform.OutputKind.Bag);
+
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        [Fact]
         public void CategoricalStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
