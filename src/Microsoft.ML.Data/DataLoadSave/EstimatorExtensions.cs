@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValue(estimator, nameof(estimator));
 
-            if (estimator is EstimatorChain<ITransformer> est)
+            if (start is EstimatorChain<ITransformer> est)
                 return est.Append(estimator, scope);
 
             return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);

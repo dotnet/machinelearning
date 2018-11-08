@@ -50,10 +50,10 @@ namespace Microsoft.ML.Runtime
         /// Keep only those rows that satisfy the range condition: the value of column <paramref name="columnName"/>
         /// must be between <paramref name="minimum"/> and <paramref name="maximum"/>, inclusive.
         /// </summary>
-        /// <param name="input">The input data</param>
-        /// <param name="columnName">The name of a column to use for filtering</param>
-        /// <param name="minimum">The inclusive lower bound</param>
-        /// <param name="maximum">The inclusive upper bound</param>
+        /// <param name="input">The input data.</param>
+        /// <param name="columnName">The name of a column to use for filtering.</param>
+        /// <param name="minimum">The inclusive lower bound.</param>
+        /// <param name="maximum">The inclusive upper bound.</param>
         public IDataView FilterByColumn(IDataView input, string columnName, double minimum = double.NegativeInfinity, double maximum = double.PositiveInfinity)
         {
             Environment.CheckValue(input, nameof(input));
@@ -72,10 +72,10 @@ namespace Microsoft.ML.Runtime
         /// This filtering is useful if the <paramref name="columnName"/> is a key column obtained by some 'stable randomization'
         /// (for example, hashing).
         /// </summary>
-        /// <param name="input">The input data</param>
-        /// <param name="columnName">The name of a column to use for filtering</param>
-        /// <param name="minimum">The inclusive lower bound</param>
-        /// <param name="maximum">The inclusive upper bound</param>
+        /// <param name="input">The input data.</param>
+        /// <param name="columnName">The name of a column to use for filtering.</param>
+        /// <param name="minimum">The inclusive lower bound.</param>
+        /// <param name="maximum">The inclusive upper bound.</param>
         public IDataView FilterByKeyColumnFraction(IDataView input, string columnName, double minimum = 0, double maximum = 1)
         {
             Environment.CheckValue(input, nameof(input));
