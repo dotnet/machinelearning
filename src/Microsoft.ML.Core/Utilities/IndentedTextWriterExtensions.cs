@@ -9,41 +9,42 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class IndentedTextWriterExtensions
+    [BestFriend]
+    internal static class IndentedTextWriterExtensions
     {
         public struct Scope : IDisposable
         {
-            private IndentedTextWriter _wrt;
+            private IndentedTextWriter _writer;
 
-            public Scope(IndentedTextWriter wrt)
+            public Scope(IndentedTextWriter writer)
             {
-                _wrt = wrt;
-                _wrt.Indent();
+                _writer = writer;
+                _writer.Indent();
             }
             public void Dispose()
             {
-                _wrt.Outdent();
-                _wrt = null;
+                _writer.Outdent();
+                _writer = null;
             }
         }
 
-        public static Scope Nest(this IndentedTextWriter wrt)
+        public static Scope Nest(this IndentedTextWriter writer)
         {
-            return new Scope(wrt);
+            return new Scope(writer);
         }
 
-        public static void Indent(this IndentedTextWriter wrt)
+        public static void Indent(this IndentedTextWriter writer)
         {
-            wrt.Indent++;
+            writer.Indent++;
         }
-        public static void Outdent(this IndentedTextWriter wrt)
+        public static void Outdent(this IndentedTextWriter writer)
         {
-            --wrt.Indent;
+            writer.Indent--;
         }
 
-        public static void WriteLineNoTabs(this IndentedTextWriter wrt)
+        public static void WriteLineNoTabs(this IndentedTextWriter writer)
         {
-            wrt.WriteLineNoTabs(string.Empty);
+            writer.WriteLineNoTabs(string.Empty);
         }
     }
 }

@@ -109,32 +109,30 @@ namespace Microsoft.ML.Runtime.RunTests
         private static void Process(IndentedTextWriter wrt, string text, ArgsBase defaults)
         {
             var env = new ConsoleEnvironment(seed: 42);
-            using (wrt.Nest())
-            {
-                var args1 = defaults.Clone();
-                using (wrt.Nest())
-                {
-                    if (!CmdParser.ParseArguments(env, text, args1, s => wrt.WriteLine("*** {0}", s)))
-                        wrt.WriteLine("*** Failed!");
-                }
-                string str1 = args1.ToString();
-                wrt.WriteLine("ToString: {0}", str1);
-                string settings1 = CmdParser.GetSettings(env, args1, defaults, SettingsFlags.None);
-                wrt.WriteLine("Settings: {0}", settings1);
 
-                var args2 = defaults.Clone();
-                using (wrt.Nest())
-                {
-                    if (!CmdParser.ParseArguments(env, settings1, args2, s => wrt.WriteLine("*** BUG: {0}", s)))
-                        wrt.WriteLine("*** BUG: parsing result of GetSettings failed!");
-                }
-                string str2 = args2.ToString();
-                if (str1 != str2)
-                    wrt.WriteLine("*** BUG: ToString Mismatch: {0}", str2);
-                string settings2 = CmdParser.GetSettings(env, args2, defaults, SettingsFlags.None);
-                if (settings1 != settings2)
-                    wrt.WriteLine("*** BUG: Settings Mismatch: {0}", settings2);
-            }
+            wrt.Indent++;
+            var args1 = defaults.Clone();
+            wrt.Indent++;
+            if (!CmdParser.ParseArguments(env, text, args1, s => wrt.WriteLine("*** {0}", s)))
+                wrt.WriteLine("*** Failed!");
+            wrt.Indent--;
+            string str1 = args1.ToString();
+            wrt.WriteLine("ToString: {0}", str1);
+            string settings1 = CmdParser.GetSettings(env, args1, defaults, SettingsFlags.None);
+            wrt.WriteLine("Settings: {0}", settings1);
+
+            var args2 = defaults.Clone();
+            wrt.Indent++;
+            if (!CmdParser.ParseArguments(env, settings1, args2, s => wrt.WriteLine("*** BUG: {0}", s)))
+                wrt.WriteLine("*** BUG: parsing result of GetSettings failed!");
+            wrt.Indent--;
+            string str2 = args2.ToString();
+            if (str1 != str2)
+                wrt.WriteLine("*** BUG: ToString Mismatch: {0}", str2);
+            string settings2 = CmdParser.GetSettings(env, args2, defaults, SettingsFlags.None);
+            if (settings1 != settings2)
+                wrt.WriteLine("*** BUG: Settings Mismatch: {0}", settings2);
+            wrt.Indent++;
         }
 
         private abstract class ArgsBase
