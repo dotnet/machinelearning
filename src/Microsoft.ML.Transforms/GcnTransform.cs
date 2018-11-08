@@ -581,8 +581,8 @@ namespace Microsoft.ML.Transforms.Projections
 
                 if (count == 0)
                 {
-                    VBufferMutationContext.Create(ref dst, length, 0)
-                        .Complete(ref dst);
+                    dst = VBufferMutationContext.Create(ref dst, length, 0)
+                        .CreateBuffer();
                     return;
                 }
                 ectx.Assert(count > 0);
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Transforms.Projections
                     }
 
                     CpuMathUtils.Scale(normScale, src.GetValues(), dstValues, count);
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
 
                     return;
                 }

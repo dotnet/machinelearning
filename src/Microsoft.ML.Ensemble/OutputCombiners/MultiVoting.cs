@@ -77,8 +77,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             int count = Utils.Size(src);
             if (count == 0)
             {
-                VBufferMutationContext.Create(ref dst, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 mutation.Values[i] /= voteCount;
 
             // Set the output to values.
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

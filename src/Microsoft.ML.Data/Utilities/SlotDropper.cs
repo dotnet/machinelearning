@@ -107,8 +107,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             if (newLength == 0)
             {
                 // All slots dropped.
-                VBufferMutationContext.Create(ref dst, 1, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, 1, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     mutation.Values[iDst++] = srcValues[iSrc++];
                 }
                 Contracts.Assert(iDst == newLength);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 return;
             }
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            mutation.Complete(ref dst, iiDst);
+            dst = mutation.CreateBuffer(iiDst);
         }
     }
 }

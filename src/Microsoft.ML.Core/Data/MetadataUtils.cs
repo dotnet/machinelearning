@@ -319,8 +319,8 @@ namespace Microsoft.ML.Runtime.Data
             IReadOnlyList<ColumnInfo> list;
             if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema.HasSlotNames(list[0].Index, vectorSize))
             {
-                VBufferMutationContext.Create(ref slotNames, vectorSize, 0)
-                    .Complete(ref slotNames);
+                slotNames = VBufferMutationContext.Create(ref slotNames, vectorSize, 0)
+                    .CreateBuffer();
             }
             else
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);

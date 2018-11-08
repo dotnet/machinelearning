@@ -1281,7 +1281,7 @@ namespace Microsoft.ML.Runtime.Data
                                     {
                                         mutation = VBufferMutationContext.Create(ref value, len);
                                         _inputValue.GetValues().Slice(min, len).CopyTo(mutation.Values);
-                                        mutation.Complete(ref value);
+                                        value = mutation.CreateBuffer();
                                         return;
                                     }
                                     // In the sparse case we have ranges on Indices/Values to consider.
@@ -1290,8 +1290,8 @@ namespace Microsoft.ML.Runtime.Data
                                     int scount = slim - smin;
                                     if (scount == 0)
                                     {
-                                        VBufferMutationContext.Create(ref value, len, 0)
-                                            .Complete(ref value);
+                                        value = VBufferMutationContext.Create(ref value, len, 0)
+                                            .CreateBuffer();
                                         return;
                                     }
 
@@ -1308,7 +1308,7 @@ namespace Microsoft.ML.Runtime.Data
                                         }
                                     }
                                     _inputValue.GetValues().Slice(smin, scount).CopyTo(mutation.Values);
-                                    mutation.Complete(ref value);
+                                    value = mutation.CreateBuffer();
                                 };
                         }
 

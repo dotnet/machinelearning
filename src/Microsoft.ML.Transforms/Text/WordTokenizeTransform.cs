@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             mutation.Values[i] = terms[i];
                         }
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                     };
             }
 

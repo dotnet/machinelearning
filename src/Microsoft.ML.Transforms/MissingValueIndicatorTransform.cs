@@ -276,8 +276,8 @@ namespace Microsoft.ML.Transforms
         {
             if (input == 0)
             {
-                VBufferMutationContext.Create(ref result, 2, 0)
-                    .Complete(ref result);
+                result = VBufferMutationContext.Create(ref result, 2, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Transforms
                 mutation.Indices[0] = 0;
             }
 
-            mutation.Complete(ref result);
+            result = mutation.CreateBuffer();
         }
 
         // This converts in place.
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Transforms
             }
 
             ectx.Assert(0 <= iivDst & iivDst <= values.Length);
-            mutation.Complete(ref buffer, iivDst);
+            buffer = mutation.CreateBuffer(iivDst);
         }
     }
 }

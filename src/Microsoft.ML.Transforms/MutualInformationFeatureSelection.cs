@@ -786,7 +786,7 @@ namespace Microsoft.ML.Transforms
                 input.GetIndices().CopyTo(mutation.Indices);
             }
 
-            mutation.Complete(ref output);
+            output = mutation.CreateBuffer();
         }
     }
 }

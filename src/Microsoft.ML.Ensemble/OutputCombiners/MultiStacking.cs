@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 Contracts.Assert(iv <= len);
             }
             Contracts.Assert(iv == len);
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

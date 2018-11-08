@@ -434,8 +434,8 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (IsEmpty)
             {
-                VBufferMutationContext.Create(ref buffer, _length, 0)
-                    .Complete(ref buffer);
+                buffer = VBufferMutationContext.Create(ref buffer, _length, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var mutation = VBufferMutationContext.Create(ref buffer, _length);
                 _values.AsSpan(0, _length).CopyTo(mutation.Values);
-                mutation.Complete(ref buffer);
+                buffer = mutation.CreateBuffer();
             }
             else
             {
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Runtime.Data
                 var mutation = VBufferMutationContext.Create(ref buffer, _length, _count);
                 _values.AsSpan(0, _count).CopyTo(mutation.Values);
                 _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                mutation.Complete(ref buffer);
+                buffer = mutation.CreateBuffer();
             }
         }
     }

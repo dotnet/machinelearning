@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             int len = src.Length;
             var mutation = VBufferMutationContext.Create(ref dst, len);
             src.CopyTo(mutation.Values);
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

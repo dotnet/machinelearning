@@ -1368,7 +1368,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             for (int i = 0; i < srcValues.Length; ++i)
                                 conv(in srcValues[i], ref mutation.Values[i]);
                         }
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                     };
             }
 

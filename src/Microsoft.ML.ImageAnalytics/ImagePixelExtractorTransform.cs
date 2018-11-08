@@ -478,8 +478,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
                         if (src == null)
                         {
-                            VBufferMutationContext.Create(ref dst, size, 0)
-                                .Complete(ref dst);
+                            dst = VBufferMutationContext.Create(ref dst, size, 0)
+                                .CreateBuffer();
                             return;
                         }
 
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             }
                         }
 
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                     };
             }
 

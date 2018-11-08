@@ -854,8 +854,8 @@ namespace Microsoft.ML.Transforms.Text
                 var srcValues = src.GetValues();
                 if (srcValues.Length == 0)
                 {
-                    VBufferMutationContext.Create(ref dst, len, 0)
-                        .Complete(ref dst);
+                    dst = VBufferMutationContext.Create(ref dst, len, 0)
+                        .CreateBuffer();
                     return;
                 }
 
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Transforms.Text
                         mutation = VBufferMutationContext.Create(ref dst, len);
                         for (int k = 0; k < len; k++)
                             mutation.Values[k] = Float.NaN;
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                         return;
                     }
 
@@ -920,7 +920,7 @@ namespace Microsoft.ML.Transforms.Text
                     for (int i = 0; i < count; i++)
                         mutation.Values[i] = (Float)(mutation.Values[i] / normalizer);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
 
             public void Dispose()

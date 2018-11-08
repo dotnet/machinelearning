@@ -929,7 +929,7 @@ namespace Microsoft.ML.Transforms
 
                     var mutation = VBufferMutationContext.Create(ref dst, (int)tensorSize);
                     TensorFlowUtils.FetchData<T>(tensor.Data, mutation.Values);
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 };
                 return valuegetter;
             }

@@ -596,7 +596,7 @@ namespace Microsoft.ML.Transforms.Conversions
                                 mutation.Indices[count++] = indices[islot] * size + (int)key;
                             }
                         }
-                        mutation.Complete(ref dst, count);
+                        dst = mutation.CreateBuffer(count);
                     };
             }
 

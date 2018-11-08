@@ -613,7 +613,7 @@ namespace Microsoft.ML.Transforms.Text
                             for (int index = 0; index < dimension; index++)
                                 mutation.Values[index + dimension] /= deno;
 
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                     };
             }
         }

@@ -108,8 +108,8 @@ namespace Microsoft.ML.Runtime.Numeric
             if (count == 0)
             {
                 // dst is a zero vector.
-                VBufferMutationContext.Create(ref dst, length, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, length, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     mutation.Values.Clear();
                 else
                     CpuMathUtils.Scale(c, srcValues, mutation.Values, length);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
             else
             {
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     mutation.Values.Clear();
                 else
                     CpuMathUtils.Scale(c, srcValues, mutation.Values, count);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
         }
 
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 var mutation = VBufferMutationContext.Create(ref res, length);
                 CpuMathUtils.AddScaleCopy(c, srcValues, dst.GetValues(), mutation.Values, length);
-                mutation.Complete(ref res);
+                res = mutation.CreateBuffer();
                 return;
             }
 
@@ -368,7 +368,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     }
                 }
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -394,12 +394,12 @@ namespace Microsoft.ML.Runtime.Numeric
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length);
                     if (!mutation.CreatedNewValues) // We need to clear it
                         mutation.Values.Clear();
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
                 else
                 {
-                    VBufferMutationContext.Create(ref dst, src.Length, 0)
-                        .Complete(ref dst);
+                    dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
+                        .CreateBuffer();
                 }
             }
             else if (c == -1)

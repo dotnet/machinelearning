@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length);
                     for (int i = 0; i < srcValues.Length; i++)
                         mutation.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
                 else
                 {
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     }
 
                     Contracts.Assert(count == cardinality);
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
             }
             else
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     }
                 }
 
-                mutation.Complete(ref dst, count);
+                dst = mutation.CreateBuffer(count);
             }
         }
     }

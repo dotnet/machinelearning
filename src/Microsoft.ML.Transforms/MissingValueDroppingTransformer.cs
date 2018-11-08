@@ -240,8 +240,8 @@ namespace Microsoft.ML.Runtime.Data
 
             if (newCount == 0)
             {
-                VBufferMutationContext.Create(ref dst, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -251,8 +251,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (!dst.IsDense)
                 {
                     Host.Assert(dst.GetValues().Length == newCount);
-                    VBufferMutationContext.Create(ref dst, newCount)
-                        .Complete(ref dst);
+                    dst = VBufferMutationContext.Create(ref dst, newCount)
+                        .CreateBuffer();
                 }
                 return;
             }
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             Host.Assert(iDst == newCount);
 
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
@@ -286,8 +286,8 @@ namespace Microsoft.ML.Runtime.Data
 
             if (newCount == 0)
             {
-                VBufferMutationContext.Create(ref dst, src.Length - srcValues.Length, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, src.Length - srcValues.Length, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 Host.Assert(iDst == newCount);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
             else
             {
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 Host.Assert(iDst == newCount);
                 Host.Assert(offset == srcValues.Length - newCount);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
         }
     }

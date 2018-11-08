@@ -411,7 +411,7 @@ namespace Microsoft.ML.Trainers
                     (float)(logProb + (_absentFeaturesLogProb[iLabel] - absentFeatureLogProb));
             }
 
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

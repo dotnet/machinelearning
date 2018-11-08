@@ -403,8 +403,8 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (_count == 0)
                     {
-                        VBufferMutationContext.Create(ref dst, _size, 0)
-                            .Complete(ref dst);
+                        dst = VBufferMutationContext.Create(ref dst, _size, 0)
+                            .CreateBuffer();
                         return;
                     }
 
@@ -412,12 +412,12 @@ namespace Microsoft.ML.Runtime.Data
                     _values.AsSpan(0, _count).CopyTo(mutation.Values);
                     if (_count == _size)
                     {
-                        mutation.Complete(ref dst);
+                        dst = mutation.CreateBuffer();
                         return;
                     }
 
                     _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
             }
 

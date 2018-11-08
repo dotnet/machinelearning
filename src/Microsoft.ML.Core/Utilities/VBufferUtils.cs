@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (needIndices)
                 mutation.Indices[idx] = slot;
             mutation.Values[idx] = value;
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 for (int i = 0; i < values.Length; ++i)
                     mutation.Values[indices[i]] = values[i];
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 var newIndicesMutation = VBufferMutationContext.Create(ref dst, dst.Length, denseCount);
                 Utils.FillIdentity(newIndicesMutation.Indices, denseCount);
                 newIndicesMutation.Values.Clear();
-                newIndicesMutation.Complete(ref dst);
+                dst = newIndicesMutation.CreateBuffer();
                 return;
             }
             int lim = Utils.FindIndexSorted(dstIndices, 0, dstValues.Length, denseCount);
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 mutation.Values[ii] = i >= 0 && dstIndices[i] == ii ? dstValues[i--] : default(T);
                 mutation.Indices[ii] = ii;
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Contracts.Assert(j == sparseCount);
             }
 
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -768,7 +768,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 mutation.Values.Clear();
                 for (int i = 0; i < srcValues.Length; i++)
                     manip(mutation.Indices[i] = srcIndices[i], srcValues[i], ref mutation.Values[i]);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 return;
             }
 
@@ -861,7 +861,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         dIndex = --dI >= 0 ? dstIndices[dI] : -1;
                     }
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 return;
             }
 
@@ -926,7 +926,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     Contracts.Assert(srcIndices[sI] == bIndex);
                     mutation.Indices[dI] = sI++;
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 Densify(ref dst);
 
                 mutation = VBufferMutationContext.Create(ref dst,
@@ -936,7 +936,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 srcIndices.CopyTo(mutation.Indices);
                 for (sI = 0; sI < srcValues.Length; sI++)
                     manip(srcIndices[sI], srcValues[sI], ref mutation.Values[sI]);
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 return;
             }
 
@@ -963,8 +963,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 if (srcValues.Length == 0)
                 {
-                    VBufferMutationContext.Create(ref res, length, 0)
-                        .Complete(ref res);
+                    res = VBufferMutationContext.Create(ref res, length, 0)
+                        .CreateBuffer();
                 }
                 else if (src.IsDense)
                 {
@@ -972,7 +972,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     var mutation = VBufferMutationContext.Create(ref res, length);
                     for (int i = 0; i < length; i++)
                         manip(i, srcValues[i], default(TDst), ref mutation.Values[i]);
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
                 else
                 {
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         mutation.Indices[ii] = i;
                         manip(i, srcValues[ii], default(TDst), ref mutation.Values[ii]);
                     }
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
             }
             else if (dst.IsDense)
@@ -1008,14 +1008,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         for (int j = 0; j < length; j++)
                             mutation.Values[j] = dstValues[j];
                     }
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
                 else if (src.IsDense)
                 {
                     Contracts.Assert(srcValues.Length == src.Length);
                     for (int i = 0; i < length; i++)
                         manip(i, srcValues[i], dstValues[i], ref mutation.Values[i]);
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
                 else
                 {
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                                 mutation.Values[j] = dstValues[j];
                         }
                     }
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
             }
             else
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                             mutation.Values[jj] = dstValues[jj];
                         }
                     }
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
                 else if (src.IsDense)
                 {
@@ -1101,7 +1101,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         else
                             manip(i, srcValues[i], default(TDst), ref mutation.Values[i]);
                     }
-                    mutation.Complete(ref res);
+                    res = mutation.CreateBuffer();
                 }
                 else
                 {
@@ -1183,7 +1183,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
                         Contracts.Assert(ii == srcValues.Length && jj == dstCount);
                         Contracts.Assert(i == length && j == length);
-                        mutation.Complete(ref res);
+                        res = mutation.CreateBuffer();
                     }
                 }
             }
@@ -1209,8 +1209,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // equal lengths, but I don't care here.
             if (srcValues.Length == 0)
             {
-                VBufferMutationContext.Create(ref dst, src.Length, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
+                    .CreateBuffer();
                 return;
             }
             var mutation = VBufferMutationContext.Create(ref dst,
@@ -1231,7 +1231,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 for (int i = 0; i < srcValues.Length; ++i)
                     values[i] = func(srcIndices[i], srcValues[i]);
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -1263,8 +1263,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (aValues.Length == 0 && bValues.Length == 0)
             {
                 // Case 1. Output will be empty.
-                VBufferMutationContext.Create(ref dst, a.Length, 0)
-                    .Complete(ref dst);
+                dst = VBufferMutationContext.Create(ref dst, a.Length, 0)
+                    .CreateBuffer();
                 return;
             }
 
@@ -1303,7 +1303,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     for (int i = 0; i < a.Length; i++)
                         mutation.Values[i] = func(i, aValues[i], bValues[i]);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 return;
             }
 
@@ -1421,7 +1421,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     indices[newI++] = index;
                 }
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -1439,7 +1439,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     mutation.Values[i] = src[i];
                 }
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

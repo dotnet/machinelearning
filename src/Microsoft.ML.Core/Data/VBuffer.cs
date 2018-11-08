@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Data
                 CopyTo(mutation.Values);
             else if (Length > 0)
                 _values.AsSpan(0, Length).CopyTo(mutation.Values);
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     _values.AsSpan(0, Length).CopyTo(mutation.Values);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 Contracts.Assert(dst.IsDense);
             }
             else
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values.AsSpan(0, _count).CopyTo(mutation.Values);
                     _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     _values.AsSpan(srcMin, length).CopyTo(mutation.Values);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
                 Contracts.Assert(dst.IsDense);
             }
             else
@@ -196,189 +196,15 @@ namespace Microsoft.ML.Runtime.Data
                                 mutation.Indices[i] = _indices[i + copyMin] - srcMin;
                         }
                     }
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
                 else
                 {
                     var mutation = VBufferMutationContext.Create(ref dst, length, copyCount);
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 }
             }
         }
-
-/*        /// <summary>
-        /// Copy from this buffer to the given destination, making sure to explicitly include the
-        /// first count indices in indicesInclude. Note that indicesInclude should be sorted
-        /// with each index less than this.Length. Note that this can make the destination be
-        /// dense even if "this" is sparse.
-        /// </summary>
-        public void CopyTo(ref VBuffer<T> dst, int[] indicesInclude, int count)
-        {
-            Contracts.CheckParam(count >= 0, nameof(count));
-            Contracts.CheckParam(Utils.Size(indicesInclude) >= count, nameof(indicesInclude));
-            Contracts.CheckParam(Utils.Size(indicesInclude) <= Length, nameof(indicesInclude));
-
-            // REVIEW: Ideally we should Check that indicesInclude is sorted and in range. Would that
-            // check be too expensive?
-#if DEBUG
-            int prev = -1;
-            for (int i = 0; i < count; i++)
-            {
-                Contracts.Assert(prev < indicesInclude[i]);
-                prev = indicesInclude[i];
-            }
-            Contracts.Assert(prev < Length);
-#endif
-
-            if (IsDense || count == 0)
-            {
-                CopyTo(ref dst);
-                return;
-            }
-
-            if (count >= Length / 2 || Count >= Length / 2)
-            {
-                CopyToDense(ref dst);
-                return;
-            }
-
-            var indices = dst.Indices;
-            var values = dst.Values;
-            if (Count == 0)
-            {
-                // No values in "this".
-                if (Utils.Size(indices) < count)
-                    indices = new int[count];
-                Array.Copy(indicesInclude, indices, count);
-                if (Utils.Size(values) < count)
-                    values = new T[count];
-                else
-                    Array.Clear(values, 0, count);
-                dst = new VBuffer<T>(Length, count, values, indices);
-                return;
-            }
-
-            int size = 0;
-            int max = count + Count;
-            Contracts.Assert(max < Length);
-            int ii1;
-            int ii2;
-            if (max >= Length / 2 || Utils.Size(values) < max || Utils.Size(indices) < max)
-            {
-                // Compute the needed size.
-                ii1 = 0;
-                ii2 = 0;
-                for (; ; )
-                {
-                    Contracts.Assert(ii1 < Count);
-                    Contracts.Assert(ii2 < count);
-                    size++;
-                    int diff = Indices[ii1] - indicesInclude[ii2];
-                    if (diff == 0)
-                    {
-                        ii1++;
-                        ii2++;
-                        if (ii1 >= Count)
-                        {
-                            size += count - ii2;
-                            break;
-                        }
-                        if (ii2 >= count)
-                        {
-                            size += Count - ii1;
-                            break;
-                        }
-                    }
-                    else if (diff < 0)
-                    {
-                        if (++ii1 >= Count)
-                        {
-                            size += count - ii2;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (++ii2 >= count)
-                        {
-                            size += Count - ii1;
-                            break;
-                        }
-                    }
-                }
-                Contracts.Assert(size >= count && size >= Count);
-
-                if (size == Count)
-                {
-                    CopyTo(ref dst);
-                    return;
-                }
-
-                if (size >= Length / 2)
-                {
-                    CopyToDense(ref dst);
-                    return;
-                }
-
-                if (Utils.Size(values) < size)
-                    values = new T[size];
-                if (Utils.Size(indices) < size)
-                    indices = new int[size];
-                max = size;
-            }
-
-            int ii = 0;
-            ii1 = 0;
-            ii2 = 0;
-            for (; ; )
-            {
-                Contracts.Assert(ii < max);
-                Contracts.Assert(ii1 < Count);
-                Contracts.Assert(ii2 < count);
-                int i1 = Indices[ii1];
-                int i2 = indicesInclude[ii2];
-                if (i1 <= i2)
-                {
-                    indices[ii] = i1;
-                    values[ii] = Values[ii1];
-                    ii++;
-                    if (i1 == i2)
-                        ii2++;
-                    if (++ii1 >= Count)
-                    {
-                        if (ii2 >= count)
-                            break;
-                        Array.Clear(values, ii, count - ii2);
-                        Array.Copy(indicesInclude, ii2, indices, ii, count - ii2);
-                        ii += count - ii2;
-                        break;
-                    }
-                    if (ii2 >= count)
-                    {
-                        Array.Copy(Values, ii1, values, ii, Count - ii1);
-                        Array.Copy(Indices, ii1, indices, ii, Count - ii1);
-                        ii += Count - ii1;
-                        break;
-                    }
-                }
-                else
-                {
-                    indices[ii] = i2;
-                    values[ii] = default(T);
-                    ii++;
-                    if (++ii2 >= count)
-                    {
-                        Array.Copy(Values, ii1, values, ii, Count - ii1);
-                        Array.Copy(Indices, ii1, indices, ii, Count - ii1);
-                        ii += Count - ii1;
-                        break;
-                    }
-                }
-            }
-            Contracts.Assert(size == ii || size == 0);
-
-            dst = new VBuffer<T>(Length, ii, values, indices);
-        }*/
 
         /// <summary>
         /// Copy from this buffer to the given destination array. This "densifies".
@@ -432,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 src.AsSpan(srcIndex, length).CopyTo(mutation.Values);
             }
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
@@ -475,21 +301,20 @@ namespace Microsoft.ML.Runtime.Data
 
         internal VBufferMutationContext<T> GetMutableContext()
         {
-            return GetMutableContext(Length, _count, null, false, false);
+            return GetMutableContext(Length, _count);
         }
 
         internal VBufferMutationContext<T> GetMutableContext(
             int newLogicalLength,
             int? valuesCount,
-            int? maxValuesCapacity,
-            bool keepOldOnResize,
-            bool requireIndicesOnDense)
+            int maxCapacity = Utils.ArrayMaxSize,
+            bool keepOldOnResize = false,
+            bool requireIndicesOnDense = false)
         {
             Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength));
             Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount));
 
             valuesCount = valuesCount ?? newLogicalLength;
-            int maxCapacity = maxValuesCapacity ?? newLogicalLength;
 
             T[] values = _values;
             bool createdNewValues;
@@ -515,77 +340,6 @@ namespace Microsoft.ML.Runtime.Data
                 requireIndicesOnDense,
                 createdNewValues,
                 createdNewIndices);
-        }
-    }
-
-    public static class VBufferMutationContext
-    {
-        public static VBufferMutationContext<T> CreateFromBuffer<T>(
-            ref VBuffer<T> destination)
-        {
-            return destination.GetMutableContext();
-        }
-
-        public static VBufferMutationContext<T> Create<T>(
-            ref VBuffer<T> destination,
-            int newLogicalLength,
-            int? valuesCount = null,
-            int? maxValuesCapacity = null,
-            bool keepOldOnResize = false,
-            bool requireIndicesOnDense = false)
-        {
-            return destination.GetMutableContext(
-                newLogicalLength,
-                valuesCount,
-                maxValuesCapacity,
-                keepOldOnResize,
-                requireIndicesOnDense);
-        }
-    }
-
-    public ref struct VBufferMutationContext<T>
-    {
-        private readonly int _logicalLength;
-        private readonly T[] _values;
-        private readonly int[] _indices;
-
-        public readonly Span<T> Values;
-        public readonly Span<int> Indices;
-
-        public bool CreatedNewValues { get;}
-        public bool CreatedNewIndices { get;}
-
-        internal VBufferMutationContext(int logicalLength,
-            int physicalValuesCount,
-            T[] values,
-            int[] indices,
-            bool requireIndicesOnDense,
-            bool createdNewValues,
-            bool createdNewIndices)
-        {
-            _logicalLength = logicalLength;
-            _values = values;
-            _indices = indices;
-
-            bool isDense = logicalLength == physicalValuesCount;
-
-            Values = _values.AsSpan(0, physicalValuesCount);
-            Indices = !isDense || requireIndicesOnDense ? _indices.AsSpan(0, physicalValuesCount) : default;
-
-            CreatedNewValues = createdNewValues;
-            CreatedNewIndices = createdNewIndices;
-        }
-
-        public void Complete(ref VBuffer<T> destintation, int? physicalValuesCount = null)
-        {
-            int count = Values.Length;
-            if (physicalValuesCount.HasValue)
-            {
-                Contracts.Check(physicalValuesCount.Value <= count, "Updating physicalValuesCount during Complete cannot be greater than the original physicalValuesCount value used in Create.");
-                count = physicalValuesCount.Value;
-            }
-
-            destintation = new VBuffer<T>(_logicalLength, count, _values, _indices);
         }
     }
 }

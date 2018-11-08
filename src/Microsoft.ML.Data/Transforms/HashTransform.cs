@@ -746,8 +746,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcValues = src.GetValues();
                     if (srcValues.Length == 0)
                     {
-                        VBufferMutationContext.Create(ref dst, src.Length, 0)
-                            .Complete(ref dst);
+                        dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
+                            .CreateBuffer();
                         return;
                     }
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!src.IsDense)
                         src.GetIndices().CopyTo(mutation.Indices);
 
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 };
             }
             // It is not sparsity preserving.
@@ -785,7 +785,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     for (int i = 0; i < srcValues.Length; ++i)
                         mutation.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             };
         }
 
@@ -809,8 +809,8 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcValues = src.GetValues();
                     if (srcValues.Length == 0)
                     {
-                        VBufferMutationContext.Create(ref dst, src.Length, 0)
-                            .Complete(ref dst);
+                        dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
+                            .CreateBuffer();
                         return;
                     }
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         srcIndices.CopyTo(mutation.Indices);
 
                     }
-                    mutation.Complete(ref dst);
+                    dst = mutation.CreateBuffer();
                 };
             }
             // It is not sparsity preserving.
@@ -858,7 +858,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             Contracts.Assert(false, "this should have never happened.");
                     }
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             };
         }
 

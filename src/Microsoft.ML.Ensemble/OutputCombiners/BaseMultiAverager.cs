@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             if (!mutation.CreatedNewValues)
                 mutation.Values.Clear();
             // Set the output to values.
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
 
             Single weightTotal;
             if (weights == null)

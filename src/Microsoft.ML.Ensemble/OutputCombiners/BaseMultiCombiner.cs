@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             var mutation = VBufferMutationContext.Create(ref dst, len);
             for (int i = 0; i < len; i++)
                 mutation.Values[i] = Single.NaN;
-            mutation.Complete(ref dst);
+            dst = mutation.CreateBuffer();
         }
     }
 }

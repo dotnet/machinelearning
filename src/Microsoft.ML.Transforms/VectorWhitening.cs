@@ -748,7 +748,7 @@ namespace Microsoft.ML.Transforms.Projections
                         offs += length;
                     }
                 }
-                mutation.Complete(ref dst);
+                dst = mutation.CreateBuffer();
             }
 
             private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
