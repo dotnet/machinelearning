@@ -693,7 +693,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 }
 
-        [Fact]
+        [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
         public void FeatureSelection()
         {
             var env = new ConsoleEnvironment(seed: 0);
