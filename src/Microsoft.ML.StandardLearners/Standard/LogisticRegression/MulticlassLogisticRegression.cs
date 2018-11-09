@@ -392,7 +392,7 @@ namespace Microsoft.ML.Runtime.Learners
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
-        public bool CanSavePfa => true;
+        bool ICanSavePfa.CanSavePfa => true;
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Learners
             SaveAsText(writer, schema);
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));

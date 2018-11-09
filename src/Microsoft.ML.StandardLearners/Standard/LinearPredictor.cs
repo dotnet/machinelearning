@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ColumnType OutputType => NumberType.Float;
 
-        public bool CanSavePfa => true;
+        bool ICanSavePfa.CanSavePfa => true;
 
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.Writer.WriteSingleArray(Weight.GetValues());
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));

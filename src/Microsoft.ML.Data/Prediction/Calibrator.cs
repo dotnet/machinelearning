@@ -265,7 +265,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return _whatTheFeature.GetWhatTheFeatureMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return mapper.SaveAsPfa(ctx, input);
         }
 
-        public void SaveAsPfa(BoundPfaContext ctx, JToken input,
+        void IDistCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input,
             string score, out JToken scoreToken, string prob, out JToken probToken)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.CheckValueOrNull(score);
             Host.CheckValueOrNull(prob);
 
-            JToken scoreExpression = SaveAsPfa(ctx, input);
+            JToken scoreExpression = ((ISingleCanSavePfa)this).SaveAsPfa(ctx, input);
             scoreToken = ctx.DeclareVar(score, scoreExpression);
             var calibrator = Calibrator as ISingleCanSavePfa;
             if (calibrator?.CanSavePfa != true)
@@ -1348,7 +1348,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
         public Double ParamA { get; }
         public Double ParamB { get; }
-        public bool CanSavePfa => true;
+        bool ICanSavePfa.CanSavePfa => true;
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)
@@ -1426,7 +1426,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return (Float)(1 / (1 + Math.Exp(a * output + b)));
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(input, nameof(input));

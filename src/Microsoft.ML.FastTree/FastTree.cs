@@ -2838,7 +2838,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
-        public bool CanSavePfa => true;
+        bool ICanSavePfa.CanSavePfa => true;
         public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
@@ -3019,7 +3019,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));

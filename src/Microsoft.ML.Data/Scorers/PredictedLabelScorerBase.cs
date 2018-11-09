@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override BindingsBase GetBindings() => Bindings;
         public override Schema Schema { get; }
 
-        public bool CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
+        bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
         public bool CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Runtime.Data
             Bindings.Save(ctx);
         }
 
-        public void SaveAsPfa(BoundPfaContext ctx)
+        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSavePfa);
