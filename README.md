@@ -65,18 +65,19 @@ Here's an example of code to train a model to predict sentiment from text sample
 (You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
-var env = new LocalEnvironment();
-var reader = TextLoader.CreateReader(env, ctx => (
-        Target: ctx.LoadFloat(2),
-        FeatureVector: ctx.LoadFloat(3, 6)),
-        separator: ',',
-        hasHeader: true);
-var data = reader.Read(new MultiFileSource(dataPath));
-var classification = new MulticlassClassificationContext(env);
-var learningPipeline = reader.MakeNewEstimator()
-    .Append(r => (
-    r.Target,
-    Prediction: classification.Trainers.Sdca(r.Target.ToKey(), r.FeatureVector)));
+var mlContext = new MLContext();
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+        {
+        Column = new[] {
+            new TextLoader.Column("SentimentText", DataKind.Text, 1),
+            new TextLoader.Column("Label", DataKind.Bool, 0),
+        },
+        HasHeader = true,
+        Separator = ","
+});
+var data = reader.Read(dataPath);
+var learningPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 
 ```
@@ -84,12 +85,12 @@ var model = learningPipeline.Fit(data);
 Now from the model we can make inferences (predictions):
 
 ```C#
-var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPrediction>(env);
+var predictionFunc = model.MakePredictionFunction<SentimentData, SentimentPrediction>(mlContext);
 var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
 });
-Console.WriteLine("prediction: " + prediction.Sentiment);
+Console.WriteLine("prediction: " + prediction.Prediction);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 
