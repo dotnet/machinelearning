@@ -5,7 +5,6 @@
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Transforms.TensorFlow;
 using System;
 using System.IO;
 using Xunit;

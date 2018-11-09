@@ -167,6 +167,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// Estimator for <see cref="IidSpikeDetector"/>
     /// </summary>
+    /// <p>Example code can be found by searching for <i>IidSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidSpikeDetectorTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>
@@ -178,12 +186,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        /// <p>Example code can be found by searching for <i>IidSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidSpikeDetectorTransform.cs "Timeseries examples for spike detection.")]
-        /// ]]>
-        /// </format>
         public IidSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments

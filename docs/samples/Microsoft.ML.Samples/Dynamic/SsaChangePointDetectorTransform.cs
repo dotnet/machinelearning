@@ -1,19 +1,25 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+    // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
+    using System;
+    using System.Linq;
+    using System.Collections.Generic;
+    using Microsoft.ML.Runtime.Data;
+    using Microsoft.ML.Runtime.Api;
+    using Microsoft.ML.Runtime.TimeSeriesProcessing;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
     public partial class TransformSamples
     {
+        class SsaChangePointData
+        {
+            public float Value;
+
+            public SsaChangePointData(float value)
+            {
+                Value = value;
+            }
+        }
+
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // SsaChangePointDetector is applied then to identify points where data distribution changed.
         public static void SsaChangePointDetectorTransform()
@@ -24,12 +30,12 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Generate sample series data with a change
             const int size = 16;
-            var data = new List<Data>(size);
+            var data = new List<SsaChangePointData>(size);
             for (int i = 0; i < size / 2; i++)
-                data.Add(new Data(5));
+                data.Add(new SsaChangePointData(5));
             // This is a change point
             for (int i = 0; i < size / 2; i++)
-                data.Add(new Data(7));
+                data.Add(new SsaChangePointData(7));
 
             // Convert data to IDataView.
             var dataView = ml.CreateStreamingDataView(data);

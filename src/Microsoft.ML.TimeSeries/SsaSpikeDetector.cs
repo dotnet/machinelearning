@@ -178,6 +178,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// Estimator for <see cref="SsaSpikeDetector"/>
     /// </summary>
+    /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaSpikeDetectorTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
@@ -195,12 +203,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaSpikeDetectorTransform.cs "Timeseries examples for spike detection.")]
-        /// ]]>
-        /// </format>
         public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)

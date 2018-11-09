@@ -1,19 +1,31 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
+        using System;
+        using System.Linq;
+        using System.Collections.Generic;
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Runtime.TimeSeriesProcessing;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
     public partial class TransformSamples
     {
+        class IidSpikeData
+        {
+            public float Value;
+
+            public IidSpikeData(float value)
+            {
+                Value = value;
+            }
+        }
+
+        class IidSpikePrediction
+        {
+            [VectorType(3)]
+            public double[] Prediction { get; set; }
+        }
+
         // This example creates a time series (list of Data with the i-th element corresponding to the i-th time slot). 
         // IidSpikeDetector is applied then to identify spiking points in the series.
         public static void IidSpikeDetectorTransform()
@@ -24,13 +36,13 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Generate sample series data with a spike
             const int size = 10;
-            var data = new List<Data>(size);
+            var data = new List<IidSpikeData>(size);
             for (int i = 0; i < size / 2; i++)
-                data.Add(new Data(5));
+                data.Add(new IidSpikeData(5));
             // This is a spike
-            data.Add(new Data(10));
+            data.Add(new IidSpikeData(10));
             for (int i = 0; i < size / 2; i++)
-                data.Add(new Data(5));
+                data.Add(new IidSpikeData(5));
 
             // Convert data to IDataView.
             var dataView = ml.CreateStreamingDataView(data);
@@ -49,8 +61,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed data.
             var transformedData = new IidSpikeEstimator(ml, args).Fit(dataView).Transform(dataView);
 
-            // Getting the data of the newly created column as an IEnumerable of SpikePrediction.
-            var predictionColumn = transformedData.AsEnumerable<SpikePrediction>(ml, reuseRowObject: false);
+            // Getting the data of the newly created column as an IEnumerable of IidSpikePrediction.
+            var predictionColumn = transformedData.AsEnumerable<IidSpikePrediction>(ml, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             Console.WriteLine("Alert\tScore\tP-Value");

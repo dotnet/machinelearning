@@ -197,6 +197,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// Estimator for <see cref="SsaChangePointDetector"/>
     /// </summary>
+    /// <p>Example code can be found by searching for <i>SsaChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaChangePointDetectorTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;
@@ -215,12 +223,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        /// <p>Example code can be found by searching for <i>SsaChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaChangePointDetectorTransform.cs "Timeseries examples for changepoint detection.")]
-        /// ]]>
-        /// </format>
         public SsaChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
