@@ -11,6 +11,7 @@ using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Categorical;
 using System.IO;
+using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -77,6 +78,27 @@ namespace Microsoft.ML.Benchmarks
             using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
+        }
+
+        [Benchmark]
+        public WordEmbeddingsTransform CV_Multiclass_WikiDetox_WordEmbeddings_OVAAveragedPerceptron_JustParse()
+        {
+            string cmd = @"CV k=5  data=" + _dataPath_Wiki +
+                " tr=OVA{p=AveragedPerceptron{iter=10}}" +
+                " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
+                " xf=Convert{col=logged_in type=R4}" +
+                " xf=CategoricalTransform{col=ns}" +
+                " xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
+                " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
+
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            {
+                return new WordEmbeddingsTransform(
+                    environment,
+                    modelKind: WordEmbeddingsTransform.PretrainedModelKind.FastTextWikipedia300D,
+                    new WordEmbeddingsTransform.ColumnInfo("FeaturesText_TransformedText", "FeaturesWordEmbedding"));
             }
         }
 
