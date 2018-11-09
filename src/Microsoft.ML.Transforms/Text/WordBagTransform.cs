@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
-            public NgramTransform.WeightingCriteria? Weighting;
+            public NgramEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramTransform.WeightingCriteria? Weighting;
+            public NgramEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -238,10 +238,10 @@ namespace Microsoft.ML.Transforms.Text
             public bool AllLengths = true;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramTransform.Arguments.DefaultMaxTerms };
+            public int[] MaxNumTerms = new int[] { NgramEstimator.Defaults.MaxNumTerms };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramTransform.WeightingCriteria Weighting = NgramTransform.WeightingCriteria.Tf;
+            public NgramEstimator.WeightingCriteria Weighting = NgramEstimator.Defaults.Weighting;
         }
 
         [TlcModule.Component(Name = "NGram", FriendlyName = "NGram Extractor Transform", Alias = "NGramExtractorTransform,NGramExtractor",
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new TermTransform.Arguments()
                         {
-                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramTransform.Arguments.DefaultMaxTerms,
+                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramEstimator.Defaults.MaxNumTerms,
                             Column = new TermTransform.Column[termCols.Count]
                         };
                 }
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            return new NgramTransform(h, ngramArgs, view);
+            return  NgramTransform.Create(h, ngramArgs, view);
         }
 
         public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,

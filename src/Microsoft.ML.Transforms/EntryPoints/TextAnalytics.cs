@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Text
         public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = new NgramTransform(h, input, input.Data);
+            var xf =  NgramTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

@@ -442,7 +442,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
                     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf),
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
                     Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)

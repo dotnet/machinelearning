@@ -256,7 +256,7 @@ namespace Microsoft.ML.Transforms.Text
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramTransform.WeightingCriteria weighting)
+                NgramEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -269,9 +269,9 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramTransform.WeightingCriteria _weighting;
+            private readonly NgramEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramEstimator.WeightingCriteria weighting = NgramEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
@@ -432,7 +432,7 @@ namespace Microsoft.ML.Transforms.Text
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramTransform.WeightingCriteria weighting)
+                NgramEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -445,9 +445,9 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramTransform.WeightingCriteria _weighting;
+            private readonly NgramEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramEstimator.WeightingCriteria weighting = NgramEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 

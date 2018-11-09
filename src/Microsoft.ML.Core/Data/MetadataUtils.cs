@@ -336,6 +336,12 @@ namespace Microsoft.ML.Runtime.Data
                 && type.ItemType.IsText;
         }
 
+        public static bool HasKeyNames(this SchemaShape.Column col)
+        {
+            return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
+                && col.Kind == SchemaShape.Column.VectorKind.Vector && col.ItemType.IsText;
+        }
+
         /// <summary>
         /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata set to true.
         /// That metadata should be set when the data has undergone transforms that would render it
