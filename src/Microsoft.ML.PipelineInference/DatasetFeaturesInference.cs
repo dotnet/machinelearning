@@ -21,19 +21,19 @@ namespace Microsoft.ML.Runtime.PipelineInference
     {
         public sealed class Stats
         {
-            [JsonIgnore] public SummaryStatistics Statistics;
+            [JsonIgnore] private SummaryStatistics _statistics;
 
             [JsonIgnore] public double Sum;
 
             public Stats()
             {
-                Statistics = new SummaryStatistics();
+                _statistics = new SummaryStatistics();
             }
 
             public void Add(double x)
             {
                 Sum += x;
-                Statistics.Add(x);
+                _statistics.Add(x);
             }
 
             public void Add(IEnumerable<int> x)
@@ -43,31 +43,31 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
 
             [JsonProperty]
-            public long Count => Statistics.RawCount;
+            public long Count => _statistics.RawCount;
 
             [JsonProperty]
-            public double? NonZeroValueCount => Statistics.RawCount > 20 ? (double?)Statistics.Nonzero : null;
+            public double? NonZeroValueCount => _statistics.RawCount > 20 ? (double?)_statistics.Nonzero : null;
 
             [JsonProperty]
-            public double? Variance => Statistics.RawCount > 20 ? (double?)Statistics.SampleVariance : null;
+            public double? Variance => _statistics.RawCount > 20 ? (double?)_statistics.SampleVariance : null;
 
             [JsonProperty]
-            public double? StandardDeviation => Statistics.RawCount > 20 ? (double?)Statistics.SampleStdDev : null;
+            public double? StandardDeviation => _statistics.RawCount > 20 ? (double?)_statistics.SampleStdDev : null;
 
             [JsonProperty]
-            public double? Skewness => Statistics.RawCount > 20 ? (double?)Statistics.Skewness : null;
+            public double? Skewness => _statistics.RawCount > 20 ? (double?)_statistics.Skewness : null;
 
             [JsonProperty]
-            public double? Kurtosis => Statistics.RawCount > 20 ? (double?)Statistics.Kurtosis : null;
+            public double? Kurtosis => _statistics.RawCount > 20 ? (double?)_statistics.Kurtosis : null;
 
             [JsonProperty]
-            public double? Mean => Statistics.RawCount > 20 ? (double?)Statistics.Mean : null;
+            public double? Mean => _statistics.RawCount > 20 ? (double?)_statistics.Mean : null;
 
             [JsonIgnore]
-            public double Min => Statistics.Min;
+            public double Min => _statistics.Min;
 
             [JsonIgnore]
-            public double Max => Statistics.Max;
+            public double Max => _statistics.Max;
         }
 
         public sealed class Column
