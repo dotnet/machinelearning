@@ -17,6 +17,21 @@ Count of training examples:	521
 Residual Deviance:         	98.29433
 Null Deviance:             	669.0935
 AIC:                       	118.2943
+
+Coefficients statistics:
+Coefficient    	Estimate	Std. Error	z value  	Pr(>|z|)
+(Bias)         	-5.120674 	0.6998186 	-7.317145 	0 ***
+Features.thickness	2.353567  	0.4267568 	5.515007  	5.960464E-08 ***
+Features.bare_nuclei	2.435889  	0.451504  	5.395056  	5.960464E-08 ***
+Features.uniform_shape	1.944249  	0.4137097 	4.699549  	2.622604E-06 ***
+Features.uniform_size	1.786538  	0.4204066 	4.249547  	2.145767E-05 ***
+Features.bland_chromatin	1.611417  	0.4605175 	3.499144  	0.0004668236 ***
+Features.adhesion	1.38072   	0.4821554 	2.863641  	0.00418818 **
+Features.normal_nucleoli	1.345759  	0.4784136 	2.812962  	0.00490886 **
+Features.epit_size	1.083109  	0.4566914 	2.371643  	0.0177092 *
+Cat.1          	-0.7715381	0.3420695 	-2.255501 	0.02410179 *
+---
+Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Partition model 1 summary:
 
 Per-feature gain summary for the boosted tree ensemble:
@@ -50,6 +65,21 @@ Count of training examples:	520
 Residual Deviance:         	94.19695
 Null Deviance:             	673.3445
 AIC:                       	114.1969
+
+Coefficients statistics:
+Coefficient    	Estimate	Std. Error	z value  	Pr(>|z|)
+(Bias)         	-4.860323 	0.7128119 	-6.818521 	0 ***
+Features.bare_nuclei	3.16846   	0.4579377 	6.918975  	0 ***
+Features.thickness	2.143086  	0.4306555 	4.976335  	6.556511E-07 ***
+Features.uniform_shape	1.711214  	0.4222687 	4.05243   	5.072355E-05 ***
+Features.uniform_size	1.494185  	0.4099987 	3.644366  	0.0002681017 ***
+Features.normal_nucleoli	1.519048  	0.4728626 	3.212452  	0.00131619 **
+Features.bland_chromatin	1.386847  	0.4451247 	3.115636  	0.001835644 **
+Features.adhesion	1.383187  	0.4832917 	2.862014  	0.004209697 **
+Features.epit_size	0.8832003 	0.4570503 	1.932392  	0.05331099 .
+Cat.1          	-0.8226236	0.3383799 	-2.431065 	0.01505452 *
+---
+Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Partition model 3 summary:
 
 Per-feature gain summary for the boosted tree ensemble:
