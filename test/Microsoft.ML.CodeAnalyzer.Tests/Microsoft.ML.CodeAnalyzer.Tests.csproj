@@ -8,6 +8,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\Utilities\Contracts.cs" Link="Resources/Src/Contracts.cs">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
     <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\BestFriendAttribute.cs" Link="Resources/Src/BestFriendAttribute.cs">
       <LogicalName>%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>

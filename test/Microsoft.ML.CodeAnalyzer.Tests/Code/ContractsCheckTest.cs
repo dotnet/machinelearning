@@ -12,8 +12,9 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ContractsCheckTest : DiagnosticVerifier<ContractsCheckAnalyzer>
     {
-        private static string _contractsSource;
-        internal static string Source => TestUtils.EnsureSourceLoaded(ref _contractsSource, "ContractsCheckResource.cs");
+        private readonly Lazy<string> Source = TestUtils.LazySource("ContractsCheckResource.cs");
+        private readonly Lazy<string> SourceContracts = TestUtils.LazySource("Contracts.cs");
+        private readonly Lazy<string> SourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
 
         [Fact]
         public void ContractsCheck()
@@ -40,7 +41,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 diagDecode.CreateDiagnosticResult(basis + 39, 41, "CheckDecode", "\"This message is suspicious\""),
             };
 
-            VerifyCSharpDiagnostic(Source, expected);
+            VerifyCSharpDiagnostic(Source.Value + SourceContracts.Value + SourceFriend.Value, expected);
         }
 
         [Fact]
