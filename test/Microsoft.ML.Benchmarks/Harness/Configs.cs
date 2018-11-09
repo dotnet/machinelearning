@@ -13,24 +13,23 @@ namespace Microsoft.ML.Benchmarks
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
-            Add(GetJobDefinition() // job defines how many times given benchmark should be executed
-                .WithCustomBuildConfiguration(GetBuildConfigurationName())
-                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
+            Add(GetJobDefinition()); // job defines how many times given benchmark should be executed
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
-
-            UnionRule = ConfigUnionRule.AlwaysUseLocal; // global config can be overwritten with local (the one set via [ConfigAttribute])
         }
 
         protected virtual Job GetJobDefinition()
             => Job.Default
                 .WithWarmupCount(1) // ML.NET benchmarks are typically CPU-heavy benchmarks, 1 warmup is usually enough
-                .WithMaxIterationCount(20);
+                .WithMaxIterationCount(20)
+                .WithCustomBuildConfiguration(GetBuildConfigurationName())
+                .With(CreateToolchain()) // toolchain is responsible for generating, building and running dedicated executable per benchmark
+                .AsDefault(); // this way we tell BDN that it's a default config which can be overwritten
 
         /// <summary>
         /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
         /// </summary>
-        private IToolchain CreateToolchain()
+        protected IToolchain CreateToolchain()
         {
             var tfm = GetTargetFrameworkMoniker();
             var csProj = CsProjCoreToolchain.From(new NetCoreAppSettings(targetFrameworkMoniker: tfm, runtimeFrameworkVersion: null, name: tfm));
@@ -51,7 +50,7 @@ namespace Microsoft.ML.Benchmarks
 #endif
         }
 
-        private static string GetBuildConfigurationName()
+        protected static string GetBuildConfigurationName()
         {
 #if NETCOREAPP3_0
             return "Release-Intrinsics";
@@ -65,6 +64,8 @@ namespace Microsoft.ML.Benchmarks
     {
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
+                  .WithCustomBuildConfiguration(GetBuildConfigurationName())
+                  .With(CreateToolchain()) // toolchain is responsible for generating, building and running dedicated executable per benchmark
                   .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
     }
 }
