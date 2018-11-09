@@ -474,7 +474,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private protected virtual bool CanSavePfaCore => false;
 
-        public virtual bool CanSaveOnnx(OnnxContext ctx) => false;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => CanSaveOnnxCore;
+
+        private protected virtual bool CanSaveOnnxCore => false;
 
         [BestFriend]
         private protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
@@ -582,10 +584,10 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(toDeclare.ToArray());
         }
 
-        public void SaveAsOnnx(OnnxContext ctx)
+        void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(CanSaveOnnx(ctx));
+            Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
@@ -628,7 +630,8 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
+        [BestFriend]
+        private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
         public sealed override Schema Schema => _bindings.AsSchema;

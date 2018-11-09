@@ -224,8 +224,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ColumnType InputType => _mapper.InputType;
         public ColumnType OutputType => _mapper.OutputType;
         public ColumnType DistType => NumberType.Float;
-        public bool CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
-        public bool CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<Float> predictor, ICalibrator calibrator)
             : base(env, name, predictor, calibrator)
@@ -296,7 +296,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             probToken = ctx.DeclareVar(prob, probExpression);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
+        bool IDistCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
+            => ((ISingleCanSaveOnnx)this).SaveAsOnnx(ctx, outputNames, featureColumnName);
+
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumnName)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(outputNames, nameof(outputNames));
@@ -620,9 +623,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// Whether we can save as PFA. Note that this depends on whether the underlying predictor
         /// can save as PFA, since in the event that this in particular does not get saved,
         /// </summary>
-        public bool CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
+        bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindableCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Single> predictor, ICalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
@@ -653,22 +656,22 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             SaveCore(ctx);
         }
 
-        public void SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputs)
+        void IBindableCanSavePfa.SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputs)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(schema, nameof(schema));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
-            Host.Check(CanSavePfa, "Called despite not being savable");
+            Host.Check(((ICanSavePfa)this).CanSavePfa, "Called despite not being savable");
 
             ctx.Hide(outputs);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputs)
+        bool IBindableCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputs)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
             Host.CheckValue(schema, nameof(schema));
-            Host.Check(CanSaveOnnx(ctx), "Called despite not being savable");
+            Host.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), "Called despite not being savable");
             return false;
         }
 
@@ -1349,7 +1352,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public Double ParamA { get; }
         public Double ParamB { get; }
         bool ICanSavePfa.CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)
         {
@@ -1435,7 +1438,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 PfaUtils.Call("+", -ParamB, PfaUtils.Call("*", -ParamA, input)));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] scoreProbablityColumnNames, string featureColumnName)
         {
             _host.CheckValue(ctx, nameof(ctx));
             _host.CheckValue(scoreProbablityColumnNames, nameof(scoreProbablityColumnNames));

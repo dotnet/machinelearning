@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         bool ICanSavePfa.CanSavePfa => true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Constructs a new linear predictor.
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("model.reg.linear", input, cellRef);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) == 1);
