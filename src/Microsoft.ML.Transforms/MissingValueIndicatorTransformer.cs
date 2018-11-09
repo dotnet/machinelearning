@@ -18,22 +18,22 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), typeof(NAIndicatorTransform.Arguments), typeof(SignatureDataTransform),
-    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName, "NAIndicator", NAIndicatorTransform.ShortName, DocName = "transform/NAHandle.md")]
+[assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), typeof(MissingValueIndicatorTransformer.Arguments), typeof(SignatureDataTransform),
+    MissingValueIndicatorTransformer.FriendlyName, MissingValueIndicatorTransformer.LoadName, "NAIndicator", MissingValueIndicatorTransformer.ShortName, DocName = "transform/NAHandle.md")]
 
-[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), null, typeof(SignatureLoadDataTransform),
-    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
+[assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(IDataTransform), typeof(MissingValueIndicatorTransformer), null, typeof(SignatureLoadDataTransform),
+    MissingValueIndicatorTransformer.FriendlyName, MissingValueIndicatorTransformer.LoadName)]
 
-[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(NAIndicatorTransform), null, typeof(SignatureLoadModel),
-    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
+[assembly: LoadableClass(MissingValueIndicatorTransformer.Summary, typeof(MissingValueIndicatorTransformer), null, typeof(SignatureLoadModel),
+    MissingValueIndicatorTransformer.FriendlyName, MissingValueIndicatorTransformer.LoadName)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NAIndicatorTransform), null, typeof(SignatureLoadRowMapper),
-   NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(MissingValueIndicatorTransformer), null, typeof(SignatureLoadRowMapper),
+   MissingValueIndicatorTransformer.FriendlyName, MissingValueIndicatorTransformer.LoadName)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
-    public sealed class NAIndicatorTransform : OneToOneTransformerBase
+    public sealed class MissingValueIndicatorTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoadName,
-                loaderAssemblyName: typeof(NAIndicatorTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(MissingValueIndicatorTransformer).Assembly.FullName);
         }
 
         internal const string Summary = "Create a boolean output column with the same number of slots as the input column, where the output value"
@@ -78,27 +78,27 @@ namespace Microsoft.ML.Transforms
         internal const string FriendlyName = "NA Indicator Transform";
         internal const string ShortName = "NAInd";
 
-        private const string RegistrationName = nameof(NAIndicatorTransform);
+        private const string RegistrationName = nameof(MissingValueIndicatorTransformer);
 
         public IReadOnlyList<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NAIndicatorTransform"/>
+        /// Initializes a new instance of <see cref="MissingValueIndicatorTransformer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        public NAIndicatorTransform(IHostEnvironment env, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), columns)
+        public MissingValueIndicatorTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), columns)
         {
         }
 
-        internal NAIndicatorTransform(IHostEnvironment env, Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), GetColumnPairs(args.Column))
+        internal MissingValueIndicatorTransformer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), GetColumnPairs(args.Column))
         {
         }
 
-        private NAIndicatorTransform(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), ctx)
+        private MissingValueIndicatorTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
         }
@@ -107,17 +107,17 @@ namespace Microsoft.ML.Transforms
             => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
 
         // Factory method for SignatureLoadModel
-        internal static NAIndicatorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static MissingValueIndicatorTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new NAIndicatorTransform(env, ctx);
+            return new MissingValueIndicatorTransformer(env, ctx);
         }
 
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
-            => new NAIndicatorTransform(env, args).MakeDataTransform(input);
+            => new MissingValueIndicatorTransformer(env, args).MakeDataTransform(input);
 
         // Factory method for SignatureLoadDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : MapperBase
         {
-            private readonly NAIndicatorTransform _parent;
+            private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
 
             private sealed class ColInfo
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Mapper(NAIndicatorTransform parent, Schema inputSchema)
+            public Mapper(MissingValueIndicatorTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class MissingValueIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
+    public sealed class MissingValueIndicatorEstimator : TrivialEstimator<MissingValueIndicatorTransformer>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueIndicatorEstimator"/>
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
         public MissingValueIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), new NAIndicatorTransform(env, columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueIndicatorTransformer)), new MissingValueIndicatorTransformer(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
         }

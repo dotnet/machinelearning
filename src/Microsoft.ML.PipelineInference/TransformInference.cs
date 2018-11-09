@@ -477,7 +477,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CategoricalHashTransformColumn
+                                new ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -590,8 +590,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     bool foundCatHash = false;
                     var colSpecCat = new StringBuilder();
                     var colSpecCatHash = new StringBuilder();
-                    var catColumns = new List<ML.Legacy.Transforms.CategoricalTransformColumn>();
-                    var catHashColumns = new List<ML.Legacy.Transforms.CategoricalHashTransformColumn>();
+                    var catColumns = new List<ML.Legacy.Transforms.OneHotEncodingTransformerColumn>();
+                    var catHashColumns = new List<ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>();
                     var featureCols = new List<string>();
 
                     foreach (var column in columns)
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             foundCat = true;
                             colSpecCat.Append(columnArgument);
-                            catColumns.Add(new ML.Legacy.Transforms.CategoricalTransformColumn
+                            catColumns.Add(new ML.Legacy.Transforms.OneHotEncodingTransformerColumn
                             {
                                 Name = columnNameQuoted.ToString(),
                                 Source = columnNameQuoted.ToString()
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             ch.Info("Categorical column '{0}' has extremely high cardinality. Suggested hash-based category encoding.", column.ColumnName);
                             foundCatHash = true;
                             colSpecCatHash.Append(columnArgument);
-                            catHashColumns.Add(new ML.Legacy.Transforms.CategoricalHashTransformColumn
+                            catHashColumns.Add(new ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn
                             {
                                 Name = columnNameQuoted.ToString(),
                                 Source = columnNameQuoted.ToString()

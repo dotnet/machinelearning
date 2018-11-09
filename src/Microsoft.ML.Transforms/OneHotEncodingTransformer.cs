@@ -19,15 +19,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
-    CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
+[assembly: LoadableClass(OneHotEncodingTransformer.Summary, typeof(IDataTransform), typeof(OneHotEncodingTransformer), typeof(OneHotEncodingTransformer.Arguments), typeof(SignatureDataTransform),
+    OneHotEncodingTransformer.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
 
 [assembly: LoadableClass(typeof(void), typeof(Categorical), null, typeof(SignatureEntryPointModule), "Categorical")]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
-    public sealed class CategoricalTransform : ITransformer, ICanSaveModel
+    public sealed class OneHotEncodingTransformer : ITransformer, ICanSaveModel
     {
         public enum OutputKind : byte
         {
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransform(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
+        public OneHotEncodingTransformer(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
             if (toVector != null)
                 _transformer = term.Append(toVector).Fit(input);
@@ -167,17 +167,17 @@ namespace Microsoft.ML.Transforms.Categorical
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array.
     /// </summary>
-    public sealed class OneHotEncodingEstimator : IEstimator<CategoricalTransform>
+    public sealed class OneHotEncodingEstimator : IEstimator<OneHotEncodingTransformer>
     {
         internal static class Defaults
         {
-            public const CategoricalTransform.OutputKind OutKind = CategoricalTransform.OutputKind.Ind;
+            public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
         }
 
         public class ColumnInfo : TermTransform.ColumnInfo
         {
-            public readonly CategoricalTransform.OutputKind OutputKind;
-            public ColumnInfo(string input, string output, CategoricalTransform.OutputKind outputKind = Defaults.OutKind,
+            public readonly OneHotEncodingTransformer.OutputKind OutputKind;
+            public ColumnInfo(string input, string output, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="outputColumn">Name of the output column. If this is <c>null</c>, <paramref name="inputColumn"/> is used.</param>
         /// <param name="outputKind">The type of output expected.</param>
         public OneHotEncodingEstimator(IHostEnvironment env, string inputColumn,
-            string outputColumn = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
+            string outputColumn = null, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind)
             : this(env, new[] { new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind) })
         {
         }
@@ -219,20 +219,20 @@ namespace Microsoft.ML.Transforms.Categorical
             for (int i = 0; i < columns.Length; i++)
             {
                 var column = columns[i];
-                CategoricalTransform.OutputKind kind = columns[i].OutputKind;
+                OneHotEncodingTransformer.OutputKind kind = columns[i].OutputKind;
                 switch (kind)
                 {
                     default:
                         throw _host.ExceptUserArg(nameof(column.OutputKind));
-                    case CategoricalTransform.OutputKind.Key:
+                    case OneHotEncodingTransformer.OutputKind.Key:
                         continue;
-                    case CategoricalTransform.OutputKind.Bin:
+                    case OneHotEncodingTransformer.OutputKind.Bin:
                         binaryCols.Add((column.Output, column.Output));
                         break;
-                    case CategoricalTransform.OutputKind.Ind:
+                    case OneHotEncodingTransformer.OutputKind.Ind:
                         cols.Add((column.Output, column.Output, false));
                         break;
-                    case CategoricalTransform.OutputKind.Bag:
+                    case OneHotEncodingTransformer.OutputKind.Bag:
                         cols.Add((column.Output, column.Output, true));
                         break;
                 }
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toSomething).GetOutputSchema(inputSchema);
 
-        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _toSomething, input);
+        public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {
@@ -268,34 +268,34 @@ namespace Microsoft.ML.Transforms.Categorical
     public static class Categorical
     {
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalOneHotVectorizer",
-            Desc = CategoricalTransform.Summary,
-            UserName = CategoricalTransform.UserName,
+            Desc = OneHotEncodingTransformer.Summary,
+            UserName = OneHotEncodingTransformer.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalOneHotVectorizer""]/*' />"})]
-        public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, CategoricalTransform.Arguments input)
+        public static CommonOutputs.TransformOutput CatTransformDict(IHostEnvironment env, OneHotEncodingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = CategoricalTransform.Create(host, input, input.Data);
+            var xf = OneHotEncodingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
-            Desc = CategoricalHashTransform.Summary,
-            UserName = CategoricalHashTransform.UserName,
+            Desc = OneHotHashEncodingTransformer.Summary,
+            UserName = OneHotHashEncodingTransformer.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
-        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
+        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncodingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = CategoricalHashTransform.Create(host, input, input.Data);
+            var xf = OneHotHashEncodingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
-                    infos[i] = new OneHotEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
+                    infos[i] = new OneHotEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
                         tcol.Config.Max, (TermTransform.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
