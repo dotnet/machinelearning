@@ -22,17 +22,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), typeof(NAReplaceTransform.Arguments), typeof(SignatureDataTransform),
-    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName, "NAReplace", NAReplaceTransform.ShortName, DocName = "transform/NAHandle.md")]
+[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), typeof(MissingValueReplacingTransformer.Arguments), typeof(SignatureDataTransform),
+    MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName, "NAReplace", MissingValueReplacingTransformer.ShortName, DocName = "transform/NAHandle.md")]
 
-[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), null, typeof(SignatureLoadDataTransform),
-    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
+[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueReplacingTransformer), null, typeof(SignatureLoadDataTransform),
+    MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName)]
 
-[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(NAReplaceTransform), null, typeof(SignatureLoadModel),
-    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
+[assembly: LoadableClass(MissingValueReplacingTransformer.Summary, typeof(MissingValueReplacingTransformer), null, typeof(SignatureLoadModel),
+    MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NAReplaceTransform), null, typeof(SignatureLoadRowMapper),
-   NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(MissingValueReplacingTransformer), null, typeof(SignatureLoadRowMapper),
+   MissingValueReplacingTransformer.FriendlyName, MissingValueReplacingTransformer.LoadName)]
 
 namespace Microsoft.ML.Transforms
 {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
     // Imputation modes are supported for vectors both by slot and across all slots.
     // REVIEW: May make sense to implement the transform template interface.
     /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
-    public sealed partial class NAReplaceTransform : OneToOneTransformerBase
+    public sealed partial class MissingValueReplacingTransformer : OneToOneTransformerBase
     {
         public enum ReplacementKind : byte
         {
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoadName,
-                loaderAssemblyName: typeof(NAReplaceTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(MissingValueReplacingTransformer).Assembly.FullName);
         }
 
         internal const string Summary = "Create an output column of the same type and size of the input column, where missing values "
@@ -239,8 +239,8 @@ namespace Microsoft.ML.Transforms
                 throw Host.ExceptParam(nameof(inputSchema), reason);
         }
 
-        public NAReplaceTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAReplaceTransform)), GetColumnPairs(columns))
+        public MissingValueReplacingTransformer(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueReplacingTransformer)), GetColumnPairs(columns))
         {
             // Check that all the input columns are present and correct.
             for (int i = 0; i < ColumnPairs.Length; i++)
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Transforms
             GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _replaceTypes);
         }
 
-        private NAReplaceTransform(IHost host, ModelLoadContext ctx)
+        private MissingValueReplacingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -482,16 +482,16 @@ namespace Microsoft.ML.Transforms
                     item.Slot ?? args.ImputeBySlot);
                 cols[i].ReplacementString = item.ReplacementString;
             };
-            return new NAReplaceTransform(env, input, cols).MakeDataTransform(input);
+            return new MissingValueReplacingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
         {
-            return new NAReplaceTransform(env, input, columns).MakeDataTransform(input);
+            return new MissingValueReplacingTransformer(env, input, columns).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        public static NAReplaceTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static MissingValueReplacingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(LoadName);
@@ -499,7 +499,7 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new NAReplaceTransform(host, ctx);
+            return new MissingValueReplacingTransformer(host, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -574,14 +574,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private readonly NAReplaceTransform _parent;
+            private readonly MissingValueReplacingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly ColumnType[] _types;
             // The isNA delegates, parallel to Infos.
             private readonly Delegate[] _isNAs;
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            public Mapper(NAReplaceTransform parent, Schema inputSchema)
+            public Mapper(MissingValueReplacingTransformer parent, Schema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -943,24 +943,24 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class MissingValueReplacingEstimator : IEstimator<NAReplaceTransform>
+    public sealed class MissingValueReplacingEstimator : IEstimator<MissingValueReplacingTransformer>
     {
         public static class Defaults
         {
-            public const NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode = NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue;
+            public const MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode = MissingValueReplacingTransformer.ColumnInfo.ReplacementMode.DefaultValue;
             public const bool ImputeBySlot = true;
         }
 
         private readonly IHost _host;
-        private readonly NAReplaceTransform.ColumnInfo[] _columns;
+        private readonly MissingValueReplacingTransformer.ColumnInfo[] _columns;
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new NAReplaceTransform.ColumnInfo(outputColumn ?? inputColumn, inputColumn, replacementKind))
+        public MissingValueReplacingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new MissingValueReplacingTransformer.ColumnInfo(outputColumn ?? inputColumn, inputColumn, replacementKind))
         {
 
         }
 
-        public MissingValueReplacingEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
+        public MissingValueReplacingEstimator(IHostEnvironment env, params MissingValueReplacingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(MissingValueReplacingEstimator));
@@ -975,7 +975,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                string reason = NAReplaceTransform.TestType(col.ItemType);
+                string reason = MissingValueReplacingTransformer.TestType(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);
                 var metadata = new List<SchemaShape.Column>();
@@ -989,7 +989,7 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(result.Values);
         }
 
-        public NAReplaceTransform Fit(IDataView input) => new NAReplaceTransform(_host, input, _columns);
+        public MissingValueReplacingTransformer Fit(IDataView input) => new MissingValueReplacingTransformer(_host, input, _columns);
     }
 
     /// <summary>
@@ -1000,9 +1000,9 @@ namespace Microsoft.ML.Transforms
         private readonly struct Config
         {
             public readonly bool ImputeBySlot;
-            public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;
+            public readonly MissingValueReplacingTransformer.ColumnInfo.ReplacementMode ReplacementMode;
 
-            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
+            public Config(MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode,
                 bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
@@ -1068,11 +1068,11 @@ namespace Microsoft.ML.Transforms
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new NAReplaceTransform.ColumnInfo[toOutput.Length];
+                var infos = new MissingValueReplacingTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new NAReplaceTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                    infos[i] = new MissingValueReplacingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
                 return new MissingValueReplacingEstimator(env, infos);
             }
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -1094,7 +1094,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -1107,7 +1107,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -1121,7 +1121,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode, bool imputeBySlot = MissingValueReplacingEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -1132,7 +1132,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -1142,7 +1142,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementMode = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));

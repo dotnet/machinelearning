@@ -13,13 +13,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-[assembly: LoadableClass(NAHandleTransform.Summary, typeof(IDataTransform), typeof(NAHandleTransform), typeof(NAHandleTransform.Arguments), typeof(SignatureDataTransform),
-    NAHandleTransform.FriendlyName, "NAHandleTransform", NAHandleTransform.ShortName, "NA", DocName = "transform/NAHandle.md")]
+[assembly: LoadableClass(MissingValueHandlingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueHandlingTransformer), typeof(MissingValueHandlingTransformer.Arguments), typeof(SignatureDataTransform),
+    MissingValueHandlingTransformer.FriendlyName, "NAHandleTransform", MissingValueHandlingTransformer.ShortName, "NA", DocName = "transform/NAHandle.md")]
 
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAHandle"]'/>
-    public static class NAHandleTransform
+    public static class MissingValueHandlingTransformer
     {
         public enum ReplacementKind : byte
         {
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "NAHandle";
 
         /// <summary>
-        /// A helper method to create <see cref="NAHandleTransform"/> for public facing API.
+        /// A helper method to create <see cref="MissingValueHandlingTransformer"/> for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
 
-            var replaceCols = new List<NAReplaceTransform.ColumnInfo>();
+            var replaceCols = new List<MissingValueReplacingTransformer.ColumnInfo>();
             var naIndicatorCols = new List<NAIndicatorTransform.Column>();
             var naConvCols = new List<ConvertingTransform.ColumnInfo>();
             var concatCols = new List<ConcatTransform.TaggedColumn>();
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
                 var addInd = column.ConcatIndicator ?? args.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, column.Name, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                    replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, column.Name, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
                     continue;
                 }
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms
                     naConvCols.Add(new ConvertingTransform.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType.IsVector)
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
                 output = new ConvertingTransform(h, naConvCols.ToArray()).Transform(output) as IDataTransform;
             }
             // Create the NAReplace transform.
-            output = NAReplaceTransform.Create(env, output ?? input, replaceCols.ToArray());
+            output = MissingValueReplacingTransformer.Create(env, output ?? input, replaceCols.ToArray());
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)
