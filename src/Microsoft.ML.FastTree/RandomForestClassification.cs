@@ -78,7 +78,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
+        public FastForestClassificationPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         { }
 

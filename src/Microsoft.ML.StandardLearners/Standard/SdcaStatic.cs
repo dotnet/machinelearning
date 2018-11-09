@@ -27,7 +27,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLossSDCARegressionLossFunction"/>.</param>
+        /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLoss"/>.</param>
         /// <param name="advancedSettings">A delegate to set more settings.
         /// The settings here will override the ones provided in the direct method signature,
         /// if both are present and have different values.
@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs?range=6-10,18-72 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs?range=6-10,18-72)]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,

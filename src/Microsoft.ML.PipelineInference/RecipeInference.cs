@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Sweeper;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
 using Newtonsoft.Json;
 using System;

@@ -247,8 +247,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static int FindIndexSorted(this int[] input, int min, int lim, int value)
         {
-            Contracts.AssertValueOrNull(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= Utils.Size(input));
+            return FindIndexSorted(input.AsSpan(), min, lim, value);
+        }
+
+        /// <summary>
+        /// Assumes input is sorted and finds value using BinarySearch.
+        /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
+        /// In case of duplicates it returns the index of the first one.
+        /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
+        /// </summary>
+        public static int FindIndexSorted(this ReadOnlySpan<int> input, int min, int lim, int value)
+        {
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;

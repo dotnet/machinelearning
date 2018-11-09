@@ -899,16 +899,16 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (_buffer.IsDense)
                     {
-                        var values = _buffer.Values;
+                        var values = _buffer.GetValues();
                         for (int i = 0; i < ColumnSlotCount; i++)
                             ColValues[i].Add(values[i]);
                     }
                     else
                     {
-                        var indices = _buffer.Indices;
-                        var values = _buffer.Values;
+                        var indices = _buffer.GetIndices();
+                        var values = _buffer.GetValues();
                         int k = 0;
-                        for (int i = 0; i < _buffer.Count; i++)
+                        for (int i = 0; i < values.Length; i++)
                         {
                             var val = values[i];
                             var index = indices[i];

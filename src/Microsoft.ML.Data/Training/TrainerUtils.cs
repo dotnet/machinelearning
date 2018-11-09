@@ -773,7 +773,7 @@ namespace Microsoft.ML.Runtime.Training
             if (_get != null)
             {
                 _get(ref Features);
-                if (!_keepBad && !FloatUtils.IsFinite(Features.Values, Features.Count))
+                if (!_keepBad && !FloatUtils.IsFinite(Features.GetValues()))
                 {
                     _badCount++;
                     return false;
