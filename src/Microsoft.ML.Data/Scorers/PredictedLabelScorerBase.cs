@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Data
                     yield return TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreValueKind);
                     if (_predColMetadata != null)
                     {
-                        ISchema sch = _predColMetadata.Schema;
+                        var sch = _predColMetadata.Schema;
                         for (int i = 0; i < sch.ColumnCount; ++i)
                             yield return new KeyValuePair<string, ColumnType>(sch.GetColumnName(i), sch.GetColumnType(i));
                     }

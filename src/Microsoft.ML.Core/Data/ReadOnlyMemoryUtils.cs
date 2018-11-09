@@ -10,7 +10,8 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class ReadOnlyMemoryUtils
+    [BestFriend]
+    internal static class ReadOnlyMemoryUtils
     {
 
         /// <summary>
