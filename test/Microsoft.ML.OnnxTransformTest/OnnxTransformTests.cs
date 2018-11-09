@@ -265,7 +265,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [Fact(Skip = "Model files are not available yet")]
         public void OnnxModelMultiInput()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
