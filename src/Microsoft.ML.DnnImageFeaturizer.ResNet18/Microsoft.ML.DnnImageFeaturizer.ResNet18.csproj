@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <LocalAppDataDir>$(AppData)/../Local</LocalAppDataDir>
-    <MlnetAppDataDir>$(AppData)/../Local/mlnet-resources</MlnetAppDataDir>
+    <LocalAppDataDir>$(LocalAppData)</LocalAppDataDir>
+    <MlnetAppDataDir>$(LocalAppData)/mlnet-resources</MlnetAppDataDir>
   </PropertyGroup>
 
   <ItemGroup>
