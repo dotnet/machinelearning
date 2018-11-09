@@ -11,9 +11,9 @@ namespace Microsoft.ML.Runtime.Model
 {
     /// <summary>
     /// This is a convenience context object for saving models to a repository, for
-    /// implementors of ICanSaveModel. It is not mandated but designed to reduce the
+    /// implementors of <see cref="ICanSaveModel"/>. It is not mandated but designed to reduce the
     /// amount of boiler plate code. It can also be used when saving to a single stream,
-    /// for implementors of ICanSaveInBinaryFormat.
+    /// for implementors of <see cref="ICanSaveInBinaryFormat"/>.
     /// </summary>
     public sealed partial class ModelSaveContext : IDisposable
     {
@@ -72,9 +72,9 @@ namespace Microsoft.ML.Runtime.Model
         public bool InRepository { get { return Repository != null; } }
 
         /// <summary>
-        /// Create a ModelSaveContext supporting saving to a repository, for implementors of ICanSaveModel.
+        /// Create a <see cref="ModelSaveContext"/> supporting saving to a repository, for implementors of <see cref="ICanSaveModel"/>.
         /// </summary>
-        public ModelSaveContext(RepositoryWriter rep, string dir, string name)
+        internal ModelSaveContext(RepositoryWriter rep, string dir, string name)
         {
             Contracts.CheckValue(rep, nameof(rep));
             Repository = rep;
@@ -108,9 +108,9 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// Create a ModelSaveContext supporting saving to a single-stream, for implementors of ICanSaveInBinaryFormat.
+        /// Create a <see cref="ModelSaveContext"/> supporting saving to a single-stream, for implementors of <see cref="ICanSaveInBinaryFormat"/>.
         /// </summary>
-        public ModelSaveContext(BinaryWriter writer, IExceptionContext ectx = null)
+        internal ModelSaveContext(BinaryWriter writer, IExceptionContext ectx = null)
         {
             Contracts.AssertValueOrNull(ectx);
             _ectx = ectx;
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Model
 
         /// <summary>
         /// Set the version information in the main stream's header. This should be called before
-        /// Done is called.
+        /// <see cref="Done"/> is called.
         /// </summary>
         /// <param name="ver"></param>
         public void SetVersionInfo(VersionInfo ver)
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Model
 
         /// <summary>
         /// Commit the save operation. This completes writing of the main stream. When in repository
-        /// mode, it disposes the Writer (but not the repository).
+        /// mode, it disposes <see cref="Writer"/> (but not <see cref="Repository"/>).
         /// </summary>
         public void Done()
         {

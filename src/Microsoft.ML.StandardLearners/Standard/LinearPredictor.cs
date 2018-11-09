@@ -63,8 +63,10 @@ namespace Microsoft.ML.Runtime.Learners
 
             public int Count => _pred.Weight.Length;
 
-            public Float this[int index] {
-                get {
+            public Float this[int index]
+            {
+                get
+                {
                     Contracts.CheckParam(0 <= index && index < Count, nameof(index), "Out of range");
                     Float value = 0;
                     _pred.Weight.GetItemOrDefault(index, ref value);
@@ -439,17 +441,7 @@ namespace Microsoft.ML.Runtime.Learners
             // (Base class)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -474,18 +466,12 @@ namespace Microsoft.ML.Runtime.Learners
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
             base.SaveCore(ctx);
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
-
-            ctx.SetVersionInfo(GetVersionInfo());
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -562,7 +548,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        public override PredictionKind PredictionKind {
+        public override PredictionKind PredictionKind
+        {
             get { return PredictionKind.Regression; }
         }
 

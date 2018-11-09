@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Create a ModelLoadContext supporting loading from a repository, for implementors of ICanSaveModel.
         /// </summary>
-        public ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
+        internal ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
         {
             Contracts.CheckValue(rep, nameof(rep));
             Repository = rep;
