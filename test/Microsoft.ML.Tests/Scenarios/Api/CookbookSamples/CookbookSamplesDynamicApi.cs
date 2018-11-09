@@ -321,7 +321,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
                 // NLP pipeline 4: word embeddings.
                 .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
-                .Append(mlContext.Transforms.Text.ExtractWordEmbeedings("TokenizedMessage", "Embeddings",
+                .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("TokenizedMessage", "Embeddings",
                             WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D));
 
             // Let's train our pipeline, and then apply it to the same data.

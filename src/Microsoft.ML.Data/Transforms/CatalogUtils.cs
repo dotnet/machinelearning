@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Data
         public static IHostEnvironment GetEnvironment(this TransformsCatalog catalog) => Contracts.CheckRef(catalog, nameof(catalog)).Environment;
         public static IHostEnvironment GetEnvironment(this TransformsCatalog.SubCatalogBase subCatalog) => Contracts.CheckRef(subCatalog, nameof(subCatalog)).Environment;
         public static IHostEnvironment GetEnvironment(this ModelOperationsCatalog catalog) => Contracts.CheckRef(catalog, nameof(catalog)).Environment;
-        public static IHostEnvironment GetEnvironment(this DataLoadSaveOperations catalog) => Contracts.CheckRef(catalog, nameof(catalog)).Environment;
+        public static IHostEnvironment GetEnvironment(this DataOperations catalog) => Contracts.CheckRef(catalog, nameof(catalog)).Environment;
         public static IHostEnvironment GetEnvironment(TrainContextBase.ContextInstantiatorBase obj) => Contracts.CheckRef(obj, nameof(obj)).Owner.Environment;
         public static IHostEnvironment GetEnvironment(TrainContextBase ctx) => Contracts.CheckRef(ctx, nameof(ctx)).Environment;
 

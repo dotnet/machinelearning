@@ -38,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMRegression.cs?range=6-10,18-74 "LightGbm regression example.")]
+        ///  [!code-csharp[LightGBM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/LightGBMRegression.cs?range=6-10,18-74)]
         /// ]]></format>
         /// </example>
         public static Scalar<float> LightGbm(this RegressionContext.RegressionTrainers ctx,
