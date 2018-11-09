@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.Dynamic
     {
         class SampleInfertDataWithFeatures
         {
-            public VBuffer<int> Features { get; set; }
+            public VBuffer<float> Features { get; set; }
         }
 
         public static void ConcatTransform()
