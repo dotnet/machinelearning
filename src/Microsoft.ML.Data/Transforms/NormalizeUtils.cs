@@ -52,17 +52,19 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
-    internal interface IColumnFunction : ICanSaveModel
+    public abstract class IColumnFunction : ICanSaveModel
     {
-        Delegate GetGetter(IRow input, int icol);
+        public abstract Delegate GetGetter(IRow input, int icol);
 
-        void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+        public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
-        JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
+        public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        bool CanSaveOnnx(OnnxContext ctx);
+        public abstract bool CanSaveOnnx(OnnxContext ctx);
 
-        bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+        public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+
+        public abstract void Save(ModelSaveContext ctx);
     }
 
     public static class NormalizeUtils

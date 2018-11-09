@@ -382,15 +382,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
-
-            public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
-            public bool CanSaveOnnx(OnnxContext ctx) => true;
-            public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
-
-            public abstract Delegate GetGetter(IRow input, int icol);
-
-            public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+            public override bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -412,11 +404,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc.ToString());
             }
 
-            private abstract class ImplOne<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<TFloat>
+            public abstract class ImplOne<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<TFloat>
             {
                 protected readonly TFloat Scale;
                 protected readonly TFloat Offset;
-
                 TFloat NormalizerTransformer.IAffineData<TFloat>.Scale => Scale;
                 TFloat NormalizerTransformer.IAffineData<TFloat>.Offset => Offset;
 
@@ -437,7 +428,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
             }
 
-            private abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
+            public abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
             {
                 protected readonly TFloat[] Scale;
                 protected readonly TFloat[] Offset;
@@ -445,7 +436,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 ImmutableArray<TFloat> NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>.Scale => ImmutableArray.Create(Scale);
                 ImmutableArray<TFloat> NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>.Offset
-                    => Offset == null ? ImmutableArray.Create<TFloat>() : ImmutableArray.Create(Offset);
+                     => Offset == null ? ImmutableArray.Create<TFloat>() : ImmutableArray.Create(Offset);
 
                 protected ImplVec(IHost host, TFloat[] scale, TFloat[] offset, int[] indicesNonZeroOffset)
                     : base(host)
@@ -497,19 +488,12 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
+            public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
-            {
-                return null;
-            }
+            public override bool CanSaveOnnx(OnnxContext ctx) => false;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => false;
-
-            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            public override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
-
-            public abstract Delegate GetGetter(IRow input, int icol);
 
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -530,8 +514,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc);
             }
-
-            public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
             private abstract class ImplOne<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<TFloat>
             {
@@ -631,21 +613,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public abstract void Save(ModelSaveContext ctx);
+            public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
-            {
-                return null;
-            }
+            public override bool CanSaveOnnx(OnnxContext ctx) => false;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => false;
-
-            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            public override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public abstract Delegate GetGetter(IRow input, int icol);
-
-            public void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+            public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
             {
                 // REVIEW: How to attach information on the bins, to metadata?
             }

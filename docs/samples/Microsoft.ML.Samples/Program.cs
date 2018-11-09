@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            TransformSamples.KeyToValue_Term();
+            TransformSamples.MinMaxNormalizer();
         }
     }
 }

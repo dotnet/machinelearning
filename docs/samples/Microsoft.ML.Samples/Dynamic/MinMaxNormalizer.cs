@@ -35,7 +35,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for normalizing the Induced column.
             var pipeline = ml.Transforms.Normalize("Induced");
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
-            var transformedData = pipeline.Fit(trainData).Transform(trainData);
+            var transformer = pipeline.Fit(trainData);
+
+            var columnFunctionParams = transformer.ColumnFunctions[0] as NormalizerTransformer.IAffineData<float>;
+
+            Console.WriteLine($"The normalization parameters are: Scale = {columnFunctionParams.Scale} and Offset = {columnFunctionParams.Offset}");
+
+            //Preview 
+            //
+            //The normalization parameters are: Scale = 0.5 and Offset = 0"
+
+            var transformedData = transformer.Transform(trainData);
+
             // Getting the data of the newly created column, so we can preview it.
             var normalizedColumn = transformedData.GetColumn<float>(ml, "Induced");
 

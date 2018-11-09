@@ -82,6 +82,61 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void NormalizerParameters()
+        {
+            string dataPath = GetDataPath("iris.txt");
+
+            var loader = new TextLoader(Env, new TextLoader.Arguments
+            {
+                Column = new[] {
+                    new TextLoader.Column("float1", DataKind.R4, 1),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("double1", DataKind.R8, 1),
+                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(1, 4) }),
+                    new TextLoader.Column("int1", DataKind.I4, 0),
+                    new TextLoader.Column("float0", DataKind.R4, new[]{ new TextLoader.Range { Min = 1, VariableEnd = true } }),
+                },
+                HasHeader = true
+            }, new MultiFileSource(dataPath));
+
+            var est = new NormalizingEstimator(Env,
+                new NormalizingEstimator.MinMaxColumn("float1"), // 0
+                new NormalizingEstimator.MinMaxColumn("float4"),
+                new NormalizingEstimator.MinMaxColumn("double1"), // 2
+                new NormalizingEstimator.MinMaxColumn("double4"),
+                new NormalizingEstimator.BinningColumn("float1", "float1bin"),//4
+                new NormalizingEstimator.BinningColumn("float4", "float4bin"), 
+                new NormalizingEstimator.BinningColumn("double1", "double1bin"),//6
+                new NormalizingEstimator.BinningColumn("double4", "double4bin"),
+                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),//8
+                new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
+                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),//10
+                new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
+                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),//12
+                new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),//14
+                new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
+
+            var data = loader.Read(dataPath);
+
+            var transformer = est.Fit(data);
+
+            var floatAffineData = transformer.ColumnFunctions[0] as NormalizerTransformer.IAffineData<float>;
+            var doubleAffineData = transformer.ColumnFunctions[2] as NormalizerTransformer.IAffineData<double>;
+
+            var floatBinData = transformer.ColumnFunctions[4] as NormalizerTransformer.IBinData<float>;
+            var doubleBinData = transformer.ColumnFunctions[6] as NormalizerTransformer.IBinData<double>;
+
+            var floatCdfMeanData = transformer.ColumnFunctions[8] as NormalizerTransformer.ICdfData<float>;
+            var doubleCdfMeanData = transformer.ColumnFunctions[10] as NormalizerTransformer.ICdfData<double>;
+
+            var floatCdfLogMeanData = transformer.ColumnFunctions[12] as NormalizerTransformer.ICdfData<float>;
+            var doubleCdfLogMeanData = transformer.ColumnFunctions[14] as NormalizerTransformer.ICdfData<double>;
+
+            Done();
+        }
+
+        [Fact]
         public void SimpleConstructorsAndExtensions()
         {
             string dataPath = GetDataPath("iris.txt");

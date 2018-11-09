@@ -251,7 +251,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 loaderAssemblyName: typeof(NormalizerTransformer).Assembly.FullName);
         }
 
-        private class ColumnInfo
+        public class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
+        public sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
         {
             private readonly ColumnInfo[] _infos;
 
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>An accessor of the column functions within <see cref="_columns"/>.</summary>
-        internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
+        public readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
         private readonly ColumnInfo[] _columns;
 
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
         /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
         /// </summary>
-        internal interface IAffineData<TData>
+        public interface IAffineData<TData>
         {
             /// <summary>
             /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
@@ -629,7 +629,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
         /// and standard deviation <see cref="Stddev"/>.
         /// </summary>
-        internal interface ICdfData<TData>
+        public interface ICdfData<TData>
         {
             /// <summary>
             /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
@@ -653,13 +653,17 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
         /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
         /// </summary>
-        internal interface IBinData<TData>
+        public interface IBinData<TData>
         {
             /// <summary>
             /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.
             /// In the vector case it is a jagged array of the bin upper bounds for all slots.
             /// </summary>
             ImmutableArray<TData> UpperBounds { get; }
+
+            TData Density { get; }
+
+            TData Offset { get; }
         }
     }
 }
