@@ -16,6 +16,7 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using System.Reflection;
+using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Tests
 {
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = new float[inputSize];
             for (int i = 0; i < inputSize; i++)
-                samplevector[i] = (i / (inputSize * 1.01f));
+                samplevector[i] = (i / ((float) inputSize));
             return samplevector;
         }
 
@@ -78,7 +79,7 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
-            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ResNet18(execDir), "data_0", "output_1");
+            var pipe = new DnnImageFeaturizerEstimator(Env, (m, env, input, output) => m.ResNet18(env, input, output, execDir), "data_0", "output_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -119,7 +120,7 @@ namespace Microsoft.ML.Tests
                     .Append(row => (
                         row.name,
                         data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ResNet18(execDir))));
+                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer((m, envi, input, estimator_output) => m.ResNet18(envi, input, estimator_output, execDir))));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
@@ -140,5 +141,64 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
+
+        /*[ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        void TestOldSavingAndLoading()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+            
+
+            var samplevector = getSampleArrayData();
+
+            var dataView = ComponentCreation.CreateDataView(Env,
+                new TestData[] {
+                    new TestData()
+                    {
+                        data_0 = samplevector
+                    }
+                });
+
+            var inputNames = "data_0";
+            var outputNames = "output_1";
+            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
+            var est = new DnnImageFeaturizerEstimator(Env, (m, env, input, output) => m.ResNet18(env, input, output, execDir), inputNames, outputNames);
+            var transformer = est.Fit(dataView);
+            var result = transformer.Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+
+                loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
+                using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
+                {
+                    VBuffer<float> softMaxValue = default;
+                    var softMaxGetter = cursor.GetGetter<VBuffer<float>>(softMaxOut1);
+                    float sum = 0f;
+                    int i = 0;
+                    while (cursor.MoveNext())
+                    {
+                        softMaxGetter(ref softMaxValue);
+                        var values = softMaxValue.DenseValues();
+                        foreach (var val in values)
+                        {
+                            sum += val;
+                            if (i == 0)
+                                Assert.InRange(val, 0.00004, 0.00005);
+                            if (i == 1)
+                                Assert.InRange(val, 0.003844, 0.003845);
+                            if (i == 999)
+                                Assert.InRange(val, 0.0029566, 0.0029567);
+                            i++;
+                        }
+                    }
+                    Assert.InRange(sum, 1.0, 1.00001);
+                }
+            }
+        }*/
     }
 }

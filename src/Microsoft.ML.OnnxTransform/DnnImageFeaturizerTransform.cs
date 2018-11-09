@@ -18,18 +18,8 @@ namespace Microsoft.ML.Transforms
     // is used by the DnnImageFeaturizeEstimator.
     // In order to use this, at least one model project with the corresponding extension methods must by included.
     // See Microsoft.ML.DNNImageFeaturizer.ResNet18 for an example.
-    public class DnnImageModelSelector
+    public sealed class DnnImageModelSelector
     {
-        public readonly IHostEnvironment Env;
-        public readonly string Input;
-        public readonly string Output;
-
-        public DnnImageModelSelector(IHostEnvironment env, string input, string output)
-        {
-            Env = env;
-            Input = input;
-            Output = output;
-        }
     }
 
     // The Dnn Image Featurizer is just a wrapper around two OnnxTransforms with present pretrained DNN models.
@@ -41,9 +31,9 @@ namespace Microsoft.ML.Transforms
         // The function passed in to this method is expected to be an extension method on the DnnImageModelSelector class
         // that creates a chain of two OnnxTransforms with specific models included together with that extension method.
         // For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18.
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> model, string input, string output)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> model, string input, string output)
         {
-            _modelChain = model(new DnnImageModelSelector(env, input, output));
+            _modelChain = model(new DnnImageModelSelector(), env, input, output);
         }
 
         public TransformerChain<OnnxTransform> Fit(IDataView input)
@@ -63,7 +53,7 @@ namespace Microsoft.ML.Transforms
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<float> input, Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> model)
+            public OutColumn(Vector<float> input, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> model)
                 : base(new Reconciler(model), input)
             {
                 Input = input;
@@ -72,9 +62,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> _model;
+            private readonly Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> _model;
 
-            public Reconciler(Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> model)
+            public Reconciler(Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> model)
             {
                 _model = model;
             }
@@ -92,7 +82,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public static Vector<float> DnnImageFeaturizer(this Vector<float> input, Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> model)
+        public static Vector<float> DnnImageFeaturizer(this Vector<float> input, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> model)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, model);
