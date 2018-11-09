@@ -76,9 +76,9 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ResNet18(Path.Combine(execDir, "..", "..",
-                "Microsoft.ML.DnnImageFeaturizer.ResNet18", "netstandard2.0")), "data_0", "output_1");
+            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
+            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ResNet18(execDir), "data_0", "output_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -113,13 +113,13 @@ namespace Microsoft.ML.Tests
                     name: ctx.LoadText(1)))
                     .Read(dataFile);
 
-                var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
                 var pipe = data.MakeNewEstimator()
                     .Append(row => (
                         row.name,
                         data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ResNet18(Path.Combine(execDir, "..", "..",
-                                 "Microsoft.ML.DnnImageFeaturizer.ResNet18", "netstandard2.0")))));
+                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ResNet18(execDir))));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 

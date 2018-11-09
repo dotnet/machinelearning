@@ -11,22 +11,29 @@
     <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <LocalAppDataDir>$(AppData)/../Local</LocalAppDataDir>
+    <MlnetAppDataDir>$(AppData)/../Local/mlnet-resources</MlnetAppDataDir>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PreprocessFile Include="$(OutDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    <PreprocessFile Include="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
-    DestinationFile="$(OutDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
-    DestinationDir="$(OutDir)/ResNetPrepOnnx" />
+    DestinationFile="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    DestinationDir="$(MlnetAppDataDir)/ResNetPrepOnnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ModelFile Include="$(OutDir)/ResNet18Onnx/ResNet18.onnx"
+    <ModelFile Include="$(MlnetAppDataDir)/ResNet18Onnx/ResNet18.onnx"
     Url="https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx"
-    DestinationFile="$(OutDir)/ResNet18Onnx/ResNet18.onnx"
-    DestinationDir="$(OutDir)/ResNet18Onnx" />
+    DestinationFile="$(MlnetAppDataDir)/ResNet18Onnx/ResNet18.onnx"
+    DestinationDir="$(MlnetAppDataDir)/ResNet18Onnx" />
   </ItemGroup>
 
   <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
+    <MakeDir Directories="$(MlnetAppDataDir)" />
+    <MakeDir Directories="$(LocalAppDataDir)" />
     <MakeDir Directories="%(PreprocessFile.DestinationDir)" />
     <DownloadFilesFromUrl Items="@(PreprocessFile)"/>
   </Target>

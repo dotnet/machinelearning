@@ -9,7 +9,11 @@ using System.Reflection;
 namespace Microsoft.ML.Transforms
 {
     // This is an extension method to be used with the DnnImageFeaturizerTransform in order to use a pretrained ResNet18 model.
-    // The NuGet containing this extension is also guaranteed to include the binary model file.
+    // The NuGet containing this extension is also guaranteed to include the binary model file. Note that when building the project
+    // containing this extension method, the corresponding binary model will be downloaded from the CDN at
+    // https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx and
+    // https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx  and placed into the local app directory
+    // folder under mlnet-resources.
     public static class ResNet18Extension
     {
         // If including this through a NuGet, the location of the model will be the same as of this file. This looks for the model there.
