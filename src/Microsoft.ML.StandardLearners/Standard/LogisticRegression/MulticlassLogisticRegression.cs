@@ -566,7 +566,6 @@ namespace Microsoft.ML.Runtime.Learners
         protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
-            ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             Host.Assert(_biases.Length == _numClasses);

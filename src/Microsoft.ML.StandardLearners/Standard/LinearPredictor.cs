@@ -466,7 +466,6 @@ namespace Microsoft.ML.Runtime.Learners
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
             base.SaveCore(ctx);
-            ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             Contracts.AssertValueOrNull(_stats);
