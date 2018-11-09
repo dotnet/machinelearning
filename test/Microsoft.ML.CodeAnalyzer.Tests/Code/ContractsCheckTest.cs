@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
+using System;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
@@ -68,16 +71,27 @@ namespace TestNamespace
 
     public sealed class ContractsCheckFixTest : CodeFixVerifier<ContractsCheckAnalyzer, ContractsCheckNameofFixProvider>
     {
-        private static string _preFix;
-        private static string _postFix;
+        private readonly Lazy<string> SourcePreFix = TestUtils.LazySource("ContractsCheckBeforeFix.cs");
+        private readonly Lazy<string> SourcePostFix = TestUtils.LazySource("ContractsCheckAfterFix.cs");
+
+        private readonly Lazy<string> SourceArgAttr = TestUtils.LazySource("ArgumentAttribute.cs");
+        private readonly Lazy<string> SourceArgType = TestUtils.LazySource("ArgumentType.cs");
+        private readonly Lazy<string> SourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
+        private readonly Lazy<string> SourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
 
         [Fact]
         public void ContractsCheckFix()
         {
-            string test = TestUtils.EnsureSourceLoaded(ref _preFix, "ContractsCheckBeforeFix.cs");
-            string expected = TestUtils.EnsureSourceLoaded(ref _postFix, "ContractsCheckAfterFix.cs");
+            //VerifyCSharpFix(SourcePreFix.Value, SourcePostFix.Value);
 
-            VerifyCSharpFix(test, expected);
+            Solution solution = null;
+            var proj = CreateProject(TestProjectName, ref solution, SourcePostFix.Value, SourceArgAttr.Value,
+                SourceArgType.Value, SourceBestAttr.Value, SourceDefArgAttr.Value);
+            var document = proj.Documents.First();
+            var analyzer = GetCSharpDiagnosticAnalyzer();
+            var comp = proj.GetCompilationAsync().Result;
+
+            CycleAndVerifyFix(analyzer, GetCSharpCodeFixProvider(), SourcePostFix.Value, document);
         }
     }
 }
