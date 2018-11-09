@@ -134,14 +134,14 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="label">The name of the label column.</param>
-        /// <param name="features">The name of  column hosting the features.</param>
+        /// <param name="featureColumns">The name of  column hosting the features.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="weights">The name of the optional weights' column.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
-            string label,
-            string[] features,
+            string[] featureColumns,
+            string labelColumn = DefaultColumnNames.Label,
             string weights = null,
             TrainerEstimatorContext context = null,
             Action<Arguments> advancedSettings = null)
@@ -155,12 +155,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             Context = context;
 
-            FeatureColumns = new SchemaShape.Column[features.Length];
+            FeatureColumns = new SchemaShape.Column[featureColumns.Length];
 
-            for (int i = 0; i < features.Length; i++)
-                FeatureColumns[i] = new SchemaShape.Column(features[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            for (int i = 0; i < featureColumns.Length; i++)
+                FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
-            LabelColumn = new SchemaShape.Column(label, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+            LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
             WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
         }
 

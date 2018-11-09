@@ -56,8 +56,8 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="label">The label, or dependent variable.</param>
-        /// <param name="features">The features, or independent variables.</param>
+        /// <param name="labelColumn">The label, or dependent variable.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="loss">The custom loss.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
@@ -68,19 +68,19 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaRegressionTrainer(IHostEnvironment env,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             ISupportSdcaRegressionLoss loss = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, features, TrainerUtils.MakeR4ScalarLabel(label), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weights), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
-            Host.CheckNonEmpty(features, nameof(features));
-            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             _loss = loss ?? Args.LossFunction.CreateComponent(env);
             Loss = _loss;
         }

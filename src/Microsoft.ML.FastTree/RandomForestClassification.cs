@@ -146,8 +146,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastForestClassification(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,

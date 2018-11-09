@@ -64,8 +64,8 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRegressionTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
