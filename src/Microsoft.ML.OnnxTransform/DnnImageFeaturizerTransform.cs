@@ -14,7 +14,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This is a helper class that is required to use the DnnImageFeaturizer estimator.
+    /// This is a helper class that is required to use the <see cref="DnnImageFeaturizerEstimator"/>.
     /// Note that by default, it is not usable as it does not have any valid methods that return an EstimatorChain that
     /// is used by the DnnImageFeaturizeEstimator.
     /// In order to use this, at least one model project with the corresponding extension methods must by included.
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The Dnn Image Featurizer is just a wrapper around two OnnxTransforms with present pretrained DNN models.
+    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/>s with present pretrained DNN models.
     /// Note that because of this, it only works on Windows machines as that is a constraint of the OnnxTransform.
     /// </summary>
     public sealed class DnnImageFeaturizerEstimator : IEstimator<TransformerChain<OnnxTransform>>
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Transforms
         /// Constructor for the estimator for a DnnImageFeaturizer transform.
         /// </summary>
         /// <param name="env">Host environment.</param>
-        /// <param name="modelFactory">An extension method on the DnnImageModelSelector class that creates a chain of two
-        /// OnnxTransforms with specific models included in a package together with that extension method.
+        /// <param name="modelFactory">An extension method on the <see cref="DnnImageModelSelector"/> that creates a chain of two
+        /// <see cref="OnnxScoringEstimator"/>s with specific models included in a package together with that extension method.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="input">Input column name.</param>
         /// <param name="output">Output column name.</param>

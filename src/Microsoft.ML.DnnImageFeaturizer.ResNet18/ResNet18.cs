@@ -10,7 +10,7 @@ using System.Reflection;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This is an extension method to be used with the DnnImageFeaturizerTransform in order to use a pretrained ResNet18 model.
+    /// This is an extension method to be used with the <see cref="DnnImageFeaturizerEstimator"/> in order to use a pretrained ResNet18 model.
     /// The NuGet containing this extension is also guaranteed to include the binary model file. Note that when building the project
     /// containing this extension method, the corresponding binary model will be downloaded from the CDN at
     /// https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx and
