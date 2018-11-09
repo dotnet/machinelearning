@@ -36,14 +36,14 @@ namespace Microsoft.ML.Transforms
         /// Constructor for the estimator for a DnnImageFeaturizer transform.
         /// </summary>
         /// <param name="env">Host environment.</param>
-        /// <param name="model">An extension method on the DnnImageModelSelector class that creates a chain of two
+        /// <param name="modelFactory">An extension method on the DnnImageModelSelector class that creates a chain of two
         /// OnnxTransforms with specific models included in a package together with that extension method.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="input">Input column name.</param>
         /// <param name="output">Output column name.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> model, string input, string output)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> modelFactory, string input, string output)
         {
-            _modelChain = model(new DnnImageModelSelector(), env, input, output);
+            _modelChain = modelFactory(new DnnImageModelSelector(), env, input, output);
         }
 
         /// <summary>
