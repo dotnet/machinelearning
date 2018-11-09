@@ -51,7 +51,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
+        public MultiClassNaiveBayesTrainer(IHostEnvironment env,
+            string featureColumn = DefaultColumnNames.Features,
+            string labelColumn = DefaultColumnNames.Label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {

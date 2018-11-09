@@ -51,8 +51,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="label">The name of the label column.</param>
-        /// <param name="features">The name of the feature column.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
@@ -70,11 +70,11 @@ namespace Microsoft.ML.Runtime.Learners
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, features, TrainerUtils.MakeBoolScalarLabel(label), weights, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
                   l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
         {
-            Host.CheckNonEmpty(features, nameof(features));
-            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;

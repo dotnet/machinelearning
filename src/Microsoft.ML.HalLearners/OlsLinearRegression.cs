@@ -68,16 +68,16 @@ namespace Microsoft.ML.Trainers.HalLearners
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="label">The name of the label column.</param>
-        /// <param name="features">The name of the feature column.</param>
+        /// <param name="labelColumn">The name of the labelColumn column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The name for the optional example weight column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public OlsLinearRegressionTrainer(IHostEnvironment env,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             Action<Arguments> advancedSettings = null)
-            : this(env, ArgsInit(features, label, weights, advancedSettings))
+            : this(env, ArgsInit(featureColumn, labelColumn, weights, advancedSettings))
         {
         }
 
@@ -94,8 +94,10 @@ namespace Microsoft.ML.Trainers.HalLearners
             _perParameterSignificance = args.PerParameterSignificance;
         }
 
-        private static Arguments ArgsInit(string featureColumn, string labelColumn,
-            string weightColumn, Action<Arguments> advancedSettings)
+        private static Arguments ArgsInit(string featureColumn,
+            string labelColumn,
+            string weightColumn,
+            Action<Arguments> advancedSettings)
         {
             var args = new Arguments();
 
@@ -135,12 +137,12 @@ namespace Microsoft.ML.Trainers.HalLearners
                 ch.CheckValue(context, nameof(context));
                 var examples = context.TrainingSet;
                 ch.CheckParam(examples.Schema.Feature != null, nameof(examples), "Need a feature column");
-                ch.CheckParam(examples.Schema.Label != null, nameof(examples), "Need a label column");
+                ch.CheckParam(examples.Schema.Label != null, nameof(examples), "Need a labelColumn column");
 
-                // The label type must be either Float or a key type based on int (if allowKeyLabels is true).
+                // The labelColumn type must be either Float or a key type based on int (if allowKeyLabels is true).
                 var typeLab = examples.Schema.Label.Type;
                 if (typeLab != NumberType.Float)
-                    throw ch.Except("Incompatible label column type {0}, must be {1}", typeLab, NumberType.Float);
+                    throw ch.Except("Incompatible labelColumn column type {0}, must be {1}", typeLab, NumberType.Float);
 
                 // The feature type must be a vector of Float.
                 var typeFeat = examples.Schema.Feature.Type;
@@ -225,7 +227,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 }
                 ch.Check(n > 0, "No training examples in dataset.");
                 if (cursor.BadFeaturesRowCount > 0)
-                    ch.Warning("Skipped {0} instances with missing features/label during training", cursor.SkippedRowCount);
+                    ch.Warning("Skipped {0} instances with missing features/labelColumn during training", cursor.SkippedRowCount);
 
                 if (_l2Weight > 0)
                 {
