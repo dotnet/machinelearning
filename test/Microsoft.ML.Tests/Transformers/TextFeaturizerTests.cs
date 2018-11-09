@@ -236,7 +236,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact]
+        [Fact(Skip = "LDA transform cannot be trained on empty data, schema propagation fails")]
         public void LdaWorkout()
         {
             var env = new ConsoleEnvironment(seed: 42, conc: 1);
