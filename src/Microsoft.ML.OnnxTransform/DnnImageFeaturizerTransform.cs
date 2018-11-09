@@ -46,6 +46,10 @@ namespace Microsoft.ML.Transforms
             _modelChain = model(new DnnImageModelSelector(), env, input, output);
         }
 
+        /// <summary>
+        /// Note that OnnxEstimator which this is based on is a trivial estimator, so this does not do any actual training,
+        /// just verifies the schema.
+        /// </summary>
         public TransformerChain<OnnxTransform> Fit(IDataView input)
         {
             return _modelChain.Fit(input);
