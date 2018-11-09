@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Learners
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
 
-            if (Args.StdComputer == null)
+            if (ShowTrainingStats && Args.StdComputer == null)
                 Args.StdComputer = new ComputeLRTrainingStd();
         }
 
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Learners
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
 
-            if (Args.StdComputer == null)
+            if (ShowTrainingStats && Args.StdComputer == null)
                 Args.StdComputer = new ComputeLRTrainingStd();
         }
 
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Runtime.Learners
         public VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
-            Contracts.AssertValue(hessian, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
+            Contracts.AssertValue(hessian, nameof(hessian));
             Contracts.AssertNonEmpty(weightIndices);
             Contracts.Assert(numSelectedParams > 0);
             Contracts.Assert(currentWeightsCount > 0);
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Initialize with inverse Hessian.
                 // The diagonal of the inverse Hessian.
-                stdErrorValues2[i] = (Single)invers[i, numSelectedParams - i - 1];
+                stdErrorValues2[i] = (float)invers[i, numSelectedParams - i - 1];
             }
 
             if (l2Weight > 0)
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Learners
                     for (int iCol = 0; iCol <= iRow; iCol++)
                     {
                         float entry = (float)invers[iRow, numSelectedParams - iCol - 1];
-                        var adjustment = -l2Weight * entry * entry;
+                        var adjustment = l2Weight * entry * entry;
                         stdErrorValues2[iRow] -= adjustment;
 
                         if (0 < iCol && iCol < iRow)

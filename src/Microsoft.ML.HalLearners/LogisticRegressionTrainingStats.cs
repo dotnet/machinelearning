@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
         public VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
-            Contracts.AssertValue(hessian, $"Training Statistics can get generated after training finishes. Train with setting: ShowTrainigStats set to true.");
+            Contracts.AssertValue(hessian, nameof(hessian));
             Contracts.AssertNonEmpty(weightIndices);
             Contracts.Assert(numSelectedParams > 0);
             Contracts.Assert(currentWeightsCount > 0);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 1; i < numSelectedParams; i++)
             {
                 // Initialize with inverse Hessian.
-                stdErrorValues[i] = (Single)invHessian[i * (i + 1) / 2 + i];
+                stdErrorValues[i] = (float)invHessian[i * (i + 1) / 2 + i];
             }
 
             if (l2Weight > 0)
@@ -75,8 +75,8 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     for (int iCol = 0; iCol <= iRow; iCol++)
                     {
-                        var entry = (Single)invHessian[ioffset];
-                        var adjustment = -l2Weight * entry * entry;
+                        var entry = (float)invHessian[ioffset];
+                        var adjustment = l2Weight * entry * entry;
                         stdErrorValues[iRow] -= adjustment;
                         if (0 < iCol && iCol < iRow)
                             stdErrorValues[iCol] -= adjustment;
