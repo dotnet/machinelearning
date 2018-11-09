@@ -4,7 +4,11 @@ This project contains performance benchmarks.
 
 ## Run the Performance Tests
 
-**Pre-requisite:** On a clean repo, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
+**Pre-requisite:** In order to fetch dependencies which come through Git submodules the following command needs to be run before building:
+
+    git submodule update --init
+
+**Pre-requisite:** On a clean repo with initalized submodules, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
 
     build.cmd -release -buildNative
     
