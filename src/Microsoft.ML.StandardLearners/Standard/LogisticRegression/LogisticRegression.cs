@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
             else
             {
-                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Count, ch, L2Weight);
+                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
                 _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
             }
         }
@@ -463,7 +463,6 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(hessian, nameof(hessian));
-            Contracts.AssertNonEmpty(weightIndices);
             Contracts.Assert(numSelectedParams > 0);
             Contracts.Assert(currentWeightsCount > 0);
             Contracts.Assert(l2Weight > 0);

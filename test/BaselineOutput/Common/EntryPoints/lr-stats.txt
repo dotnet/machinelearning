@@ -5,6 +5,14 @@
 #@   col={name={Residual Deviance} type=R4 src=1}
 #@   col={name={Null Deviance} type=R4 src=2}
 #@   col=AIC:R4:3
+#@   col=BiasEstimate:R4:4
+#@   col=BiasStandardError:R4:5
+#@   col=BiasZScore:R4:6
+#@   col=BiasPValue:R4:7
+#@   col=Estimate:R4:8-16
+#@   col=StandardError:R4:17-25
+#@   col=ZScore:R4:26-34
+#@   col=PValue:R4:35-43
 #@ }
-Count of training examples	Residual Deviance	Null Deviance	AIC
-683	126.83107	884.350159	146.83107
+Count of training examples	Residual Deviance	Null Deviance	AIC	BiasEstimate	BiasStandardError	BiasZScore	BiasPValue	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses	thickness	uniform_size	uniform_shape	adhesion	epit_size	bare_nuclei	bland_chromatin	normal_nucleoli	mitoses
+683	126.83107	884.350159	146.83107	-6.186806	0.459383339	-13.4676332	0	2.65800762	1.68089855	1.944068	1.42514718	0.8536965	2.9325006	1.74816787	1.58165014	0.595681	0.455618978	0.429146379	0.431570023	0.479817748	0.470442533	0.4381438	0.469593167	0.4714128	0.467883229	5.83383846	3.916842	4.504641	2.97018433	1.814667	6.69301	3.72272849	3.35512757	1.27314031	0	8.9764595E-05	6.67572E-06	0.002976358	0.06957501	0	0.00019711256	0.0007933974	0.202968419
