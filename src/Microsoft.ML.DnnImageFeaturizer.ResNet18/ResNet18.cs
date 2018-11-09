@@ -9,16 +9,20 @@ using System.Reflection;
 
 namespace Microsoft.ML.Transforms
 {
-    // This is an extension method to be used with the DnnImageFeaturizerTransform in order to use a pretrained ResNet18 model.
-    // The NuGet containing this extension is also guaranteed to include the binary model file. Note that when building the project
-    // containing this extension method, the corresponding binary model will be downloaded from the CDN at
-    // https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx and
-    // https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx  and placed into the local app directory
-    // folder under mlnet-resources.
+    /// <summary>
+    /// This is an extension method to be used with the DnnImageFeaturizerTransform in order to use a pretrained ResNet18 model.
+    /// The NuGet containing this extension is also guaranteed to include the binary model file. Note that when building the project
+    /// containing this extension method, the corresponding binary model will be downloaded from the CDN at
+    /// https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx and
+    /// https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx  and placed into the local app directory
+    /// folder under mlnet-resources.
+    /// </summary>
     public static class ResNet18Extension
     {
-        // If including this through a NuGet, the location of the model will be the same as of this file. This looks for the model there.
-        // This should be the default way to use ResNet18 if importing the model from a NuGet.
+        /// <summary>
+        /// If including this through a NuGet, the location of the model will be the same as of this file. This looks for the model there.
+        /// This should be the default way to use ResNet18 if importing the model from a NuGet.
+        /// </summary>
         public static EstimatorChain<OnnxTransform> ResNet18(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string input, string output)
         {
             var modelChain = new EstimatorChain<OnnxTransform>();
@@ -32,10 +36,12 @@ namespace Microsoft.ML.Transforms
             return modelChain;
         }
 
-        // This allows a custom model location to be specified. This is useful is a custom model is specified,
-        // or if the model is desired to be placed or shipped separately in a different folder from the main application. Note that because Onnx models
-        // must be in a directory all by themsleves for the OnnxTransform to work, this method appends a ResNet18Onnx/ResNetPrepOnnx subdirectory
-        // to the passed in directory to prevent having to make that directory manually each time.
+        /// <summary>
+        /// This allows a custom model location to be specified. This is useful is a custom model is specified,
+        /// or if the model is desired to be placed or shipped separately in a different folder from the main application. Note that because Onnx models
+        /// must be in a directory all by themsleves for the OnnxTransform to work, this method appends a ResNet18Onnx/ResNetPrepOnnx subdirectory
+        /// to the passed in directory to prevent having to make that directory manually each time.
+        /// </summary>
         public static EstimatorChain<OnnxTransform> ResNet18(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string input, string output, string modelDir)
         {
             var modelChain = new EstimatorChain<OnnxTransform>();
