@@ -11,11 +11,11 @@ using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.TreePredictor;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.TreePredictor;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]

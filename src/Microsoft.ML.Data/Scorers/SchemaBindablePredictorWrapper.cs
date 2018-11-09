@@ -416,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(ctx.TokenOrNullForName(outputNames[1]) == probToken.ToString());
         }
 
-        private protected override sealed bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        private protected override bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
