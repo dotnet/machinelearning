@@ -5,6 +5,8 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
+using System;
+using System.Linq;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -29,6 +31,27 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.ConvergenceTolerance = 1f; s.NumThreads = 1; }));
 
             var cvResult = ml.BinaryClassification.CrossValidate(data, pipeline);
+        }
+
+        [Fact]
+        void Clustering_CrossValidation()
+        {
+            var ml = new MLContext(seed: 1, conc: 1);
+
+            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs()).Read(GetDataPath(TestDatasets.iris.trainFilename));
+
+            var pipeline = ml.Transforms.Concatenate("Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(ml.Clustering.Trainers.KMeans(features: "Features", clustersCount: 3));
+
+            var cvResults = ml.Clustering.CrossValidate(data, pipeline, labelColumn: "Label");
+
+            var AvgMinScore = cvResults.Select(r => r.metrics.AvgMinScore);
+            var Dbi = cvResults.Select(r => r.metrics.Dbi);
+            var Nmi = cvResults.Select(r => r.metrics.Nmi);
+
+            Console.WriteLine("AvgMinScore: " + AvgMinScore.Average());
+            Console.WriteLine("DBI: " + Dbi.Average());
+            Console.WriteLine("NMI: " + Nmi.Average());
         }
     }
 }
