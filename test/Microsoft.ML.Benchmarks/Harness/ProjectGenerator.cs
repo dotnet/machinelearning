@@ -27,7 +27,7 @@ namespace Microsoft.ML.Benchmarks.Harness
     /// </summary>
     public class ProjectGenerator : CsProjGenerator
     {
-        public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, platform => platform.ToConfig(), null)
+        public ProjectGenerator(string targetFrameworkMoniker) : base(targetFrameworkMoniker, null, null, null)
         {
         }
 
