@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        /*[ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
         void TestOldSavingAndLoading()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -188,17 +188,17 @@ namespace Microsoft.ML.Tests
                         {
                             sum += val;
                             if (i == 0)
-                                Assert.InRange(val, 0.00004, 0.00005);
-                            if (i == 1)
-                                Assert.InRange(val, 0.003844, 0.003845);
-                            if (i == 999)
-                                Assert.InRange(val, 0.0029566, 0.0029567);
+                                Assert.InRange(val, 0.0, 0.00001);
+                            if (i == 7)
+                                Assert.InRange(val, 0.62935, 0.62940);
+                            if (i == 500)
+                                Assert.InRange(val, 0.15521, 0.155225);
                             i++;
                         }
                     }
-                    Assert.InRange(sum, 1.0, 1.00001);
+                    Assert.InRange(sum, 83.50, 84.50);
                 }
             }
-        }*/
+        }
     }
 }
