@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.Core.Data;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(NgramTransform.Summary, typeof(IDataTransform), typeof(NgramTransform), typeof(NgramTransform.Arguments), typeof(SignatureDataTransform),
     "Ngram Transform", "NgramTransform", "Ngram")]
@@ -168,10 +168,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             // Position i, indicates whether the pool contains any (i+1)-grams
             public readonly bool[] NonEmptyLevels;
-
             public readonly int NgramLength;
             public readonly int SkipLength;
-
             public readonly NgramEstimator.WeightingCriteria Weighting;
 
             public bool RequireIdf => Weighting == NgramEstimator.WeightingCriteria.Idf || Weighting == NgramEstimator.WeightingCriteria.TfIdf;
@@ -229,6 +227,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly TransformInfo[] _transformInfos;
+
         // These contain the ngram maps
         private readonly SequencePool[] _ngramMaps;
 
@@ -550,9 +549,10 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 return result;
             }
+
             private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
-                if (InputSchema.HasKeyNames(_srcCols[iinfo], _parent._ngramMaps[iinfo].Count))
+                if (InputSchema.HasKeyNames(_srcCols[iinfo], _srcTypes[iinfo].ItemType.KeyCount))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -563,6 +563,7 @@ namespace Microsoft.ML.Transforms.Text
                     builder.AddSlotNames(_parent._ngramMaps[iinfo].Count, getter);
                 }
             }
+
             private void GetSlotNames(int iinfo, int size, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -708,10 +709,8 @@ namespace Microsoft.ML.Transforms.Text
                     default:
                         throw Host.Except("Unsupported weighting criteria");
                 }
-
                 return del;
             }
-
         }
     }
 
@@ -835,6 +834,5 @@ namespace Microsoft.ML.Transforms.Text
             }
             return new SchemaShape(result.Values);
         }
-
     }
 }

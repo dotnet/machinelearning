@@ -7,7 +7,7 @@
   Key: Vec<Key<U4, 0-3>, 21>
     Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
       [0] 'a', [1] 'b', [2] 'c', [3] 'd'
----- NgramTransform ----
+---- RowToRowMapperTransform ----
 3 columns:
   Text: Vec<Text, 21>
   Key: Vec<Key<U4, 0-3>, 21>
