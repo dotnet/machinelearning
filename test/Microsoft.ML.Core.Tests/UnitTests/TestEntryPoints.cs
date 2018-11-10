@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -1231,7 +1231,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                var mlr = new MulticlassLogisticRegression(Env, "Features", "Label");
+                var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
@@ -1371,10 +1371,10 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = CategoricalTransform.Create(Env,
-                    new CategoricalTransform.Arguments()
+                data = OneHotEncodingTransformer.Create(Env,
+                    new OneHotEncodingTransformer.Arguments()
                     {
-                        Column = new[] { new CategoricalTransform.Column() { Name = "Cat", Source = "Cat" } }
+                        Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
                     }, data);
                 data = new ConcatTransform(Env, new ConcatTransform.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
@@ -3767,10 +3767,10 @@ namespace Microsoft.ML.Runtime.RunTests
 #pragma warning disable 0618
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
-            var cat = Categorical.CatTransformDict(Env, new CategoricalTransform.Arguments()
+            var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new CategoricalTransform.Column { Name = "Categories", Source = "Categories" } }
+                Column = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
             var concat = SchemaManipulation.ConcatColumns(Env, new ConcatTransform.Arguments()
             {

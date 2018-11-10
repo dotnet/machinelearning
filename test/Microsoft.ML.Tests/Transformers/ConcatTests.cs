@@ -63,7 +63,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f4");
             Assert.True(t is VectorType vt4 && vt4.ItemType == NumberType.R4 && vt4.Size == 0);
 
-            data = SelectColumnsTransform.CreateKeep(Env, data, "f1", "f2", "f3", "f4");
+            data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f1", "f2", "f3", "f4" });
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat1.tsv");
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f3");
             Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
 
-            data = SelectColumnsTransform.CreateKeep(Env, data, "f2", "f3");
+            data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f2", "f3" });
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat2.tsv");
