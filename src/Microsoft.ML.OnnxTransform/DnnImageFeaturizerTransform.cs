@@ -37,7 +37,8 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Host environment.</param>
         /// <param name="modelFactory">An extension method on the <see cref="DnnImageModelSelector"/> that creates a chain of two
-        /// <see cref="OnnxScoringEstimator"/>s with specific models included in a package together with that extension method.
+        /// <see cref="OnnxScoringEstimator"/>s (one for preprocessing and one with a pretrained image DNN) with specific models
+        /// included in a package together with that extension method.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="input">Input column name.</param>
         /// <param name="output">Output column name.</param>
@@ -97,12 +98,13 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Creates a DnnImageFeaturizer transform to be used by the static API.
+        /// Creates and applies a DnnImageFeaturizer transform to be used by the static API.
         /// <see cref="DnnImageFeaturizerEstimator"/> for more information about how the transformation works.
         /// </summary>
         /// <param name="input">Vector of image pixel weights.</param>
         /// <param name="modelFactory">An extension method on the <see cref="DnnImageModelSelector"/> that creates a chain of two
-        /// <see cref="OnnxScoringEstimator"/>s with specific models included in a package together with that extension method.
+        /// <see cref="OnnxScoringEstimator"/>s (one for preprocessing and one with a pretrained image DNN) with specific models
+        /// included in a package together with that extension method.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <returns>A vector of float feature weights based on the input image.</returns>
         public static Vector<float> DnnImageFeaturizer(this Vector<float> input, Func<DnnImageModelSelector, IHostEnvironment, string, string, EstimatorChain<OnnxTransform>> modelFactory)
