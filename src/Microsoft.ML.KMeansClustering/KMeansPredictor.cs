@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.KMeans
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
 
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Trainers.KMeans
             k = _k;
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             // Computation graph of distances to all centriods for a batch of examples. Note that a centriod is just
             // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means

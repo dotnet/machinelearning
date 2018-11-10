@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     getTerm(ref term);
                     // REVIEW: Should we trim?
                     term = ReadOnlyMemoryUtils.TrimSpaces(term);
-                    var nstr = ReadOnlyMemoryUtils.AddToPool(term, terms);
+                    var nstr = terms.Add(term);
                     if (nstr.Id != values.Count)
                         throw ectx.Except("Duplicate term in lookup data: '{0}'", nstr);
 
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     {
                         getTerm(ref src);
                         src = ReadOnlyMemoryUtils.TrimSpaces(src);
-                        var nstr = ReadOnlyMemoryUtils.FindInPool(src, _terms);
+                        var nstr = _terms.Get(src);
                         if (nstr == null)
                             GetMissing(ref dst);
                         else

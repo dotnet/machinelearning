@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public void SaveAsPfa(BoundPfaContext ctx)
+            void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
 

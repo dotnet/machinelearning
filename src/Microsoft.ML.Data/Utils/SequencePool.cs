@@ -3,13 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Text;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
@@ -19,7 +13,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// A dictionary of uint sequences of variable length. Stores the sequences as
     /// byte sequences encoded with LEB128. Empty sequences (or null) are also valid.
     /// </summary>
-    public sealed class SequencePool
+    [BestFriend]
+    internal sealed class SequencePool
     {
         // uint sequences are hashed into _mask+1 buckets. _buckets contains the ID of the first
         // sequence that falls in it (or -1 if it is empty).

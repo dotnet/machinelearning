@@ -394,8 +394,8 @@ namespace Microsoft.ML.Runtime.Learners
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
@@ -554,17 +554,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull< LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -700,14 +690,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         // REVIEW: Destroy.
@@ -886,7 +869,7 @@ namespace Microsoft.ML.Runtime.Learners
             SaveAsText(writer, schema);
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -913,7 +896,7 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("m.link.softmax", PfaUtils.Call("model.reg.linear", input, cellRef));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
