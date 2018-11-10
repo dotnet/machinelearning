@@ -64,7 +64,7 @@ namespace Microsoft.ML.Benchmarks
                 trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
-                var trainer = new LogisticRegression(env, "Features", "Label", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
+                var trainer = new LogisticRegression(env, "Label", "Features", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 return trainer.Train(trainRoles);
             }

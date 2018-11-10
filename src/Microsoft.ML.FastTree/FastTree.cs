@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // override with the directly provided values.
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
-            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
+            Args.MinDocumentsInLeafs = minDatapointsInLeaves;
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
@@ -121,10 +121,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn); ;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

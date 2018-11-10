@@ -16,7 +16,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new LogisticRegression(Env, "Features", "Label"));
+            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            pipe = pipe.Append(new MulticlassLogisticRegression(Env, "Features", "Label"));
+            pipe = pipe.Append(new MulticlassLogisticRegression(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetRegressionPipeline();
-            var pipe = new PoissonRegression(Env, "Features", "Label");
+            var pipe = new PoissonRegression(Env, "Label", "Features");
             TestEstimatorCore(pipe, dataView);
             Done();
         }

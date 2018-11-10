@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName + "Renamed"))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
-            var est = new MatrixFactorizationTrainer(Env, labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName,
+            var est = new MatrixFactorizationTrainer(Env, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumnName,
                 advancedSettings: s =>
                 {
                     s.NumIterations = 3;
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, labelColumnName, userColumnName, itemColumnName,
+            var pipeline = new MatrixFactorizationTrainer(mlContext, userColumnName, itemColumnName, labelColumnName,
                 advancedSettings: s =>
                 {
                     s.NumIterations = 3;
@@ -179,8 +179,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
-                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
+            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+                nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex),
+                nameof(MatrixElement.Value),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -269,8 +271,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElementZeroBased.Value),
-                nameof(MatrixElementZeroBased.MatrixColumnIndex), nameof(MatrixElementZeroBased.MatrixRowIndex),
+            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+                nameof(MatrixElementZeroBased.MatrixColumnIndex),
+                nameof(MatrixElementZeroBased.MatrixRowIndex),
+                nameof(MatrixElementZeroBased.Value),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 100;

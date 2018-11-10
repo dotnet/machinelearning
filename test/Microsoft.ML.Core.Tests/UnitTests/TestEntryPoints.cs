@@ -1231,7 +1231,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                var mlr = new MulticlassLogisticRegression(Env, "Features", "Label");
+                var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));

@@ -87,8 +87,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
-        public Pkpd(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null, int maxCalibrationExamples = 1000000000)
+        public Pkpd(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000)
            : base(env,
                new Arguments
                {
