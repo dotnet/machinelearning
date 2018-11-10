@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // between -1 and 1 for all examples), and then train the model.
                 mlContext.Transforms.Normalize("FeatureVector")
                 // Add the SDCA regression trainer.
-                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
+                .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
 
             // Step three. Fit the pipeline to the training data.
             var model = dynamicPipeline.Fit(trainData);

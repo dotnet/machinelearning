@@ -28,10 +28,10 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             double learningRate,
             Action<TArgs> advancedSettings)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDocumentsInLeafs, advancedSettings)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDatapointsInLeaves, advancedSettings)
         {
 
             if (Args.LearningRates != learningRate)

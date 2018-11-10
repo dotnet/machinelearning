@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
-                .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
+                .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
                 .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);

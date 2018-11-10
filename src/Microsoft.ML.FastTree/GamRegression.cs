@@ -51,17 +51,17 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public RegressionGamTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<Arguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, minDocumentsInLeafs, learningRate, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, minDatapointsInLeaves, learningRate, advancedSettings)
         {
         }
 
