@@ -209,11 +209,90 @@ namespace Microsoft.ML.Transforms.Text
                 NumBurninIter = numBurninIter;
                 ResetRandomGenerator = resetRandomGenerator;
             }
+
+            internal ColumnInfo(IExceptionContext ectx, ModelLoadContext ctx)
+            {
+                Contracts.AssertValue(ectx);
+                ectx.AssertValue(ctx);
+
+                // *** Binary format ***
+                // int NumTopic;
+                // Single AlphaSum;
+                // Single Beta;
+                // int MHStep;
+                // int NumIter;
+                // int LikelihoodInterval;
+                // int NumThread;
+                // int NumMaxDocToken;
+                // int NumSummaryTermPerTopic;
+                // int NumBurninIter;
+                // byte ResetRandomGenerator;
+
+                NumTopic = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumTopic > 0);
+
+                AlphaSum = ctx.Reader.ReadSingle();
+
+                Beta = ctx.Reader.ReadSingle();
+
+                MHStep = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(MHStep > 0);
+
+                NumIter = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumIter > 0);
+
+                LikelihoodInterval = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(LikelihoodInterval > 0);
+
+                NumThread = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumThread >= 0);
+
+                NumMaxDocToken = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumMaxDocToken > 0);
+
+                NumSummaryTermPerTopic = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumSummaryTermPerTopic > 0);
+
+                NumBurninIter = ctx.Reader.ReadInt32();
+                ectx.CheckDecode(NumBurninIter >= 0);
+
+                ResetRandomGenerator = ctx.Reader.ReadBoolByte();
+            }
+
+            internal void Save(ModelSaveContext ctx)
+            {
+                Contracts.AssertValue(ctx);
+
+                // *** Binary format ***
+                // int NumTopic;
+                // Single AlphaSum;
+                // Single Beta;
+                // int MHStep;
+                // int NumIter;
+                // int LikelihoodInterval;
+                // int NumThread;
+                // int NumMaxDocToken;
+                // int NumSummaryTermPerTopic;
+                // int NumBurninIter;
+                // byte ResetRandomGenerator;
+
+                ctx.Writer.Write(NumTopic);
+                ctx.Writer.Write(AlphaSum);
+                ctx.Writer.Write(Beta);
+                ctx.Writer.Write(MHStep);
+                ctx.Writer.Write(NumIter);
+                ctx.Writer.Write(LikelihoodInterval);
+                ctx.Writer.Write(NumThread);
+                ctx.Writer.Write(NumMaxDocToken);
+                ctx.Writer.Write(NumSummaryTermPerTopic);
+                ctx.Writer.Write(NumBurninIter);
+                ctx.Writer.WriteBoolByte(ResetRandomGenerator);
+            }
         }
 
         public sealed class LdaState : IDisposable
         {
-            internal readonly TransformInfo InfoEx;
+            internal readonly ColumnInfo InfoEx;
             private readonly int _numVocab;
             private readonly object _preparationSyncRoot;
             private readonly object _testSyncRoot;
@@ -226,7 +305,7 @@ namespace Microsoft.ML.Transforms.Text
                 _testSyncRoot = new object();
             }
 
-            internal LdaState(IExceptionContext ectx, TransformInfo ex, int numVocab)
+            internal LdaState(IExceptionContext ectx, ColumnInfo ex, int numVocab)
                 : this()
             {
                 Contracts.AssertValue(ectx);
@@ -263,7 +342,7 @@ namespace Microsoft.ML.Transforms.Text
                 // (serializing term by term, for one term)
                 // int: term_id, int: topic_num, KeyValuePair<int, int>[]: termTopicVector
 
-                InfoEx = new TransformInfo(ectx, ctx);
+                InfoEx = new ColumnInfo(ectx, ctx);
 
                 _numVocab = ctx.Reader.ReadInt32();
                 ectx.CheckDecode(_numVocab > 0);
@@ -507,135 +586,6 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class TransformInfo
-        {
-            public readonly int NumTopic;
-            public readonly Single AlphaSum;
-            public readonly Single Beta;
-            public readonly int MHStep;
-            public readonly int NumIter;
-            public readonly int LikelihoodInterval;
-            public readonly int NumThread;
-            public readonly int NumMaxDocToken;
-            public readonly int NumSummaryTermPerTopic;
-            public readonly int NumBurninIter;
-            public readonly bool ResetRandomGenerator;
-
-            internal TransformInfo(IExceptionContext ectx, ColumnInfo column)
-            {
-                Contracts.AssertValue(ectx);
-
-                NumTopic = column.NumTopic;
-                Contracts.CheckUserArg(NumTopic > 0, nameof(column.NumTopic), "Must be positive.");
-
-                AlphaSum = column.AlphaSum;
-
-                Beta = column.Beta;
-
-                MHStep = column.MHStep;
-                ectx.CheckUserArg(MHStep > 0, nameof(column.MHStep), "Must be positive.");
-
-                NumIter = column.NumIter;
-                ectx.CheckUserArg(NumIter > 0, nameof(column.NumIter), "Must be positive.");
-
-                LikelihoodInterval = column.LikelihoodInterval;
-                ectx.CheckUserArg(LikelihoodInterval > 0, nameof(column.LikelihoodInterval), "Must be positive.");
-
-                NumThread = column.NumThread;
-                ectx.CheckUserArg(NumThread >= 0, nameof(column.NumThread), "Must be positive or zero.");
-
-                NumMaxDocToken = column.NumMaxDocToken;
-                ectx.CheckUserArg(NumMaxDocToken > 0, nameof(column.NumMaxDocToken), "Must be positive.");
-
-                NumSummaryTermPerTopic = column.NumSummaryTermPerTopic;
-                ectx.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(column.NumSummaryTermPerTopic), "Must be positive");
-
-                NumBurninIter = column.NumBurninIter;
-                ectx.CheckUserArg(NumBurninIter >= 0, nameof(column.NumBurninIter), "Must be non-negative.");
-
-                ResetRandomGenerator = column.ResetRandomGenerator;
-            }
-
-            internal TransformInfo(IExceptionContext ectx, ModelLoadContext ctx)
-            {
-                Contracts.AssertValue(ectx);
-                ectx.AssertValue(ctx);
-
-                // *** Binary format ***
-                // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
-                // int MHStep;
-                // int NumIter;
-                // int LikelihoodInterval;
-                // int NumThread;
-                // int NumMaxDocToken;
-                // int NumSummaryTermPerTopic;
-                // int NumBurninIter;
-                // byte ResetRandomGenerator;
-
-                NumTopic = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumTopic > 0);
-
-                AlphaSum = ctx.Reader.ReadSingle();
-
-                Beta = ctx.Reader.ReadSingle();
-
-                MHStep = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(MHStep > 0);
-
-                NumIter = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumIter > 0);
-
-                LikelihoodInterval = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(LikelihoodInterval > 0);
-
-                NumThread = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumThread >= 0);
-
-                NumMaxDocToken = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumMaxDocToken > 0);
-
-                NumSummaryTermPerTopic = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumSummaryTermPerTopic > 0);
-
-                NumBurninIter = ctx.Reader.ReadInt32();
-                ectx.CheckDecode(NumBurninIter >= 0);
-
-                ResetRandomGenerator = ctx.Reader.ReadBoolByte();
-            }
-
-            public void Save(ModelSaveContext ctx)
-            {
-                Contracts.AssertValue(ctx);
-
-                // *** Binary format ***
-                // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
-                // int MHStep;
-                // int NumIter;
-                // int LikelihoodInterval;
-                // int NumThread;
-                // int NumMaxDocToken;
-                // int NumSummaryTermPerTopic;
-                // int NumBurninIter;
-                // byte ResetRandomGenerator;
-
-                ctx.Writer.Write(NumTopic);
-                ctx.Writer.Write(AlphaSum);
-                ctx.Writer.Write(Beta);
-                ctx.Writer.Write(MHStep);
-                ctx.Writer.Write(NumIter);
-                ctx.Writer.Write(LikelihoodInterval);
-                ctx.Writer.Write(NumThread);
-                ctx.Writer.Write(NumMaxDocToken);
-                ctx.Writer.Write(NumSummaryTermPerTopic);
-                ctx.Writer.Write(NumBurninIter);
-                ctx.Writer.WriteBoolByte(ResetRandomGenerator);
-            }
-        }
-
         private sealed class Mapper : MapperBase
         {
             private readonly LdaTransform _parent;
@@ -705,7 +655,7 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(LdaTransform).Assembly.FullName);
         }
 
-        private readonly TransformInfo[] _exes;
+        private readonly ColumnInfo[] _exes;
         private readonly LdaState[] _ldas;
         private readonly ColumnType[] _types;
 
@@ -724,15 +674,13 @@ namespace Microsoft.ML.Transforms.Text
         internal LdaTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransform)), GetColumnPairs(columns))
         {
-            _exes = new TransformInfo[columns.Length];
+            _exes = columns;
             _types = new ColumnType[columns.Length];
             _ldas = new LdaState[columns.Length];
 
             for (int i = 0; i < columns.Length; i++)
             {
-                var ex = new TransformInfo(Host, columns[i]);
-                _exes[i] = ex;
-                _types[i] = new VectorType(NumberType.Float, ex.NumTopic);
+                _types[i] = new VectorType(NumberType.Float, _exes[i].NumTopic);
             }
             using (var ch = Host.Start("Train"))
             {
@@ -751,7 +699,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // Note: columnsLength would be just one in most cases.
             var columnsLength = ColumnPairs.Length;
-            _exes = new TransformInfo[columnsLength];
+            _exes = new ColumnInfo[columnsLength];
             _ldas = new LdaState[columnsLength];
             _types = new ColumnType[columnsLength];
             for (int i = 0; i < _ldas.Length; i++)
@@ -1081,7 +1029,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to compute LDA.</param>
-        public LdaEstimator(IHostEnvironment env, LdaTransform.ColumnInfo[] columns)
+        public LdaEstimator(IHostEnvironment env, params LdaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(LdaEstimator));

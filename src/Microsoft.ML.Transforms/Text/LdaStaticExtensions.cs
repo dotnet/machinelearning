@@ -16,14 +16,13 @@ namespace Microsoft.ML.Transforms.Text
     /// <summary>
     /// Information on the result of fitting a LDA transform.
     /// </summary>
-    /// <typeparam name="T">The type of the values.</typeparam>
-    public sealed class LdaFitResult<T>
+    public sealed class LdaFitResult
     {
         /// <summary>
         /// For user defined delegates that accept instances of the containing type.
         /// </summary>
         /// <param name="result"></param>
-        public delegate void OnFit(LdaFitResult<T> result);
+        public delegate void OnFit(LdaFitResult result);
 
         public LdaTransform.LdaState LdaState;
         public LdaFitResult(LdaTransform.LdaState state)
@@ -70,12 +69,12 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private static Action<LdaTransform.LdaState> Wrap<T>(LdaFitResult<T>.OnFit onFit)
+        private static Action<LdaTransform.LdaState> Wrap(LdaFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
 
-            return state => onFit(new LdaFitResult<T>(state));
+            return state => onFit(new LdaFitResult(state));
         }
 
         private interface ILdaCol
@@ -162,7 +161,7 @@ namespace Microsoft.ML.Transforms.Text
             int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
             int numBurninIterations = LdaEstimator.Defaults.NumBurninIterations,
             bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator,
-            LdaFitResult<float>.OnFit onFit = null)
+            LdaFitResult.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImplVector(input,
