@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             Assert.True(result.isSuccess);
             Assert.Equal(expectedKey, result.key);
-            Assert.True(expectedValues.SequenceEqual(result.values));
+            Assert.Equal(expectedValues, result.values);
         }
 
         [Theory]
