@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML.DnnImageFeaturizer.ResNet101</IncludeInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <LocalAppDataDir>$(LocalAppData)</LocalAppDataDir>
+    <MlnetAppDataDir>$(LocalAppData)/mlnet-resources</MlnetAppDataDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PreprocessFile Include="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    Url="https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
+    DestinationFile="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
+    DestinationDir="$(MlnetAppDataDir)/ResNetPrepOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFile Include="$(MlnetAppDataDir)/ResNet101Onnx/ResNet101.onnx"
+    Url="https://express-tlcresources.azureedge.net/image/ResNet101Onnx/ResNet101.onnx"
+    DestinationFile="$(MlnetAppDataDir)/ResNet101Onnx/ResNet101.onnx"
+    DestinationDir="$(MlnetAppDataDir)/ResNet101Onnx" />
+  </ItemGroup>
+
+  <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
+    <MakeDir Directories="$(MlnetAppDataDir)" />
+    <MakeDir Directories="$(LocalAppDataDir)" />
+    <MakeDir Directories="%(PreprocessFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(PreprocessFile)"/>
+  </Target>
+
+  <Target Name="DownloadMainModels" 
+          DependsOnTargets="DownloadPrepModels"
+          AfterTargets="Build"
+          Inputs="@(ModelFile)" Outputs="%(ModelFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(ModelFile.DestinationFile)" />
+    <MakeDir Directories="%(ModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ModelFile)"/>
+  </Target>
+
+</Project>

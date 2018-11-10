@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET component for pretrained AlexNet image featurization</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML.OnnxTransform/Microsoft.ML.OnnxTransform.nupkgproj" />
+  </ItemGroup>
+
+  <ItemGroup>  
+    <Content Include="$(LocalAppData)\mlnet-resources\AlexNetOnnx\AlexNet.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\AlexNetOnnx" /> 
+    <Content Include="$(LocalAppData)\mlnet-resources\AlexNetPrepOnnx\AlexNetPreprocess.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\AlexNetPrepOnnx" /> 
+  </ItemGroup>  
+
+</Project>
