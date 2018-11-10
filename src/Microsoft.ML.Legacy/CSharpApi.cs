@@ -13997,7 +13997,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
+        public sealed partial class LdaTransformerColumn : OneToOneColumn<LdaTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The number of topics in the LDA
@@ -14099,15 +14099,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14115,7 +14115,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
-            public LdaTransformColumn[] Column { get; set; }
+            public LdaTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// The number of topics in the LDA

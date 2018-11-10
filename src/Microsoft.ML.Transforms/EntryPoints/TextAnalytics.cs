@@ -120,18 +120,18 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LightLda",
-            Desc = LdaTransform.Summary,
-            UserName = LdaTransform.UserName,
-            ShortName = LdaTransform.ShortName,
+            Desc = LdaTransformer.Summary,
+            UserName = LdaTransformer.UserName,
+            ShortName = LdaTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""LightLDA""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""LightLDA""]/*' />" })]
-        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var view = LdaTransform.Create(h, input, input.Data);
+            var view = LdaTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

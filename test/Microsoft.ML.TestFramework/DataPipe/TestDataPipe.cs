@@ -820,7 +820,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var srcView = builder.GetDataView();
 
-            LdaTransform.Column col = new LdaTransform.Column();
+            LdaTransformer.Column col = new LdaTransformer.Column();
             col.Source = "F1V";
             col.NumTopic = 20;
             col.NumTopic = 3;
@@ -828,10 +828,10 @@ namespace Microsoft.ML.Runtime.RunTests
             col.AlphaSum = 3;
             col.NumThreads = 1;
             col.ResetRandomGenerator = true;
-            LdaTransform.Arguments args = new LdaTransform.Arguments();
-            args.Column = new LdaTransform.Column[] { col };
+            LdaTransformer.Arguments args = new LdaTransformer.Arguments();
+            args.Column = new LdaTransformer.Column[] { col };
 
-            var ldaTransform = LdaTransform.Create(Env, args, srcView);
+            var ldaTransform = LdaTransformer.Create(Env, args, srcView);
 
             using (var cursor = ldaTransform.GetRowCursor(c => true))
             {
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TestLdaTransformEmptyDocumentException()
+        public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
@@ -877,11 +877,11 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("Zeros", NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LdaTransform.Column()
+            var col = new LdaTransformer.Column()
             {
                 Source = "Zeros",
             };
-            var args = new LdaTransform.Arguments()
+            var args = new LdaTransformer.Arguments()
             {
                 Column = new[] { col }
             };

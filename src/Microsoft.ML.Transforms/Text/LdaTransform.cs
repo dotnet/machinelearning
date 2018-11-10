@@ -18,17 +18,17 @@ using System.Linq;
 using System.Text;
 using Float = System.Single;
 
-[assembly: LoadableClass(LdaTransform.Summary, typeof(IDataTransform), typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
-    "Latent Dirichlet Allocation Transform", "LdaTransform", "Lda")]
+[assembly: LoadableClass(LdaTransformer.Summary, typeof(IDataTransform), typeof(LdaTransformer), typeof(LdaTransformer.Arguments), typeof(SignatureDataTransform),
+    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature, "Lda")]
 
-[assembly: LoadableClass(LdaTransform.Summary, typeof(IDataTransform), typeof(LdaTransform), null, typeof(SignatureLoadDataTransform),
-    "Latent Dirichlet Allocation Transform", LdaTransform.LoaderSignature)]
+[assembly: LoadableClass(LdaTransformer.Summary, typeof(IDataTransform), typeof(LdaTransformer), null, typeof(SignatureLoadDataTransform),
+    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(LdaTransform.Summary, typeof(LdaTransform), null, typeof(SignatureLoadModel),
-    "Latent Dirichlet Allocation Transform", LdaTransform.LoaderSignature)]
+[assembly: LoadableClass(LdaTransformer.Summary, typeof(LdaTransformer), null, typeof(SignatureLoadModel),
+    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(LdaTransform), null, typeof(SignatureLoadRowMapper),
-    "Latent Dirichlet Allocation Transform", LdaTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(LdaTransformer), null, typeof(SignatureLoadRowMapper),
+    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -46,9 +46,9 @@ namespace Microsoft.ML.Transforms.Text
     // https://github.com/Microsoft/LightLDA
     //
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
-    // for an example on how to use LdaTransform.
+    // for an example on how to use LdaTransformer.
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaTransform : OneToOneTransformerBase
+    public sealed class LdaTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -588,11 +588,11 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase
         {
-            private readonly LdaTransform _parent;
+            private readonly LdaTransformer _parent;
             private readonly ColumnType[] _srcTypes;
             private readonly int[] _srcCols;
 
-            public Mapper(LdaTransform parent, Schema inputSchema)
+            public Mapper(LdaTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public const string LoaderSignature = "LdaTransform";
+        public const string LoaderSignature = "LdaTransformer";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LdaTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(LdaTransformer).Assembly.FullName);
         }
 
         private readonly ColumnInfo[] _exes;
@@ -671,8 +671,8 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal LdaTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransform)), GetColumnPairs(columns))
+        internal LdaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransformer)), GetColumnPairs(columns))
         {
             _exes = columns;
             _types = new ColumnType[columns.Length];
@@ -688,7 +688,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private LdaTransform(IHost host, ModelLoadContext ctx) : base(host, ctx)
+        private LdaTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
         {
             Host.AssertValue(ctx);
 
@@ -726,7 +726,7 @@ namespace Microsoft.ML.Transforms.Text
             Dispose(true);
         }
 
-        ~LdaTransform()
+        ~LdaTransformer()
         {
             Dispose(false);
         }
@@ -775,11 +775,11 @@ namespace Microsoft.ML.Transforms.Text
                         item.ResetRandomGenerator ?? args.ResetRandomGenerator);
                 };
             }
-            return new LdaTransform(env, input, cols).MakeDataTransform(input);
+            return new LdaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel
-        private static LdaTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LdaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -796,7 +796,7 @@ namespace Microsoft.ML.Transforms.Text
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
                     h.CheckDecode(cbFloat == sizeof(Float));
-                    return new LdaTransform(h, ctx);
+                    return new LdaTransformer(h, ctx);
                 });
         }
 
@@ -972,7 +972,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaEstimator : IEstimator<LdaTransform>
+    public sealed class LdaEstimator : IEstimator<LdaTransformer>
     {
         internal static class Defaults
         {
@@ -990,7 +990,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly LdaTransform.ColumnInfo[] _columns;
+        private readonly LdaTransformer.ColumnInfo[] _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
@@ -1021,7 +1021,7 @@ namespace Microsoft.ML.Transforms.Text
             int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
             int numBurninIterations = Defaults.NumBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
-            : this(env, new[] { new LdaTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
+            : this(env, new[] { new LdaTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
                 numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
         { }
@@ -1029,7 +1029,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to compute LDA.</param>
-        public LdaEstimator(IHostEnvironment env, params LdaTransform.ColumnInfo[] columns)
+        public LdaEstimator(IHostEnvironment env, params LdaTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(LdaEstimator));
@@ -1053,9 +1053,9 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public LdaTransform Fit(IDataView input)
+        public LdaTransformer Fit(IDataView input)
         {
-            return new LdaTransform(_host, input, _columns);
+            return new LdaTransformer(_host, input, _columns);
         }
     }
 }

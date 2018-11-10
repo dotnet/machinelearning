@@ -24,8 +24,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="result"></param>
         public delegate void OnFit(LdaFitResult result);
 
-        public LdaTransform.LdaState LdaState;
-        public LdaFitResult(LdaTransform.LdaState state)
+        public LdaTransformer.LdaState LdaState;
+        public LdaFitResult(LdaTransformer.LdaState state)
         {
             LdaState = state;
         }
@@ -47,11 +47,11 @@ namespace Microsoft.ML.Transforms.Text
             public readonly int NumBurninIter;
             public readonly bool ResetRandomGenerator;
 
-            public readonly Action<LdaTransform.LdaState> OnFit;
+            public readonly Action<LdaTransformer.LdaState> OnFit;
 
             public Config(int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
                 int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator,
-                Action<LdaTransform.LdaState> onFit)
+                Action<LdaTransformer.LdaState> onFit)
             {
                 NumTopic = numTopic;
                 AlphaSum = alphaSum;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private static Action<LdaTransform.LdaState> Wrap(LdaFitResult.OnFit onFit)
+        private static Action<LdaTransformer.LdaState> Wrap(LdaFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
@@ -101,13 +101,13 @@ namespace Microsoft.ML.Transforms.Text
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new LdaTransform.ColumnInfo[toOutput.Length];
-                Action<LdaTransform> onFit = null;
+                var infos = new LdaTransformer.ColumnInfo[toOutput.Length];
+                Action<LdaTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ILdaCol)toOutput[i];
 
-                    infos[i] = new LdaTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                    infos[i] = new LdaTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
                         tcol.Config.NumTopic,
                         tcol.Config.AlphaSum,
                         tcol.Config.Beta,
