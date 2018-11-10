@@ -230,12 +230,12 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
                 ShortName = "skips")]
-            public int SkipLength = 0;
+            public int SkipLength = NgramEstimator.Defaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all")]
-            public bool AllLengths = true;
+            public bool AllLengths = NgramEstimator.Defaults.AllLength;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = new int[] { NgramEstimator.Defaults.MaxNumTerms };

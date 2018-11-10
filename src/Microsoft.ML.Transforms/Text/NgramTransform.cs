@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 AllLengths = allLengths;
                 Weighting = weighting;
-                if (AllLengths)
+                if (!AllLengths)
                 {
                     Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 ||
                         Utils.Size(maxNumTerms) == 1 && maxNumTerms[0] > 0, nameof(maxNumTerms));
@@ -497,7 +497,6 @@ namespace Microsoft.ML.Transforms.Text
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
             // *** Binary format ***
@@ -506,6 +505,7 @@ namespace Microsoft.ML.Transforms.Text
             //   _transformInfo
             //   the ngram SequencePool
             //   the ngram inverse document frequencies
+            SaveColumns(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
             {
                 _transformInfos[i].Save(ctx);
