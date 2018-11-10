@@ -429,7 +429,7 @@ namespace Microsoft.ML.Transforms
         /// - The group column getters are taken directly from the trailing cursor.
         /// - The keep column getters are provided by the aggregators.
         /// </summary>
-        public sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase, IRowCursor
         {
             /// <summary>
             /// This class keeps track of the previous group key and tests the current group key against the previous one.

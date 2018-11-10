@@ -7,7 +7,8 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
-    public enum OnnxVersion { Stable=0, Experimental=1 }
+    [BestFriend]
+    internal enum OnnxVersion { Stable = 0, Experimental = 1 }
 
     /// <summary>
     /// A context for defining a ONNX output. The context internally contains the model-in-progress being built. This
@@ -16,7 +17,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// given to a component, all other components up to that component have already attempted to express themselves in
     /// this context, with their outputs possibly available in the ONNX graph.
     /// </summary>
-    public abstract class OnnxContext
+    [BestFriend]
+    internal abstract class OnnxContext
     {
         /// <summary>
         /// Generates a unique name for the node based on a prefix.
