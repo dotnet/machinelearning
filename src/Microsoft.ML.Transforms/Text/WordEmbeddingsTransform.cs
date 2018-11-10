@@ -15,10 +15,12 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Text;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
@@ -723,60 +725,53 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                Model model = null;
-                using (StreamReader sr = File.OpenText(_modelFileNameWithPath))
+                using (var ch = Host.Start(LoaderSignature))
+                using (var pch = Host.StartProgressChannel("Building Vocabulary from Model File for Word Embeddings Transform"))
                 {
-                    string line;
-                    int lineNumber = 1;
+                    var parsedData = new ConcurrentBag<(string key, float[] values, long lineNumber)>();
+                    int skippedLinesCount = Math.Max(1, _linesToSkip);
 
-                    using (var ch = Host.Start(LoaderSignature))
-                    using (var pch = Host.StartProgressChannel("Building Vocabulary from Model File for Word Embeddings Transform"))
-                    {
-                        var header = new ProgressHeader(new[] { "lines" });
-                        pch.SetHeader(header, e => e.SetProgress(0, lineNumber));
-                        string firstLine = sr.ReadLine();
-                        while ((line = sr.ReadLine()) != null)
+                    Parallel.ForEach(File.ReadLines(_modelFileNameWithPath).Skip(skippedLinesCount),
+                        (line, parallelState, lineNumber) =>
                         {
-                            if (lineNumber >= _linesToSkip)
-                            {
-                                (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
+                            (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
 
-                                if (!isSuccess)
-                                {
-                                    ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}");
-                                }
-                                else
-                                {
-                                    dimension = values.Length;
-                                    if (model == null)
-                                        model = new Model(dimension);
-                                    if (model.Dimension != dimension)
-                                        ch.Warning($"Dimension mismatch while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}, expected dimension = {model.Dimension}, received dimension = {dimension}");
-                                    else
-                                        model.AddWordVector(ch, key, values);
-                                }
-                            }
-                            lineNumber++;
-                        }
+                            if (isSuccess)
+                                parsedData.Add((key, values, lineNumber + skippedLinesCount));
+                            else // we use shared state here (ch) but it's not our hot path and we don't care about unhappy-path performance
+                                ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + skippedLinesCount}");
+                        });
 
-                        // Handle first line of the embedding file separately since some embedding files including fastText have a single-line header
-                        string[] wordsInFirstLine = firstLine.TrimEnd().Split(' ', '\t');
-                        dimension = wordsInFirstLine.Length - 1;
+                    Model model = null;
+                    foreach (var parsedLine in parsedData.OrderBy(parsedLine => parsedLine.lineNumber))
+                    {
+                        dimension = parsedLine.values.Length;
                         if (model == null)
                             model = new Model(dimension);
-                        if (model.Dimension == dimension)
-                        {
-                            float temp;
-                            string firstKey = wordsInFirstLine[0];
-                            float[] firstValue = wordsInFirstLine.Skip(1).Select(x => float.TryParse(x, out temp) ? temp : Single.NaN).ToArray();
-                            if (!firstValue.Contains(Single.NaN))
-                                model.AddWordVector(ch, firstKey, firstValue);
-                        }
-                        pch.Checkpoint(lineNumber);
+                        if (model.Dimension != dimension)
+                            ch.Warning($"Dimension mismatch while reading model file: '{_modelFileNameWithPath}', line number {parsedLine.lineNumber}, expected dimension = {model.Dimension}, received dimension = {dimension}");
+                        else
+                            model.AddWordVector(ch, parsedLine.key, parsedLine.values);
                     }
+
+                    // Handle first line of the embedding file separately since some embedding files including fastText have a single-line header
+                    var firstLine = File.ReadLines(_modelFileNameWithPath).First();
+                    string[] wordsInFirstLine = firstLine.TrimEnd().Split(' ', '\t');
+                    dimension = wordsInFirstLine.Length - 1;
+                    if (model == null)
+                        model = new Model(dimension);
+                    if (model.Dimension == dimension)
+                    {
+                        float temp;
+                        string firstKey = wordsInFirstLine[0];
+                        float[] firstValue = wordsInFirstLine.Skip(1).Select(x => float.TryParse(x, out temp) ? temp : Single.NaN).ToArray();
+                        if (!firstValue.Contains(Single.NaN))
+                            model.AddWordVector(ch, firstKey, firstValue);
+                    }
+
+                    _vocab[_modelFileNameWithPath] = new WeakReference<Model>(model, false);
+                    return model;
                 }
-                _vocab[_modelFileNameWithPath] = new WeakReference<Model>(model, false);
-                return model;
             }
         }
     }
