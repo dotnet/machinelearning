@@ -29,6 +29,7 @@ namespace Microsoft.ML.Transforms
             var tempCol = "onnxDnnPrep";
             var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
             var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(execDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), input, tempCol);
             var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(execDir, "AlexNetOnnx", "AlexNet.onnx"), tempCol, output);
             modelChain = modelChain.Append(prepEstimator);
