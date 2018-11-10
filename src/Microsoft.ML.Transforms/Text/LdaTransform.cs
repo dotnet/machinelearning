@@ -743,7 +743,7 @@ namespace Microsoft.ML.Transforms.Text
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -965,9 +965,9 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
+        protected override IRowMapper MakeRowMapper(Schema schema)
         {
-            return new Mapper(this, Schema.Create(schema));
+            return new Mapper(this, schema);
         }
     }
 
