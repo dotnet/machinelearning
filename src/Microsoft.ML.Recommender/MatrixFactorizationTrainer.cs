@@ -78,11 +78,13 @@ namespace Microsoft.ML.Trainers
     ///     </list>
     /// </p>
     /// <p>Example code can be found by searching for <i>MatrixFactorization</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs "A matrix factorization example.")]
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs?range=5-9,16-114)]
     /// ]]>
     /// </format>
+    /// </example>
     /// </summary>
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
@@ -206,13 +208,17 @@ namespace Microsoft.ML.Trainers
         /// Initializing a new instance of <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
-        public MatrixFactorizationTrainer(IHostEnvironment env, string labelColumn, string matrixColumnIndexColumnName, string matrixRowIndexColumnName,
-            TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
+        public MatrixFactorizationTrainer(IHostEnvironment env,
+            string matrixColumnIndexColumnName,
+            string matrixRowIndexColumnName,
+            string labelColumn = DefaultColumnNames.Label,
+            TrainerEstimatorContext context = null,
+            Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue)
         {
             var args = new Arguments();

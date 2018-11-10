@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
                     .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
-            var est = new FieldAwareFactorizationMachineTrainer(Env, "Label", new[] { "Feature1", "Feature2", "Feature3", "Feature4" }, 
+            var est = new FieldAwareFactorizationMachineTrainer(Env, new[] { "Feature1", "Feature2", "Feature3", "Feature4" }, "Label",
                 advancedSettings:s=>
                 {
                     s.Shuffle = false;

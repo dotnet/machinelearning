@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
                 .Fit(data);
 
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => s.NumThreads = 1);
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
             var trainData = pipeline.Transform(data);
             var model = trainer.Fit(trainData);
 
