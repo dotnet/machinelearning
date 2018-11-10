@@ -122,16 +122,40 @@ namespace Microsoft.ML.Tests.Transformers
             var transformer = est.Fit(data);
 
             var floatAffineData = transformer.ColumnFunctions[0] as NormalizerTransformer.IAffineData<float>;
+            Assert.Equal(0.12658228f, floatAffineData.Scale);
+            Assert.Equal(0, floatAffineData.Offset);
+
             var doubleAffineData = transformer.ColumnFunctions[2] as NormalizerTransformer.IAffineData<double>;
+            Assert.Equal(0.12658227848101264, doubleAffineData.Scale);
+            Assert.Equal(0, doubleAffineData.Offset);
 
             var floatBinData = transformer.ColumnFunctions[4] as NormalizerTransformer.IBinData<float>;
-            var doubleBinData = transformer.ColumnFunctions[6] as NormalizerTransformer.IBinData<double>;
+            //Assert.True(35 == floatBinData.UpperBounds.Length);
+            //Assert.True(34 ==  floatBinData.Density);
+            //Assert.True(0 == floatBinData.Offset);
 
-            var floatCdfMeanData = transformer.ColumnFunctions[8] as NormalizerTransformer.ICdfData<float>;
-            var doubleCdfMeanData = transformer.ColumnFunctions[10] as NormalizerTransformer.ICdfData<double>;
+            var doubleBinData = transformer.ColumnFunctions[6] as NormalizerTransformer.IBinData<double>;
+            Assert.Equal(35, doubleBinData.UpperBounds.Length);
+            Assert.Equal(34, doubleBinData.Density);
+            Assert.Equal(0, doubleBinData.Offset);
+
+            var floatCdfMeanData = transformer.ColumnFunctions[8] as NormalizerTransformer.IAffineData<float>;
+            Assert.Equal(0.169309646f, floatCdfMeanData.Scale);
+            Assert.Equal(0, floatCdfMeanData.Offset);
+
+            var doubleCdfMeanData = transformer.ColumnFunctions[10] as NormalizerTransformer.IAffineData<double>;
+            Assert.Equal(0.16930963784387665, doubleCdfMeanData.Scale);
+            Assert.Equal(0, doubleCdfMeanData.Offset);
 
             var floatCdfLogMeanData = transformer.ColumnFunctions[12] as NormalizerTransformer.ICdfData<float>;
+            Assert.Equal(1.75623953f, floatCdfLogMeanData.Mean);
+            Assert.True(true == floatCdfLogMeanData.UseLog);
+            Assert.Equal(0.140807763f, floatCdfLogMeanData.Stddev);
+
             var doubleCdfLogMeanData = transformer.ColumnFunctions[14] as NormalizerTransformer.ICdfData<double>;
+            Assert.Equal(1.7562395401953814, doubleCdfLogMeanData.Mean);
+            Assert.True(doubleCdfLogMeanData.UseLog);
+            Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.Stddev);
 
             Done();
         }
