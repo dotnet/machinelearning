@@ -565,7 +565,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
         }
 
-        public TryParseMapper<TDst> GetParseConversion<TDst>(ColumnType typeDst)
+        public TryParseMapper<TDst> GetTryParseConversion<TDst>(ColumnType typeDst)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.IsStandardScalar || typeDst.IsKey, nameof(typeDst),
@@ -820,8 +820,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsNA
 
         #region HasNA
-        private bool HasNA(in VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (R4.IsNaN(src.Values[i])) return true; } return false; }
-        private bool HasNA(in VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (R8.IsNaN(src.Values[i])) return true; } return false; }
+        private bool HasNA(in VBuffer<R4> src) { var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (R4.IsNaN(srcValues[i])) return true; } return false; }
+        private bool HasNA(in VBuffer<R8> src) { var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (R8.IsNaN(srcValues[i])) return true; } return false; }
         #endregion HasNA
 
         #region IsDefault
@@ -844,10 +844,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         #endregion IsDefault
 
         #region HasZero
-        private bool HasZero(in VBuffer<U1> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U2> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U4> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
-        private bool HasZero(in VBuffer<U8> src) { if (!src.IsDense) return true; for (int i = 0; i < src.Count; i++) { if (src.Values[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U1> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U2> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U4> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
+        private bool HasZero(in VBuffer<U8> src) { if (!src.IsDense) return true; var srcValues = src.GetValues(); for (int i = 0; i < srcValues.Length; i++) { if (srcValues[i] == 0) return true; } return false; }
         #endregion HasZero
 
         #region GetNA
@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (min > uu || uu > max)
             {
                 dst = 0;
-                return true;
+                return false;
             }
 
             dst = uu - min + 1;
@@ -1428,8 +1428,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DT dst)
@@ -1443,8 +1442,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         public bool TryParse(in TX src, out DZ dst)
@@ -1459,8 +1457,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return true;
 
             dst = default;
-            var span = src.Span;
-            return IsStdMissing(ref span);
+            return false;
         }
 
         // These throw an exception for unparsable and overflow values.
@@ -1546,14 +1543,6 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(in TX src, out BL dst)
         {
             var span = src.Span;
-
-            if (!span.IsEmpty && IsStdMissing(ref span))
-            {
-                dst = false;
-                return false;
-            }
-
-            Contracts.Assert(!IsStdMissing(ref span));
 
             char ch;
             switch (src.Length)

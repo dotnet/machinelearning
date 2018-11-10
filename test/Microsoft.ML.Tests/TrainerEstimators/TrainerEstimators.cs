@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank:10);
+            var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank: 10);
 
             TestEstimatorCore(pipeline, data);
             Done();
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weightColumn: weights,
+            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
                             advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
 
             TestEstimatorCore(pipeline, data);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = new TextFeaturizingEstimator (Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator(Env, "SentimentText", "Features");
 
             return (pipeline, data);
         }
@@ -177,18 +177,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
         private (IEstimator<ITransformer>, IDataView) GetMultiClassPipeline()
         {
-
             var data = new TextLoader(Env, new TextLoader.Arguments()
             {
                 Separator = "comma",
-                HasHeader = true,
                 Column = new[]
                         {
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
                             new TextLoader.Column("Label", DataKind.Text, 4)
                         }
-                })
-                .Read(GetDataPath(IrisDataPath));
+            }).Read(GetDataPath(IrisDataPath));
 
             var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 

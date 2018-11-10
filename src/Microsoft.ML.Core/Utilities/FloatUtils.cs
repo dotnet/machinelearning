@@ -8,7 +8,8 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class FloatUtils
+    [BestFriend]
+    internal static class FloatUtils
     {
         // This is used to read and write the bits of a Double.
         // Thanks to Vance Morrison for educating me about this excellent aliasing mechanism.
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             public const int ExpOrigin = 1075;
 
             [FieldOffset(0)]
-            public Double Float; // used only for construction from Double
+            public double Float; // used only for construction from Double
             [FieldOffset(0)]
             public ulong Bits; //overlay
 
@@ -221,7 +222,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             public const int ExpOrigin = 127;
 
             [FieldOffset(0)]
-            public Single Float; // used only for construction from Single
+            public float Float; // used only for construction from Single
             [FieldOffset(0)]
             public uint Bits; //overlay
 
@@ -396,56 +397,53 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static ulong GetBits(Double x)
+        public static ulong GetBits(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.Bits;
         }
 
-        public static uint GetBits(Single x)
+        public static uint GetBits(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.Bits;
         }
 
-        public static Double FromBits(ulong bits)
+        public static double FromBits(ulong bits)
         {
             var sb = default(DoubleBits);
             sb.Bits = bits;
             return sb.Float;
         }
 
-        public static Single FromBits(uint bits)
+        public static float FromBits(uint bits)
         {
             var sb = default(SingleBits);
             sb.Bits = bits;
             return sb.Float;
         }
 
-        public static bool IsFinite(Double x)
+        public static bool IsFinite(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.IsFinite();
         }
 
-        public static bool IsFinite(Single x)
+        public static bool IsFinite(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.IsFinite();
         }
 
-        public static bool IsFinite(Double[] values, int count)
+        public static bool IsFinite(ReadOnlySpan<double> values)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(values) >= count);
-
             // Assuming that non-finites are rare, this is faster than testing on each item.
-            Double sum = 0;
-            for (int i = 0; i < count; i++)
+            double sum = 0;
+            for (int i = 0; i < values.Length; i++)
             {
                 var v = values[i];
                 sum += v - v;
@@ -454,14 +452,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         // REVIEW: Consider implementing using SSE.
-        public static bool IsFinite(Single[] values, int count)
+        public static bool IsFinite(ReadOnlySpan<float> values)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(values) >= count);
-
             // Assuming that non-finites are rare, this is faster than testing on each item.
-            Single sum = 0;
-            for (int i = 0; i < count; i++)
+            float sum = 0;
+            for (int i = 0; i < values.Length; i++)
             {
                 var v = values[i];
                 sum += v - v;
@@ -469,63 +464,63 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return sum == 0;
         }
 
-        public static bool IsFiniteNonZero(Double x)
+        public static bool IsFiniteNonZero(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.IsFiniteNonZero();
         }
 
-        public static bool IsFiniteNonZero(Single x)
+        public static bool IsFiniteNonZero(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.IsFiniteNonZero();
         }
 
-        public static bool IsFiniteNormal(Double x)
+        public static bool IsFiniteNormal(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.IsFiniteNormal();
         }
 
-        public static bool IsFiniteNormal(Single x)
+        public static bool IsFiniteNormal(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.IsFiniteNormal();
         }
 
-        public static bool IsDenormal(Double x)
+        public static bool IsDenormal(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.IsDenormal();
         }
 
-        public static bool IsDenormal(Single x)
+        public static bool IsDenormal(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.IsDenormal();
         }
 
-        public static int GetExponent(Double x)
+        public static int GetExponent(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             return bits.GetExp();
         }
 
-        public static int GetExponent(Single x)
+        public static int GetExponent(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             return bits.GetExp();
         }
 
-        public static Double SetExponent(Double x, int exp)
+        public static double SetExponent(double x, int exp)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
@@ -533,7 +528,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.Float;
         }
 
-        public static Single SetExponent(Single x, int exp)
+        public static float SetExponent(float x, int exp)
         {
             var bits = default(SingleBits);
             bits.Float = x;
@@ -541,42 +536,42 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.Float;
         }
 
-        public static void GetParts(Double x, out int sign, out int exp, out ulong man, out bool fFinite)
+        public static void GetParts(double x, out int sign, out int exp, out ulong man, out bool fFinite)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
             bits.GetParts(out sign, out exp, out man, out fFinite);
         }
 
-        public static void GetParts(Single x, out int sign, out int exp, out uint man, out bool fFinite)
+        public static void GetParts(float x, out int sign, out int exp, out uint man, out bool fFinite)
         {
             var bits = default(SingleBits);
             bits.Float = x;
             bits.GetParts(out sign, out exp, out man, out fFinite);
         }
 
-        public static Double GetFromPartsDouble(int sign, int exp, ulong man)
+        public static double GetFromPartsDouble(int sign, int exp, ulong man)
         {
             var bits = default(DoubleBits);
             bits.SetFromParts(sign, exp, man);
             return bits.Float;
         }
 
-        public static Single GetFromPartsSingle(int sign, int exp, uint man)
+        public static float GetFromPartsSingle(int sign, int exp, uint man)
         {
             var bits = default(SingleBits);
             bits.SetFromParts(sign, exp, man);
             return bits.Float;
         }
 
-        public static Double GetPowerOfTwoDouble(int exp)
+        public static double GetPowerOfTwoDouble(int exp)
         {
             var bits = default(DoubleBits);
             bits.SetPowerOfTwo(exp);
             return bits.Float;
         }
 
-        public static Single GetPowerOfTwoSingle(int exp)
+        public static float GetPowerOfTwoSingle(int exp)
         {
             var bits = default(SingleBits);
             bits.SetPowerOfTwo(exp);
@@ -585,7 +580,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         // Returns the previous exponent and sets the exponent to zero. Asserts that
         // the original value is finite and not a denormal.
-        public static int NormalizeExponent(ref Double x)
+        public static int NormalizeExponent(ref double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
@@ -597,7 +592,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         // Returns the previous exponent and sets the exponent to zero. Asserts that
         // the original value is finite and not a denormal.
-        public static int NormalizeExponent(ref Single x)
+        public static int NormalizeExponent(ref float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
@@ -607,7 +602,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return expTmp;
         }
 
-        public static Double TruncateMantissaToSingleBit(Double x)
+        public static double TruncateMantissaToSingleBit(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
@@ -615,7 +610,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.Float;
         }
 
-        public static Single TruncateMantissaToSingleBit(Single x)
+        public static float TruncateMantissaToSingleBit(float x)
         {
             var bits = default(SingleBits);
             bits.Float = x;
@@ -623,7 +618,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.Float;
         }
 
-        public static Double Truncate(Double x)
+        public static double Truncate(double x)
         {
             var bits = default(DoubleBits);
             bits.Float = x;
@@ -631,12 +626,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return bits.Float;
         }
 
-        public static string ToRoundTripString(Single x)
+        public static string ToRoundTripString(float x)
         {
             return x.ToString("R", CultureInfo.InvariantCulture);
         }
 
-        public static string ToRoundTripString(Double x)
+        public static string ToRoundTripString(double x)
         {
             return x.ToString("G17", CultureInfo.InvariantCulture);
         }

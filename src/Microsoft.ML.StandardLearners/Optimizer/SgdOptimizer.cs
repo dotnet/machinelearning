@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="result">Approximate minimum of <paramref name="f"/></param>
         public void Minimize(DStochasticGradient f, ref VBuffer<Float> initial, ref VBuffer<Float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.Values, initial.Count), "The initial vector contains NaNs or infinite values.");
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             int dim = initial.Length;
 
             VBuffer<Float> grad = VBufferUtils.CreateEmpty<Float>(dim);
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="result">Approximate minimum</param>
         public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.Values, initial.Count), "The initial vector contains NaNs or infinite values.");
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
             VBuffer<Float> prev = default(VBuffer<Float>);
             initial.CopyTo(ref prev);
@@ -385,9 +385,9 @@ namespace Microsoft.ML.Runtime.Numeric
         internal static bool ShouldTerminate(in VBuffer<Float> x, in VBuffer<Float> xprev)
         {
             Contracts.Assert(x.Length == xprev.Length, "Vectors must have the same dimensionality.");
-            Contracts.Assert(FloatUtils.IsFinite(xprev.Values, xprev.Count));
+            Contracts.Assert(FloatUtils.IsFinite(xprev.GetValues()));
 
-            if (!FloatUtils.IsFinite(x.Values, x.Count))
+            if (!FloatUtils.IsFinite(x.GetValues()))
                 return true;
 
             if (x.IsDense && xprev.IsDense)

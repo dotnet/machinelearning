@@ -4,16 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a dataview that wraps another dataview, and does on-demand caching of the
@@ -653,7 +654,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new TrivialWaiter(parent));
             }
 
-            public struct Wrapper : IWaiter
+            public readonly struct Wrapper : IWaiter
             {
                 private readonly TrivialWaiter _waiter;
 
@@ -722,7 +723,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new WaiterWaiter(parent, pred));
             }
 
-            public struct Wrapper : IWaiter
+            public readonly struct Wrapper : IWaiter
             {
                 private readonly WaiterWaiter _waiter;
 
@@ -836,7 +837,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new SequenceIndex<TWaiter>(waiter));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly SequenceIndex<TWaiter> _index;
 
@@ -927,7 +928,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new RandomIndex<TWaiter>(waiter, perm));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly RandomIndex<TWaiter> _index;
 
@@ -1097,7 +1098,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new BlockSequenceIndex<TWaiter>(waiter, scheduler));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly BlockSequenceIndex<TWaiter> _index;
 
@@ -1205,7 +1206,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Wrapper(new BlockRandomIndex<TWaiter>(waiter, scheduler, perm));
             }
 
-            public struct Wrapper : IIndex
+            public readonly struct Wrapper : IIndex
             {
                 private readonly BlockRandomIndex<TWaiter> _index;
 
@@ -1442,8 +1443,8 @@ namespace Microsoft.ML.Runtime.Data
                         throw Ctx.Except("Caching expected vector of size {0}, but {1} encountered.", _uniformLength, _temp.Length);
                     Ctx.Assert(_uniformLength == 0 || _uniformLength == _temp.Length);
                     if (!_temp.IsDense)
-                        _indices.AddRange(_temp.Indices, _temp.Count);
-                    _values.AddRange(_temp.Values, _temp.Count);
+                        _indices.AddRange(_temp.GetIndices());
+                    _values.AddRange(_temp.GetValues());
                     int rowCount = _rowCount + 1;
                     Utils.EnsureSize(ref _indexBoundaries, rowCount + 1);
                     Utils.EnsureSize(ref _valueBoundaries, rowCount + 1);

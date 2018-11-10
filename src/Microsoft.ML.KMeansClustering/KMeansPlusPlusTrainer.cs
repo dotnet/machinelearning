@@ -94,35 +94,42 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the example weights.</param>
+        /// <param name="weights">The name for the optional column containing the example weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="clustersCount">The number of clusters.</param>
-        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, int clustersCount = Defaults.K, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : this(env, new Arguments(), featureColumn, weightColumn, advancedSettings)
+        public KMeansPlusPlusTrainer(IHostEnvironment env,
+            string featureColumn = DefaultColumnNames.Features,
+            int clustersCount = Defaults.K,
+            string weights = null,
+            Action<Arguments> advancedSettings = null)
+            : this(env, new Arguments
+            {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                K = clustersCount
+            }, advancedSettings)
         {
-            _k = clustersCount;
         }
 
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
-            : this(env, args, args.FeatureColumn, args.WeightColumn, null)
+            : this(env, args, null)
         {
 
         }
 
-        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
-            if (advancedSettings != null)
-                advancedSettings.Invoke(args);
+            // override with the advanced settings.
+            advancedSettings?.Invoke(args);
 
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
 
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            _featureColumn = featureColumn;
+            _featureColumn = args.FeatureColumn;
 
             _k = args.K;
 
@@ -922,8 +929,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 else
                 {
                     ArrayDataViewBuilder arrDv = new ArrayDataViewBuilder(host);
-                    arrDv.AddColumn(DefaultColumnNames.Features, PrimitiveType.FromKind(DataKind.R4), clusters);
-                    arrDv.AddColumn(DefaultColumnNames.Weight, PrimitiveType.FromKind(DataKind.R4), totalWeights);
+                    arrDv.AddColumn(DefaultColumnNames.Features, NumberType.R4, clusters);
+                    arrDv.AddColumn(DefaultColumnNames.Weight, NumberType.R4, totalWeights);
                     var subDataViewCursorFactory = new FeatureFloatVectorCursor.Factory(
                         new RoleMappedData(arrDv.GetDataView(), null, DefaultColumnNames.Features, weight: DefaultColumnNames.Weight), CursOpt.Weight | CursOpt.Features);
                     long discard1;

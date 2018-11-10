@@ -55,11 +55,10 @@ namespace Microsoft.ML.Runtime
     }
 #endif
 
-#if PRIVATE_CONTRACTS
-    internal static partial class Contracts
-#else
-    public static partial class Contracts
+#if !PRIVATE_CONTRACTS
+    [BestFriend]
 #endif
+    internal static partial class Contracts
     {
         public const string IsMarkedKey = "ML_IsMarked";
         public const string SensitivityKey = "ML_Sensitivity";
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Runtime
         /// there will be performance implications. There shouldn't be, since checks rarely happen in
         /// tight loops.
         /// </summary>
-        private struct SensitiveExceptionContext : IExceptionContext
+        private readonly struct SensitiveExceptionContext : IExceptionContext
         {
             /// <summary>
             /// We will run this instances <see cref="IExceptionContext.Process{TException}(TException)"/> first.
@@ -467,281 +466,281 @@ namespace Microsoft.ML.Runtime
             return $"Schema mismatch for {columnRole} column '{columnName}': expected {expectedType}, got {actualType}";
         }
 
-    // Check - these check a condition and if it fails, throw the corresponding exception.
-    // NOTE: The ordering of arguments to these is standardized to be:
-    // * boolean condition
-    // * parameter name
-    // * parameter value
-    // * message string
-    //
-    // Note that these do NOT support a params array of arguments since that would
-    // involve memory allocation whenever the condition is checked. When message string
-    // args are need, the condition test should be inlined, eg:
-    //   if (!condition)
-    //       throw Contracts.ExceptXxx(fmt, arg1, arg2);
+        // Check - these check a condition and if it fails, throw the corresponding exception.
+        // NOTE: The ordering of arguments to these is standardized to be:
+        // * boolean condition
+        // * parameter name
+        // * parameter value
+        // * message string
+        //
+        // Note that these do NOT support a params array of arguments since that would
+        // involve memory allocation whenever the condition is checked. When message string
+        // args are need, the condition test should be inlined, eg:
+        //   if (!condition)
+        //       throw Contracts.ExceptXxx(fmt, arg1, arg2);
 
-    public static void Check(bool f)
-    {
-        if (!f)
-            throw Except();
-    }
-    public static void Check(this IExceptionContext ctx, bool f)
-    {
-        if (!f)
-            throw Except(ctx);
-    }
-    public static void Check(bool f, string msg)
-    {
-        if (!f)
-            throw Except(msg);
-    }
-    public static void Check(this IExceptionContext ctx, bool f, string msg)
-    {
-        if (!f)
-            throw Except(ctx, msg);
-    }
+        public static void Check(bool f)
+        {
+            if (!f)
+                throw Except();
+        }
+        public static void Check(this IExceptionContext ctx, bool f)
+        {
+            if (!f)
+                throw Except(ctx);
+        }
+        public static void Check(bool f, string msg)
+        {
+            if (!f)
+                throw Except(msg);
+        }
+        public static void Check(this IExceptionContext ctx, bool f, string msg)
+        {
+            if (!f)
+                throw Except(ctx, msg);
+        }
 
-    /// <summary>
-    /// CheckUserArg / ExceptUserArg should be used when the validation of user-provided arguments failed.
-    /// Typically, this is shortly after the arguments are parsed using CmdParser.
-    /// </summary>
-    public static void CheckUserArg(bool f, string name)
-    {
-        if (!f)
-            throw ExceptUserArg(name);
-    }
-    public static void CheckUserArg(this IExceptionContext ctx, bool f, string name)
-    {
-        if (!f)
-            throw ExceptUserArg(ctx, name);
-    }
-    public static void CheckUserArg(bool f, string name, string msg)
-    {
-        if (!f)
-            throw ExceptUserArg(name, msg);
-    }
-    public static void CheckUserArg(this IExceptionContext ctx, bool f, string name, string msg)
-    {
-        if (!f)
-            throw ExceptUserArg(ctx, name, msg);
-    }
+        /// <summary>
+        /// CheckUserArg / ExceptUserArg should be used when the validation of user-provided arguments failed.
+        /// Typically, this is shortly after the arguments are parsed using CmdParser.
+        /// </summary>
+        public static void CheckUserArg(bool f, string name)
+        {
+            if (!f)
+                throw ExceptUserArg(name);
+        }
+        public static void CheckUserArg(this IExceptionContext ctx, bool f, string name)
+        {
+            if (!f)
+                throw ExceptUserArg(ctx, name);
+        }
+        public static void CheckUserArg(bool f, string name, string msg)
+        {
+            if (!f)
+                throw ExceptUserArg(name, msg);
+        }
+        public static void CheckUserArg(this IExceptionContext ctx, bool f, string name, string msg)
+        {
+            if (!f)
+                throw ExceptUserArg(ctx, name, msg);
+        }
 
-    public static void CheckParam(bool f, string paramName)
-    {
-        if (!f)
-            throw ExceptParam(paramName);
-    }
-    public static void CheckParam(this IExceptionContext ctx, bool f, string paramName)
-    {
-        if (!f)
-            throw ExceptParam(ctx, paramName);
-    }
-    public static void CheckParam(bool f, string paramName, string msg)
-    {
-        if (!f)
-            throw ExceptParam(paramName, msg);
-    }
-    public static void CheckParam(this IExceptionContext ctx, bool f, string paramName, string msg)
-    {
-        if (!f)
-            throw ExceptParam(ctx, paramName, msg);
-    }
-    public static void CheckParamValue<T>(bool f, T value, string paramName, string msg)
-    {
-        if (!f)
-            throw ExceptParamValue(value, paramName, msg);
-    }
-    public static void CheckParamValue<T>(this IExceptionContext ctx, bool f, T value, string paramName, string msg)
-    {
-        if (!f)
-            throw ExceptParamValue(ctx, value, paramName, msg);
-    }
+        public static void CheckParam(bool f, string paramName)
+        {
+            if (!f)
+                throw ExceptParam(paramName);
+        }
+        public static void CheckParam(this IExceptionContext ctx, bool f, string paramName)
+        {
+            if (!f)
+                throw ExceptParam(ctx, paramName);
+        }
+        public static void CheckParam(bool f, string paramName, string msg)
+        {
+            if (!f)
+                throw ExceptParam(paramName, msg);
+        }
+        public static void CheckParam(this IExceptionContext ctx, bool f, string paramName, string msg)
+        {
+            if (!f)
+                throw ExceptParam(ctx, paramName, msg);
+        }
+        public static void CheckParamValue<T>(bool f, T value, string paramName, string msg)
+        {
+            if (!f)
+                throw ExceptParamValue(value, paramName, msg);
+        }
+        public static void CheckParamValue<T>(this IExceptionContext ctx, bool f, T value, string paramName, string msg)
+        {
+            if (!f)
+                throw ExceptParamValue(ctx, value, paramName, msg);
+        }
 
-    public static T CheckRef<T>(T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(paramName);
-        return val;
-    }
-    public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(ctx, paramName);
-        return val;
-    }
+        public static T CheckRef<T>(T val, string paramName) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(paramName);
+            return val;
+        }
+        public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(ctx, paramName);
+            return val;
+        }
 
-    public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(ctx, paramName, msg);
-        return val;
-    }
+        public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(ctx, paramName, msg);
+            return val;
+        }
 
         public static void CheckValue<T>(T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(paramName);
-    }
-    public static void CheckValue<T>(this IExceptionContext ctx, T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(ctx, paramName);
-    }
-    public static T CheckValue<T>(T val, string paramName, string msg) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(paramName, msg);
-        return val;
-    }
-    public static T CheckValue<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            throw ExceptValue(ctx, paramName, msg);
-        return val;
-    }
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(paramName);
+        }
+        public static void CheckValue<T>(this IExceptionContext ctx, T val, string paramName) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(ctx, paramName);
+        }
+        public static T CheckValue<T>(T val, string paramName, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(paramName, msg);
+            return val;
+        }
+        public static T CheckValue<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                throw ExceptValue(ctx, paramName, msg);
+            return val;
+        }
 
-    public static string CheckNonEmpty(string s, string paramName)
-    {
-        if (string.IsNullOrEmpty(s))
-            throw ExceptEmpty(paramName);
-        return s;
-    }
-    public static string CheckNonEmpty(this IExceptionContext ctx, string s, string paramName)
-    {
-        if (string.IsNullOrEmpty(s))
-            throw ExceptEmpty(ctx, paramName);
-        return s;
-    }
+        public static string CheckNonEmpty(string s, string paramName)
+        {
+            if (string.IsNullOrEmpty(s))
+                throw ExceptEmpty(paramName);
+            return s;
+        }
+        public static string CheckNonEmpty(this IExceptionContext ctx, string s, string paramName)
+        {
+            if (string.IsNullOrEmpty(s))
+                throw ExceptEmpty(ctx, paramName);
+            return s;
+        }
 
-    public static string CheckNonWhiteSpace(string s, string paramName)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            throw ExceptWhiteSpace(paramName);
-        return s;
-    }
-    public static string CheckNonWhiteSpace(this IExceptionContext ctx, string s, string paramName)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            throw ExceptWhiteSpace(ctx, paramName);
-        return s;
-    }
+        public static string CheckNonWhiteSpace(string s, string paramName)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                throw ExceptWhiteSpace(paramName);
+            return s;
+        }
+        public static string CheckNonWhiteSpace(this IExceptionContext ctx, string s, string paramName)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                throw ExceptWhiteSpace(ctx, paramName);
+            return s;
+        }
 
-    public static string CheckNonEmpty(string s, string paramName, string msg)
-    {
-        if (string.IsNullOrEmpty(s))
-            throw ExceptEmpty(paramName, msg);
-        return s;
-    }
-    public static string CheckNonEmpty(this IExceptionContext ctx, string s, string paramName, string msg)
-    {
-        if (string.IsNullOrEmpty(s))
-            throw ExceptEmpty(ctx, paramName, msg);
-        return s;
-    }
+        public static string CheckNonEmpty(string s, string paramName, string msg)
+        {
+            if (string.IsNullOrEmpty(s))
+                throw ExceptEmpty(paramName, msg);
+            return s;
+        }
+        public static string CheckNonEmpty(this IExceptionContext ctx, string s, string paramName, string msg)
+        {
+            if (string.IsNullOrEmpty(s))
+                throw ExceptEmpty(ctx, paramName, msg);
+            return s;
+        }
 
-    public static string CheckNonWhiteSpace(string s, string paramName, string msg)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            throw ExceptWhiteSpace(paramName, msg);
-        return s;
-    }
-    public static string CheckNonWhiteSpace(this IExceptionContext ctx, string s, string paramName, string msg)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            throw ExceptWhiteSpace(ctx, paramName, msg);
-        return s;
-    }
+        public static string CheckNonWhiteSpace(string s, string paramName, string msg)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                throw ExceptWhiteSpace(paramName, msg);
+            return s;
+        }
+        public static string CheckNonWhiteSpace(this IExceptionContext ctx, string s, string paramName, string msg)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                throw ExceptWhiteSpace(ctx, paramName, msg);
+            return s;
+        }
 
-    public static T[] CheckNonEmpty<T>(T[] args, string paramName)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(paramName);
-        return args;
-    }
-    public static T[] CheckNonEmpty<T>(this IExceptionContext ctx, T[] args, string paramName)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(ctx, paramName);
-        return args;
-    }
-    public static T[] CheckNonEmpty<T>(T[] args, string paramName, string msg)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(paramName, msg);
-        return args;
-    }
-    public static T[] CheckNonEmpty<T>(this IExceptionContext ctx, T[] args, string paramName, string msg)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(ctx, paramName, msg);
-        return args;
-    }
-    public static ICollection<T> CheckNonEmpty<T>(ICollection<T> args, string paramName)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(paramName);
-        return args;
-    }
-    public static ICollection<T> CheckNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string paramName)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(ctx, paramName);
-        return args;
-    }
-    public static ICollection<T> CheckNonEmpty<T>(ICollection<T> args, string paramName, string msg)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(paramName, msg);
-        return args;
-    }
-    public static ICollection<T> CheckNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string paramName, string msg)
-    {
-        if (Size(args) == 0)
-            throw ExceptEmpty(ctx, paramName, msg);
-        return args;
-    }
+        public static T[] CheckNonEmpty<T>(T[] args, string paramName)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(paramName);
+            return args;
+        }
+        public static T[] CheckNonEmpty<T>(this IExceptionContext ctx, T[] args, string paramName)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(ctx, paramName);
+            return args;
+        }
+        public static T[] CheckNonEmpty<T>(T[] args, string paramName, string msg)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(paramName, msg);
+            return args;
+        }
+        public static T[] CheckNonEmpty<T>(this IExceptionContext ctx, T[] args, string paramName, string msg)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(ctx, paramName, msg);
+            return args;
+        }
+        public static ICollection<T> CheckNonEmpty<T>(ICollection<T> args, string paramName)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(paramName);
+            return args;
+        }
+        public static ICollection<T> CheckNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string paramName)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(ctx, paramName);
+            return args;
+        }
+        public static ICollection<T> CheckNonEmpty<T>(ICollection<T> args, string paramName, string msg)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(paramName, msg);
+            return args;
+        }
+        public static ICollection<T> CheckNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string paramName, string msg)
+        {
+            if (Size(args) == 0)
+                throw ExceptEmpty(ctx, paramName, msg);
+            return args;
+        }
 
-    public static void CheckDecode(bool f)
-    {
-        if (!f)
-            throw ExceptDecode();
-    }
-    public static void CheckDecode(this IExceptionContext ctx, bool f)
-    {
-        if (!f)
-            throw ExceptDecode(ctx);
-    }
-    public static void CheckDecode(bool f, string msg)
-    {
-        if (!f)
-            throw ExceptDecode(msg);
-    }
-    public static void CheckDecode(this IExceptionContext ctx, bool f, string msg)
-    {
-        if (!f)
-            throw ExceptDecode(ctx, msg);
-    }
+        public static void CheckDecode(bool f)
+        {
+            if (!f)
+                throw ExceptDecode();
+        }
+        public static void CheckDecode(this IExceptionContext ctx, bool f)
+        {
+            if (!f)
+                throw ExceptDecode(ctx);
+        }
+        public static void CheckDecode(bool f, string msg)
+        {
+            if (!f)
+                throw ExceptDecode(msg);
+        }
+        public static void CheckDecode(this IExceptionContext ctx, bool f, string msg)
+        {
+            if (!f)
+                throw ExceptDecode(ctx, msg);
+        }
 
-    public static void CheckIO(bool f)
-    {
-        if (!f)
-            throw ExceptIO();
-    }
-    public static void CheckIO(this IExceptionContext ctx, bool f)
-    {
-        if (!f)
-            throw ExceptIO(ctx);
-    }
-    public static void CheckIO(bool f, string msg)
-    {
-        if (!f)
-            throw ExceptIO(msg);
-    }
-    public static void CheckIO(this IExceptionContext ctx, bool f, string msg)
-    {
-        if (!f)
-            throw ExceptIO(ctx, msg);
-    }
+        public static void CheckIO(bool f)
+        {
+            if (!f)
+                throw ExceptIO();
+        }
+        public static void CheckIO(this IExceptionContext ctx, bool f)
+        {
+            if (!f)
+                throw ExceptIO(ctx);
+        }
+        public static void CheckIO(bool f, string msg)
+        {
+            if (!f)
+                throw ExceptIO(msg);
+        }
+        public static void CheckIO(this IExceptionContext ctx, bool f, string msg)
+        {
+            if (!f)
+                throw ExceptIO(ctx, msg);
+        }
 
 #if !PRIVATE_CONTRACTS
         /// <summary>
@@ -753,247 +752,247 @@ namespace Microsoft.ML.Runtime
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
 #endif
-    /// <summary>
-    /// This documents that the parameter can legally be null.
-    /// </summary>
-    [Conditional("INVARIANT_CHECKS")]
-    public static void CheckValueOrNull<T>(T val) where T : class
-    {
-    }
-    [Conditional("INVARIANT_CHECKS")]
-    public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
-    {
-    }
+        /// <summary>
+        /// This documents that the parameter can legally be null.
+        /// </summary>
+        [Conditional("INVARIANT_CHECKS")]
+        public static void CheckValueOrNull<T>(T val) where T : class
+        {
+        }
+        [Conditional("INVARIANT_CHECKS")]
+        public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
+        {
+        }
 
-    // Assert
+        // Assert
 
-    #region Private assert handling
+        #region Private assert handling
 
-    private static void DbgFailCore(string msg, IExceptionContext ctx = null)
-    {
-        var handler = _handler;
+        private static void DbgFailCore(string msg, IExceptionContext ctx = null)
+        {
+            var handler = _handler;
 
-        if (handler != null)
-            handler(msg, ctx);
-        else if (ctx != null)
-            Debug.Fail(msg, ctx.ContextDescription);
-        else
-            Debug.Fail(msg);
-    }
+            if (handler != null)
+                handler(msg, ctx);
+            else if (ctx != null)
+                Debug.Fail(msg, ctx.ContextDescription);
+            else
+                Debug.Fail(msg);
+        }
 
-    private static void DbgFail(IExceptionContext ctx = null)
-    {
-        DbgFailCore("Assertion Failed", ctx);
-    }
-    private static void DbgFail(string msg)
-    {
-        DbgFailCore(msg);
-    }
-    private static void DbgFail(IExceptionContext ctx, string msg)
-    {
-        DbgFailCore(msg, ctx);
-    }
-    private static void DbgFailValue(IExceptionContext ctx = null)
-    {
-        DbgFailCore("Non-null assertion failure", ctx);
-    }
-    private static void DbgFailValue(string paramName)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}", paramName));
-    }
-    private static void DbgFailValue(IExceptionContext ctx, string paramName)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}", paramName), ctx);
-    }
-    private static void DbgFailValue(string paramName, string msg)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}: {1}", paramName, msg));
-    }
-    private static void DbgFailValue(IExceptionContext ctx, string paramName, string msg)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}: {1}", paramName, msg), ctx);
-    }
-    private static void DbgFailEmpty(IExceptionContext ctx = null)
-    {
-        DbgFailCore("Non-empty assertion failure", ctx);
-    }
-    private static void DbgFailEmpty(string msg)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-empty assertion failure: {0}", msg));
-    }
-    private static void DbgFailEmpty(IExceptionContext ctx, string msg)
-    {
-        DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-empty assertion failure: {0}", msg), ctx);
-    }
+        private static void DbgFail(IExceptionContext ctx = null)
+        {
+            DbgFailCore("Assertion Failed", ctx);
+        }
+        private static void DbgFail(string msg)
+        {
+            DbgFailCore(msg);
+        }
+        private static void DbgFail(IExceptionContext ctx, string msg)
+        {
+            DbgFailCore(msg, ctx);
+        }
+        private static void DbgFailValue(IExceptionContext ctx = null)
+        {
+            DbgFailCore("Non-null assertion failure", ctx);
+        }
+        private static void DbgFailValue(string paramName)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}", paramName));
+        }
+        private static void DbgFailValue(IExceptionContext ctx, string paramName)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}", paramName), ctx);
+        }
+        private static void DbgFailValue(string paramName, string msg)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}: {1}", paramName, msg));
+        }
+        private static void DbgFailValue(IExceptionContext ctx, string paramName, string msg)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-null assertion failure: {0}: {1}", paramName, msg), ctx);
+        }
+        private static void DbgFailEmpty(IExceptionContext ctx = null)
+        {
+            DbgFailCore("Non-empty assertion failure", ctx);
+        }
+        private static void DbgFailEmpty(string msg)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-empty assertion failure: {0}", msg));
+        }
+        private static void DbgFailEmpty(IExceptionContext ctx, string msg)
+        {
+            DbgFailCore(string.Format(CultureInfo.InvariantCulture, "Non-empty assertion failure: {0}", msg), ctx);
+        }
 
-    #endregion Private assert handling
+        #endregion Private assert handling
 
-    [Conditional("DEBUG")]
-    public static void Assert(bool f)
-    {
-        if (!f)
-            DbgFail();
-    }
-    [Conditional("DEBUG")]
-    public static void Assert(this IExceptionContext ctx, bool f)
-    {
-        if (!f)
-            DbgFail(ctx);
-    }
+        [Conditional("DEBUG")]
+        public static void Assert(bool f)
+        {
+            if (!f)
+                DbgFail();
+        }
+        [Conditional("DEBUG")]
+        public static void Assert(this IExceptionContext ctx, bool f)
+        {
+            if (!f)
+                DbgFail(ctx);
+        }
 
-    [Conditional("DEBUG")]
-    public static void Assert(bool f, string msg)
-    {
-        if (!f)
-            DbgFail(msg);
-    }
-    [Conditional("DEBUG")]
-    public static void Assert(this IExceptionContext ctx, bool f, string msg)
-    {
-        if (!f)
-            DbgFail(ctx, msg);
-    }
+        [Conditional("DEBUG")]
+        public static void Assert(bool f, string msg)
+        {
+            if (!f)
+                DbgFail(msg);
+        }
+        [Conditional("DEBUG")]
+        public static void Assert(this IExceptionContext ctx, bool f, string msg)
+        {
+            if (!f)
+                DbgFail(ctx, msg);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(T val) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue();
-    }
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(this IExceptionContext ctx, T val) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue(ctx);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(T val) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(this IExceptionContext ctx, T val) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue(ctx);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue(paramName);
-    }
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(this IExceptionContext ctx, T val, string paramName) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue(ctx, paramName);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(T val, string paramName) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue(paramName);
+        }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(this IExceptionContext ctx, T val, string paramName) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue(ctx, paramName);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(T val, string name, string msg) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue(name, msg);
-    }
-    [Conditional("DEBUG")]
-    public static void AssertValue<T>(this IExceptionContext ctx, T val, string name, string msg) where T : class
-    {
-        if (object.ReferenceEquals(val, null))
-            DbgFailValue(ctx, name, msg);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(T val, string name, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue(name, msg);
+        }
+        [Conditional("DEBUG")]
+        public static void AssertValue<T>(this IExceptionContext ctx, T val, string name, string msg) where T : class
+        {
+            if (object.ReferenceEquals(val, null))
+                DbgFailValue(ctx, name, msg);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty(string s)
-    {
-        if (string.IsNullOrEmpty(s))
-            DbgFailEmpty();
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty(this IExceptionContext ctx, string s)
-    {
-        if (string.IsNullOrEmpty(s))
-            DbgFailEmpty(ctx);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                DbgFailEmpty();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty(this IExceptionContext ctx, string s)
+        {
+            if (string.IsNullOrEmpty(s))
+                DbgFailEmpty(ctx);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonWhiteSpace(string s)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            DbgFailEmpty();
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonWhiteSpace(this IExceptionContext ctx, string s)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            DbgFailEmpty(ctx);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonWhiteSpace(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                DbgFailEmpty();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonWhiteSpace(this IExceptionContext ctx, string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                DbgFailEmpty(ctx);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty(string s, string msg)
-    {
-        if (string.IsNullOrEmpty(s))
-            DbgFailEmpty(msg);
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty(this IExceptionContext ctx, string s, string msg)
-    {
-        if (string.IsNullOrEmpty(s))
-            DbgFailEmpty(ctx, msg);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty(string s, string msg)
+        {
+            if (string.IsNullOrEmpty(s))
+                DbgFailEmpty(msg);
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty(this IExceptionContext ctx, string s, string msg)
+        {
+            if (string.IsNullOrEmpty(s))
+                DbgFailEmpty(ctx, msg);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonWhiteSpace(string s, string msg)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            DbgFailEmpty(msg);
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonWhiteSpace(this IExceptionContext ctx, string s, string msg)
-    {
-        if (string.IsNullOrWhiteSpace(s))
-            DbgFailEmpty(ctx, msg);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonWhiteSpace(string s, string msg)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                DbgFailEmpty(msg);
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonWhiteSpace(this IExceptionContext ctx, string s, string msg)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                DbgFailEmpty(ctx, msg);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(ReadOnlySpan<T> args)
-    {
-        if (args.IsEmpty)
-            DbgFail();
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(Span<T> args)
-    {
-        if (args.IsEmpty)
-            DbgFail();
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(ReadOnlySpan<T> args)
+        {
+            if (args.IsEmpty)
+                DbgFail();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(Span<T> args)
+        {
+            if (args.IsEmpty)
+                DbgFail();
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(ICollection<T> args)
-    {
-        if (Size(args) == 0)
-            DbgFail();
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args)
-    {
-        if (Size(args) == 0)
-            DbgFail(ctx);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(ICollection<T> args)
+        {
+            if (Size(args) == 0)
+                DbgFail();
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args)
+        {
+            if (Size(args) == 0)
+                DbgFail(ctx);
+        }
 
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(ICollection<T> args, string msg)
-    {
-        if (Size(args) == 0)
-            DbgFail(msg);
-    }
-    [Conditional("DEBUG")]
-    public static void AssertNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string msg)
-    {
-        if (Size(args) == 0)
-            DbgFail(ctx, msg);
-    }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(ICollection<T> args, string msg)
+        {
+            if (Size(args) == 0)
+                DbgFail(msg);
+        }
+        [Conditional("DEBUG")]
+        public static void AssertNonEmpty<T>(this IExceptionContext ctx, ICollection<T> args, string msg)
+        {
+            if (Size(args) == 0)
+                DbgFail(ctx, msg);
+        }
 
-    /// <summary>
-    /// This documents that the parameter can legally be null.
-    /// </summary>
-    [Conditional("INVARIANT_CHECKS")]
-    public static void AssertValueOrNull<T>(T val) where T : class
-    {
+        /// <summary>
+        /// This documents that the parameter can legally be null.
+        /// </summary>
+        [Conditional("INVARIANT_CHECKS")]
+        public static void AssertValueOrNull<T>(T val) where T : class
+        {
+        }
+        [Conditional("INVARIANT_CHECKS")]
+        public static void AssertValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
+        {
+        }
     }
-    [Conditional("INVARIANT_CHECKS")]
-    public static void AssertValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
-    {
-    }
-}
 }

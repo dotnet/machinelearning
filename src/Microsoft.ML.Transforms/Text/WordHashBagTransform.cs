@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Column, view.Schema);
             Contracts.Assert(uniqueSourceNames.Length == args.Column.Length);
 
-            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
+            var tokenizeColumns = new List<WordTokenizeTransform.ColumnInfo>();
             var extractorCols = new NgramHashExtractorTransform.Column[args.Column.Length];
             var colCount = args.Column.Length;
             List<string> tmpColNames = new List<string>();
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]);
+                    tokenizeColumns.Add(new WordTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
+            view = new WordTokenizingEstimator(env, tokenizeColumns.ToArray()).Fit(view).Transform(view);
 
             var featurizeArgs =
                 new NgramHashExtractorTransform.Arguments

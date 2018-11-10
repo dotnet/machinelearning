@@ -316,7 +316,22 @@ namespace Microsoft.ML.Transforms.Conversions
                 var item = args.Column[i];
                 var tempResultType = item.ResultType ?? args.ResultType;
                 DataKind kind;
-                KeyRange range = item.KeyRange ?? (item.Range != null ? KeyRange.Parse(item.Range) : null) ?? args.KeyRange ?? (args.Range != null ? KeyRange.Parse(args.Range) : null);
+                KeyRange range = null;
+                // If KeyRange or Range are defined on this column, set range to the appropriate value.
+                if (item.KeyRange != null)
+                    range = item.KeyRange;
+                else if (item.Range != null)
+                    range = KeyRange.Parse(item.Range);
+                // If KeyRange and Range are not defined for this column, we set range to the value
+                // defined in the Arguments object only in case the ResultType is not defined on the column.
+                else if (item.ResultType == null)
+                {
+                    if (args.KeyRange != null)
+                        range = args.KeyRange;
+                    else if (args.Range != null)
+                        range = KeyRange.Parse(args.Range);
+                }
+
                 if (tempResultType == null)
                 {
                     if (range == null)
@@ -342,9 +357,9 @@ namespace Microsoft.ML.Transforms.Conversions
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         internal static bool GetNewType(IExceptionContext ectx, ColumnType srcType, DataKind kind, KeyRange range, out PrimitiveType itemType)
         {

@@ -137,14 +137,14 @@ namespace Microsoft.ML.Trainers.FastTree
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             double learningRate,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
-            Args.MinDocuments = minDocumentsInLeafs;
+            Args.MinDocuments = minDatapointsInLeaves;
             Args.LearningRates = learningRate;
 
             //apply the advanced args, if the user supplied any
@@ -779,7 +779,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             for (int i = 0; i < _numFeatures; i++)
             {
-                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i], _binUpperBounds[i].Length);
+                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i]);
                 Host.Assert(_binUpperBounds[i].Length == _binEffects[i].Length);
             }
             ctx.Writer.Write(_inputFeatureToDatasetFeatureMap.Count);
@@ -804,23 +804,25 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i]);
+                        value += GetBinEffect(j, featuresValues[i]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i]) - GetBinEffect(j, 0);
                 }
             }
 
@@ -841,18 +843,20 @@ namespace Microsoft.ML.Trainers.FastTree
             builder.Reset(features.Length + 1, false);
             builder.AddFeature(0, (float)_intercept);
 
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, features.Values[i]));
+                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
                 }
             }
             else
             {
                 int k = -1;
-                int index = features.Indices[++k];
+                var featuresIndices = features.GetIndices();
+                int index = featuresIndices[++k];
                 for (int i = 0; i < _numFeatures; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
@@ -861,10 +865,10 @@ namespace Microsoft.ML.Trainers.FastTree
                         if (i == index)
                         {
                             // Get the computed value
-                            value = GetBinEffect(j, features.Values[index]);
+                            value = GetBinEffect(j, featuresValues[index]);
                             // Increment index to the next feature
-                            if (k < features.Indices.Length - 1)
-                                index = features.Indices[++k];
+                            if (k < featuresIndices.Length - 1)
+                                index = featuresIndices[++k];
                         }
                         else
                             // For features not defined, the impact is the impact at 0
@@ -885,26 +889,28 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i], out bins[j]);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
                 Array.Copy(_binsAtAllZero, bins, _numFeatures);
 
                 // Update the results for features we have
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i], out bins[j]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]) - GetBinEffect(j, 0);
                 }
             }
             return value;

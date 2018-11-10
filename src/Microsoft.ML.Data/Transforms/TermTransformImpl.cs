@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     if (val.IsEmpty)
                         return false;
                     int count = _pool.Count;
-                    return ReadOnlyMemoryUtils.AddToPool(val, _pool).Id == count;
+                    return _pool.Add(val).Id == count;
                 }
 
                 public override TermMap Finish()
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public override void ParseAddTermArg(ref ReadOnlyMemory<char> terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Transforms.Categorical
             public override void ParseAddTermArg(string[] terms, IChannel ch)
             {
                 T val;
-                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetParseConversion<T>(ItemType);
+                var tryParse = Runtime.Data.Conversion.Conversions.Instance.GetTryParseConversion<T>(ItemType);
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();
@@ -568,9 +568,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new HashArrayImpl<T>(codec.Type.AsPrimitive, values);
             }
 
-            public abstract void WriteTextTerms(TextWriter writer);
+            internal abstract void WriteTextTerms(TextWriter writer);
 
-            public sealed class TextImpl : TermMap<ReadOnlyMemory<char>>
+            internal sealed class TextImpl : TermMap<ReadOnlyMemory<char>>
             {
                 private readonly NormStr.Pool _pool;
 
@@ -634,7 +634,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
                 private void KeyMapper(in ReadOnlyMemory<char> src, ref uint dst)
                 {
-                    var nstr = ReadOnlyMemoryUtils.FindInPool(src, _pool);
+                    var nstr = _pool.Get(src);
                     if (nstr == null)
                         dst = 0;
                     else
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     dst = new VBuffer<ReadOnlyMemory<char>>(_pool.Count, values, dst.Indices);
                 }
 
-                public override void WriteTextTerms(TextWriter writer)
+                internal override void WriteTextTerms(TextWriter writer)
                 {
                     writer.WriteLine("# Number of terms = {0}", Count);
                     foreach (var nstr in _pool)
@@ -671,7 +671,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 }
             }
 
-            public sealed class HashArrayImpl<T> : TermMap<T>
+            internal sealed class HashArrayImpl<T> : TermMap<T>
                 where T : IEquatable<T>, IComparable<T>
             {
                 // One of the two must exist. If we need one we can initialize it
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     dst = new VBuffer<T>(Count, values, dst.Indices);
                 }
 
-                public override void WriteTextTerms(TextWriter writer)
+                internal override void WriteTextTerms(TextWriter writer)
                 {
                     writer.WriteLine("# Number of terms of type '{0}' = {1}", ItemType, Count);
                     StringBuilder sb = null;

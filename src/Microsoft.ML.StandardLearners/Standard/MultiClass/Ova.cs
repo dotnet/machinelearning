@@ -38,7 +38,6 @@ namespace Microsoft.ML.Runtime.Learners
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
 
-    /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' />
     public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
     {
         internal const string LoadNameValue = "OVA";
@@ -78,14 +77,18 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
-            int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
+        public Ova(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000,
+            bool useProbabilities = true)
          : base(env,
                new Arguments
                {
@@ -123,7 +126,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (_args.UseProbabilities)
             {
-                var calibratedModel = transformer.Model as TScalarPredictor;
+                var calibratedModel = transformer.Model as TDistPredictor;
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
@@ -226,8 +229,9 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType => _impl.InputType;
         public ColumnType OutputType { get; }
         public ColumnType DistType => OutputType;
-        public bool CanSavePfa => _impl.CanSavePfa;
+        bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
+        [BestFriend]
         internal static OvaPredictor Create(IHost host, bool useProb, TScalarPredictor[] predictors)
         {
             ImplBase impl;
@@ -256,39 +260,6 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             return new OvaPredictor(host, impl);
-        }
-
-        [TlcModule.EntryPoint(Name = "Models.OvaModelCombiner", Desc = "Combines a sequence of PredictorModels into a single model")]
-        public static ModelOperations.PredictorModelOutput CombineOvaModels(IHostEnvironment env, ModelOperations.CombineOvaPredictorModelsInput input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("CombineOvaModels");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-            host.CheckNonEmpty(input.ModelArray, nameof(input.ModelArray));
-            // Something tells me we should put normalization as part of macro expansion, but since i get
-            // subgraph instead of learner it's a bit tricky to get learner and decide should we add
-            // normalization node or not, plus everywhere in code we leave that reposnsibility to TransformModel.
-            var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
-            using (var ch = host.Start("CombineOvaModels"))
-            {
-                var schema = normalizedView.Schema;
-                var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
-                    input.LabelColumn,
-                    DefaultColumnNames.Label);
-                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.FeatureColumn),
-                    input.FeatureColumn, DefaultColumnNames.Features);
-                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
-                    input.WeightColumn, DefaultColumnNames.Weight);
-                var data = new RoleMappedData(normalizedView, label, feature, null, weight);
-
-                return new ModelOperations.PredictorModelOutput
-                {
-                    PredictorModel = new PredictorModel(env, data, input.TrainingData,
-                    Create(host, input.UseProbabilities,
-                            input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
-                };
-            }
         }
 
         /// <summary>
@@ -370,7 +341,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ctx.SaveModel(preds[i], string.Format(SubPredictorFmt, i));
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));

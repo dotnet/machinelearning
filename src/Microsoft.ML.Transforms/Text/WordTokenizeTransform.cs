@@ -218,9 +218,9 @@ namespace Microsoft.ML.Transforms.Text
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase, ISaveAsPfa
         {
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public void SaveAsPfa(BoundPfaContext ctx)
+            void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
 

@@ -29,7 +29,9 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             Contracts.AssertValue(type1);
             Contracts.AssertValue(type2);
 
-            return exactTypes ? type1.Equals(type2) : type1.SameSizeAndItemType(type2);
+            if (type1.Equals(type2))
+                return true;
+            return !exactTypes && type1 is VectorType vt1 && type2 is VectorType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
         protected Func<bool> GetIdComparer(IRow r1, IRow r2, out ValueGetter<UInt128> idGetter)
@@ -97,12 +99,15 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             Contracts.Assert(size == 0 || v2.Length == size);
             Contracts.Assert(v1.Length == v2.Length);
 
+            var v1Values = v1.GetValues();
+            var v2Values = v2.GetValues();
+
             if (v1.IsDense && v2.IsDense)
             {
                 for (int i = 0; i < v1.Length; i++)
                 {
-                    var x1 = v1.Values[i];
-                    var x2 = v2.Values[i];
+                    var x1 = v1Values[i];
+                    var x2 = v2Values[i];
                     if (!fn(i, x1, x2))
                         return false;
                 }
@@ -112,25 +117,27 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             Contracts.Assert(!v1.IsDense || !v2.IsDense);
             int iiv1 = 0;
             int iiv2 = 0;
+            var v1Indices = v1.GetIndices();
+            var v2Indices = v2.GetIndices();
             for (; ; )
             {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1.Count ? v1.Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2.Count ? v2.Indices[iiv2] : v2.Length;
+                int iv1 = v1.IsDense ? iiv1 : iiv1 < v2Indices.Length ? v1Indices[iiv1] : v1.Length;
+                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
                 T x1, x2;
                 int iv;
                 if (iv1 == iv2)
                 {
                     if (iv1 == v1.Length)
                         return true;
-                    x1 = v1.Values[iiv1];
-                    x2 = v2.Values[iiv2];
+                    x1 = v1Values[iiv1];
+                    x2 = v2Values[iiv2];
                     iv = iv1;
                     iiv1++;
                     iiv2++;
                 }
                 else if (iv1 < iv2)
                 {
-                    x1 = v1.Values[iiv1];
+                    x1 = v1Values[iiv1];
                     x2 = default(T);
                     iv = iv1;
                     iiv1++;
@@ -138,7 +145,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                 else
                 {
                     x1 = default(T);
-                    x2 = v2.Values[iiv2];
+                    x2 = v2Values[iiv2];
                     iv = iv2;
                     iiv2++;
                 }
@@ -148,9 +155,57 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
         }
         protected Func<bool> GetColumnComparer(IRow r1, IRow r2, int col, ColumnType type, bool exactDoubles)
         {
-            if (!type.IsVector)
+            if (type is VectorType vecType)
             {
-                switch (type.RawKind)
+                int size = vecType.Size;
+                Contracts.Assert(size >= 0);
+                var result = vecType.ItemType.RawType.TryGetDataKind(out var kind);
+                Contracts.Assert(result);
+
+                switch (kind)
+                {
+                    case DataKind.I1:
+                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U1:
+                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I2:
+                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U2:
+                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I4:
+                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U4:
+                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I8:
+                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U8:
+                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.R4:
+                        return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    case DataKind.R8:
+                        if (exactDoubles)
+                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
+                    case DataKind.Text:
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
+                    case DataKind.Bool:
+                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.TimeSpan:
+                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
+                    case DataKind.DT:
+                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
+                    case DataKind.DZ:
+                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.UG:
+                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                }
+            }
+            else
+            {
+                var result = type.RawType.TryGetDataKind(out var kind);
+                Contracts.Assert(result);
+                switch (kind)
                 {
                     case DataKind.I1:
                         return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
@@ -187,49 +242,6 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                         return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
-                }
-            }
-            else
-            {
-                int size = type.VectorSize;
-                Contracts.Assert(size >= 0);
-                switch (type.ItemType.RawKind)
-                {
-                    case DataKind.I1:
-                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U1:
-                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I2:
-                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U2:
-                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I4:
-                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U4:
-                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.I8:
-                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.U8:
-                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.R4:
-                        return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    case DataKind.R8:
-                        if (exactDoubles)
-                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                        else
-                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
-                    case DataKind.Text:
-                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a,b) => a.Span.SequenceEqual(b.Span));
-                    case DataKind.Bool:
-                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
-                    case DataKind.TimeSpan:
-                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DT:
-                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x.Ticks == y.Ticks);
-                    case DataKind.DZ:
-                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
-                    case DataKind.UG:
-                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
 
@@ -318,7 +330,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     var type2 = curs2.Schema.GetColumnType(col);
                     if (!EqualTypes(type1, type2, exactTypes))
                     {
-                        Fail("Different types");
+                        Fail($"Different types {type1} and {type2}");
                         return Failed();
                     }
                     comps[col] = GetColumnComparer(curs1, curs2, col, type1, exactDoubles);

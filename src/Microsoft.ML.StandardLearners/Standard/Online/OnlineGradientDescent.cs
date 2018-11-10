@@ -101,8 +101,8 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="advancedSettings">A delegate to supply advanced arguments to the algorithm. </param>
         public OnlineGradientDescentTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             float learningRate = Arguments.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,

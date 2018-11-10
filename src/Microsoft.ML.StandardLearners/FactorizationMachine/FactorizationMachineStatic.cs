@@ -56,7 +56,7 @@ namespace Microsoft.ML.StaticPipe
 
             var rec = new CustomReconciler((env, labelCol, featureCols) =>
             {
-                var trainer = new FieldAwareFactorizationMachineTrainer(env, labelCol, featureCols, advancedSettings:
+                var trainer = new FieldAwareFactorizationMachineTrainer(env, featureCols, labelCol, advancedSettings:
                     args =>
                     {
                         args.LearningRate = learningRate;

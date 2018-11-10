@@ -20,9 +20,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// The class can be used several times sequentially, it is stateful and not thread-safe.
     /// Both Single and Double precision processing is implemented, and is identical.
     /// </summary>
-    public sealed class SupervisedBinFinder
+    [BestFriend]
+    internal sealed class SupervisedBinFinder
     {
-        private struct ValuePair<T> : IComparable<ValuePair<T>>
+        private readonly struct ValuePair<T> : IComparable<ValuePair<T>>
             where T : IComparable<T>
         {
             public readonly T Value;

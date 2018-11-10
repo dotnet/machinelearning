@@ -28,7 +28,6 @@ using System.Linq;
 
 namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' />
     public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>, MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";
@@ -51,7 +50,9 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
+        public MultiClassNaiveBayesTrainer(IHostEnvironment env,
+            string featureColumn = DefaultColumnNames.Features,
+            string labelColumn = DefaultColumnNames.Label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
@@ -313,15 +314,15 @@ namespace Microsoft.ML.Trainers
             // int: _featureCount
             // int[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            ctx.Writer.WriteIntArray(_labelHistogram, _labelCount);
+            ctx.Writer.WriteIntArray(_labelHistogram.AsSpan(0, _labelCount));
             ctx.Writer.Write(_featureCount);
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i], _featureCount);
+                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
             }
 
-            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb, _labelCount);
+            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb.AsSpan(0, _labelCount));
         }
 
         private static double[] CalculateAbsentFeatureLogProbabilities(int[] labelHistogram, int[][] featureHistogram, int featureCount)

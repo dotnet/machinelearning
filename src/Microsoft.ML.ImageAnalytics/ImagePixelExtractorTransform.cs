@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             var transformer = new ImagePixelExtractorTransform(env, columns);
-            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(env, input, transformer.MakeRowMapper(input.Schema), transformer.MakeRowMapper);
         }
 
         // Factory method for SignatureLoadModel.
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -398,8 +398,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 info.Save(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -442,15 +441,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
             {
                 var type = _types[iinfo];
-                Contracts.Assert(type.DimCount == 3);
+                var dims = type.Dimensions;
+                Contracts.Assert(dims.Length == 3);
 
                 var ex = _parent._columns[iinfo];
 
-                int planes = ex.Interleave ? type.GetDim(2) : type.GetDim(0);
-                int height = ex.Interleave ? type.GetDim(0) : type.GetDim(1);
-                int width = ex.Interleave ? type.GetDim(1) : type.GetDim(2);
+                int planes = ex.Interleave ? dims[2] : dims[0];
+                int height = ex.Interleave ? dims[0] : dims[1];
+                int width = ex.Interleave ? dims[1] : dims[2];
 
-                int size = type.ValueCount;
+                int size = type.Size;
                 Contracts.Assert(size > 0);
                 Contracts.Assert(size == planes * height * width);
                 int cpix = height * width;

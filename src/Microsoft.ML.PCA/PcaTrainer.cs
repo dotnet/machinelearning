@@ -84,15 +84,20 @@ namespace Microsoft.ML.Trainers.PCA
         /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="features">The name of the feature column.</param>
+        /// <param name="weights">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public RandomizedPcaTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null,
-            int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
-            : this(env, null, featureColumn, weightColumn, rank, oversampling, center, seed)
+        public RandomizedPcaTrainer(IHostEnvironment env,
+            string features,
+            string weights = null,
+            int rank = 20,
+            int oversampling = 20,
+            bool center = true,
+            int? seed = null)
+            : this(env, null, features, weights, rank, oversampling, center, seed)
         {
 
         }
@@ -476,13 +481,13 @@ namespace Microsoft.ML.Trainers.PCA
             if (_mean.IsDense) // centered
             {
                 writer.WriteBoolByte(true);
-                writer.WriteFloatsNoCount(_mean.Values, _dimension);
+                writer.WriteSinglesNoCount(_mean.GetValues().Slice(0, _dimension));
             }
             else
                 writer.WriteBoolByte(false);
 
             for (int i = 0; i < _rank; ++i)
-                writer.WriteFloatsNoCount(_eigenVectors[i].Values, _dimension);
+                writer.WriteSinglesNoCount(_eigenVectors[i].GetValues().Slice(0, _dimension));
         }
 
         public static PcaPredictor Create(IHostEnvironment env, ModelLoadContext ctx)

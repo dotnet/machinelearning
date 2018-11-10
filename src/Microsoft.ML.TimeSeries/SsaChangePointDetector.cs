@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 SortOrder = 2)]
             public string Name;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The change history length.", ShortName = "wnd",
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The length of the sliding window on p-values for computing the martingale score.", ShortName = "wnd",
                 SortOrder = 102)]
             public int ChangeHistoryLength = 20;
 
@@ -207,14 +207,22 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
+        /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
-        /// <param name="trainingWindowSize">The change history length.</param>
-        /// <param name="changeHistoryLength">The change history length.</param>
-        /// <param name="seasonalityWindowSize">The change history length.</param>
+        /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
+        /// <param name="changeHistoryLength">The size of the sliding window for computing the p-value.</param>
+        /// <param name="seasonalityWindowSize">An upper bound on the largest relevant seasonality in the input time-series.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
+        /// <p>Example code can be found by searching for <i>SsaChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,167-229)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public SsaChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,

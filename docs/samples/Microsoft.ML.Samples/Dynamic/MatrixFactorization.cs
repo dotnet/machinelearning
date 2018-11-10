@@ -71,8 +71,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
-                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
+            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+                nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex),
+                nameof(MatrixElement.Value),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -97,11 +99,12 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"RMS - {metrics.Rms}");
             Console.WriteLine($"RSquared - {metrics.RSquared}");
 
-            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
-            // If any of row and column indexes are out-of-range (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
+            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it can be anything
+            // (here we use Score=0 and it will be overwritten by the true prediction). If any of row and column indexes are out-of-range
+            // (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
             var testMatrix = new List<MatrixElementForScore>() {
-                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = default },
-                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
+                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = 0 },
+                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = 0 } };
 
             // Again, convert the test data to a format supported by ML.NET.
             var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);

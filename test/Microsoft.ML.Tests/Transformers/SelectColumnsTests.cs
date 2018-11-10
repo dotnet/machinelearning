@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, "A", "C");
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "A", "C");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             // Expected output will be CA
-            var est = new ColumnSelectingEstimator(Env, "C", "A");
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "C", "A");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, null, new string[] { "A", "C" });
+            var est = ColumnSelectingEstimator.DropColumns(Env, "A", "C");
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -113,15 +113,15 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
 
             // Workout on keep columns
-            var est = new ColumnSelectingEstimator(Env,  new[] {"A", "B"}, null, true, false);
+            var est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, false);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
             // Workout on drop columns
-            est = new ColumnSelectingEstimator(Env,  null, new[] {"A", "B"}, true, false);
+            est = ML.Transforms.SelectColumns(null, new[] {"A", "B"}, true, false);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
             // Workout on keep columns with ignore mismatch -- using invalid data set
-            est = new ColumnSelectingEstimator(Env, new[] {"A", "B"}, null, true, true);
+            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, true);
             TestEstimatorCore(est, validFitInput: invalidDataView);
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, new[] {"D", "G"});
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "D", "G");
             Assert.Throws<ArgumentOutOfRangeException>(() => est.Fit(dataView));
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(new ColumnSelectingEstimator(Env, new[]{"C", "A" }));
+            var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(new ColumnSelectingEstimator(Env, new[] {"B", "A" }, null, true));
+            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, null, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(new ColumnSelectingEstimator(Env, null, new[] { "A" }, true));
+            var chain = est.Append(ML.Transforms.SelectColumns(null, new[] { "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -211,14 +211,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             // Setting both keep and drop is not allowed.
             var test = new string[]{ "D", "G"};
-            Assert.Throws<InvalidOperationException>(() => new ColumnSelectingEstimator(Env, test, test));
+            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(test, test));
         }
 
         [Fact]
         void TestSelectNoKeepAndDropSet()
         {
             // Passing null to both keep and drop is not allowed.
-            Assert.Throws<InvalidOperationException>(() => new ColumnSelectingEstimator(Env, null, null));
+            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(null, null));
         }
 
         [Fact]
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnSelectingEstimator(Env, new[] { "A", "B" });
+            var est = ColumnSelectingEstimator.KeepColumns(Env, "A", "B");
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
-                      new ColumnSelectingEstimator(Env, new[] { "A", "B" }, null, false));
+                      ML.Transforms.SelectColumns(new[] { "A", "B" }, null, false));
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {

@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(_percentile);
         }
 
-        public static void CountGreaterOrEqualValues(FixedSizeQueue<Single> others, Single theValue, out int greaterVals, out int equalVals, out int totalVals)
+        internal static void CountGreaterOrEqualValues(FixedSizeQueue<Single> others, Single theValue, out int greaterVals, out int equalVals, out int totalVals)
         {
             // The current linear algorithm for counting greater and equal elements takes O(n),
             // but it can be improved to O(log n) if a separate Binary Search Tree data structure is used.
@@ -130,12 +130,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// </summary>
             private PercentileThresholdTransform _parent;
 
-            protected override void SetNaOutput(ref bool dst)
+            private protected override void SetNaOutput(ref bool dst)
             {
                 dst = false;
             }
 
-            protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref bool dst)
+            private protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref bool dst)
             {
                 int greaterCount;
                 int equalCount;
@@ -145,12 +145,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 dst = greaterCount < (int)(_parent._percentile * totalCount / 100);
             }
 
-            protected override void InitializeStateCore()
+            private protected override void InitializeStateCore()
             {
                 _parent = (PercentileThresholdTransform)ParentTransform;
             }
 
-            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need for parameter learning from the initial windowed buffer for this transform.
             }

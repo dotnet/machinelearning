@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Model
 {
-    public static class ModelUtils
+    internal static class ModelUtils
     {
         private static string ArgCase(string name)
         {
