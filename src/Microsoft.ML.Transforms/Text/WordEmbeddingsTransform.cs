@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     string line;
                     int lineNumber = 1;
-                    char[] delimiters = { ' ', '\t' };
+
                     using (var ch = Host.Start(LoaderSignature))
                     using (var pch = Host.StartProgressChannel("Building Vocabulary from Model File for Word Embeddings Transform"))
                     {
@@ -739,28 +739,28 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             if (lineNumber >= _linesToSkip)
                             {
-                                string[] words = line.TrimEnd().Split(delimiters);
-                                dimension = words.Length - 1;
-                                if (model == null)
-                                    model = new Model(dimension);
-                                if (model.Dimension != dimension)
-                                    ch.Warning($"Dimension mismatch while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}, expected dimension = {model.Dimension}, received dimension = {dimension}");
+                                (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
+
+                                if (!isSuccess)
+                                {
+                                    ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}");
+                                }
                                 else
                                 {
-                                    float tmp;
-                                    string key = words[0];
-                                    float[] value = words.Skip(1).Select(x => float.TryParse(x, out tmp) ? tmp : Single.NaN).ToArray();
-                                    if (!value.Contains(Single.NaN))
-                                        model.AddWordVector(ch, key, value);
+                                    dimension = values.Length;
+                                    if (model == null)
+                                        model = new Model(dimension);
+                                    if (model.Dimension != dimension)
+                                        ch.Warning($"Dimension mismatch while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}, expected dimension = {model.Dimension}, received dimension = {dimension}");
                                     else
-                                        ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number {lineNumber + 1}");
+                                        model.AddWordVector(ch, key, values);
                                 }
                             }
                             lineNumber++;
                         }
 
                         // Handle first line of the embedding file separately since some embedding files including fastText have a single-line header
-                        string[] wordsInFirstLine = firstLine.TrimEnd().Split(delimiters);
+                        string[] wordsInFirstLine = firstLine.TrimEnd().Split(' ', '\t');
                         dimension = wordsInFirstLine.Length - 1;
                         if (model == null)
                             model = new Model(dimension);
