@@ -29,7 +29,6 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(hessian, nameof(hessian));
-            Contracts.AssertNonEmpty(weightIndices);
             Contracts.Assert(numSelectedParams > 0);
             Contracts.Assert(currentWeightsCount > 0);
             Contracts.Assert(l2Weight > 0);
