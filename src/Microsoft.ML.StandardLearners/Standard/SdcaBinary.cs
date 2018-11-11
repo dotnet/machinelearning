@@ -1427,8 +1427,8 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
         /// <param name="weightColumn">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
@@ -1439,8 +1439,8 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaBinaryTrainer(IHostEnvironment env,
-            string featureColumn,
-            string labelColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
@@ -1675,7 +1675,10 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Weight">The L2 regularizer constant.</param>
         /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, string weightColumn = null,
+        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightColumn = null,
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,
             float l2Weight = Arguments.Defaults.L2Weight,

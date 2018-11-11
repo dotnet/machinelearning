@@ -16,7 +16,8 @@ using System.Threading;
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
 
-    public static partial class Utils
+    [BestFriend]
+    internal static partial class Utils
     {
         // Maximum size of one-dimensional array.
         // See: https://msdn.microsoft.com/en-us/library/hh285054(v=vs.110).aspx

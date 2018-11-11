@@ -50,7 +50,8 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// The main stream's model header.
         /// </summary>
-        public ModelHeader Header;
+        [BestFriend]
+        internal ModelHeader Header;
 
         /// <summary>
         /// The min file position of the main stream.
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Create a ModelLoadContext supporting loading from a repository, for implementors of ICanSaveModel.
         /// </summary>
-        public ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
+        internal ModelLoadContext(RepositoryReader rep, Repository.Entry ent, string dir)
         {
             Contracts.CheckValue(rep, nameof(rep));
             Repository = rep;
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Create a ModelLoadContext supporting loading from a single-stream, for implementors of ICanSaveInBinaryFormat.
         /// </summary>
-        public ModelLoadContext(BinaryReader reader, IExceptionContext ectx = null)
+        internal ModelLoadContext(BinaryReader reader, IExceptionContext ectx = null)
         {
             Contracts.AssertValueOrNull(ectx);
             _ectx = ectx;
