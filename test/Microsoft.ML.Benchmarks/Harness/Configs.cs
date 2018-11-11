@@ -13,7 +13,9 @@ namespace Microsoft.ML.Benchmarks
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
-            Add(GetJobDefinition()); // job defines how many times given benchmark should be executed
+            Add(GetJobDefinition() // job defines how many times given benchmark should be executed
+                .WithCustomBuildConfiguration(GetBuildConfigurationName())
+                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark);
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
         }
@@ -22,8 +24,6 @@ namespace Microsoft.ML.Benchmarks
             => Job.Default
                 .WithWarmupCount(1) // ML.NET benchmarks are typically CPU-heavy benchmarks, 1 warmup is usually enough
                 .WithMaxIterationCount(20)
-                .WithCustomBuildConfiguration(GetBuildConfigurationName())
-                .With(CreateToolchain()) // toolchain is responsible for generating, building and running dedicated executable per benchmark
                 .AsDefault(); // this way we tell BDN that it's a default config which can be overwritten
 
         /// <summary>
@@ -64,8 +64,6 @@ namespace Microsoft.ML.Benchmarks
     {
         protected override Job GetJobDefinition()
             => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
-                  .WithCustomBuildConfiguration(GetBuildConfigurationName())
-                  .With(CreateToolchain()) // toolchain is responsible for generating, building and running dedicated executable per benchmark
                   .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
     }
 }
