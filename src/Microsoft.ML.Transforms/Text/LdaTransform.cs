@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Float = System.Single;
@@ -192,8 +193,18 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
             /// <param name="numBurninIter">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-            public ColumnInfo(string input, string output, int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
-                int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator)
+            public ColumnInfo(string input, string output,
+                int numTopic = LdaEstimator.Defaults.NumTopic,
+                Single alphaSum = LdaEstimator.Defaults.AlphaSum,
+                Single beta = LdaEstimator.Defaults.Beta,
+                int mhStep = LdaEstimator.Defaults.Mhstep,
+                int numIter = LdaEstimator.Defaults.NumIterations,
+                int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
+                int numThread = LdaEstimator.Defaults.NumThreads,
+                int numMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken,
+                int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
+                int numBurninIter = LdaEstimator.Defaults.NumBurninIterations,
+                bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator)
             {
                 Input = input;
                 Output = output;
@@ -601,8 +612,16 @@ namespace Microsoft.ML.Transforms.Text
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    if(!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+
                     var srcCol = inputSchema[_srcCols[i]];
+
+                    // LDA consumes term frequency vectors, so we assume VBuffer<Float> is an appropriate input type.
+                    // It must also be of known size for the sake of the LDA trainer initialization.
+                    if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+
                     _srcTypes[i] = srcCol.Type;
                 }
             }
@@ -621,7 +640,6 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                var test = TestType(_srcTypes[iinfo]);
                 return GetTopic(input, iinfo);
             }
 
@@ -819,15 +837,6 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private static string TestType(ColumnType t)
-        {
-            // LDA consumes term frequency vectors, so I am assuming VBuffer<Float> is an appropriate input type.
-            // It must also be of known size for the sake of the LDA trainer initialization.
-            if (t.IsKnownSizeVector && t.ItemType is NumberType)
-                return null;
-            return "Expected vector of number type of known size.";
-        }
-
         private static int GetFrequency(double value)
         {
             int result = (int)value;
@@ -990,11 +999,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly LdaTransformer.ColumnInfo[] _columns;
+        private readonly ImmutableArray<LdaTransformer.ColumnInfo> _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="inputColumn">The column containing a fixed length vector of input tokens.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
@@ -1033,7 +1042,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(LdaEstimator));
-            _columns = columns;
+            _columns = columns.ToImmutableArray();
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -1055,7 +1064,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public LdaTransformer Fit(IDataView input)
         {
-            return new LdaTransformer(_host, input, _columns);
+            return new LdaTransformer(_host, input, _columns.ToArray());
         }
     }
 }

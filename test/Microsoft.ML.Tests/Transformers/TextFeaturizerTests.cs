@@ -265,7 +265,11 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = env.Start("save"))
             {
                 var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
-                IDataView savedData = TakeFilter.Create(env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+
+                var transformer = est.Fit(data.AsDynamic);
+                var transformedData = transformer.Transform(data.AsDynamic);
+
+                IDataView savedData = TakeFilter.Create(env, transformedData, 4);
                 savedData = SelectColumnsTransform.CreateKeep(env, savedData, new[] { "topics" });
 
                 using (var fs = File.Create(outputPath))
