@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="currentWeightsCount"></param>
         /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
         /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
+        public override VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(hessian, nameof(hessian));
@@ -74,12 +74,8 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     for (int iCol = 0; iCol <= iRow; iCol++)
                     {
-                        var entry = (float)invHessian[ioffset];
-                        var adjustment = l2Weight * entry * entry;
-                        stdErrorValues[iRow] -= adjustment;
-                        if (0 < iCol && iCol < iRow)
-                            stdErrorValues[iCol] -= adjustment;
-                        ioffset++;
+                        var entry = (float)invHessian[ioffset++];
+                        AdjustVariance(entry, iRow, iCol, l2Weight, stdErrorValues);
                     }
                 }
 
