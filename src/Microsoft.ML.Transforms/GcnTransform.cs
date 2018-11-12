@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Projections
         private static LpNormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(RffTransform));
+            var host = env.Register(nameof(LpNormalizingTransformer));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
