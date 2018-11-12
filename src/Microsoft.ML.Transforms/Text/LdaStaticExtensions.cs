@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">Fixed length vector of input tokens used by LDA.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>

@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using Float = System.Single;
 
 [assembly: LoadableClass(LdaTransformer.Summary, typeof(IDataTransform), typeof(LdaTransformer), typeof(LdaTransformer.Arguments), typeof(SignatureDataTransform),
     "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature, "Lda")]
@@ -64,12 +63,12 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
             [TGUI(SuggestedSweeps = "1,10,100,200")]
             [TlcModule.SweepableDiscreteParam("AlphaSum", new object[] { 1, 10, 100, 200 })]
-            public Single AlphaSum = LdaEstimator.Defaults.AlphaSum;
+            public float AlphaSum = LdaEstimator.Defaults.AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
             [TGUI(SuggestedSweeps = "0.01,0.015,0.07,0.02")]
             [TlcModule.SweepableDiscreteParam("Beta", new object[] { 0.01f, 0.015f, 0.07f, 0.02f })]
-            public Single Beta = LdaEstimator.Defaults.Beta;
+            public float Beta = LdaEstimator.Defaults.Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             [TGUI(SuggestedSweeps = "2,4,8,16")]
@@ -112,10 +111,10 @@ namespace Microsoft.ML.Transforms.Text
             public int? NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
-            public Single? AlphaSum;
+            public float? AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
-            public Single? Beta;
+            public float? Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             public int? Mhstep;
@@ -166,8 +165,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly string Input;
             public readonly string Output;
             public readonly int NumTopic;
-            public readonly Single AlphaSum;
-            public readonly Single Beta;
+            public readonly float AlphaSum;
+            public readonly float Beta;
             public readonly int MHStep;
             public readonly int NumIter;
             public readonly int LikelihoodInterval;
@@ -196,8 +195,8 @@ namespace Microsoft.ML.Transforms.Text
             public ColumnInfo(string input,
                 string output = null,
                 int numTopic = LdaEstimator.Defaults.NumTopic,
-                Single alphaSum = LdaEstimator.Defaults.AlphaSum,
-                Single beta = LdaEstimator.Defaults.Beta,
+                float alphaSum = LdaEstimator.Defaults.AlphaSum,
+                float beta = LdaEstimator.Defaults.Beta,
                 int mhStep = LdaEstimator.Defaults.Mhstep,
                 int numIter = LdaEstimator.Defaults.NumIterations,
                 int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
@@ -266,8 +265,8 @@ namespace Microsoft.ML.Transforms.Text
 
                 // *** Binary format ***
                 // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
+                // float AlphaSum;
+                // float Beta;
                 // int MHStep;
                 // int NumIter;
                 // int LikelihoodInterval;
@@ -314,8 +313,8 @@ namespace Microsoft.ML.Transforms.Text
 
                 // *** Binary format ***
                 // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
+                // float AlphaSum;
+                // float Beta;
                 // int MHStep;
                 // int NumIter;
                 // int LikelihoodInterval;
@@ -536,10 +535,10 @@ namespace Microsoft.ML.Transforms.Text
                 _ldaTrainer.Train(""); /* Need to pass in an empty string */
             }
 
-            public void Output(in VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
+            public void Output(in VBuffer<Double> src, ref VBuffer<float> dst, int numBurninIter, bool reset)
             {
                 // Prediction for a single document.
-                // LdaSingleBox.InitializeBeforeTest() is NOT thread-safe.
+                // LdafloatBox.InitializeBeforeTest() is NOT thread-safe.
                 if (!_predictionPreparationDone)
                 {
                     lock (_preparationSyncRoot)
@@ -558,7 +557,7 @@ namespace Microsoft.ML.Transforms.Text
                 var indices = dst.Indices;
                 if (src.Count == 0)
                 {
-                    dst = new VBuffer<Float>(len, 0, values, indices);
+                    dst = new VBuffer<float>(len, 0, values, indices);
                     return;
                 }
 
@@ -574,10 +573,10 @@ namespace Microsoft.ML.Transforms.Text
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW: Need a utility method to do this...
                         if (Utils.Size(values) < len)
-                            values = new Float[len];
+                            values = new float[len];
                         for (int k = 0; k < len; k++)
-                            values[k] = Float.NaN;
-                        dst = new VBuffer<Float>(len, values, indices);
+                            values[k] = float.NaN;
+                        dst = new VBuffer<float>(len, values, indices);
                         return;
                     }
 
@@ -598,7 +597,7 @@ namespace Microsoft.ML.Transforms.Text
                 int count = retTopics.Count;
                 Contracts.Assert(count <= len);
                 if (Utils.Size(values) < count)
-                    values = new Float[count];
+                    values = new float[count];
                 if (count < len && Utils.Size(indices) < count)
                     indices = new int[count];
 
@@ -606,7 +605,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < count; i++)
                 {
                     int index = retTopics[i].Key;
-                    Float value = retTopics[i].Value;
+                    float value = retTopics[i].Value;
                     Contracts.Assert(value >= 0);
                     Contracts.Assert(0 <= index && index < len);
                     if (count < len)
@@ -624,9 +623,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (normalizer > 0)
                 {
                     for (int i = 0; i < count; i++)
-                        values[i] = (Float)(values[i] / normalizer);
+                        values[i] = (float)(values[i] / normalizer);
                 }
-                dst = new VBuffer<Float>(len, count, values, indices);
+                dst = new VBuffer<float>(len, count, values, indices);
             }
 
             public void Dispose()
@@ -681,7 +680,7 @@ namespace Microsoft.ML.Transforms.Text
                 return GetTopic(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<Float>> GetTopic(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetTopic(IRow input, int iinfo)
             {
                 var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, input, _srcCols[iinfo]);
                 var src = default(VBuffer<Double>);
@@ -689,7 +688,7 @@ namespace Microsoft.ML.Transforms.Text
                 int numBurninIter = lda.InfoEx.NumBurninIter;
                 bool reset = lda.InfoEx.ResetRandomGenerator;
                 return
-                    (ref VBuffer<Float> dst) =>
+                    (ref VBuffer<float> dst) =>
                     {
                         // REVIEW: This will work, but there are opportunities for caching
                         // based on input.Counter that are probably worthwhile given how long inference takes.
@@ -833,10 +832,10 @@ namespace Microsoft.ML.Transforms.Text
                 ch =>
                 {
                     // *** Binary Format ***
-                    // int: sizeof(Float)
+                    // int: sizeof(float)
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
-                    h.CheckDecode(cbFloat == sizeof(Float));
+                    h.CheckDecode(cbFloat == sizeof(float));
                     return new LdaTransformer(h, ctx);
                 });
         }
@@ -848,11 +847,11 @@ namespace Microsoft.ML.Transforms.Text
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // <base>
             // ldaState[num infos]: The LDA parameters
 
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             SaveColumns(ctx);
             for (int i = 0; i < _ldas.Length; i++)
             {
@@ -1014,8 +1013,8 @@ namespace Microsoft.ML.Transforms.Text
         internal static class Defaults
         {
             public const int NumTopic = 100;
-            public const Single AlphaSum = 100;
-            public const Single Beta = 0.01f;
+            public const float AlphaSum = 100;
+            public const float Beta = 0.01f;
             public const int Mhstep = 4;
             public const int NumIterations = 200;
             public const int LikelihoodInterval = 5;
@@ -1048,8 +1047,8 @@ namespace Microsoft.ML.Transforms.Text
             string inputColumn,
             string outputColumn = null,
             int numTopic = Defaults.NumTopic,
-            Single alphaSum = Defaults.AlphaSum,
-            Single beta = Defaults.Beta,
+            float alphaSum = Defaults.AlphaSum,
+            float beta = Defaults.Beta,
             int mhstep = Defaults.Mhstep,
             int numIterations = Defaults.NumIterations,
             int likelihoodInterval = Defaults.LikelihoodInterval,
