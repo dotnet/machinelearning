@@ -232,6 +232,33 @@ namespace Microsoft.ML.Transforms.Text
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
+            internal ColumnInfo(Column item, Arguments args)
+            {
+                Input = item.Source;
+                Contracts.CheckValue(Input, nameof(Input));
+                Output = item.Name ?? item.Source;
+                Contracts.CheckValue(Output, nameof(Output));
+                NumTopic = args.NumTopic;
+                Contracts.CheckUserArg(NumTopic > 0, nameof(NumTopic), "Must be positive.");
+                AlphaSum = args.AlphaSum;
+                Beta = args.Beta;
+                MHStep = args.Mhstep;
+                Contracts.CheckUserArg(MHStep > 0, nameof(MHStep), "Must be positive.");
+                NumIter = args.NumIterations;
+                Contracts.CheckUserArg(NumIter > 0, nameof(NumIter), "Must be positive.");
+                LikelihoodInterval = args.LikelihoodInterval;
+                Contracts.CheckUserArg(LikelihoodInterval > 0, nameof(LikelihoodInterval), "Must be positive.");
+                NumThread = args.NumThreads ?? 0;
+                Contracts.CheckUserArg(NumThread >= 0, nameof(NumThread), "Must be positive or zero.");
+                NumMaxDocToken = args.NumMaxDocToken;
+                Contracts.CheckUserArg(NumMaxDocToken > 0, nameof(NumMaxDocToken), "Must be positive.");
+                NumSummaryTermPerTopic = args.NumSummaryTermPerTopic;
+                Contracts.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(NumSummaryTermPerTopic), "Must be positive");
+                NumBurninIter = args.NumBurninIterations;
+                Contracts.CheckUserArg(NumBurninIter >= 0, nameof(NumBurninIter), "Must be non-negative.");
+                ResetRandomGenerator = args.ResetRandomGenerator;
+            }
+
             internal ColumnInfo(IExceptionContext ectx, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ectx);
@@ -785,31 +812,9 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-
             env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
-            using (var ch = env.Start("ValidateArgs"))
-            {
 
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Source,
-                        item.Name ?? item.Source,
-                        item.NumTopic ?? args.NumTopic,
-                        item.AlphaSum ?? args.AlphaSum,
-                        item.Beta ?? args.Beta,
-                        item.Mhstep ?? args.Mhstep,
-                        item.NumIterations ?? args.NumIterations,
-                        item.LikelihoodInterval ?? args.LikelihoodInterval,
-                        item.NumThreads ?? args.NumThreads ?? 0,
-                        item.NumMaxDocToken ?? args.NumMaxDocToken,
-                        item.NumSummaryTermPerTopic ?? args.NumSummaryTermPerTopic,
-                        item.NumBurninIterations ?? args.NumBurninIterations,
-                        item.ResetRandomGenerator ?? args.ResetRandomGenerator);
-                }
-            }
-
+            var cols = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
             var ldas = TrainLdaTransformer(env, input, cols);
             return new LdaTransformer(env, ldas, cols).MakeDataTransform(input);
         }
