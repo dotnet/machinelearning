@@ -817,21 +817,10 @@ namespace Microsoft.ML.Runtime.RunTests
             };
 
             builder.AddColumn("F1V", NumberType.Float, data);
-
             var srcView = builder.GetDataView();
 
-            LdaTransformer.Column col = new LdaTransformer.Column();
-            col.Source = "F1V";
-            col.NumTopic = 20;
-            col.NumTopic = 3;
-            col.NumSummaryTermPerTopic = 3;
-            col.AlphaSum = 3;
-            col.NumThreads = 1;
-            col.ResetRandomGenerator = true;
-            LdaTransformer.Arguments args = new LdaTransformer.Arguments();
-            args.Column = new LdaTransformer.Column[] { col };
-
-            var ldaTransform = LdaTransformer.Create(Env, args, srcView);
+            var est = new LdaEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var ldaTransform = est.Fit(srcView).Transform(srcView);
 
             using (var cursor = ldaTransform.GetRowCursor(c => true))
             {

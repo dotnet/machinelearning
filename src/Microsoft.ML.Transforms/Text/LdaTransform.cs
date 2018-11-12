@@ -627,9 +627,6 @@ namespace Microsoft.ML.Transforms.Text
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
 
                     var srcCol = inputSchema[_srcCols[i]];
-
-                    // LDA consumes term frequency vectors, so we assume VBuffer<Float> is an appropriate input type.
-                    // It must also be of known size for the sake of the LDA trainer initialization.
                     if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
 
@@ -783,7 +780,7 @@ namespace Microsoft.ML.Transforms.Text
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));

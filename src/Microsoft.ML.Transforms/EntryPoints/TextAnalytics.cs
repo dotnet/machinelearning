@@ -131,7 +131,31 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var view = LdaTransformer.Create(h, input, input.Data);
+
+            var cols = new LdaTransformer.ColumnInfo[input.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
+            {
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = input.Column[i];
+                    cols[i] = new LdaTransformer.ColumnInfo(item.Source,
+                        item.Name ?? item.Source,
+                        item.NumTopic ?? input.NumTopic,
+                        item.AlphaSum ?? input.AlphaSum,
+                        item.Beta ?? input.Beta,
+                        item.Mhstep ?? input.Mhstep,
+                        item.NumIterations ?? input.NumIterations,
+                        item.LikelihoodInterval ?? input.LikelihoodInterval,
+                        item.NumThreads ?? input.NumThreads ?? 0,
+                        item.NumMaxDocToken ?? input.NumMaxDocToken,
+                        item.NumSummaryTermPerTopic ?? input.NumSummaryTermPerTopic,
+                        item.NumBurninIterations ?? input.NumBurninIterations,
+                        item.ResetRandomGenerator ?? input.ResetRandomGenerator);
+                }
+            }
+            var est = new LdaEstimator(h, cols);
+            var view = est.Fit(input.Data).Transform(input.Data);
+
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
