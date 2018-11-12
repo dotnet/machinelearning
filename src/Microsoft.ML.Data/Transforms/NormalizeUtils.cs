@@ -58,11 +58,11 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
-        public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
+        internal abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        public abstract bool CanSaveOnnx(OnnxContext ctx);
+        internal abstract bool CanSaveOnnx(OnnxContext ctx);
 
-        public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+        internal abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
         public abstract void Save(ModelSaveContext ctx);
     }

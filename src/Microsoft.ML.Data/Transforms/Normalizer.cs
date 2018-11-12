@@ -251,7 +251,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 loaderAssemblyName: typeof(NormalizerTransformer).Assembly.FullName);
         }
 
-        public class ColumnInfo
+        private class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        public sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
+        private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
         {
             private readonly ColumnInfo[] _infos;
 

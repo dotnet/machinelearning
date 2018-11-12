@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public override bool CanSaveOnnx(OnnxContext ctx) => true;
+            internal override bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -488,11 +488,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
+            internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            public override bool CanSaveOnnx(OnnxContext ctx) => false;
+            internal override bool CanSaveOnnx(OnnxContext ctx) => false;
 
-            public override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            internal override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
@@ -613,11 +613,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
+            internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            public override bool CanSaveOnnx(OnnxContext ctx) => false;
+            internal override bool CanSaveOnnx(OnnxContext ctx) => false;
 
-            public override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            internal override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
             public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)

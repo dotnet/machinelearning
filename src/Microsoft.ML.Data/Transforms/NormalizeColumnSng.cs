@@ -577,10 +577,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                         AffineNormSerializationUtils.SaveModel(ctx, 1, null, new[] { Scale }, new[] { Offset }, saveText: true);
                     }
 
-                    public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
+                    internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                         => PfaUtils.Call("*", PfaUtils.Call("-", srcToken, Offset), Scale);
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
+                    internal override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
                         node.AddAttribute("offset", Enumerable.Repeat(Offset, featureCount));
                         node.AddAttribute("scale", Enumerable.Repeat(Scale, featureCount));
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         AffineNormSerializationUtils.SaveModel(ctx, Scale.Length, null, Scale, Offset, saveText: true);
                     }
 
-                    public override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
+                    internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken)
                     {
                         var itemType = PfaUtils.Type.Double;
                         var arrType = PfaUtils.Type.Array(itemType);
@@ -651,7 +651,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         return PfaUtils.Call("a.zipmap", srcToken, scaleCell, PfaUtils.FuncRef(ctx.Pfa.EnsureMul(itemType)));
                     }
 
-                    public override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
+                    internal override bool OnnxInfo(OnnxContext ctx, OnnxNode node, int featureCount)
                     {
                         if (Offset != null)
                             node.AddAttribute("offset", Offset);
