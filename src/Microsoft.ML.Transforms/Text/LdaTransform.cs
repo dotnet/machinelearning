@@ -623,7 +623,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if(!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]))
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
 
                     var srcCol = inputSchema[_srcCols[i]];
@@ -702,16 +702,18 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal LdaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        /// <summary>
+        /// Initializes a new <see cref="LdaTransformer"/> object.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="ldas">An array of LdaState objects, where ldas[i] is learnt from the i-th element of <paramref name="columns"/>.</param>
+        /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
+        internal LdaTransformer(IHostEnvironment env, LdaState[] ldas, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransformer)), GetColumnPairs(columns))
         {
+            Host.AssertNonEmpty(ColumnPairs);
             _columns = columns;
-            _ldas = new LdaState[columns.Length];
-
-            using (var ch = Host.Start("Train"))
-            {
-                Train(ch, input, _ldas);
-            }
+            _ldas = ldas;
         }
 
         private LdaTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
@@ -732,6 +734,17 @@ namespace Microsoft.ML.Transforms.Text
                 _ldas[i] = new LdaState(Host, ctx);
                 _columns[i] = _ldas[i].InfoEx;
             }
+        }
+
+        // Computes the LdaState needed for computing LDA features from training data.
+        internal static LdaState[] TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params ColumnInfo[] columns)
+        {
+            var ldas = new LdaState[columns.Length];
+            using (var ch = env.Start("Train"))
+            {
+                Train(env, ch, inputData, ldas, columns);
+            }
+            return ldas;
         }
 
         private void Dispose(bool disposing)
@@ -799,7 +812,9 @@ namespace Microsoft.ML.Transforms.Text
                         item.ResetRandomGenerator ?? args.ResetRandomGenerator);
                 }
             }
-            return new LdaTransformer(env, input, cols).MakeDataTransform(input);
+
+            var ldas = TrainLdaTransformer(env, input, cols);
+            return new LdaTransformer(env, ldas, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel
@@ -851,21 +866,26 @@ namespace Microsoft.ML.Transforms.Text
             return result;
         }
 
-        private void Train(IChannel ch, IDataView trainingData, LdaState[] states)
+        private static void Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params ColumnInfo[] columns)
         {
-            Host.AssertValue(ch);
-            ch.AssertValue(trainingData);
+            env.AssertValue(ch);
+            ch.AssertValue(inputData);
             ch.AssertValue(states);
-            ch.Assert(states.Length == _columns.Length);
+            ch.Assert(states.Length == columns.Length);
 
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            int[] numVocabs = new int[_columns.Length];
-            int[] srcCols = new int[_columns.Length];
+            bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
+            int[] numVocabs = new int[columns.Length];
+            int[] srcCols = new int[columns.Length];
 
-            for (int i = 0; i < _columns.Length; i++)
+            var inputSchema = inputData.Schema;
+            for (int i = 0; i < columns.Length; i++)
             {
-                if (!trainingData.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
-                    throw Host.ExceptSchemaMismatch(nameof(trainingData), "input", ColumnPairs[i].input);
+                if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
+                    throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
+
+                var srcColType = inputSchema.GetColumnType(srcCol);
+                if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
 
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
@@ -875,13 +895,13 @@ namespace Microsoft.ML.Transforms.Text
             //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
             //one for the pre-calc memory, one for feedin data really
             //another solution can be prepare these two value externally and put them in the beginning of the input file.
-            long[] corpusSize = new long[_columns.Length];
-            int[] numDocArray = new int[_columns.Length];
+            long[] corpusSize = new long[columns.Length];
+            int[] numDocArray = new int[columns.Length];
 
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
             {
-                var getters = new ValueGetter<VBuffer<Double>>[_columns.Length];
-                for (int i = 0; i < _columns.Length; i++)
+                var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
                 {
                     corpusSize[i] = 0;
                     numDocArray[i] = 0;
@@ -893,7 +913,7 @@ namespace Microsoft.ML.Transforms.Text
                 while (cursor.MoveNext())
                 {
                     ++rowCount;
-                    for (int i = 0; i < _columns.Length; i++)
+                    for (int i = 0; i < columns.Length; i++)
                     {
                         int docSize = 0;
                         getters[i](ref src);
@@ -909,7 +929,7 @@ namespace Microsoft.ML.Transforms.Text
                                 break;
                             }
 
-                            if (docSize >= _columns[i].NumMaxDocToken - termFreq)
+                            if (docSize >= columns[i].NumMaxDocToken - termFreq)
                                 break; //control the document length
 
                             //if legal then add the term
@@ -929,34 +949,34 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                for (int i = 0; i < _columns.Length; ++i)
+                for (int i = 0; i < columns.Length; ++i)
                 {
                     if (numDocArray[i] != rowCount)
                     {
                         ch.Assert(numDocArray[i] < rowCount);
-                        ch.Warning($"Column '{ColumnPairs[i].input}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
+                        ch.Warning($"Column '{columns[i].Input}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
                     }
                 }
             }
 
             // Initialize all LDA states
-            for (int i = 0; i < _columns.Length; i++)
+            for (int i = 0; i < columns.Length; i++)
             {
-                var state = new LdaState(Host, _columns[i], numVocabs[i]);
+                var state = new LdaState(env, columns[i], numVocabs[i]);
                 if (numDocArray[i] == 0 || corpusSize[i] == 0)
-                    throw ch.Except("The specified documents are all empty in column '{0}'.", ColumnPairs[i].input);
+                    throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].Input);
 
                 state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
                 states[i] = state;
             }
 
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
+            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
             {
-                int[] docSizeCheck = new int[_columns.Length];
+                int[] docSizeCheck = new int[columns.Length];
                 // This could be optimized so that if multiple trainers consume the same column, it is
                 // fed into the train method once.
-                var getters = new ValueGetter<VBuffer<Double>>[_columns.Length];
-                for (int i = 0; i < _columns.Length; i++)
+                var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
                 {
                     docSizeCheck[i] = 0;
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
@@ -966,15 +986,15 @@ namespace Microsoft.ML.Transforms.Text
 
                 while (cursor.MoveNext())
                 {
-                    for (int i = 0; i < _columns.Length; i++)
+                    for (int i = 0; i < columns.Length; i++)
                     {
                         getters[i](ref src);
-                        docSizeCheck[i] += states[i].FeedTrain(Host, in src);
+                        docSizeCheck[i] += states[i].FeedTrain(env, in src);
                     }
                 }
-                for (int i = 0; i < _columns.Length; i++)
+                for (int i = 0; i < columns.Length; i++)
                 {
-                    Host.Assert(corpusSize[i] == docSizeCheck[i]);
+                    env.Assert(corpusSize[i] == docSizeCheck[i]);
                     states[i].CompleteTrain();
                 }
             }
@@ -1043,7 +1063,7 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to compute LDA.</param>
+        /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
         public LdaEstimator(IHostEnvironment env, params LdaTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -1051,6 +1071,9 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns.ToImmutableArray();
         }
 
+        /// <summary>
+        /// Returns the schema that would be produced by the transformation.
+        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
@@ -1068,6 +1091,10 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public LdaTransformer Fit(IDataView input) => new LdaTransformer(_host, input, _columns.ToArray());
+        public LdaTransformer Fit(IDataView input)
+        {
+            var ldas = LdaTransformer.TrainLdaTransformer(_host, input, _columns.ToArray());
+            return new LdaTransformer(_host, ldas, _columns.ToArray());
+        }
     }
 }
