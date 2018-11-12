@@ -8,7 +8,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\BestFriendAttribute.cs" Link="Resources/BestFriendAttribute.cs">
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\Utilities\Contracts.cs" Link="Resources/Src/Contracts.cs">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\BestFriendAttribute.cs" Link="Resources/Src/BestFriendAttribute.cs">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\CommandLine\ArgumentAttribute.cs" Link="Resources/Src/ArgumentAttribute.cs">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\CommandLine\DefaultArgumentAttribute.cs" Link="Resources/Src/DefaultArgumentAttribute.cs">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\Microsoft.ML.Core\CommandLine\ArgumentType.cs" Link="Resources/Src/ArgumentType.cs">
       <LogicalName>%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>

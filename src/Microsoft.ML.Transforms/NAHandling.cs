@@ -65,15 +65,15 @@ namespace Microsoft.ML.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.MissingValueIndicator",
-            Desc = NAIndicatorTransform.Summary,
-            UserName = NAIndicatorTransform.FriendlyName,
-            ShortName = NAIndicatorTransform.ShortName,
+            Desc = MissingValueIndicatorTransformer.Summary,
+            UserName = MissingValueIndicatorTransformer.FriendlyName,
+            ShortName = MissingValueIndicatorTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""NAIndicator""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""NAIndicator""]/*' />"})]
-        public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, NAIndicatorTransform.Arguments input)
+        public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, MissingValueIndicatorTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
-            var xf = new NAIndicatorTransform(h, input).Transform(input.Data);
+            var xf = new MissingValueIndicatorTransformer(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

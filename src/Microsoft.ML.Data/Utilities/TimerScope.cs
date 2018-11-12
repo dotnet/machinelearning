@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
     /// <summary>
-    /// A timer scope class that starts a Stopwatch when created, calculates and prints elapsed time, physical and virtual memory usages before sending these to the telemetry when disposed.
+    /// A timer scope class that starts a <see cref="Stopwatch"/> when created, calculates and prints elapsed time, physical and virtual memory usages before sending these to the telemetry when disposed.
     /// </summary>
-    public sealed class TimerScope : IDisposable
+    [BestFriend]
+    internal sealed class TimerScope : IDisposable
     {
         // Note that this class does not own nor dispose of this channel.
         private readonly IChannel _ch;
