@@ -504,8 +504,25 @@ namespace Microsoft.ML.Runtime.Data
             private T[][] _values;       // Working intermediate value buffers.
             private int[] _counts;       // Working intermediate count buffers.
 
-            // The transposed contents of _colStored.
-            private VBuffer<T>[] _cbuff; // Working intermediate column-wise buffer.
+            private struct ColumnBufferStorage
+            {
+                // The transposed contents of _colStored.
+                public VBuffer<T> Buffer;
+
+                // These two arrays are the "cached" arrays inside of the Buffer
+                // to be swapped between the _cbuff and _values/_indices.
+                public readonly T[] Values;
+                public readonly int[] Indices;
+
+                public ColumnBufferStorage(VBuffer<T> buffer, T[] values, int[] indices)
+                {
+                    Buffer = buffer;
+                    Values = values;
+                    Indices = indices;
+                }
+            }
+
+            private ColumnBufferStorage[] _cbuff; // Working intermediate column-wise buffer.
 
             // Variables to track current cursor position.
             private int _colStored;      // The current column of the source data view actually stored in the intermediate buffers.
@@ -711,16 +728,17 @@ namespace Microsoft.ML.Runtime.Data
                     if (count < _len / 2)
                     {
                         // Already sparse enough, I guess. Swap out the arrays.
-                        Utils.Swap(ref temp, ref _cbuff[s]);
-                        _indices[s] = indices ?? new int[_len];
-                        _values[s] = values ?? new T[_len];
+                        ColumnBufferStorage existingBuffer = _cbuff[s];
+                        _cbuff[s] = new ColumnBufferStorage(temp, values, indices);
+                        _indices[s] = existingBuffer.Indices ?? new int[_len];
+                        _values[s] = existingBuffer.Values ?? new T[_len];
                         Ch.Assert(_indices[s].Length == _len);
                         Ch.Assert(_values[s].Length == _len);
                     }
                     else
                     {
                         // Not dense enough. Densify temp into _cbuff[s]. Don't swap the arrays.
-                        temp.CopyToDense(ref _cbuff[s]);
+                        temp.CopyToDense(ref _cbuff[s].Buffer);
                     }
                 }
                 _colStored = _colCurr;
@@ -743,8 +761,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.Check(IsGood, "Cannot get values in the cursor's current state");
                 EnsureValid();
-                Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Length == _len);
-                _cbuff[_slotCurr].CopyTo(ref dst);
+                Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Buffer.Length == _len);
+                _cbuff[_slotCurr].Buffer.CopyTo(ref dst);
             }
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
