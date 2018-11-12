@@ -98,8 +98,11 @@ namespace Microsoft.ML.Transforms.Text
         {
             public static readonly Rec Inst = new Rec();
 
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
             {
                 var infos = new LdaTransformer.ColumnInfo[toOutput.Length];
                 Action<LdaTransformer> onFit = null;

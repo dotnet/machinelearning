@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
+            /// <param name="output">Name of the output column. Null means <paramref name="input"/> is replaced. </param>
             /// <param name="numTopic">The number of topics in the LDA.</param>
             /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
             /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
@@ -193,7 +193,8 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
             /// <param name="numBurninIter">The number of burn-in iterations.</param>
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-            public ColumnInfo(string input, string output,
+            public ColumnInfo(string input,
+                string output = null,
                 int numTopic = LdaEstimator.Defaults.NumTopic,
                 Single alphaSum = LdaEstimator.Defaults.AlphaSum,
                 Single beta = LdaEstimator.Defaults.Beta,
@@ -207,17 +208,27 @@ namespace Microsoft.ML.Transforms.Text
                 bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator)
             {
                 Input = input;
-                Output = output;
+                Contracts.CheckValue(Input, nameof(Input));
+                Output = output ?? input;
+                Contracts.CheckValue(Output, nameof(Output));
                 NumTopic = numTopic;
+                Contracts.CheckUserArg(NumTopic > 0, nameof(NumTopic), "Must be positive.");
                 AlphaSum = alphaSum;
                 Beta = beta;
                 MHStep = mhStep;
+                Contracts.CheckUserArg(MHStep > 0, nameof(MHStep), "Must be positive.");
                 NumIter = numIter;
+                Contracts.CheckUserArg(NumIter > 0, nameof(NumIter), "Must be positive.");
                 LikelihoodInterval = likelihoodInterval;
+                Contracts.CheckUserArg(LikelihoodInterval > 0, nameof(LikelihoodInterval), "Must be positive.");
                 NumThread = numThread;
+                Contracts.CheckUserArg(NumThread >= 0, nameof(NumThread), "Must be positive or zero.");
                 NumMaxDocToken = numMaxDocToken;
+                Contracts.CheckUserArg(NumMaxDocToken > 0, nameof(NumMaxDocToken), "Must be positive.");
                 NumSummaryTermPerTopic = numSummaryTermPerTopic;
+                Contracts.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(NumSummaryTermPerTopic), "Must be positive");
                 NumBurninIter = numBurninIter;
+                Contracts.CheckUserArg(NumBurninIter >= 0, nameof(NumBurninIter), "Must be non-negative.");
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
@@ -791,7 +802,7 @@ namespace Microsoft.ML.Transforms.Text
                         item.NumSummaryTermPerTopic ?? args.NumSummaryTermPerTopic,
                         item.NumBurninIterations ?? args.NumBurninIterations,
                         item.ResetRandomGenerator ?? args.ResetRandomGenerator);
-                };
+                }
             }
             return new LdaTransformer(env, input, cols).MakeDataTransform(input);
         }
@@ -1062,9 +1073,6 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public LdaTransformer Fit(IDataView input)
-        {
-            return new LdaTransformer(_host, input, _columns.ToArray());
-        }
+        public LdaTransformer Fit(IDataView input) => new LdaTransformer(_host, input, _columns.ToArray());
     }
 }
