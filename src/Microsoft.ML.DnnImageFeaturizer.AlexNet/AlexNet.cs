@@ -13,8 +13,8 @@ namespace Microsoft.ML.Transforms
     /// This is an extension method to be used with the <see cref="DnnImageFeaturizerEstimator"/> in order to use a pretrained AlexNet model.
     /// The NuGet containing this extension is also guaranteed to include the binary model file. Note that when building the project
     /// containing this extension method, the corresponding binary model will be downloaded from the CDN at
-    /// https://express-tlcresources.azureedge.net/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx and
-    /// https://express-tlcresources.azureedge.net/image/AlexNetOnnx/AlexNet.onnx  and placed into the local app directory
+    /// https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx and
+    /// https://aka.ms/mlnet-resources/image/AlexNetOnnx/AlexNet.onnx  and placed into the local app directory
     /// folder under mlnet-resources.
     /// </summary>
     public static class AlexNetExtension
