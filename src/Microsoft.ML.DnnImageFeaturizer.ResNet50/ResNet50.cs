@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<OnnxTransform> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn)
         {
-            return ResNet50(dnnModelContext, env, inputColumn, outputColumn, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            return ResNet50(dnnModelContext, env, inputColumn, outputColumn, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
         }
 
         /// <summary>

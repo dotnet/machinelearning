@@ -12,4 +12,25 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="0.0.2-test" />
   </ItemGroup>
+
+  <ItemGroup>
+    <DnnPrepModelFiles Include="$(RepoRoot)bin\obj\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DnnMainModelFiles Include="$(RepoRoot)bin\obj\DnnImageModels\ResNet18Onnx\ResNet18.onnx" />
+  </ItemGroup>
+
+  <Target Name="CopyPrepFiles">
+    <Copy 
+      SourceFiles="@(DnnPrepModelFiles)"
+      DestinationFolder="$(OutDir)\DnnImageModels\ResNetPrepOnnx" />
+  </Target>
+  
+  <Target Name="CopyMainFiles" AfterTargets="Build" DependsOnTargets="CopyPrepFiles">
+    <Copy 
+      SourceFiles="@(DnnMainModelFiles)"
+      DestinationFolder="$(OutDir)\DnnImageModels\ResNet18Onnx" />
+  </Target>
+
 </Project>

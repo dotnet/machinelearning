@@ -78,8 +78,6 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
             var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Env, m.InputColumn, m.OutputColumn), "data_0", "output_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
@@ -114,9 +112,7 @@ namespace Microsoft.ML.Tests
                 imagePath: ctx.LoadText(0),
                 name: ctx.LoadText(1)))
                 .Read(dataFile);
-
-            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
+          
             var pipe = data.MakeNewEstimator()
                 .Append(row => (
                     row.name,
@@ -162,8 +158,6 @@ namespace Microsoft.ML.Tests
 
             var inputNames = "data_0";
             var outputNames = "output_1";
-            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
             var est = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Env, m.InputColumn, m.OutputColumn), inputNames, outputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);

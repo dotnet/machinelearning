@@ -12,28 +12,26 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <LocalAppDataDir>$(LocalAppData)</LocalAppDataDir>
-    <MlnetAppDataDir>$(LocalAppData)/mlnet-resources</MlnetAppDataDir>
+    <ModelPlacementDir>$(RepoRoot)bin\obj\DnnImageModels</ModelPlacementDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <PreprocessFile Include="$(MlnetAppDataDir)/AlexNetPrepOnnx/AlexNetPreprocess.onnx"
-    Url="https://express-tlcresources.azureedge.net/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx "
-    DestinationFile="$(MlnetAppDataDir)/AlexNetPrepOnnx/AlexNetPreprocess.onnx"
-    DestinationDir="$(MlnetAppDataDir)/AlexNetPrepOnnx" />
+    <PreprocessFile Include="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetPrepOnnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ModelFile Include="$(MlnetAppDataDir)/AlexNetOnnx/AlexNet.onnx"
-    Url="https://express-tlcresources.azureedge.net/image/AlexNetOnnx/AlexNet.onnx"
-    DestinationFile="$(MlnetAppDataDir)/AlexNetOnnx/AlexNet.onnx"
-    DestinationDir="$(MlnetAppDataDir)/AlexNetOnnx" />
+    <ModelFile Include="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetOnnx/AlexNet.onnx"
+    DestinationFile="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetOnnx" />
   </ItemGroup>
 
   <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
-    <MakeDir Directories="$(MlnetAppDataDir)" />
-    <MakeDir Directories="$(LocalAppDataDir)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
     <MakeDir Directories="%(PreprocessFile.DestinationDir)" />
     <DownloadFilesFromUrl Items="@(PreprocessFile)"/>
   </Target>

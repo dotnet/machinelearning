@@ -12,28 +12,26 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <LocalAppDataDir>$(LocalAppData)</LocalAppDataDir>
-    <MlnetAppDataDir>$(LocalAppData)/mlnet-resources</MlnetAppDataDir>
+    <ModelPlacementDir>$(RepoRoot)bin\obj\DnnImageModels</ModelPlacementDir>
   </PropertyGroup>
 
   <ItemGroup>
-    <PreprocessFile Include="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
-    Url="https://express-tlcresources.azureedge.net/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
-    DestinationFile="$(MlnetAppDataDir)/ResNetPrepOnnx/ResNetPreprocess.onnx"
-    DestinationDir="$(MlnetAppDataDir)/ResNetPrepOnnx" />
+    <PreprocessFile Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNetPrepOnnx" />
   </ItemGroup>
 
   <ItemGroup>
-    <ModelFile Include="$(MlnetAppDataDir)/ResNet18Onnx/ResNet18.onnx"
-    Url="https://express-tlcresources.azureedge.net/image/ResNet18Onnx/ResNet18.onnx"
-    DestinationFile="$(MlnetAppDataDir)/ResNet18Onnx/ResNet18.onnx"
-    DestinationDir="$(MlnetAppDataDir)/ResNet18Onnx" />
+    <ModelFile Include="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet18Onnx/ResNet18.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet18Onnx" />
   </ItemGroup>
 
   <Target Name="DownloadPrepModels" Inputs="@(PreprocessFile)" Outputs="%(PreprocessFile.DestinationFile)">
     <Message Importance="High" Text="Downloading external model files... %(PreprocessFile.DestinationFile)" />
-    <MakeDir Directories="$(MlnetAppDataDir)" />
-    <MakeDir Directories="$(LocalAppDataDir)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
     <MakeDir Directories="%(PreprocessFile.DestinationDir)" />
     <DownloadFilesFromUrl Items="@(PreprocessFile)"/>
   </Target>

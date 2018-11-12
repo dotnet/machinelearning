@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML.OnnxTransform/Microsoft.ML.OnnxTransform.nupkgproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj" />
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(LocalAppData)\mlnet-resources\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNet18Onnx" /> 
-    <Content Include="$(LocalAppData)\mlnet-resources\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\ResNetPrepOnnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNet18Onnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNetPrepOnnx" /> 
   </ItemGroup>  
 
 </Project>

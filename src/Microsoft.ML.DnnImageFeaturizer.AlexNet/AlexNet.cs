@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static EstimatorChain<OnnxTransform> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn)
         {
-            return AlexNet(dnnModelContext, env, inputColumn, outputColumn, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+            return AlexNet(dnnModelContext, env, inputColumn, outputColumn, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
         }
 
         /// <summary>

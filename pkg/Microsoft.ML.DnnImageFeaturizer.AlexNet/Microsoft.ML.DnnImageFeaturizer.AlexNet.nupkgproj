@@ -6,12 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML.OnnxTransform/Microsoft.ML.OnnxTransform.nupkgproj" />
+    <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.nupkgproj" />
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(LocalAppData)\mlnet-resources\AlexNetOnnx\AlexNet.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\AlexNetOnnx" /> 
-    <Content Include="$(LocalAppData)\mlnet-resources\AlexNetPrepOnnx\AlexNetPreprocess.onnx" Pack="true" PackagePath=".\lib\netstandard2.0\AlexNetPrepOnnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\AlexNetOnnx\AlexNet.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\AlexNetOnnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\AlexNetPrepOnnx\AlexNetPreprocess.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\AlexNetPrepOnnx" /> 
   </ItemGroup>  
 
 </Project>
+
