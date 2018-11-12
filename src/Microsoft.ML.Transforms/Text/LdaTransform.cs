@@ -641,7 +641,10 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _parent._types[i], null);
+                {
+                    var info = _parent._columns[i];
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, new VectorType(NumberType.Float, info.NumTopic), null);
+                }
                 return result;
             }
 
@@ -684,9 +687,8 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(LdaTransformer).Assembly.FullName);
         }
 
-        private readonly ColumnInfo[] _exes;
+        private readonly ColumnInfo[] _columns;
         private readonly LdaState[] _ldas;
-        private readonly ColumnType[] _types;
 
         private const string RegistrationName = "LightLda";
         private const string WordTopicModelFilename = "word_topic_summary.txt";
@@ -703,14 +705,9 @@ namespace Microsoft.ML.Transforms.Text
         internal LdaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransformer)), GetColumnPairs(columns))
         {
-            _exes = columns;
-            _types = new ColumnType[columns.Length];
+            _columns = columns;
             _ldas = new LdaState[columns.Length];
 
-            for (int i = 0; i < columns.Length; i++)
-            {
-                _types[i] = new VectorType(NumberType.Float, _exes[i].NumTopic);
-            }
             using (var ch = Host.Start("Train"))
             {
                 Train(ch, input, _ldas);
@@ -728,14 +725,12 @@ namespace Microsoft.ML.Transforms.Text
 
             // Note: columnsLength would be just one in most cases.
             var columnsLength = ColumnPairs.Length;
-            _exes = new ColumnInfo[columnsLength];
+            _columns = new ColumnInfo[columnsLength];
             _ldas = new LdaState[columnsLength];
-            _types = new ColumnType[columnsLength];
             for (int i = 0; i < _ldas.Length; i++)
             {
                 _ldas[i] = new LdaState(Host, ctx);
-                _exes[i] = _ldas[i].InfoEx;
-                _types[i] = new VectorType(NumberType.Float, _ldas[i].InfoEx.NumTopic);
+                _columns[i] = _ldas[i].InfoEx;
             }
         }
 
@@ -861,13 +856,13 @@ namespace Microsoft.ML.Transforms.Text
             Host.AssertValue(ch);
             ch.AssertValue(trainingData);
             ch.AssertValue(states);
-            ch.Assert(states.Length == _exes.Length);
+            ch.Assert(states.Length == _columns.Length);
 
             bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            int[] numVocabs = new int[_exes.Length];
-            int[] srcCols = new int[_exes.Length];
+            int[] numVocabs = new int[_columns.Length];
+            int[] srcCols = new int[_columns.Length];
 
-            for (int i = 0; i < _exes.Length; i++)
+            for (int i = 0; i < _columns.Length; i++)
             {
                 if (!trainingData.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(trainingData), "input", ColumnPairs[i].input);
@@ -880,13 +875,13 @@ namespace Microsoft.ML.Transforms.Text
             //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
             //one for the pre-calc memory, one for feedin data really
             //another solution can be prepare these two value externally and put them in the beginning of the input file.
-            long[] corpusSize = new long[_exes.Length];
-            int[] numDocArray = new int[_exes.Length];
+            long[] corpusSize = new long[_columns.Length];
+            int[] numDocArray = new int[_columns.Length];
 
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
             {
-                var getters = new ValueGetter<VBuffer<Double>>[_exes.Length];
-                for (int i = 0; i < _exes.Length; i++)
+                var getters = new ValueGetter<VBuffer<Double>>[_columns.Length];
+                for (int i = 0; i < _columns.Length; i++)
                 {
                     corpusSize[i] = 0;
                     numDocArray[i] = 0;
@@ -898,7 +893,7 @@ namespace Microsoft.ML.Transforms.Text
                 while (cursor.MoveNext())
                 {
                     ++rowCount;
-                    for (int i = 0; i < _exes.Length; i++)
+                    for (int i = 0; i < _columns.Length; i++)
                     {
                         int docSize = 0;
                         getters[i](ref src);
@@ -914,7 +909,7 @@ namespace Microsoft.ML.Transforms.Text
                                 break;
                             }
 
-                            if (docSize >= _exes[i].NumMaxDocToken - termFreq)
+                            if (docSize >= _columns[i].NumMaxDocToken - termFreq)
                                 break; //control the document length
 
                             //if legal then add the term
@@ -934,7 +929,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                for (int i = 0; i < _exes.Length; ++i)
+                for (int i = 0; i < _columns.Length; ++i)
                 {
                     if (numDocArray[i] != rowCount)
                     {
@@ -945,9 +940,9 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             // Initialize all LDA states
-            for (int i = 0; i < _exes.Length; i++)
+            for (int i = 0; i < _columns.Length; i++)
             {
-                var state = new LdaState(Host, _exes[i], numVocabs[i]);
+                var state = new LdaState(Host, _columns[i], numVocabs[i]);
                 if (numDocArray[i] == 0 || corpusSize[i] == 0)
                     throw ch.Except("The specified documents are all empty in column '{0}'.", ColumnPairs[i].input);
 
@@ -957,11 +952,11 @@ namespace Microsoft.ML.Transforms.Text
 
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
             {
-                int[] docSizeCheck = new int[_exes.Length];
+                int[] docSizeCheck = new int[_columns.Length];
                 // This could be optimized so that if multiple trainers consume the same column, it is
                 // fed into the train method once.
-                var getters = new ValueGetter<VBuffer<Double>>[_exes.Length];
-                for (int i = 0; i < _exes.Length; i++)
+                var getters = new ValueGetter<VBuffer<Double>>[_columns.Length];
+                for (int i = 0; i < _columns.Length; i++)
                 {
                     docSizeCheck[i] = 0;
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
@@ -971,13 +966,13 @@ namespace Microsoft.ML.Transforms.Text
 
                 while (cursor.MoveNext())
                 {
-                    for (int i = 0; i < _exes.Length; i++)
+                    for (int i = 0; i < _columns.Length; i++)
                     {
                         getters[i](ref src);
                         docSizeCheck[i] += states[i].FeedTrain(Host, in src);
                     }
                 }
-                for (int i = 0; i < _exes.Length; i++)
+                for (int i = 0; i < _columns.Length; i++)
                 {
                     Host.Assert(corpusSize[i] == docSizeCheck[i]);
                     states[i].CompleteTrain();
