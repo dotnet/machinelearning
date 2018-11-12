@@ -57,6 +57,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
+        // Onnx is only supported on x64 Windows
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         void TestDnnImageFeaturizer()
         {
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Tests
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
-            var pipe = new DnnImageFeaturizerEstimator(Env, (m, env, input, output) => m.ResNet18(env, input, output, execDir), "data_0", "output_1");
+            var pipe = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Env, m.InputColumn, m.OutputColumn), "data_0", "output_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -96,54 +97,54 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        // Onnx is only supported on x64 Windows
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void OnnxStatic()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
-            using (var env = new ConsoleEnvironment(null, false, 0, 1, null, null))
+            var env = new MLContext(null, 1);
+            var imageHeight = 224;
+            var imageWidth = 224;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = TextLoader.CreateReader(env, ctx => (
+                imagePath: ctx.LoadText(0),
+                name: ctx.LoadText(1)))
+                .Read(dataFile);
+
+            var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
+            var pipe = data.MakeNewEstimator()
+                .Append(row => (
+                    row.name,
+                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer(m => m.ModelSelector.ResNet18(m.Env, m.InputColumn, m.OutputColumn))));
+
+            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            result.Schema.TryGetColumnIndex("output_1", out int output);
+            using (var cursor = result.GetRowCursor(col => col == output))
             {
-                var imageHeight = 224;
-                var imageWidth = 224;
-                var dataFile = GetDataPath("images/images.tsv");
-                var imageFolder = Path.GetDirectoryName(dataFile);
-
-                var data = TextLoader.CreateReader(env, ctx => (
-                    imagePath: ctx.LoadText(0),
-                    name: ctx.LoadText(1)))
-                    .Read(dataFile);
-
-                var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
-                var pipe = data.MakeNewEstimator()
-                    .Append(row => (
-                        row.name,
-                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, output_1: row.data_0.DnnImageFeaturizer((m, envi, input, estimator_output) => m.ResNet18(envi, input, estimator_output, execDir))));
-
-                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
-
-                var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("output_1", out int output);
-                using (var cursor = result.GetRowCursor(col => col == output))
+                var buffer = default(VBuffer<float>);
+                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var numRows = 0;
+                while (cursor.MoveNext())
                 {
-                    var buffer = default(VBuffer<float>);
-                    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                    var numRows = 0;
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref buffer);
-                        Assert.Equal(512, buffer.Length);
-                        numRows += 1;
-                    }
-                    Assert.Equal(3, numRows);
+                    getter(ref buffer);
+                    Assert.Equal(512, buffer.Length);
+                    numRows += 1;
                 }
+                Assert.Equal(3, numRows);
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
-        void TestOldSavingAndLoading()
+        // Onnx is only supported on x64 Windows
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
+        public void TestOldSavingAndLoading()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
@@ -163,7 +164,7 @@ namespace Microsoft.ML.Tests
             var outputNames = "output_1";
             var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var execDir = Path.Combine(appDataBaseDir, "mlnet-resources");
-            var est = new DnnImageFeaturizerEstimator(Env, (m, env, input, output) => m.ResNet18(env, input, output, execDir), inputNames, outputNames);
+            var est = new DnnImageFeaturizerEstimator(Env, m => m.ModelSelector.ResNet18(m.Env, m.InputColumn, m.OutputColumn), inputNames, outputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
             var resultRoles = new RoleMappedData(result);

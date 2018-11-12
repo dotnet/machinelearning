@@ -23,18 +23,9 @@ namespace Microsoft.ML.Transforms
         /// If including this through a NuGet, the location of the model will be the same as of this file. This looks for the model there.
         /// This should be the default way to use AlexNet if importing the model from a NuGet.
         /// </summary>
-        public static EstimatorChain<OnnxTransform> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string input, string output)
+        public static EstimatorChain<OnnxTransform> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn)
         {
-            var modelChain = new EstimatorChain<OnnxTransform>();
-            var tempCol = "onnxDnnPrep";
-            var execDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
-            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(execDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), input, tempCol);
-            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(execDir, "AlexNetOnnx", "AlexNet.onnx"), tempCol, output);
-            modelChain = modelChain.Append(prepEstimator);
-            modelChain = modelChain.Append(mainEstimator);
-            return modelChain;
+            return AlexNet(dnnModelContext, env, inputColumn, outputColumn, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
         }
 
         /// <summary>
@@ -43,13 +34,14 @@ namespace Microsoft.ML.Transforms
         /// must be in a directory all by themsleves for the OnnxTransform to work, this method appends a AlexNetOnnx/AlexNetPrepOnnx subdirectory
         /// to the passed in directory to prevent having to make that directory manually each time.
         /// </summary>
-        public static EstimatorChain<OnnxTransform> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string input, string output, string modelDir)
+        public static EstimatorChain<OnnxTransform> AlexNet(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn, string modelDir)
         {
             var modelChain = new EstimatorChain<OnnxTransform>();
             var tempCol = "onnxDnnPrep";
 
-            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), input, tempCol);
-            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetOnnx", "AlexNet.onnx"), tempCol, output);
+            // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
+            var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetPrepOnnx", "AlexNetPreprocess.onnx"), inputColumn, tempCol);
+            var mainEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "AlexNetOnnx", "AlexNet.onnx"), tempCol, outputColumn);
             modelChain = modelChain.Append(prepEstimator);
             modelChain = modelChain.Append(mainEstimator);
             return modelChain;
