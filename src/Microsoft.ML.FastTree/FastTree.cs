@@ -2818,7 +2818,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         //The below two properties are necessary for tree Visualizer
         public TreeEnsemble TrainedEnsemble { get; }
-        public int NumTrees => TrainedEnsemble.NumTrees;
+        int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
         protected readonly string InnerArgs;
@@ -2838,8 +2838,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -3019,7 +3019,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -3068,7 +3068,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Max
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3288,7 +3288,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return ifeatMax;
         }
 
-        public ITree[] GetTrees()
+        ITree[] ITreeEnsemble.GetTrees()
         {
             return TrainedEnsemble.Trees.Select(k => new Tree(k)).ToArray();
         }
@@ -3392,14 +3392,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private sealed class TreeNode : INode
         {
-            private readonly Dictionary<string, object> _keyValues;
-
             public TreeNode(Dictionary<string, object> keyValues)
             {
-                _keyValues = keyValues;
+                KeyValues = keyValues;
             }
 
-            public Dictionary<string, object> KeyValues { get { return _keyValues; } }
+            public Dictionary<string, object> KeyValues { get; }
         }
     }
 }

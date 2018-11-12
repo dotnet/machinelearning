@@ -76,6 +76,11 @@ namespace Microsoft.ML.CodeAnalyzer.Tests.Helpers
         private void VerifyFix(string language, DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string oldSource, string newSource, int? codeFixIndex, bool allowNewCompilerDiagnostics)
         {
             var document = CreateDocument(oldSource);
+            CycleAndVerifyFix(analyzer, codeFixProvider, newSource, document, codeFixIndex, allowNewCompilerDiagnostics);
+        }
+
+        internal static void CycleAndVerifyFix(DiagnosticAnalyzer analyzer, CodeFixProvider codeFixProvider, string newSource, Document document, int? codeFixIndex = null, bool allowNewCompilerDiagnostics = false)
+        {
             var analyzerDiagnostics = GetSortedDiagnosticsFromDocuments(analyzer, new[] { document });
             var compilerDiagnostics = GetCompilerDiagnostics(document);
             int attempts = analyzerDiagnostics.Length;

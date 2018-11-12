@@ -535,7 +535,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly List<Double> WeightedRecall;
             public readonly List<Double> WeightedFalsePositiveRate;
 
-            public readonly AuPrcAggregatorBase AuPrcAggregator;
+            internal readonly AuPrcAggregatorBase AuPrcAggregator;
             public double WeightedAuPrc;
             public double UnweightedAuPrc;
 

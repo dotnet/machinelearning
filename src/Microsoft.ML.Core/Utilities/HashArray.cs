@@ -17,7 +17,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// Also implements memory efficient sorting.
     /// Note: Supports adding and looking up of items but does not support removal of items.
     /// </summary>
-    public sealed class HashArray<TItem>
+    [BestFriend]
+    internal sealed class HashArray<TItem>
         // REVIEW: May want to not consider not making TItem have to be IComparable but instead
         // could support user specified sort order.
         where TItem : IEquatable<TItem>, IComparable<TItem>
