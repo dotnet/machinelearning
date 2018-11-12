@@ -16,11 +16,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), typeof(TermLookupTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), typeof(TermLookupTransformer.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
 
-[assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), null, typeof(SignatureLoadDataTransform),
-    "Term Lookup Transform", TermLookupTransform.LoaderSignature)]
+[assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), null, typeof(SignatureLoadDataTransform),
+    "Term Lookup Transform", TermLookupTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// <summary>
     /// This transform maps text values columns to new columns using a map dataset provided through its arguments.
     /// </summary>
-    public sealed class TermLookupTransform : OneToOneTransformBase
+    public sealed class TermLookupTransformer : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TermLookupTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(TermLookupTransformer).Assembly.FullName);
         }
 
         // This is the byte array containing the binary .idv file contents for the lookup data.
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public TermLookupTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public TermLookupTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
                 input, TestIsText)
         {
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        public TermLookupTransform(IHostEnvironment env, IDataView input, IDataView lookup, string sourceTerm, string sourceValue, string targetTerm, string targetValue)
+        public TermLookupTransformer(IHostEnvironment env, IDataView input, IDataView lookup, string sourceTerm, string sourceValue, string targetTerm, string targetValue)
             : base(env, RegistrationName, new[] { new Column { Name = sourceValue, Source = sourceTerm } }, input, TestIsText)
         {
             Host.AssertNonEmpty(Infos);
@@ -589,7 +589,7 @@ namespace Microsoft.ML.Transforms.Categorical
             return values;
         }
 
-        private TermLookupTransform(IChannel ch, ModelLoadContext ctx, IHost host, IDataView input)
+        private TermLookupTransformer(IChannel ch, ModelLoadContext ctx, IHost host, IDataView input)
             : base(host, ctx, input, TestIsText)
         {
             Host.AssertValue(ch);
@@ -630,14 +630,14 @@ namespace Microsoft.ML.Transforms.Categorical
             return rgb;
         }
 
-        public static TermLookupTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static TermLookupTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             h.CheckValue(input, nameof(input));
-            return h.Apply("Loading Model", ch => new TermLookupTransform(ch, ctx, h, input));
+            return h.Apply("Loading Model", ch => new TermLookupTransformer(ch, ctx, h, input));
         }
 
         public override void Save(ModelSaveContext ctx)

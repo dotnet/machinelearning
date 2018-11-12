@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact]
+        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -754,8 +754,8 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
-                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
@@ -1223,8 +1223,8 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
-                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {

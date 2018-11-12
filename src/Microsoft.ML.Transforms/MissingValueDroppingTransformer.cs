@@ -13,16 +13,16 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(NADropTransform.Summary, typeof(NADropTransform), typeof(NADropTransform.Arguments), typeof(SignatureDataTransform),
-    NADropTransform.FriendlyName, NADropTransform.ShortName, "NADropTransform")]
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Arguments), typeof(SignatureDataTransform),
+    MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.ShortName, "NADropTransform")]
 
-[assembly: LoadableClass(NADropTransform.Summary, typeof(NADropTransform), null, typeof(SignatureLoadDataTransform),
-    NADropTransform.FriendlyName, NADropTransform.LoaderSignature)]
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadDataTransform),
+    MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
-    public sealed class NADropTransform : OneToOneTransformBase
+    public sealed class MissingValueDroppingTransformer : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NADropTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(MissingValueDroppingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "DropNAs";
@@ -75,12 +75,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public NADropTransform(IHostEnvironment env, IDataView input, string name, string source = null)
+        public MissingValueDroppingTransformer(IHostEnvironment env, IDataView input, string name, string source = null)
             : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
         {
         }
 
-        public NADropTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public MissingValueDroppingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(Contracts.CheckRef(env, nameof(env)), RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestType)
         {
             Host.CheckNonEmpty(args.Column, nameof(args.Column));
@@ -147,17 +147,17 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public static NADropTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static MissingValueDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NADropTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new MissingValueDroppingTransformer(h, ctx, input));
         }
 
-        private NADropTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private MissingValueDroppingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, TestType)
         {
             Host.AssertValue(ctx);

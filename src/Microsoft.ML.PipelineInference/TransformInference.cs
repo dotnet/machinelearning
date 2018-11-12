@@ -1292,7 +1292,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.NAHandleTransformColumn
+                                new ML.Legacy.Transforms.MissingValueHandlingTransformerColumn
                                 {
                                     Name = name,
                                     Source = name
