@@ -66,7 +66,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             const string _dataPath = @"..\..\Data\breast-cancer.txt";
             var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(new ML.Legacy.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
-            pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
+            pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = OneHotEncodingTransformerOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
             var predictionModel = model.Predict(new InputData() { F1 = "5" });
 

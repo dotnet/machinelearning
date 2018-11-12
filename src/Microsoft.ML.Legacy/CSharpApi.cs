@@ -11061,7 +11061,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum CategoricalTransformOutputKind : byte
+        public enum OneHotEncodingTransformerOutputKind : byte
         {
             Bag = 1,
             Ind = 2,
@@ -11070,7 +11070,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class CategoricalHashTransformColumn : OneToOneColumn<CategoricalHashTransformColumn>, IOneToOneColumn
+        public sealed partial class OneHotHashEncodingTransformerColumn : OneToOneColumn<OneHotHashEncodingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -11095,7 +11095,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind? OutputKind { get; set; }
+            public OneHotEncodingTransformerOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -11142,15 +11142,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11158,7 +11158,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:hashBits:src)
             /// </summary>
-            public CategoricalHashTransformColumn[] Column { get; set; }
+            public OneHotHashEncodingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Number of bits to hash into. Must be between 1 and 30, inclusive.
@@ -11183,7 +11183,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Bag;
+            public OneHotEncodingTransformerOutputKind OutputKind { get; set; } = OneHotEncodingTransformerOutputKind.Bag;
 
             /// <summary>
             /// Input dataset
@@ -11244,12 +11244,12 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class CategoricalTransformColumn : OneToOneColumn<CategoricalTransformColumn>, IOneToOneColumn
+        public sealed partial class OneHotEncodingTransformerColumn : OneToOneColumn<OneHotEncodingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector
             /// </summary>
-            public CategoricalTransformOutputKind? OutputKind { get; set; }
+            public OneHotEncodingTransformerOutputKind? OutputKind { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -11316,15 +11316,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11332,12 +11332,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CategoricalTransformColumn[] Column { get; set; }
+            public OneHotEncodingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)
             /// </summary>
-            public CategoricalTransformOutputKind OutputKind { get; set; } = CategoricalTransformOutputKind.Ind;
+            public OneHotEncodingTransformerOutputKind OutputKind { get; set; } = OneHotEncodingTransformerOutputKind.Ind;
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -14938,7 +14938,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
+        public sealed partial class MissingValueIndicatorTransformerColumn : OneToOneColumn<MissingValueIndicatorTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -14985,15 +14985,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15001,7 +15001,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NAIndicatorTransformColumn[] Column { get; set; }
+            public MissingValueIndicatorTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
