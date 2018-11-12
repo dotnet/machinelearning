@@ -12,7 +12,7 @@ namespace Microsoft.ML.Transforms
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed partial class NAReplaceTransform
+    public sealed partial class MissingValueReplacingTransformer
     {
         private static StatAggregator CreateStatAggregator(IChannel ch, ColumnType type, ReplacementKind? kind, bool bySlot, IRowCursor cursor, int col)
         {

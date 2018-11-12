@@ -18,21 +18,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(RffTransform.Summary, typeof(IDataTransform), typeof(RffTransform), typeof(RffTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), typeof(RandomFourierFeaturizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Random Fourier Features Transform", "RffTransform", "Rff")]
 
-[assembly: LoadableClass(RffTransform.Summary, typeof(IDataTransform), typeof(RffTransform), null, typeof(SignatureLoadDataTransform),
-    "Random Fourier Features Transform", RffTransform.LoaderSignature)]
+[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(IDataTransform), typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(RffTransform.Summary, typeof(RffTransform), null, typeof(SignatureLoadModel),
-    "Random Fourier Features Transform", RffTransform.LoaderSignature)]
+[assembly: LoadableClass(RandomFourierFeaturizingTransformer.Summary, typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadModel),
+    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(RffTransform), null, typeof(SignatureLoadRowMapper),
-    "Random Fourier Features Transform", RffTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(RandomFourierFeaturizingTransformer), null, typeof(SignatureLoadRowMapper),
+    "Random Fourier Features Transform", RandomFourierFeaturizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Projections
 {
-    public sealed class RffTransform : OneToOneTransformerBase
+    public sealed class RandomFourierFeaturizingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Projections
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(RffTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(RandomFourierFeaturizingTransformer).Assembly.FullName);
         }
 
         private readonly TransformInfo[] _transformInfos;
@@ -280,8 +280,8 @@ namespace Microsoft.ML.Transforms.Projections
                     new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
-        public RffTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RffTransform)), GetColumnPairs(columns))
+        public RandomFourierFeaturizingTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RandomFourierFeaturizingTransformer)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
             _transformInfos = new TransformInfo[columns.Length];
@@ -432,7 +432,7 @@ namespace Microsoft.ML.Transforms.Projections
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        private RffTransform(IHost host, ModelLoadContext ctx)
+        private RandomFourierFeaturizingTransformer(IHost host, ModelLoadContext ctx)
          : base(host, ctx)
         {
             // *** Binary format ***
@@ -471,14 +471,14 @@ namespace Microsoft.ML.Transforms.Projections
                         item.Seed ?? args.Seed);
                 };
             }
-            return new RffTransform(env, input, cols).MakeDataTransform(input);
+            return new RandomFourierFeaturizingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static RffTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static RandomFourierFeaturizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(RffTransform));
+            var host = env.Register(nameof(RandomFourierFeaturizingTransformer));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms.Projections
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return new RffTransform(host, ctx);
+            return new RandomFourierFeaturizingTransformer(host, ctx);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -511,9 +511,9 @@ namespace Microsoft.ML.Transforms.Projections
             private readonly ColumnType[] _srcTypes;
             private readonly int[] _srcCols;
             private readonly ColumnType[] _types;
-            private readonly RffTransform _parent;
+            private readonly RandomFourierFeaturizingTransformer _parent;
 
-            public Mapper(RffTransform parent, Schema inputSchema)
+            public Mapper(RandomFourierFeaturizingTransformer parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -641,7 +641,7 @@ namespace Microsoft.ML.Transforms.Projections
     /// <summary>
     /// Estimator which takes set of vector columns and maps its input to a random low-dimensional feature space.
     /// </summary>
-    public sealed class RandomFourierFeaturizingEstimator : IEstimator<RffTransform>
+    public sealed class RandomFourierFeaturizingEstimator : IEstimator<RandomFourierFeaturizingTransformer>
     {
         internal static class Defaults
         {
@@ -650,7 +650,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly IHost _host;
-        private readonly RffTransform.ColumnInfo[] _columns;
+        private readonly RandomFourierFeaturizingTransformer.ColumnInfo[] _columns;
 
         /// <summary>
         /// Convinence constructor for simple one column case
@@ -661,18 +661,18 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
         public RandomFourierFeaturizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
-            : this(env, new RffTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
+            : this(env, new RandomFourierFeaturizingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
         {
         }
 
-        public RandomFourierFeaturizingEstimator(IHostEnvironment env, params RffTransform.ColumnInfo[] columns)
+        public RandomFourierFeaturizingEstimator(IHostEnvironment env, params RandomFourierFeaturizingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RandomFourierFeaturizingEstimator));
             _columns = columns;
         }
 
-        public RffTransform Fit(IDataView input) => new RffTransform(_host, input, _columns);
+        public RandomFourierFeaturizingTransformer Fit(IDataView input) => new RandomFourierFeaturizingTransformer(_host, input, _columns);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -733,11 +733,11 @@ namespace Microsoft.ML.Transforms.Projections
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new RffTransform.ColumnInfo[toOutput.Length];
+                var infos = new RandomFourierFeaturizingTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (IColInput)toOutput[i];
-                    infos[i] = new RffTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
+                    infos[i] = new RandomFourierFeaturizingTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Config.NewDim, tcol.Config.UseSin, tcol.Config.Generator, tcol.Config.Seed);
                 }
                 return new RandomFourierFeaturizingEstimator(env, infos);
             }
