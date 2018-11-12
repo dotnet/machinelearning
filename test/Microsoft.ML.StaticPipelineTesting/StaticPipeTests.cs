@@ -422,7 +422,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = SelectColumnsTransform.CreateKeep(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
+                IDataView v = SelectColumnsTransform.CreateKeep(env, tdata.AsDynamic, new[] { "r", "ncdf", "n", "b" });
                 v = TakeFilter.Create(env, v, 10);
                 var saver = new TextSaver(env, new TextSaver.Arguments()
                 {
@@ -666,7 +666,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
         }
 
-        [Fact]
+        [Fact(Skip = "LDA transform cannot be trained on empty data, schema propagation fails")]
         public void LdaTopicModel()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -693,7 +693,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
 }
 
-        [Fact]
+        [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
         public void FeatureSelection()
         {
             var env = new ConsoleEnvironment(seed: 0);

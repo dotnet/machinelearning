@@ -173,8 +173,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new MetaClass() { A = 1, B = "A" },
                                new MetaClass() { A = 2, B = "B" }};
             var pipe = new OneHotEncodingEstimator(Env, new[] {
-                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Key)
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", OneHotEncodingTransformer.OutputKind.Key)
             }).Append(new ConvertingEstimator(Env, new[] {
                 new ConvertingTransform.ColumnInfo("CatA", "ConvA", DataKind.R8),
                 new ConvertingTransform.ColumnInfo("CatB", "ConvB", DataKind.U2)

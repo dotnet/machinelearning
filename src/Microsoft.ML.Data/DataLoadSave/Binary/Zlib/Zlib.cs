@@ -12,6 +12,7 @@ namespace Microsoft.ML.Runtime.Data.IO.Zlib
     {
         public const string DllPath = "zlib.dll";
 
+#pragma warning disable IDE1006
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
         private static extern unsafe Constants.RetCode deflateInit2_(ZStream* strm, int level, int method, int windowBits,
             int memLevel, Constants.Strategy strategy, byte* version, int streamSize);
@@ -44,6 +45,7 @@ namespace Microsoft.ML.Runtime.Data.IO.Zlib
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
         public static extern unsafe Constants.RetCode inflateEnd(ZStream* strm);
+#pragma warning restore IDE1006
     }
 
     [StructLayout(LayoutKind.Sequential)]

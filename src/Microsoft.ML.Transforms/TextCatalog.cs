@@ -25,14 +25,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?line=37 )]
-        /// ]]>
-        /// </format>
-        /// </example>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?range=6-12,17-86)]
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?range=6-12,17-86)]
         /// ]]>
         /// </format>
         /// </example>
@@ -111,7 +104,7 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeedings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
             WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
@@ -124,7 +117,7 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeedings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string customModelFile,
             string outputColumn = null)
@@ -137,7 +130,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeedings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
            WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
            params WordEmbeddingsTransform.ColumnInfo[] columns)
             => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
