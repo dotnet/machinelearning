@@ -418,7 +418,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     Offset = offset;
                 }
 
-                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -451,7 +451,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     IndicesNonZeroOffset = indicesNonZeroOffset;
                 }
 
-                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -533,7 +533,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 TFloat NormalizerTransformer.ICdfData<TFloat>.Stddev => Stddev;
                 bool NormalizerTransformer.ICdfData<TFloat>.UseLog => UseLog;
 
-                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     UseLog = useLog;
                 }
 
-                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             internal override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+            internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
             {
                 // REVIEW: How to attach information on the bins, to metadata?
             }

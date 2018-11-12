@@ -56,15 +56,15 @@ namespace Microsoft.ML.Runtime.Data
     {
         public abstract Delegate GetGetter(IRow input, int icol);
 
-        public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+        public abstract void Save(ModelSaveContext ctx);
+
+        internal abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
         internal abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
         internal abstract bool CanSaveOnnx(OnnxContext ctx);
 
         internal abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
-
-        public abstract void Save(ModelSaveContext ctx);
     }
 
     public static class NormalizeUtils
