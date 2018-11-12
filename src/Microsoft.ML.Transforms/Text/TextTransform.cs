@@ -174,21 +174,21 @@ namespace Microsoft.ML.Transforms.Text
             public StopWordsRemoverTransform.Language StopwordsLanguage
                 =>(StopWordsRemoverTransform.Language) Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
 
-            public LpNormEstimatorBase.NormalizerKind LpNormalizerKind
+            public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
                 get
                 {
                     switch (VectorNormalizer)
                     {
                         case TextNormKind.L1:
-                            return LpNormEstimatorBase.NormalizerKind.L1Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L1Norm;
                         case TextNormKind.L2:
-                            return LpNormEstimatorBase.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
                         case TextNormKind.LInf:
-                            return LpNormEstimatorBase.NormalizerKind.LInf;
+                            return LpNormalizingEstimatorBase.NormalizerKind.LInf;
                         default:
                             Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormEstimatorBase.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
                     }
                 }
             }

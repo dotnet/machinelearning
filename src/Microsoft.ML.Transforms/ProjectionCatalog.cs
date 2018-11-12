@@ -57,5 +57,48 @@ namespace Microsoft.ML
         /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
         public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningTransform.ColumnInfo[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LpNormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="normKind">Type of norm to use to normalize each sample.</param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        public static LpNormalizingEstimator LpNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
+            LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind, bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubMean)
+            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, normKind, subMean);
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LpNormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
+        public static LpNormalizingEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.LpNormColumnInfo[] columns)
+            => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="GcnNormalizingEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
+        /// <param name="scale">Scale features by this value.</param>
+        public static GcnNormalizingEstimator GcnNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
+             bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubMean,
+             bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
+             float scale = LpNormalizingEstimatorBase.Defaults.Scale)
+            => new GcnNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, subMean, useStdDev, scale);
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
+        public static GcnNormalizingEstimator GcnNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.GcnColumnInfo[] columns)
+            => new GcnNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }
