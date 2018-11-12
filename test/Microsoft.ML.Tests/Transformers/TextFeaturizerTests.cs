@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath).AsDynamic;
 
-            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
+            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ',' });
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
             var savedData = SelectColumnsTransform.CreateKeep(Env, outdata, new[] { "words" });
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new TextNormalizingEstimator(Env,"text")
+            var est = new TextNormalizingEstimator(Env, "text")
                 .Append(new WordTokenizingEstimator(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
                 Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash"));
-            
+
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
             // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
-            
+
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
             // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -253,18 +253,19 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, 
-                    numIterations: 10, 
+                Append(new LdaEstimator(env, "bag_of_words", "topics", 10,
+                    numIterations: 10,
                     resetRandomGenerator: true));
 
-            // The following call fails because of the following issue
+            // The following call fails because of the following issue 
             // https://github.com/dotnet/machinelearning/issues/969
+            // In this test it manifests because of the WordBagEstimator in the estimator chain
             // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = env.Start("save"))
             {
-                var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
+                var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false, Dense = true });
 
                 var transformer = est.Fit(data.AsDynamic);
                 var transformedData = transformer.Transform(data.AsDynamic);
@@ -284,6 +285,25 @@ namespace Microsoft.ML.Tests.Transformers
             // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server
             // CheckEquality("Text", "ldatopics.tsv");
             Done();
+        }
+
+        [Fact]
+        public void LdaWorkoutEstimatorCore()
+        {
+            var env = new ConsoleEnvironment(seed: 42, conc: 1);
+            var builder = new ArrayDataViewBuilder(Env);
+            var data = new[]
+            {
+                new[] {  (float)1.0,  (float)0.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)1.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)1.0 },
+            };
+
+            builder.AddColumn("F1V", NumberType.Float, data);
+            var srcView = builder.GetDataView();
+
+            var est = new LdaEstimator(env, "F1V");
+            TestEstimatorCore(est, srcView);
         }
     }
 }
