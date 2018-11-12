@@ -14781,7 +14781,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum NAHandleTransformReplacementKind : byte
+        public enum MissingValueHandlingTransformerReplacementKind : byte
         {
             DefaultValue = 0,
             Mean = 1,
@@ -14790,12 +14790,12 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class NAHandleTransformColumn : OneToOneColumn<NAHandleTransformColumn>, IOneToOneColumn
+        public sealed partial class MissingValueHandlingTransformerColumn : OneToOneColumn<MissingValueHandlingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAHandleTransformReplacementKind? Kind { get; set; }
+            public MissingValueHandlingTransformerReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -14852,15 +14852,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14868,12 +14868,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public NAHandleTransformColumn[] Column { get; set; }
+            public MissingValueHandlingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAHandleTransformReplacementKind ReplaceWith { get; set; } = NAHandleTransformReplacementKind.DefaultValue;
+            public MissingValueHandlingTransformerReplacementKind ReplaceWith { get; set; } = MissingValueHandlingTransformerReplacementKind.DefaultValue;
 
             /// <summary>
             /// Whether to impute values by slot
@@ -15056,7 +15056,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
+        public sealed partial class MissingValueDroppingTransformerColumn : OneToOneColumn<MissingValueDroppingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -15103,15 +15103,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15119,7 +15119,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Columns to drop the NAs for
             /// </summary>
-            public NADropTransformColumn[] Column { get; set; }
+            public MissingValueDroppingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -15242,7 +15242,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum NAReplaceTransformReplacementKind : byte
+        public enum MissingValueReplacingTransformerReplacementKind : byte
         {
             DefaultValue = 0,
             Mean = 1,
@@ -15252,7 +15252,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class NAReplaceTransformColumn : OneToOneColumn<NAReplaceTransformColumn>, IOneToOneColumn
+        public sealed partial class MissingValueReplacingTransformerColumn : OneToOneColumn<MissingValueReplacingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Replacement value for NAs (uses default value if not given)
@@ -15262,7 +15262,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAReplaceTransformReplacementKind? Kind { get; set; }
+            public MissingValueReplacingTransformerReplacementKind? Kind { get; set; }
 
             /// <summary>
             /// Whether to impute values by slot
@@ -15314,15 +15314,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15330,12 +15330,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:rep:src)
             /// </summary>
-            public NAReplaceTransformColumn[] Column { get; set; }
+            public MissingValueReplacingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// The replacement method to utilize
             /// </summary>
-            public NAReplaceTransformReplacementKind ReplacementKind { get; set; } = NAReplaceTransformReplacementKind.DefaultValue;
+            public MissingValueReplacingTransformerReplacementKind ReplacementKind { get; set; } = MissingValueReplacingTransformerReplacementKind.DefaultValue;
 
             /// <summary>
             /// Whether to impute values by slot
