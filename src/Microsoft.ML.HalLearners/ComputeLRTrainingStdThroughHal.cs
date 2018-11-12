@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using Mkl = OlsLinearRegressionTrainer.Mkl;
 
-    public sealed class ComputeLRTrainingStdThroughHal : IComputeLRTrainingStd
+    public sealed class ComputeLRTrainingStdThroughHal : ComputeLRTrainingStd
     {
         /// <summary>
         /// Computes the standart deviation matrix of each of the non-zero training weights, needed to calculate further the standart deviation,

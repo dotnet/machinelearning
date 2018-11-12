@@ -45,20 +45,20 @@ namespace Microsoft.ML.Runtime.Learners
             /// If set to <value>true</value>training statistics will be generated at the end of training.
             /// If you have a large number of learned training parameters(more than 500),
             /// generating the training statistics might take a few seconds.
-            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="IComputeLRTrainingStd"/>
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
             /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
 
             /// <summary>
-            /// The instance of <see cref="IComputeLRTrainingStd"/> that computes the training statistics at the end of training.
+            /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the training statistics at the end of training.
             /// If you have a large number of learned training parameters(more than 500),
             /// generating the training statistics might take a few seconds.
-            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="IComputeLRTrainingStd"/>
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
             /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
             /// </summary>
-            public IComputeLRTrainingStd StdComputer;
+            public ComputeLRTrainingStd StdComputer;
         }
 
         private double _posWeight;
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Learners
             ShowTrainingStats = Args.ShowTrainingStats;
 
             if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStd();
+                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Learners
             ShowTrainingStats = Args.ShowTrainingStats;
 
             if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStd();
+                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -430,11 +430,11 @@ namespace Microsoft.ML.Runtime.Learners
     /// <summary>
     /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
     /// p-value and z-Score.
-    /// If you need fast calculations, use the <see cref="IComputeLRTrainingStd"/> implementation in the Microsoft.ML.HALLearners package,
+    /// If you need fast calculations, use the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HALLearners package,
     /// which makes use of hardware acceleration.
     /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
     /// </summary>
-    public abstract class IComputeLRTrainingStd
+    public abstract class ComputeLRTrainingStd
     {
         /// <summary>
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
@@ -458,7 +458,12 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class ComputeLRTrainingStd: IComputeLRTrainingStd
+    /// <summary>
+    /// Extends the <see cref="ComputeLRTrainingStd"/> implementing <see cref="ComputeLRTrainingStd.ComputeStd(double[], int[], int, int, IChannel, float)"/> making use of Math.Net numeric
+    /// If you need faster calculations(have non-sparse weight vectors of more than 300 features), use the instance of ComputeLRTrainingStd from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration
+    /// for those computations.
+    /// </summary>
+    public sealed class ComputeLRTrainingStdImpl : ComputeLRTrainingStd
     {
         /// <summary>
         /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
