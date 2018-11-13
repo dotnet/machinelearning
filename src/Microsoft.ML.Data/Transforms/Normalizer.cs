@@ -256,9 +256,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             public readonly string Input;
             public readonly string Output;
             public readonly ColumnType InputType;
-            public readonly ColumnFunctionBase ColumnFunction;
+            public readonly IColumnFunction ColumnFunction;
 
-            public ColumnInfo(string input, string output, ColumnType inputType, ColumnFunctionBase columnFunction)
+            public ColumnInfo(string input, string output, ColumnType inputType, IColumnFunction columnFunction)
             {
                 Input = input;
                 Output = output;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        private sealed class ColumnFunctionAccessor : IReadOnlyList<ColumnFunctionBase>
+        private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
         {
             private readonly ColumnInfo[] _infos;
 
@@ -312,14 +312,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 _infos = infos;
             }
 
-            public ColumnFunctionBase this[int index] => _infos[index].ColumnFunction;
+            public IColumnFunction this[int index] => _infos[index].ColumnFunction;
             public int Count => _infos.Length;
-            public IEnumerator<ColumnFunctionBase> GetEnumerator() => _infos.Select(info => info.ColumnFunction).GetEnumerator();
+            public IEnumerator<IColumnFunction> GetEnumerator() => _infos.Select(info => info.ColumnFunction).GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         /// <summary>An accessor of the column functions within <see cref="_columns"/>.</summary>
-        internal readonly IReadOnlyList<ColumnFunctionBase> ColumnFunctions;
+        internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
         public readonly IImmutableDictionary<string, INormalizerModelParameters> ModelParameters;
 
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
-                ctx.LoadModel<ColumnFunctionBase, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
+                ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
                 _columns[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
             }
         }

@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
             return NormalizeByMVCdfCore(input, fixZero, useLog, true, maxTrainingExamples, CdfMapper(onFit));
         }
 
-        private static NormVector<T> NormalizeByMVCdfCore<T>(Vector<T> input, bool fixZero, bool useLog, bool useCdf, long maxTrainingExamples, Action<ColumnFunctionBase> onFit)
+        private static NormVector<T> NormalizeByMVCdfCore<T>(Vector<T> input, bool fixZero, bool useLog, bool useCdf, long maxTrainingExamples, Action<IColumnFunction> onFit)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
@@ -282,7 +282,7 @@ namespace Microsoft.ML.Runtime.Data
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
                 var cols = new NormalizingEstimator.ColumnBase[toOutput.Length];
-                List<(int idx, Action<ColumnFunctionBase> onFit)> onFits = null;
+                List<(int idx, Action<IColumnFunction> onFit)> onFits = null;
 
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
@@ -297,13 +297,13 @@ namespace Microsoft.ML.Runtime.Data
                 return norm.WithOnFitDelegate(normTrans =>
                 {
                     Contracts.Assert(normTrans.ColumnFunctions.Count == toOutput.Length);
-                    foreach ((int idx, Action<ColumnFunctionBase> onFit) in onFits)
+                    foreach ((int idx, Action<IColumnFunction> onFit) in onFits)
                         onFit(normTrans.ColumnFunctions[idx]);
                 });
             }
         }
 
-        private static Action<ColumnFunctionBase> AffineMapper<TData>(OnFitAffine<TData> onFit)
+        private static Action<IColumnFunction> AffineMapper<TData>(OnFitAffine<TData> onFit)
         {
             Contracts.AssertValueOrNull(onFit);
             if (onFit == null)
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        private static Action<ColumnFunctionBase> CdfMapper<TData>(OnFitCumulativeDistribution<TData> onFit)
+        private static Action<IColumnFunction> CdfMapper<TData>(OnFitCumulativeDistribution<TData> onFit)
         {
             Contracts.AssertValueOrNull(onFit);
             if (onFit == null)
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        private static Action<ColumnFunctionBase> BinMapper<TData>(OnFitBinned<TData> onFit)
+        private static Action<IColumnFunction> BinMapper<TData>(OnFitBinned<TData> onFit)
         {
             Contracts.AssertValueOrNull(onFit);
             if (onFit == null)
@@ -343,16 +343,16 @@ namespace Microsoft.ML.Runtime.Data
         {
             CreateNormCol CreateNormCol { get; }
             PipelineColumn Input { get; }
-            Action<ColumnFunctionBase> OnFit { get; }
+            Action<IColumnFunction> OnFit { get; }
         }
 
         private sealed class Impl<T> : NormVector<T>, INormColCreator
         {
             public PipelineColumn Input { get; }
             public CreateNormCol CreateNormCol { get; }
-            public Action<ColumnFunctionBase> OnFit { get; }
+            public Action<IColumnFunction> OnFit { get; }
 
-            public Impl(Vector<T> input, CreateNormCol del, Action<ColumnFunctionBase> onFitDel)
+            public Impl(Vector<T> input, CreateNormCol del, Action<IColumnFunction> onFitDel)
                 : base(Rec.Inst, input)
             {
                 Contracts.AssertValue(input);

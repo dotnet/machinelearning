@@ -371,7 +371,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
-        internal abstract partial class AffineColumnFunction : ColumnFunctionBase
+        internal abstract partial class AffineColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
@@ -382,7 +382,17 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            internal override bool CanSaveOnnx(OnnxContext ctx) => true;
+            public abstract void Save(ModelSaveContext ctx);
+
+            public abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
+            public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+
+            public abstract Delegate GetGetter(IRow input, int icol);
+
+            public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+
+            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
 
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -404,9 +414,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc.ToString());
             }
 
-            internal override abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
-
-            public abstract class ImplOne<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<TFloat>
+            private abstract class ImplOne<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<TFloat>
             {
                 protected readonly TFloat Scale;
                 protected readonly TFloat Offset;
@@ -420,7 +428,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     Offset = offset;
                 }
 
-                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -429,10 +437,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("AffineOffset", typeSrc, Offset);
                 }
 
-                internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
             }
 
-            public abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
+            private abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
             {
                 protected readonly TFloat[] Scale;
                 protected readonly TFloat[] Offset;
@@ -455,7 +463,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     IndicesNonZeroOffset = indicesNonZeroOffset;
                 }
 
-                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -479,11 +487,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
             }
         }
 
-        internal abstract partial class CdfColumnFunction : ColumnFunctionBase
+        internal abstract partial class CdfColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
@@ -494,12 +502,18 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
+            public abstract void Save(ModelSaveContext ctx);
 
-            internal override bool CanSaveOnnx(OnnxContext ctx) => false;
+            public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            internal override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            public bool CanSaveOnnx(OnnxContext ctx) => false;
+
+            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
+
+            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
 
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -521,8 +535,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc);
             }
 
-            internal override abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
-
             private abstract class ImplOne<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<TFloat>
             {
                 protected readonly TFloat Mean;
@@ -541,7 +553,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 TFloat NormalizerTransformer.ICdfData<TFloat>.Stddev => Stddev;
                 bool NormalizerTransformer.ICdfData<TFloat>.UseLog => UseLog;
 
-                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -551,7 +563,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
                 }
 
-                internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
             }
 
             private abstract class ImplVec<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>
@@ -575,7 +587,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     UseLog = useLog;
                 }
 
-                internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+                public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
                     Host.CheckValue(bldr, nameof(bldr));
                     Host.CheckValue(typeSrc, nameof(typeSrc));
@@ -598,7 +610,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
             }
 
             public const string LoaderSignature = "CdfNormalizeFunction";
@@ -615,7 +627,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        internal abstract partial class BinColumnFunction : ColumnFunctionBase
+        internal abstract partial class BinColumnFunction : IColumnFunction
         {
             protected readonly IHost Host;
 
@@ -625,19 +637,23 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Host = host;
             }
 
-            internal override JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
+            public abstract void Save(ModelSaveContext ctx);
 
-            internal override bool CanSaveOnnx(OnnxContext ctx) => false;
+            public JToken PfaInfo(BoundPfaContext ctx, JToken srcToken) => null;
 
-            internal override bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
+            public bool CanSaveOnnx(OnnxContext ctx) => false;
+
+            public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            internal override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
+            public abstract Delegate GetGetter(IRow input, int icol);
+
+            public void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
             {
                 // REVIEW: How to attach information on the bins, to metadata?
             }
 
-            internal abstract override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
+            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
 
             public static BinColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -705,7 +721,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return true;
             }
 
-            public abstract ColumnFunctionBase CreateColumnFunction();
+            public abstract IColumnFunction CreateColumnFunction();
         }
 
         private abstract class VecColumnFunctionBuilderBase<TFloat> : IColumnFunctionBuilder
@@ -740,7 +756,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return true;
             }
 
-            public abstract ColumnFunctionBase CreateColumnFunction();
+            public abstract IColumnFunction CreateColumnFunction();
         }
 
         private abstract class SupervisedBinFunctionBuilderBase : IColumnFunctionBuilder
@@ -826,7 +842,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return true;
             }
 
-            public abstract ColumnFunctionBase CreateColumnFunction();
+            public abstract IColumnFunction CreateColumnFunction();
 
             protected abstract bool AcceptColumnValue();
         }

@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Finishes training and returns a column function.
         /// </summary>
-        ColumnFunctionBase CreateColumnFunction();
+        IColumnFunction CreateColumnFunction();
     }
 
     /// <summary>
@@ -52,21 +52,19 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
-    internal abstract class ColumnFunctionBase : ICanSaveModel
+    internal interface IColumnFunction : ICanSaveModel
     {
-        public abstract Delegate GetGetter(IRow input, int icol);
+        Delegate GetGetter(IRow input, int icol);
 
-        public abstract void Save(ModelSaveContext ctx);
+        void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
-        internal abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
+        JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        internal abstract JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
+        bool CanSaveOnnx(OnnxContext ctx);
 
-        internal abstract bool CanSaveOnnx(OnnxContext ctx);
+        bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
-        internal abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
-
-        internal abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
+        NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
     }
 
     public static class NormalizeUtils
