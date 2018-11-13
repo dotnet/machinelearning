@@ -5,14 +5,14 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -304,6 +304,12 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new LdaEstimator(env, "F1V");
             TestEstimatorCore(est, srcView);
+        }
+
+        [Fact]
+        public void TestLdaCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=lda{col=B:A} in=f:\2.txt" }), (int)0);
         }
     }
 }
