@@ -19,8 +19,8 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the new column, resulting from copying.</param>
-        public static CopyColumnsEstimator CopyColumns(this TransformsCatalog catalog, string inputColumn, string outputColumn)
-            => new CopyColumnsEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn);
+        public static ColumnsCopyingEstimator CopyColumns(this TransformsCatalog catalog, string inputColumn, string outputColumn)
+            => new ColumnsCopyingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn);
 
         /// <summary>
         /// Copies the input column, name specified in the first item of the tuple,
@@ -28,8 +28,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog</param>
         /// <param name="columns">The pairs of input and output columns.</param>
-        public static CopyColumnsEstimator CopyColumns(this TransformsCatalog catalog, params (string source, string name)[] columns)
-            => new CopyColumnsEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static ColumnsCopyingEstimator CopyColumns(this TransformsCatalog catalog, params (string source, string name)[] columns)
+            => new ColumnsCopyingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
     }
 

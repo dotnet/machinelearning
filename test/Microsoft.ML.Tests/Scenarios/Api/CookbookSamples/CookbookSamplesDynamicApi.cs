@@ -317,12 +317,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
                 .Append(new NgramEstimator(mlContext, "MessageChars", "BagOfTrichar",
-                            ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf))
+                            ngramLength: 3, weighting: NgramTokenizingTransformer.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
                 .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
                 .Append(mlContext.Transforms.Text.ExtractWordEmbeddings("TokenizedMessage", "Embeddings",
-                            WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D));
+                            WordEmbeddingsExtractorTransformer.PretrainedModelKind.GloVeTwitter25D));
 
             // Let's train our pipeline, and then apply it to the same data.
             // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.

@@ -116,17 +116,17 @@ namespace Microsoft.ML.Scenarios
                 },
                 loader);
 
-                var trans = WordEmbeddingsTransform.Create(env, new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsExtractorTransformer.Create(env, new WordEmbeddingsExtractorTransformer.Arguments()
                 {
-                    Column = new WordEmbeddingsTransform.Column[1]
+                    Column = new WordEmbeddingsExtractorTransformer.Column[1]
                     {
-                        new WordEmbeddingsTransform.Column
+                        new WordEmbeddingsExtractorTransformer.Column
                         {
                             Name = "Features",
                             Source = "WordEmbeddings_TransformedText"
                         }
                     },
-                    ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                    ModelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
                 var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDatapointsInLeaves:2);

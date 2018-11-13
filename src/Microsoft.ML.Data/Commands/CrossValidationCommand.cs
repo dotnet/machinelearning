@@ -164,10 +164,10 @@ namespace Microsoft.ML.Runtime.Data
                                 "", ComponentFactoryUtils.CreateFromFunction<IDataView, IDataTransform>(
                                     (env, input) =>
                                     {
-                                        var args = new GenerateNumberTransform.Arguments();
-                                        args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
+                                        var args = new GenerateNumberTransformer.Arguments();
+                                        args.Column = new[] { new GenerateNumberTransformer.Column() { Name = DefaultColumnNames.Name }, };
                                         args.UseCounter = true;
-                                        return new GenerateNumberTransform(env, args, input);
+                                        return new GenerateNumberTransformer(env, args, input);
                                     }))
                         }).ToArray();
                 }
@@ -309,11 +309,11 @@ namespace Microsoft.ML.Runtime.Data
                 int inc = 0;
                 while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                     stratificationColumn = string.Format("StratificationColumn_{0:000}", ++inc);
-                var keyGenArgs = new GenerateNumberTransform.Arguments();
-                var col = new GenerateNumberTransform.Column();
+                var keyGenArgs = new GenerateNumberTransformer.Arguments();
+                var col = new GenerateNumberTransformer.Column();
                 col.Name = stratificationColumn;
                 keyGenArgs.Column = new[] { col };
-                output = new GenerateNumberTransform(Host, keyGenArgs, input);
+                output = new GenerateNumberTransformer(Host, keyGenArgs, input);
             }
             else
             {

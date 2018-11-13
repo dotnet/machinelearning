@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Linq;
-using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
+using static Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer;
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -55,9 +55,9 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             // Create arguments.
-            var args = new StopWordsRemoverTransform.Arguments
+            var args = new StopWordsRemovingTransformer.Arguments
             {
-                Column = columns.Select(x => new StopWordsRemoverTransform.Column { Source = x.input, Name = x.output }).ToArray(),
+                Column = columns.Select(x => new StopWordsRemovingTransformer.Column { Source = x.input, Name = x.output }).ToArray(),
                 Language = language
             };
 
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms.Text
             var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
             var emptyData = new EmptyDataView(env, schema);
 
-            return new TransformWrapper(env, new StopWordsRemoverTransform(env, args, emptyData));
+            return new TransformWrapper(env, new StopWordsRemovingTransformer(env, args, emptyData));
         }
     }
 
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _skipLength;
         private readonly bool _allLengths;
         private readonly int _maxNumTerms;
-        private readonly NgramTransform.WeightingCriteria _weighting;
+        private readonly NgramTokenizingTransformer.WeightingCriteria _weighting;
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramTokenizingTransformer.WeightingCriteria weighting = NgramTokenizingTransformer.WeightingCriteria.Tf)
             : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramTokenizingTransformer.WeightingCriteria weighting = NgramTokenizingTransformer.WeightingCriteria.Tf)
             : this(env, new[] { (inputColumns, outputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramTokenizingTransformer.WeightingCriteria weighting = NgramTokenizingTransformer.WeightingCriteria.Tf)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
             foreach (var (input, output) in columns)
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _skipLength;
         private readonly bool _allLengths;
         private readonly int _maxNumTerms;
-        private readonly NgramTransform.WeightingCriteria _weighting;
+        private readonly NgramTokenizingTransformer.WeightingCriteria _weighting;
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramTokenizingTransformer.WeightingCriteria weighting = NgramTokenizingTransformer.WeightingCriteria.Tf)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramTokenizingTransformer.WeightingCriteria weighting = NgramTokenizingTransformer.WeightingCriteria.Tf)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
             foreach (var (input, output) in columns)
@@ -385,9 +385,9 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new NgramTransform.Arguments
+            var args = new NgramTokenizingTransformer.Arguments
             {
-                Column = _columns.Select(x => new NgramTransform.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new NgramTokenizingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
                 AllLengths = _allLengths,
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, new NgramTransform(Host, args, input));
+            return new TransformWrapper(Host, new NgramTokenizingTransformer(Host, args, input));
         }
     }
 
@@ -525,9 +525,9 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new NgramHashTransform.Arguments
+            var args = new NgramHashingTransformer.Arguments
             {
-                Column = _columns.Select(x => new NgramHashTransform.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new NgramHashingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, new NgramHashTransform(Host, args, input));
+            return new TransformWrapper(Host, new NgramHashingTransformer(Host, args, input));
         }
     }
 

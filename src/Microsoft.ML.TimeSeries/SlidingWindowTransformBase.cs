@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Host.Assert(args.WindowSize == 1);
                 throw Host.ExceptUserArg(nameof(args.Lag),
-                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {CopyColumnsTransform.LoaderSignature} transform instead.");
+                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnsCopyingTransformer.LoaderSignature} transform instead.");
             }
             Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), "Undefined value.");
             _lag = args.Lag;

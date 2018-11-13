@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms.Conversions;
 namespace Microsoft.ML
 {
     using HashDefaults = HashingEstimator.Defaults;
-    using ConvertDefaults = ConvertingEstimator.Defaults;
+    using ConvertDefaults = TypeConvertingEstimator.Defaults;
 
     /// <summary>
     /// Extensions for the HashEstimator.
@@ -33,7 +33,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashTransformer.ColumnInfo[] columns)
+        public static HashingEstimator Hash(this TransformsCatalog.ConversionTransforms catalog, params HashingTransformer.ColumnInfo[] columns)
             => new HashingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -43,17 +43,17 @@ namespace Microsoft.ML
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="outputKind">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        public static ConvertingEstimator ConvertTo(this TransformsCatalog.ConversionTransforms catalog, string inputColumn, string outputColumn = null,
+        public static TypeConvertingEstimator ConvertTo(this TransformsCatalog.ConversionTransforms catalog, string inputColumn, string outputColumn = null,
             DataKind outputKind = ConvertDefaults.DefaultOutputKind)
-            => new ConvertingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
+            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
 
         /// <summary>
         /// Changes column type of the input column.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public static ConvertingEstimator ConvertTo(this TransformsCatalog.ConversionTransforms catalog, params ConvertingTransform.ColumnInfo[] columns)
-            => new ConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static TypeConvertingEstimator ConvertTo(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingTransformer.ColumnInfo[] columns)
+            => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 
     public static class ToValueCatalog

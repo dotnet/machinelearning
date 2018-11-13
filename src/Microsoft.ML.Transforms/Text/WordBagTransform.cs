@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
-            public NgramTransform.WeightingCriteria? Weighting;
+            public NgramTokenizingTransformer.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
+            var tokenizeColumns = new WordTokenizingTransformer.ColumnInfo[args.Column.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
+                tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramTransform.WeightingCriteria? Weighting;
+            public NgramTokenizingTransformer.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <summary>
         /// This class is a merger of <see cref="TermTransform.Arguments"/> and
-        /// <see cref="NgramTransform.Arguments"/>, with the allLength option removed.
+        /// <see cref="NgramTokenizingTransformer.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
         {
@@ -238,10 +238,10 @@ namespace Microsoft.ML.Transforms.Text
             public bool AllLengths = true;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramTransform.Arguments.DefaultMaxTerms };
+            public int[] MaxNumTerms = new int[] { NgramTokenizingTransformer.Arguments.DefaultMaxTerms };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramTransform.WeightingCriteria Weighting = NgramTransform.WeightingCriteria.Tf;
+            public NgramTokenizingTransformer.WeightingCriteria Weighting = NgramTokenizingTransformer.WeightingCriteria.Tf;
         }
 
         [TlcModule.Component(Name = "NGram", FriendlyName = "NGram Extractor Transform", Alias = "NGramExtractorTransform,NGramExtractor",
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new TermTransform.Arguments()
                         {
-                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramTransform.Arguments.DefaultMaxTerms,
+                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramTokenizingTransformer.Arguments.DefaultMaxTerms,
                             Column = new TermTransform.Column[termCols.Count]
                         };
                 }
@@ -351,21 +351,21 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             var ngramArgs =
-                new NgramTransform.Arguments()
+                new NgramTokenizingTransformer.Arguments()
                 {
                     MaxNumTerms = args.MaxNumTerms,
                     NgramLength = args.NgramLength,
                     SkipLength = args.SkipLength,
                     AllLengths = args.AllLengths,
                     Weighting = args.Weighting,
-                    Column = new NgramTransform.Column[args.Column.Length]
+                    Column = new NgramTokenizingTransformer.Column[args.Column.Length]
                 };
 
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
                 ngramArgs.Column[iinfo] =
-                    new NgramTransform.Column()
+                    new NgramTokenizingTransformer.Column()
                     {
                         Name = column.Name,
                         Source = isTermCol[iinfo] ? column.Name : column.Source,
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            return new NgramTransform(h, ngramArgs, view);
+            return new NgramTokenizingTransformer(h, ngramArgs, view);
         }
 
         public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashTransformer"/> or <see cref="NgramHashTransform"/>, for example).
+        /// (by using <see cref="HashingTransformer"/> or <see cref="NgramHashingTransformer"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             IDataView view = input;
-            var concatCols = new List<ConcatTransform.Column>();
+            var concatCols = new List<ColumnConcatenatingTransformer.Column>();
             foreach (var col in columns)
             {
                 env.CheckUserArg(col != null, nameof(WordBagTransform.Arguments.Column));
@@ -539,7 +539,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (col.Source.Length > 1)
                 {
                     concatCols.Add(
-                        new ConcatTransform.Column
+                        new ColumnConcatenatingTransformer.Column
                         {
                             Source = col.Source,
                             Name = col.Name
@@ -548,8 +548,8 @@ namespace Microsoft.ML.Transforms.Text
             }
             if (concatCols.Count > 0)
             {
-                var concatArgs = new ConcatTransform.Arguments { Column = concatCols.ToArray() };
-                return ConcatTransform.Create(env, concatArgs, view);
+                var concatArgs = new ColumnConcatenatingTransformer.Arguments { Column = concatCols.ToArray() };
+                return ColumnConcatenatingTransformer.Create(env, concatArgs, view);
             }
 
             return view;

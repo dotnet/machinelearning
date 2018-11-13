@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
+        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
         /// with join option removed
         /// </summary>
         public sealed class Arguments : TransformInputBase
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public sealed class ColumnInfo
         {
-            public readonly HashTransformer.ColumnInfo HashInfo;
+            public readonly HashingTransformer.ColumnInfo HashInfo;
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
 
             /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }

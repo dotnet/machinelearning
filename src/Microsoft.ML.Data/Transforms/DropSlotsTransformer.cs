@@ -14,11 +14,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(DropSlotsTransformer.Summary, typeof(DropSlotsTransformer), typeof(DropSlotsTransformer.Arguments), typeof(SignatureDataTransform),
     "Drop Slots Transform", "DropSlots", "DropSlotsTransform")]
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
-    "Drop Slots Transform", DropSlotsTransform.LoaderSignature)]
+[assembly: LoadableClass(DropSlotsTransformer.Summary, typeof(DropSlotsTransformer), null, typeof(SignatureLoadDataTransform),
+    "Drop Slots Transform", DropSlotsTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Transforms
     /// If all the slots are to be dropped, a vector valued column will be changed to a vector of length 1 (a scalar column will retain its type) and
     /// the value will be the default value.
     /// </summary>
-    public sealed class DropSlotsTransform : OneToOneTransformBase
+    public sealed class DropSlotsTransformer : OneToOneTransformBase
     {
         public sealed class Arguments
         {
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DropSlotsTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(DropSlotsTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "DropSlots";
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public DropSlotsTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public DropSlotsTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(Contracts.CheckRef(env, nameof(env)), RegistrationName, env.CheckRef(args, nameof(args)).Column, input, null)
         {
             Host.CheckNonEmpty(args.Column, nameof(args.Column));
@@ -244,17 +244,17 @@ namespace Microsoft.ML.Transforms
             Metadata.Seal();
         }
 
-        public static DropSlotsTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static DropSlotsTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new DropSlotsTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new DropSlotsTransformer(h, ctx, input));
         }
 
-        private DropSlotsTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private DropSlotsTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, null)
         {
             Host.AssertValue(ctx);

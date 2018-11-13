@@ -104,28 +104,28 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);
 
-                var dsArgs = new DropSlotsTransform.Arguments();
+                var dsArgs = new DropSlotsTransformer.Arguments();
                 dsArgs.Column = new[] { column };
-                return new DropSlotsTransform(host, dsArgs, input);
+                return new DropSlotsTransformer(host, dsArgs, input);
             }
         }
 
-        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
+        private static DropSlotsTransformer.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
             // 2. If it's less, we assume that the rest of the scores are zero and we drop the slots.
             // 3. If it's greater, the drop slots ignores the ranges that are outside the valid range of indices for the column.
             Contracts.Assert(args.Threshold.HasValue != args.NumSlotsToKeep.HasValue);
-            var col = new DropSlotsTransform.Column();
+            var col = new DropSlotsTransformer.Column();
             col.Source = args.FeatureColumn;
             selectedCount = 0;
 
             // Degenerate case, dropping all slots.
             if (scores.Count == 0)
             {
-                var range = new DropSlotsTransform.Range();
-                col.Slots = new DropSlotsTransform.Range[] { range };
+                var range = new DropSlotsTransformer.Range();
+                col.Slots = new DropSlotsTransformer.Range[] { range };
                 return col;
             }
 
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms
                 threshold = ComputeThreshold(scores.Values, scores.Count, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
             }
 
-            var slots = new List<DropSlotsTransform.Range>();
+            var slots = new List<DropSlotsTransformer.Range>();
             for (int i = 0; i < scores.Count; i++)
             {
                 var score = Math.Abs(scores.Values[i]);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms
                     continue;
                 }
 
-                var range = new DropSlotsTransform.Range();
+                var range = new DropSlotsTransformer.Range();
                 range.Min = i;
                 while (++i < scores.Count)
                 {
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms
                         var gapMax = scores.Indices[ii] - 1;
                         if (gapMin <= gapMax)
                         {
-                            var gap = new DropSlotsTransform.Range();
+                            var gap = new DropSlotsTransformer.Range();
                             gap.Min = gapMin;
                             gap.Max = gapMax;
                             slots.Add(gap);
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Transforms
                     var gapMax = ii == scores.Count ? scores.Length - 1 : scores.Indices[ii] - 1;
                     if (gapMin <= gapMax)
                     {
-                        var gap = new DropSlotsTransform.Range();
+                        var gap = new DropSlotsTransformer.Range();
                         gap.Min = gapMin;
                         gap.Max = gapMax;
                         slots.Add(gap);
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Remove all slots past scores.Length.
-                var lastRange = new DropSlotsTransform.Range();
+                var lastRange = new DropSlotsTransformer.Range();
                 lastRange.Min = scores.Length;
                 slots.Add(lastRange);
             }

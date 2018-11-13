@@ -31,7 +31,7 @@ using System.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
-    using StopWordsCol = StopWordsRemoverTransform.Column;
+    using StopWordsCol = StopWordsRemovingTransformer.Column;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
@@ -171,8 +171,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool OutputTextTokens;
             public readonly TermLoaderArguments Dictionary;
 
-            public StopWordsRemoverTransform.Language StopwordsLanguage
-                =>(StopWordsRemoverTransform.Language) Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
+            public StopWordsRemovingTransformer.Language StopwordsLanguage
+                =>(StopWordsRemovingTransformer.Language) Enum.Parse(typeof(StopWordsRemovingTransformer.Language), Language.ToString());
 
             public LpNormNormalizerTransform.NormalizerKind LpNormalizerKind
             {
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcCols = textCols;
                 textCols = new[] { GenerateColumnName(input.Schema, OutputColumn, "InitialConcat") };
                 tempCols.Add(textCols[0]);
-                view = new ConcatTransform(h, textCols[0], srcCols).Transform(view);
+                view = new ColumnConcatenatingTransformer(h, textCols[0], srcCols).Transform(view);
             }
 
             if (tparams.NeedsNormalizeTransform)
@@ -332,11 +332,11 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new WordTokenizeTransform.ColumnInfo[textCols.Length];
+                var xfCols = new WordTokenizingTransformer.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new WordTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
+                    var col = new WordTokenizingTransformer.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
                     wordTokCols[i] = col.Output;
                     tempCols.Add(col.Output);
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.OutputTextTokens)
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ConcatTransform(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
+                view = new ColumnConcatenatingTransformer(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
             }
 
             if (tparams.CharExtractorFactory != null)
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Transforms.Text
                         tempCols.Add(xfCols[i].output);
                         charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharTokenizeTransform(h, columns: xfCols).Transform(view);
+                    view = new CharacterTokenizingTransformer(h, columns: xfCols).Transform(view);
                 }
 
                 {
@@ -469,7 +469,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 if (srcTaggedCols.Count > 0)
                 {
-                    view = new ConcatTransform(h, new ConcatTransform.ColumnInfo(OutputColumn,
+                    view = new ColumnConcatenatingTransformer(h, new ColumnConcatenatingTransformer.ColumnInfo(OutputColumn,
                         srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key))))
                         .Transform(view);
                 }

@@ -61,8 +61,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = loader.Read(dataPath);
 
-            var badData1 = new CopyColumnsTransform(Env, ("int1", "float1")).Transform(data);
-            var badData2 = new CopyColumnsTransform(Env, ("float0", "float4")).Transform(data);
+            var badData1 = new ColumnsCopyingTransformer(Env, ("int1", "float1")).Transform(data);
+            var badData2 = new ColumnsCopyingTransformer(Env, ("float0", "float4")).Transform(data);
 
             TestEstimatorCore(est, data, null, badData1);
             TestEstimatorCore(est, data, null, badData2);

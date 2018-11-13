@@ -13,15 +13,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
 {
     public static class SchemaManipulation
     {
-        [TlcModule.EntryPoint(Name = "Transforms.ColumnConcatenator", Desc = ConcatTransform.Summary, UserName = ConcatTransform.UserName, ShortName = ConcatTransform.LoadName)]
-        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ConcatTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ColumnConcatenator", Desc = ColumnConcatenatingTransformer.Summary, UserName = ColumnConcatenatingTransformer.UserName, ShortName = ColumnConcatenatingTransformer.LoadName)]
+        public static CommonOutputs.TransformOutput ConcatColumns(IHostEnvironment env, ColumnConcatenatingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("ConcatColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = ConcatTransform.Create(env, input, input.Data);
+            var xf = ColumnConcatenatingTransformer.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -37,14 +37,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = CopyColumnsTransform.UserName, ShortName = CopyColumnsTransform.ShortName)]
-        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, CopyColumnsTransform.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ColumnCopier", Desc = "Duplicates columns from the dataset", UserName = ColumnsCopyingTransformer.UserName, ShortName = ColumnsCopyingTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput CopyColumns(IHostEnvironment env, ColumnsCopyingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CopyColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            var xf = CopyColumnsTransform.Create(env, input, input.Data);
+            var xf = ColumnsCopyingTransformer.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

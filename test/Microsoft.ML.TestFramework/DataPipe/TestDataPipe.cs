@@ -638,7 +638,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Check(tmp, "Parsing argsText failed!");
                     IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
 
-                    var argsConv = new ConvertingTransform.Arguments();
+                    var argsConv = new TypeConvertingTransformer.Arguments();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
@@ -651,14 +651,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         " key={min=3}",
                         argsConv);
                     Check(tmp, "Parsing argsConv failed!");
-                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    argsConv = new ConvertingTransform.Arguments();
+                    argsConv = new TypeConvertingTransformer.Arguments();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label2:U2:Label col=Features2:Num:Features",
                         argsConv);
                     Check(tmp, "Parsing argsConv(2) failed!");
-                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
                     var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
 
@@ -738,14 +738,14 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -776,14 +776,14 @@ namespace Microsoft.ML.Runtime.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1V";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

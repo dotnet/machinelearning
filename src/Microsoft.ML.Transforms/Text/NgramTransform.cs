@@ -15,17 +15,17 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(NgramTransform.Summary, typeof(NgramTransform), typeof(NgramTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(NgramTokenizingTransformer.Summary, typeof(NgramTokenizingTransformer), typeof(NgramTokenizingTransformer.Arguments), typeof(SignatureDataTransform),
     "Ngram Transform", "NgramTransform", "Ngram")]
 
-[assembly: LoadableClass(NgramTransform.Summary, typeof(NgramTransform), null, typeof(SignatureLoadDataTransform),
-    "Ngram Transform", NgramTransform.LoaderSignature)]
+[assembly: LoadableClass(NgramTokenizingTransformer.Summary, typeof(NgramTokenizingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Ngram Transform", NgramTokenizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed class NgramTransform : OneToOneTransformBase
+    public sealed class NgramTokenizingTransformer : OneToOneTransformBase
     {
         /// <summary>
         /// Weighting criteria: a statistical measure used to evaluate how important a word is to a document in a corpus.
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NgramTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(NgramTokenizingTransformer).Assembly.FullName);
         }
 
         private readonly VectorType[] _types;
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public NgramTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public NgramTokenizingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestType)
         {
             Host.AssertNonEmpty(Infos);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.Text
             InitColumnTypeAndMetadata(out _types, out _slotNamesTypes);
         }
 
-        private NgramTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private NgramTokenizingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, TestType)
         {
             Host.AssertValue(ctx);
@@ -270,7 +270,7 @@ namespace Microsoft.ML.Transforms.Text
             InitColumnTypeAndMetadata(out _types, out _slotNamesTypes);
         }
 
-        public static NgramTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static NgramTokenizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Transforms.Text
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
                     ch.CheckDecode(cbFloat == sizeof(Float));
-                    return new NgramTransform(h, ctx, input);
+                    return new NgramTokenizingTransformer(h, ctx, input);
                 });
         }
 

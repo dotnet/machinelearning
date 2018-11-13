@@ -225,10 +225,10 @@ namespace Microsoft.ML.Runtime.Data
             // Maml always outputs a name column, if it doesn't exist add a GenerateNumberTransform.
             if (perInst.Schema.Name == null)
             {
-                var args = new GenerateNumberTransform.Arguments();
-                args.Column = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
+                var args = new GenerateNumberTransformer.Arguments();
+                args.Column = new[] { new GenerateNumberTransformer.Column() { Name = "Instance" } };
                 args.UseCounter = true;
-                idv = new GenerateNumberTransform(Host, args, idv);
+                idv = new GenerateNumberTransformer(Host, args, idv);
                 colsToKeep.Add("Instance");
             }
             else
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var col in GetPerInstanceColumnsToSave(perInst.Schema))
                 colsToKeep.Add(col);
 
-            idv = new CopyColumnsTransform(Host, cols.ToArray()).Transform(idv);
+            idv = new ColumnsCopyingTransformer(Host, cols.ToArray()).Transform(idv);
             idv = SelectColumnsTransform.CreateKeep(Host, idv, colsToKeep.ToArray());
             return GetPerInstanceMetricsCore(idv, perInst.Schema);
         }

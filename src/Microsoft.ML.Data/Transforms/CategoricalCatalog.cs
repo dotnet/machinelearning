@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms.Categorical;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extensions for the ValueToKeyMappingEstimator
+    /// Extensions for the ValueToKey transformation's catalog
     /// </summary>
    public static class ValueToKeyCatalog
     {

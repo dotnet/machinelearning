@@ -103,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
             var uniqueSourceNames = NgramExtractionUtils.GenerateUniqueSourceNames(h, args.Column, view.Schema);
             Contracts.Assert(uniqueSourceNames.Length == args.Column.Length);
 
-            var tokenizeColumns = new List<WordTokenizeTransform.ColumnInfo>();
+            var tokenizeColumns = new List<WordTokenizingTransformer.ColumnInfo>();
             var extractorCols = new NgramHashExtractorTransform.Column[args.Column.Length];
             var colCount = args.Column.Length;
             List<string> tmpColNames = new List<string>();
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                    tokenizeColumns.Add(new WordTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
+                    tokenizeColumns.Add(new WordTokenizingTransformer.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]));
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
@@ -245,8 +245,8 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and
-        /// <see cref="NgramHashTransform.Arguments"/>, with the ordered option,
+        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and
+        /// <see cref="NgramHashingTransformer.Arguments"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -319,8 +319,8 @@ namespace Microsoft.ML.Transforms.Text
             List<TermTransform.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<TermTransform.Column>();
-            var hashColumns = new List<HashTransformer.Column>();
-            var ngramHashColumns = new NgramHashTransform.Column[args.Column.Length];
+            var hashColumns = new List<HashingTransformer.Column>();
+            var ngramHashColumns = new NgramHashingTransformer.Column[args.Column.Length];
 
             var colCount = args.Column.Length;
             // The NGramHashExtractor has a ManyToOne column type. To avoid stepping over the source
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
 
                     hashColumns.Add(
-                        new HashTransformer.Column
+                        new HashingTransformer.Column
                         {
                             Name = tmpName,
                             Source = termLoaderArgs == null ? column.Source[isrc] : tmpName,
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 ngramHashColumns[iinfo] =
-                    new NgramHashTransform.Column
+                    new NgramHashingTransformer.Column
                     {
                         Name = column.Name,
                         Source = tmpColNames[iinfo],
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // Args for the Hash function with multiple columns
             var hashArgs =
-                new HashTransformer.Arguments
+                new HashingTransformer.Arguments
                 {
                     HashBits = 31,
                     Seed = args.Seed,
@@ -423,11 +423,11 @@ namespace Microsoft.ML.Transforms.Text
                     InvertHash = args.InvertHash
                 };
 
-            view = HashTransformer.Create(h, hashArgs, view);
+            view = HashingTransformer.Create(h, hashArgs, view);
 
             // creating the NgramHash function
             var ngramHashArgs =
-                new NgramHashTransform.Arguments
+                new NgramHashingTransformer.Arguments
                 {
                     AllLengths = args.AllLengths,
                     HashBits = args.HashBits,
@@ -440,7 +440,7 @@ namespace Microsoft.ML.Transforms.Text
                     InvertHash = args.InvertHash
                 };
 
-            view = new NgramHashTransform(h, ngramHashArgs, view);
+            view = new NgramHashingTransformer(h, ngramHashArgs, view);
             return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 

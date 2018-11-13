@@ -89,13 +89,13 @@ namespace Microsoft.ML.Transforms
                     ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], args.Column[i]);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
-                var dsArgs = new DropSlotsTransform.Arguments();
+                var dsArgs = new DropSlotsTransformer.Arguments();
                 dsArgs.Column = columns.ToArray();
-                return new DropSlotsTransform(host, dsArgs, input);
+                return new DropSlotsTransformer(host, dsArgs, input);
             }
         }
 
-        private static List<DropSlotsTransform.Column> CreateDropSlotsColumns(Arguments args, int size, long[][] scores, out int[] selectedCount)
+        private static List<DropSlotsTransformer.Column> CreateDropSlotsColumns(Arguments args, int size, long[][] scores, out int[] selectedCount)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
@@ -103,12 +103,12 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(Utils.Size(args.Column) == size);
 
             selectedCount = new int[scores.Length];
-            var columns = new List<DropSlotsTransform.Column>();
+            var columns = new List<DropSlotsTransformer.Column>();
             for (int i = 0; i < size; i++)
             {
-                var col = new DropSlotsTransform.Column();
+                var col = new DropSlotsTransformer.Column();
                 col.Source = args.Column[i];
-                var slots = new List<DropSlotsTransform.Range>();
+                var slots = new List<DropSlotsTransformer.Range>();
                 var score = scores[i];
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                     if (score[j] < args.Count)
                     {
                         // Adjacent slots are combined into a single range.
-                        var range = new DropSlotsTransform.Range();
+                        var range = new DropSlotsTransformer.Range();
                         range.Min = j;
                         while (j < score.Length && score[j] < args.Count)
                             j++;

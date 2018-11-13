@@ -461,12 +461,12 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = CopyColumnsTransform.Create(Env,
-                    new CopyColumnsTransform.Arguments()
+                individualScores[i] = ColumnsCopyingTransformer.Create(Env,
+                    new ColumnsCopyingTransformer.Arguments()
                     {
                         Column = new[]
                         {
-                            new CopyColumnsTransform.Column()
+                            new ColumnsCopyingTransformer.Column()
                             {
                                 Name = MetadataUtils.Const.ScoreValueKind.Score + i,
                                 Source = MetadataUtils.Const.ScoreValueKind.Score
@@ -758,9 +758,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
                 data = TermTransform.Create(Env, new TermTransform.Arguments()
@@ -1226,9 +1226,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
@@ -1376,7 +1376,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
                     }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Arguments
@@ -3772,10 +3772,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 Data = dataView,
                 Column = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
-            var concat = SchemaManipulation.ConcatColumns(Env, new ConcatTransform.Arguments()
+            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
             {
                 Data = cat.OutputData,
-                Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
+                Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
             var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
@@ -3848,11 +3848,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractorTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe
+                Column = new[] { new WordEmbeddingsExtractorTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursor((x => true)))

@@ -37,10 +37,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         public override IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand)
         {
             string name = Data.Data.Schema.GetTempColumnName();
-            var args = new GenerateNumberTransform.Arguments();
-            args.Column = new[] { new GenerateNumberTransform.Column() { Name = name } };
+            var args = new GenerateNumberTransformer.Arguments();
+            args.Column = new[] { new GenerateNumberTransformer.Column() { Name = name } };
             args.Seed = (uint)rand.Next();
-            IDataTransform view = new GenerateNumberTransform(Host, args, Data.Data);
+            IDataTransform view = new GenerateNumberTransformer(Host, args, Data.Data);
 
             // REVIEW: This won't be very efficient when Size is large.
             for (int i = 0; i < Size; i++)

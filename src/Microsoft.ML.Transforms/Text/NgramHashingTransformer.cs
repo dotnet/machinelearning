@@ -16,17 +16,17 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms.Text;
 
-[assembly: LoadableClass(typeof(NgramHashTransform), typeof(NgramHashTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(typeof(NgramHashingTransformer), typeof(NgramHashingTransformer.Arguments), typeof(SignatureDataTransform),
     "Ngram Hash Transform", "NgramHashTransform", "NgramHash")]
 
-[assembly: LoadableClass(typeof(NgramHashTransform), null, typeof(SignatureLoadDataTransform),
-    "Ngram Hash Transform", NgramHashTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(NgramHashingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Ngram Hash Transform", NgramHashingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public sealed class NgramHashTransform : RowToRowMapperTransformBase
+    public sealed class NgramHashingTransformer : RowToRowMapperTransformBase
     {
         public sealed class Column : ManyToOneColumn
         {
@@ -151,16 +151,16 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Bindings : ManyToOneColumnBindingsBase
         {
             public readonly VectorType[] Types;
-            private readonly NgramHashTransform _parent;
+            private readonly NgramHashingTransformer _parent;
 
-            public Bindings(Arguments args, ISchema schemaInput, NgramHashTransform parent)
+            public Bindings(Arguments args, ISchema schemaInput, NgramHashingTransformer parent)
                 : base(args.Column, schemaInput, TestTypes)
             {
                 Types = new VectorType[args.Column.Length];
                 _parent = parent;
             }
 
-            public Bindings(ModelLoadContext ctx, ISchema schemaInput, NgramHashTransform parent)
+            public Bindings(ModelLoadContext ctx, ISchema schemaInput, NgramHashingTransformer parent)
                 : base(ctx, schemaInput, TestTypes)
             {
                 Types = new VectorType[Infos.Length];
@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NgramHashTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(NgramHashingTransformer).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
@@ -333,7 +333,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public NgramHashTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public NgramHashingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private NgramHashTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private NgramHashingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             Host.AssertValue(ctx);
@@ -398,14 +398,14 @@ namespace Microsoft.ML.Transforms.Text
             TextModelHelper.LoadAll(Host, ctx, _exes.Length, out _slotNames, out _slotNamesTypes);
         }
 
-        public static NgramHashTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static NgramHashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NgramHashTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new NgramHashingTransformer(h, ctx, input));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -723,7 +723,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(NgramHashTransform parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
+            public RowCursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(parent);
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class InvertHashHelper
         {
-            private readonly NgramHashTransform _parent;
+            private readonly NgramHashingTransformer _parent;
             // One per output column (will be null if invert hashing is not specified for
             // this column).
             private readonly InvertHashCollector<NGram>[] _iinfoToCollector;
@@ -788,7 +788,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly string[][] _friendlyNames;
             private readonly int[] _invertHashMaxCounts;
 
-            public InvertHashHelper(NgramHashTransform parent, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashingTransformer parent, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);

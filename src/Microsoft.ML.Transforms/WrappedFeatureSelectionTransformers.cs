@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var copyColumn = new CopyColumnsEstimator(Host, _columns);
+            var copyColumn = new ColumnsCopyingEstimator(Host, _columns);
             var dataview = copyColumn.Fit(input).Transform(input);
             var names = _columns.Select(x => x.output).ToArray();
             return new TransformWrapper(Host, CountFeatureSelectionTransformer.Create(Host, dataview, _count, names));
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var copyColumn = new CopyColumnsEstimator(Host, _columns);
+            var copyColumn = new ColumnsCopyingEstimator(Host, _columns);
             var dataview = copyColumn.Fit(input).Transform(input);
             var names = _columns.Select(x => x.output).ToArray();
             return new TransformWrapper(Host, MutualInformationFeatureSelectionTransform.Create(Host, dataview, _labelColumn, _slotsInOutput, _numBins, names));

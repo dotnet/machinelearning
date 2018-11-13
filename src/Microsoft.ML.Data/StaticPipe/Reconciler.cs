@@ -64,7 +64,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// subset of estimator transforms do not allow this: they produce columns whose names are unconfigurable. For
         /// these, there is this collection which provides the names used by the analysis tool. If the estimator under
         /// construction must use one of the names here, then they are responsible for "saving" the column they will
-        /// overwrite using applications of the <see cref="CopyColumnsEstimator"/>. Note that if the estimator under
+        /// overwrite using applications of the <see cref="ColumnsCopyingEstimator"/>. Note that if the estimator under
         /// construction has complete control over what columns it produces, there is no need for it to pay this argument
         /// any attention.</param>
         /// <returns>Returns an estimator.</returns>

@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, null, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ML.Transforms.SelectColumns(null, new[] { "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new CopyColumnsEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
+            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
                       ML.Transforms.SelectColumns(new[] { "A", "B" }, null, false));
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())

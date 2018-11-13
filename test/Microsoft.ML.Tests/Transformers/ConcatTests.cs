@@ -104,9 +104,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             data = TakeFilter.Create(Env, data, 10);
 
-            var concater = new ConcatTransform(Env,
-                new ConcatTransform.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
-                new ConcatTransform.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
+            var concater = new ColumnConcatenatingTransformer(Env,
+                new ColumnConcatenatingTransformer.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
+                new ColumnConcatenatingTransformer.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
             data = concater.Transform(data);
 
             ColumnType t;

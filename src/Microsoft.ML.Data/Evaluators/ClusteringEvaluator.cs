@@ -883,15 +883,15 @@ namespace Microsoft.ML.Runtime.Data
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
                 {
-                    var args = new DropSlotsTransform.Arguments
+                    var args = new DropSlotsTransformer.Arguments
                     {
-                        Column = new DropSlotsTransform.Column[]
+                        Column = new DropSlotsTransformer.Column[]
                         {
-                            new DropSlotsTransform.Column()
+                            new DropSlotsTransformer.Column()
                             {
                                 Name = ClusteringPerInstanceEvaluator.SortedClusters,
                                 Slots = new[] {
-                                    new DropSlotsTransform.Range()
+                                    new DropSlotsTransformer.Range()
                                     {
                                         Min = _numTopClusters
                                     }
@@ -899,7 +899,7 @@ namespace Microsoft.ML.Runtime.Data
                             }
                         }
                     };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
+                    perInst = new DropSlotsTransformer(Host, args, perInst);
                 }
             }
 
@@ -908,15 +908,15 @@ namespace Microsoft.ML.Runtime.Data
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
                 {
-                    var args = new DropSlotsTransform.Arguments
+                    var args = new DropSlotsTransformer.Arguments
                     {
-                        Column = new DropSlotsTransform.Column[]
+                        Column = new DropSlotsTransformer.Column[]
                         {
-                            new DropSlotsTransform.Column()
+                            new DropSlotsTransformer.Column()
                             {
                                 Name = ClusteringPerInstanceEvaluator.SortedClusterScores,
                                 Slots = new[] {
-                                    new DropSlotsTransform.Range()
+                                    new DropSlotsTransformer.Range()
                                     {
                                         Min = _numTopClusters
                                     }
@@ -924,7 +924,7 @@ namespace Microsoft.ML.Runtime.Data
                             }
                         }
                     };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
+                    perInst = new DropSlotsTransformer(Host, args, perInst);
                 }
             }
             return perInst;
