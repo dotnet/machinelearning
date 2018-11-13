@@ -924,7 +924,6 @@ namespace Microsoft.ML.Transforms.Text
             long[] corpusSize = new long[columns.Length];
             int[] numDocArray = new int[columns.Length];
 
-            long rowCount;
             using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
             {
                 var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
@@ -935,8 +934,7 @@ namespace Microsoft.ML.Transforms.Text
                     getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
                 }
                 VBuffer<Double> src = default(VBuffer<Double>);
-
-                rowCount = 0;
+                long rowCount = 0;
                 while (cursor.MoveNext())
                 {
                     ++rowCount;
@@ -976,6 +974,9 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
+                if (rowCount == 0)
+                    return;
+
                 for (int i = 0; i < columns.Length; ++i)
                 {
                     if (numDocArray[i] != rowCount)
@@ -991,8 +992,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 var state = new LdaState(env, columns[i], numVocabs[i]);
 
-                // Make sure an empty data view does not throw, hence the (rowCount > 0) check
-                if (rowCount > 0 && (numDocArray[i] == 0 || corpusSize[i] == 0))
+                if (numDocArray[i] == 0 || corpusSize[i] == 0)
                     throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].Input);
 
                 state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
@@ -1013,10 +1013,8 @@ namespace Microsoft.ML.Transforms.Text
 
                 VBuffer<Double> src = default(VBuffer<Double>);
 
-                rowCount = 0;
                 while (cursor.MoveNext())
                 {
-                    ++rowCount;
                     for (int i = 0; i < columns.Length; i++)
                     {
                         getters[i](ref src);
@@ -1024,13 +1022,10 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                if (rowCount > 0)
+                for (int i = 0; i < columns.Length; i++)
                 {
-                    for (int i = 0; i < columns.Length; i++)
-                    {
-                        env.Assert(corpusSize[i] == docSizeCheck[i]);
-                        states[i].CompleteTrain();
-                    }
+                    env.Assert(corpusSize[i] == docSizeCheck[i]);
+                    states[i].CompleteTrain();
                 }
             }
         }
