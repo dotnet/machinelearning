@@ -751,7 +751,7 @@ namespace Microsoft.ML.Transforms.Projections
                 dst = mutation.CreateBuffer();
             }
 
-            private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
+            private static float DotProduct(float[] a, int aOffset, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
             {
                 Contracts.Assert(count <= indices.Length);
                 return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
