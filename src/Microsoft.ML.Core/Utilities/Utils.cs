@@ -182,6 +182,25 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
+        /// Copies the values from src to dst.
+        /// </summary>
+        /// <remarks>
+        /// This can be removed once we have the APIs from https://github.com/dotnet/corefx/issues/33006.
+        /// </remarks>
+        public static void CopyTo<T>(this List<T> src, Span<T> dst, int? count = null)
+        {
+            Contracts.Assert(src != null);
+            Contracts.Assert(!count.HasValue || (0 <= count && count <= src.Count));
+            Contracts.Assert(src.Count <= dst.Length);
+
+            count = count ?? src.Count;
+            for (int i = 0; i < count; i++)
+            {
+                dst[i] = src[i];
+            }
+        }
+
+        /// <summary>
         /// Assumes input is sorted and finds value using BinarySearch.
         /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
         /// In case of duplicates it returns the index of the first one.
@@ -675,9 +694,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// and between an inclusive lower and exclusive upper bound for
         /// the first and last items, respectively.
         /// </summary>
-        public static bool IsIncreasing(int min, int[] values, int lim)
+        public static bool IsIncreasing(int min, ReadOnlySpan<int> values, int lim)
         {
-            if (Utils.Size(values) < 1)
+            if (values.Length < 1)
                 return true;
 
             var prev = values[0];
@@ -697,9 +716,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// is sorted and unique, and between an inclusive lower and exclusive
         /// upper bound for the first and last items, respectively.
         /// </summary>
-        public static bool IsIncreasing(int min, int[] values, int len, int lim)
+        public static bool IsIncreasing(int min, ReadOnlySpan<int> values, int len, int lim)
         {
-            Contracts.Check(Utils.Size(values) >= len);
+            Contracts.Check(values.Length >= len);
             if (len < 1)
                 return true;
 
