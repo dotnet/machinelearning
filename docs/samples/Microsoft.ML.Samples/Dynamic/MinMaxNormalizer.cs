@@ -37,10 +37,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
             var transformer = pipeline.Fit(trainData);
 
-            var columnFunctionParams = transformer.ColumnFunctions[0] as NormalizerTransformer.IAffineData<float>;
-
-            Console.WriteLine($"The normalization parameters are: Scale = {columnFunctionParams.Scale} and Offset = {columnFunctionParams.Offset}");
-
+            var modelParams = transformer.ModelParameters["Induced"] as NormalizerTransformer.IAffineData<float>;
+           Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
             //Preview 
             //
             //The normalization parameters are: Scale = 0.5 and Offset = 0"

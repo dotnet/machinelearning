@@ -525,12 +525,12 @@ namespace Microsoft.ML.Transforms.Normalizers
     {
         internal abstract partial class AffineColumnFunction
         {
-            public static IColumnFunction Create(IHost host, TFloat scale, TFloat offset)
+            public static ColumnFunctionBase Create(IHost host, TFloat scale, TFloat offset)
             {
                 return new Sng.ImplOne(host, scale, offset);
             }
 
-            public static IColumnFunction Create(IHost host, TFloat[] scale, TFloat[] offset, int[] indicesNonZeroOffset)
+            public static ColumnFunctionBase Create(IHost host, TFloat[] scale, TFloat[] offset, int[] indicesNonZeroOffset)
             {
                 return new Sng.ImplVec(host, scale, offset, indicesNonZeroOffset);
             }
@@ -853,12 +853,12 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         internal abstract partial class CdfColumnFunction
         {
-            public static IColumnFunction Create(IHost host, TFloat mean, TFloat stddev, bool useLog)
+            public static ColumnFunctionBase Create(IHost host, TFloat mean, TFloat stddev, bool useLog)
             {
                 return new Sng.ImplOne(host, mean, stddev, useLog);
             }
 
-            public static IColumnFunction Create(IHost host, TFloat[] mean, TFloat[] stddev, bool useLog)
+            public static ColumnFunctionBase Create(IHost host, TFloat[] mean, TFloat[] stddev, bool useLog)
             {
                 return new Sng.ImplVec(host, mean, stddev, useLog);
             }
@@ -1028,12 +1028,12 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         internal abstract partial class BinColumnFunction
         {
-            public static IColumnFunction Create(IHost host, TFloat[] binUpperBounds, bool fixZero)
+            public static ColumnFunctionBase Create(IHost host, TFloat[] binUpperBounds, bool fixZero)
             {
                 return new Sng.ImplOne(host, binUpperBounds, fixZero);
             }
 
-            public static IColumnFunction Create(IHost host, TFloat[][] binUpperBounds, bool fixZero)
+            public static ColumnFunctionBase Create(IHost host, TFloat[][] binUpperBounds, bool fixZero)
             {
                 return new Sng.ImplVec(host, binUpperBounds, fixZero);
             }
@@ -1047,8 +1047,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     private readonly TFloat _offset;
 
                     ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
-                    TFloat NormalizerTransformer.IBinData<TFloat>.Offset => _den;
-                    TFloat NormalizerTransformer.IBinData<TFloat>.Density => _offset;
+                    TFloat NormalizerTransformer.IBinData<TFloat>.Offset => _offset;
+                    TFloat NormalizerTransformer.IBinData<TFloat>.Density => _den;
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1112,6 +1112,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         value = BinUtils.GetValue(ref input, _binUpperBounds, _den, _offset);
                     }
+
+                    internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
                 }
 
                 public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
@@ -1266,6 +1268,8 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                         bldr.GetResult(ref value);
                     }
+
+                    internal override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
                 }
             }
         }
@@ -1444,7 +1448,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new MinMaxOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter);
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     Aggregator.Finish();
                     TFloat scale;
@@ -1495,7 +1499,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return new MinMaxVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter);
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     Aggregator.Finish();
                     var cv = Aggregator.Min.Length;
@@ -1573,7 +1577,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return true;
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     _aggregator.Finish();
                     if (_useCdf)
@@ -1581,7 +1585,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return CreateAffineColumnFunction();
                 }
 
-                private IColumnFunction CreateAffineColumnFunction()
+                private ColumnFunctionBase CreateAffineColumnFunction()
                 {
                     Contracts.Assert(_aggregator.M2[0] >= 0);
                     if (_aggregator.M2[0] == 0)
@@ -1596,7 +1600,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return AffineColumnFunction.Create(Host, scale, offset);
                 }
 
-                private IColumnFunction CreateCdfColumnFunction()
+                private ColumnFunctionBase CreateCdfColumnFunction()
                 {
                     Contracts.Assert(_aggregator.M2[0] >= 0);
                     if (_aggregator.M2[0] == 0 || _aggregator.Counts[0] == 0)
@@ -1649,7 +1653,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return true;
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     _aggregator.Finish();
                     if (_useCdf)
@@ -1657,7 +1661,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return CreateAffineColumnFunction();
                 }
 
-                private IColumnFunction CreateAffineColumnFunction()
+                private ColumnFunctionBase CreateAffineColumnFunction()
                 {
                     int cv = _aggregator.Mean.Length;
                     // These are ignored if fix is true.
@@ -1702,7 +1706,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return AffineColumnFunction.Create(Host, scale, offset, indicesNonZeroOffset);
                 }
 
-                private IColumnFunction CreateCdfColumnFunction()
+                private ColumnFunctionBase CreateCdfColumnFunction()
                 {
                     int cv = _aggregator.Mean.Length;
 
@@ -1759,7 +1763,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return true;
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     var binFinder = new GreedyBinFinder();
                     var numZeroes = checked((int)(Lim - Rem - _values.Count));
@@ -1833,7 +1837,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return true;
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     var binFinder = new GreedyBinFinder();
                     var count = _values.Length;
@@ -1867,7 +1871,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return !TFloat.IsNaN(colValue);
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     var binFinder = new SupervisedBinFinder();
                     var binUpperBounds = binFinder.FindBins(_numBins, _minBinSize, LabelCardinality, ColValues, Labels);
@@ -1905,7 +1909,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     return !colValuesBuffer.Values.Any(TFloat.IsNaN);
                 }
 
-                public override IColumnFunction CreateColumnFunction()
+                public override ColumnFunctionBase CreateColumnFunction()
                 {
                     var binFinder = new SupervisedBinFinder();
                     TFloat[][] binUpperBounds = new TFloat[ColumnSlotCount][];

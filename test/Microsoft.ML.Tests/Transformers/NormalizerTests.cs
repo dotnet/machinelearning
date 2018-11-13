@@ -11,6 +11,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Projections;
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -102,62 +103,100 @@ namespace Microsoft.ML.Tests.Transformers
             }, new MultiFileSource(dataPath));
 
             var est = new NormalizingEstimator(Env,
-                new NormalizingEstimator.MinMaxColumn("float1"), // 0
+                new NormalizingEstimator.MinMaxColumn("float1"), 
                 new NormalizingEstimator.MinMaxColumn("float4"),
-                new NormalizingEstimator.MinMaxColumn("double1"), // 2
+                new NormalizingEstimator.MinMaxColumn("double1"), 
                 new NormalizingEstimator.MinMaxColumn("double4"),
-                new NormalizingEstimator.BinningColumn("float1", "float1bin"),//4
+                new NormalizingEstimator.BinningColumn("float1", "float1bin"),
                 new NormalizingEstimator.BinningColumn("float4", "float4bin"), 
-                new NormalizingEstimator.BinningColumn("double1", "double1bin"),//6
+                new NormalizingEstimator.BinningColumn("double1", "double1bin"),
                 new NormalizingEstimator.BinningColumn("double4", "double4bin"),
-                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),//8
+                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
                 new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
-                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),//10
+                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
                 new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
-                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),//12
+                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),
                 new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
-                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),//14
+                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),
                 new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
 
             var data = loader.Read(dataPath);
 
             var transformer = est.Fit(data);
 
-            var floatAffineData = transformer.ColumnFunctions[0] as NormalizerTransformer.IAffineData<float>;
+            var floatAffineData = transformer.ModelParameters["float1"] as NormalizerTransformer.IAffineData<float>;
             Assert.Equal(0.12658228f, floatAffineData.Scale);
             Assert.Equal(0, floatAffineData.Offset);
 
-            var doubleAffineData = transformer.ColumnFunctions[2] as NormalizerTransformer.IAffineData<double>;
+            var floatAffineDataVec = transformer.ModelParameters["float4"] as NormalizerTransformer.IAffineData<ImmutableArray<float>>;
+            Assert.Equal(4, floatAffineDataVec.Scale.Length);
+            Assert.Empty(floatAffineDataVec.Offset);
+
+            var doubleAffineData = transformer.ModelParameters["double1"] as NormalizerTransformer.IAffineData<double>;
             Assert.Equal(0.12658227848101264, doubleAffineData.Scale);
             Assert.Equal(0, doubleAffineData.Offset);
 
-            var floatBinData = transformer.ColumnFunctions[4] as NormalizerTransformer.IBinData<float>;
-            //Assert.True(35 == floatBinData.UpperBounds.Length);
-            //Assert.True(34 ==  floatBinData.Density);
-            //Assert.True(0 == floatBinData.Offset);
+            var doubleAffineDataVec = transformer.ModelParameters["double4"] as NormalizerTransformer.IAffineData<ImmutableArray<double>>;
+            Assert.Equal(4, doubleAffineDataVec.Scale.Length);
+            Assert.Empty(doubleAffineDataVec.Offset);
 
-            var doubleBinData = transformer.ColumnFunctions[6] as NormalizerTransformer.IBinData<double>;
+            var floatBinData = transformer.ModelParameters["float1bin"] as NormalizerTransformer.IBinData<float>;
+            Assert.True(35 == floatBinData.UpperBounds.Length);
+            Assert.True(34 ==  floatBinData.Density);
+            Assert.True(0 == floatBinData.Offset);
+
+            var floatBinDataVec = transformer.ModelParameters["float4bin"] as NormalizerTransformer.IBinData<ImmutableArray<float>>;
+            Assert.True(4 == floatBinDataVec.UpperBounds.Length);
+            Assert.True(35 == floatBinDataVec.UpperBounds[0].Length);
+            Assert.True(4 == floatBinDataVec.Density.Length);
+            Assert.True(0 == floatBinDataVec.Offset.Length);
+
+            var doubleBinData = transformer.ModelParameters["double1bin"] as NormalizerTransformer.IBinData<double>;
             Assert.Equal(35, doubleBinData.UpperBounds.Length);
             Assert.Equal(34, doubleBinData.Density);
             Assert.Equal(0, doubleBinData.Offset);
 
-            var floatCdfMeanData = transformer.ColumnFunctions[8] as NormalizerTransformer.IAffineData<float>;
+            var doubleBinDataVec = transformer.ModelParameters["double4bin"] as NormalizerTransformer.IBinData<ImmutableArray<double>>;
+            Assert.Equal(35, doubleBinDataVec.UpperBounds[0].Length);
+            Assert.Equal(4, doubleBinDataVec.Density.Length);
+            Assert.Empty(doubleBinDataVec.Offset);
+
+            var floatCdfMeanData = transformer.ModelParameters["float1mv"] as NormalizerTransformer.IAffineData<float>;
             Assert.Equal(0.169309646f, floatCdfMeanData.Scale);
             Assert.Equal(0, floatCdfMeanData.Offset);
 
-            var doubleCdfMeanData = transformer.ColumnFunctions[10] as NormalizerTransformer.IAffineData<double>;
+            var floatCdfMeanDataVec = transformer.ModelParameters["float4mv"] as NormalizerTransformer.IAffineData<ImmutableArray<float>>;
+            Assert.Equal(0.16930964589119f, floatCdfMeanDataVec.Scale[0]);
+            Assert.Equal(4, floatCdfMeanDataVec.Scale.Length);
+            Assert.Empty(floatCdfMeanDataVec.Offset);
+
+            var doubleCdfMeanData = transformer.ModelParameters["double1mv"] as NormalizerTransformer.IAffineData<double>;
             Assert.Equal(0.16930963784387665, doubleCdfMeanData.Scale);
             Assert.Equal(0, doubleCdfMeanData.Offset);
 
-            var floatCdfLogMeanData = transformer.ColumnFunctions[12] as NormalizerTransformer.ICdfData<float>;
+            var doubleCdfMeanDataVec = transformer.ModelParameters["double4mv"] as NormalizerTransformer.IAffineData<ImmutableArray<double>>;
+            Assert.Equal(4, doubleCdfMeanDataVec.Scale.Length);
+            Assert.Empty(doubleCdfMeanDataVec.Offset);
+
+            var floatCdfLogMeanData = transformer.ModelParameters["float1lmv"] as NormalizerTransformer.ICdfData<float>;
             Assert.Equal(1.75623953f, floatCdfLogMeanData.Mean);
             Assert.True(true == floatCdfLogMeanData.UseLog);
             Assert.Equal(0.140807763f, floatCdfLogMeanData.Stddev);
 
-            var doubleCdfLogMeanData = transformer.ColumnFunctions[14] as NormalizerTransformer.ICdfData<double>;
+            var floatCdfLogMeanDataVec = transformer.ModelParameters["float4lmv"] as NormalizerTransformer.ICdfData<ImmutableArray<float>>;
+            Assert.Equal(4, floatCdfLogMeanDataVec.Mean.Length);
+            Assert.True(true == floatCdfLogMeanDataVec.UseLog);
+            Assert.Equal(4, floatCdfLogMeanDataVec.Stddev.Length);
+
+            var doubleCdfLogMeanData = transformer.ModelParameters["double1lmv"] as NormalizerTransformer.ICdfData<double>;
             Assert.Equal(1.7562395401953814, doubleCdfLogMeanData.Mean);
             Assert.True(doubleCdfLogMeanData.UseLog);
             Assert.Equal(0.14080776721611848, doubleCdfLogMeanData.Stddev);
+
+            var doubleCdfLogMeanDataVec = transformer.ModelParameters["double4lmv"] as NormalizerTransformer.ICdfData<ImmutableArray<double>>;
+            Assert.Equal(4, doubleCdfLogMeanDataVec.Mean.Length);
+            Assert.True(doubleCdfLogMeanDataVec.UseLog);
+            Assert.Equal(4, doubleCdfLogMeanDataVec.Stddev.Length);
 
             Done();
         }

@@ -256,9 +256,9 @@ namespace Microsoft.ML.Transforms.Normalizers
             public readonly string Input;
             public readonly string Output;
             public readonly ColumnType InputType;
-            public readonly IColumnFunction ColumnFunction;
+            public readonly ColumnFunctionBase ColumnFunction;
 
-            public ColumnInfo(string input, string output, ColumnType inputType, IColumnFunction columnFunction)
+            public ColumnInfo(string input, string output, ColumnType inputType, ColumnFunctionBase columnFunction)
             {
                 Input = input;
                 Output = output;
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
+        private sealed class ColumnFunctionAccessor : IReadOnlyList<ColumnFunctionBase>
         {
             private readonly ColumnInfo[] _infos;
 
@@ -312,14 +312,16 @@ namespace Microsoft.ML.Transforms.Normalizers
                 _infos = infos;
             }
 
-            public IColumnFunction this[int index] => _infos[index].ColumnFunction;
+            public ColumnFunctionBase this[int index] => _infos[index].ColumnFunction;
             public int Count => _infos.Length;
-            public IEnumerator<IColumnFunction> GetEnumerator() => _infos.Select(info => info.ColumnFunction).GetEnumerator();
+            public IEnumerator<ColumnFunctionBase> GetEnumerator() => _infos.Select(info => info.ColumnFunction).GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
         /// <summary>An accessor of the column functions within <see cref="_columns"/>.</summary>
-        public readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
+        internal readonly IReadOnlyList<ColumnFunctionBase> ColumnFunctions;
+
+        public readonly IImmutableDictionary<string, INormalizerModelParameters> ModelParameters;
 
         private readonly ColumnInfo[] _columns;
 
@@ -330,6 +332,15 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             _columns = columns;
             ColumnFunctions = new ColumnFunctionAccessor(_columns);
+
+            if(columns?.Length > 0)
+            {
+                var modelParams = new Dictionary<string, INormalizerModelParameters>();
+                foreach(var col in columns)
+                    modelParams.Add(col.Output, col.ColumnFunction.GetNormalizerModelParams());
+
+                ModelParameters = modelParams.ToImmutableDictionary();
+            }
         }
 
         public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
@@ -423,7 +434,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
-                ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
+                ctx.LoadModel<ColumnFunctionBase, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
                 _columns[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
             }
         }
@@ -608,7 +619,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
         /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
         /// </summary>
-        public interface IAffineData<TData>
+        public interface IAffineData<TData> : INormalizerModelParameters
         {
             /// <summary>
             /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
@@ -629,7 +640,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
         /// and standard deviation <see cref="Stddev"/>.
         /// </summary>
-        public interface ICdfData<TData>
+        public interface ICdfData<TData> : INormalizerModelParameters
         {
             /// <summary>
             /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
@@ -653,7 +664,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
         /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
         /// </summary>
-        public interface IBinData<TData>
+        public interface IBinData<TData> : INormalizerModelParameters
         {
             /// <summary>
             /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.
@@ -661,9 +672,23 @@ namespace Microsoft.ML.Transforms.Normalizers
             /// </summary>
             ImmutableArray<TData> UpperBounds { get; }
 
+            /// <summary>
+            /// The bin frequency density.
+            /// </summary>
             TData Density { get; }
 
+            /// <summary>
+            /// The offset between bins.
+            /// </summary>
             TData Offset { get; }
+        }
+
+        /// <summary>
+        /// Base interface for all the NormalizerData interfaces: <see cref="IAffineData{TData}"/>, <see cref="IBinData{TData}"/>, <see cref="ICdfData{TData}"/>.
+        /// </summary>
+        public interface INormalizerModelParameters
+        {
+
         }
     }
 }

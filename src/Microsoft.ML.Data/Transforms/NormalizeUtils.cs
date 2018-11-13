@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Finishes training and returns a column function.
         /// </summary>
-        IColumnFunction CreateColumnFunction();
+        ColumnFunctionBase CreateColumnFunction();
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Data
         void Finish();
     }
 
-    public abstract class IColumnFunction : ICanSaveModel
+    internal abstract class ColumnFunctionBase : ICanSaveModel
     {
         public abstract Delegate GetGetter(IRow input, int icol);
 
@@ -65,6 +65,8 @@ namespace Microsoft.ML.Runtime.Data
         internal abstract bool CanSaveOnnx(OnnxContext ctx);
 
         internal abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+
+        internal abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
     }
 
     public static class NormalizeUtils
