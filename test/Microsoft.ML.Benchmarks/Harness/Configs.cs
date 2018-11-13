@@ -15,7 +15,7 @@ namespace Microsoft.ML.Benchmarks
 
             Add(GetJobDefinition() // job defines how many times given benchmark should be executed
                 .WithCustomBuildConfiguration(GetBuildConfigurationName())
-                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark);
+                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
         }
