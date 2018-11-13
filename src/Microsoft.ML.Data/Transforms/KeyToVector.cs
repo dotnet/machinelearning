@@ -19,21 +19,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToVectorTransform), typeof(KeyToVectorTransform.Arguments), typeof(SignatureDataTransform),
-    "Key To Vector Transform", KeyToVectorTransform.UserName, "KeyToVector", "ToVector", DocName = "transform/KeyToVectorTransform.md")]
+[assembly: LoadableClass(KeyToVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToVectorMappingTransformer), typeof(KeyToVectorMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    "Key To Vector Transform", KeyToVectorMappingTransformer.UserName, "KeyToVector", "ToVector", DocName = "transform/KeyToVectorTransform.md")]
 
-[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToVectorTransform), null, typeof(SignatureLoadDataTransform),
-    "Key To Vector Transform", KeyToVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(KeyToVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToVectorMappingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Key To Vector Transform", KeyToVectorMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(KeyToVectorTransform), null, typeof(SignatureLoadModel),
-    KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(KeyToVectorMappingTransformer.Summary, typeof(KeyToVectorMappingTransformer), null, typeof(SignatureLoadModel),
+    KeyToVectorMappingTransformer.UserName, KeyToVectorMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToVectorTransform), null, typeof(SignatureLoadRowMapper),
-   KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToVectorMappingTransformer), null, typeof(SignatureLoadRowMapper),
+   KeyToVectorMappingTransformer.UserName, KeyToVectorMappingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Conversions
 {
-    public sealed class KeyToVectorTransform : OneToOneTransformerBase
+    public sealed class KeyToVectorMappingTransformer : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
         }
 
-        public KeyToVectorTransform(IHostEnvironment env, params ColumnInfo[] columns) :
+        public KeyToVectorMappingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(KeyToVectorTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(KeyToVectorMappingTransformer).Assembly.FullName);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         // Factory method for SignatureLoadModel.
-        private static KeyToVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KeyToVectorMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -178,10 +178,10 @@ namespace Microsoft.ML.Transforms.Conversions
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return new KeyToVectorTransform(host, ctx);
+            return new KeyToVectorMappingTransformer(host, ctx);
         }
 
-        private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
+        private KeyToVectorMappingTransformer(IHost host, ModelLoadContext ctx)
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
-             new KeyToVectorTransform(env, columns).MakeDataTransform(input);
+             new KeyToVectorMappingTransformer(env, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     item.Name,
                     item.Bag ?? args.Bag);
             };
-            return new KeyToVectorTransform(env, cols).MakeDataTransform(input);
+            return new KeyToVectorMappingTransformer(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -246,11 +246,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private readonly KeyToVectorTransform _parent;
+            private readonly KeyToVectorMappingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly VectorType[] _types;
 
-            public Mapper(KeyToVectorTransform parent, Schema inputSchema)
+            public Mapper(KeyToVectorMappingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -733,24 +733,24 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorTransform>
+    public sealed class KeyToVectorMappingEstimator : TrivialEstimator<KeyToVectorMappingTransformer>
     {
         internal static class Defaults
         {
             public const bool Bag = false;
         }
 
-        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
-            : this(env, new KeyToVectorTransform(env, columns))
+        public KeyToVectorMappingEstimator(IHostEnvironment env, params KeyToVectorMappingTransformer.ColumnInfo[] columns)
+            : this(env, new KeyToVectorMappingTransformer(env, columns))
         {
         }
 
         public KeyToVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool bag = Defaults.Bag)
-            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
+            : this(env, new KeyToVectorMappingTransformer(env, new KeyToVectorMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, bag)))
         {
         }
 
-        private KeyToVectorMappingEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+        private KeyToVectorMappingEstimator(IHostEnvironment env, KeyToVectorMappingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorMappingEstimator)), transformer)
         {
         }
@@ -885,11 +885,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToVectorTransform.ColumnInfo[toOutput.Length];
+                var infos = new KeyToVectorMappingTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
+                    infos[i] = new KeyToVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
                 }
                 return new KeyToVectorMappingEstimator(env, infos);
             }

@@ -11,15 +11,15 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 
-[assembly: LoadableClass(ScoreTransform.Summary, typeof(IDataTransform), typeof(ScoreTransform), typeof(ScoreTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ScoreTransformer.Summary, typeof(IDataTransform), typeof(ScoreTransformer), typeof(ScoreTransformer.Arguments), typeof(SignatureDataTransform),
     "Score Predictor", "Score")]
 
-[assembly: LoadableClass(TrainAndScoreTransform.Summary, typeof(IDataTransform), typeof(TrainAndScoreTransform),
-    typeof(TrainAndScoreTransform.Arguments), typeof(SignatureDataTransform), "Train and Score Predictor", "TrainScore")]
+[assembly: LoadableClass(TrainAndScoreTransformer.Summary, typeof(IDataTransform), typeof(TrainAndScoreTransformer),
+    typeof(TrainAndScoreTransformer.Arguments), typeof(SignatureDataTransform), "Train and Score Predictor", "TrainScore")]
 
 namespace Microsoft.ML.Transforms
 {
-    public static class ScoreTransform
+    public static class ScoreTransformer
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -48,8 +48,8 @@ namespace Microsoft.ML.Transforms
         internal const string Summary = "Runs a previously trained predictor on the data.";
 
         /// <summary>
-        /// Convenience method for creating <see cref="ScoreTransform"/>.
-        /// The <see cref="ScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// Convenience method for creating <see cref="ScoreTransformer"/>.
+        /// The <see cref="ScoreTransformer"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
         /// in the pipeline by using the scores from an already trained model.
         /// </summary>
         /// <param name="env">Host Environment.</param>
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class TrainAndScoreTransform
+    public static class TrainAndScoreTransformer
     {
         public abstract class ArgumentsBase : TransformInputBase
         {
@@ -156,11 +156,11 @@ namespace Microsoft.ML.Transforms
         internal const string Summary = "Trains a predictor, or loads it from a file, and runs it on the data.";
 
         /// <summary>
-        /// Convenience method for creating <see cref="TrainAndScoreTransform"/>.
-        /// The <see cref="TrainAndScoreTransform"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
+        /// Convenience method for creating <see cref="TrainAndScoreTransformer"/>.
+        /// The <see cref="TrainAndScoreTransformer"/> allows for model stacking (i.e. to combine information from multiple predictive models to generate a new model)
         /// in the pipeline by training a model first and then using the scores from the trained model.
         ///
-        /// Unlike <see cref="ScoreTransform"/>, the <see cref="TrainAndScoreTransform"/> trains the model on the fly as name indicates.
+        /// Unlike <see cref="ScoreTransformer"/>, the <see cref="TrainAndScoreTransformer"/> trains the model on the fly as name indicates.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>.</param>

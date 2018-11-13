@@ -52,7 +52,7 @@ namespace Microsoft.ML.Benchmarks
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
                 trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
-                trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
+                trans = TrainAndScoreTransformer.Create(env, new TrainAndScoreTransformer.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
                         new KMeansPlusPlusTrainer(host, "Features", advancedSettings: s=> 

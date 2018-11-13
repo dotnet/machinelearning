@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
+        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorMappingTransformer.Arguments"/>
         /// with join option removed
         /// </summary>
         public sealed class Arguments : TransformInputBase
@@ -284,7 +284,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 if (binaryCols.Count > 0)
                     toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);

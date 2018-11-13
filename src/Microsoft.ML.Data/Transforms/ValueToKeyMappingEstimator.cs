@@ -14,16 +14,16 @@ using System.Linq;
 namespace Microsoft.ML.Transforms.Categorical
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
-    public sealed class ValueToKeyMappingEstimator: IEstimator<TermTransform>
+    public sealed class ValueToKeyMappingEstimator: IEstimator<TermTransformer>
     {
         public static class Defaults
         {
             public const int MaxNumTerms = 1000000;
-            public const TermTransform.SortOrder Sort = TermTransform.SortOrder.Occurrence;
+            public const TermTransformer.SortOrder Sort = TermTransformer.SortOrder.Occurrence;
         }
 
         private readonly IHost _host;
-        private readonly TermTransform.ColumnInfo[] _columns;
+        private readonly TermTransformer.ColumnInfo[] _columns;
         private readonly string _file;
         private readonly string _termsColumn;
         private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
@@ -37,12 +37,12 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
-           this(env, new [] { new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
+        public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransformer.SortOrder sort = Defaults.Sort) :
+           this(env, new [] { new TermTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, TermTransform.ColumnInfo[] columns,
+        public ValueToKeyMappingEstimator(IHostEnvironment env, TermTransformer.ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Transforms.Categorical
             _loaderFactory = loaderFactory;
         }
 
-        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns, _file, _termsColumn, _loaderFactory);
+        public TermTransformer Fit(IDataView input) => new TermTransformer(_host, input, _columns, _file, _termsColumn, _loaderFactory);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -94,12 +94,12 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <summary>
         /// Terms will be assigned ID in the order in which they appear.
         /// </summary>
-        Occurence = TermTransform.SortOrder.Occurrence,
+        Occurence = TermTransformer.SortOrder.Occurrence,
 
         /// <summary>
         /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
         /// </summary>
-        Value = TermTransform.SortOrder.Value
+        Value = TermTransformer.SortOrder.Value
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Transforms.Categorical
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        public ToKeyFitResult(TermTransform.TermMap map)
+        public ToKeyFitResult(TermTransformer.TermMap map)
         {
         }
     }
@@ -135,9 +135,9 @@ namespace Microsoft.ML.Transforms.Categorical
         {
             public readonly KeyValueOrder Order;
             public readonly int Max;
-            public readonly Action<TermTransform.TermMap> OnFit;
+            public readonly Action<TermTransformer.TermMap> OnFit;
 
-            public Config(KeyValueOrder order, int max, Action<TermTransform.TermMap> onFit)
+            public Config(KeyValueOrder order, int max, Action<TermTransformer.TermMap> onFit)
             {
                 Order = order;
                 Max = max;
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        private static Action<TermTransform.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
+        private static Action<TermTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
         {
             if (onFit == null)
                 return null;
@@ -201,13 +201,13 @@ namespace Microsoft.ML.Transforms.Categorical
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var infos = new TermTransform.ColumnInfo[toOutput.Length];
-                Action<TermTransform> onFit = null;
+                var infos = new TermTransformer.ColumnInfo[toOutput.Length];
+                Action<TermTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
-                    infos[i] = new TermTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
-                        tcol.Config.Max, (TermTransform.SortOrder)tcol.Config.Order);
+                    infos[i] = new TermTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                        tcol.Config.Max, (TermTransformer.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.

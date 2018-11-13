@@ -1192,7 +1192,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private void CalculateShufflePoolRows(IChannel ch, out int poolRows)
         {
-            if (!ShuffleTransform.CanShuffleAll(Schema))
+            if (!RowShufflingTransformer.CanShuffleAll(Schema))
             {
                 // This will only happen if we expand the set of types we can serialize,
                 // without expanding the set of types we can cache. That is entirely
@@ -1241,7 +1241,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 // the entire dataset in memory anyway.
                 var ourRand = _randomShufflePoolRows == _header.RowCount ? null : rand;
                 var cursor = new Cursor(this, predicate, ourRand);
-                return ShuffleTransform.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
+                return RowShufflingTransformer.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
             }
             return new Cursor(this, predicate, rand);
         }

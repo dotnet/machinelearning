@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private static IDataView ApplyKeyToVec(List<KeyToVectorTransform.ColumnInfo> ktv, IDataView viewTrain, IHost host)
+        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingTransformer.ColumnInfo> ktv, IDataView viewTrain, IHost host)
         {
             Contracts.AssertValueOrNull(ktv);
             Contracts.AssertValue(viewTrain);
@@ -95,19 +95,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // when the user has slightly different key values between the training and testing set.
                 // The solution is to apply KeyToValue, then Term using the terms from the key metadata of the original key column
                 // and finally the KeyToVector transform.
-                viewTrain = new KeyToValueTransform(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
+                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
                     .Transform(viewTrain);
 
-                viewTrain = TermTransform.Create(host,
-                    new TermTransform.Arguments()
+                viewTrain = TermTransformer.Create(host,
+                    new TermTransformer.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new TermTransform.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new TermTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = KeyToVectorTransform.Create(host, viewTrain, ktv.Select(c => new KeyToVectorTransform.ColumnInfo(c.Output, c.Output)).ToArray());
+                viewTrain = KeyToVectorMappingTransformer.Create(host, viewTrain, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray());
             }
             return viewTrain;
         }
@@ -148,14 +148,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return viewTrain;
         }
 
-        private static List<KeyToVectorTransform.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
             out List<ConvertingTransform.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
             Contracts.AssertValue(concatNames);
             Contracts.AssertValue(ch);
-            List<KeyToVectorTransform.ColumnInfo> ktv = null;
+            List<KeyToVectorMappingTransformer.ColumnInfo> ktv = null;
             cvt = null;
             errCount = 0;
             foreach (var col in feats)
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorTransform.ColumnInfo(col.Name, colName));
+                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(col.Name, colName));
                             continue;
                         }
                     }
@@ -241,20 +241,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new TermTransform.Arguments()
+            var args = new TermTransformer.Arguments()
             {
                 Column = new[]
                 {
-                    new TermTransform.Column()
+                    new TermTransformer.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = TermTransform.SortOrder.Value
+                        Sort = TermTransformer.SortOrder.Value
                     }
                 }
             };
-            var xf = TermTransform.Create(host, args, input.Data);
+            var xf = TermTransformer.Create(host, args, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var xf = new KeyToValueTransform(host, input.PredictedLabelColumn).Transform(input.Data);
+            var xf = new KeyToValueMappingTransformer(host, input.PredictedLabelColumn).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

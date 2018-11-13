@@ -14,30 +14,30 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-[assembly: LoadableClass(SelectColumnsTransform.Summary, typeof(IDataTransform), typeof(SelectColumnsTransform),
-                typeof(SelectColumnsTransform.Arguments), typeof(SignatureDataTransform),
-                SelectColumnsTransform.UserName, "SelectColumns", "SelectColumnsTransform", SelectColumnsTransform.ShortName, DocName = "transform/SelectTransforms.md")]
+[assembly: LoadableClass(SelectColumnsTransformer.Summary, typeof(IDataTransform), typeof(SelectColumnsTransformer),
+                typeof(SelectColumnsTransformer.Arguments), typeof(SignatureDataTransform),
+                SelectColumnsTransformer.UserName, "SelectColumns", "SelectColumnsTransform", SelectColumnsTransformer.ShortName, DocName = "transform/SelectTransforms.md")]
 
-[assembly: LoadableClass(SelectColumnsTransform.Summary, typeof(IDataView), typeof(SelectColumnsTransform), null, typeof(SignatureLoadDataTransform),
-                            SelectColumnsTransform.UserName, SelectColumnsTransform.LoaderSignature)]
+[assembly: LoadableClass(SelectColumnsTransformer.Summary, typeof(IDataView), typeof(SelectColumnsTransformer), null, typeof(SignatureLoadDataTransform),
+                            SelectColumnsTransformer.UserName, SelectColumnsTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(SelectColumnsTransform.Summary, typeof(SelectColumnsTransform), null, typeof(SignatureLoadModel),
-                            SelectColumnsTransform.UserName, SelectColumnsTransform.LoaderSignature)]
+[assembly: LoadableClass(SelectColumnsTransformer.Summary, typeof(SelectColumnsTransformer), null, typeof(SignatureLoadModel),
+                            SelectColumnsTransformer.UserName, SelectColumnsTransformer.LoaderSignature)]
 
 // Back-compat to handle loading of the Drop and Keep Transformer
-[assembly: LoadableClass("", typeof(IDataView), typeof(SelectColumnsTransform), null, typeof(SignatureLoadDataTransform),
-    "", SelectColumnsTransform.DropLoaderSignature)]
+[assembly: LoadableClass("", typeof(IDataView), typeof(SelectColumnsTransformer), null, typeof(SignatureLoadDataTransform),
+    "", SelectColumnsTransformer.DropLoaderSignature)]
 
 // Back-compat to handle loading of the Choose Columns Transformer
-[assembly: LoadableClass("", typeof(IDataView), typeof(SelectColumnsTransform), null, typeof(SignatureLoadDataTransform),
-    "", SelectColumnsTransform.ChooseLoaderSignature, SelectColumnsTransform.ChooseLoaderSignatureOld)]
+[assembly: LoadableClass("", typeof(IDataView), typeof(SelectColumnsTransformer), null, typeof(SignatureLoadDataTransform),
+    "", SelectColumnsTransformer.ChooseLoaderSignature, SelectColumnsTransformer.ChooseLoaderSignatureOld)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// The ColumnSelectingEstimator supports selection of specified columns to keep from a given input.
     /// </summary>
-    public sealed class ColumnSelectingEstimator : TrivialEstimator<SelectColumnsTransform>
+    public sealed class ColumnSelectingEstimator : TrivialEstimator<SelectColumnsTransformer>
     {
         private readonly Func<string, bool> _selectPredicate;
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="keepColumns">The array of column names to keep.</param>
         private ColumnSelectingEstimator(IHostEnvironment env, params string[] keepColumns)
-            : this(env, keepColumns, null, SelectColumnsTransform.Defaults.KeepHidden, SelectColumnsTransform.Defaults.IgnoreMissing)
+            : this(env, keepColumns, null, SelectColumnsTransformer.Defaults.KeepHidden, SelectColumnsTransformer.Defaults.IgnoreMissing)
         { }
 
         /// <summary>
@@ -62,10 +62,10 @@ namespace Microsoft.ML.Transforms
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         internal ColumnSelectingEstimator(IHostEnvironment env, string[] keepColumns,
-                                    string[] dropColumns, bool keepHidden = SelectColumnsTransform.Defaults.KeepHidden,
-                                    bool ignoreMissing = SelectColumnsTransform.Defaults.IgnoreMissing)
+                                    string[] dropColumns, bool keepHidden = SelectColumnsTransformer.Defaults.KeepHidden,
+                                    bool ignoreMissing = SelectColumnsTransformer.Defaults.IgnoreMissing)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnSelectingEstimator)),
-                  new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
+                  new SelectColumnsTransformer(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
 
             _selectPredicate = (name) => (keepColumns != null) ? keepColumns.Contains(name) : !dropColumns.Contains(name);
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMissing && !SelectColumnsTransform.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
+            if (!Transformer.IgnoreMissing && !SelectColumnsTransformer.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
                                                                                     Transformer.SelectColumns,
                                                                                     out IEnumerable<string> invalidColumns))
             {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// The SelectColumns Transforms allows the user to specify columns to drop or keep from a given input.
     /// </summary>
-    public sealed class SelectColumnsTransform : ITransformer, ICanSaveModel
+    public sealed class SelectColumnsTransformer : ITransformer, ICanSaveModel
     {
         internal const string Summary = "Selects which columns from the dataset to keep.";
         internal const string UserName = "Select Columns Transform";
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(SelectColumnsTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(SelectColumnsTransformer).Assembly.FullName);
         }
 
         private static VersionInfo GetDropVersionInfo()
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(SelectColumnsTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(SelectColumnsTransformer).Assembly.FullName);
         }
 
         private static VersionInfo GetChooseVersionInfo()
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: ChooseLoaderSignature,
                 loaderSignatureAlt: ChooseLoaderSignatureOld,
-                loaderAssemblyName: typeof(SelectColumnsTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(SelectColumnsTransformer).Assembly.FullName);
         }
 
         public sealed class Arguments : TransformInputBase
@@ -192,10 +192,10 @@ namespace Microsoft.ML.Transforms
             public bool IgnoreMissing = Defaults.IgnoreMissing;
         }
 
-        public SelectColumnsTransform(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
+        public SelectColumnsTransformer(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
                                         bool keepHidden = Defaults.KeepHidden, bool ignoreMissing = Defaults.IgnoreMissing)
         {
-            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransform));
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransformer));
             _host.CheckValueOrNull(keepColumns);
             _host.CheckValueOrNull(dropColumns);
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Back-compatibilty function that handles loading the DropColumns Transform.
         /// </summary>
-        private static SelectColumnsTransform LoadDropColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static SelectColumnsTransformer LoadDropColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             // *** Binary format ***
             // int: sizeof(Float)
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Transforms
 
             // Note for backward compatibility, Drop/Keep Columns always preserves
             // hidden columns
-            return new SelectColumnsTransform(env, keepColumns, dropColumns, true);
+            return new SelectColumnsTransformer(env, keepColumns, dropColumns, true);
         }
 
         /// <summary>
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Backwards compatibility helper function that loads a Choose Column Transform.
         /// </summary>
-        private static SelectColumnsTransform LoadChooseColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static SelectColumnsTransformer LoadChooseColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             // *** Binary format ***
             // int: sizeof(Float)
@@ -335,11 +335,11 @@ namespace Microsoft.ML.Transforms
                 env.Check(colKeepHidden == keepHidden, differentHideColumnNotSupportedMsg);
             }
 
-            return new SelectColumnsTransform(env, names.ToArray(), null, keepHidden);
+            return new SelectColumnsTransformer(env, names.ToArray(), null, keepHidden);
         }
 
         // Factory method for SignatureLoadModelTransform.
-        private static SelectColumnsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static SelectColumnsTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             ctx.CheckAtModel(GetVersionInfo());
             // *** Binary format ***
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Transforms
             else
                 columnsToDrop = columns;
 
-            return new SelectColumnsTransform(env, columnsToKeep, columnsToDrop, keepHidden, ignoreMissing);
+            return new SelectColumnsTransformer(env, columnsToKeep, columnsToDrop, keepHidden, ignoreMissing);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
-            SelectColumnsTransform transform;
+            SelectColumnsTransformer transform;
 
             // Determine which version of the transform is being loaded.
             if (CheckModelVersion(ctx, GetDropVersionInfo()))
@@ -395,13 +395,13 @@ namespace Microsoft.ML.Transforms
 
         public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, string[] keepColumns, bool keepHidden = false)
         {
-            var transform = new SelectColumnsTransform(env, keepColumns, null, keepHidden);
+            var transform = new SelectColumnsTransformer(env, keepColumns, null, keepHidden);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
         public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
         {
-            var transform = new SelectColumnsTransform(env, null, dropColumns);
+            var transform = new SelectColumnsTransformer(env, null, dropColumns);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            var transform = new SelectColumnsTransform(env, args.KeepColumns, args.DropColumns,
+            var transform = new SelectColumnsTransformer(env, args.KeepColumns, args.DropColumns,
                                                             args.KeepHidden, args.IgnoreMissing);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
@@ -486,7 +486,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema Schema { get; }
 
-            public Mapper(SelectColumnsTransform transform, Schema inputSchema)
+            public Mapper(SelectColumnsTransformer transform, Schema inputSchema)
             {
                 _host = transform._host.Register(nameof(Mapper));
                 _inputSchema = inputSchema;
@@ -609,10 +609,10 @@ namespace Microsoft.ML.Transforms
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
         {
             private readonly IHost _host;
-            private readonly SelectColumnsTransform _transform;
+            private readonly SelectColumnsTransformer _transform;
             private readonly Mapper _mapper;
 
-            public SelectColumnsDataTransform(IHostEnvironment env, SelectColumnsTransform transform, Mapper mapper, IDataView input)
+            public SelectColumnsDataTransform(IHostEnvironment env, SelectColumnsTransformer transform, Mapper mapper, IDataView input)
             {
                 _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsDataTransform));
                 _transform = transform;

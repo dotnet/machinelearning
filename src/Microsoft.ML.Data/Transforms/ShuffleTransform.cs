@@ -16,22 +16,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
-[assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), typeof(ShuffleTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), typeof(RowShufflingTransformer.Arguments), typeof(SignatureDataTransform),
     "Shuffle Transform", "ShuffleTransform", "Shuffle", "shuf")]
 
-[assembly: LoadableClass(ShuffleTransform.Summary, typeof(ShuffleTransform), null, typeof(SignatureLoadDataTransform),
-    "Shuffle Transform", ShuffleTransform.LoaderSignature)]
+[assembly: LoadableClass(RowShufflingTransformer.Summary, typeof(RowShufflingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Shuffle Transform", RowShufflingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This is a transform that, given any input dataview (even an unshufflable one) will,
+    /// This is a transformer that, given any input dataview (even an unshufflable one) will,
     /// when we construct a randomized cursor attempt to perform a rude version of shuffling
     /// using a pool. A pool of a given number of rows will be constructed from the first
     /// rows in the input cursor, and then, successively, the output cursor will yield one
     /// of these rows and replace it with another row from the input.
     /// </summary>
-    public sealed class ShuffleTransform : RowToRowTransformBase
+    public sealed class RowShufflingTransformer : RowToRowTransformBase
     {
         private static class Defaults
         {
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ShuffleTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(RowShufflingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "Shuffle";
@@ -88,14 +88,14 @@ namespace Microsoft.ML.Transforms
         private readonly IDataView _subsetInput;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="RowShufflingTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="poolRows">The pool will have this many rows</param>
         /// <param name="poolOnly">If true, the transform will not attempt to shuffle the input cursor but only shuffle based on the pool. This parameter has no effect if the input data was not itself shufflable.</param>
         /// <param name="forceShuffle">If true, the transform will always provide a shuffled view.</param>
-        public ShuffleTransform(IHostEnvironment env,
+        public RowShufflingTransformer(IHostEnvironment env,
             IDataView input,
             int poolRows = Defaults.PoolRows,
             bool poolOnly = Defaults.PoolOnly,
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public ShuffleTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public RowShufflingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
             _subsetInput = SelectCachableColumns(input, env);
         }
 
-        private ShuffleTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private RowShufflingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             Host.AssertValue(ctx);
@@ -149,14 +149,14 @@ namespace Microsoft.ML.Transforms
             _subsetInput = SelectCachableColumns(input, host);
         }
 
-        public static ShuffleTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static RowShufflingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             h.CheckValue(input, nameof(input));
-            return h.Apply("Loading Model", ch => new ShuffleTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new RowShufflingTransformer(h, ctx, input));
         }
 
         public override void Save(ModelSaveContext ctx)

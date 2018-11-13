@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                var view = new SelectColumnsTransform(Env, new string[]{"A", "B", "C", "D", "E" }, null, false).Transform(savedData);
+                var view = new SelectColumnsTransformer(Env, new string[]{"A", "B", "C", "D", "E" }, null, false).Transform(savedData);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, view, fs, keepHidden: true);
             }

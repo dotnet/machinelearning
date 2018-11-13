@@ -26,14 +26,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnSelector", Desc = "Selects a set of columns, dropping all others", UserName = "Select Columns")]
-        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, SelectColumnsTransform.Arguments input)
+        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, SelectColumnsTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("SelectColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new SelectColumnsTransform(env, input.KeepColumns, input.DropColumns, input.KeepHidden, input.IgnoreMissing).Transform(input.Data);
+            var xf = new SelectColumnsTransformer(env, input.KeepColumns, input.DropColumns, input.KeepHidden, input.IgnoreMissing).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

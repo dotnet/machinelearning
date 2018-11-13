@@ -140,8 +140,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new TermTransform.ColumnInfo("Workclass", "Group"),
-                                    new TermTransform.ColumnInfo("Label", "Label0") });
+                                    new TermTransformer.ColumnInfo("Workclass", "Group"),
+                                    new TermTransformer.ColumnInfo("Label", "Label0") });
 
             return (pipeline, data);
         }

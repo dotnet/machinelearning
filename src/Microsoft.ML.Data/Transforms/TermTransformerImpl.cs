@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Categorical
 {
-    public sealed partial class TermTransform
+    public sealed partial class TermTransformer
     {
         /// <summary>
         /// These are objects shared by both the scalar and vector implementations of <see cref="Trainer"/>
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Transforms.Categorical
         /// type, and will produce either <see cref="OutputType"/>, or a vector type with that output
         /// type if the input was a vector.
         ///
-        /// Note that instances of this class can be shared among multiple <see cref="TermTransform"/>
+        /// Note that instances of this class can be shared among multiple <see cref="TermTransformer"/>
         /// instances. To associate this with a particular transform, use the <see cref="Bind"/> method.
         ///
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in

@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="BootstrapSampleTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms
             var input = Source.GetRowCursor(predicate, _shuffleInput ? new TauswortheHybrid(rgen) : null);
             IRowCursor cursor = new RowCursor(this, input, rgen);
             if (_poolSize > 1)
-                cursor = ShuffleTransform.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
+                cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
         }
 

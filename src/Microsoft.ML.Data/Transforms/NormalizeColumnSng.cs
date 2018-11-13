@@ -1040,13 +1040,13 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             private static class Sng
             {
-                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
+                public sealed class ImplOne : BinColumnFunction, NormalizingTransformer.IBinData<TFloat>
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
 
-                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
+                    ImmutableArray<TFloat> NormalizingTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1112,13 +1112,13 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
                 }
 
-                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
+                public sealed class ImplVec : BinColumnFunction, NormalizingTransformer.IBinData<ImmutableArray<TFloat>>
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
 
-                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
+                    ImmutableArray<ImmutableArray<TFloat>> NormalizingTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
                         => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)

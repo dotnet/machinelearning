@@ -16,15 +16,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-[assembly: LoadableClass(typeof(NormalizerTransformer), null, typeof(SignatureLoadModel),
-    "", NormalizerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
+    "", NormalizingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizerTransformer), null, typeof(SignatureLoadRowMapper),
-    "", NormalizerTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizingTransformer), null, typeof(SignatureLoadRowMapper),
+    "", NormalizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed class NormalizingEstimator : IEstimator<NormalizerTransformer>
+    public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
     {
         internal static class Defaults
         {
@@ -203,10 +203,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             _columns = columns.ToArray();
         }
 
-        public NormalizerTransformer Fit(IDataView input)
+        public NormalizingTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return NormalizerTransformer.Train(_host, input, _columns);
+            return NormalizingTransformer.Train(_host, input, _columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public sealed partial class NormalizerTransformer : OneToOneTransformerBase
+    public sealed partial class NormalizingTransformer : OneToOneTransformerBase
     {
         public const string LoaderSignature = "Normalizer";
         private static VersionInfo GetVersionInfo()
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NormalizerTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
         }
 
         private class ColumnInfo
@@ -325,14 +325,14 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         public (string input, string output)[] Columns => ColumnPairs;
 
-        private NormalizerTransformer(IHostEnvironment env, ColumnInfo[] columns)
-            : base(env.Register(nameof(NormalizerTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
+        private NormalizingTransformer(IHostEnvironment env, ColumnInfo[] columns)
+            : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
         {
             _columns = columns;
             ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
-        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
+        public static NormalizingTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -404,11 +404,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                     result[i] = new ColumnInfo(columns[i].Input, columns[i].Output, srcTypes[i], func);
                 }
 
-                return new NormalizerTransformer(env, result);
+                return new NormalizingTransformer(env, result);
             }
         }
 
-        private NormalizerTransformer(IHost host, ModelLoadContext ctx)
+        private NormalizingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -428,12 +428,12 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
         }
 
-        public static NormalizerTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static NormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new NormalizerTransformer(env.Register(nameof(NormalizerTransformer)), ctx);
+            return new NormalizingTransformer(env.Register(nameof(NormalizingTransformer)), ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -481,12 +481,12 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private NormalizerTransformer _parent;
+            private NormalizingTransformer _parent;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(NormalizerTransformer parent, Schema schema)
+            public Mapper(NormalizingTransformer parent, Schema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;

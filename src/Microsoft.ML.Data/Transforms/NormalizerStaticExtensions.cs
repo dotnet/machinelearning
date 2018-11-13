@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.IAffineData<TData>)col;
+                var aCol = (NormalizingTransformer.IAffineData<TData>)col;
                 onFit(aCol.Scale, aCol.Offset);
             };
         }
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.ICdfData<TData>)col;
+                var aCol = (NormalizingTransformer.ICdfData<TData>)col;
                 onFit(aCol.Mean, aCol.Stddev);
             };
         }
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.IBinData<TData>)col;
+                var aCol = (NormalizingTransformer.IBinData<TData>)col;
                 onFit(aCol.UpperBounds);
             };
         }

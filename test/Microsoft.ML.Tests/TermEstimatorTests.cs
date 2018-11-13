@@ -71,13 +71,13 @@ namespace Microsoft.ML.Tests
             }, new MultiFileSource(dataPath));
 
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("float1", "TermFloat1"),
-                    new TermTransform.ColumnInfo("float4", "TermFloat4"),
-                    new TermTransform.ColumnInfo("double1", "TermDouble1"),
-                    new TermTransform.ColumnInfo("double4", "TermDouble4"),
-                    new TermTransform.ColumnInfo("int1", "TermInt1"),
-                    new TermTransform.ColumnInfo("text1", "TermText1"),
-                    new TermTransform.ColumnInfo("text2", "TermText2")
+                    new TermTransformer.ColumnInfo("float1", "TermFloat1"),
+                    new TermTransformer.ColumnInfo("float4", "TermFloat4"),
+                    new TermTransformer.ColumnInfo("double1", "TermDouble1"),
+                    new TermTransformer.ColumnInfo("double4", "TermDouble4"),
+                    new TermTransformer.ColumnInfo("int1", "TermInt1"),
+                    new TermTransformer.ColumnInfo("text1", "TermText1"),
+                    new TermTransformer.ColumnInfo("text2", "TermText2")
                 });
             var data = loader.Read(dataPath);
             data = TakeFilter.Create(Env, data, 10);
@@ -102,9 +102,9 @@ namespace Microsoft.ML.Tests
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
+                    new TermTransformer.ColumnInfo("A", "TermA"),
+                    new TermTransformer.ColumnInfo("B", "TermB"),
+                    new TermTransformer.ColumnInfo("C", "TermC")
                 });
             var invalidData = ComponentCreation.CreateDataView(Env, xydata);
             var validFitNotValidTransformData = ComponentCreation.CreateDataView(Env, stringData);
@@ -117,9 +117,9 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
+                    new TermTransformer.ColumnInfo("A", "TermA"),
+                    new TermTransformer.ColumnInfo("B", "TermB"),
+                    new TermTransformer.ColumnInfo("C", "TermC")
                 });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                    new TermTransform.ColumnInfo("Term" ,"T") });
+                    new TermTransformer.ColumnInfo("Term" ,"T") });
                     
             var termTransformer = termEst.Fit(dataView);
             var result = termTransformer.Transform(dataView);

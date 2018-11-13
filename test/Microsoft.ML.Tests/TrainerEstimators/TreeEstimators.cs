@@ -204,7 +204,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipeline, data) = GetMultiClassPipeline();
 
             pipeline.Append(new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; }))
-                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
+                    .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
             Done();

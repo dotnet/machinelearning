@@ -151,7 +151,7 @@ namespace Microsoft.ML.Transforms.Text
             view = NgramHashExtractorTransform.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
-            return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.ToArray());
+            return SelectColumnsTransformer.CreateDrop(h, view, tmpColNames.ToArray());
         }
     }
 
@@ -316,9 +316,9 @@ namespace Microsoft.ML.Transforms.Text
             // bits (to minimize collisions) is applied first, followed by an NgramHashTransform.
             IDataView view = input;
 
-            List<TermTransform.Column> termCols = null;
+            List<TermTransformer.Column> termCols = null;
             if (termLoaderArgs != null)
-                termCols = new List<TermTransform.Column>();
+                termCols = new List<TermTransformer.Column>();
             var hashColumns = new List<HashTransformer.Column>();
             var ngramHashColumns = new NgramHashTransform.Column[args.Column.Length];
 
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (termLoaderArgs != null)
                     {
                         termCols.Add(
-                            new TermTransform.Column
+                            new TermTransformer.Column
                             {
                                 Name = tmpName,
                                 Source = column.Source[isrc]
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 h.Assert(Utils.Size(termCols) == hashColumns.Count);
                 var termArgs =
-                    new TermTransform.Arguments()
+                    new TermTransformer.Arguments()
                     {
                         MaxNumTerms = int.MaxValue,
                         Terms = termLoaderArgs.Terms,
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Transforms.Text
                         Sort = termLoaderArgs.Sort,
                         Column = termCols.ToArray()
                     };
-                view = TermTransform.Create(h, termArgs, view);
+                view = TermTransformer.Create(h, termArgs, view);
 
                 if (termLoaderArgs.DropUnknowns)
                 {
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms.Text
                 };
 
             view = new NgramHashTransform(h, ngramHashArgs, view);
-            return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
+            return SelectColumnsTransformer.CreateDrop(h, view, tmpColNames.SelectMany(cols => cols).ToArray());
         }
 
         public static IDataTransform Create(NgramHashExtractorArguments extractorArgs, IHostEnvironment env, IDataView input,

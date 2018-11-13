@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = _env.Start("save"))
             {
                 IDataView savedData = TakeFilter.Create(_env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransform.CreateKeep(_env, savedData, new[] { "pca" });
+                savedData = SelectColumnsTransformer.CreateKeep(_env, savedData, new[] { "pca" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, _saver, savedData, fs, keepHidden: true);

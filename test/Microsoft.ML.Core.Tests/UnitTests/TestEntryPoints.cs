@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
+                individualScores[i] = SelectColumnsTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -763,15 +763,15 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = TermTransform.Create(Env, new TermTransform.Arguments()
+                data = TermTransformer.Create(Env, new TermTransformer.Arguments()
                 {
                     Column = new[]
                     {
-                        new TermTransform.Column()
+                        new TermTransformer.Column()
                         {
                             Name = "Label",
                             Source = "Label",
-                            Sort = TermTransform.SortOrder.Value
+                            Sort = TermTransformer.SortOrder.Value
                         }
                     }
                 }, data);

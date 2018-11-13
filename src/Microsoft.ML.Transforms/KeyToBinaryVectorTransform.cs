@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Conversions
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
                 ShortName = "col", SortOrder = 1)]
-            public KeyToVectorTransform.Column[] Column;
+            public KeyToVectorMappingTransformer.Column[] Column;
         }
         public class ColumnInfo
         {

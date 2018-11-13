@@ -549,7 +549,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
     public static class TreeEnsembleFeaturizerTransform
     {
-        public sealed class Arguments : TrainAndScoreTransform.ArgumentsBase
+        public sealed class Arguments : TrainAndScoreTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTreeEnsembleTrainer))]
             public IComponentFactory<ITrainer> Trainer;
@@ -646,7 +646,7 @@ namespace Microsoft.ML.Runtime.Data
                         ModelLoadContext.LoadModel<IPredictor, SignatureLoadModel>(host, out predictor, rep, ModelFileUtils.DirPredictor);
 
                     ch.Trace("Creating scorer");
-                    var data = TrainAndScoreTransform.CreateDataFromArgs(ch, input, args);
+                    var data = TrainAndScoreTransformer.CreateDataFromArgs(ch, input, args);
 
                     // Make sure that the given predictor has the correct number of input features.
                     if (predictor is CalibratedPredictorBase)
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     ch.Trace("Creating TrainAndScoreTransform");
 
-                    var trainScoreArgs = new TrainAndScoreTransform.Arguments();
+                    var trainScoreArgs = new TrainAndScoreTransformer.Arguments();
                     args.CopyTo(trainScoreArgs);
                     trainScoreArgs.Trainer = args.Trainer;
 
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Runtime.Data
                             (e, predictor) => new TreeEnsembleFeaturizerBindableMapper(e, scorerArgs, predictor));
 
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
-                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput, mapperFactory);
+                    var scoreXf = TrainAndScoreTransformer.Create(host, trainScoreArgs, labelInput, mapperFactory);
 
                     if (input == labelInput)
                         return scoreXf;

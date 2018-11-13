@@ -20,18 +20,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform),
-    typeof(TermTransform.Arguments), typeof(SignatureDataTransform),
-    TermTransform.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
+[assembly: LoadableClass(TermTransformer.Summary, typeof(IDataTransform), typeof(TermTransformer),
+    typeof(TermTransformer.Arguments), typeof(SignatureDataTransform),
+    TermTransformer.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform), null, typeof(SignatureLoadDataTransform),
-    TermTransform.UserName, TermTransform.LoaderSignature)]
+[assembly: LoadableClass(TermTransformer.Summary, typeof(IDataTransform), typeof(TermTransformer), null, typeof(SignatureLoadDataTransform),
+    TermTransformer.UserName, TermTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(TermTransform), null, typeof(SignatureLoadModel),
-    TermTransform.UserName, TermTransform.LoaderSignature)]
+[assembly: LoadableClass(TermTransformer.Summary, typeof(TermTransformer), null, typeof(SignatureLoadModel),
+    TermTransformer.UserName, TermTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransform), null, typeof(SignatureLoadRowMapper),
-    TermTransform.UserName, TermTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransformer), null, typeof(SignatureLoadRowMapper),
+    TermTransformer.UserName, TermTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.Categorical
     // * The Key value is the one-based index of the item in the dictionary.
     // * Not found is assigned the value zero.
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
-    public sealed partial class TermTransform : OneToOneTransformerBase
+    public sealed partial class TermTransformer : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(TermTransformer).Assembly.FullName);
         }
 
         private const uint VerNonTextTypesSupported = 0x00010003;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: TermManagerLoaderSignature,
-                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(TermTransformer).Assembly.FullName);
         }
 
         private readonly TermMap[] _unboundMaps;
@@ -264,12 +264,12 @@ namespace Microsoft.ML.Transforms.Categorical
             return infos;
         }
 
-        public TermTransform(IHostEnvironment env, IDataView input,
+        public TermTransformer(IHostEnvironment env, IDataView input,
             params ColumnInfo[] columns) :
             this(env, input, columns, null, null, null)
         { }
 
-        internal TermTransform(IHostEnvironment env, IDataView input,
+        internal TermTransformer(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
@@ -324,11 +324,11 @@ namespace Microsoft.ML.Transforms.Categorical
                     cols[i].Terms = item.Terms ?? args.Terms;
                 };
             }
-            return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
+            return new TermTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static TermTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -336,10 +336,10 @@ namespace Microsoft.ML.Transforms.Categorical
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new TermTransform(host, ctx);
+            return new TermTransformer(host, ctx);
         }
 
-        private TermTransform(IHost host, ModelLoadContext ctx)
+        private TermTransformer(IHost host, ModelLoadContext ctx)
            : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Categorical
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="TermTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms.Categorical
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
             int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort) =>
-            new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
+            new TermTransformer(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly ColumnType[] _types;
-            private readonly TermTransform _parent;
+            private readonly TermTransformer _parent;
             private readonly ColInfo[] _infos;
 
             private readonly BoundTermMap[] _termMap;
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             public bool CanSavePfa => true;
 
-            public Mapper(TermTransform parent, Schema inputSchema)
+            public Mapper(TermTransformer parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;

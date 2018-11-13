@@ -45,13 +45,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             data = new ValueToKeyMappingEstimator(Env, new[] {
-                new TermTransform.ColumnInfo("ScalarString", "A"),
-                new TermTransform.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
+                new TermTransformer.ColumnInfo("ScalarString", "A"),
+                new TermTransformer.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
 
             var badData1 = new CopyColumnsTransform(Env, ("BareKey", "A")).Transform(data);
             var badData2 = new CopyColumnsTransform(Env, ("VectorString", "B")).Transform(data);
 
-            var est = new KeyToValueEstimator(Env, ("A", "A_back"), ("B", "B_back"));
+            var est = new KeyToValueMappingEstimator(Env, ("A", "A_back"), ("B", "B_back"));
             TestEstimatorCore(est, data, invalidInput: badData1);
             TestEstimatorCore(est, data, invalidInput: badData2);
 
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new TermTransform.ColumnInfo("ScalarString", "A"),
-                new TermTransform.ColumnInfo("VectorString", "B") })
+                new TermTransformer.ColumnInfo("ScalarString", "A"),
+                new TermTransformer.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -98,8 +98,8 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
 
             // Check that term and ToValue are round-trippable.
-            var dataLeft = SelectColumnsTransform.CreateKeep(Env, data.AsDynamic, new[] { "ScalarString", "VectorString" });
-            var dataRight = SelectColumnsTransform.CreateKeep(Env, est.Fit(data2).Transform(data2).AsDynamic, new[] { "ScalarString", "VectorString" });
+            var dataLeft = SelectColumnsTransformer.CreateKeep(Env, data.AsDynamic, new[] { "ScalarString", "VectorString" });
+            var dataRight = SelectColumnsTransformer.CreateKeep(Env, est.Fit(data2).Transform(data2).AsDynamic, new[] { "ScalarString", "VectorString" });
 
             CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
             CheckSameValues(dataLeft, dataRight);
