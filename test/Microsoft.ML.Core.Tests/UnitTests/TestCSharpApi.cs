@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var nopOutput = subGraph.Add(nop);
 
                 var generate = new Legacy.Transforms.RandomNumberGenerator();
-                generate.Column = new[] { new Legacy.Transforms.GenerateNumberTransformColumn() { Name = "Weight1" } };
+                generate.Column = new[] { new Legacy.Transforms.GenerateNumberTransformerColumn() { Name = "Weight1" } };
                 generate.Data = nopOutput.OutputData;
                 var generateOutput = subGraph.Add(generate);
 
