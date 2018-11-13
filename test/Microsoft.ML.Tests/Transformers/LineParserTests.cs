@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Transformers
@@ -23,7 +22,7 @@ namespace Microsoft.ML.Tests.Transformers
         [MemberData(nameof(ValidInputs))]
         public void WhenProvidedAValidInputParserParsesKeyAndValues(string input, string expectedKey, float[] expectedValues)
         {
-            var result = Transforms.Text.LineParser.ParseKeyThenNumbers(input);
+            var result = LineParser.ParseKeyThenNumbers(input);
 
             Assert.True(result.isSuccess);
             Assert.Equal(expectedKey, result.key);
@@ -35,7 +34,7 @@ namespace Microsoft.ML.Tests.Transformers
         [InlineData("key 0.1 NOT_A_NUMBER")] // invalid number
         public void WhenProvidedAnInvalidInputParserReturnsFailure(string input)
         {
-            Assert.False(Transforms.Text.LineParser.ParseKeyThenNumbers(input).isSuccess);
+            Assert.False(LineParser.ParseKeyThenNumbers(input).isSuccess);
         }
     }
 }

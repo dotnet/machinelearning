@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.Text
 
             _modelKind = modelKind;
             _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (PretrainedModelKind)_modelKind);
-            _currentVocab = GetVocabularyDictionary();
+            _currentVocab = GetVocabularyDictionary(env);
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Text
             _modelKind = null;
             _customLookup = true;
             _modelFileNameWithPath = customModelFile;
-            _currentVocab = GetVocabularyDictionary();
+            _currentVocab = GetVocabularyDictionary(env);
         }
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Transforms.Text
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
-            _currentVocab = GetVocabularyDictionary();
+            _currentVocab = GetVocabularyDictionary(host);
         }
 
         public static WordEmbeddingsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Transforms.Text
             throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
         }
 
-        private Model GetVocabularyDictionary()
+        private Model GetVocabularyDictionary(IHostEnvironment hostEnvironment)
         {
             int dimension = 0;
             if (!File.Exists(_modelFileNameWithPath))
@@ -731,7 +731,7 @@ namespace Microsoft.ML.Transforms.Text
                     var parsedData = new ConcurrentBag<(string key, float[] values, long lineNumber)>();
                     int skippedLinesCount = Math.Max(1, _linesToSkip);
 
-                    Parallel.ForEach(File.ReadLines(_modelFileNameWithPath).Skip(skippedLinesCount),
+                    Parallel.ForEach(File.ReadLines(_modelFileNameWithPath).Skip(skippedLinesCount), GetParallelOptions(hostEnvironment),
                         (line, parallelState, lineNumber) =>
                         {
                             (bool isSuccess, string key, float[] values) = LineParser.ParseKeyThenNumbers(line);
@@ -773,6 +773,15 @@ namespace Microsoft.ML.Transforms.Text
                     return model;
                 }
             }
+        }
+
+        private static ParallelOptions GetParallelOptions(IHostEnvironment hostEnvironment)
+        {
+            //  "Less than 1 means whatever the component views as ideal." (about ConcurrencyFactor)
+            if (hostEnvironment.ConcurrencyFactor < 1)
+                return new ParallelOptions(); // we provide default options and let the Parallel decide
+            else
+                return new ParallelOptions() { MaxDegreeOfParallelism = hostEnvironment.ConcurrencyFactor };
         }
     }
 

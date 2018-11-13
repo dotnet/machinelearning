@@ -11,7 +11,6 @@ using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Categorical;
 using System.IO;
-using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
