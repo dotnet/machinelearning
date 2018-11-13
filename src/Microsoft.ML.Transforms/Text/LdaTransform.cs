@@ -338,7 +338,17 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class LdaState : IDisposable
+        public class LdaTopicSummary
+        {
+            public Dictionary<int, KeyValuePair<int, float>[]> SummaryVectorPerTopic;
+
+            internal LdaTopicSummary()
+            {
+                SummaryVectorPerTopic = new Dictionary<int, KeyValuePair<int, float>[]>();
+            }
+        }
+
+        internal sealed class LdaState : IDisposable
         {
             internal readonly ColumnInfo InfoEx;
             private readonly int _numVocab;
@@ -442,6 +452,19 @@ namespace Microsoft.ML.Transforms.Text
                     _ldaTrainer.InitializeBeforeTest();
                     _predictionPreparationDone = true;
                 }
+            }
+
+            internal LdaTopicSummary GetTopicSummary()
+            {
+                var topicSummary = new LdaTopicSummary();
+
+                for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                {
+                    var summaryVector = _ldaTrainer.GetTopicSummary(i);
+                    topicSummary.SummaryVectorPerTopic.Add(i, summaryVector);
+                }
+
+                return topicSummary;
             }
 
             public void Save(ModelSaveContext ctx)
@@ -791,10 +814,12 @@ namespace Microsoft.ML.Transforms.Text
             Dispose(false);
         }
 
-        public LdaState GetLdaState(int iinfo)
+        internal LdaTopicSummary GetLdaTopicSummary(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
-            return _ldas[iinfo];
+
+            var ldaState = _ldas[iinfo];
+            return ldaState.GetTopicSummary();
         }
 
         // Factory method for SignatureLoadDataTransform.

@@ -679,20 +679,20 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             // This will be populated once we call fit.
-            LdaState ldaState;
+            LdaTopicSummary ldaTopicSummary;
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 5, numSummaryTermPerTopic:3, alphaSum: 10, onFit: m => ldaState = m.LdaState )));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaTopicSummary = m.LdaTopicSummary)));
 
             var tdata = est.Fit(data).Transform(data);
-            var schema = tdata.AsDynamic.Schema;
 
+            var schema = tdata.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
-}
+        }
 
         [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
         public void FeatureSelection()
