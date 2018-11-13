@@ -14,6 +14,8 @@ using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -333,7 +335,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var unigrams = transformedData.GetColumn<float[]>(mlContext, "BagOfWords").Take(10).ToArray();
         }
 
-        [Fact (Skip = "This test is running for one minute")]
+        [Fact(Skip = "This test is running for one minute")]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
@@ -458,7 +460,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
             Console.WriteLine(microAccuracies.Average());
         }
- 
+
         [Fact]
         public void ReadData()
         {
@@ -483,6 +485,99 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = reader.Read(dataPath);
+        }
+
+        // Define a class for all the input columns that we intend to consume.
+        public class InputRow
+        {
+            public float Income { get; set; }
+        }
+
+        // Define a class for all output columns that we intend to produce.
+        public class OutputRow
+        {
+            public bool Label { get; set; }
+        }
+
+        [Fact]
+        public void CustomTransformer()
+        {
+            var mlContext = new MLContext();
+            var data = mlContext.Data.ReadFromTextFile(new[]
+            {
+                new TextLoader.Column("Income", DataKind.R4, 2),
+                new TextLoader.Column("Features", DataKind.R4, 10, 12)
+            }, GetDataPath("adult.train"), s => { s.Separator = ","; s.HasHeader = true; });
+
+            PrepareData(mlContext, data);
+            TrainModel(mlContext, data);
+
+            RunEndToEnd(mlContext, data, DeleteOutputPath("custom-model.zip"));
+        }
+
+        /// <summary>
+        /// One class that contains all custom mappings that we need for our model.
+        /// </summary>
+        public class CustomMappings
+        {
+            // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+            public static void IncomeMapping(InputRow input, OutputRow output) => output.Label = input.Income > 50000;
+
+            // MLContext is needed to create a new transformer. We are using 'Import' to have ML.NET populate
+            // this property.
+            [Import]
+            public MLContext MLContext { get; set; }
+
+            // We are exporting the custom transformer by the name 'IncomeMapping'.
+            [Export(nameof(IncomeMapping))]
+            public ITransformer MyCustomTransformer 
+                => MLContext.Transforms.CustomMappingTransformer<InputRow, OutputRow>(IncomeMapping, nameof(IncomeMapping));
+        }
+
+        private static void RunEndToEnd(MLContext mlContext, IDataView trainData, string modelPath)
+        {
+            // Construct the learning pipeline. Note that we are now providing a contract name for the custom mapping:
+            // otherwise we will not be able to save the model.
+            var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+
+            // Train the model.
+            var model = estimator.Fit(trainData);
+
+            // Save the model.
+            using (var fs = File.Create(modelPath))
+                mlContext.Model.Save(model, fs);
+
+            // Now pretend we are in a different process.
+            var newContext = new MLContext();
+
+            // Create a custom composition container for all our custom mapping actions.
+            newContext.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(CustomMappings)));
+
+            // Now we can load the model.
+            ITransformer loadedModel;
+            using (var fs = File.OpenRead(modelPath))
+                loadedModel = newContext.Model.Load(fs);
+        }
+
+        public static IDataView PrepareData(MLContext mlContext, IDataView data)
+        {
+            // Define the operation code.
+            Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
+            // Make a custom transformer and transform the data.
+            var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
+            return transformer.Transform(data);
+        }
+
+        public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
+        {
+            // Define the custom operation.
+            Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
+            // Construct the learning pipeline.
+            var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+                .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+
+            return estimator.Fit(trainData);
         }
 
         private class CustomerChurnInfo
