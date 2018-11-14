@@ -26,6 +26,14 @@ namespace Microsoft.ML.Runtime
         public RoleMappedData ValidationSet { get; }
 
         /// <summary>
+        /// The test set, whose uses are very similar to validation set but it should not directly and indirectly
+        /// affect the training process. One major difference between validation set and test test is that validation
+        /// can affect the training process by, for example, early stopping. Note that early stopping is a technique
+        /// which terminates the training process once the scores computed on validation set starts getting worse.
+        /// </summary>
+        public RoleMappedData TestSet { get; }
+
+        /// <summary>
         /// The initial predictor, for incremental training. Note that if a <see cref="ITrainer"/> implementor
         /// does not support incremental training, then it can ignore it similarly to how one would ignore
         /// <see cref="ValidationSet"/>. However, if the trainer does support incremental training and there
@@ -38,8 +46,9 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         /// <param name="trainingSet">Will set <see cref="TrainingSet"/> to this value. This must be specified</param>
         /// <param name="validationSet">Will set <see cref="ValidationSet"/> to this value if specified</param>
+        /// <param name="testSet">Will set <see cref="TestSet"/> to this value if specified</param>
         /// <param name="initialPredictor">Will set <see cref="InitialPredictor"/> to this value if specified</param>
-        public TrainContext(RoleMappedData trainingSet, RoleMappedData validationSet = null, IPredictor initialPredictor = null)
+        public TrainContext(RoleMappedData trainingSet, RoleMappedData validationSet = null, RoleMappedData testSet = null, IPredictor initialPredictor = null)
         {
             Contracts.CheckValue(trainingSet, nameof(trainingSet));
             Contracts.CheckValueOrNull(validationSet);
@@ -50,6 +59,7 @@ namespace Microsoft.ML.Runtime
 
             TrainingSet = trainingSet;
             ValidationSet = validationSet;
+            TestSet = testSet;
             InitialPredictor = initialPredictor;
         }
     }
