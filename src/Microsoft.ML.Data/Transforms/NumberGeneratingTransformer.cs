@@ -13,11 +13,11 @@ using System;
 using System.Collections.Generic;
 using Float = System.Single;
 
-[assembly: LoadableClass(GenerateNumberTransformer.Summary, typeof(GenerateNumberTransformer), typeof(GenerateNumberTransformer.Arguments), typeof(SignatureDataTransform),
-    GenerateNumberTransformer.UserName, GenerateNumberTransformer.LoadName, "GenerateNumber", GenerateNumberTransformer.ShortName)]
+[assembly: LoadableClass(NumberGeneratingTransformer.Summary, typeof(NumberGeneratingTransformer), typeof(NumberGeneratingTransformer.Arguments), typeof(SignatureDataTransform),
+    NumberGeneratingTransformer.UserName, NumberGeneratingTransformer.LoadName, "GenerateNumber", NumberGeneratingTransformer.ShortName)]
 
-[assembly: LoadableClass(GenerateNumberTransformer.Summary, typeof(GenerateNumberTransformer), null, typeof(SignatureLoadDataTransform),
-    GenerateNumberTransformer.UserName, GenerateNumberTransformer.LoaderSignature)]
+[assembly: LoadableClass(NumberGeneratingTransformer.Summary, typeof(NumberGeneratingTransformer), null, typeof(SignatureLoadDataTransform),
+    NumberGeneratingTransformer.UserName, NumberGeneratingTransformer.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(RandomNumberGenerator))]
 
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Transforms
     /// It will be used in conjunction with a filter transform to create random
     /// partitions of the data, used in cross validation.
     /// </summary>
-    public sealed class GenerateNumberTransformer : RowToRowTransformBase
+    public sealed class NumberGeneratingTransformer : RowToRowTransformBase
     {
         public sealed class Column
         {
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(GenerateNumberTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(NumberGeneratingTransformer).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
@@ -264,7 +264,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="useCounter">Use an auto-incremented integer starting at zero instead of a random number.</param>
-        public GenerateNumberTransformer(IHostEnvironment env, IDataView input, string name, bool useCounter = Defaults.UseCounter)
+        public NumberGeneratingTransformer(IHostEnvironment env, IDataView input, string name, bool useCounter = Defaults.UseCounter)
             : this(env, new Arguments() { Column = new[] { new Column() { Name = name } }, UseCounter = useCounter }, input)
         {
         }
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public GenerateNumberTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        public NumberGeneratingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Transforms
             _bindings = Bindings.Create(args, Source.Schema);
         }
 
-        private GenerateNumberTransformer(IHost host, ModelLoadContext ctx, IDataView input)
+        private NumberGeneratingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             Host.AssertValue(ctx);
@@ -294,14 +294,14 @@ namespace Microsoft.ML.Transforms
             _bindings = Bindings.Create(ctx, Source.Schema);
         }
 
-        public static GenerateNumberTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static NumberGeneratingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new GenerateNumberTransformer(h, ctx, input));
+            return h.Apply("Loading Model", ch => new NumberGeneratingTransformer(h, ctx, input));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -465,11 +465,11 @@ namespace Microsoft.ML.Transforms
 
     public static class RandomNumberGenerator
     {
-        [TlcModule.EntryPoint(Name = "Transforms.RandomNumberGenerator", Desc = GenerateNumberTransformer.Summary, UserName = GenerateNumberTransformer.UserName, ShortName = GenerateNumberTransformer.ShortName)]
-        public static CommonOutputs.TransformOutput Generate(IHostEnvironment env, GenerateNumberTransformer.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.RandomNumberGenerator", Desc = NumberGeneratingTransformer.Summary, UserName = NumberGeneratingTransformer.UserName, ShortName = NumberGeneratingTransformer.ShortName)]
+        public static CommonOutputs.TransformOutput Generate(IHostEnvironment env, NumberGeneratingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "GenerateNumber", input);
-            var xf = new GenerateNumberTransformer(h, input, input.Data);
+            var xf = new NumberGeneratingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

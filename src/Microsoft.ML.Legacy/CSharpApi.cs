@@ -11412,7 +11412,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class CharacterTokenizingTransformerColumn : OneToOneColumn<CharacterTokenizingTransformerColumn>, IOneToOneColumn
+        public sealed partial class TokenizingByCharactersTransformerColumn : OneToOneColumn<TokenizingByCharactersTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11458,15 +11458,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharacterTokenizingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11474,7 +11474,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CharacterTokenizingTransformerColumn[] Column { get; set; }
+            public TokenizingByCharactersTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)
@@ -15953,7 +15953,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class GenerateNumberTransformerColumn
+        public sealed partial class NumberGeneratingTransformerColumn
         {
             /// <summary>
             /// Name of the new column
@@ -15982,7 +15982,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:seed)
             /// </summary>
-            public GenerateNumberTransformerColumn[] Column { get; set; }
+            public NumberGeneratingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Use an auto-incremented integer starting at zero instead of a random number

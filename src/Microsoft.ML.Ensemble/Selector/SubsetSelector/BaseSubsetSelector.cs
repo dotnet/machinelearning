@@ -71,10 +71,10 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
                 {
                     // Split the data into train and test sets.
                     string name = Data.Data.Schema.GetTempColumnName();
-                    var args = new GenerateNumberTransformer.Arguments();
-                    args.Column = new[] { new GenerateNumberTransformer.Column() { Name = name } };
+                    var args = new NumberGeneratingTransformer.Arguments();
+                    args.Column = new[] { new NumberGeneratingTransformer.Column() { Name = name } };
                     args.Seed = (uint)rand.Next();
-                    var view = new GenerateNumberTransformer(Host, args, Data.Data);
+                    var view = new NumberGeneratingTransformer(Host, args, Data.Data);
                     var viewTest = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion }, view);
                     var viewTrain = new RangeFilter(Host, new RangeFilter.Arguments() { Column = name, Max = ValidationDatasetProportion, Complement = true }, view);
                     dataTest = new RoleMappedData(viewTest, Data.Schema.GetColumnRoleNames());

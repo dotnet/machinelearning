@@ -225,10 +225,10 @@ namespace Microsoft.ML.Runtime.Data
             // Maml always outputs a name column, if it doesn't exist add a GenerateNumberTransform.
             if (perInst.Schema.Name == null)
             {
-                var args = new GenerateNumberTransformer.Arguments();
-                args.Column = new[] { new GenerateNumberTransformer.Column() { Name = "Instance" } };
+                var args = new NumberGeneratingTransformer.Arguments();
+                args.Column = new[] { new NumberGeneratingTransformer.Column() { Name = "Instance" } };
                 args.UseCounter = true;
-                idv = new GenerateNumberTransformer(Host, args, idv);
+                idv = new NumberGeneratingTransformer(Host, args, idv);
                 colsToKeep.Add("Instance");
             }
             else

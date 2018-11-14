@@ -13,13 +13,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-[assembly: LoadableClass(CountFeatureSelectionTransformer.Summary, typeof(IDataTransform), typeof(CountFeatureSelectionTransformer), typeof(CountFeatureSelectionTransformer.Arguments), typeof(SignatureDataTransform),
-    CountFeatureSelectionTransformer.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
+[assembly: LoadableClass(CountFeatureSelectingTransformer.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingTransformer), typeof(CountFeatureSelectingTransformer.Arguments), typeof(SignatureDataTransform),
+    CountFeatureSelectingTransformer.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-    public static class CountFeatureSelectionTransformer
+    public static class CountFeatureSelectingTransformer
     {
         internal const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
         internal const string UserName = "Count Feature Selection Transform";
@@ -89,13 +89,13 @@ namespace Microsoft.ML.Transforms
                     ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], args.Column[i]);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
-                var dsArgs = new DropSlotsTransformer.Arguments();
+                var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                return new DropSlotsTransformer(host, dsArgs, input);
+                return new DropSlotsTransform(host, dsArgs, input);
             }
         }
 
-        private static List<DropSlotsTransformer.Column> CreateDropSlotsColumns(Arguments args, int size, long[][] scores, out int[] selectedCount)
+        private static List<DropSlotsTransform.Column> CreateDropSlotsColumns(Arguments args, int size, long[][] scores, out int[] selectedCount)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
@@ -103,12 +103,12 @@ namespace Microsoft.ML.Transforms
             Contracts.Assert(Utils.Size(args.Column) == size);
 
             selectedCount = new int[scores.Length];
-            var columns = new List<DropSlotsTransformer.Column>();
+            var columns = new List<DropSlotsTransform.Column>();
             for (int i = 0; i < size; i++)
             {
-                var col = new DropSlotsTransformer.Column();
+                var col = new DropSlotsTransform.Column();
                 col.Source = args.Column[i];
-                var slots = new List<DropSlotsTransformer.Range>();
+                var slots = new List<DropSlotsTransform.Range>();
                 var score = scores[i];
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
                     if (score[j] < args.Count)
                     {
                         // Adjacent slots are combined into a single range.
-                        var range = new DropSlotsTransformer.Range();
+                        var range = new DropSlotsTransform.Range();
                         range.Min = j;
                         while (j < score.Length && score[j] < args.Count)
                             j++;
@@ -165,11 +165,11 @@ namespace Microsoft.ML.Transforms
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransformer.Arguments.Column), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingTransformer.Arguments.Column), "Source column '{0}' not found", colName);
 
                 var colType = schema.GetColumnType(colSrc);
                 if (colType.IsVector && !colType.IsKnownSizeVector)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransformer.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(CountFeatureSelectingTransformer.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
                 activeInput[colSrc] = true;
                 colSrcs[i] = colSrc;

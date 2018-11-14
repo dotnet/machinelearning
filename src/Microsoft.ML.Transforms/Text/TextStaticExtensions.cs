@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new CharacterTokenizingEstimator(env, _useMarker, pairs.ToArray());
+                return new TokenizeByCharactersEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 

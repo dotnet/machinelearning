@@ -14,18 +14,18 @@ namespace Microsoft.ML.Transforms
     public static class SelectFeatures
     {
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByCount",
-            Desc = CountFeatureSelectionTransformer.Summary,
-            UserName = CountFeatureSelectionTransformer.UserName,
+            Desc = CountFeatureSelectingTransformer.Summary,
+            UserName = CountFeatureSelectingTransformer.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CountFeatureSelection""]/*'/>",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CountFeatureSelection""]/*'/>"})]
-        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectionTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CountSelect(IHostEnvironment env, CountFeatureSelectingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CountSelect");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = CountFeatureSelectionTransformer.Create(host, input, input.Data);
+            var xf = CountFeatureSelectingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

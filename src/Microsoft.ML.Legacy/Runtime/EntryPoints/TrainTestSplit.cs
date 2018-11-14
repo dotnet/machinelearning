@@ -83,10 +83,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // of it to construct the strat column, otherwise generate a random number and use it.
             if (stratificationColumn == null)
             {
-                data = new GenerateNumberTransformer(host,
-                    new GenerateNumberTransformer.Arguments
+                data = new NumberGeneratingTransformer(host,
+                    new NumberGeneratingTransformer.Arguments
                     {
-                        Column = new[] { new GenerateNumberTransformer.Column { Name = stratCol } }
+                        Column = new[] { new NumberGeneratingTransformer.Column { Name = stratCol } }
                     }, data);
             }
             else

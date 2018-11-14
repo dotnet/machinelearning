@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML
 {
-    using CharTokenizingDefaults = CharacterTokenizingEstimator.Defaults;
+    using CharTokenizingDefaults = TokenizeByCharactersEstimator.Defaults;
     using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
     public static class TextCatalog
@@ -57,11 +57,11 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static CharacterTokenizingEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizeByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters)
-            => new CharacterTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+            => new TokenizeByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 useMarkerCharacters, new[] { (inputColumn, outputColumn) });
 
         /// <summary>
@@ -71,10 +71,10 @@ namespace Microsoft.ML
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static CharacterTokenizingEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizeByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params (string inputColumn, string outputColumn)[] columns)
-            => new CharacterTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, columns);
+            => new TokenizeByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, columns);
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers

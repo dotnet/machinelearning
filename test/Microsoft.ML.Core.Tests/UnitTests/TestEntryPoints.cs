@@ -1031,11 +1031,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
                 else
                 {
-                    data = WordHashBagTransform.Create(Env,
-                        new WordHashBagTransform.Arguments()
+                    data = WordHashBagProducingTransformer.Create(Env,
+                        new WordHashBagProducingTransformer.Arguments()
                         {
                             Column =
-                                new[] { new WordHashBagTransform.Column() { Name = "Features", Source = new[] { "Text" } }, }
+                                new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
                         },
                         data);
                 }

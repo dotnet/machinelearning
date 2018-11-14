@@ -167,9 +167,9 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordBagTransform.Arguments
+            var args = new WordBagProducingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordBagTransform.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new WordBagProducingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
                 AllLengths = _allLengths,
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Transforms.Text
                 Weighting = _weighting
             };
 
-            return new TransformWrapper(Host, WordBagTransform.Create(Host, args, input));
+            return new TransformWrapper(Host, WordBagProducingTransformer.Create(Host, args, input));
         }
     }
 
@@ -295,9 +295,9 @@ namespace Microsoft.ML.Transforms.Text
         public override TransformWrapper Fit(IDataView input)
         {
             // Create arguments.
-            var args = new WordHashBagTransform.Arguments
+            var args = new WordHashBagProducingTransformer.Arguments
             {
-                Column = _columns.Select(x => new WordHashBagTransform.Column { Source = x.inputs, Name = x.output }).ToArray(),
+                Column = _columns.Select(x => new WordHashBagProducingTransformer.Column { Source = x.inputs, Name = x.output }).ToArray(),
                 HashBits = _hashBits,
                 NgramLength = _ngramLength,
                 SkipLength = _skipLength,
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Text
                 InvertHash = _invertHash
             };
 
-            return new TransformWrapper(Host, WordHashBagTransform.Create(Host, args, input));
+            return new TransformWrapper(Host, WordHashBagProducingTransformer.Create(Host, args, input));
         }
     }
 

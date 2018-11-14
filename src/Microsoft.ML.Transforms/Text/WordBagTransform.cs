@@ -14,13 +14,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(WordBagProducingTransformer.Summary, typeof(IDataTransform), typeof(WordBagProducingTransformer), typeof(WordBagProducingTransformer.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
 
-[assembly: LoadableClass(NgramExtractorTransform.Summary, typeof(INgramExtractorFactory), typeof(NgramExtractorTransform), typeof(NgramExtractorTransform.NgramExtractorArguments),
-    typeof(SignatureNgramExtractorFactory), "Ngram Extractor Transform", "NgramExtractorTransform", "Ngram", NgramExtractorTransform.LoaderSignature)]
+[assembly: LoadableClass(NgramExtractingTransformer.Summary, typeof(INgramExtractorFactory), typeof(NgramExtractingTransformer), typeof(NgramExtractingTransformer.NgramExtractorArguments),
+    typeof(SignatureNgramExtractorFactory), "Ngram Extractor Transform", "NgramExtractorTransform", "Ngram", NgramExtractingTransformer.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(NgramExtractorTransform.NgramExtractorArguments))]
+[assembly: EntryPointModule(typeof(NgramExtractingTransformer.NgramExtractorArguments))]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -30,8 +30,8 @@ namespace Microsoft.ML.Transforms.Text
     public delegate void SignatureNgramExtractorFactory(TermLoaderArguments termLoaderArgs);
 
     /// <summary>
-    /// A many-to-one column common to both <see cref="NgramExtractorTransform"/>
-    /// and <see cref="NgramHashExtractorTransform"/>.
+    /// A many-to-one column common to both <see cref="NgramExtractingTransformer"/>
+    /// and <see cref="NgramHashExtractingTransformer"/>.
     /// </summary>
     public sealed class ExtractorColumn : ManyToOneColumn
     {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.Text
         public string[] FriendlyNames;
     }
 
-    public static class WordBagTransform
+    public static class WordBagProducingTransformer
     {
         public sealed class Column : ManyToOneColumn
         {
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public sealed class TokenizeColumn : OneToOneColumn { }
 
-        public sealed class Arguments : NgramExtractorTransform.ArgumentsBase
+        public sealed class Arguments : NgramExtractingTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
@@ -127,14 +127,14 @@ namespace Microsoft.ML.Transforms.Text
             var tokenizeColumns = new WordTokenizingTransformer.ColumnInfo[args.Column.Length];
 
             var extractorArgs =
-                new NgramExtractorTransform.Arguments()
+                new NgramExtractingTransformer.Arguments()
                 {
                     MaxNumTerms = args.MaxNumTerms,
                     NgramLength = args.NgramLength,
                     SkipLength = args.SkipLength,
                     AllLengths = args.AllLengths,
                     Weighting = args.Weighting,
-                    Column = new NgramExtractorTransform.Column[args.Column.Length]
+                    Column = new NgramExtractingTransformer.Column[args.Column.Length]
                 };
 
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms.Text
                 tokenizeColumns[iinfo] = new WordTokenizingTransformer.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
-                    new NgramExtractorTransform.Column()
+                    new NgramExtractingTransformer.Column()
                     {
                         Name = column.Name,
                         Source = column.Name,
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Transforms.Text
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
             view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
-            return NgramExtractorTransform.Create(h, extractorArgs, view);
+            return NgramExtractingTransformer.Create(h, extractorArgs, view);
         }
     }
 
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Transforms.Text
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
-    public static class NgramExtractorTransform
+    public static class NgramExtractingTransformer
     {
         public sealed class Column : OneToOneColumn
         {
@@ -470,16 +470,16 @@ namespace Microsoft.ML.Transforms.Text
     public interface INgramExtractorFactoryFactory : IComponentFactory<TermLoaderArguments, INgramExtractorFactory> { }
 
     /// <summary>
-    /// An implementation of <see cref="INgramExtractorFactory"/> to create <see cref="NgramExtractorTransform"/>.
+    /// An implementation of <see cref="INgramExtractorFactory"/> to create <see cref="NgramExtractingTransformer"/>.
     /// </summary>
     internal class NgramExtractorFactory : INgramExtractorFactory
     {
-        private readonly NgramExtractorTransform.NgramExtractorArguments _extractorArgs;
+        private readonly NgramExtractingTransformer.NgramExtractorArguments _extractorArgs;
         private readonly TermLoaderArguments _termLoaderArgs;
 
         public bool UseHashingTrick { get { return false; } }
 
-        public NgramExtractorFactory(NgramExtractorTransform.NgramExtractorArguments extractorArgs,
+        public NgramExtractorFactory(NgramExtractingTransformer.NgramExtractorArguments extractorArgs,
             TermLoaderArguments termLoaderArgs)
         {
             Contracts.CheckValue(extractorArgs, nameof(extractorArgs));
@@ -490,21 +490,21 @@ namespace Microsoft.ML.Transforms.Text
 
         public IDataTransform Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
         {
-            return NgramExtractorTransform.Create(env, _extractorArgs, input, cols, _termLoaderArgs);
+            return NgramExtractingTransformer.Create(env, _extractorArgs, input, cols, _termLoaderArgs);
         }
     }
 
     /// <summary>
-    /// An implementation of <see cref="INgramExtractorFactory"/> to create <see cref="NgramHashExtractorTransform"/>.
+    /// An implementation of <see cref="INgramExtractorFactory"/> to create <see cref="NgramHashExtractingTransformer"/>.
     /// </summary>
     internal class NgramHashExtractorFactory : INgramExtractorFactory
     {
-        private readonly NgramHashExtractorTransform.NgramHashExtractorArguments _extractorArgs;
+        private readonly NgramHashExtractingTransformer.NgramHashExtractorArguments _extractorArgs;
         private readonly TermLoaderArguments _termLoaderArgs;
 
         public bool UseHashingTrick { get { return true; } }
 
-        public NgramHashExtractorFactory(NgramHashExtractorTransform.NgramHashExtractorArguments extractorArgs,
+        public NgramHashExtractorFactory(NgramHashExtractingTransformer.NgramHashExtractorArguments extractorArgs,
             TermLoaderArguments customTermsArgs = null)
         {
             Contracts.CheckValue(extractorArgs, nameof(extractorArgs));
@@ -515,7 +515,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public IDataTransform Create(IHostEnvironment env, IDataView input, ExtractorColumn[] cols)
         {
-            return NgramHashExtractorTransform.Create(_extractorArgs, env, input, cols, _termLoaderArgs);
+            return NgramHashExtractingTransformer.Create(_extractorArgs, env, input, cols, _termLoaderArgs);
         }
     }
 
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Transforms.Text
             var concatCols = new List<ColumnConcatenatingTransformer.Column>();
             foreach (var col in columns)
             {
-                env.CheckUserArg(col != null, nameof(WordBagTransform.Arguments.Column));
+                env.CheckUserArg(col != null, nameof(WordBagProducingTransformer.Arguments.Column));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0, nameof(col.Source));
                 env.CheckUserArg(col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
                 var col = columns[iinfo];
-                env.CheckUserArg(col != null, nameof(WordHashBagTransform.Arguments.Column));
+                env.CheckUserArg(col != null, nameof(WordHashBagProducingTransformer.Arguments.Column));
                 env.CheckUserArg(!string.IsNullOrWhiteSpace(col.Name), nameof(col.Name));
                 env.CheckUserArg(Utils.Size(col.Source) > 0 &&
                               col.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(col.Source));

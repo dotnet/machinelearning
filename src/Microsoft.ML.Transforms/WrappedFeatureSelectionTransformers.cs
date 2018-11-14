@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumn">The input column to apply feature selection on.</param>
         /// <param name="outputColumn">The output column. Null means <paramref name="inputColumn"/> is used.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public CountFeatureSelector(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = CountFeatureSelectionTransformer.Defaults.Count)
+        public CountFeatureSelector(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = CountFeatureSelectingTransformer.Defaults.Count)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, count)
         {
         }
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         /// <param name="columns">Columns to use for feature selection.</param>
-        public CountFeatureSelector(IHostEnvironment env, (string input, string output)[] columns, long count = CountFeatureSelectionTransformer.Defaults.Count)
+        public CountFeatureSelector(IHostEnvironment env, (string input, string output)[] columns, long count = CountFeatureSelectingTransformer.Defaults.Count)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CountFeatureSelector)))
         {
             _count = count;
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms
             var copyColumn = new ColumnsCopyingEstimator(Host, _columns);
             var dataview = copyColumn.Fit(input).Transform(input);
             var names = _columns.Select(x => x.output).ToArray();
-            return new TransformWrapper(Host, CountFeatureSelectionTransformer.Create(Host, dataview, _count, names));
+            return new TransformWrapper(Host, CountFeatureSelectingTransformer.Create(Host, dataview, _count, names));
         }
     }
 
@@ -147,19 +147,19 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
-            long count = CountFeatureSelectionTransformer.Defaults.Count) => new OutPipelineColumn<float>(input, count);
+            long count = CountFeatureSelectingTransformer.Defaults.Count) => new OutPipelineColumn<float>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
-            long count = CountFeatureSelectionTransformer.Defaults.Count) => new OutPipelineColumn<double>(input, count);
+            long count = CountFeatureSelectingTransformer.Defaults.Count) => new OutPipelineColumn<double>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
-            long count = CountFeatureSelectionTransformer.Defaults.Count) => new OutPipelineColumn<string>(input, count);
+            long count = CountFeatureSelectingTransformer.Defaults.Count) => new OutPipelineColumn<string>(input, count);
     }
 
     /// <summary>

@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             return
                 typeof(OneToOneColumn).IsAssignableFrom(arg.ItemType) ||
                 typeof(ManyToOneColumn).IsAssignableFrom(arg.ItemType) ||
-                arg.ItemType == typeof(GenerateNumberTransformer.Column);
+                arg.ItemType == typeof(NumberGeneratingTransformer.Column);
         }
 
         protected bool IsStringColumnType(CmdParser.ArgInfo.Arg arg)

@@ -82,7 +82,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class exposes <see cref="NgramExtractorTransform"/>/<see cref="NgramHashExtractorTransform"/> arguments.
+        /// This class exposes <see cref="NgramExtractingTransformer"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
         /// </summary>
         public sealed class Arguments : TransformInputBase
         {
@@ -115,11 +115,11 @@ namespace Microsoft.ML.Transforms.Text
 
             [TGUI(Label = "Word Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for words (WordBag/WordHashBag).", ShortName = "wordExtractor", NullName = "<None>", SortOrder = 11)]
-            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
+            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
 
             [TGUI(Label = "Char Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for characters (WordBag/WordHashBag).", ShortName = "charExtractor", NullName = "<None>", SortOrder = 12)]
-            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
             public TextNormKind VectorNormalizer = TextNormKind.L2;
@@ -288,8 +288,8 @@ namespace Microsoft.ML.Transforms.Text
 
             _stopWordsRemover = null;
             _dictionary = null;
-            _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
-            _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            _wordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
+            _charFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
         public ITransformer Fit(IDataView input)
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Transforms.Text
                         tempCols.Add(xfCols[i].output);
                         charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharacterTokenizingTransformer(h, columns: xfCols).Transform(view);
+                    view = new TokenizingByCharactersTransformer(h, columns: xfCols).Transform(view);
                 }
 
                 {

@@ -14,19 +14,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(WordHashBagTransform.Summary, typeof(IDataTransform), typeof(WordHashBagTransform), typeof(WordHashBagTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(WordHashBagProducingTransformer.Summary, typeof(IDataTransform), typeof(WordHashBagProducingTransformer), typeof(WordHashBagProducingTransformer.Arguments), typeof(SignatureDataTransform),
     "Word Hash Bag Transform", "WordHashBagTransform", "WordHashBag")]
 
-[assembly: LoadableClass(NgramHashExtractorTransform.Summary, typeof(INgramExtractorFactory), typeof(NgramHashExtractorTransform), typeof(NgramHashExtractorTransform.NgramHashExtractorArguments),
-    typeof(SignatureNgramExtractorFactory), "Ngram Hash Extractor Transform", "NgramHashExtractorTransform", "NgramHash", NgramHashExtractorTransform.LoaderSignature)]
+[assembly: LoadableClass(NgramHashExtractingTransformer.Summary, typeof(INgramExtractorFactory), typeof(NgramHashExtractingTransformer), typeof(NgramHashExtractingTransformer.NgramHashExtractorArguments),
+    typeof(SignatureNgramExtractorFactory), "Ngram Hash Extractor Transform", "NgramHashExtractorTransform", "NgramHash", NgramHashExtractingTransformer.LoaderSignature)]
 
-[assembly: EntryPointModule(typeof(NgramHashExtractorTransform.NgramHashExtractorArguments))]
+[assembly: EntryPointModule(typeof(NgramHashExtractingTransformer.NgramHashExtractorArguments))]
 
 namespace Microsoft.ML.Transforms.Text
 {
-    public static class WordHashBagTransform
+    public static class WordHashBagProducingTransformer
     {
-        public sealed class Column : NgramHashExtractorTransform.ColumnBase
+        public sealed class Column : NgramHashExtractingTransformer.ColumnBase
         {
             public static Column Parse(string str)
             {
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public sealed class Arguments : NgramHashExtractorTransform.ArgumentsBase
+        public sealed class Arguments : NgramHashExtractingTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:hashBits:srcs)",
                 ShortName = "col", SortOrder = 1)]
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
             Contracts.Assert(uniqueSourceNames.Length == args.Column.Length);
 
             var tokenizeColumns = new List<WordTokenizingTransformer.ColumnInfo>();
-            var extractorCols = new NgramHashExtractorTransform.Column[args.Column.Length];
+            var extractorCols = new NgramHashExtractingTransformer.Column[args.Column.Length];
             var colCount = args.Column.Length;
             List<string> tmpColNames = new List<string>();
             for (int iinfo = 0; iinfo < colCount; iinfo++)
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =
-                    new NgramHashExtractorTransform.Column
+                    new NgramHashExtractingTransformer.Column
                     {
                         Name = column.Name,
                         Source = curTmpNames,
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Text
             view = new WordTokenizingEstimator(env, tokenizeColumns.ToArray()).Fit(view).Transform(view);
 
             var featurizeArgs =
-                new NgramHashExtractorTransform.Arguments
+                new NgramHashExtractingTransformer.Arguments
                 {
                     AllLengths = args.AllLengths,
                     HashBits = args.HashBits,
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms.Text
                     InvertHash = args.InvertHash
                 };
 
-            view = NgramHashExtractorTransform.Create(h, featurizeArgs, view);
+            view = NgramHashExtractingTransformer.Create(h, featurizeArgs, view);
 
             // Since we added columns with new names, we need to explicitly drop them before we return the IDataTransform.
             return SelectColumnsTransform.CreateDrop(h, view, tmpColNames.ToArray());
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms.Text
     /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory) into numerical feature vectors
     /// using the hashing trick.
     /// </summary>
-    public static class NgramHashExtractorTransform
+    public static class NgramHashExtractingTransformer
     {
         public abstract class ColumnBase : ManyToOneColumn
         {

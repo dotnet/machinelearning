@@ -101,17 +101,17 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CharacterTokenizer",
-            Desc = CharacterTokenizingTransformer.Summary,
-            UserName = CharacterTokenizingTransformer.UserName,
-            ShortName = CharacterTokenizingTransformer.LoaderSignature,
+            Desc = TokenizingByCharactersTransformer.Summary,
+            UserName = TokenizingByCharactersTransformer.UserName,
+            ShortName = TokenizingByCharactersTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""CharacterTokenizer""]/*' />" })]
-        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, CharacterTokenizingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "CharTokenize", input);
-            var view = CharacterTokenizingTransformer.Create(h, input, input.Data);
+            var view = TokenizingByCharactersTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
