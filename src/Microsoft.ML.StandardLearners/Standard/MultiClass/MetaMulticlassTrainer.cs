@@ -10,7 +10,6 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.Online;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public TrainerInfo Info { get; }
 
-        public Func<TScalarTrainer> ScalarTrainerFunc;
+        public TScalarTrainer SingleEstimator;
 
         /// <summary>
         /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
@@ -65,20 +64,19 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="name">The component name.</param>
         /// <param name="labelColumn">The label column for the metalinear trainer and the binary trainer.</param>
         /// <param name="singleEstimator">The binary estimator.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null,
-            Func<TScalarTrainer> singleEstimator = null, ICalibratorTrainer calibrator = null)
+            TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(name);
             Host.CheckValue(args, nameof(args));
             Args = args;
-            ScalarTrainerFunc = singleEstimator;
 
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
             // Create the first trainer so errors in the args surface early.
-            _trainer = singleEstimator() ?? CreateTrainer();
+            _trainer = singleEstimator ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
 
@@ -88,14 +86,14 @@ namespace Microsoft.ML.Runtime.Learners
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
             Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
-        }
+            SingleEstimator = singleEstimator;
+    }
 
         private TScalarTrainer CreateTrainer()
         {
-            if (ScalarTrainerFunc != null)
-                return ScalarTrainerFunc();
-            else
-                return Args.PredictorType != null ? Args.PredictorType.CreateComponent(Host) : new LinearSvm(Host, new LinearSvm.Arguments());
+            return Args.PredictorType != null ?
+                Args.PredictorType.CreateComponent(Host) :
+                new LinearSvm(Host, new LinearSvm.Arguments());
         }
 
         protected IDataView MapLabelsCore<T>(ColumnType type, InPredicate<T> equalsTarget, RoleMappedData data)
@@ -124,11 +122,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected TScalarTrainer GetTrainer()
         {
-            // We may have instantiated the first trainer to use already, from the constructor.
-            // If so capture it and set the retained trainer to null; otherwise create a new one.
-            var train = _trainer ?? CreateTrainer();
-            _trainer = null;
-            return train;
+            if(SingleEstimator == null)
+            {
+                _trainer = Args.PredictorType != null ? Args.PredictorType.CreateComponent(Host) : new LinearSvm(Host, new LinearSvm.Arguments());
+            }
+            return _trainer;
         }
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);

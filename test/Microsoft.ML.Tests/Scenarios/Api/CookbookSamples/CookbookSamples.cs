@@ -624,10 +624,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
             // Create a binary classification trainer.
-            var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
+            var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
 
             // Append the OVA learner to the pipeline.
-            dynamicPipe = dynamicPipe.Append(new Ova(mlContext, () => binaryTrainer));
+            dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
 
             // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
             // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.

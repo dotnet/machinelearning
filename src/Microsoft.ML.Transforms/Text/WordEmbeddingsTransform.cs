@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (_pool.Get(word) == null)
                 {
                     _pool.Add(word);
-                    WordVectors.AddRange(wordVector, Dimension);
+                    WordVectors.AddRange(wordVector);
                 }
             }
 

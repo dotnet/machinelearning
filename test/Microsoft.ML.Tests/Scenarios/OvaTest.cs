@@ -13,7 +13,7 @@ namespace Microsoft.ML.Scenarios
     public partial class ScenariosTests
     {
         [Fact]
-        public void OVA_LR()
+        public void OvaLogisticRegression()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Scenarios
                 Column = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
+                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML.Scenarios
             // Pipeline
             var pipeline = new Ova(
                 mlContext, 
-                () => new LogisticRegression(mlContext, "Features", "Label"),
+                new LogisticRegression(mlContext, "Label", "Features"),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -43,12 +43,11 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
-            Assert.True(metrics.AccuracyMicro > 0.96);
+            Assert.True(metrics.AccuracyMicro > 0.94);
         }
 
         [Fact]
-        public void OVA_AP()
+        public void OvaAveragedPerceptron()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -60,23 +59,17 @@ namespace Microsoft.ML.Scenarios
                 Column = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
+                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
             var data = reader.Read(GetDataPath(dataPath));
 
-            var averagePerceptron = new AveragedPerceptronTrainer(mlContext, "Label", "Features", advancedSettings: s =>
-            {
-                s.Shuffle = true;
-                s.Calibrator = null;
-            });
-
             // Pipeline
             var pipeline = new Ova(
                 mlContext,
-                () => averagePerceptron,
+                new AveragedPerceptronTrainer(mlContext, "Label", "Features", advancedSettings: s => { s.Shuffle = true;  s.Calibrator = null; }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -84,12 +77,11 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
-            Assert.True(metrics.AccuracyMicro > 0.66);
+            Assert.True(metrics.AccuracyMicro > 0.71);
         }
 
         [Fact]
-        public void OVA_FT()
+        public void OvaFastTree()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -101,22 +93,17 @@ namespace Microsoft.ML.Scenarios
                 Column = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
+                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
             // Data
             var data = reader.Read(GetDataPath(dataPath));
 
-            var ft = new FastTreeBinaryClassificationTrainer(mlContext, "Label", "Features", advancedSettings: s =>
-            {
-                s.NumThreads = 1;
-            });
-
             // Pipeline
             var pipeline = new Ova(
                 mlContext,
-                () => ft,
+                new FastTreeBinaryClassificationTrainer(mlContext, "Label", "Features", advancedSettings: s => { s.NumThreads = 1; }),
                 useProbabilities: false);
 
             var model = pipeline.Fit(data);
@@ -124,12 +111,11 @@ namespace Microsoft.ML.Scenarios
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
             Assert.True(metrics.AccuracyMicro > 0.99);
         }
 
         [Fact]
-        public void OVA_SVM()
+        public void OvaLinearSvm()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -141,7 +127,7 @@ namespace Microsoft.ML.Scenarios
                 Column = new[]
                         {
                             new TextLoader.Column("Label", DataKind.R4, 0),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(3, 4) }),
+                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) }),
                         }
             });
 
@@ -149,15 +135,14 @@ namespace Microsoft.ML.Scenarios
             var data = reader.Read(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, () => new LinearSvm(mlContext, new LinearSvm.Arguments()),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, new LinearSvm(mlContext, new LinearSvm.Arguments()),  useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
 
             // Metrics
             var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
-
-            Assert.True(metrics.AccuracyMicro > 0.73);
+            Assert.True(metrics.AccuracyMicro > 0.83);
         }
     }
 }

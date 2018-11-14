@@ -13,7 +13,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Some useful math methods.
     /// </summary>
-    public static class MathUtils
+    [BestFriend]
+    internal static class MathUtils
     {
         public static Float ToFloat(this Double dbl)
         {

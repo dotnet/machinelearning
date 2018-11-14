@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
-            _ = typeof(CategoricalTransform).Assembly; // ML.Transforms
+            _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 
             // The following assemblies reference this assembly, so we can't directly reference them
 

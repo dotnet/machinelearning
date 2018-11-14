@@ -24,7 +24,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="args">The arguments to text reader, describing the data schema.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
-        public static TextLoader TextReader(this DataLoadSaveOperations catalog,
+        public static TextLoader TextReader(this DataOperations catalog,
             TextLoader.Arguments args, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
 
@@ -35,7 +35,7 @@ namespace Microsoft.ML
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="advancedSettings">The delegate to set additional settings.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
-        public static TextLoader TextReader(this DataLoadSaveOperations catalog,
+        public static TextLoader TextReader(this DataOperations catalog,
             TextLoader.Column[] columns, Action<TextLoader.Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, advancedSettings, dataSample);
 
@@ -47,7 +47,7 @@ namespace Microsoft.ML
         /// <param name="advancedSettings">The delegate to set additional settings</param>
         /// <param name="path">The path to the file</param>
         /// <returns>The data view.</returns>
-        public static IDataView ReadFromTextFile(this DataLoadSaveOperations catalog,
+        public static IDataView ReadFromTextFile(this DataOperations catalog,
             TextLoader.Column[] columns, string path, Action<TextLoader.Arguments> advancedSettings = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
@@ -70,7 +70,7 @@ namespace Microsoft.ML
         /// <param name="headerRow">Whether to write the header row.</param>
         /// <param name="schema">Whether to write the header comment with the schema.</param>
         /// <param name="keepHidden">Whether to keep hidden columns in the dataset.</param>
-        public static void SaveAsText(this DataLoadSaveOperations catalog, IDataView data, Stream stream,
+        public static void SaveAsText(this DataOperations catalog, IDataView data, Stream stream,
             char separator = '\t', bool headerRow = true, bool schema = true, bool keepHidden = false)
         {
             Contracts.CheckValue(catalog, nameof(catalog));

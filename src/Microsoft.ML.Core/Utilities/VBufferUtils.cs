@@ -14,7 +14,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Convenience utilities for vector operations on <see cref="VBuffer{T}"/>.
     /// </summary>
-    public static class VBufferUtils
+    [BestFriend]
+    internal static class VBufferUtils
     {
         private const float SparsityThreshold = 0.25f;
 
@@ -93,9 +94,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public static bool HasNaNs(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Single.IsNaN(buffer.Values[i]))
+                if (Single.IsNaN(values[i]))
                     return true;
             }
             return false;
@@ -103,9 +105,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public static bool HasNaNs(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Double.IsNaN(buffer.Values[i]))
+                if (Double.IsNaN(values[i]))
                     return true;
             }
             return false;
@@ -113,9 +116,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public static bool HasNonFinite(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
@@ -123,9 +127,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public static bool HasNonFinite(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
@@ -153,15 +158,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             // REVIEW: This is analogous to an old Vector method, but is there
             // any real reason to have it given that we have the Items extension method?
+            var aValues = a.GetValues();
             if (a.IsDense)
             {
-                for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i]);
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(i, aValues[i]);
             }
             else
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i]);
             }
         }
 
@@ -180,32 +187,38 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i], b.Values[a.Indices[i]]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i], bValues[aIndices[i]]);
             }
             else if (a.IsDense)
             {
-                for (int i = 0; i < b.Count; i++)
-                    visitor(b.Indices[i], a.Values[b.Indices[i]], b.Values[i]);
+                var bIndices = b.GetIndices();
+                for (int i = 0; i < bValues.Length; i++)
+                    visitor(bIndices[i], aValues[bIndices[i]], bValues[i]);
             }
             else
             {
                 // Both sparse.
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int i = a.Indices[aI];
-                    int j = b.Indices[bI];
+                    int i = aIndices[aI];
+                    int j = bIndices[bI];
                     if (i == j)
-                        visitor(i, a.Values[aI++], b.Values[bI++]);
+                        visitor(i, aValues[aI++], bValues[bI++]);
                     else if (i < j)
                         aI++;
                     else
@@ -225,27 +238,31 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; ++i)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
                 int aI = 0;
+                var aIndices = a.GetIndices();
                 for (int i = 0; i < b.Length; i++)
                 {
-                    T aVal = (aI < a.Count && i == a.Indices[aI]) ? a.Values[aI++] : default(T);
-                    visitor(i, aVal, b.Values[i]);
+                    T aVal = (aI < aValues.Length && i == aIndices[aI]) ? aValues[aI++] : default(T);
+                    visitor(i, aVal, bValues[i]);
                 }
             }
             else if (a.IsDense)
             {
                 int bI = 0;
+                var bIndices = b.GetIndices();
                 for (int i = 0; i < a.Length; i++)
                 {
-                    T bVal = (bI < b.Count && i == b.Indices[bI]) ? b.Values[bI++] : default(T);
-                    visitor(i, a.Values[i], bVal);
+                    T bVal = (bI < bValues.Length && i == bIndices[bI]) ? bValues[bI++] : default(T);
+                    visitor(i, aValues[i], bVal);
                 }
             }
             else
@@ -253,36 +270,38 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // Both sparse
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int diff = a.Indices[aI] - b.Indices[bI];
+                    int diff = aIndices[aI] - bIndices[bI];
                     if (diff == 0)
                     {
-                        visitor(b.Indices[bI], a.Values[aI], b.Values[bI]);
+                        visitor(bIndices[bI], aValues[aI], bValues[bI]);
                         aI++;
                         bI++;
                     }
                     else if (diff < 0)
                     {
-                        visitor(a.Indices[aI], a.Values[aI], default(T));
+                        visitor(aIndices[aI], aValues[aI], default(T));
                         aI++;
                     }
                     else
                     {
-                        visitor(b.Indices[bI], default(T), b.Values[bI]);
+                        visitor(bIndices[bI], default(T), bValues[bI]);
                         bI++;
                     }
                 }
 
-                while (aI < a.Count)
+                while (aI < aValues.Length)
                 {
-                    visitor(a.Indices[aI], a.Values[aI], default(T));
+                    visitor(aIndices[aI], aValues[aI], default(T));
                     aI++;
                 }
 
-                while (bI < b.Count)
+                while (bI < bValues.Length)
                 {
-                    visitor(b.Indices[bI], default(T), b.Values[bI]);
+                    visitor(bIndices[bI], default(T), bValues[bI]);
                     bI++;
                 }
             }

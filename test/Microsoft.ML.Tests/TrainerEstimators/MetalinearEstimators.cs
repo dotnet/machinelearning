@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                  s.Calibrator = null;
              });
 
-            pipeline.Append(new Ova(Env, () => averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
+            pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -44,9 +44,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
+            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
 
-            pipeline.Append(new Ova(Env, () => sdcaTrainer, useProbabilities: false))
+            pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
 
-            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
-            pipeline.Append(new Pkpd(Env, () => sdcaTrainer))
+            var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);

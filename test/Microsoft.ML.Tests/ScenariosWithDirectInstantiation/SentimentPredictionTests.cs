@@ -55,7 +55,7 @@ namespace Microsoft.ML.Scenarios
 
                 // Train
                 var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, 
-                    numLeaves:5, numTrees:5, minDocumentsInLeafs: 2);
+                    numLeaves:5, numTrees:5, minDatapointsInLeaves: 2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Scenarios
                     ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDocumentsInLeafs:2);
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDatapointsInLeaves:2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);

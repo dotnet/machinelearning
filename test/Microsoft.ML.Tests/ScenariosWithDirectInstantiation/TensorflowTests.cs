@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Scenarios
 {

@@ -5,10 +5,8 @@
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 
@@ -44,12 +42,6 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             public IComponentFactory<ITrainer<TScalarPredictor>> BasePredictorType;
 
             internal override IComponentFactory<ITrainer<TScalarPredictor>> GetPredictorFactory() => BasePredictorType;
-
-            public Arguments()
-            {
-                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
-                    env => new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features));
-            }
 
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);
         }
