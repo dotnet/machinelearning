@@ -11,11 +11,11 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
 using System;
 
-[assembly: LoadableClass(BootstrapSampleTransformer.Summary, typeof(BootstrapSampleTransformer), typeof(BootstrapSampleTransformer.Arguments), typeof(SignatureDataTransform),
-    BootstrapSampleTransformer.UserName, "BootstrapSampleTransform", "BootstrapSample")]
+[assembly: LoadableClass(BootstrapSamplingTransformer.Summary, typeof(BootstrapSamplingTransformer), typeof(BootstrapSamplingTransformer.Arguments), typeof(SignatureDataTransform),
+    BootstrapSamplingTransformer.UserName, "BootstrapSampleTransform", "BootstrapSample")]
 
-[assembly: LoadableClass(BootstrapSampleTransformer.Summary, typeof(BootstrapSampleTransformer), null, typeof(SignatureLoadDataTransform),
-    BootstrapSampleTransformer.UserName, BootstrapSampleTransformer.LoaderSignature)]
+[assembly: LoadableClass(BootstrapSamplingTransformer.Summary, typeof(BootstrapSamplingTransformer), null, typeof(SignatureLoadDataTransform),
+    BootstrapSamplingTransformer.UserName, BootstrapSamplingTransformer.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(BootstrapSample))]
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// This class approximates bootstrap sampling of a dataview.
     /// </summary>
-    public sealed class BootstrapSampleTransformer : FilterBase
+    public sealed class BootstrapSamplingTransformer : FilterBase
     {
         private static class Defaults
         {
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(BootstrapSampleTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(BootstrapSamplingTransformer).Assembly.FullName);
         }
 
         internal const string RegistrationName = "BootstrapSample";
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms
         private readonly bool _shuffleInput;
         private readonly int _poolSize;
 
-        public BootstrapSampleTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        public BootstrapSamplingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, input)
         {
             Host.CheckValue(args, nameof(args));
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="BootstrapSampleTransformer"/>.
+        /// Initializes a new instance of <see cref="BootstrapSamplingTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="seed">The random seed. If unspecified random state will be instead derived from the environment.</param>
         /// <param name="shuffleInput">Whether we should attempt to shuffle the source data. By default on, but can be turned off for efficiency.</param>
         /// <param name="poolSize">When shuffling the output, the number of output rows to keep in that pool. Note that shuffling of output is completely distinct from shuffling of input.</param>
-        public BootstrapSampleTransformer(IHostEnvironment env,
+        public BootstrapSamplingTransformer(IHostEnvironment env,
             IDataView input,
             bool complement = Defaults.Complement,
             uint? seed = null,
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        private BootstrapSampleTransformer(IHost host, ModelLoadContext ctx, IDataView input)
+        private BootstrapSamplingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, input)
         {
             host.AssertValue(ctx);
@@ -148,14 +148,14 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(_poolSize);
         }
 
-        public static BootstrapSampleTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static BootstrapSamplingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new BootstrapSampleTransformer(h, ctx, input));
+            return h.Apply("Loading Model", ch => new BootstrapSamplingTransformer(h, ctx, input));
         }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
@@ -184,14 +184,14 @@ namespace Microsoft.ML.Transforms
         private sealed class RowCursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
         {
             private int _remaining;
-            private readonly BootstrapSampleTransformer _parent;
+            private readonly BootstrapSamplingTransformer _parent;
             private readonly IRandom _rgen;
 
             public override long Batch { get { return 0; } }
 
             public Schema Schema { get { return Input.Schema; } }
 
-            public RowCursor(BootstrapSampleTransformer parent, IRowCursor input, IRandom rgen)
+            public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, IRandom rgen)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(rgen);
@@ -237,14 +237,14 @@ namespace Microsoft.ML.Transforms
 
     public static class BootstrapSample
     {
-        [TlcModule.EntryPoint(Name = "Transforms.ApproximateBootstrapSampler", Desc = BootstrapSampleTransformer.Summary, UserName = BootstrapSampleTransformer.UserName, ShortName = BootstrapSampleTransformer.RegistrationName)]
-        public static CommonOutputs.TransformOutput GetSample(IHostEnvironment env, BootstrapSampleTransformer.Arguments input)
+        [TlcModule.EntryPoint(Name = "Transforms.ApproximateBootstrapSampler", Desc = BootstrapSamplingTransformer.Summary, UserName = BootstrapSamplingTransformer.UserName, ShortName = BootstrapSamplingTransformer.RegistrationName)]
+        public static CommonOutputs.TransformOutput GetSample(IHostEnvironment env, BootstrapSamplingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "BootstrapSample", input);
-            var view = new BootstrapSampleTransformer(h, input, input.Data);
+            var view = new BootstrapSamplingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

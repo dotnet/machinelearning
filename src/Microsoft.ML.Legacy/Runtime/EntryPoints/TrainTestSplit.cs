@@ -54,11 +54,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             IDataView trainData = new RangeFilter(host,
                 new RangeFilter.Arguments { Column = stratCol, Min = 0, Max = input.Fraction, Complement = false }, data);
-            trainData = SelectColumnsTransformer.CreateDrop(host, trainData, stratCol);
+            trainData = ColumnSelectingTransformer.CreateDrop(host, trainData, stratCol);
 
             IDataView testData = new RangeFilter(host,
                 new RangeFilter.Arguments { Column = stratCol, Min = 0, Max = input.Fraction, Complement = true }, data);
-            testData = SelectColumnsTransformer.CreateDrop(host, testData, stratCol);
+            testData = ColumnSelectingTransformer.CreateDrop(host, testData, stratCol);
 
             return new Output() { TrainData = trainData, TestData = testData };
         }
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             else
             {
-                data = new HashJoinTransform(host,
-                    new HashJoinTransform.Arguments
+                data = new HashJoiningTransform(host,
+                    new HashJoiningTransform.Arguments
                     {
-                        Column = new[] { new HashJoinTransform.Column { Name = stratCol, Source = stratificationColumn } },
+                        Column = new[] { new HashJoiningTransform.Column { Name = stratCol, Source = stratificationColumn } },
                         Join = true,
                         HashBits = 30
                     }, data);

@@ -26,7 +26,7 @@ namespace Microsoft.ML
             string inputColumn,
             string outputColumn = null,
             int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
-            TermTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
+            ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, maxNumTerms, sort);
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.ML
         /// <param name="termsColumn"></param>
         /// <param name="loaderFactory"></param>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.CategoricalTransforms catalog,
-            TermTransformer.ColumnInfo[] columns,
+            ValueToKeyMappingTransformer.ColumnInfo[] columns,
             string file = null,
             string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)

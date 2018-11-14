@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, feat.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = SelectColumnsTransformer.CreateKeep(Env, savedData, new[] { "Data", "Data_TransformedText" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "Data", "Data_TransformedText" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransformer.CreateKeep(Env, savedData, new[] { "text", "words", "chars" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "words", "chars" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
-            var savedData = SelectColumnsTransformer.CreateKeep(Env, outdata, new[] { "words" });
+            var savedData = ColumnSelectingTransformer.CreateKeep(Env, outdata, new[] { "words" });
 
             var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
             var outputPath = GetOutputPath("Text", "tokenizedWithSeparators.tsv");
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransformer.CreateKeep(Env, savedData, new[] { "text", "words_without_stopwords" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "words_without_stopwords" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransformer.CreateKeep(Env, savedData, new[] { "text", "bag_of_words", "bag_of_wordshash" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "bag_of_words", "bag_of_wordshash" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransformer.CreateKeep(Env, savedData, new[] { "text", "terms", "ngrams", "ngramshash" });
+                savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "text", "terms", "ngrams", "ngramshash" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
                 IDataView savedData = TakeFilter.Create(env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransformer.CreateKeep(env, savedData, new[] { "topics" });
+                savedData = ColumnSelectingTransformer.CreateKeep(env, savedData, new[] { "topics" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

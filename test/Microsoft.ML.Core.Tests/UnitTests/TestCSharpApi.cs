@@ -569,9 +569,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 var term = new Legacy.Transforms.TextToKeyConverter();
                 term.Column = new[]
                 {
-                    new Legacy.Transforms.TermTransformColumn()
+                    new Legacy.Transforms.TermTransformerColumn()
                     {
-                        Source = "Label", Name = "Strat", Sort = Legacy.Transforms.TermTransformSortOrder.Value
+                        Source = "Label", Name = "Strat", Sort = Legacy.Transforms.TermTransformerSortOrder.Value
                     }
                 };
                 term.Data = filterOutput.OutputData;
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var subGraph = env.CreateExperiment();
 
                 var textToKey = new Legacy.Transforms.TextToKeyConverter();
-                textToKey.Column = new[] { new Legacy.Transforms.TermTransformColumn() { Name = "Label1", Source = "Label" } };
+                textToKey.Column = new[] { new Legacy.Transforms.TermTransformerColumn() { Name = "Label1", Source = "Label" } };
                 var textToKeyOutput = subGraph.Add(textToKey);
 
                 var hash = new Legacy.Transforms.HashConverter();

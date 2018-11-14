@@ -12,18 +12,18 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Text;
 
-[assembly: LoadableClass(typeof(LabelIndicatingTransformer), typeof(LabelIndicatingTransformer.Arguments), typeof(SignatureDataTransform),
-    LabelIndicatingTransformer.UserName, LabelIndicatingTransformer.LoadName, "LabelIndicator")]
-[assembly: LoadableClass(typeof(LabelIndicatingTransformer), null, typeof(SignatureLoadDataTransform), LabelIndicatingTransformer.UserName,
-    LabelIndicatingTransformer.LoaderSignature)]
-[assembly: LoadableClass(typeof(void), typeof(LabelIndicatingTransformer), null, typeof(SignatureEntryPointModule), LabelIndicatingTransformer.LoadName)]
+[assembly: LoadableClass(typeof(LabelIndicatorMappingTransformer), typeof(LabelIndicatorMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    LabelIndicatorMappingTransformer.UserName, LabelIndicatorMappingTransformer.LoadName, "LabelIndicator")]
+[assembly: LoadableClass(typeof(LabelIndicatorMappingTransformer), null, typeof(SignatureLoadDataTransform), LabelIndicatorMappingTransformer.UserName,
+    LabelIndicatorMappingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(void), typeof(LabelIndicatorMappingTransformer), null, typeof(SignatureEntryPointModule), LabelIndicatorMappingTransformer.LoadName)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Remaps multiclass labels to binary T,F labels, primarily for use with OVA.
     /// </summary>
-    public sealed class LabelIndicatingTransformer : OneToOneTransformBase
+    public sealed class LabelIndicatorMappingTransformer : OneToOneTransformBase
     {
         internal const string Summary = "Remaps labels from multiclass to binary, for OVA.";
         internal const string UserName = "Label Indicator Transform";
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LabelIndicatingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(LabelIndicatorMappingTransformer).Assembly.FullName);
         }
 
         public sealed class Column : OneToOneColumn
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms
             public int ClassIndex;
         }
 
-        public static LabelIndicatingTransformer Create(IHostEnvironment env,
+        public static LabelIndicatorMappingTransformer Create(IHostEnvironment env,
             ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -82,10 +82,10 @@ namespace Microsoft.ML.Transforms
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             return h.Apply("Loading Model",
-                ch => new LabelIndicatingTransformer(h, ctx, input));
+                ch => new LabelIndicatorMappingTransformer(h, ctx, input));
         }
 
-        public static LabelIndicatingTransformer Create(IHostEnvironment env,
+        public static LabelIndicatorMappingTransformer Create(IHostEnvironment env,
             Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Transforms
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             return h.Apply("Loading Model",
-                ch => new LabelIndicatingTransformer(h, args, input));
+                ch => new LabelIndicatorMappingTransformer(h, args, input));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -113,14 +113,14 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LabelIndicatingTransformer"/>.
+        /// Initializes a new instance of <see cref="LabelIndicatorMappingTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="classIndex">Label of the positive class.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
-        public LabelIndicatingTransformer(IHostEnvironment env,
+        public LabelIndicatorMappingTransformer(IHostEnvironment env,
             IDataView input,
             int classIndex,
             string name,
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public LabelIndicatingTransformer(IHostEnvironment env, Arguments args, IDataView input)
+        public LabelIndicatorMappingTransformer(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Column,
                 input, TestIsMulticlassLabel)
         {
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms
             Metadata.Seal();
         }
 
-        private LabelIndicatingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
+        private LabelIndicatorMappingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, TestIsMulticlassLabel)
         {
             Host.AssertValue(ctx);

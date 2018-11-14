@@ -16,11 +16,11 @@ using System.Text;
 using System.Threading;
 using Float = System.Single;
 
-[assembly: LoadableClass(HashJoinTransform.Summary, typeof(HashJoinTransform), typeof(HashJoinTransform.Arguments), typeof(SignatureDataTransform),
-    HashJoinTransform.UserName, "HashJoinTransform", HashJoinTransform.RegistrationName)]
+[assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), typeof(HashJoiningTransform.Arguments), typeof(SignatureDataTransform),
+    HashJoiningTransform.UserName, "HashJoinTransform", HashJoiningTransform.RegistrationName)]
 
-[assembly: LoadableClass(HashJoinTransform.Summary, typeof(HashJoinTransform), null, typeof(SignatureLoadDataTransform),
-    HashJoinTransform.UserName, HashJoinTransform.LoaderSignature, "HashJoinFunction")]
+[assembly: LoadableClass(HashJoiningTransform.Summary, typeof(HashJoiningTransform), null, typeof(SignatureLoadDataTransform),
+    HashJoiningTransform.UserName, HashJoiningTransform.LoaderSignature, "HashJoinFunction")]
 
 [assembly: EntryPointModule(typeof(HashJoin))]
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// column there is an option to specify which slots should be hashed together into one output slot.
     /// This transform can be applied either to single valued columns or to known length vector columns.
     /// </summary>
-    public sealed class HashJoinTransform : OneToOneTransformBase
+    public sealed class HashJoiningTransform : OneToOneTransformBase
     {
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
@@ -168,13 +168,13 @@ namespace Microsoft.ML.Transforms.Conversions
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010005,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(HashJoinTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(HashJoiningTransform).Assembly.FullName);
         }
 
         private readonly ColumnInfoEx[] _exes;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="HashJoinTransform"/>.
+        /// Initializes a new instance of <see cref="HashJoiningTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="join">Whether the values need to be combined for a single hash.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
-        public HashJoinTransform(IHostEnvironment env,
+        public HashJoiningTransform(IHostEnvironment env,
             IDataView input,
             string name,
             string source = null,
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
-        public HashJoinTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public HashJoiningTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)
         {
             Host.AssertNonEmpty(Infos);
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Conversions
             SetMetadata();
         }
 
-        private HashJoinTransform(IHost host, ModelLoadContext ctx, IDataView input)
+        private HashJoiningTransform(IHost host, ModelLoadContext ctx, IDataView input)
             : base(host, ctx, input, TestColumnType)
         {
             Host.AssertValue(ctx);
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Transforms.Conversions
             SetMetadata();
         }
 
-        public static HashJoinTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static HashJoiningTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Transforms.Conversions
             ctx.CheckAtModel(GetVersionInfo());
             h.CheckValue(input, nameof(input));
 
-            return h.Apply("Loading Model", ch => new HashJoinTransform(h, ctx, input));
+            return h.Apply("Loading Model", ch => new HashJoiningTransform(h, ctx, input));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -702,18 +702,18 @@ namespace Microsoft.ML.Transforms.Conversions
     public static class HashJoin
     {
         [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
-            Desc = HashJoinTransform.Summary,
-            UserName = HashJoinTransform.UserName,
-            ShortName = HashJoinTransform.RegistrationName,
+            Desc = HashJoiningTransform.Summary,
+            UserName = HashJoiningTransform.UserName,
+            ShortName = HashJoiningTransform.RegistrationName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
-        public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoinTransform.Arguments input)
+        public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoiningTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "HashJoin", input);
-            var view = new HashJoinTransform(h, input, input.Data);
+            var view = new HashJoiningTransform(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

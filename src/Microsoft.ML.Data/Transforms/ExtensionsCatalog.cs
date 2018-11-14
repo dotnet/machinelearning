@@ -85,8 +85,8 @@ namespace Microsoft.ML
         public static ColumnSelectingEstimator SelectColumns(this TransformsCatalog catalog,
             string[] keepColumns,
             string[] dropColumns,
-            bool keepHidden = SelectColumnsTransformer.Defaults.KeepHidden,
-            bool ignoreMissing = SelectColumnsTransformer.Defaults.IgnoreMissing)
+            bool keepHidden = ColumnSelectingTransformer.Defaults.KeepHidden,
+            bool ignoreMissing = ColumnSelectingTransformer.Defaults.IgnoreMissing)
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
                 keepColumns, dropColumns, keepHidden, ignoreMissing);
     }

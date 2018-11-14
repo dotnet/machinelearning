@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         var epInput = new ML.Legacy.Transforms.TextToKeyConverter();
                         epInput.Column = new[]
                         {
-                            new ML.Legacy.Transforms.TermTransformColumn
+                            new ML.Legacy.Transforms.TermTransformerColumn
                             {
                                 Name = dest,
                                 Source = source

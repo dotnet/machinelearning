@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="TermTransformer.Arguments"/> and
+        /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Arguments"/> and
         /// <see cref="NgramTransform.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -300,12 +300,12 @@ namespace Microsoft.ML.Transforms.Text
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
-                TermTransformer.Arguments termArgs = null;
+                ValueToKeyMappingTransformer.Arguments termArgs = null;
                 MissingValueDroppingTransformer.Arguments naDropArgs = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
-                        new TermTransformer.Arguments()
+                        new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = int.MaxValue,
                             Terms = termLoaderArgs.Terms,
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Transforms.Text
                             Loader = termLoaderArgs.Loader,
                             TermsColumn = termLoaderArgs.TermsColumn,
                             Sort = termLoaderArgs.Sort,
-                            Column = new TermTransformer.Column[termCols.Count]
+                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
 
                     if (termLoaderArgs.DropUnknowns)
@@ -323,10 +323,10 @@ namespace Microsoft.ML.Transforms.Text
                 else
                 {
                     termArgs =
-                        new TermTransformer.Arguments()
+                        new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramTransform.Arguments.DefaultMaxTerms,
-                            Column = new TermTransformer.Column[termCols.Count]
+                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
 
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var column = termCols[iinfo];
                     termArgs.Column[iinfo] =
-                        new TermTransformer.Column()
+                        new ValueToKeyMappingTransformer.Column()
                         {
                             Name = column.Name,
                             Source = column.Source,
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Transforms.Text
                         naDropArgs.Column[iinfo] = new MissingValueDroppingTransformer.Column { Name = column.Name, Source = column.Name };
                 }
 
-                view = TermTransformer.Create(h, termArgs, view);
+                view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
                 if (naDropArgs != null)
                     view = new MissingValueDroppingTransformer(h, naDropArgs, view);
             }
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Transforms.Text
 
     /// <summary>
     /// Arguments for defining custom list of terms or data file containing the terms.
-    /// The class includes a subset of <see cref="TermTransformer"/>'s arguments.
+    /// The class includes a subset of <see cref="ValueToKeyMappingTransformer"/>'s arguments.
     /// </summary>
     public sealed class TermLoaderArguments
     {
@@ -446,7 +446,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
             "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
-        public TermTransformer.SortOrder Sort = TermTransformer.SortOrder.Occurrence;
+        public ValueToKeyMappingTransformer.SortOrder Sort = ValueToKeyMappingTransformer.SortOrder.Occurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
         public bool DropUnknowns = false;

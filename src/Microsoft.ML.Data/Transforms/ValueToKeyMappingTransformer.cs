@@ -20,18 +20,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-[assembly: LoadableClass(TermTransformer.Summary, typeof(IDataTransform), typeof(TermTransformer),
-    typeof(TermTransformer.Arguments), typeof(SignatureDataTransform),
-    TermTransformer.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
+[assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer),
+    typeof(ValueToKeyMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    ValueToKeyMappingTransformer.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
-[assembly: LoadableClass(TermTransformer.Summary, typeof(IDataTransform), typeof(TermTransformer), null, typeof(SignatureLoadDataTransform),
-    TermTransformer.UserName, TermTransformer.LoaderSignature)]
+[assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(IDataTransform), typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadDataTransform),
+    ValueToKeyMappingTransformer.UserName, ValueToKeyMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(TermTransformer.Summary, typeof(TermTransformer), null, typeof(SignatureLoadModel),
-    TermTransformer.UserName, TermTransformer.LoaderSignature)]
+[assembly: LoadableClass(ValueToKeyMappingTransformer.Summary, typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadModel),
+    ValueToKeyMappingTransformer.UserName, ValueToKeyMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransformer), null, typeof(SignatureLoadRowMapper),
-    TermTransformer.UserName, TermTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ValueToKeyMappingTransformer), null, typeof(SignatureLoadRowMapper),
+    ValueToKeyMappingTransformer.UserName, ValueToKeyMappingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Transforms.Categorical
     // * The Key value is the one-based index of the item in the dictionary.
     // * Not found is assigned the value zero.
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
-    public sealed partial class TermTransformer : OneToOneTransformerBase
+    public sealed partial class ValueToKeyMappingTransformer : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(TermTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ValueToKeyMappingTransformer).Assembly.FullName);
         }
 
         private const uint VerNonTextTypesSupported = 0x00010003;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: TermManagerLoaderSignature,
-                loaderAssemblyName: typeof(TermTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ValueToKeyMappingTransformer).Assembly.FullName);
         }
 
         private readonly TermMap[] _unboundMaps;
@@ -264,12 +264,12 @@ namespace Microsoft.ML.Transforms.Categorical
             return infos;
         }
 
-        public TermTransformer(IHostEnvironment env, IDataView input,
+        public ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
             params ColumnInfo[] columns) :
             this(env, input, columns, null, null, null)
         { }
 
-        internal TermTransformer(IHostEnvironment env, IDataView input,
+        internal ValueToKeyMappingTransformer(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
@@ -324,11 +324,11 @@ namespace Microsoft.ML.Transforms.Categorical
                     cols[i].Terms = item.Terms ?? args.Terms;
                 };
             }
-            return new TermTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
+            return new ValueToKeyMappingTransformer(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static TermTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ValueToKeyMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -336,10 +336,10 @@ namespace Microsoft.ML.Transforms.Categorical
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new TermTransformer(host, ctx);
+            return new ValueToKeyMappingTransformer(host, ctx);
         }
 
-        private TermTransformer(IHost host, ModelLoadContext ctx)
+        private ValueToKeyMappingTransformer(IHost host, ModelLoadContext ctx)
            : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Categorical
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         /// <summary>
-        /// Initializes a new instance of <see cref="TermTransformer"/>.
+        /// Initializes a new instance of <see cref="ValueToKeyMappingTransformer"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms.Categorical
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
             int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort) =>
-            new TermTransformer(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
+            new ValueToKeyMappingTransformer(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Transforms.Categorical
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly ColumnType[] _types;
-            private readonly TermTransformer _parent;
+            private readonly ValueToKeyMappingTransformer _parent;
             private readonly ColInfo[] _infos;
 
             private readonly BoundTermMap[] _termMap;
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             public bool CanSavePfa => true;
 
-            public Mapper(TermTransformer parent, Schema inputSchema)
+            public Mapper(ValueToKeyMappingTransformer parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;

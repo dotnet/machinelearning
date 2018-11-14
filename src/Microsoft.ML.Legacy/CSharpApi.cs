@@ -11237,7 +11237,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum TermTransformerSortOrder : byte
+        public enum ValueToKeyMappingTransformerSortOrder : byte
         {
             Occurrence = 0,
             Value = 1
@@ -11264,7 +11264,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder? Sort { get; set; }
+            public ValueToKeyMappingTransformerSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -11352,7 +11352,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder Sort { get; set; } = TermTransformerSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -12318,7 +12318,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class TermTransformerColumn : OneToOneColumn<TermTransformerColumn>, IOneToOneColumn
+        public sealed partial class ValueToKeyMappingTransformerColumn : OneToOneColumn<ValueToKeyMappingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -12333,7 +12333,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder? Sort { get; set; }
+            public ValueToKeyMappingTransformerSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -12386,15 +12386,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12402,7 +12402,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformerColumn[] Column { get; set; }
+            public ValueToKeyMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -12417,7 +12417,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder Sort { get; set; } = TermTransformerSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -12837,7 +12837,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
+        public sealed partial class HashJoiningTransformColumn : OneToOneColumn<HashJoiningTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -12909,15 +12909,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12925,7 +12925,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public HashJoinTransformColumn[] Column { get; set; }
+            public HashJoiningTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -13803,7 +13803,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class LabelIndicatingTransformerColumn : OneToOneColumn<LabelIndicatingTransformerColumn>, IOneToOneColumn
+        public sealed partial class LabelIndicatorMappingTransformerColumn : OneToOneColumn<LabelIndicatorMappingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The positive example class for binary classification.
@@ -13856,15 +13856,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatorMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13872,7 +13872,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public LabelIndicatingTransformerColumn[] Column { get; set; }
+            public LabelIndicatorMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Label of the positive class.
@@ -16762,7 +16762,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder Sort { get; set; } = TermTransformerSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Drop unknown terms instead of mapping them to NA term.
@@ -16940,15 +16940,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16956,7 +16956,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformerColumn[] Column { get; set; }
+            public ValueToKeyMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -16971,7 +16971,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformerSortOrder Sort { get; set; } = TermTransformerSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type

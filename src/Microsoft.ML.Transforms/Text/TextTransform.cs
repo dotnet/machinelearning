@@ -475,7 +475,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            view = SelectColumnsTransformer.CreateDrop(h, view, tempCols.ToArray());
+            view = ColumnSelectingTransformer.CreateDrop(h, view, tempCols.ToArray());
             return new Transformer(_host, input, view);
         }
 

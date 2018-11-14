@@ -140,9 +140,9 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var term = TermTransformer.Create(env, new TermTransformer.Arguments()
+                var term = ValueToKeyMappingTransformer.Create(env, new ValueToKeyMappingTransformer.Arguments()
                 {
-                    Column = new[] { new TermTransformer.Column() { Source = "Term", Name = "T" } }
+                    Column = new[] { new ValueToKeyMappingTransformer.Column() { Source = "Term", Name = "T" } }
                 }, dataView);
                 var est = new CopyColumnsEstimator(env, "T", "T1");
                 var transformer = est.Fit(term);

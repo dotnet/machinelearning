@@ -56,7 +56,7 @@ namespace Microsoft.ML.Transforms.Categorical
             Bin = 4,
         }
 
-        public sealed class Column : TermTransformer.ColumnBase
+        public sealed class Column : ValueToKeyMappingTransformer.ColumnBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector", ShortName = "kind")]
             public OutputKind? OutputKind;
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        public sealed class Arguments : TermTransformer.ArgumentsBase
+        public sealed class Arguments : ValueToKeyMappingTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
@@ -174,11 +174,11 @@ namespace Microsoft.ML.Transforms.Categorical
             public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
         }
 
-        public class ColumnInfo : TermTransformer.ColumnInfo
+        public class ColumnInfo : ValueToKeyMappingTransformer.ColumnInfo
         {
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
             public ColumnInfo(string input, string output, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
-                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, TermTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
+                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)
             {
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms.Categorical
             IEstimator<ITransformer> toBinVector = null;
             IEstimator<ITransformer> toVector = null;
             if (binaryCols.Count > 0)
-                toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.input, x.output)).ToArray());
             if (cols.Count > 0)
                 toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public OneHotEncodingTransformer Fit(IDataView input) => new OneHotEncodingTransformer(_term, _toSomething, input);
 
-        internal void WrapTermWithDelegate(Action<TermTransformer> onFit)
+        internal void WrapTermWithDelegate(Action<ValueToKeyMappingTransformer> onFit)
         {
             _term = (ValueToKeyMappingEstimator)_term.WithOnFitDelegate(onFit);
         }
@@ -300,18 +300,18 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.TextToKeyConverter",
-            Desc = TermTransformer.Summary,
-            UserName = TermTransformer.FriendlyName,
+            Desc = ValueToKeyMappingTransformer.Summary,
+            UserName = ValueToKeyMappingTransformer.FriendlyName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""TextToKey""]/*' />",
                                  @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""TextToKey""]/*' />" })]
-        public static CommonOutputs.TransformOutput TextToKey(IHostEnvironment env, TermTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput TextToKey(IHostEnvironment env, ValueToKeyMappingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("Term");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = TermTransformer.Create(host, input, input.Data);
+            var xf = ValueToKeyMappingTransformer.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -373,9 +373,9 @@ namespace Microsoft.ML.Transforms.Categorical
             public readonly KeyValueOrder Order;
             public readonly int Max;
             public readonly OneHotVectorOutputKind OutputKind;
-            public readonly Action<TermTransformer.TermMap> OnFit;
+            public readonly Action<ValueToKeyMappingTransformer.TermMap> OnFit;
 
-            public Config(OneHotVectorOutputKind outputKind, KeyValueOrder order, int max, Action<TermTransformer.TermMap> onFit)
+            public Config(OneHotVectorOutputKind outputKind, KeyValueOrder order, int max, Action<ValueToKeyMappingTransformer.TermMap> onFit)
             {
                 OutputKind = outputKind;
                 Order = order;
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Transforms.Categorical
             }
         }
 
-        private static Action<TermTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
+        private static Action<ValueToKeyMappingTransformer.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
         {
             if (onFit == null)
                 return null;
@@ -430,12 +430,12 @@ namespace Microsoft.ML.Transforms.Categorical
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
                 var infos = new OneHotEncodingEstimator.ColumnInfo[toOutput.Length];
-                Action<TermTransformer> onFit = null;
+                Action<ValueToKeyMappingTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ICategoricalCol)toOutput[i];
                     infos[i] = new OneHotEncodingEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (OneHotEncodingTransformer.OutputKind)tcol.Config.OutputKind,
-                        tcol.Config.Max, (TermTransformer.SortOrder)tcol.Config.Order);
+                        tcol.Config.Max, (ValueToKeyMappingTransformer.SortOrder)tcol.Config.Order);
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.

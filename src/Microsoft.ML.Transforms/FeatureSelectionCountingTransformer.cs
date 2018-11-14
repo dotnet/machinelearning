@@ -13,13 +13,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-[assembly: LoadableClass(CountFeatureSelectionTransformer.Summary, typeof(IDataTransform), typeof(CountFeatureSelectionTransformer), typeof(CountFeatureSelectionTransformer.Arguments), typeof(SignatureDataTransform),
-    CountFeatureSelectionTransformer.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
+[assembly: LoadableClass(FeatureSelectionCountingTransformer.Summary, typeof(IDataTransform), typeof(FeatureSelectionCountingTransformer), typeof(FeatureSelectionCountingTransformer.Arguments), typeof(SignatureDataTransform),
+    FeatureSelectionCountingTransformer.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-    public static class CountFeatureSelectionTransformer
+    public static class FeatureSelectionCountingTransformer
     {
         internal const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
         internal const string UserName = "Count Feature Selection Transform";
@@ -165,11 +165,11 @@ namespace Microsoft.ML.Transforms
                 int colSrc;
                 var colName = columns[i];
                 if (!schema.TryGetColumnIndex(colName, out colSrc))
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransformer.Arguments.Column), "Source column '{0}' not found", colName);
+                    throw env.ExceptUserArg(nameof(FeatureSelectionCountingTransformer.Arguments.Column), "Source column '{0}' not found", colName);
 
                 var colType = schema.GetColumnType(colSrc);
                 if (colType.IsVector && !colType.IsKnownSizeVector)
-                    throw env.ExceptUserArg(nameof(CountFeatureSelectionTransformer.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
+                    throw env.ExceptUserArg(nameof(FeatureSelectionCountingTransformer.Arguments.Column), "Variable length column '{0}' is not allowed", colName);
 
                 activeInput[colSrc] = true;
                 colSrcs[i] = colSrc;

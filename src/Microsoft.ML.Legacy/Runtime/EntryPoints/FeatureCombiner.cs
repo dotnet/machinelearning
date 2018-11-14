@@ -98,11 +98,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
                     .Transform(viewTrain);
 
-                viewTrain = TermTransformer.Create(host,
-                    new TermTransformer.Arguments()
+                viewTrain = ValueToKeyMappingTransformer.Create(host,
+                    new ValueToKeyMappingTransformer.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new TermTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },
@@ -241,20 +241,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new TermTransformer.Arguments()
+            var args = new ValueToKeyMappingTransformer.Arguments()
             {
                 Column = new[]
                 {
-                    new TermTransformer.Column()
+                    new ValueToKeyMappingTransformer.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = TermTransformer.SortOrder.Value
+                        Sort = ValueToKeyMappingTransformer.SortOrder.Value
                     }
                 }
             };
-            var xf = TermTransformer.Create(host, args, input.Data);
+            var xf = ValueToKeyMappingTransformer.Create(host, args, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

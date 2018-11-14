@@ -16,21 +16,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), typeof(KeyToBinaryVectorTransform.Arguments), typeof(SignatureDataTransform),
-    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.UserName, "KeyToBinary", "ToBinaryVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
+[assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorMappingTransformer), typeof(KeyToBinaryVectorMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    "Key To Binary Vector Transform", KeyToBinaryVectorMappingTransformer.UserName, "KeyToBinary", "ToBinaryVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
 
-[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadDataTransform),
-    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorMappingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Key To Binary Vector Transform", KeyToBinaryVectorMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadModel),
-    KeyToBinaryVectorTransform.UserName, KeyToBinaryVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(KeyToBinaryVectorMappingTransformer.Summary, typeof(KeyToBinaryVectorMappingTransformer), null, typeof(SignatureLoadModel),
+    KeyToBinaryVectorMappingTransformer.UserName, KeyToBinaryVectorMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadRowMapper),
-   KeyToBinaryVectorTransform.UserName, KeyToBinaryVectorTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToBinaryVectorMappingTransformer), null, typeof(SignatureLoadRowMapper),
+   KeyToBinaryVectorMappingTransformer.UserName, KeyToBinaryVectorMappingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Conversions
 {
-    public sealed class KeyToBinaryVectorTransform : OneToOneTransformerBase
+    public sealed class KeyToBinaryVectorMappingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 verReadableCur: 0x00000001,
                 verWeCanReadBack: 0x00000001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(KeyToBinaryVectorTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(KeyToBinaryVectorMappingTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "KeyToBinary";
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
         }
 
-        public KeyToBinaryVectorTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        public KeyToBinaryVectorMappingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         // Factory method for SignatureLoadModel.
-        private static KeyToBinaryVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KeyToBinaryVectorMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -119,10 +119,10 @@ namespace Microsoft.ML.Transforms.Conversions
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new KeyToBinaryVectorTransform(host, ctx);
+            return new KeyToBinaryVectorMappingTransformer(host, ctx);
         }
 
-        private KeyToBinaryVectorTransform(IHost host, ModelLoadContext ctx)
+        private KeyToBinaryVectorMappingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             _columns = new ColumnInfo[ColumnPairs.Length];
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
-            new KeyToBinaryVectorTransform(env, columns).MakeDataTransform(input);
+            new KeyToBinaryVectorMappingTransformer(env, columns).MakeDataTransform(input);
 
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name);
                 };
             }
-            return new KeyToBinaryVectorTransform(env, cols).MakeDataTransform(input);
+            return new KeyToBinaryVectorMappingTransformer(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -179,12 +179,12 @@ namespace Microsoft.ML.Transforms.Conversions
                 }
             }
 
-            private readonly KeyToBinaryVectorTransform _parent;
+            private readonly KeyToBinaryVectorMappingTransformer _parent;
             private readonly ColInfo[] _infos;
             private readonly VectorType[] _types;
             private readonly int[] _bitsPerKey;
 
-            public Mapper(KeyToBinaryVectorTransform parent, Schema inputSchema)
+            public Mapper(KeyToBinaryVectorMappingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -445,20 +445,20 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorTransform>
+    public sealed class KeyToBinaryVectorMappingEstimator : TrivialEstimator<KeyToBinaryVectorMappingTransformer>
     {
 
-        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params KeyToBinaryVectorTransform.ColumnInfo[] columns)
-            : this(env, new KeyToBinaryVectorTransform(env, columns))
+        public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, params KeyToBinaryVectorMappingTransformer.ColumnInfo[] columns)
+            : this(env, new KeyToBinaryVectorMappingTransformer(env, columns))
         {
         }
 
         public KeyToBinaryVectorMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null)
-            : this(env, new KeyToBinaryVectorTransform(env, new KeyToBinaryVectorTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn)))
+            : this(env, new KeyToBinaryVectorMappingTransformer(env, new KeyToBinaryVectorMappingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn)))
         {
         }
 
-        private KeyToBinaryVectorMappingEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
+        private KeyToBinaryVectorMappingEstimator(IHostEnvironment env, KeyToBinaryVectorMappingTransformer transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorMappingEstimator)), transformer)
         {
         }
@@ -562,11 +562,11 @@ namespace Microsoft.ML.Transforms.Conversions
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new KeyToBinaryVectorTransform.ColumnInfo[toOutput.Length];
+                var infos = new KeyToBinaryVectorMappingTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var col = (IColInput)toOutput[i];
-                    infos[i] = new KeyToBinaryVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
+                    infos[i] = new KeyToBinaryVectorMappingTransformer.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]]);
                 }
                 return new KeyToBinaryVectorMappingEstimator(env, infos);
             }

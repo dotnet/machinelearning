@@ -48,13 +48,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             dataView = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransformer.ColumnInfo("A", "TermA"),
-                    new TermTransformer.ColumnInfo("B", "TermB"),
-                    new TermTransformer.ColumnInfo("C", "TermC", textKeyValues:true)
+                    new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("C", "TermC", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToBinaryVectorMappingEstimator(Env, new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
-                new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC"));
+            var pipe = new KeyToBinaryVectorMappingEstimator(Env, new KeyToBinaryVectorMappingTransformer.ColumnInfo("TermA", "CatA"),
+                new KeyToBinaryVectorMappingTransformer.ColumnInfo("TermC", "CatC"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -72,8 +72,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Non-pigsty Term.
             var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
-                new TermTransformer.ColumnInfo("ScalarString", "A"),
-                new TermTransformer.ColumnInfo("VectorString", "B") })
+                new ValueToKeyMappingTransformer.ColumnInfo("ScalarString", "A"),
+                new ValueToKeyMappingTransformer.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
@@ -101,18 +101,18 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                new TermTransformer.ColumnInfo("A", "TA", textKeyValues: true),
-                new TermTransformer.ColumnInfo("B", "TB", textKeyValues: true),
-                new TermTransformer.ColumnInfo("C", "TC"),
-                new TermTransformer.ColumnInfo("D", "TD") });
+                new ValueToKeyMappingTransformer.ColumnInfo("A", "TA", textKeyValues: true),
+                new ValueToKeyMappingTransformer.ColumnInfo("B", "TB", textKeyValues: true),
+                new ValueToKeyMappingTransformer.ColumnInfo("C", "TC"),
+                new ValueToKeyMappingTransformer.ColumnInfo("D", "TD") });
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
             var pipe = new KeyToBinaryVectorMappingEstimator(Env,
-                 new KeyToBinaryVectorTransform.ColumnInfo("TA", "CatA"),
-                 new KeyToBinaryVectorTransform.ColumnInfo("TB", "CatB"),
-                 new KeyToBinaryVectorTransform.ColumnInfo("TC", "CatC"),
-                 new KeyToBinaryVectorTransform.ColumnInfo("TD", "CatD"));
+                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("TA", "CatA"),
+                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("TB", "CatB"),
+                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("TC", "CatC"),
+                 new KeyToBinaryVectorMappingTransformer.ColumnInfo("TD", "CatD"));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -162,16 +162,16 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransformer.ColumnInfo("A", "TermA"),
-                    new TermTransformer.ColumnInfo("B", "TermB", textKeyValues:true),
-                    new TermTransformer.ColumnInfo("C", "TermC")
+                    new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB", textKeyValues:true),
+                    new ValueToKeyMappingTransformer.ColumnInfo("C", "TermC")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
             var pipe = new KeyToBinaryVectorMappingEstimator(Env,
-                new KeyToBinaryVectorTransform.ColumnInfo("TermA", "CatA"),
-                new KeyToBinaryVectorTransform.ColumnInfo("TermB", "CatB"),
-                new KeyToBinaryVectorTransform.ColumnInfo("TermC", "CatC")
+                new KeyToBinaryVectorMappingTransformer.ColumnInfo("TermA", "CatA"),
+                new KeyToBinaryVectorMappingTransformer.ColumnInfo("TermB", "CatB"),
+                new KeyToBinaryVectorMappingTransformer.ColumnInfo("TermC", "CatC")
             );
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
