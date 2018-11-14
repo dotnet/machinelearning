@@ -2,7 +2,7 @@
 2 columns:
   CatU8: Vec<Key<U8, 0-100>, 9>
   CatU2: Vec<Key<U2, 0-*>, 3>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 4 columns:
   CatU8: Vec<Key<U8, 0-100>, 9>
   CatU2: Vec<Key<U2, 0-*>, 3>

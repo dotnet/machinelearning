@@ -55,7 +55,7 @@
   temp__tmp012_000: Vec<Key<U4, 0-1073741823>>
   temp__tmp013_000: Vec<Key<U4, 0-1073741823>>
   temp__tmp014_000: Vec<Key<U4, 0-1073741823>>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 41 columns:
   One: Text
   Two: Text
