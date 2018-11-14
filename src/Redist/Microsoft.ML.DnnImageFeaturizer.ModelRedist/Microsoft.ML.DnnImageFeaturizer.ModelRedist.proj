@@ -1,0 +1,106 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <ModelPlacementDir>$(RepoRoot)bin\obj\DnnImageModels</ModelPlacementDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AlexNetPreprocessFile Include="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetPrepOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResNetPreprocessFile Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNetPrepOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AlexNetModelFile Include="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetOnnx/AlexNet.onnx"
+    DestinationFile="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResNet18ModelFile Include="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet18Onnx/ResNet18.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet18Onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResNet50ModelFile Include="$(ModelPlacementDir)\ResNet50Onnx\ResNet50.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet50Onnx/ResNet50.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet50Onnx\ResNet50.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet50Onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ResNet101ModelFile Include="$(ModelPlacementDir)\ResNet101Onnx\ResNet101.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet101Onnx/ResNet101.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet101Onnx\ResNet101.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet101Onnx" />
+  </ItemGroup>
+
+  <Target Name="DownloadAlexNetPrepModels" Inputs="@(AlexNetPreprocessFile)" Outputs="%(AlexNetPreprocessFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(AlexNetPreprocessFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(AlexNetPreprocessFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(AlexNetPreprocessFile)"/>
+  </Target>
+
+  <Target Name="DownloadResNetPrepModels" 
+          DependsOnTargets="DownloadAlexNetPrepModels" Inputs="@(ResNetPreprocessFile)" Outputs="%(ResNetPreprocessFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(ResNetPreprocessFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(ResNetPreprocessFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ResNetPreprocessFile)"/>
+  </Target>
+
+  <Target Name="DownloadAlexNetModels" 
+          DependsOnTargets="DownloadResNetPrepModels" Inputs="@(AlexNetModelFile)" Outputs="%(AlexNetModelFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(AlexNetModelFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(AlexNetModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(AlexNetModelFile)"/>
+  </Target>
+
+  <Target Name="DownloadResNet18Models" 
+          DependsOnTargets="DownloadAlexNetModels" Inputs="@(ResNet18ModelFile)" Outputs="%(ResNet18ModelFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(ResNet18ModelFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(ResNet18ModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ResNet18ModelFile)"/>
+  </Target>
+
+  <Target Name="DownloadResNet50Models" 
+          DependsOnTargets="DownloadResNet18Models" Inputs="@(ResNet50ModelFile)" Outputs="%(ResNet50ModelFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(ResNet50ModelFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(ResNet50ModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ResNet50ModelFile)"/>
+  </Target>
+
+  <Target Name="DownloadResNet101Models" 
+          DependsOnTargets="DownloadResNet50Models" Inputs="@(ResNet101ModelFile)" Outputs="%(ResNet101ModelFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external model files... %(ResNet101ModelFile.DestinationFile)" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="%(ResNet101ModelFile.DestinationDir)" />
+    <DownloadFilesFromUrl Items="@(ResNet101ModelFile)"/>
+  </Target>
+
+  <Target Name="Build"
+          DependsOnTargets="DownloadResNet101Models" />
+
+</Project>
