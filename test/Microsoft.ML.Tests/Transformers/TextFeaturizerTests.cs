@@ -290,7 +290,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LdaWorkoutEstimatorCore()
         {
-            var env = new ConsoleEnvironment(seed: 42, conc: 1);
+            var ml = new MLContext();
+
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
             {
@@ -298,11 +299,10 @@ namespace Microsoft.ML.Tests.Transformers
                 new[] {  (float)0.0,  (float)1.0,  (float)0.0 },
                 new[] {  (float)0.0,  (float)0.0,  (float)1.0 },
             };
-
             builder.AddColumn("F1V", NumberType.Float, data);
             var srcView = builder.GetDataView();
 
-            var est = new LdaEstimator(env, "F1V");
+            var est = ml.Transforms.Text.Lda("F1V");
             TestEstimatorCore(est, srcView);
         }
 

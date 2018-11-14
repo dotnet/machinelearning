@@ -169,5 +169,47 @@ namespace Microsoft.ML
             params WordTokenizeTransform.ColumnInfo[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LdaEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="inputColumn">The column containing a fixed length vector of input tokens.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
+        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+        public static LdaEstimator Lda(this TransformsCatalog.TextTransforms catalog,
+            string inputColumn,
+            string outputColumn = null,
+            int numTopic = LdaEstimator.Defaults.NumTopic,
+            float alphaSum = LdaEstimator.Defaults.AlphaSum,
+            float beta = LdaEstimator.Defaults.Beta,
+            int mhstep = LdaEstimator.Defaults.Mhstep,
+            int numIterations = LdaEstimator.Defaults.NumIterations,
+            int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
+            int numThreads = LdaEstimator.Defaults.NumThreads,
+            int numMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken,
+            int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
+            int numBurninIterations = LdaEstimator.Defaults.NumBurninIterations,
+            bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator)
+            => new LdaEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
+                numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator);
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LdaEstimator"/>.
+        /// </summary>
+        /// <param name="catalog">The transform's catalog.</param>
+        /// <param name="columns"> Describes the parameters of LDA for each column pair.</param>
+        public static LdaEstimator Lda(this TransformsCatalog.TextTransforms catalog, params LdaTransformer.ColumnInfo[] columns)
+            => new LdaEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+
     }
 }

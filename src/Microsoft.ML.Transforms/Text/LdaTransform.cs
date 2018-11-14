@@ -974,6 +974,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
+                // No data to train on, just return
                 if (rowCount == 0)
                     return;
 
