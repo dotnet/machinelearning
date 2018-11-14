@@ -36,11 +36,18 @@ namespace Microsoft.ML.Runtime
         public bool WantCaching { get; }
 
         /// <summary>
-        /// Whether the trainer supports validation sets via <see cref="TrainContext.ValidationSet"/>. Not implementing
-        /// this interface and returning <c>true</c> from this property is an indication the trainer does not support
+        /// Whether the trainer supports validation set via <see cref="TrainContext.ValidationSet"/>. Not implementing
+        /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
         /// that.
         /// </summary>
         public bool SupportsValidation { get; }
+
+        /// <summary>
+        /// Whether the trainer can use test set via <see cref="TrainContext.TestSet"/>. Not implementing
+        /// this interface and returning <c>false</c> from this property is an indication the trainer does not support
+        /// that.
+        /// </summary>
+        public bool SupportsTest { get; }
 
         /// <summary>
         /// Whether the trainer can support incremental trainers via <see cref="TrainContext.InitialPredictor"/>. Not
@@ -58,14 +65,16 @@ namespace Microsoft.ML.Runtime
         /// <param name="caching">The value for the property <see cref="WantCaching"/></param>
         /// <param name="supportValid">The value for the property <see cref="SupportsValidation"/></param>
         /// <param name="supportIncrementalTrain">The value for the property <see cref="SupportsIncrementalTraining"/></param>
+        /// <param name="supportTest">The value for the property <see cref="SupportsTest"/></param>
         public TrainerInfo(bool normalization = true, bool calibration = false, bool caching = true,
-            bool supportValid = false, bool supportIncrementalTrain = false)
+            bool supportValid = false, bool supportIncrementalTrain = false, bool supportTest = false)
         {
             NeedNormalization = normalization;
             NeedCalibration = calibration;
             WantCaching = caching;
             SupportsValidation = supportValid;
             SupportsIncrementalTraining = supportIncrementalTrain;
+            SupportsTest = supportTest;
         }
     }
 }
