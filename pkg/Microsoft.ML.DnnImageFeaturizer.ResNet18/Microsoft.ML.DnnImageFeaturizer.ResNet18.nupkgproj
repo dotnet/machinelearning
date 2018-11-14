@@ -10,8 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNet18Onnx" /> 
-    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNetPrepOnnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNet18Onnx;content\DnnImageModels\ResNet18Onnx" /> 
+    <Content Include="$(RepoRoot)\bin\obj\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNetPrepOnnx;content\DnnImageModels\ResNetPrepOnnx" /> 
   </ItemGroup>  
 
 </Project>
