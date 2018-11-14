@@ -41,11 +41,11 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The name of the input column.</param>
         /// <param name="outputColumn">The optional name of the output column,
         /// If not provided, the <paramref name="inputColumn"/> will be replaced with the results of the transforms.</param>
-        /// <param name="replacementKind">The type of replacement to use as specified in <see cref="NAReplaceTransform.ColumnInfo.ReplacementMode"/></param>
+        /// <param name="replacementKind">The type of replacement to use as specified in <see cref="MissingValueReplacingTransformer.ColumnInfo.ReplacementMode"/></param>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog,
             string inputColumn,
             string outputColumn = null,
-            NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = MissingValueReplacingEstimator.Defaults.ReplacementMode)
+            MissingValueReplacingTransformer.ColumnInfo.ReplacementMode replacementKind = MissingValueReplacingEstimator.Defaults.ReplacementMode)
         => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, replacementKind);
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The name of the columns to use, and per-column transformation configuraiton.</param>
-        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params NAReplaceTransform.ColumnInfo[] columns)
+        public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingTransformer.ColumnInfo[] columns)
             => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 

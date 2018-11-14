@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Training
                 validRoles = MakeRoles(cachedValid);
             }
 
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 

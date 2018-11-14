@@ -30,7 +30,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
-        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RffTransform.ColumnInfo[] columns)
+        public static RandomFourierFeaturizingEstimator CreateRandomFourierFeatures(this TransformsCatalog.ProjectionTransforms catalog, params RandomFourierFeaturizingTransformer.ColumnInfo[] columns)
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
@@ -44,10 +44,10 @@ namespace Microsoft.ML
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
-            WhiteningKind kind = VectorWhiteningTransform.Defaults.Kind,
-            float eps = VectorWhiteningTransform.Defaults.Eps,
-            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransform.Defaults.PcaNum)
+            WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
+            float eps = VectorWhiteningTransformer.Defaults.Eps,
+            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
+            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
-        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningTransform.ColumnInfo[] columns)
+        public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, params VectorWhiteningTransformer.ColumnInfo[] columns)
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }
