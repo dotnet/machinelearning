@@ -135,6 +135,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.SamplesUtils",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Recommender", "src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj", "{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.ML.Maml", "Microsoft.ML.Maml", "{29B62884-F67B-456F-AFD1-900802A4032F}"
+	ProjectSection(SolutionItems) = preProject
+		pkg\Microsoft.ML.Maml\Microsoft.ML.Maml.0.8.0-preview-27113-0.nupkg = pkg\Microsoft.ML.Maml\Microsoft.ML.Maml.0.8.0-preview-27113-0.nupkg
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -567,6 +572,7 @@ Global
 		{ECB71297-9DF1-48CE-B93A-CD969221F9B6} = {DA452A53-2E94-4433-B08C-041EDEC729E6}
 		{11A5210E-2EA7-42F1-80DB-827762E9C781} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
 		{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3} = {09EADF06-BE25-4228-AB53-95AE3E15B530}
+		{29B62884-F67B-456F-AFD1-900802A4032F} = {D3D38B03-B557-484D-8348-8BADEE4DF592}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {41165AF1-35BB-4832-A189-73060F82B01D}
