@@ -328,10 +328,10 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(score, nameof(score));
 
             if(features != null)
-                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty, if provided, if you want to calculate the Dbi metric.");
+                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty if you want to calculate the Dbi metric.");
 
             if (label != null)
-                Host.CheckNonEmpty(label, nameof(label), "The label column name should be non-empty, if provided, if you want to calculate the Nmi metric.");
+                Host.CheckNonEmpty(label, nameof(label), "The label column name should be non-empty if you want to calculate the Nmi metric.");
 
             var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(features) });
             return eval.Evaluate(data, score, label, features);
@@ -346,7 +346,7 @@ namespace Microsoft.ML
         /// <param name="estimator">The estimator to fit.</param>
         /// <param name="numFolds">Number of cross-validation folds.</param>
         /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
-        /// <param name="featuresColumn">OPtional features column for evaluation (needed for calculating Davies-Bouldin Index)</param>
+        /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
         /// <param name="stratificationColumn">Optional stratification column.</param>
         /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
