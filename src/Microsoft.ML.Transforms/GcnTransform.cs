@@ -305,23 +305,9 @@ namespace Microsoft.ML.Transforms.Projections
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema.GetColumnType(srcCol);
-            var reason = TestColumn(inType);
-            if (reason != null)
-                throw Host.ExceptParam(nameof(inputSchema), reason);
+            if (LpNormalizingEstimatorBase.IsColumnTypeValid(inType))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), LpNormalizingEstimatorBase.ExpectedColumnType, inType.ToString());
         }
-
-        // Check if the input column's type is supported. Note that only float vector with a known shape is allowed.
-        internal static string TestColumn(ColumnType type)
-        {
-            if ((type.IsVector && !type.IsKnownSizeVector && (type.AsVector.Dimensions.Length > 1)) || type.ItemType != NumberType.R4)
-                return "Expected float or float vector of known size";
-
-            if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)
-                return "Vector size exceeds maximum size for one dimensional array (2 146 435 071 elements)";
-
-            return null;
-        }
-
         /// <summary>
         /// Create a <see cref="LpNormalizingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
@@ -331,7 +317,7 @@ namespace Microsoft.ML.Transforms.Projections
             _columns = columns.ToArray();
         }
 
-        // Factory method for SignatureDataTransform for GcnArguments class/>
+        // Factory method for SignatureDataTransform for GcnArguments class.
         internal static IDataTransform Create(IHostEnvironment env, GcnArguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -357,7 +343,7 @@ namespace Microsoft.ML.Transforms.Projections
             return new LpNormalizingTransformer(env, cols).MakeDataTransform(input);
         }
 
-        // Factory method for SignatureDataTransform for Arguments class/>
+        // Factory method for SignatureDataTransform for Arguments class.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -787,6 +773,22 @@ namespace Microsoft.ML.Transforms.Projections
 
         }
 
+        internal static bool IsColumnTypeValid(ColumnType type)
+        {
+            if (!(type.IsVector && type.IsKnownSizeVector && type.AsVector.Dimensions.Length > 1))
+                return false;
+            return type.ItemType != NumberType.R4;
+        }
+
+        internal static bool IsSchemaColumnValid(SchemaShape.Column col)
+        {
+            if (col.Kind != SchemaShape.Column.VectorKind.Vector)
+                return false;
+            return col.ItemType != NumberType.R4;
+        }
+
+        internal const string ExpectedColumnType = "Expected float or float vector of known size";
+
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -795,11 +797,8 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
-                var reason = LpNormalizingTransformer.TestColumn(col.ItemType);
-                if (reason != null)
-                    throw Host.ExceptUserArg(nameof(inputSchema), reason);
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
+                if (IsSchemaColumnValid(col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -848,9 +847,9 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <summary>
-    /// Gcn Normalizing estimator allow you take columns and performs global constrast normalization on them.
+    /// Global contrast normalizing estimator allow you take columns and performs global constrast normalization on them.
     /// </summary>
-    public sealed class GcnNormalizingEstimator : LpNormalizingEstimatorBase
+    public sealed class GlobalContrastNormalizingEstimator : LpNormalizingEstimatorBase
     {
         /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="env">The environment.</param>
@@ -859,7 +858,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GcnNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public GlobalContrastNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, subMean, useStdDev, scale)
         {
@@ -871,16 +870,16 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GcnNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns,
+        public GlobalContrastNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns,
             bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
             : this(env, columns.Select(x => new LpNormalizingTransformer.GcnColumnInfo(x.input, x.output, subMean, useStdDev, scale)).ToArray())
         {
         }
 
         /// <summary>
-        /// Create a <see cref="GcnNormalizingEstimator"/> that takes multiple pairs of columns.
+        /// Create a <see cref="GlobalContrastNormalizingEstimator"/> that takes multiple pairs of columns.
         /// </summary>
-        public GcnNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransformer.GcnColumnInfo[] columns) :
+        public GlobalContrastNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransformer.GcnColumnInfo[] columns) :
             base(env, columns)
         {
 

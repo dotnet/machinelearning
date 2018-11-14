@@ -11,7 +11,7 @@ namespace Microsoft.ML
     public static class ProjectionCatalog
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="RandomFourierFeaturizingEstimator"/>.
+        /// Takes column filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
@@ -26,7 +26,7 @@ namespace Microsoft.ML
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, newDim, useSin);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="RandomFourierFeaturizingEstimator"/>.
+        /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>
@@ -34,7 +34,8 @@ namespace Microsoft.ML
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// Takes column filled with a vector of random variables with a known covariance matrix into a set of new variables whose covariance is the identity matrix,
+        /// meaning that they are uncorrelated and each have variance 1.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
@@ -51,7 +52,8 @@ namespace Microsoft.ML
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose covariance is the identity matrix,
+        /// meaning that they are uncorrelated and each have variance 1.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
@@ -59,7 +61,7 @@ namespace Microsoft.ML
             => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LpNormalizingEstimator"/>.
+        /// Takes column filled with a vector of floats and computes L-p norm of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
@@ -71,7 +73,7 @@ namespace Microsoft.ML
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, normKind, subMean);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LpNormalizingEstimator"/>.
+        /// Takes columns filled with a vector of floats and computes L-p norm of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the lp-normalization process for each column pair.</param>
@@ -79,7 +81,7 @@ namespace Microsoft.ML
             => new LpNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="GcnNormalizingEstimator"/>.
+        /// Takes column filled with a vector of floats and computes global contrast normalization of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the input column.</param>
@@ -87,18 +89,18 @@ namespace Microsoft.ML
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static GcnNormalizingEstimator GcnNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn,
              bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubMean,
              bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
              float scale = LpNormalizingEstimatorBase.Defaults.Scale)
-            => new GcnNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, subMean, useStdDev, scale);
+            => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, subMean, useStdDev, scale);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="VectorWhiteningEstimator"/>.
+        /// Takes columns filled with a vector of floats and computes global contrast normalization of it.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of the gcn-normaliztion process for each column pair.</param>
-        public static GcnNormalizingEstimator GcnNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.GcnColumnInfo[] columns)
-            => new GcnNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static GlobalContrastNormalizingEstimator GlobalContrastNormalize(this TransformsCatalog.ProjectionTransforms catalog, params LpNormalizingTransformer.GcnColumnInfo[] columns)
+            => new GlobalContrastNormalizingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

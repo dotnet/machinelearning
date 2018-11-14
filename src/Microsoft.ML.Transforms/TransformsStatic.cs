@@ -81,7 +81,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extensions for statically typed <see cref="LpNormalizingEstimator"/>.
     /// </summary>
-    public static class LpNormNormalizerExtensions
+    public static class LpNormalizerExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -131,9 +131,9 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extensions for statically typed <see cref="GcnNormalizingEstimator"/>.
+    /// Extensions for statically typed <see cref="GlobalContrastNormalizingEstimator"/>.
     /// </summary>
-    public static class GcNormalizerExtensions
+    public static class GlobalContrastNormalizerExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
@@ -171,7 +171,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new GcnNormalizingEstimator(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
+                return new GlobalContrastNormalizingEstimator(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
             }
         }
 

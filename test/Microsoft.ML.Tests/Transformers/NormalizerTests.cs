@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(dataSource);
 
             var est = new LpNormalizingEstimator(ml, "features", "lpnorm")
-                .Append(new GcnNormalizingEstimator(ml, "features", "gcnorm"))
+                .Append(new GlobalContrastNormalizingEstimator(ml, "features", "gcnorm"))
                 .Append(new VectorWhiteningEstimator(ml, "features", "whitened"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -220,27 +220,26 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LpNormWorkout()
         {
-            var ml = new MLContext(seed: 0);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var data = TextLoader.CreateReader(ml,
+            var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ml,
+            var invalidData = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ml, "features", "lpNorm1")
-                .Append(new LpNormalizingEstimator(ml, "features", "lpNorm2", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
+            var est = new LpNormalizingEstimator(ML, "features", "lpNorm1")
+                .Append(new LpNormalizingEstimator(ML, "features", "lpNorm2", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(ml, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ml, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = SelectColumnsTransform.CreateKeep(Env, savedData, new[] { "lpNorm1", "lpNorm2" });
 
                 using (var fs = File.Create(outputPath))
@@ -260,49 +259,47 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestLpNormOldSavingAndLoading()
         {
-            var ml = new MLContext(seed: 0);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var dataView = TextLoader.CreateReader(ml,
+            var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new LpNormalizingEstimator(ml, "features", "whitened");
+            var pipe = new LpNormalizingEstimator(ML, "features", "whitened");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
-                TrainUtils.SaveModel(ml, Env.Start("saving"), ms, null, resultRoles);
+                TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
-                var loadedView = ModelFileUtils.LoadTransforms(ml, dataView, ms);
+                var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
             }
         }
 
         [Fact]
         public void GcnWorkout()
         {
-            var ml = new MLContext(seed: 0);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var data = TextLoader.CreateReader(ml,
+            var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ml,
+            var invalidData = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new GcnNormalizingEstimator(ml, "features", "gcnNorm1")
-                .Append(new GcnNormalizingEstimator(ml, "features", "gcnNorm2", subMean: false, useStdDev: true, scale: 3));
+            var est = new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm1")
+                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm2", subMean: false, useStdDev: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(ml, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(ml, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransform.CreateKeep(ml, savedData, new[] { "gcnNorm1", "gcnNorm2" });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = SelectColumnsTransform.CreateKeep(ML, savedData, new[] { "gcnNorm1", "gcnNorm2" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -321,21 +318,20 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestGcnNormOldSavingAndLoading()
         {
-            var ml = new MLContext(seed: 0);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var dataView = TextLoader.CreateReader(ml,
+            var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new GcnNormalizingEstimator(ml, "features", "whitened");
+            var pipe = new GlobalContrastNormalizingEstimator(ML, "features", "whitened");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
-                TrainUtils.SaveModel(ml, Env.Start("saving"), ms, null, resultRoles);
+                TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
-                var loadedView = ModelFileUtils.LoadTransforms(ml, dataView, ms);
+                var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
             }
         }
     }
