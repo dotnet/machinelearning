@@ -42,8 +42,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer
-        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>,
-          IHasLabelGains
+        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>
     {
         internal const string LoadNameValue = "FastTreeRanking";
         internal const string UserNameValue = "FastTree (Boosted Trees) Ranking";
@@ -117,7 +116,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
-        public Double[] GetLabelGains()
+        private Double[] GetLabelGains()
         {
             try
             {
