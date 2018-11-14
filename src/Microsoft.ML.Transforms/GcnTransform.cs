@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms.Projections
         private const string RegistrationName = "LpNormNormalizer";
 
         // REVIEW: should this be an argument instead?
-        private const float MinScale = (float)1e-8;
+        private const float MinScale = 1e-8f;
 
         public IReadOnlyCollection<ColumnInfoBase> Columns => _columns.AsReadOnly();
         private readonly ColumnInfoBase[] _columns;
