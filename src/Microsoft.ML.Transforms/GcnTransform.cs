@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Projections
             public LpNormalizingEstimatorBase.NormalizerKind NormKind = LpNormalizingEstimatorBase.Defaults.NormKind;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing", SortOrder = 2)]
-            public bool SubMean = LpNormalizingEstimatorBase.Defaults.LpSubMean;
+            public bool SubMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean;
         }
 
         public sealed class GcnArguments : TransformInputBase
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Transforms.Projections
             public GcnColumn[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Subtract mean from each value before normalizing", SortOrder = 1)]
-            public bool SubMean = LpNormalizingEstimatorBase.Defaults.GcnSubMean;
+            public bool SubMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize by standard deviation rather than L2 norm", ShortName = "useStd")]
             public bool UseStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev;
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
-            /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+            /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
             /// <param name="scale">Scale features by this value.</param>
             public GcnColumnInfo(string input, string output,
-                bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubMean,
+                bool substractMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
                 bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
                 float scale = LpNormalizingEstimatorBase.Defaults.Scale)
-                : base(input, output, subMean, useStdDev ? LpNormalizingEstimatorBase.NormalizerKind.StdDev : LpNormalizingEstimatorBase.NormalizerKind.L2Norm, scale)
+                : base(input, output, substractMean, useStdDev ? LpNormalizingEstimatorBase.NormalizerKind.StdDev : LpNormalizingEstimatorBase.NormalizerKind.L2Norm, scale)
             {
             }
         }
@@ -176,12 +176,12 @@ namespace Microsoft.ML.Transforms.Projections
             /// </summary>
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
-            /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+            /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
             /// <param name="normalizerKind">The norm to use to normalize each sample.</param>
             public LpNormColumnInfo(string input, string output,
-                bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubMean,
+                bool substractMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean,
                 LpNormalizingEstimatorBase.NormalizerKind normalizerKind = LpNormalizingEstimatorBase.Defaults.NormKind)
-                : base(input, output, subMean, normalizerKind, 1)
+                : base(input, output, substractMean, normalizerKind, 1)
             {
             }
         }
@@ -206,13 +206,13 @@ namespace Microsoft.ML.Transforms.Projections
             public readonly LpNormalizingEstimatorBase.NormalizerKind NormKind;
             public readonly float Scale;
 
-            internal ColumnInfoBase(string input, string output, bool subMean, LpNormalizingEstimatorBase.NormalizerKind normalizerKind, float scale)
+            internal ColumnInfoBase(string input, string output, bool substractMean, LpNormalizingEstimatorBase.NormalizerKind normalizerKind, float scale)
             {
                 Contracts.CheckNonWhiteSpace(input, nameof(input));
                 Contracts.CheckNonWhiteSpace(output, nameof(output));
                 Input = input;
                 Output = output;
-                SubtractMean = subMean;
+                SubtractMean = substractMean;
                 Contracts.CheckUserArg(0 < scale && scale < float.PositiveInfinity, nameof(scale), "scale must be a positive finite value");
                 Scale = scale;
                 NormKind = normalizerKind;
@@ -227,9 +227,9 @@ namespace Microsoft.ML.Transforms.Projections
                 Output = output;
 
                 // *** Binary format ***
-                // byte: subMean
+                // byte: SubtractMean
                 // byte: NormKind
-                // Float: scale
+                // Float: Scale
                 SubtractMean = ctx.Reader.ReadBoolByte();
                 byte normKindVal = ctx.Reader.ReadByte();
                 Contracts.CheckDecode(Enum.IsDefined(typeof(LpNormalizingEstimatorBase.NormalizerKind), normKindVal));
@@ -248,9 +248,9 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 Contracts.AssertValue(ctx);
                 // *** Binary format ***
-                // byte: subMean
+                // byte: SubtractMean
                 // byte: NormKind
-                // Float: scale
+                // Float: Scale
                 ctx.Writer.WriteBoolByte(SubtractMean);
                 ctx.Writer.Write((byte)NormKind);
                 Contracts.Assert(0 < Scale && Scale < float.PositiveInfinity);
@@ -758,8 +758,8 @@ namespace Microsoft.ML.Transforms.Projections
         internal static class Defaults
         {
             public const NormalizerKind NormKind = NormalizerKind.L2Norm;
-            public const bool LpSubMean = false;
-            public const bool GcnSubMean = true;
+            public const bool LpSubstractMean = false;
+            public const bool GcnSubstractMean = true;
             public const bool UseStdDev = false;
             public const float Scale = 1;
         }
@@ -819,10 +819,10 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         public LpNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            NormalizerKind normKind = Defaults.NormKind, bool subMean = Defaults.LpSubMean)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, normKind, subMean)
+            NormalizerKind normKind = Defaults.NormKind, bool substractMean = Defaults.LpSubstractMean)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, normKind, substractMean)
         {
         }
 
@@ -830,10 +830,10 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the normalization on.</param>
         /// <param name="normKind">Type of norm to use to normalize each sample.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         public LpNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns,
-            NormalizerKind normKind = Defaults.NormKind, bool subMean = Defaults.LpSubMean)
-             : this(env, columns.Select(x => new LpNormalizingTransformer.LpNormColumnInfo(x.input, x.output, subMean, normKind)).ToArray())
+            NormalizerKind normKind = Defaults.NormKind, bool substractMean = Defaults.LpSubstractMean)
+             : this(env, columns.Select(x => new LpNormalizingTransformer.LpNormColumnInfo(x.input, x.output, substractMean, normKind)).ToArray())
         {
         }
 
@@ -855,24 +855,24 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
         public GlobalContrastNormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, subMean, useStdDev, scale)
+            bool substractMean = Defaults.GcnSubstractMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, substractMean, useStdDev, scale)
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the normalization on.</param>
-        /// <param name="subMean">Subtract mean from each value before normalizing.</param>
+        /// <param name="substractMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
         public GlobalContrastNormalizingEstimator(IHostEnvironment env, (string input, string output)[] columns,
-            bool subMean = Defaults.GcnSubMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
-            : this(env, columns.Select(x => new LpNormalizingTransformer.GcnColumnInfo(x.input, x.output, subMean, useStdDev, scale)).ToArray())
+            bool substractMean = Defaults.GcnSubstractMean, bool useStdDev = Defaults.UseStdDev, float scale = Defaults.Scale)
+            : this(env, columns.Select(x => new LpNormalizingTransformer.GcnColumnInfo(x.input, x.output, substractMean, useStdDev, scale)).ToArray())
         {
         }
 
@@ -882,7 +882,6 @@ namespace Microsoft.ML.Transforms.Projections
         public GlobalContrastNormalizingEstimator(IHostEnvironment env, params LpNormalizingTransformer.GcnColumnInfo[] columns) :
             base(env, columns)
         {
-
         }
     }
 }

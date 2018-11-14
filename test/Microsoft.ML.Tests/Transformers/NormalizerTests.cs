@@ -232,7 +232,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(dataSource);
 
             var est = new LpNormalizingEstimator(ML, "features", "lpNorm1")
-                .Append(new LpNormalizingEstimator(ML, "features", "lpNorm2", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, subMean: true));
+                .Append(new LpNormalizingEstimator(ML, "features", "lpNorm2", normKind: LpNormalizingEstimatorBase.NormalizerKind.L1Norm, substractMean: true));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpNorm.tsv");
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(dataSource);
 
             var est = new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm1")
-                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm2", subMean: false, useStdDev: true, scale: 3));
+                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnNorm2", substractMean: false, useStdDev: true, scale: 3));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "gcnNorm.tsv");

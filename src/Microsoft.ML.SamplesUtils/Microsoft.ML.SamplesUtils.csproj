@@ -5,4 +5,8 @@
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
+  </ItemGroup>
+
 </Project>

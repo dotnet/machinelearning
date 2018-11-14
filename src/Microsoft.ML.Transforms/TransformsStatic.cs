@@ -127,7 +127,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static Vector<float> LpNormalize(this Vector<float> input,
             LpNormalizingEstimatorBase.NormalizerKind normKind = LpNormalizingEstimatorBase.Defaults.NormKind,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubMean) => new OutPipelineColumn(input, normKind, subMean);
+            bool subMean = LpNormalizingEstimatorBase.Defaults.LpSubstractMean) => new OutPipelineColumn(input, normKind, subMean);
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
         public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
-            bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubMean,
+            bool subMean = LpNormalizingEstimatorBase.Defaults.GcnSubstractMean,
             bool useStdDev = LpNormalizingEstimatorBase.Defaults.UseStdDev,
             float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, subMean, useStdDev, scale);
     }
