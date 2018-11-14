@@ -21,6 +21,7 @@ Please feel free to search this page and use any code that suits your needs.
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
+- [How do I debug my experiment?](#how-do-i-debug-my-experiment)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
@@ -242,6 +243,35 @@ var reader = mlContext.Data.TextReader(new[] {
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(dataPath);
+```
+
+## How do I debug my experiment?
+
+Most ML.NET operations are 'lazy': they are not actually processing data, they just validate that the operation is possible, and then defer execution until the output data is actually requested. This provides good efficiency, but makes it hard to step through and debug the experiment.
+
+In order to improve debug-ability, we have added a `Preview()` extension method to all data views, transformers, estimators and readers:
+
+- `Preview` of a data view contains first 100 rows (configurable) of the data view, encoded as objects, in a single in-memory structure.
+- `Preview` of a transformer takes data as input, and outputs the preview of the transformed data.
+- `Preview` of an estimator also takes data as input, fits an 'approximated model' on the first 100 rows (configurabele) of data, and then outputs the preview of the resulting transformer.
+
+This feature is only available starting from version 0.8.
+
+```csharp
+var mlContext = new MLContext();
+var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+var data = mlContext.Data.ReadFromTextFile(new TextLoader.Column[] {
+    new TextLoader.Column("Label", DataKind.Text, 0),
+    new TextLoader.Column("Features", DataKind.R4, 1, 4) }, filePath);
+
+// Preview the data. 
+data.Preview();
+
+// Preview the result of training and transformation.
+estimator.Preview(data);
 ```
 
 ## How do I look at the intermediate data?
