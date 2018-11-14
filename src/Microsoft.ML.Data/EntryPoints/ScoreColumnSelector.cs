@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
             }
 
-            var newView = NopTransform.CreateIfNeeded(env, input.Data);
+            var newView = NopTransformer.CreateIfNeeded(env, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, newView, input.Data), OutputData = newView };
         }
     }

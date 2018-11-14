@@ -199,6 +199,7 @@ namespace Microsoft.ML.Transforms
             {
                 return Min >= 0 && (Max == null || Min <= Max);
             }
+
         }
 
         /// <summary>
@@ -208,14 +209,16 @@ namespace Microsoft.ML.Transforms
         {
             public readonly string Input;
             public readonly string Output;
-            public readonly Range[] Slots;
+            public readonly (int min, int? max)[] Slots;
 
-            public ColumnInfo(string input, string output, Range[] slots)
+            public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
-                foreach (var range in slots)
-                    Contracts.Assert(range.IsValid());
+                // By default drop everything.
+                slots = slots ?? new (int min, int? max)[] { (0, null) };
+                foreach (var (min, max) in slots)
+                    Contracts.Assert(min >= 0 && (max == null || min <= max));
                 Input = input;
-                Output = output;
+                Output = output ?? input;
                 Slots = slots;
                 //GetSlotsMinMax(slots, out SlotsMin, out SlotsMax);
 
@@ -233,7 +236,7 @@ namespace Microsoft.ML.Transforms
             {
                 Input = column.Source ?? column.Name;
                 Output = column.Name;
-                Slots = column.Slots;
+                Slots = column.Slots.Select(range => (range.Min, range.Max)).ToArray();
                 //GetSlotsMinMax(column.Slots, out SlotsMin, out SlotsMax);
             }
         }
@@ -260,7 +263,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Initializes a new <see cref="DropSlotsTransform"/> object.
         /// </summary>
-        internal DropSlotsTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        public DropSlotsTransform(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -268,7 +271,7 @@ namespace Microsoft.ML.Transforms
             Host.CheckUserArg(AreRangesValid(SlotsMin, SlotsMax), nameof(columns), "The range min and max must be non-negative and min must be less than or equal to max.");
         }
 
-        private DropSlotsTransform(IHostEnvironment env, ModelLoadContext ctx)
+        internal DropSlotsTransform(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), ctx)
         {
             Host.AssertValue(ctx);
@@ -311,6 +314,9 @@ namespace Microsoft.ML.Transforms
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
+        //internal static IDataTransform MakeDataTransform(DropSlotsTransform transform, IDataView input)
+        //    => transform.MakeDataTransform(input);
+
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -328,7 +334,36 @@ namespace Microsoft.ML.Transforms
             {
                 Host.Assert(SlotsMin[i].Length == SlotsMax[i].Length);
                 ctx.Writer.WriteIntArray(SlotsMin[i]);
-                ctx.Writer.WriteIntsNoCount(SlotsMax[i], SlotsMax[i].Length);
+                ctx.Writer.WriteIntsNoCount(SlotsMax[i]);
+            }
+        }
+
+        private void GetSlotsMinMax(Column col, out int[] slotsMin, out int[] slotsMax)
+        {
+            slotsMin = new int[col.Slots.Length];
+            slotsMax = new int[col.Slots.Length];
+            for (int j = 0; j < col.Slots.Length; j++)
+            {
+                var range = col.Slots[j];
+                Host.CheckUserArg(range.IsValid(), nameof(col.Slots), "The range min and max must be non-negative and min must be less than or equal to max.");
+                slotsMin[j] = range.Min;
+                // There are two reasons for setting the max to int.MaxValue - 1:
+                // 1. max is an index, so it has to be strictly less than int.MaxValue.
+                // 2. to prevent overflows when adding 1 to it.
+                slotsMax[j] = range.Max ?? int.MaxValue - 1;
+            }
+            Array.Sort(slotsMin, slotsMax);
+            var iDst = 0;
+            for (int j = 1; j < col.Slots.Length; j++)
+            {
+                if (slotsMin[j] <= slotsMax[iDst] + 1)
+                    slotsMax[iDst] = Math.Max(slotsMax[iDst], slotsMax[j]);
+                else
+                {
+                    iDst++;
+                    slotsMin[iDst] = slotsMin[j];
+                    slotsMax[iDst] = slotsMax[j];
+                }
             }
         }
 
@@ -344,11 +379,11 @@ namespace Microsoft.ML.Transforms
                 for (int j = 0; j < slots.Length; j++)
                 {
                     var range = slots[j];
-                    slotsMin[i][j] = range.Min;
+                    slotsMin[i][j] = range.min;
                     // There are two reasons for setting the max to int.MaxValue - 1:
                     // 1. max is an index, so it has to be strictly less than int.MaxValue.
                     // 2. to prevent overflows when adding 1 to it.
-                    slotsMax[i][j] = range.Max ?? int.MaxValue - 1;
+                    slotsMax[i][j] = range.max ?? int.MaxValue - 1;
                 }
                 Array.Sort(slotsMin, slotsMax);
                 var iDst = 0;
@@ -437,9 +472,8 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _cols;
             private readonly ColumnType[] _srcTypes;
             private readonly ColumnType[] _dstTypes;
-
             private readonly SlotDropper[] _slotDropper;
-            //// Track if all the slots of the column are to be dropped.
+            // Track if all the slots of the column are to be dropped.
             private readonly bool[] _suppressed;
             private readonly int[][] _categoricalRanges;
 
@@ -450,6 +484,9 @@ namespace Microsoft.ML.Transforms
                 _cols = new int[_parent.ColumnPairs.Length];
                 _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
                 _dstTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _slotDropper = new SlotDropper[_parent.ColumnPairs.Length];
+                _suppressed = new bool[_parent.ColumnPairs.Length];
+                _categoricalRanges = new int[_parent.ColumnPairs.Length][];
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
@@ -457,7 +494,7 @@ namespace Microsoft.ML.Transforms
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
                     // TODO check that the types are ok if needed
-                    SlotDropper slotDropper = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
+                    _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
                     ComputeType(inputSchema, i, _slotDropper[i], out _suppressed[i], out _dstTypes[i], out _categoricalRanges[i]);
                 }
             }
@@ -844,8 +881,8 @@ namespace Microsoft.ML.Transforms
                         if (hasSlotNames && dstLength > 0)
                         {
                             // Add slot name metadata.
-                            builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, dstLength), null), getter)<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                                new VectorType(TextType.Instance, dstLength), GetSlotNames);
+                            ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
+                            builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, dstLength), null), slotNamesGetter);
                         }
                     }
 
@@ -860,9 +897,9 @@ namespace Microsoft.ML.Transforms
                             if (dst.Length > 0)
                             {
                                 Contracts.Assert(dst.Length % 2 == 0);
-
-                                builder.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
-                                    MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
+                                 // Add slot name metadata.
+                                ValueGetter<VBuffer<int>> categoricalSlotRangesGetter = (ref VBuffer<int> dest) => GetCategoricalSlotRanges(iinfo, ref dest);
+                                builder.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), null), categoricalSlotRangesGetter);
                             }
                         }
                     }

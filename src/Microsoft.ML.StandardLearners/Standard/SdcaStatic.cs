@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs?range=6-10,18-72 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/SDCARegression.cs?range=6-10,18-72)]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
@@ -66,7 +66,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaRegressionTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaRegressionTrainer(env, labelName, featuresName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -123,7 +123,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, featuresName, labelName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -193,7 +193,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaBinaryTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaBinaryTrainer(env, labelName, featuresName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -257,7 +257,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMultiClassTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaMultiClassTrainer(env, labelName, featuresName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;

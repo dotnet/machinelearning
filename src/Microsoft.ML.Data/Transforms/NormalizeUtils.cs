@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
             var entryPoints = new List<EntryPointNode>();
             if (columnsToNormalize.Count == 0)
             {
-                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransform.NopInput(), node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
+                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransformer.NopInput(), node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }
             else

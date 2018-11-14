@@ -19,36 +19,36 @@ namespace Microsoft.ML
         /// Predict a target using a linear regression model trained with the <see cref="OlsLinearRegressionTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="label">The label column.</param>
-        /// <param name="features">The features column.</param>
+        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="featureColumn">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionContext.RegressionTrainers ctx,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             Action<OlsLinearRegressionTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new OlsLinearRegressionTrainer(env, label, features, weights, advancedSettings);
+            return new OlsLinearRegressionTrainer(env, labelColumn, featureColumn, weights, advancedSettings);
         }
 
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
-        /// <param name="label">The label column.</param>
-        /// <param name="features">The features column.</param>
+        /// <param name="labelColumn">The labelColumn column.</param>
+        /// <param name="featureColumn">The features column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this RegressionContext.RegressionTrainers ctx,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new SymSgdClassificationTrainer(env, label, features, advancedSettings);
+            return new SymSgdClassificationTrainer(env, labelColumn, featureColumn, advancedSettings);
         }
     }
 }

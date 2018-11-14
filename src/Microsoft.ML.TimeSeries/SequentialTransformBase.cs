@@ -51,28 +51,28 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// A reference to the parent transform that operates on the state object.
             /// </summary>
-            protected SequentialTransformBase<TInput, TOutput, TState> ParentTransform;
+            private protected SequentialTransformBase<TInput, TOutput, TState> ParentTransform;
 
             /// <summary>
             /// The internal windowed buffer for buffering the values in the input sequence.
             /// </summary>
-            protected FixedSizeQueue<TInput> WindowedBuffer;
+            private protected FixedSizeQueue<TInput> WindowedBuffer;
 
             /// <summary>
             /// The buffer used to buffer the training data points.
             /// </summary>
-            protected FixedSizeQueue<TInput> InitialWindowedBuffer;
+            private protected FixedSizeQueue<TInput> InitialWindowedBuffer;
 
-            protected int WindowSize { get; private set; }
+            private protected int WindowSize { get; private set; }
 
-            protected int InitialWindowSize { get; private set; }
+            private protected int InitialWindowSize { get; private set; }
 
             /// <summary>
             /// Counts the number of rows observed by the transform so far.
             /// </summary>
-            protected int RowCounter { get; private set; }
+            private protected int RowCounter { get; private set; }
 
-            protected int IncrementRowCounter()
+            private protected int IncrementRowCounter()
             {
                 RowCounter++;
                 return RowCounter;
@@ -166,10 +166,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             /// <summary>
-            /// The abstract method that specifies the NA value for the dst type.
+            /// The abstract method that specifies the NA value for <paramref name="dst"/>'s type.
             /// </summary>
             /// <returns></returns>
-            protected abstract void SetNaOutput(ref TOutput dst);
+            private protected abstract void SetNaOutput(ref TOutput dst);
 
             /// <summary>
             /// The abstract method that realizes the main logic for the transform.
@@ -178,18 +178,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="dst">A reference to the dst object.</param>
             /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
             /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
-            protected abstract void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst);
+            private protected abstract void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst);
 
             /// <summary>
             /// The abstract method that realizes the logic for initializing the state object.
             /// </summary>
-            protected abstract void InitializeStateCore();
+            private protected abstract void InitializeStateCore();
 
             /// <summary>
             /// The abstract method that realizes the logic for learning the parameters and the initial state object from data.
             /// </summary>
             /// <param name="data">A queue of data points used for training</param>
-            protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
+            private protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
         }
 
         /// <summary>
@@ -242,13 +242,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="env">A reference to the environment variable.</param>
         /// <param name="input">A reference to the input data view.</param>
         /// <param name="outputColTypeOverride"></param>
-        protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
+        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
             string name, IHostEnvironment env, IDataView input, ColumnType outputColTypeOverride = null)
             : this(windowSize, initialWindowSize, inputColumnName, outputColumnName, Contracts.CheckRef(env, nameof(env)).Register(name), input, outputColTypeOverride)
         {
         }
 
-        protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
+        private protected SequentialTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
             IHost host, IDataView input, ColumnType outputColTypeOverride = null)
             : base(host, input)
         {
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _transform = CreateLambdaTransform(Host, input, InputColumnName, OutputColumnName, InitFunction, WindowSize > 0, outputColTypeOverride);
         }
 
-        protected SequentialTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
+        private protected SequentialTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
             : base(env, name, input)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             state.InitState(WindowSize, InitialWindowSize, this, Host);
         }
 
-        public override bool CanShuffle { get { return false; } }
+        public override bool CanShuffle => false;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -357,10 +357,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema Schema
-        {
-            get { return _transform.Schema; }
-        }
+        public override Schema Schema => _transform.Schema;
 
         public override long? GetRowCount(bool lazy = true)
         {

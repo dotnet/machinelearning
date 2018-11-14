@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // override with the directly provided values.
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
-            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
+            Args.MinDocumentsInLeafs = minDatapointsInLeaves;
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
@@ -121,10 +121,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn); ;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -1042,16 +1042,18 @@ namespace Microsoft.ML.Trainers.FastTree
             return binFinder.FindBins(in values, maxBins, minDocsPerLeaf, out upperBounds);
         }
 
-        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(VBuffer<double> values, Double[] binUpperBounds)
+        private static IEnumerable<KeyValuePair<int, int>> NonZeroBinnedValuesForSparse(ReadOnlySpan<double> values, ReadOnlySpan<int> indices, Double[] binUpperBounds)
         {
-            Contracts.Assert(!values.IsDense);
+            Contracts.Assert(values.Length == indices.Length);
             Contracts.Assert(Algorithms.FindFirstGE(binUpperBounds, 0) == 0);
-            for (int i = 0; i < values.Count; ++i)
+            var result = new List<KeyValuePair<int, int>>();
+            for (int i = 0; i < values.Length; ++i)
             {
-                int ge = Algorithms.FindFirstGE(binUpperBounds, values.Values[i]);
+                int ge = Algorithms.FindFirstGE(binUpperBounds, values[i]);
                 if (ge != 0)
-                    yield return new KeyValuePair<int, int>(values.Indices[i], ge);
+                    result.Add(new KeyValuePair<int, int>(indices[i], ge));
             }
+            return result;
         }
 
         private FeatureFlockBase CreateOneHotFlock(IChannel ch,
@@ -1238,14 +1240,15 @@ namespace Microsoft.ML.Trainers.FastTree
 
             IntArray bins = null;
 
+            var valuesValues = values.GetValues();
             var numBitsNeeded = IntArray.NumBitsNeeded(binUpperBounds.Length);
             if (numBitsNeeded == IntArrayBits.Bits0)
                 bins = new Dense0BitIntArray(values.Length);
-            else if (!values.IsDense && zeroBin == 0 && values.Count < (1 - sparsifyThreshold) * values.Length)
+            else if (!values.IsDense && zeroBin == 0 && valuesValues.Length < (1 - sparsifyThreshold) * values.Length)
             {
                 // Special code to go straight from our own sparse format to a sparse IntArray.
                 // Note: requires zeroBin to be 0 because that's what's assumed in FastTree code
-                var nonZeroValues = NonZeroBinnedValuesForSparse(values, binUpperBounds);
+                var nonZeroValues = NonZeroBinnedValuesForSparse(valuesValues, values.GetIndices(), binUpperBounds);
                 bins = new DeltaSparseIntArray(values.Length, numBitsNeeded, nonZeroValues);
             }
             else
@@ -1261,23 +1264,23 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     else
                         Array.Clear(binnedValues, 0, values.Length);
-                    for (int i = 0; i < values.Count; ++i)
+                    var valuesIndices = values.GetIndices();
+                    for (int i = 0; i < valuesValues.Length; ++i)
                     {
-                        if ((binnedValues[values.Indices[i]] = Algorithms.FindFirstGE(binUpperBounds, values.Values[i])) == 0)
+                        if ((binnedValues[valuesIndices[i]] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i])) == 0)
                             firstBinCount++;
                     }
                     if (zeroBin == 0)
-                        firstBinCount += values.Length - values.Count;
+                        firstBinCount += values.Length - valuesValues.Length;
                 }
                 else
                 {
-                    Double[] denseValues = values.Values;
-                    for (int i = 0; i < values.Length; i++)
+                    for (int i = 0; i < valuesValues.Length; i++)
                     {
-                        if (denseValues[i] == 0)
+                        if (valuesValues[i] == 0)
                             binnedValues[i] = zeroBin;
                         else
-                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, denseValues[i]);
+                            binnedValues[i] = Algorithms.FindFirstGE(binUpperBounds, valuesValues[i]);
                         if (binnedValues[i] == 0)
                             firstBinCount++;
                     }
@@ -1537,15 +1540,17 @@ namespace Microsoft.ML.Trainers.FastTree
                                                 Double firstBin = bup[0];
                                                 GetFeatureValues(catCursor, iFeatureLocal, catGetter, ref temp, ref doubleTemp, copier);
                                                 bool add = false;
-                                                for (int index = 0; index < doubleTemp.Count; ++index)
+                                                var doubleTempValues = doubleTemp.GetValues();
+                                                var doubleTempIndices = doubleTemp.GetIndices();
+                                                for (int index = 0; index < doubleTempValues.Length; ++index)
                                                 {
-                                                    if (doubleTemp.Values[index] <= firstBin)
+                                                    if (doubleTempValues[index] <= firstBin)
                                                         continue;
 
-                                                    int iindex = doubleTemp.IsDense ? index : doubleTemp.Indices[index];
+                                                    int iindex = doubleTemp.IsDense ? index : doubleTempIndices[index];
                                                     int last = lastOn[iindex];
 
-                                                    if (doubleTemp.Values[index] != 1 || (last != -1 && last >= iFeature))
+                                                    if (doubleTempValues[index] != 1 || (last != -1 && last >= iFeature))
                                                     {
                                                         catRangeIndex += 2;
                                                         pending.Clear();
@@ -1617,10 +1622,12 @@ namespace Microsoft.ML.Trainers.FastTree
                             trans.GetSingleSlotValue<Float>(labelIdx, ref temp);
                             slotDropper?.DropSlots(ref temp, ref temp);
 
-                            for (int i = 0; i < temp.Count; ++i)
+                            var tempValues = temp.GetValues();
+                            var tempIndices = temp.GetIndices();
+                            for (int i = 0; i < tempValues.Length; ++i)
                             {
-                                int ii = temp.IsDense ? i : temp.Indices[i];
-                                var label = temp.Values[i];
+                                int ii = temp.IsDense ? i : tempIndices[i];
+                                var label = tempValues[i];
                                 if (UsingMaxLabel && !(0 <= label && label <= MaxLabel))
                                     throw Host.Except("Found invalid label {0}. Value should be between 0 and {1}, inclusive.", label, MaxLabel);
                                 ratings[ii] = (short)label;
@@ -1901,7 +1908,7 @@ namespace Microsoft.ML.Trainers.FastTree
                             if (_weights != null)
                                 _weights.Add(cursor.Weight);
                             _targetsList.Add((short)cursor.Label);
-                            featureValues += cursor.Features.Count;
+                            featureValues += cursor.Features.GetValues().Length;
 
                             if (featureValues > featureValuesWarnThreshold && !featureValuesWarned)
                             {
@@ -2811,7 +2818,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         //The below two properties are necessary for tree Visualizer
         public TreeEnsemble TrainedEnsemble { get; }
-        public int NumTrees => TrainedEnsemble.NumTrees;
+        int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
         protected readonly string InnerArgs;
@@ -2831,8 +2838,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -3012,7 +3019,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -3061,7 +3068,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Max
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3281,7 +3288,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return ifeatMax;
         }
 
-        public ITree[] GetTrees()
+        ITree[] ITreeEnsemble.GetTrees()
         {
             return TrainedEnsemble.Trees.Select(k => new Tree(k)).ToArray();
         }
@@ -3385,14 +3392,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private sealed class TreeNode : INode
         {
-            private readonly Dictionary<string, object> _keyValues;
-
             public TreeNode(Dictionary<string, object> keyValues)
             {
-                _keyValues = keyValues;
+                KeyValues = keyValues;
             }
 
-            public Dictionary<string, object> KeyValues { get { return _keyValues; } }
+            public Dictionary<string, object> KeyValues { get; }
         }
     }
 }

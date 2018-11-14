@@ -269,7 +269,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 var values = dst.Values;
                 var indices = dst.Indices;
-                int count = src.Count;
+                var srcValues = src.GetValues();
+                int count = srcValues.Length;
                 if (count > 0)
                 {
                     if (Utils.Size(values) < count)
@@ -278,13 +279,14 @@ namespace Microsoft.ML.Runtime.Data
                     // REVIEW: This would be faster if there were loops for each std conversion.
                     // Consider adding those to the Conversions class.
                     for (int i = 0; i < count; i++)
-                        conv(in src.Values[i], ref values[i]);
+                        conv(in srcValues[i], ref values[i]);
 
                     if (!src.IsDense)
                     {
+                        var srcIndices = src.GetIndices();
                         if (Utils.Size(indices) < count)
                             indices = new int[count];
-                        Array.Copy(src.Indices, indices, count);
+                        srcIndices.CopyTo(indices);
                     }
                 }
                 dst = new VBuffer<TDst>(src.Length, count, values, indices);

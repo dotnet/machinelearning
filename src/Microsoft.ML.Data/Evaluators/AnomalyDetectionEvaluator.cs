@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
         {
-            return NopTransform.CreateIfNeeded(Host, data.Data);
+            return NopTransformer.CreateIfNeeded(Host, data.Data);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected IEnumerable<Info> ReverseHeap(Heap<Info> heap)
+                private protected Info[] ReverseHeap(Heap<Info> heap)
                 {
                     var res = new Info[heap.Count];
                     while (heap.Count > 0)

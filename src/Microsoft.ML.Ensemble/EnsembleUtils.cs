@@ -50,6 +50,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var values = dst.Values;
             var indices = dst.Indices;
 
+            var srcValues = src.GetValues();
             if (src.IsDense)
             {
                 if (cardinality >= src.Length / 2)
@@ -57,8 +58,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                     T defaultValue = default;
                     if (Utils.Size(values) < src.Length)
                         values = new T[src.Length];
-                    for (int i = 0; i < src.Length; i++)
-                        values[i] = !includedIndices[i] ? defaultValue : src.Values[i];
+                    for (int i = 0; i < srcValues.Length; i++)
+                        values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
                     dst = new VBuffer<T>(src.Length, values, indices);
                 }
                 else
@@ -69,12 +70,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                         indices = new int[cardinality];
 
                     int count = 0;
-                    for (int i = 0; i < src.Length; i++)
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
                         if (includedIndices[i])
                         {
                             Contracts.Assert(count < cardinality);
-                            values[count] = src.Values[i];
+                            values[count] = srcValues[i];
                             indices[count] = i;
                             count++;
                         }
@@ -88,7 +89,8 @@ namespace Microsoft.ML.Runtime.Ensemble
             {
                 int valuesSize = Utils.Size(values);
                 int indicesSize = Utils.Size(indices);
-                if (valuesSize < src.Count || indicesSize < src.Count)
+
+                if (valuesSize < srcValues.Length || indicesSize < srcValues.Length)
                 {
                     if (valuesSize < cardinality)
                         values = new T[cardinality];
@@ -97,12 +99,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 }
 
                 int count = 0;
-                for (int i = 0; i < src.Count; i++)
+                var srcIndices = src.GetIndices();
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (includedIndices[src.Indices[i]])
+                    if (includedIndices[srcIndices[i]])
                     {
-                        values[count] = src.Values[i];
-                        indices[count] = src.Indices[i];
+                        values[count] = srcValues[i];
+                        indices[count] = srcIndices[i];
                         count++;
                     }
                 }

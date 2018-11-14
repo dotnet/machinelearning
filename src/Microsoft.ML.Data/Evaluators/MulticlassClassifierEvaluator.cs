@@ -1115,23 +1115,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (_numTopClasses < type.VectorSize)
                 {
                     // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column
-                            {
-                                Name = MultiClassPerInstanceEvaluator.SortedClasses,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClasses
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
+                    var column = new DropSlotsTransform.ColumnInfo(MultiClassPerInstanceEvaluator.SortedClasses, slots: (_numTopClasses, null));
+                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
                 }
             }
 
@@ -1141,23 +1126,8 @@ namespace Microsoft.ML.Runtime.Data
                 var type = perInst.Schema.GetColumnType(sortedScoresIndex);
                 if (_numTopClasses < type.VectorSize)
                 {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = MultiClassPerInstanceEvaluator.SortedScores,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClasses
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
+                    var column = new DropSlotsTransform.ColumnInfo(MultiClassPerInstanceEvaluator.SortedScores, slots: (_numTopClasses, null));
+                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
                 }
             }
             return perInst;

@@ -4,11 +4,14 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -16,19 +19,21 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-[assembly: LoadableClass(MutualInformationFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectionTransform), typeof(MutualInformationFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
-    MutualInformationFeatureSelectionTransform.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectionTransform.ShortName)]
+[assembly: LoadableClass(MutualInformationFeatureSelectionEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectionEstimator), typeof(MutualInformationFeatureSelectionEstimator.Arguments), typeof(SignatureDataTransform),
+    MutualInformationFeatureSelectionEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectionEstimator.ShortName)]
 
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-    public static class MutualInformationFeatureSelectionTransform
+    public sealed class MutualInformationFeatureSelectionEstimator : IEstimator<ITransformer>
     {
-        public const string Summary =
+        internal const string Summary =
             "Selects the top k slots across all specified columns ordered by their mutual information with the label column.";
 
-        public const string UserName = "Mutual Information Feature Selection Transform";
-        public const string ShortName = "MIFeatureSelection";
+        internal const string UserName = "Mutual Information Feature Selection Transform";
+        internal const string ShortName = "MIFeatureSelection";
+        internal const string FriendlyName = "Mutual Information Feature Selection";
+        internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
 
         public static class Defaults
         {
@@ -56,38 +61,142 @@ namespace Microsoft.ML.Transforms
             public int NumBins = Defaults.NumBins;
         }
 
-        internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
+        //// TODO commenting
+        //public sealed class ColumnInfo
+        //{
+        //    public readonly string Input;
+        //    public readonly string Output;
+        //    public readonly string LabelColumn;
+        //    public readonly int SlotsInOutput;
+        //    public readonly int NumBins;
 
-        /// <summary>
-        /// A helper method to create <see cref="IDataTransform"/> for selecting the top k slots ordered by their mutual information.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
-        /// <param name="columns">Columns to use for feature selection.</param>
-        public static IDataTransform Create(IHostEnvironment env,
-            IDataView input,
+        //    public ColumnInfo(string input, string output = null, string labelColumn = Defaults.LabelColumn,
+        //        int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
+        //    {
+        //        // TODO check values
+        //        Input = input;
+        //        Output = output ?? input;
+        //        LabelColumn = labelColumn;
+        //        SlotsInOutput = slotsInOutput;
+        //        NumBins = numBins;
+        //    }
+        //}
+
+        private IHost _host;
+        private readonly (string input, string output)[] _columns;
+        private readonly string _labelColumn;
+        private readonly int _slotsInOutput;
+        private readonly int _numBins;
+
+        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env,
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
             int numBins = Defaults.NumBins,
-            params string[] columns)
+            params(string input, string output)[] columns)
         {
-            var args = new Arguments()
-            {
-                Column = columns,
-                LabelColumn = labelColumn,
-                SlotsInOutput = slotsInOutput,
-                NumBins = numBins
-            };
-            return Create(env, args, input);
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(RegistrationName);
+            _columns = columns;
+            _slotsInOutput = slotsInOutput;
+            _numBins = numBins;
         }
+
+        public ITransformer Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            //host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+            //host.CheckUserArg(args.SlotsInOutput > 0, nameof(args.SlotsInOutput));
+            //host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
+            //host.Check(args.NumBins > 1, "numBins must be greater than 1.");
+
+            using (var ch = _host.Start("Selecting Slots"))
+            {
+                ch.Info("Computing mutual information");
+                var sw = new Stopwatch();
+                sw.Start();
+                var colSet = new HashSet<string>();
+                foreach (var col in _columns)
+                {
+                    if (!colSet.Add(col.input))
+                        ch.Warning("Column '{0}' specified multiple time.", col);
+                }
+                var colArr = colSet.ToArray();
+                var colSizes = new int[colArr.Length];
+                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn, colArr, _numBins, colSizes);
+                sw.Stop();
+                ch.Info("Finished mutual information computation in {0}", sw.Elapsed);
+
+                ch.Info("Selecting features to drop");
+                var threshold = ComputeThreshold(scores, _slotsInOutput, out int tiedScoresToKeep);
+
+                var columns = CreateDropSlotsColumns(colArr.Length, scores, threshold, tiedScoresToKeep, out int[] selectedCount, _columns);
+
+                if (columns.Count <= 0)
+                {
+                    ch.Info("No features are being dropped.");
+                    return new NopTransformer(_host);
+                }
+
+                for (int i = 0; i < selectedCount.Length; i++)
+                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], colArr[i]);
+                ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
+
+                //var dsArgs = new DropSlotsTransform.Arguments();
+                //dsArgs.Column = columns.ToArray();
+                return new DropSlotsTransform(_host, columns.ToArray());
+            }
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                // TODO check types work (right input)
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var categoricalSlotMeta))
+                    metadata.Add(categoricalSlotMeta);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+
+        ///// <summary>
+        ///// A helper method to create <see cref="IDataTransform"/> for selecting the top k slots ordered by their mutual information.
+        ///// </summary>
+        ///// <param name="env">Host Environment.</param>
+        ///// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        ///// <param name="labelColumn">Column to use for labels.</param>
+        ///// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        ///// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        ///// <param name="columns">Columns to use for feature selection.</param>
+        //internal static IDataTransform Create(IHostEnvironment env,
+        //    IDataView input,
+        //    string labelColumn = Defaults.LabelColumn,
+        //    int slotsInOutput = Defaults.SlotsInOutput,
+        //    int numBins = Defaults.NumBins,
+        //    params string[] columns)
+        //{
+        //    var args = new Arguments()
+        //    {
+        //        Column = columns,
+        //        LabelColumn = labelColumn,
+        //        SlotsInOutput = slotsInOutput,
+        //        NumBins = numBins
+        //    };
+        //    return Create(env, args, input);
+        //}
 
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -98,43 +207,8 @@ namespace Microsoft.ML.Transforms
             host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             host.Check(args.NumBins > 1, "numBins must be greater than 1.");
 
-            using (var ch = host.Start("Selecting Slots"))
-            {
-                ch.Info("Computing mutual information");
-                var sw = new Stopwatch();
-                sw.Start();
-                var colSet = new HashSet<string>();
-                foreach (var col in args.Column)
-                {
-                    if (!colSet.Add(col))
-                        ch.Warning("Column '{0}' specified multiple time.", col);
-                }
-                var colArr = colSet.ToArray();
-                var colSizes = new int[colArr.Length];
-                var scores = MutualInformationFeatureSelectionUtils.TrainCore(host, input, args.LabelColumn, colArr,
-                    args.NumBins, colSizes);
-                sw.Stop();
-                ch.Info("Finished mutual information computation in {0}", sw.Elapsed);
-
-                ch.Info("Selecting features to drop");
-                var threshold = ComputeThreshold(scores, args.SlotsInOutput, out int tiedScoresToKeep);
-
-                var columns = CreateDropSlotsColumns(colArr, colArr.Length, scores, threshold, tiedScoresToKeep, out int[] selectedCount);
-
-                if (columns.Count <= 0)
-                {
-                    ch.Info("No features are being dropped.");
-                    return NopTransform.CreateIfNeeded(host, input);
-                }
-
-                for (int i = 0; i < selectedCount.Length; i++)
-                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], colArr[i]);
-                ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
-
-                var dsArgs = new DropSlotsTransform.Arguments();
-                dsArgs.Column = columns.ToArray();
-                return new DropSlotsTransform(host, dsArgs, input);
-            }
+            (string input, string output)[] cols = args.Column.Select(col => (col, col)).ToArray();
+            return new MutualInformationFeatureSelectionEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
         /// <summary>
@@ -146,10 +220,10 @@ namespace Microsoft.ML.Transforms
         /// <param name="topk">How many slots to preserve.</param>
         /// <param name="tiedScoresToKeep">If there are ties, how many of them to keep.</param>
         /// <returns>The threshold.</returns>
-        private static Single ComputeThreshold(Single[][] scores, int topk, out int tiedScoresToKeep)
+        private static float ComputeThreshold(float[][] scores, int topk, out int tiedScoresToKeep)
         {
             // Use a min-heap for the topk elements.
-            var heap = new Heap<Single>((f1, f2) => f1 > f2, topk);
+            var heap = new Heap<float>((f1, f2) => f1 > f2, topk);
 
             for (int i = 0; i < scores.Length; i++)
             {
@@ -186,21 +260,19 @@ namespace Microsoft.ML.Transforms
             return threshold;
         }
 
-        private static List<DropSlotsTransform.Column> CreateDropSlotsColumns(string[] cols, int size, Single[][] scores,
-            Single threshold, int tiedScoresToKeep, out int[] selectedCount)
+        private static List<DropSlotsTransform.ColumnInfo> CreateDropSlotsColumns(int size, float[][] scores,
+            float threshold, int tiedScoresToKeep, out int[] selectedCount, (string input, string output)[] cols)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
             Contracts.Assert(Utils.Size(cols) == size);
             Contracts.Assert(threshold > 0 || (threshold == 0 && tiedScoresToKeep == 0));
 
-            var columns = new List<DropSlotsTransform.Column>();
+            var columns = new List<DropSlotsTransform.ColumnInfo>();
             selectedCount = new int[scores.Length];
             for (int i = 0; i < size; i++)
             {
-                var col = new DropSlotsTransform.Column();
-                col.Source = cols[i];
-                var slots = new List<DropSlotsTransform.Range>();
+                var slots = new List<(int min, int? max)>();
                 var score = scores[i];
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
@@ -218,9 +290,8 @@ namespace Microsoft.ML.Transforms
                         continue;
                     }
 
-                    // Adjacent slots are combined into a single range.
-                    var range = new DropSlotsTransform.Range();
-                    range.Min = j;
+                    // Adjacent slots are combined into a float range.
+                    int min = j;
                     while (++j < score.Length)
                     {
                         sc = score[j];
@@ -236,17 +307,136 @@ namespace Microsoft.ML.Transforms
                             break;
                         }
                     }
-                    range.Max = j - 1;
-                    slots.Add(range);
+                    int max = j - 1;
+                    slots.Add((min, max));
                 }
                 if (slots.Count > 0)
                 {
-                    col.Slots = slots.ToArray();
+                    var col = new DropSlotsTransform.ColumnInfo(cols[i].input, cols[i].output, slots.ToArray());
                     columns.Add(col);
                 }
             }
             return columns;
         }
+    }
+
+    // TODO commenting
+    public static class MutualInformationFeatureSelectorExtensions
+    {
+        private sealed class OutPipelineColumn<T> : Vector<T>
+        {
+            public readonly Vector<T> Input;
+            public readonly PipelineColumn LabelColumn;
+
+            public OutPipelineColumn(Vector<T> input, Scalar<float> labelColumn, int slotsInOutput, int numBins)
+                : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
+            {
+                Input = input;
+                LabelColumn = labelColumn;
+            }
+
+            public OutPipelineColumn(Vector<T> input, Scalar<bool> labelColumn, int slotsInOutput, int numBins)
+               : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
+            {
+                Input = input;
+                LabelColumn = labelColumn;
+            }
+        }
+
+        private sealed class Reconciler<T> : EstimatorReconciler
+        {
+            private readonly PipelineColumn _labelColumn;
+            private readonly int _slotsInOutput;
+            private readonly int _numBins;
+
+            public Reconciler(PipelineColumn labelColumn, int slotsInOutput, int numBins)
+            {
+                _labelColumn = labelColumn;
+                _slotsInOutput = slotsInOutput;
+                _numBins = numBins;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn<T>)outCol).Input], outputNames[outCol]));
+
+                return new MutualInformationFeatureSelectionEstimator(env,inputNames[_labelColumn], _slotsInOutput, _numBins, pairs.ToArray());
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
+            this Vector<float> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
+            this Vector<float> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
+            this Vector<double> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
+            this Vector<double> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
+            this Vector<bool> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="labelColumn">Column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
+            this Vector<bool> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
     }
 
     public static class MutualInformationFeatureSelectionUtils
@@ -260,7 +450,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="columns">The columns for which to compute the feature selection scores.</param>
         /// <param name="numBins">The number of bins to use for numeric features.</param>
         /// <returns>A list of scores for each column and each slot.</returns>
-        public static Single[][] Train(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins)
+        public static float[][] Train(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(input, nameof(input));
@@ -280,7 +470,7 @@ namespace Microsoft.ML.Transforms
             return TrainCore(host, input, labelColumnName, columns, numBins, colSizes);
         }
 
-        internal static Single[][] TrainCore(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins, int[] colSizes)
+        internal static float[][] TrainCore(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins, int[] colSizes)
         {
             var impl = new Impl(host);
             return impl.GetScores(input, labelColumnName, columns, numBins, colSizes);
@@ -296,8 +486,8 @@ namespace Microsoft.ML.Transforms
             private int[][] _contingencyTable;
             private int[] _labelSums;
             private int[] _featureSums;
-            private readonly List<Single> _singles;
-            private readonly List<Double> _doubles;
+            private readonly List<float> _singles;
+            private readonly List<double> _doubles;
             private ValueMapper<VBuffer<bool>, VBuffer<int>> _boolMapper;
 
             public Impl(IHost host)
@@ -305,11 +495,11 @@ namespace Microsoft.ML.Transforms
                 Contracts.AssertValue(host);
                 _host = host;
                 _binFinder = new GreedyBinFinder();
-                _singles = new List<Single>();
-                _doubles = new List<Double>();
+                _singles = new List<float>();
+                _doubles = new List<double>();
             }
 
-            public Single[][] GetScores(IDataView input, string labelColumnName, string[] columns, int numBins, int[] colSizes)
+            public float[][] GetScores(IDataView input, string labelColumnName, string[] columns, int numBins, int[] colSizes)
             {
                 _numBins = numBins;
                 var schema = input.Schema;
@@ -317,14 +507,14 @@ namespace Microsoft.ML.Transforms
 
                 if (!schema.TryGetColumnIndex(labelColumnName, out int labelCol))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionTransform.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.LabelColumn),
                         "Label column '{0}' not found", labelColumnName);
                 }
 
                 var labelType = schema.GetColumnType(labelCol);
                 if (!IsValidColumnType(labelType))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionTransform.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.LabelColumn),
                         "Label column '{0}' does not have compatible type", labelColumnName);
                 }
 
@@ -335,20 +525,20 @@ namespace Microsoft.ML.Transforms
                     var colName = columns[i];
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionTransform.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
                             "Source column '{0}' not found", colName);
                     }
 
                     var colType = schema.GetColumnType(colSrc);
                     if (colType.IsVector && !colType.IsKnownSizeVector)
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionTransform.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
                     if (!IsValidColumnType(colType.ItemType))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionTransform.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
@@ -356,7 +546,7 @@ namespace Microsoft.ML.Transforms
                     colSizes[i] = colType.ValueCount;
                 }
 
-                var scores = new Single[size][];
+                var scores = new float[size][];
                 using (var ch = _host.Start("Computing mutual information scores"))
                 using (var pch = _host.StartProgressChannel("Computing mutual information scores"))
                 {
@@ -411,14 +601,14 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (labelType == NumberType.R4)
                 {
-                    var tmp = default(VBuffer<Single>);
+                    var tmp = default(VBuffer<float>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinSingles(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
                 else if (labelType == NumberType.R8)
                 {
-                    var tmp = default(VBuffer<Double>);
+                    var tmp = default(VBuffer<double>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinDoubles(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
@@ -476,7 +666,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Computes the mutual information for one column.
             /// </summary>
-            private Single[] ComputeMutualInformation(Transposer trans, int col)
+            private float[] ComputeMutualInformation(Transposer trans, int col)
             {
                 // Note: NAs have their own separate bin.
                 var type = trans.Schema.GetColumnType(col);
@@ -491,7 +681,7 @@ namespace Microsoft.ML.Transforms
                 if (type.ItemType == NumberType.R4)
                 {
                     return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
+                        (ref VBuffer<float> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             BinSingles(ref src, ref dst, _numBins, out min, out lim);
                         });
@@ -499,7 +689,7 @@ namespace Microsoft.ML.Transforms
                 if (type.ItemType == NumberType.R8)
                 {
                     return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
+                        (ref VBuffer<double> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             BinDoubles(ref src, ref dst, _numBins, out min, out lim);
                         });
@@ -519,10 +709,10 @@ namespace Microsoft.ML.Transforms
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
                 ComputeMutualInformationDelegate<int> cmiDel = ComputeMutualInformation;
                 var cmiMethodInfo = cmiDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
-                return (Single[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { type.ItemType }) });
+                return (float[])cmiMethodInfo.Invoke(this, new object[] { trans, col, methodInfo.Invoke(null, new object[] { type.ItemType }) });
             }
 
-            private delegate Single[] ComputeMutualInformationDelegate<T>(Transposer trans, int col, Mapper<T> mapper);
+            private delegate float[] ComputeMutualInformationDelegate<T>(Transposer trans, int col, Mapper<T> mapper);
 
             private delegate void Mapper<T>(ref VBuffer<T> src, ref VBuffer<int> dst, out int min, out int lim);
 
@@ -542,10 +732,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Computes the mutual information for one column.
             /// </summary>
-            private Single[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
+            private float[] ComputeMutualInformation<T>(Transposer trans, int col, Mapper<T> mapper)
             {
                 var slotCount = trans.Schema.GetColumnType(col).ValueCount;
-                var scores = new Single[slotCount];
+                var scores = new float[slotCount];
                 int iScore = 0;
                 VBuffer<int> slotValues = default(VBuffer<int>);
                 using (var cursor = trans.GetSlotCursor(col))
@@ -566,7 +756,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Computes the mutual information for one slot.
             /// </summary>
-            private Single ComputeMutualInformation(in VBuffer<int> features, int numFeatures, int offset)
+            private float ComputeMutualInformation(in VBuffer<int> features, int numFeatures, int offset)
             {
                 Contracts.Assert(_labels.Length == features.Length);
                 if (Utils.Size(_contingencyTable[0]) < numFeatures)
@@ -590,18 +780,18 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                Double score = 0;
+                double score = 0;
                 for (int i = 0; i < _numLabels; i++)
                 {
                     for (int j = 0; j < numFeatures; j++)
                     {
                         if (_contingencyTable[i][j] > 0)
-                            score += _contingencyTable[i][j] / (Double)_labels.Length * Math.Log(_contingencyTable[i][j] * (Double)_labels.Length / ((Double)_labelSums[i] * _featureSums[j]), 2);
+                            score += _contingencyTable[i][j] / (double)_labels.Length * Math.Log(_contingencyTable[i][j] * (double)_labels.Length / ((double)_labelSums[i] * _featureSums[j]), 2);
                     }
                 }
 
                 Contracts.Assert(score >= 0);
-                return (Single)score;
+                return (float)score;
             }
 
             /// <summary>
@@ -684,7 +874,7 @@ namespace Microsoft.ML.Transforms
                 int offset = min;
                 ValueMapper<int, int> mapper =
                     (in int src, ref int dst) =>
-                        dst = offset + 1 + bounds.FindIndexSorted((Single)src);
+                        dst = offset + 1 + bounds.FindIndexSorted((float)src);
                 mapper.MapVector(in input, ref output);
                 _singles.Clear();
             }
@@ -692,7 +882,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maps from Singles to ints. NaNs (and only NaNs) are mapped to the first bin.
             /// </summary>
-            private void BinSingles(ref VBuffer<Single> input, ref VBuffer<int> output,
+            private void BinSingles(ref VBuffer<float> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_singles.Count == 0);
@@ -701,7 +891,7 @@ namespace Microsoft.ML.Transforms
                     for (int i = 0; i < input.Count; i++)
                     {
                         var val = input.Values[i];
-                        if (!Single.IsNaN(val))
+                        if (!float.IsNaN(val))
                             _singles.Add(val);
                     }
                 }
@@ -710,9 +900,9 @@ namespace Microsoft.ML.Transforms
                 min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 int offset = min;
-                ValueMapper<Single, int> mapper =
-                    (in Single src, ref int dst) =>
-                        dst = Single.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
+                ValueMapper<float, int> mapper =
+                    (in float src, ref int dst) =>
+                        dst = float.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
                 mapper.MapVector(in input, ref output);
                 _singles.Clear();
             }
@@ -720,7 +910,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maps from Doubles to ints. NaNs (and only NaNs) are mapped to the first bin.
             /// </summary>
-            private void BinDoubles(ref VBuffer<Double> input, ref VBuffer<int> output,
+            private void BinDoubles(ref VBuffer<double> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_doubles.Count == 0);
@@ -729,7 +919,7 @@ namespace Microsoft.ML.Transforms
                     for (int i = 0; i < input.Count; i++)
                     {
                         var val = input.Values[i];
-                        if (!Double.IsNaN(val))
+                        if (!double.IsNaN(val))
                             _doubles.Add(val);
                     }
                 }
@@ -737,9 +927,9 @@ namespace Microsoft.ML.Transforms
                 var bounds = _binFinder.FindBins(numBins, _doubles, input.Length - input.Count);
                 var offset = min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
-                ValueMapper<Double, int> mapper =
-                    (in Double src, ref int dst) =>
-                        dst = Double.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
+                ValueMapper<double, int> mapper =
+                    (in double src, ref int dst) =>
+                        dst = double.IsNaN(src) ? offset : offset + 1 + bounds.FindIndexSorted(src);
                 mapper.MapVector(in input, ref output);
                 _doubles.Clear();
             }

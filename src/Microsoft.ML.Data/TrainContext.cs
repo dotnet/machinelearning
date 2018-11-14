@@ -336,6 +336,27 @@ namespace Microsoft.ML
             var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(features) });
             return eval.Evaluate(data, score, label, features);
         }
+
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
+        public (ClusteringEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string stratificationColumn = null)
+        {
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+        }
     }
 
     /// <summary>
