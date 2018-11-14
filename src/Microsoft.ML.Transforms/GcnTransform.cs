@@ -305,7 +305,7 @@ namespace Microsoft.ML.Transforms.Projections
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema.GetColumnType(srcCol);
-            if (LpNormalizingEstimatorBase.IsColumnTypeValid(inType))
+            if (!LpNormalizingEstimatorBase.IsColumnTypeValid(inType))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), LpNormalizingEstimatorBase.ExpectedColumnType, inType.ToString());
         }
         /// <summary>
@@ -775,16 +775,16 @@ namespace Microsoft.ML.Transforms.Projections
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
-            if (!(type.IsVector && type.IsKnownSizeVector && type.AsVector.Dimensions.Length > 1))
+            if (!(type.IsVector && type.IsKnownSizeVector))
                 return false;
-            return type.ItemType != NumberType.R4;
+            return type.ItemType == NumberType.R4;
         }
 
         internal static bool IsSchemaColumnValid(SchemaShape.Column col)
         {
             if (col.Kind != SchemaShape.Column.VectorKind.Vector)
                 return false;
-            return col.ItemType != NumberType.R4;
+            return col.ItemType == NumberType.R4;
         }
 
         internal const string ExpectedColumnType = "Expected float or float vector of known size";
@@ -797,7 +797,7 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
-                if (IsSchemaColumnValid(col))
+                if (!IsSchemaColumnValid(col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))

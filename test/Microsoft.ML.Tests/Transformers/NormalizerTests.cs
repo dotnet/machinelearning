@@ -158,20 +158,19 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void WhiteningWorkout()
         {
-            var ml = new MLContext(seed: 0);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var data = TextLoader.CreateReader(ml,
+            var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ml,
+            var invalidData = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new VectorWhiteningEstimator(ml, "features", "whitened1")
-                .Append(new VectorWhiteningEstimator(ml, "features", "whitened2", kind: WhiteningKind.Pca, pcaNum: 5));
+            var est = new VectorWhiteningEstimator(ML, "features", "whitened1")
+                .Append(new VectorWhiteningEstimator(ML, "features", "whitened2", kind: WhiteningKind.Pca, pcaNum: 5));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "whitened.tsv");
@@ -198,21 +197,20 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWhiteningOldSavingAndLoading()
         {
-            var ml = new MLContext(seed: 0);
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var dataView = TextLoader.CreateReader(ml,
+            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource).AsDynamic;
-            var pipe = new VectorWhiteningEstimator(ml, "features", "whitened");
+            var pipe = new VectorWhiteningEstimator(ML, "features", "whitened");
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
-                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
-                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+                var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
             }
             Done();
         }
@@ -220,7 +218,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LpNormWorkout()
         {
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
             var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -259,7 +257,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestLpNormOldSavingAndLoading()
         {
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
             var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -279,7 +277,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void GcnWorkout()
         {
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
             var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -318,7 +316,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestGcnNormOldSavingAndLoading()
         {
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
             var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
