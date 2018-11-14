@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             // Not a passthrough.
             return RowCount;
@@ -818,9 +818,9 @@ namespace Microsoft.ML.Runtime.Data
                 _schema = new SchemaImpl(this, nameToCol);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
-                return _input.GetRowCount(lazy);
+                return _input.GetRowCount();
             }
 
             /// <summary>
@@ -1503,7 +1503,7 @@ namespace Microsoft.ML.Runtime.Data
                 _schemaImpl = new SchemaImpl(this);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
                 var type = _data.Schema.GetColumnType(_col);
                 int valueCount = type.ValueCount;

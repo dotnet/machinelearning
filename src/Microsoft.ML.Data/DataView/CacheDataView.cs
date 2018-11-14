@@ -193,12 +193,15 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => _subsetInput.Schema;
 
-        public long? GetRowCount(bool lazy = true)
+        /// <summary>
+        /// This implementation can cost more than O(1) operations because it tries its best to
+        /// compute the actual row count.
+        /// </summary>
+        /// <returns>number of rows</returns>
+        public long? GetRowCount()
         {
             if (_rowCount < 0)
             {
-                if (lazy)
-                    return null;
                 if (_cacheDefaultWaiter == null)
                     KickoffFiller(new int[0]);
                 _host.Assert(_cacheDefaultWaiter != null);
@@ -317,7 +320,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(predicate, nameof(predicate));
             // The seeker needs to know the row count when it validates the row index to move to.
             // Calling GetRowCount here to force a wait indirectly so that _rowCount will have a valid value.
-            GetRowCount(false);
+            GetRowCount();
             _host.Assert(_rowCount >= 0);
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)

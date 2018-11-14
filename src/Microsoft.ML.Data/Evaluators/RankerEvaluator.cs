@@ -635,9 +635,9 @@ namespace Microsoft.ML.Runtime.Data
             _transform.Save(ctx);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return _transform.GetRowCount(lazy);
+            return _transform.GetRowCount();
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)

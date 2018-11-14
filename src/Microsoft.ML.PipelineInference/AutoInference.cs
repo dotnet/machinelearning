@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             env.CheckValue(trainData, nameof(trainData));
             env.CheckValue(testData, nameof(testData));
 
-            int numOfRows = (int)(trainData.GetRowCount(false) ?? 1000);
+            int numOfRows = (int)(trainData.GetRowCount() ?? 1000);
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind, trainData, testData);
             bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfRows);
             return amls;

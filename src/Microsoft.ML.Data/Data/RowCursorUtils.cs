@@ -541,7 +541,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new IRowCursor[] { GetRowCursor(needCol, rand) };
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
                 return 1;
             }
