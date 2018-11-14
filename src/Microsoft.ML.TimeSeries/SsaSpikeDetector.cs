@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,100-163)]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs)]
         /// ]]>
         /// </format>
         /// </example>
