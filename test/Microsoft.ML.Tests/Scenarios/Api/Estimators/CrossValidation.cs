@@ -34,19 +34,5 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var cvResult = ml.BinaryClassification.CrossValidate(data, pipeline);
         }
-
-        [Fact]
-        void Clustering_CrossValidation()
-        {
-            var ml = new MLContext(seed: 1, conc: 1);
-
-            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs()).Read(GetDataPath(TestDatasets.irisData.trainFilename));
-
-            var pipeline = ml.Transforms.Concatenate("Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
-                .Append(ml.Clustering.Trainers.KMeans(features: "Features", clustersCount: 3));
-
-            var cvResults = ml.Clustering.CrossValidate(data, pipeline, labelColumn: "Label", stratificationColumn: "Label");
-        }
     }
 }
