@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))

@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;
 
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))

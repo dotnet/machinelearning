@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="context">The trainig context for this learner.</param>
         /// <returns>The trained model.</returns>
-        public TModel Train(TrainContext context)
+        TModel ITrainer<TModel>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
             return cols;
         }
 
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
 
         /// <summary>
         /// Fits the data to the trainer.
