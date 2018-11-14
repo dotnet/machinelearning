@@ -7,6 +7,7 @@ using Float = System.Single;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Core.Data;
 using System;
 
@@ -218,7 +219,6 @@ namespace Microsoft.ML.Runtime.Api
             _inputRow.ExtractValues(example);
             if (prediction == null)
                 prediction = new TDst();
-
             _outputRow.FillValues(prediction);
         }
     }

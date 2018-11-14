@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
-    public class TypedCursorable<TRow> : ICursorable<TRow>
+    internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
         where TRow : class
     {
         private readonly IHost _host;
@@ -436,16 +436,6 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action CreateGetter<TDst>(IRow input, int col)
-            {
-                var getter = input.GetGetter<TDst>(col);
-                TDst value = default(TDst);
-                return () =>
-                {
-                    getter(ref value);
-                };
-            }
-
             private Action<TRow> CreateVBufferToVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
@@ -479,7 +469,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private class TypedRow : TypedRowBase
+        private sealed class TypedRow : TypedRowBase
         {
             public TypedRow(TypedCursorable<TRow> parent, IRow input)
                 : base(parent, input, "Row")
@@ -487,7 +477,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        private sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
         {
             private readonly IRowCursor _input;
             private bool _disposed;
