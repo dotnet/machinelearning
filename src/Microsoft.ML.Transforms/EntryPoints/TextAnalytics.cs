@@ -53,14 +53,14 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramTransform.Summary,
-            UserName = NgramTransform.UserName,
-            ShortName = NgramTransform.LoaderSignature,
+            Desc = NgramTransformer.Summary,
+            UserName = NgramTransformer.UserName,
+            ShortName = NgramTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTransform.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf =  NgramTransform.Create(h, input, input.Data);
+            var xf =  NgramTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

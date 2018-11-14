@@ -220,7 +220,7 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <summary>
         /// This class is a merger of <see cref="TermTransform.Arguments"/> and
-        /// <see cref="NgramTransform.Arguments"/>, with the allLength option removed.
+        /// <see cref="NgramTransformer.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
         {
@@ -349,35 +349,20 @@ namespace Microsoft.ML.Transforms.Text
                 if (naDropArgs != null)
                     view = new MissingValueDroppingTransformer(h, naDropArgs, view);
             }
-
-            var ngramArgs =
-                new NgramTransform.Arguments()
-                {
-                    MaxNumTerms = args.MaxNumTerms,
-                    NgramLength = args.NgramLength,
-                    SkipLength = args.SkipLength,
-                    AllLengths = args.AllLengths,
-                    Weighting = args.Weighting,
-                    Column = new NgramTransform.Column[args.Column.Length]
-                };
+            var ngramColumns = new NgramTransformer.ColumnInfo[args.Column.Length];
 
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
-                ngramArgs.Column[iinfo] =
-                    new NgramTransform.Column()
-                    {
-                        Name = column.Name,
-                        Source = isTermCol[iinfo] ? column.Name : column.Source,
-                        AllLengths = column.AllLengths,
-                        MaxNumTerms = column.MaxNumTerms,
-                        NgramLength = column.NgramLength,
-                        SkipLength = column.SkipLength,
-                        Weighting = column.Weighting
-                    };
+                ngramColumns[iinfo] = new NgramTransformer.ColumnInfo(isTermCol[iinfo] ? column.Name : column.Source, column.Name,
+                    column.NgramLength ?? args.NgramLength,
+                    column.SkipLength ?? args.SkipLength,
+                    column.AllLengths ?? args.AllLengths,
+                    column.Weighting ?? args.Weighting,
+                    column.MaxNumTerms ?? args.MaxNumTerms
+                    );
             }
-
-            return  NgramTransform.Create(h, ngramArgs, view);
+            return new NgramEstimator(env, ngramColumns).Fit(view).Transform(view) as IDataTransform;
         }
 
         public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,

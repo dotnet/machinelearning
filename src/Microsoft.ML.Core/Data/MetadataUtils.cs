@@ -339,7 +339,8 @@ namespace Microsoft.ML.Runtime.Data
         public static bool HasKeyNames(this SchemaShape.Column col)
         {
             return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
-                && col.Kind == SchemaShape.Column.VectorKind.Vector && col.ItemType.IsText;
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
+                && metaCol.ItemType.IsText;
         }
 
         /// <summary>
