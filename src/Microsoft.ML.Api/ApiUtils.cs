@@ -9,11 +9,11 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Api
 {
-    internal delegate void Peek<in TRow, TValue>(TRow row, long position, ref TValue value);
+    public delegate void Peek<in TRow, TValue>(TRow row, long position, ref TValue value);
 
-    internal delegate void Poke<TRow, TValue>(TRow dst, TValue src);
+    public delegate void Poke<TRow, TValue>(TRow dst, TValue src);
 
-    internal static class ApiUtils
+    public static class ApiUtils
     {
         private static OpCode GetAssignmentOpCode(Type t)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Api
         /// into the provided buffer. So, the call is 'peek(userObject, ref destination)' and the logic is
         /// indentical to 'destination = userObject.##FIELD##', where ##FIELD## is defined per peek method.
         /// </summary>
-        internal static Delegate GeneratePeek<TOwn, TRow>(InternalSchemaDefinition.Column column)
+        public static Delegate GeneratePeek<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {
             switch (column.MemberInfo)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private static Delegate GeneratePeek<TOwn, TRow, TValue>(FieldInfo fieldInfo, OpCode assignmentOpCode)
+        public static Delegate GeneratePeek<TOwn, TRow, TValue>(FieldInfo fieldInfo, OpCode assignmentOpCode)
         {
             // REVIEW: It seems like we really should cache these, instead of generating them per cursor.
             Type[] args = { typeof(TOwn), typeof(TRow), typeof(long), typeof(TValue).MakeByRefType() };
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Api
             return mb.CreateDelegate(typeof(Peek<TRow, TValue>));
         }
 
-        private static Delegate GeneratePeek<TOwn, TRow, TValue>(PropertyInfo propertyInfo, OpCode assignmentOpCode)
+        public static Delegate GeneratePeek<TOwn, TRow, TValue>(PropertyInfo propertyInfo, OpCode assignmentOpCode)
         {
             // REVIEW: It seems like we really should cache these, instead of generating them per cursor.
             Type[] args = { typeof(TOwn), typeof(TRow), typeof(long), typeof(TValue).MakeByRefType() };
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Api
         /// to the provided value. So, the call is 'peek(userObject, providedValue)' and the logic is
         /// indentical to 'userObject.##FIELD## = providedValue', where ##FIELD## is defined per poke method.
         /// </summary>
-        internal static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
+        public static Delegate GeneratePoke<TOwn, TRow>(InternalSchemaDefinition.Column column)
         {
             switch (column.MemberInfo)
             {

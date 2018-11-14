@@ -1,45 +1,28 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
+﻿using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using System.Text;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.TimeSeries
 {
+    public interface IStatefulRow : IRow
+    {
+    }
+
     /// <summary>
     /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowReadableAs<TRow> : IRow
+    public interface IStatefulRowReadableAs<TRow> : IRowReadableAs<TRow>
         where TRow : class
     {
-        /// <summary>
-        /// Populates the fields of the user-supplied <paramref name="row"/> object with the values of the current row.
-        /// </summary>
-        /// <param name="row">The row object. Cannot be null.</param>
-        void FillValues(TRow row);
-    }
-
-    /// <summary>
-    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
-    /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
-    /// </summary>
-    /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
-    public interface IRowBackedBy<TRow> : IRow
-        where TRow : class
-    {
-        /// <summary>
-        /// Accepts the fields of the user-supplied <paramref name="row"/> object and publishes the instance as a row.
-        /// If the row is accessed prior to any object being set, then the data accessors on the row should throw.
-        /// </summary>
-        /// <param name="row">The row object. Cannot be <c>null</c>.</param>
-        void ExtractValues(TRow row);
+        void PingValues(TRow row);
     }
 
     /// <summary>
@@ -47,7 +30,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
+    public interface IStatefulRowCursor<TRow> : IStatefulRowReadableAs<TRow>, ICursor
         where TRow : class
     {
     }
@@ -56,19 +39,19 @@ namespace Microsoft.ML.Runtime.Api
     /// This interface allows to create strongly typed cursors over a <see cref="IDataView"/>.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface ICursorable<TRow>
+    public interface IStatefulCursorable<TRow>
         where TRow : class
     {
         /// <summary>
         /// Get a new cursor.
         /// </summary>
-        IRowCursor<TRow> GetCursor();
+        IStatefulRowCursor<TRow> GetCursor();
 
         /// <summary>
         /// Get a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        IRowCursor<TRow> GetRandomizedCursor(int randomSeed);
+        IStatefulRowCursor<TRow> GetRandomizedCursor(int randomSeed);
     }
 
     /// <summary>
@@ -76,7 +59,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
-    public class TypedCursorable<TRow> : ICursorable<TRow>
+    public sealed class TypedCursorable<TRow> : IStatefulCursorable<TRow>
         where TRow : class
     {
         private readonly IHost _host;
@@ -161,7 +144,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create and return a new cursor.
         /// </summary>
-        public IRowCursor<TRow> GetCursor()
+        public IStatefulRowCursor<TRow> GetCursor()
         {
             return GetCursor(x => false);
         }
@@ -170,12 +153,12 @@ namespace Microsoft.ML.Runtime.Api
         /// Create and return a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        public IRowCursor<TRow> GetRandomizedCursor(int randomSeed)
+        public IStatefulRowCursor<TRow> GetRandomizedCursor(int randomSeed)
         {
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRowReadableAs<TRow> GetRow(IRow input)
+        public IStatefulRowReadableAs<TRow> GetRow(IRow input)
         {
             return new TypedRow(this, input);
         }
@@ -186,7 +169,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="randomSeed">The random seed to use. If <c>null</c>, the cursor will be non-randomized.</param>
-        public IRowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
+        public IStatefulRowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
@@ -209,7 +192,7 @@ namespace Microsoft.ML.Runtime.Api
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="n">Number of cursors to create</param>
         /// <param name="rand">Random generator to use</param>
-        public IRowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
+        public IStatefulRowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> additionalColumnsPredicate, int n, IRandom rand)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
@@ -224,7 +207,7 @@ namespace Microsoft.ML.Runtime.Api
             _host.AssertNonEmpty(inputs);
 
             return inputs
-                .Select(rc => (IRowCursor<TRow>)(new TypedCursor(this, rc)))
+                .Select(rc => (IStatefulRowCursor<TRow>)(new TypedCursor(this, rc)))
                 .ToArray();
         }
 
@@ -249,11 +232,12 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRowReadableAs<TRow>
+        private abstract class TypedRowBase : IStatefulRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
+            private readonly Action[] _timeseriesValuePropagators;
 
             public long Batch => _input.Batch;
 
@@ -276,6 +260,22 @@ namespace Microsoft.ML.Runtime.Api
                 _setters = new Action<TRow>[n];
                 for (int i = 0; i < n; i++)
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
+
+                var list = new List<Action>();
+                for (int i = 0; i < input.Schema.ColumnCount; i++)
+                {
+                    var colType = input.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TimeSeriesColumn, i);
+                    if (colType != null)
+                    {
+                        colType = input.Schema.GetColumnType(i);
+                        MethodInfo meth = ((Func<IRow, int, Action>)CreateGetter<int>).GetMethodInfo().
+                            GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
+
+                        list.Add((Action)meth.Invoke(this, new object[] { input, i }));
+                    }
+                }
+
+                _timeseriesValuePropagators = list.ToArray();
             }
 
             public ValueGetter<UInt128> GetIdGetter()
@@ -468,6 +468,12 @@ namespace Microsoft.ML.Runtime.Api
                     setter(row);
             }
 
+            public virtual void PingValues(TRow row)
+            {
+                foreach (var propagator in _timeseriesValuePropagators)
+                    propagator();
+            }
+
             public bool IsColumnActive(int col)
             {
                 return _input.IsColumnActive(col);
@@ -479,7 +485,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private class TypedRow : TypedRowBase
+        private sealed class TypedRow : TypedRowBase
         {
             public TypedRow(TypedCursorable<TRow> parent, IRow input)
                 : base(parent, input, "Row")
@@ -487,7 +493,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        private sealed class TypedCursor : TypedRowBase, IStatefulRowCursor<TRow>
         {
             private readonly IRowCursor _input;
             private bool _disposed;
@@ -502,6 +508,12 @@ namespace Microsoft.ML.Runtime.Api
             {
                 Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
                 base.FillValues(row);
+            }
+
+            public override void PingValues(TRow row)
+            {
+                Ch.Check(_input.State == CursorState.Good, "Can't fill values: the cursor is not active.");
+                base.PingValues(row);
             }
 
             public CursorState State { get { return _input.State; } }
@@ -549,7 +561,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
+        public static IStatefulCursorable<TRow> AsCursorable<TRow>(this IDataView data, IHostEnvironment env, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
@@ -569,35 +581,13 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
         /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
         [Obsolete(NeedEnvObsoleteMessage)]
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, bool ignoreMissingColumns = false,
+        public static IStatefulCursorable<TRow> AsCursorable<TRow>(this IDataView data, bool ignoreMissingColumns = false,
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
             var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="env">The environment.</param>
-        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        public static IEnumerable<TRow> AsEnumerable<TRow>(this IDataView data, IHostEnvironment env, bool reuseRowObject,
-            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            Contracts.AssertValue(env);
-            env.CheckValue(data, nameof(data));
-            env.CheckValueOrNull(schemaDefinition);
-
-            var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
-            return engine.RunPipe(reuseRowObject);
         }
 
         /// <summary>

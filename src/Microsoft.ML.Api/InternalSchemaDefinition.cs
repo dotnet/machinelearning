@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// An internal class that holds the (already validated) mapping between a custom type and an IDataView schema.
     /// </summary>
-    internal sealed class InternalSchemaDefinition
+    public sealed class InternalSchemaDefinition
     {
         public readonly Column[] Columns;
 

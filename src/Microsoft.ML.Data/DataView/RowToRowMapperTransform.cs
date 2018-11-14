@@ -60,7 +60,6 @@ namespace Microsoft.ML.Runtime.Data
 
         // If this is not null, the transform is re-appliable without save/load.
         private readonly Func<Schema, IRowMapper> _mapperFactory;
-
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
         private static VersionInfo GetVersionInfo()
