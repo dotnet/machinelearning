@@ -21,6 +21,8 @@ This document is going to cover the following ML.NET concepts:
   - You can think of a machine learning *algorithm* as an estimator that learns on data and produces a machine learning *model* (which is a transformer).
 - [*Prediction function*](#prediction-function), represented as a `PredictionFunction<TSrc, TDst>` class.
   - The prediction function can be seen as a machine that applies a transformer to one 'row', such as at prediction time.
+- [*MLContext*](#mlcontext) object
+  - This is a 'catalog of everything' available in ML.NET. Use this object to read data, create estimators, save/load models, evaluate and perform all other tasks.
 
 ## Data
 
@@ -108,11 +110,11 @@ public interface IEstimator<out TTransformer>
 You can easily imagine how *a sequence of estimators can be phrased as an estimator* of its own. In ML.NET, we rely on this property to create 'learning pipelines' that chain together different estimators:
 
 ```c#
-var env = new LocalEnvironment(); // Initialize the ML.NET environment.
-var estimator = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-    .Append(new ToKeyEstimator(env, "Label"))
-    .Append(new SdcaMultiClassTrainer(env, "Features", "Label")) // This is the actual 'machine learning algorithm'.
-    .Append(new ToValueEstimator(env, "PredictedLabel"));
+var mlContext = new MLContext();
+var estimator = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"))
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
 
 var endToEndModel = estimator.Fit(data); // This now contains all the transformers that were used at training.
 ```
@@ -135,19 +137,49 @@ Of course, we can reduce this to the batch prediction:
 The above algorithm can be implemented using the [schema comprehension](SchemaComprehension.md), with two user-defined objects `InputExample` and `OutputPrediction` as follows:
 
 ```c#
-var inputData = env.CreateDataView(new InputExample[] { example });
+var inputData = mlContext.CreateDataView(new InputExample[] { example });
 var outputData = model.Transform(inputData);
-var output = outputData.AsDynamic.AsEnumerable<OutputPrediction>(env, reuseRowObject: false).Single();
+var output = outputData.AsDynamic.AsEnumerable<OutputPrediction>(mlContext, reuseRowObject: false).Single();
 ```
 
 But this would be cumbersome, and would incur performance costs. 
 Instead, we have a 'prediction function' object that performs the same work, but faster and more convenient, via an extension method `MakePredictionFunction`:
 
 ```c#
-var predictionFunc = model.MakePredictionFunction<InputExample, OutputPrediction>(env);
+var predictionFunc = model.MakePredictionFunction<InputExample, OutputPrediction>(mlContext);
 var output = predictionFunc.Predict(example);
 ```
 
 The same `predictionFunc` can (and should!) be used multiple times, thus amortizing the initial cost of `MakePredictionFunction` call. 
 
 The prediction function is *not re-entrant / thread-safe*: if you want to conduct predictions simultaneously with multiple threads, you need to have a prediction function per thread.
+
+## MLContext
+
+With a vast variety of components in ML.NET, it is important to have a consistent way to discover them. You can use the `MLContext` object for this purpose.
+
+Create one `MLContext` for your entire application. All ML.NET components and operations are available as methods of various sub-objects of `MLContext`.
+
+- `MLContext.Data` contains operations related to creating data views (other than transformers):
+  - Loading / saving data to a file
+  - Caching the data in memory
+  - Filtering (removing rows from data)
+
+Remember that data views are immutable, so each of the above operations create a new data view.
+
+- `MLContext.Model` contains operations related to models (transformers): saving and loading, creating prediction functions.
+
+- `MLContext.Transforms` contains estimators for non-prediction operations:
+  - `Categorical` for handling categorical values
+  - `Text` for natural language processing
+  - `Conversion` for various type conversions
+  - `Projection` for vector operations (like Primary Component Analysis, Random Fourier features, vector whitening etc.)
+  - Normalization/rescaling
+  - Column-related operations (rename, delete, clone, concatenate etc.)
+  - etc.
+
+- `MLContext.BinaryClassification`, `MulticlassClassification`, `Ranking` etc. are catalogs of learning operations for specific machine learning tasks.
+  - `TrainTestSplit` and `CrossValidate` to facilitate the respective operations
+  - `Trainers` containing various task-specific trainers.
+
+We are continuously adding new extensions to `MLContext` catalog, so if certain operations are not yet available, they will in the future.
