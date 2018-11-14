@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms.Text
             if (termCols.Count > 0)
             {
                 TermTransform.Arguments termArgs = null;
-                NADropTransform.Arguments naDropArgs = null;
+                MissingValueDroppingTransformer.Arguments naDropArgs = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms.Text
                         };
 
                     if (termLoaderArgs.DropUnknowns)
-                        naDropArgs = new NADropTransform.Arguments { Column = new NADropTransform.Column[termCols.Count] };
+                        naDropArgs = new MissingValueDroppingTransformer.Arguments { Column = new MissingValueDroppingTransformer.Column[termCols.Count] };
                 }
                 else
                 {
@@ -342,12 +342,12 @@ namespace Microsoft.ML.Transforms.Text
                         };
 
                     if (naDropArgs != null)
-                        naDropArgs.Column[iinfo] = new NADropTransform.Column { Name = column.Name, Source = column.Name };
+                        naDropArgs.Column[iinfo] = new MissingValueDroppingTransformer.Column { Name = column.Name, Source = column.Name };
                 }
 
                 view = TermTransform.Create(h, termArgs, view);
                 if (naDropArgs != null)
-                    view = new NADropTransform(h, naDropArgs, view);
+                    view = new MissingValueDroppingTransformer(h, naDropArgs, view);
             }
 
             var ngramArgs =

@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(_threshold);
         }
 
-        public override void SaveAsOnnx(OnnxContext ctx)
+        private protected override void SaveAsOnnxCore(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!ctx.ContainsColumn(DefaultColumnNames.Features))
                 return;
 
-            base.SaveAsOnnx(ctx);
+            base.SaveAsOnnxCore(ctx);
             int delta = Bindings.DerivedColumnCount;
 
             Host.Assert(delta == 1);

@@ -5,6 +5,14 @@
 #@   col={name={Residual Deviance} type=R4 src=1}
 #@   col={name={Null Deviance} type=R4 src=2}
 #@   col=AIC:R4:3
+#@   col=BiasEstimate:R4:4
+#@   col=BiasStandardError:R4:5
+#@   col=BiasZScore:R4:6
+#@   col=BiasPValue:R4:7
+#@   col=Estimate:R4:8-16
+#@   col=StandardError:R4:17-25
+#@   col=ZScore:R4:26-34
+#@   col=PValue:R4:35-43
 #@ }
-Count of training examples	Residual Deviance	Null Deviance	AIC
-521	98.29433	669.0935	118.294327
+Count of training examples	Residual Deviance	Null Deviance	AIC	BiasEstimate	BiasStandardError	BiasZScore	BiasPValue	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli	Cat.1	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli	Cat.1	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli	Cat.1	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli	Cat.1
+521	98.29433	669.0935	118.294327	-5.120674	0.699818552	-7.31714535	0	2.353567	1.78653753	1.9442488	1.38072	1.0831089	2.43588924	1.61141682	1.34575915	-0.7715381	0.4267568	0.42040658	0.41370967	0.482155383	0.456691444	0.451504	0.4605175	0.478413582	0.342069477	5.5150075	4.249547	4.69954872	2.86364126	2.37164259	5.395056	3.4991436	2.81296182	-2.255501	5.96046448E-08	2.14576721E-05	2.62260437E-06	0.00418818	0.0177091956	5.96046448E-08	0.000466823578	0.00490885973	0.0241017938

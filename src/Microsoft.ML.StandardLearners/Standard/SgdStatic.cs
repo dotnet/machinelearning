@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentClassificationTrainer(env, featuresName, labelName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
+                    var trainer = new StochasticGradientDescentClassificationTrainer(env, labelName, featuresName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

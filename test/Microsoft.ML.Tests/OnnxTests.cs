@@ -259,9 +259,9 @@ namespace Microsoft.ML.Tests
             });
 
             var vectorizer = new CategoricalOneHotVectorizer();
-            var categoricalColumn = new CategoricalTransformColumn() {
-                OutputKind = CategoricalTransformOutputKind.Bag, Name = "F2", Source = "F2" };
-            vectorizer.Column = new CategoricalTransformColumn[1] { categoricalColumn };
+            var categoricalColumn = new OneHotEncodingTransformerColumn() {
+                OutputKind = OneHotEncodingTransformerOutputKind.Bag, Name = "F2", Source = "F2" };
+            vectorizer.Column = new OneHotEncodingTransformerColumn[1] { categoricalColumn };
             pipeline.Add(vectorizer);
             pipeline.Add(new ColumnConcatenator("Features", "F1", "F2"));
             pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 2, NumTrees = 1, MinDocumentsInLeafs = 2 });

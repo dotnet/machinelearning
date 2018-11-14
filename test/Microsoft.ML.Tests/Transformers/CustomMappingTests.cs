@@ -91,5 +91,43 @@ namespace Microsoft.ML.Tests.Transformers
 
             Done();
         }
+
+        [Fact]
+        public void TestSchemaPropagation()
+        {
+            string dataPath = GetDataPath("adult.test");
+            var source = new MultiFileSource(dataPath);
+            var loader = ML.Data.TextReader(new[] {
+                    new TextLoader.Column("Float1", DataKind.R4, 0),
+                    new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
+                    new TextLoader.Column("Text1", DataKind.Text, 0)
+            }, s => { s.Separator = ","; s.HasHeader = true; });
+
+            var data = loader.Read(source);
+
+            Action<MyInput, MyOutput> mapping = (input, output) => output.Together = input.Float1.ToString();
+            var est = ML.Transforms.CustomMapping(mapping, null);
+
+            // Make sure schema propagation works for valid data.
+            est.GetOutputSchema(SchemaShape.Create(data.Schema));
+
+            var badData1 = ML.Transforms.CopyColumns("Text1", "Float1").Fit(data).Transform(data);
+            try
+            {
+                est.GetOutputSchema(SchemaShape.Create(badData1.Schema));
+                Assert.True(false);
+            }
+            catch (Exception) { }
+
+            var badData2 = ML.Transforms.KeepColumns(new[] { "Float1" }).Fit(data).Transform(data);
+            try
+            {
+                est.GetOutputSchema(SchemaShape.Create(badData2.Schema));
+                Assert.True(false);
+            }
+            catch (Exception) { }
+
+            Done();
+        }
     }
 }
