@@ -103,12 +103,12 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractorTransformer.PretrainedModelKind"/> to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, modelKind);
+            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, modelKind);
 
         /// <summary>
         /// Extracts word embeddings.
@@ -117,23 +117,23 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string customModelFile,
             string outputColumn = null)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 inputColumn, outputColumn, customModelFile);
 
         /// <summary>
         /// Extracts word embeddings.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractorTransformer.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
-           WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe,
-           params WordEmbeddingsExtractorTransformer.ColumnInfo[] columns)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+           WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
+           params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>
         /// Tokenizes incoming text in <paramref name="inputColumn"/>, using <paramref name="separators"/> as separators,

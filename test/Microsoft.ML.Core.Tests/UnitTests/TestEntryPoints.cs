@@ -3848,11 +3848,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractorTransformer.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new WordEmbeddingsExtractorTransformer.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe
+                Column = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursor((x => true)))
