@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // override with the directly provided values.
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
-            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
+            Args.MinDocumentsInLeafs = minDatapointsInLeaves;
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
@@ -121,10 +121,10 @@ namespace Microsoft.ML.Trainers.FastTree
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn); ;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -2818,7 +2818,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         //The below two properties are necessary for tree Visualizer
         public TreeEnsemble TrainedEnsemble { get; }
-        public int NumTrees => TrainedEnsemble.NumTrees;
+        int ITreeEnsemble.NumTrees => TrainedEnsemble.NumTrees;
 
         // Inner args is used only for documentation purposes when saving comments to INI files.
         protected readonly string InnerArgs;
@@ -2838,8 +2838,8 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, TreeEnsemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
@@ -3019,7 +3019,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -3068,7 +3068,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Max
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
@@ -3288,7 +3288,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return ifeatMax;
         }
 
-        public ITree[] GetTrees()
+        ITree[] ITreeEnsemble.GetTrees()
         {
             return TrainedEnsemble.Trees.Select(k => new Tree(k)).ToArray();
         }
@@ -3392,14 +3392,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         private sealed class TreeNode : INode
         {
-            private readonly Dictionary<string, object> _keyValues;
-
             public TreeNode(Dictionary<string, object> keyValues)
             {
-                _keyValues = keyValues;
+                KeyValues = keyValues;
             }
 
-            public Dictionary<string, object> KeyValues { get { return _keyValues; } }
+            public Dictionary<string, object> KeyValues { get; }
         }
     }
 }

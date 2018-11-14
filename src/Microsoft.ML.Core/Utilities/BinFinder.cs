@@ -9,7 +9,8 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public abstract class BinFinderBase
+    [BestFriend]
+    internal abstract class BinFinderBase
     {
         private Single[] _valuesSng; // distinct values
         private Double[] _valuesDbl; // distinct values
@@ -278,7 +279,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     using EnergyType = System.Int64;
 
     // Uses the energy function: sum(1,N) dx^2 where dx is the difference in accum values.
-    public sealed class GreedyBinFinder : BinFinderBase
+    [BestFriend]
+    internal sealed class GreedyBinFinder : BinFinderBase
     {
         // Potential drop location for another peg, together with its energy improvement.
         // PlacePegs uses a heap of these. Note that this is a struct so size matters.
@@ -529,7 +531,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     using EnergyType = System.Double;
 
     // Uses dynamic programming.
-    public sealed class DynamicBinFinder : BinFinderBase
+    [BestFriend]
+    internal sealed class DynamicBinFinder : BinFinderBase
     {
         private int[] _accum; // integral of counts
 

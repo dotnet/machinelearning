@@ -35,11 +35,11 @@ namespace Microsoft.ML.Trainers.FastTree
             string groupIdColumn,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             double learningRate,
             Action<TArgs> advancedSettings,
             bool quantileEnabled = false)
-            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, advancedSettings)
+            : base(env, label, featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, advancedSettings)
         {
             _quantileEnabled = quantileEnabled;
         }

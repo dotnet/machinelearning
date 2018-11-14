@@ -9,6 +9,7 @@
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
     <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
+	<MathNumericPackageVersion>4.6.0</MathNumericPackageVersion>
   </PropertyGroup>
 
   <!-- Other/Non-Core Product Dependencies -->

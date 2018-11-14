@@ -19,7 +19,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// than the total capacity.
     /// </summary>
     /// <typeparam name="T">The type of entries.</typeparam>
-    public sealed class BigArray<T> : IEnumerable<T>
+    [BestFriend]
+    internal sealed class BigArray<T> : IEnumerable<T>
     {
         // REVIEW: This class merges and replaces the original private BigArray implementation in CacheDataView.
         // There the block size was 25 bits. Need to understand the performance implication of this 32x change.

@@ -10,12 +10,12 @@ using Microsoft.ML.Transforms;
 // REVIEW: This is a temporary hack code to allow loading old saved loader models. Delete it once it is no longer needed.
 
 // The below signatures are for (de)serialization purposes only.
-[assembly: LoadableClass(typeof(IDataTransform), typeof(CompositeTransform), null, typeof(SignatureLoadDataTransform),
-    "Composite Transform", CompositeTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IDataTransform), typeof(CompositeTransformer), null, typeof(SignatureLoadDataTransform),
+    "Composite Transform", CompositeTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
-    public static class CompositeTransform
+    public static class CompositeTransformer
     {
         private const string RegistrationName = "CompositeTransform";
 
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(CompositeTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(CompositeTransformer).Assembly.FullName);
         }
 
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

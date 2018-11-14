@@ -624,7 +624,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
             // Create a binary classification trainer.
-            var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
+            var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
 
             // Append the OVA learner to the pipeline.
             dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
