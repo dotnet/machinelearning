@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             protected override void GetMissing(ref VBuffer<TItem> dst)
             {
-                dst = new VBuffer<TItem>(Type.VectorSize, 0, dst.Values, dst.Indices);
+                dst = VBufferMutationContext.Create(ref dst, Type.VectorSize, 0).CreateBuffer();
             }
 
             protected override void CopyValue(in VBuffer<TItem> src, ref VBuffer<TItem> dst)

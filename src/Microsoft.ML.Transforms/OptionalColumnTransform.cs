@@ -398,7 +398,8 @@ namespace Microsoft.ML.Transforms
 
         private Delegate MakeGetterVec<T>(int length)
         {
-            return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) => value = new VBuffer<T>(length, 0, value.Values, value.Indices));
+            return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) =>
+                value = VBufferMutationContext.Create(ref value, length, 0).CreateBuffer());
         }
 
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
@@ -467,7 +468,8 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakeGetterVec<T>(int length)
             {
-                return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) => value = new VBuffer<T>(length, 0, value.Values, value.Indices));
+                return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) =>
+                    value = VBufferMutationContext.Create(ref value, length, 0).CreateBuffer());
             }
         }
 

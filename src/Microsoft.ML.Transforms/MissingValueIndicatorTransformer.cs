@@ -334,23 +334,21 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private void FillValues(int srcLength, ref VBuffer<bool> dst, List<int> indices, bool sense)
             {
-                var dstValues = dst.Values;
-                var dstIndices = dst.Indices;
-
                 if (indices.Count == 0)
                 {
                     if (sense)
                     {
                         // Return empty VBuffer.
-                        dst = new VBuffer<bool>(srcLength, 0, dstValues, dstIndices);
+                        dst = VBufferMutationContext.Create(ref dst, srcLength, 0)
+                            .CreateBuffer();
                         return;
                     }
 
                     // Return VBuffer filled with 1's.
-                    Utils.EnsureSize(ref dstValues, srcLength, false);
+                    var mutation = VBufferMutationContext.Create(ref dst, srcLength);
                     for (int i = 0; i < srcLength; i++)
-                        dstValues[i] = true;
-                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                        mutation.Values[i] = true;
+                    dst = mutation.CreateBuffer();
                     return;
                 }
 
@@ -358,22 +356,20 @@ namespace Microsoft.ML.Transforms
                 {
                     // Will produce sparse output.
                     int dstCount = indices.Count;
-                    Utils.EnsureSize(ref dstValues, dstCount, false);
-                    Utils.EnsureSize(ref dstIndices, dstCount, false);
+                    var mutation = VBufferMutationContext.Create(ref dst, srcLength, dstCount);
 
-                    indices.CopyTo(dstIndices);
+                    indices.CopyTo(mutation.Indices);
                     for (int ii = 0; ii < dstCount; ii++)
-                        dstValues[ii] = true;
+                        mutation.Values[ii] = true;
 
                     Host.Assert(dstCount <= srcLength);
-                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
+                    dst = mutation.CreateBuffer();
                 }
                 else if (!sense && srcLength - indices.Count < srcLength / 2)
                 {
                     // Will produce sparse output.
                     int dstCount = srcLength - indices.Count;
-                    Utils.EnsureSize(ref dstValues, dstCount, false);
-                    Utils.EnsureSize(ref dstIndices, dstCount, false);
+                    var mutation = VBufferMutationContext.Create(ref dst, srcLength, dstCount);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -389,8 +385,8 @@ namespace Microsoft.ML.Transforms
                         if (i < iNext)
                         {
                             Host.Assert(iiDst < dstCount);
-                            dstValues[iiDst] = true;
-                            dstIndices[iiDst++] = i;
+                            mutation.Values[iiDst] = true;
+                            mutation.Indices[iiDst++] = i;
                         }
                         else
                         {
@@ -402,12 +398,12 @@ namespace Microsoft.ML.Transforms
                     Host.Assert(srcLength == iiSrc + iiDst);
                     Host.Assert(iiDst == dstCount);
 
-                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
+                    dst = mutation.CreateBuffer();
                 }
                 else
                 {
                     // Will produce dense output.
-                    Utils.EnsureSize(ref dstValues, srcLength, false);
+                    var mutation = VBufferMutationContext.Create(ref dst, srcLength);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -419,16 +415,16 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(0 <= i && i <= indices[ii]);
                         if (i == indices[ii])
                         {
-                            dstValues[i] = sense;
+                            mutation.Values[i] = sense;
                             ii++;
                             Host.Assert(ii < indices.Count);
                             Host.Assert(indices[ii - 1] < indices[ii]);
                         }
                         else
-                            dstValues[i] = !sense;
+                            mutation.Values[i] = !sense;
                     }
 
-                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                    dst = mutation.CreateBuffer();
                 }
             }
         }
