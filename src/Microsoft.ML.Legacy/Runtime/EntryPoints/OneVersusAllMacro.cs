@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ClassIndex = k,
                 Column = new[]
                 {
-                    new Legacy.Transforms.LabelIndicatingTransformerColumn
+                    new Legacy.Transforms.LabelIndicatorMappingTransformerColumn
                     {
                         ClassIndex = k,
                         Name = label,
