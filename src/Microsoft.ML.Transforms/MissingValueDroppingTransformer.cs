@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms
         {
             var inType = inputSchema.GetColumnType(srcCol);
             if (!inType.IsVector)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), "Expected vector", inType.ToString());
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), "Vector", inType.ToString());
         }
 
         // Factory method for SignatureLoadModel
@@ -177,10 +177,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
             }
 
-            private Delegate GetIsNADelegate<T>(ColumnType type)
-            {
-                return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
-            }
+            private Delegate GetIsNADelegate<T>(ColumnType type) => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
 
             public override Schema.Column[] GetOutputColumns()
             {
@@ -189,11 +186,6 @@ namespace Microsoft.ML.Transforms
                 {
                     var builder = new Schema.Metadata.Builder();
                     builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
-                    ValueGetter<bool> getter = (ref bool dst) =>
-                    {
-                        dst = false;
-                    };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, null), getter);
                     result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
@@ -387,14 +379,13 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Expected vector", col.GetTypeString());
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector ||col.Kind == SchemaShape.Column.VectorKind.VariableVector))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
                     metadata.Add(keyMeta);
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
                     metadata.Add(normMeta);
-                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.HasMissingValues, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
                 result[colPair.output] = new SchemaShape.Column(colPair.output, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
             return new SchemaShape(result.Values);

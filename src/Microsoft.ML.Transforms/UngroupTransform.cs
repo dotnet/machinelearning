@@ -205,7 +205,6 @@ namespace Microsoft.ML.Transforms
                 case MetadataUtils.Kinds.ScoreColumnSetId:
                 case MetadataUtils.Kinds.ScoreColumnKind:
                 case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.HasMissingValues:
                 case MetadataUtils.Kinds.IsUserVisible:
                     return true;
                 default:

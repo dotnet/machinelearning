@@ -157,7 +157,6 @@
       <summary>
         Removes missing values from vector type columns.
       </summary>
-      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example>
       <example>
@@ -172,7 +171,6 @@
         This transform can transform either scalars or vectors (both fixed and variable size),
         creating output columns that indicate, through the true/false booleans whether the row has a missing value.
       </summary>
-      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example name="NAIndicator">
       <example>
@@ -193,7 +191,6 @@
         with either the default value, user input, or imputed values (min/max/mean are currently supported).
         Imputation modes are supported for vectors both by slot and across all slots.
       </remarks>
-      <seealso cref="T:Microsoft.ML.Runtime.Data.MetadataUtils.Kinds.HasMissingValues"></seealso>
     </member>
     <example name="NAReplace">
       <example>
