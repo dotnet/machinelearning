@@ -23,14 +23,15 @@ using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Runtime.Tools
 {
-    public interface IGenerator
+    [BestFriend]
+    internal interface IGenerator
     {
         void Generate(IEnumerable<HelpCommand.Component> infos);
     }
 
     public delegate void SignatureModuleGenerator(string regenerate);
 
-    public sealed class HelpCommand : ICommand
+    internal sealed class HelpCommand : ICommand
     {
         public sealed class Arguments
         {
@@ -423,7 +424,7 @@ namespace Microsoft.ML.Runtime.Tools
         }
     }
 
-    public sealed class XmlGenerator : IGenerator
+    internal sealed class XmlGenerator : IGenerator
     {
         public sealed class Arguments
         {

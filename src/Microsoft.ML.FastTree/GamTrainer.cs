@@ -981,7 +981,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
         /// predictor class.
         /// </summary>
-        public sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
+        internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
         {
             public const string Summary = "Loads a model trained with a GAM learner, and starts an interactive web session to visualize it.";
             public const string LoadName = "GamVisualization";

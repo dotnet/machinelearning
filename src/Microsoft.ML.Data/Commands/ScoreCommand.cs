@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public delegate void SignatureBindableMapper(IPredictor predictor);
 
-    public sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
+    internal sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {

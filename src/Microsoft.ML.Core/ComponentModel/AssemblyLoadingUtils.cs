@@ -6,11 +6,11 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.ML.Runtime
 {
+    [BestFriend]
     internal static class AssemblyLoadingUtils
     {
         /// <summary>
