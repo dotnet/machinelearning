@@ -820,9 +820,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var srcView = builder.GetDataView();
 
             var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
-            var ldaTransform = est.Fit(srcView).Transform(srcView);
+            var ldaTransformer = est.Fit(srcView);
+            var transformedData = ldaTransformer.Transform(srcView);
 
-            using (var cursor = ldaTransform.GetRowCursor(c => true))
+            using (var cursor = transformedData.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<Float>>(1);
                 VBuffer<Float> resultFirstRow = new VBuffer<Float>();

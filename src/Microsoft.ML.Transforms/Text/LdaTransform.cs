@@ -660,14 +660,12 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase
         {
             private readonly LatentDirichletAllocationTransformer _parent;
-            private readonly ColumnType[] _srcTypes;
             private readonly int[] _srcCols;
 
             public Mapper(LatentDirichletAllocationTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
                 _srcCols = new int[_parent.ColumnPairs.Length];
 
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -677,9 +675,7 @@ namespace Microsoft.ML.Transforms.Text
 
                     var srcCol = inputSchema[_srcCols[i]];
                     if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
-
-                    _srcTypes[i] = srcCol.Type;
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats.", srcCol.Type.ToString());
                 }
             }
 
@@ -910,7 +906,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var srcColType = inputSchema.GetColumnType(srcCol);
                 if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats.", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
@@ -1113,7 +1109,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (col.ItemType.RawKind != DataKind.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "a fixed vector of floats.", col.GetTypeString());
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }
