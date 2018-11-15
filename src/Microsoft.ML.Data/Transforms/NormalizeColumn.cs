@@ -414,13 +414,10 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc.ToString());
             }
 
-            private abstract class ImplOne<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<TFloat>
+            private abstract class ImplOne<TFloat> : AffineColumnFunction
             {
                 protected readonly TFloat Scale;
                 protected readonly TFloat Offset;
-                TFloat NormalizerTransformer.IAffineData<TFloat>.Scale => Scale;
-                TFloat NormalizerTransformer.IAffineData<TFloat>.Offset => Offset;
-
                 protected ImplOne(IHost host, TFloat scale, TFloat offset)
                     : base(host)
                 {
@@ -442,15 +439,11 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             }
 
-            private abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
+            private abstract class ImplVec<TFloat> : AffineColumnFunction
             {
                 protected readonly TFloat[] Scale;
                 protected readonly TFloat[] Offset;
                 protected readonly int[] IndicesNonZeroOffset;
-
-                ImmutableArray<TFloat> NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>.Scale => ImmutableArray.Create(Scale);
-                ImmutableArray<TFloat> NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>.Offset
-                     => Offset == null ? ImmutableArray.Create<TFloat>() : ImmutableArray.Create(Offset);
 
                 protected ImplVec(IHost host, TFloat[] scale, TFloat[] offset, int[] indicesNonZeroOffset)
                     : base(host)
@@ -538,7 +531,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 throw host.ExceptUserArg(nameof(AffineArgumentsBase.Column), "Wrong column type. Expected: R4, R8, Vec<R4, n> or Vec<R8, n>. Got: {0}.", typeSrc);
             }
 
-            private abstract class ImplOne<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<TFloat>
+            private abstract class ImplOne<TFloat> : CdfColumnFunction
             {
                 protected readonly TFloat Mean;
                 protected readonly TFloat Stddev;
@@ -551,10 +544,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                     Stddev = stddev;
                     UseLog = useLog;
                 }
-
-                TFloat NormalizerTransformer.ICdfData<TFloat>.Mean => Mean;
-                TFloat NormalizerTransformer.ICdfData<TFloat>.Stddev => Stddev;
-                bool NormalizerTransformer.ICdfData<TFloat>.UseLog => UseLog;
 
                 public override void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
                 {
@@ -570,15 +559,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                     => new NormalizerTransformer.CdfNormalizerModelParametersBase<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
             }
 
-            private abstract class ImplVec<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>
+            private abstract class ImplVec<TFloat> : CdfColumnFunction
             {
                 protected readonly TFloat[] Mean;
                 protected readonly TFloat[] Stddev;
                 protected readonly bool UseLog;
-
-                ImmutableArray<TFloat> NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>.Mean => ImmutableArray.Create(Mean);
-                ImmutableArray<TFloat> NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>.Stddev => ImmutableArray.Create(Stddev);
-                bool NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>.UseLog => UseLog;
 
                 protected ImplVec(IHost host, TFloat[] mean, TFloat[] stddev, bool useLog)
                     : base(host)

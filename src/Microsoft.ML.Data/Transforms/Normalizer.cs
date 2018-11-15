@@ -309,9 +309,9 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
         {
-            private readonly ColumnInfo[] _infos;
+            private readonly ImmutableArray<ColumnInfo> _infos;
 
-            public ColumnFunctionAccessor(ColumnInfo[] infos)
+            public ColumnFunctionAccessor(ImmutableArray<ColumnInfo> infos)
             {
                 _infos = infos;
             }
@@ -325,13 +325,11 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// <summary>An accessor of the column functions within <see cref="Columns"/>.</summary>
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
-        public readonly ColumnInfo[] Columns;
-
-
+        public readonly ImmutableArray<ColumnInfo> Columns;
         private NormalizerTransformer(IHostEnvironment env, ColumnInfo[] columns)
             : base(env.Register(nameof(NormalizerTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
         {
-            Columns = columns;
+            Columns = ImmutableArray.Create(columns);
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
         }
 
@@ -419,16 +417,17 @@ namespace Microsoft.ML.Transforms.Normalizers
             // for each added column:
             //   - source type
             //   - separate model for column function
-
-            Columns = new ColumnInfo[ColumnPairs.Length];
+            var cols = new ColumnInfo[ColumnPairs.Length];
             ColumnFunctions = new ColumnFunctionAccessor(Columns);
             for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
                 ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
-                Columns[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
+                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
             }
+
+            Columns = ImmutableArray.Create(cols);
         }
 
         public static NormalizerTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -608,84 +607,19 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
-        /// </summary>
-        public interface IAffineData<TData>
-        {
-            /// <summary>
-            /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
-            /// to the number of slots. Function is <c>(input - offset) * scale</c>.
-            /// </summary>
-            TData Scale { get; }
-
-            /// <summary>
-            /// The offsets. In the scalar case, this is a single value. In the vector case this is of length equal
-            /// to the number of slots, or of length zero if all the offsets are zero.
-            /// </summary>
-            TData Offset { get; }
-        }
-
-        /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.CdfColumnFunction"/> items. The function is the value of the
-        /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
-        /// and standard deviation <see cref="Stddev"/>.
-        /// </summary>
-        public interface ICdfData<TData>
-        {
-            /// <summary>
-            /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
-            /// to the number of slots.
-            /// </summary>
-            TData Mean { get; }
-
-            /// <summary>
-            /// The standard deviation(s). In the scalar case, this is a single value. In the vector case this is of
-            /// length equal to the number of slots.
-            /// </summary>
-            TData Stddev { get; }
-
-            /// <summary>
-            /// Whether the we ought to apply a logarithm to the input first.
-            /// </summary>
-            bool UseLog { get; }
-        }
-
-        /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
-        /// </summary>
-        public interface IBinData<TData>
-        {
-            /// <summary>
-            /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.
-            /// In the vector case it is a jagged array of the bin upper bounds for all slots.
-            /// </summary>
-            ImmutableArray<TData> UpperBounds { get; }
-
-            /// <summary>
-            /// The bin frequency density.
-            /// </summary>
-            TData Density { get; }
-
-            /// <summary>
-            /// The offset between bins.
-            /// </summary>
-            TData Offset { get; }
-        }
-
-        /// <summary>
-        /// Base interface for all the NormalizerData interfaces: <see cref="IAffineData{TData}"/>, <see cref="IBinData{TData}"/>, <see cref="ICdfData{TData}"/>.
+        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParametersBase{TData}"/>,
+        /// <see cref="BinNormalizerModelParametersBase{TData}"/>, <see cref="CdfNormalizerModelParametersBase{TData}"/>.
         /// </summary>
         public abstract class NormalizerModelParametersBase
         {
-
         }
 
         /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
+        /// The model parameters generated by affine normalization transformations, like
+        /// <see cref="T:Microsoft.ML.StaticPipe.NormalizerStaticExtensions.Normalize{Vector, bool, long, OnFitAffine}"/>,
+        /// <see cref="T:Microsoft.ML.StaticPipe.NormalizerStaticExtensions.NormalizeByMeanVar{Vector, bool, bool, long, OnFitAffine}"/>
+        /// or methods in the <see cref="NormalizerCatalog"/> having the <see cref="NormalizingEstimator.NormalizerMode"/> parameter set to either
+        /// <see cref="NormalizingEstimator.NormalizerMode.MinMax"/> or <see cref="NormalizingEstimator.NormalizerMode.MeanVariance"/>.
         /// </summary>
         public class AffineNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
         {
@@ -703,10 +637,12 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.CdfColumnFunction"/> items. The function is the value of the
-        /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
-        /// and standard deviation <see cref="Stddev"/>.
+        /// The model parameters generated by affine normalization transformations, like
+        /// <see cref="T:Microsoft.ML.StaticPipe.NormalizerStaticExtensions.NormalizeByCumulativeDistribution{Vector, bool,bool, long, OnFitAffine}"/>
+        /// or methods in the <see cref="NormalizerCatalog"/> having the <see cref="NormalizingEstimator.NormalizerMode"/> parameter set to either
+        /// <see cref="NormalizingEstimator.NormalizerMode.LogMeanVariance"/> or <see cref="NormalizingEstimator.NormalizerMode.MeanVariance"/>.
+        /// The function producing the model paramters is a cumulative density function of a normal distribution parameterized by
+        /// the means and variance as observed during fitting.
         /// </summary>
         public class CdfNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
         {
@@ -729,8 +665,10 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
-        /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
+        /// The model parameters generated by affine normalization transformations, like
+        /// <see cref="T:Microsoft.ML.StaticPipe.NormalizerStaticExtensions.NormalizeByBinning{Vector, int, bool, long, OnFitBinned}"/>
+        /// or methods in the <see cref="NormalizerCatalog"/> having the <see cref="NormalizingEstimator.NormalizerMode"/> parameter set to either
+        /// <see cref="NormalizingEstimator.NormalizerMode.Binning"/>.
         /// </summary>
         public class BinNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
         {

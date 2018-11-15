@@ -1033,16 +1033,11 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             private static class Dbl
             {
-                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
+                public sealed class ImplOne : BinColumnFunction
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
-
-                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
-
-                    TFloat NormalizerTransformer.IBinData<TFloat>.Density => _den;
-                    TFloat NormalizerTransformer.IBinData<TFloat>.Offset => _offset;
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1116,17 +1111,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                          };
                 }
 
-                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
+                public sealed class ImplVec : BinColumnFunction
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
-
-                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
-                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
-
-                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.Density => ImmutableArray.Create(_den);
-                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.Offset => ImmutableArray.Create(_offset);
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
