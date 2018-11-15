@@ -439,11 +439,10 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Adds a multiple of a <see cref="VBuffer{T}"/> to a <see cref="Float"/> array.
         /// </summary>
         /// <param name="src">Buffer to add</param>
-        /// <param name="dst">Array to add to</param>
+        /// <param name="dst">Span to add to</param>
         /// <param name="c">Coefficient</param>
-        public static void AddMult(in VBuffer<Float> src, Float[] dst, Float c)
+        public static void AddMult(in VBuffer<Float> src, Span<Float> dst, Float c)
         {
-            Contracts.CheckValue(dst, nameof(dst));
             Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");
 
             var srcValues = src.GetValues();

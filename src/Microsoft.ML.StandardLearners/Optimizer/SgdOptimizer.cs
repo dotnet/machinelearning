@@ -169,7 +169,8 @@ namespace Microsoft.ML.Runtime.Numeric
             for (int n = 0; _maxSteps == 0 || n < _maxSteps; ++n)
             {
                 if (_momentum == 0)
-                    step = new VBuffer<Float>(step.Length, 0, step.Values, step.Indices);
+                    step = VBufferMutationContext.Create(ref step, step.Length, 0)
+                        .CreateBuffer();
                 else
                     VectorUtils.ScaleBy(ref step, _momentum);
 

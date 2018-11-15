@@ -197,6 +197,8 @@ namespace Microsoft.ML.Trainers
                         // Loop trials for compare-and-swap updates of duals.
                         // In general, concurrent update conflict to the same dual variable is rare
                         // if data is shuffled.
+                        var weightsMutation = VBufferMutationContext.CreateFromBuffer(ref weights[iClass]);
+                        var l1IntermediateWeightsMutation = VBufferMutationContext.CreateFromBuffer(ref l1IntermediateWeights[iClass]);
                         for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                         {
                             long dualIndex = iClass + dualIndexInitPos;
@@ -223,7 +225,7 @@ namespace Microsoft.ML.Trainers
 
                                 if (l1ThresholdZero)
                                 {
-                                    VectorUtils.AddMult(in features, weights[iClass].Values, -primalUpdate);
+                                    VectorUtils.AddMult(in features, weightsMutation.Values, -primalUpdate);
                                     biasReg[iClass] -= primalUpdate;
                                 }
                                 else
@@ -242,9 +244,9 @@ namespace Microsoft.ML.Trainers
 
                                     var featureValues = features.GetValues();
                                     if (features.IsDense)
-                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
+                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeightsMutation.Values, weightsMutation.Values);
                                     else if (featureValues.Length > 0)
-                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
+                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeightsMutation.Values, weightsMutation.Values);
                                 }
 
                                 break;
@@ -257,7 +259,8 @@ namespace Microsoft.ML.Trainers
                     biasUnreg[label] += labelAdjustment * lambdaNInv * instanceWeight;
                     if (l1ThresholdZero)
                     {
-                        VectorUtils.AddMult(in features, weights[label].Values, labelPrimalUpdate);
+                        var weightsMutation = VBufferMutationContext.CreateFromBuffer(ref weights[label]);
+                        VectorUtils.AddMult(in features, weightsMutation.Values, labelPrimalUpdate);
                         biasReg[label] += labelPrimalUpdate;
                     }
                     else
@@ -268,11 +271,13 @@ namespace Microsoft.ML.Trainers
                             ? intermediateBias - Math.Sign(intermediateBias) * l1Threshold
                             : 0;
 
+                        var weightsMutation = VBufferMutationContext.CreateFromBuffer(ref weights[label]);
+                        var l1IntermediateWeightsMutation = VBufferMutationContext.CreateFromBuffer(ref l1IntermediateWeights[label]);
                         var featureValues = features.GetValues();
                         if (features.IsDense)
-                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
+                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeightsMutation.Values, weightsMutation.Values);
                         else if (featureValues.Length > 0)
-                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
+                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeightsMutation.Values, weightsMutation.Values);
                     }
 
                     rowCount++;
@@ -379,7 +384,7 @@ namespace Microsoft.ML.Trainers
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
             metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : weights.Sum(
-                weight => weight.Values.Count(w => w != 0)) / (numClasses * numFeatures);
+                weight => weight.GetValues().Count(w => w != 0)) / (numClasses * numFeatures);
 
             bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
 

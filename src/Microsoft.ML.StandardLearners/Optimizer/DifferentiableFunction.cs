@@ -101,7 +101,6 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> tempGrad = default(VBuffer<Float>);
             for (int i = from; i < to; ++i)
             {
-                tempGrad = new VBuffer<Float>(0, 0, tempGrad.Values, tempGrad.Indices);
                 _tempVals[chunkIndex] += _func(i, in _input, ref tempGrad);
                 if (_tempGrads[chunkIndex].Length == 0)
                     tempGrad.CopyTo(ref _tempGrads[chunkIndex]);
@@ -263,7 +262,7 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> dir = new VBuffer<Float>(x.Length, 1, new Float[] { 1 }, new int[] { 0 });
             for (int n = 0; n < x.Length; n++)
             {
-                dir.Values[0] = n;
+                VBufferMutationContext.CreateFromBuffer(ref dir).Values[0] = n;
                 VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(in newX, ref newGrad, null);
 
@@ -302,7 +301,7 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> dir = new VBuffer<Float>(x.Length, 1, new Float[] { 1 }, new int[] { 0 });
             foreach (int n in coords)
             {
-                dir.Values[0] = n;
+                VBufferMutationContext.CreateFromBuffer(ref dir).Values[0] = n;
                 VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(in newX, ref newGrad, null);
 
