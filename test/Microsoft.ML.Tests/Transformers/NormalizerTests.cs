@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void NormalizerWorkout()
         {
-            string dataPath = GetDataPath("iris.txt");
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void SimpleConstructorsAndExtensions()
         {
-            string dataPath = GetDataPath("iris.txt");
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
@@ -123,29 +123,28 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LpGcNormAndWhiteningWorkout()
         {
-            var ml = new MLContext(seed: 0);
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
-            var data = TextLoader.CreateReader(ml,
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var invalidData = TextLoader.CreateReader(ml,
+            var invalidData = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
                 .Read(dataSource);
 
-            var est = new LpNormalizingEstimator(ml, "features", "lpnorm")
-                .Append(new GlobalContrastNormalizingEstimator(ml, "features", "gcnorm"))
-                .Append(new VectorWhiteningEstimator(ml, "features", "whitened"));
+            var est = new LpNormalizingEstimator(ML, "features", "lpnorm")
+                .Append(new GlobalContrastNormalizingEstimator(ML, "features", "gcnorm"))
+                .Append(new VectorWhiteningEstimator(ML, "features", "whitened"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("NormalizerEstimator", "lpnorm_gcnorm_whitened.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, new[] { "lpnorm", "gcnorm", "whitened" });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = SelectColumnsTransform.CreateKeep(ML, savedData, new[] { "lpnorm", "gcnorm", "whitened" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -158,7 +157,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void WhiteningWorkout()
         {
-            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -197,7 +196,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestWhiteningOldSavingAndLoading()
         {
-            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -218,7 +217,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void LpNormWorkout()
         {
-            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -257,7 +256,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestLpNormOldSavingAndLoading()
         {
-            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -277,7 +276,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void GcnWorkout()
         {
-            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var data = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
@@ -316,7 +315,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestGcnNormOldSavingAndLoading()
         {
-            string dataSource = TestDatasets.generatedRegressionDataset.trainFilename;
+            string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataView = TextLoader.CreateReader(ML,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
