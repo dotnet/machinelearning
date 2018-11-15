@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms.Projections
         // A more reliable solution is to turely iterate through all rows via a RowCursor.
         private static long GetRowCount(IDataView inputData, params ColumnInfo[] columns)
         {
-            long? rows = inputData.GetRowCount(lazy: false);
+            long? rows = inputData.GetRowCount();
             if (rows != null)
                 return rows.GetValueOrDefault();
 
