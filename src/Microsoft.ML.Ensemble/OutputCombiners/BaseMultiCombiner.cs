@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         protected void GetNaNOutput(ref VBuffer<Single> dst, int len)
         {
             Contracts.Assert(len >= 0);
-            var mutation = VBufferMutationContext.Create(ref dst, len);
+            var mutation = VBufferEditor.Create(ref dst, len);
             for (int i = 0; i < len; i++)
                 mutation.Values[i] = Single.NaN;
             dst = mutation.Commit();

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             Contracts.AssertNonEmpty(src);
             int len = src.Length;
-            var mutation = VBufferMutationContext.Create(ref dst, len);
+            var mutation = VBufferEditor.Create(ref dst, len);
             src.CopyTo(mutation.Values);
             dst = mutation.Commit();
         }

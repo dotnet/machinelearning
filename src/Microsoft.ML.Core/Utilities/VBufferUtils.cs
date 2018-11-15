@@ -314,7 +314,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static void Clear<T>(ref VBuffer<T> dst)
         {
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
             mutation.Values.Clear();
         }
 
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             Contracts.CheckValue(manip, nameof(manip));
 
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
             if (dst.IsDense)
             {
                 for (int i = 0; i < mutation.Values.Length; i++)
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.CheckValue(manip, nameof(manip));
             Contracts.CheckValueOrNull(pred);
 
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
             int dstValuesCount = mutation.Values.Length;
             if (dst.IsDense)
             {
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // we are modifying in the sparse vector, in which case the vector becomes
             // dense. Then there is no need to do anything with indices.
             bool needIndices = dstValuesCount + 1 < dst.Length;
-            mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount + 1);
+            mutation = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1);
             if (idx != dstValuesCount)
             {
                 // We have to do some sort of shift copy.
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             var indices = dst.GetIndices();
             var values = dst.GetValues();
-            var mutation = VBufferMutationContext.Create(
+            var mutation = VBufferEditor.Create(
                 ref dst,
                 dst.Length);
 
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (dstIndices.IsEmpty)
             {
                 // no previous values
-                var newIndicesMutation = VBufferMutationContext.Create(ref dst, dst.Length, denseCount);
+                var newIndicesMutation = VBufferEditor.Create(ref dst, dst.Length, denseCount);
                 Utils.FillIdentity(newIndicesMutation.Indices, denseCount);
                 newIndicesMutation.Values.Clear();
                 dst = newIndicesMutation.Commit();
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return;
             }
 
-            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, newLen, keepOldOnResize: true);
+            var mutation = VBufferEditor.Create(ref dst, dst.Length, newLen, keepOldOnResize: true);
             int sliceLength = dstValues.Length - lim;
             mutation.Values.Slice(lim, sliceLength).CopyTo(mutation.Values.Slice(denseCount));
             mutation.Indices.Slice(lim, sliceLength).CopyTo(mutation.Indices.Slice(denseCount));
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
 
-            var mutation = VBufferMutationContext.Create(ref dst, src.Length, sparseCount);
+            var mutation = VBufferEditor.Create(ref dst, src.Length, sparseCount);
             if (sparseCount > 0)
             {
                 int j = 0;
@@ -692,7 +692,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var srcValues = src.GetValues();
             var dstValues = dst.GetValues();
             var dstIndices = dst.GetIndices();
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
             if (srcValues.Length == 0)
             {
                 // Major case 1, with srcValues.Length == 0.
@@ -717,7 +717,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (!dst.IsDense)
                 {
                     Densify(ref dst);
-                    mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+                    mutation = VBufferEditor.CreateFromBuffer(ref dst);
                 }
 
                 // Both are now dense. Both cases of outer are covered.
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 // Major case 4, with dst empty. Note that !src.Dense.
                 // Neither is dense, and dst is empty. Both cases of outer are covered.
-                mutation = VBufferMutationContext.Create(ref dst,
+                mutation = VBufferEditor.Create(ref dst,
                     src.Length,
                     srcValues.Length,
                     maxValuesCapacity: src.Length);
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // proved to be inefficient so we go to the little bit of extra work
                 // to handle it here.
 
-                mutation = VBufferMutationContext.Create(ref dst,
+                mutation = VBufferEditor.Create(ref dst,
                     src.Length,
                     newCount,
                     maxValuesCapacity: dst.Length);
@@ -912,7 +912,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
                 // First do a "quasi" densification of dst, by making the indices
                 // of dst correspond to those in src.
-                mutation = VBufferMutationContext.Create(ref dst, newCount, dstValues.Length);
+                mutation = VBufferEditor.Create(ref dst, newCount, dstValues.Length);
                 int sI = 0;
                 for (dI = 0; dI < dstValues.Length; ++dI)
                 {
@@ -925,7 +925,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 dst = mutation.Commit();
                 Densify(ref dst);
 
-                mutation = VBufferMutationContext.Create(ref dst,
+                mutation = VBufferEditor.Create(ref dst,
                     src.Length,
                     newCount,
                     maxValuesCapacity: src.Length);
@@ -964,7 +964,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 else if (src.IsDense)
                 {
                     Contracts.Assert(srcValues.Length == src.Length);
-                    var mutation = VBufferMutationContext.Create(ref res, length);
+                    var mutation = VBufferEditor.Create(ref res, length);
                     for (int i = 0; i < length; i++)
                         manip(i, srcValues[i], default(TDst), ref mutation.Values[i]);
                     res = mutation.Commit();
@@ -974,7 +974,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     // src is non-empty sparse.
                     int count = srcValues.Length;
                     Contracts.Assert(0 < count && count < length);
-                    var mutation = VBufferMutationContext.Create(ref res, length, count);
+                    var mutation = VBufferEditor.Create(ref res, length, count);
                     var srcIndices = src.GetIndices();
                     srcIndices.CopyTo(mutation.Indices);
                     for (int ii = 0; ii < count; ii++)
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
             else if (dst.IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref res, length);
+                var mutation = VBufferEditor.Create(ref res, length);
                 if (srcValues.Length == 0)
                 {
                     if (outer)
@@ -1060,7 +1060,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Contracts.Assert(dstCount > 0);
                 if (srcValues.Length == 0)
                 {
-                    var mutation = VBufferMutationContext.Create(ref res, length, dstCount);
+                    var mutation = VBufferEditor.Create(ref res, length, dstCount);
                     if (outer)
                     {
                         for (int jj = 0; jj < dstCount; jj++)
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 else if (src.IsDense)
                 {
                     // res will be dense.
-                    var mutation = VBufferMutationContext.Create(ref res, length);
+                    var mutation = VBufferEditor.Create(ref res, length);
                     int jj = 0;
                     int j = dstIndices[jj];
                     for (int i = 0; i < length; i++)
@@ -1137,7 +1137,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     }
                     else
                     {
-                        var mutation = VBufferMutationContext.Create(ref res, length, resCount);
+                        var mutation = VBufferEditor.Create(ref res, length, resCount);
 
                         int ii = 0;
                         int i = srcIndices[ii];
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Resize(ref dst, src.Length, 0);
                 return;
             }
-            var mutation = VBufferMutationContext.Create(ref dst,
+            var mutation = VBufferEditor.Create(ref dst,
                 src.Length,
                 srcValues.Length,
                 maxValuesCapacity: src.Length);
@@ -1265,11 +1265,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             int bI = 0;
             ReadOnlySpan<int> aIndices;
             ReadOnlySpan<int> bIndices;
-            VBufferMutationContext<TDst> mutation;
+            VBufferEditor<TDst> mutation;
             if (a.IsDense || b.IsDense)
             {
                 // Case 2. One of the two inputs is dense. The output will be dense.
-                mutation = VBufferMutationContext.Create(ref dst, a.Length);
+                mutation = VBufferEditor.Create(ref dst, a.Length);
                 if (!a.IsDense)
                 {
                     // a is sparse, b is dense
@@ -1322,7 +1322,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // REVIEW: Worth optimizing the newCount == a.Length case?
             // Probably not...
 
-            mutation = VBufferMutationContext.Create(ref dst, a.Length, newCount);
+            mutation = VBufferEditor.Create(ref dst, a.Length, newCount);
             Span<int> indices = mutation.Indices;
 
             if (newCount == bValues.Length)
@@ -1423,7 +1423,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static void Copy<T>(List<T> src, ref VBuffer<T> dst, int length)
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
-            var mutation = VBufferMutationContext.Create(ref dst, length);
+            var mutation = VBufferEditor.Create(ref dst, length);
             if (length > 0)
             {
                 // List<T>.CopyTo should have an overload for Span - https://github.com/dotnet/corefx/issues/33006
@@ -1441,7 +1441,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static void Resize<T>(ref VBuffer<T> dst, int newLogicalLength, int? valuesCount = null)
         {
-            dst = VBufferMutationContext.Create(ref dst, newLogicalLength, valuesCount)
+            dst = VBufferEditor.Create(ref dst, newLogicalLength, valuesCount)
                 .Commit();
         }
     }

@@ -927,7 +927,7 @@ namespace Microsoft.ML.Transforms
                     var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                    var mutation = VBufferMutationContext.Create(ref dst, (int)tensorSize);
+                    var mutation = VBufferEditor.Create(ref dst, (int)tensorSize);
                     TensorFlowUtils.FetchData<T>(tensor.Data, mutation.Values);
                     dst = mutation.Commit();
                 };

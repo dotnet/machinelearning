@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                         return;
                     }
 
-                    var mutation = VBufferMutationContext.Create(ref dst, len);
+                    var mutation = VBufferEditor.Create(ref dst, len);
 
                     int count = src.Length;
                     if (Utils.Size(raw) < count)

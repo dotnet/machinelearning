@@ -1294,10 +1294,10 @@ namespace Microsoft.ML.Runtime.Data
                                 (ref VBuffer<T> value) =>
                                 {
                                     EnsureValid();
-                                    VBufferMutationContext<T> mutation;
+                                    VBufferEditor<T> mutation;
                                     if (_inputValue.IsDense)
                                     {
-                                        mutation = VBufferMutationContext.Create(ref value, len);
+                                        mutation = VBufferEditor.Create(ref value, len);
                                         _inputValue.GetValues().Slice(min, len).CopyTo(mutation.Values);
                                         value = mutation.Commit();
                                         return;
@@ -1312,7 +1312,7 @@ namespace Microsoft.ML.Runtime.Data
                                         return;
                                     }
 
-                                    mutation = VBufferMutationContext.Create(ref value, len, scount);
+                                    mutation = VBufferEditor.Create(ref value, len, scount);
                                     bool isDense = len == scount;
                                     if (!isDense)
                                     {

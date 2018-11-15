@@ -692,7 +692,7 @@ namespace Microsoft.ML.Runtime.Data
                     (in VBuffer<uint> src, ref VBuffer<uint> dst) =>
                     {
                         var srcValues = src.GetValues();
-                        var mutation = VBufferMutationContext.Create(
+                        var mutation = VBufferEditor.Create(
                             ref dst,
                             src.Length,
                             srcValues.Length);

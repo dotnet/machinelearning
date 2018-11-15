@@ -380,7 +380,7 @@ namespace Microsoft.ML.Trainers
             var srcValues = src.GetValues();
             var srcIndices = src.GetIndices();
 
-            var mutation = VBufferMutationContext.Create(ref dst, _labelCount);
+            var mutation = VBufferEditor.Create(ref dst, _labelCount);
             Span<float> labelScores = mutation.Values;
             for (int iLabel = 0; iLabel < _labelCount; iLabel += 1)
             {

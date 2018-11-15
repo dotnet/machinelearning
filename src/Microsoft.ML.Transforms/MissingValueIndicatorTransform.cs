@@ -280,7 +280,7 @@ namespace Microsoft.ML.Transforms
                 return;
             }
 
-            var mutation = VBufferMutationContext.Create(ref result, 2, 1);
+            var mutation = VBufferEditor.Create(ref result, 2, 1);
             if (Float.IsNaN(input))
             {
                 mutation.Values[0] = 1;
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms
             ectx.Check(0 <= size & size < int.MaxValue / 2);
 
             var values = buffer.GetValues();
-            var mutation = VBufferMutationContext.Create(ref buffer, size * 2, values.Length);
+            var mutation = VBufferEditor.Create(ref buffer, size * 2, values.Length);
             int iivDst = 0;
             if (buffer.IsDense)
             {

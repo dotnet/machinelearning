@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             for (int i = 0; i < src.Length; i++)
                 len += src[i].Length;
 
-            var mutation = VBufferMutationContext.Create(ref dst, len);
+            var mutation = VBufferEditor.Create(ref dst, len);
 
             int iv = 0;
             for (int i = 0; i < src.Length; i++)

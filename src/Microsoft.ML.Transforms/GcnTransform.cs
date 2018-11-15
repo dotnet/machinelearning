@@ -595,10 +595,10 @@ namespace Microsoft.ML.Transforms.Projections
                 if (normScale < MinScale)
                     normScale = 1;
 
-                VBufferMutationContext<float> mutation;
+                VBufferEditor<float> mutation;
                 if (offset == 0)
                 {
-                    mutation = VBufferMutationContext.Create(ref dst, length, count);
+                    mutation = VBufferEditor.Create(ref dst, length, count);
                     var dstValues = mutation.Values;
                     if (!src.IsDense)
                     {
@@ -614,7 +614,7 @@ namespace Microsoft.ML.Transforms.Projections
                 // Subtracting the mean requires a dense representation.
                 src.CopyToDense(ref dst);
 
-                mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+                mutation = VBufferEditor.CreateFromBuffer(ref dst);
                 if (normScale != 1)
                     CpuMathUtils.ScaleAdd(normScale, -offset, mutation.Values);
                 else

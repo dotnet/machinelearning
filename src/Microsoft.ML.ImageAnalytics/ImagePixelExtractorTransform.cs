@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                         Host.Check(src.Height == height && src.Width == width);
 
-                        var mutation = VBufferMutationContext.Create(ref dst, size);
+                        var mutation = VBufferEditor.Create(ref dst, size);
                         var values = mutation.Values;
 
                         float offset = ex.Offset;

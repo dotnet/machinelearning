@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             int iDst = 0;
 
             // Densifying sparse vectors since default value equals NA and hence should be dropped.
-            var mutation = VBufferMutationContext.Create(ref dst, newCount);
+            var mutation = VBufferEditor.Create(ref dst, newCount);
             for (int i = 0; i < srcValues.Length; i++)
             {
                 if (!isNA(in srcValues[i]))
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Runtime.Data
             int iDst = 0;
             if (src.IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref dst, newCount);
+                var mutation = VBufferEditor.Create(ref dst, newCount);
                 for (int i = 0; i < srcValues.Length; i++)
                 {
                     if (!isNA(in srcValues[i]))
@@ -312,7 +312,7 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var newLength = src.Length - srcValues.Length - newCount;
-                var mutation = VBufferMutationContext.Create(ref dst, newLength, newCount);
+                var mutation = VBufferEditor.Create(ref dst, newLength, newCount);
 
                 var srcIndices = src.GetIndices();
                 int offset = 0;

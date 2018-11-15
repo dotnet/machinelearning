@@ -858,7 +858,7 @@ namespace Microsoft.ML.Transforms.Text
                     return;
                 }
 
-                VBufferMutationContext<float> mutation;
+                VBufferEditor<float> mutation;
                 // Make sure all the frequencies are valid and truncate if the sum gets too large.
                 int docSize = 0;
                 int termNum = 0;
@@ -870,7 +870,7 @@ namespace Microsoft.ML.Transforms.Text
                         // REVIEW: Should this log a warning message? And what should it produce?
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW: Need a utility method to do this...
-                        mutation = VBufferMutationContext.Create(ref dst, len);
+                        mutation = VBufferEditor.Create(ref dst, len);
                         for (int k = 0; k < len; k++)
                             mutation.Values[k] = Float.NaN;
                         dst = mutation.Commit();
@@ -894,7 +894,7 @@ namespace Microsoft.ML.Transforms.Text
                 int count = retTopics.Count;
                 Contracts.Assert(count <= len);
 
-                mutation = VBufferMutationContext.Create(ref dst, len, count);
+                mutation = VBufferEditor.Create(ref dst, len, count);
                 double normalizer = 0;
                 for (int i = 0; i < count; i++)
                 {

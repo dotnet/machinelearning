@@ -448,14 +448,14 @@ namespace Microsoft.ML.Runtime.Data
 
             if (_dense)
             {
-                var mutation = VBufferMutationContext.Create(ref buffer, _length);
+                var mutation = VBufferEditor.Create(ref buffer, _length);
                 _values.AsSpan(0, _length).CopyTo(mutation.Values);
                 buffer = mutation.Commit();
             }
             else
             {
                 Contracts.Assert(_count < _length);
-                var mutation = VBufferMutationContext.Create(ref buffer, _length, _count);
+                var mutation = VBufferEditor.Create(ref buffer, _length, _count);
                 _values.AsSpan(0, _count).CopyTo(mutation.Values);
                 _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
                 buffer = mutation.Commit();

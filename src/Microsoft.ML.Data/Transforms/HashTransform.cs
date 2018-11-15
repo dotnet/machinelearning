@@ -749,7 +749,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
+                    var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
 
                     for (int i = 0; i < srcValues.Length; ++i)
                         mutation.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                var mutation = VBufferEditor.Create(ref dst, src.Length);
 
                 var srcValues = src.GetValues();
                 if (src.IsDense)
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
+                    var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
 
                     if (src.IsDense)
                     {
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                var mutation = VBufferEditor.Create(ref dst, src.Length);
 
                 var srcValues = src.GetValues();
                 if (src.IsDense)

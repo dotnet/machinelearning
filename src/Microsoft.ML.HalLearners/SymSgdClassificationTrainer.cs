@@ -654,7 +654,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             else
                 weights = VBufferUtils.CreateDense<float>(numFeatures);
 
-            var weightsMutation = VBufferMutationContext.CreateFromBuffer(ref weights);
+            var weightsMutation = VBufferEditor.CreateFromBuffer(ref weights);
 
             // Reference: Parasail. SymSGD.
             bool tuneLR = _args.LearningRate == null;

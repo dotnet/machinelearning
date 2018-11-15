@@ -138,7 +138,7 @@ namespace Microsoft.ML.Trainers
             float mult = -(y - lambda) * weight;
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref grad);
+            var mutation = VBufferEditor.CreateFromBuffer(ref grad);
             Contracts.Assert(mutation.Values.Length >= BiasCount && (grad.IsDense || mutation.Indices[BiasCount - 1] == BiasCount - 1));
             mutation.Values[0] += mult;
             // From the computer's perspective exp(infinity)==infinity

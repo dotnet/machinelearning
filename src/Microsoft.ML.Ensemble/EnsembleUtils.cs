@@ -53,14 +53,14 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (cardinality >= src.Length / 2)
                 {
                     T defaultValue = default;
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                    var mutation = VBufferEditor.Create(ref dst, src.Length);
                     for (int i = 0; i < srcValues.Length; i++)
                         mutation.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
                     dst = mutation.Commit();
                 }
                 else
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length, cardinality);
+                    var mutation = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                     int count = 0;
                     for (int i = 0; i < srcValues.Length; i++)
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
             else
             {
-                var mutation = VBufferMutationContext.Create(ref dst, src.Length, cardinality);
+                var mutation = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                 int count = 0;
                 var srcIndices = src.GetIndices();

@@ -729,7 +729,7 @@ namespace Microsoft.ML.Transforms.Projections
                 int length = src.Length;
 
                 // Since the whitening process produces dense vector, always use dense representation of dst.
-                var mutation = VBufferMutationContext.Create(ref dst, cdst);
+                var mutation = VBufferEditor.Create(ref dst, cdst);
                 if (src.IsDense)
                 {
                     Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,

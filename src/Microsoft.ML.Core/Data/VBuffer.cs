@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
         public void CopyToDense(ref VBuffer<T> dst)
         {
             // create a dense mutation context
-            var mutation = VBufferMutationContext.Create(ref dst, Length, Length);
+            var mutation = VBufferEditor.Create(ref dst, Length, Length);
 
             if (!IsDense)
                 CopyTo(mutation.Values);
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyTo(ref VBuffer<T> dst)
         {
-            var mutation = VBufferMutationContext.Create(ref dst, Length, _count);
+            var mutation = VBufferEditor.Create(ref dst, Length, _count);
             if (IsDense)
             {
                 if (Length > 0)
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref dst, length, length);
+                var mutation = VBufferEditor.Create(ref dst, length, length);
                 if (length > 0)
                 {
                     _values.AsSpan(srcMin, length).CopyTo(mutation.Values);
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.Data
                     int copyLim = _indices.FindIndexSorted(copyMin, _count, srcMin + length);
                     Contracts.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
-                    var mutation = VBufferMutationContext.Create(ref dst, length, copyCount);
+                    var mutation = VBufferEditor.Create(ref dst, length, copyCount);
                     if (copyCount > 0)
                     {
                         _values.AsSpan(copyMin, copyCount).CopyTo(mutation.Values);
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, length, copyCount);
+                    var mutation = VBufferEditor.Create(ref dst, length, copyCount);
                     dst = mutation.Commit();
                 }
             }
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
             Contracts.CheckParam(0 <= srcIndex && srcIndex <= Utils.Size(src) - length, nameof(srcIndex));
-            var mutation = VBufferMutationContext.Create(ref dst, length, length);
+            var mutation = VBufferEditor.Create(ref dst, length, length);
             if (length > 0)
             {
                 src.AsSpan(srcIndex, length).CopyTo(mutation.Values);
@@ -299,12 +299,12 @@ namespace Microsoft.ML.Runtime.Data
         public override string ToString()
             => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {_count} explicit values";
 
-        internal VBufferMutationContext<T> GetMutableContext()
+        internal VBufferEditor<T> GetEditor()
         {
-            return GetMutableContext(Length, _count);
+            return GetEditor(Length, _count);
         }
 
-        internal VBufferMutationContext<T> GetMutableContext(
+        internal VBufferEditor<T> GetEditor(
             int newLogicalLength,
             int? valuesCount,
             int maxCapacity = Utils.ArrayMaxSize,
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
                 Utils.EnsureSize(ref indices, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewIndices);
             }
 
-            return new VBufferMutationContext<T>(
+            return new VBufferEditor<T>(
                 newLogicalLength,
                 valuesCount.Value,
                 values,

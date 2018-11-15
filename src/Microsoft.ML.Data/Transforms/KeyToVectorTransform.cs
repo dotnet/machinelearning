@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         int lenDst = checked(size * lenSrc);
                         var values = src.GetValues();
                         int cntSrc = values.Length;
-                        var mutation = VBufferMutationContext.Create(ref dst, lenDst, cntSrc);
+                        var mutation = VBufferEditor.Create(ref dst, lenDst, cntSrc);
 
                         int count = 0;
                         if (src.IsDense)

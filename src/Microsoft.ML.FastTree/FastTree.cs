@@ -1358,7 +1358,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
                         var srcValues = src.GetValues();
-                        var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
+                        var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
                         if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)

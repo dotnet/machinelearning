@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (c == 1 || dst.GetValues().Length == 0)
                 return;
-            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
             if (c != 0)
                 CpuMathUtils.Scale(c, mutation.Values);
             else // Maintain density of dst.
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (src.IsDense)
             {
                 // Maintain the density of src to dst in order to avoid slow down of L-BFGS.
-                var mutation = VBufferMutationContext.Create(ref dst, length);
+                var mutation = VBufferEditor.Create(ref dst, length);
                 Contracts.Assert(length == count);
                 if (c == 0)
                     mutation.Values.Clear();
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
             else
             {
-                var mutation = VBufferMutationContext.Create(ref dst, length, count);
+                var mutation = VBufferEditor.Create(ref dst, length, count);
                 src.GetIndices().CopyTo(mutation.Indices);
                 if (c == 0)
                     mutation.Values.Clear();
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref dst, dst.Length);
+                var mutation = VBufferEditor.Create(ref dst, dst.Length);
                 if (src.IsDense)
                     CpuMathUtils.Add(srcValues, mutation.Values, src.Length);
                 else
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref dst, dst.Length);
+                var mutation = VBufferEditor.Create(ref dst, dst.Length);
                 if (src.IsDense)
                     CpuMathUtils.AddScale(c, srcValues, mutation.Values, src.Length);
                 else
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(length > 0);
             if (dst.IsDense && src.IsDense)
             {
-                var mutation = VBufferMutationContext.Create(ref res, length);
+                var mutation = VBufferEditor.Create(ref res, length);
                 CpuMathUtils.AddScaleCopy(c, srcValues, dst.GetValues(), mutation.Values, length);
                 res = mutation.Commit();
                 return;
@@ -247,12 +247,12 @@ namespace Microsoft.ML.Runtime.Numeric
             var srcValues = src.GetValues();
             if (srcValues.Length == 0 || c == 0)
                 return;
-            VBufferMutationContext<float> mutation;
+            VBufferEditor<float> mutation;
             Span<float> values;
             if (dst.IsDense)
             {
                 // This is by far the most common case.
-                mutation = VBufferMutationContext.Create(ref dst, dst.Length);
+                mutation = VBufferEditor.Create(ref dst, dst.Length);
                 values = mutation.Values.Slice(offset);
                 if (src.IsDense)
                     CpuMathUtils.AddScale(c, srcValues, values, srcValues.Length);
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
             // Extend dst so that it has room for this additional stuff. Shift things over as well.
             var dstValues = dst.GetValues();
-            mutation = VBufferMutationContext.Create(ref dst,
+            mutation = VBufferEditor.Create(ref dst,
                 dst.Length,
                 dstValues.Length + gapCount,
                 keepOldOnResize: true);
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (src.Length > 0 && src.IsDense)
                 {
                     // Due to sparsity preservation from src, dst must be dense, in the same way.
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                    var mutation = VBufferEditor.Create(ref dst, src.Length);
                     if (!mutation.CreatedNewValues) // We need to clear it.
                         mutation.Values.Clear();
                     dst = mutation.Commit();

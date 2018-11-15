@@ -583,7 +583,7 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         int deno = 0;
                         srcGetter(ref src);
-                        var mutation = VBufferMutationContext.Create(ref dst, 3 * dimension);
+                        var mutation = VBufferEditor.Create(ref dst, 3 * dimension);
                         int offset = 2 * dimension;
                         for (int i = 0; i < dimension; i++)
                         {

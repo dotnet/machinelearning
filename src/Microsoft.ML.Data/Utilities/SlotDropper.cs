@@ -115,11 +115,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // End of the trivial cases
             // At this point, we need to drop some slots and keep some slots.
-            VBufferMutationContext<TDst> mutation;
+            VBufferEditor<TDst> mutation;
             var srcValues = src.GetValues();
             if (src.IsDense)
             {
-                mutation = VBufferMutationContext.Create(ref dst, newLength);
+                mutation = VBufferEditor.Create(ref dst, newLength);
 
                 int iDst = 0;
                 int iSrc = 0;
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             Contracts.Assert(newCount <= src.Length);
 
-            mutation = VBufferMutationContext.Create(
+            mutation = VBufferEditor.Create(
                 ref dst,
                 newLength,
                 newCount,

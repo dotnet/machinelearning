@@ -2,35 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Various methods for creating <see cref="VBufferMutationContext{T}"/> instances.
+    /// Various methods for creating <see cref="VBufferEditor{T}"/> instances.
     /// </summary>
-    public static class VBufferMutationContext
+    public static class VBufferEditor
     {
         /// <summary>
-        /// Creates a mutation context with the same shape (length and density)
-        /// as the <paramref name="destination"/>.
+        /// Creates a <see cref="VBufferEditor{T}"/> with the same shape
+        /// (length and density) as the <paramref name="destination"/>.
         /// </summary>
-        public static VBufferMutationContext<T> CreateFromBuffer<T>(
+        public static VBufferEditor<T> CreateFromBuffer<T>(
             ref VBuffer<T> destination)
         {
-            return destination.GetMutableContext();
+            return destination.GetEditor();
         }
 
         /// <summary>
-        /// Creates a mutation context using <paramref name="destination"/>'s values
-        /// and indices buffers.
+        /// Creates a <see cref="VBufferEditor{T}"/> using
+        /// <paramref name="destination"/>'s values and indices buffers.
         /// </summary>
         /// <param name="destination">
         /// The destination buffer.
         /// </param>
         /// <param name="newLogicalLength">
-        /// The new length of the buffer being mutated.
+        /// The logical length of the new buffer being edited.
         /// </param>
         /// <param name="valuesCount">
         /// The optional number of physical values to be represented in the buffer.
@@ -43,27 +42,27 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="requireIndicesOnDense">
         /// True means to ensure the Indices buffer is available, even if the buffer will be dense.
         /// </param>
-        public static VBufferMutationContext<T> Create<T>(
+        public static VBufferEditor<T> Create<T>(
             ref VBuffer<T> destination,
             int newLogicalLength,
             int? valuesCount = null,
             bool keepOldOnResize = false,
             bool requireIndicesOnDense = false)
         {
-            return destination.GetMutableContext(
+            return destination.GetEditor(
                 newLogicalLength,
                 valuesCount,
                 keepOldOnResize: keepOldOnResize,
                 requireIndicesOnDense: requireIndicesOnDense);
         }
 
-        internal static VBufferMutationContext<T> Create<T>(
+        internal static VBufferEditor<T> Create<T>(
             ref VBuffer<T> destination,
             int newLogicalLength,
             int valuesCount,
             int maxValuesCapacity)
         {
-            return destination.GetMutableContext(
+            return destination.GetEditor(
                 newLogicalLength,
                 valuesCount,
                 maxValuesCapacity);
@@ -71,10 +70,10 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// An object capable of mutation a <see cref="VBuffer{T}"/> by filling out
+    /// An object capable of editing a <see cref="VBuffer{T}"/> by filling out
     /// <see cref="Values"/> (and <see cref="Indices"/> if the buffer is not dense).
     /// </summary>
-    public readonly ref struct VBufferMutationContext<T>
+    public readonly ref struct VBufferEditor<T>
     {
         private readonly int _logicalLength;
         private readonly T[] _values;
@@ -100,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public bool CreatedNewIndices { get; }
 
-        internal VBufferMutationContext(int logicalLength,
+        internal VBufferEditor(int logicalLength,
             int physicalValuesCount,
             T[] values,
             int[] indices,
@@ -147,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <remarks>
         /// CommitTruncated allows to modify the length of the explicitly
         /// defined values.
-        /// This is useful in sparse situations where the <see cref="VBufferMutationContext{T}"/>
+        /// This is useful in sparse situations where the <see cref="VBufferEditor{T}"/>
         /// was created with a larger physical value count than was needed
         /// because the final value count was not known at creation time.
         /// </remarks>

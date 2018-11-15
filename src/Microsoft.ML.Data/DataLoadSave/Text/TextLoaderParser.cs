@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     }
 
-                    var mutation = VBufferMutationContext.Create(ref dst, _size, _count);
+                    var mutation = VBufferEditor.Create(ref dst, _size, _count);
                     _values.AsSpan(0, _count).CopyTo(mutation.Values);
                     if (_count == _size)
                     {

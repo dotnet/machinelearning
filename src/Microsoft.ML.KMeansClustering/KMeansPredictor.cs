@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
-                    var mutation = VBufferMutationContext.Create(ref dst, _k);
+                    var mutation = VBufferEditor.Create(ref dst, _k);
                     Map(in src, mutation.Values);
                     dst = mutation.Commit();
                 };

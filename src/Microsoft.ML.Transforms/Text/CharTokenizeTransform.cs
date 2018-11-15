@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms.Text
                         }
                     }
 
-                    var mutation = VBufferMutationContext.Create(ref dst, len);
+                    var mutation = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
                         int index = 0;
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (_parent._useMarkerChars)
                         len += TextMarkersCount;
 
-                    var mutation = VBufferMutationContext.Create(ref dst, len);
+                    var mutation = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
                         int index = 0;

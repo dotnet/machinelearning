@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (count < 0)
                     {
                         // dense
-                        var mutation = VBufferMutationContext.Create(ref value, length);
+                        var mutation = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
                             _values.AsSpan(_valuesOffset, length)
@@ -1123,7 +1123,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     else
                     {
                         // sparse
-                        var mutation = VBufferMutationContext.Create(ref value, length, count);
+                        var mutation = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
                             _values.AsSpan(_valuesOffset, count)

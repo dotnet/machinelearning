@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (a.IsDense && dst.IsDense)
             {
-                var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+                var mutation = VBufferEditor.CreateFromBuffer(ref dst);
                 CpuMathUtils.MulElementWise(a.GetValues(), dst.GetValues(), mutation.Values, a.Length);
             }
             else

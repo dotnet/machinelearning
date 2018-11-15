@@ -774,7 +774,7 @@ namespace Microsoft.ML.Transforms
         private static void MapVector<TSrc, TDst>(this ValueMapper<TSrc, TDst> map, in VBuffer<TSrc> input, ref VBuffer<TDst> output)
         {
             var inputValues = input.GetValues();
-            var mutation = VBufferMutationContext.Create(ref output, input.Length, inputValues.Length);
+            var mutation = VBufferEditor.Create(ref output, input.Length, inputValues.Length);
             for (int i = 0; i < inputValues.Length; i++)
             {
                 TSrc val = inputValues[i];
