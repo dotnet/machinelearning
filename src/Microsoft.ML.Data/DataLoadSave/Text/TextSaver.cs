@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 if (_outputSchema)
                     WriteSchemaAsComment(writer, header);
 
-                double rowCount = data.GetRowCount(true) ?? double.NaN;
+                double rowCount = data.GetRowCount() ?? double.NaN;
                 using (var pch = !_silent ? _host.StartProgressChannel("TextSaver: saving data") : null)
                 {
                     long stateCount = 0;
