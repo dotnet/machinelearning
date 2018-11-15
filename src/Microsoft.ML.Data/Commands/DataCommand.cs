@@ -56,7 +56,8 @@ namespace Microsoft.ML.Runtime.Data
             public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] Transform;
         }
 
-        public abstract class ImplBase<TArgs> : ICommand
+        [BestFriend]
+        internal abstract class ImplBase<TArgs> : ICommand
             where TArgs : ArgumentsBase
         {
             protected readonly IHost Host;
