@@ -82,17 +82,15 @@ namespace Microsoft.ML.Runtime.Data
         bool CanShuffle { get; }
 
         /// <summary>
-        /// Returns the number of rows if known. Null means unknown. If lazy is true, then
-        /// this is permitted to return null when it might return a non-null value on a subsequent
-        /// call. This indicates, that the transform does not YET know the number of rows, but
-        /// may in the future. If lazy is false, then this is permitted to do some work (no more
-        /// that it would normally do for cursoring) to determine the number of rows.
+        /// Returns the number of rows if known. Returning null means that the row count is unknown but
+        /// it might return a non-null value on a subsequent call. This indicates, that the transform does
+        /// not YET know the number of rows, but may in the future. Its implementation's computation
+        /// complexity should be O(1).
         ///
-        /// Most components will return the same answer whether lazy is true or false. Some, like
-        /// a cache, might return null until the cache is fully populated (when lazy is true). When
-        /// lazy is false, such a cache would block until the cache was populated.
+        /// Most implementation will return the same answer every time. Some, like a cache, might
+        /// return null until the cache is fully populated.
         /// </summary>
-        long? GetRowCount(bool lazy = true);
+        long? GetRowCount();
 
         /// <summary>
         /// Get a row cursor. The active column indices are those for which needCol(col) returns true.

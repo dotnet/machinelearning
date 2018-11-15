@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // REVIEW: maybe it makes sense for the factory to capture the good row count after
                 // the first successful cursoring?
-                Double totalCount = data.Data.GetRowCount(true) ?? Double.NaN;
+                Double totalCount = data.Data.GetRowCount() ?? Double.NaN;
 
                 long exCount = 0;
                 pch.SetHeader(new ProgressHeader(null, new[] { "examples" }),
