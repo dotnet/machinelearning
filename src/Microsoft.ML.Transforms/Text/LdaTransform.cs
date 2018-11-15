@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms.Text
     // https://github.com/Microsoft/LightLDA
     //
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
-    // for an example on how to use LdaTransformer.
+    // for an example on how to use LatentDirichletAllocationTransformer.
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LatentDirichletAllocationTransformer : OneToOneTransformerBase
     {
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
-            public int? NumThreads;
+            public int NumThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
             public int NumMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken;
@@ -206,55 +206,57 @@ namespace Microsoft.ML.Transforms.Text
                 int numBurninIter = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
                 bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             {
+                Contracts.CheckValue(input, nameof(input));
+                Contracts.CheckValueOrNull(output);
+                Contracts.CheckUserArg(numTopic > 0, nameof(numTopic), "Must be positive.");
+                Contracts.CheckUserArg(mhStep > 0, nameof(mhStep), "Must be positive.");
+                Contracts.CheckUserArg(numIter > 0, nameof(numIter), "Must be positive.");
+                Contracts.CheckUserArg(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
+                Contracts.CheckUserArg(numThread >= 0, nameof(numThread), "Must be positive or zero.");
+                Contracts.CheckUserArg(numMaxDocToken > 0, nameof(numMaxDocToken), "Must be positive.");
+                Contracts.CheckUserArg(numSummaryTermPerTopic > 0, nameof(numSummaryTermPerTopic), "Must be positive");
+                Contracts.CheckUserArg(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
+
                 Input = input;
-                Contracts.CheckValue(Input, nameof(Input));
                 Output = output ?? input;
-                Contracts.CheckValue(Output, nameof(Output));
                 NumTopic = numTopic;
-                Contracts.CheckUserArg(NumTopic > 0, nameof(NumTopic), "Must be positive.");
                 AlphaSum = alphaSum;
                 Beta = beta;
                 MHStep = mhStep;
-                Contracts.CheckUserArg(MHStep > 0, nameof(MHStep), "Must be positive.");
                 NumIter = numIter;
-                Contracts.CheckUserArg(NumIter > 0, nameof(NumIter), "Must be positive.");
                 LikelihoodInterval = likelihoodInterval;
-                Contracts.CheckUserArg(LikelihoodInterval > 0, nameof(LikelihoodInterval), "Must be positive.");
                 NumThread = numThread;
-                Contracts.CheckUserArg(NumThread >= 0, nameof(NumThread), "Must be positive or zero.");
                 NumMaxDocToken = numMaxDocToken;
-                Contracts.CheckUserArg(NumMaxDocToken > 0, nameof(NumMaxDocToken), "Must be positive.");
                 NumSummaryTermPerTopic = numSummaryTermPerTopic;
-                Contracts.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(NumSummaryTermPerTopic), "Must be positive");
                 NumBurninIter = numBurninIter;
-                Contracts.CheckUserArg(NumBurninIter >= 0, nameof(NumBurninIter), "Must be non-negative.");
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
             internal ColumnInfo(Column item, Arguments args)
             {
+                Contracts.CheckValue(item.Source, nameof(item.Source));
+                Contracts.CheckValueOrNull(item.Name);
+                Contracts.CheckUserArg(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
+                Contracts.CheckUserArg(args.Mhstep > 0, nameof(args.Mhstep), "Must be positive.");
+                Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), "Must be positive.");
+                Contracts.CheckUserArg(args.LikelihoodInterval > 0, nameof(args.LikelihoodInterval), "Must be positive.");
+                Contracts.CheckUserArg(args.NumThreads >= 0, nameof(args.NumThreads), "Must be positive or zero.");
+                Contracts.CheckUserArg(args.NumMaxDocToken > 0, nameof(args.NumMaxDocToken), "Must be positive.");
+                Contracts.CheckUserArg(args.NumSummaryTermPerTopic > 0, nameof(args.NumSummaryTermPerTopic), "Must be positive");
+                Contracts.CheckUserArg(args.NumBurninIterations >= 0, nameof(args.NumBurninIterations), "Must be non-negative.");
+
                 Input = item.Source;
-                Contracts.CheckValue(Input, nameof(Input));
                 Output = item.Name ?? item.Source;
-                Contracts.CheckValue(Output, nameof(Output));
                 NumTopic = args.NumTopic;
-                Contracts.CheckUserArg(NumTopic > 0, nameof(NumTopic), "Must be positive.");
                 AlphaSum = args.AlphaSum;
                 Beta = args.Beta;
                 MHStep = args.Mhstep;
-                Contracts.CheckUserArg(MHStep > 0, nameof(MHStep), "Must be positive.");
                 NumIter = args.NumIterations;
-                Contracts.CheckUserArg(NumIter > 0, nameof(NumIter), "Must be positive.");
                 LikelihoodInterval = args.LikelihoodInterval;
-                Contracts.CheckUserArg(LikelihoodInterval > 0, nameof(LikelihoodInterval), "Must be positive.");
-                NumThread = args.NumThreads ?? 0;
-                Contracts.CheckUserArg(NumThread >= 0, nameof(NumThread), "Must be positive or zero.");
+                NumThread = args.NumThreads;
                 NumMaxDocToken = args.NumMaxDocToken;
-                Contracts.CheckUserArg(NumMaxDocToken > 0, nameof(NumMaxDocToken), "Must be positive.");
                 NumSummaryTermPerTopic = args.NumSummaryTermPerTopic;
-                Contracts.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(NumSummaryTermPerTopic), "Must be positive");
                 NumBurninIter = args.NumBurninIterations;
-                Contracts.CheckUserArg(NumBurninIter >= 0, nameof(NumBurninIter), "Must be non-negative.");
                 ResetRandomGenerator = args.ResetRandomGenerator;
             }
 
@@ -338,13 +340,17 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public class LdaTopicSummary
+        /// <summary>
+        /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
+        /// </summary>
+        public sealed class LdaTopicSummary
         {
-            public Dictionary<int, KeyValuePair<int, float>[]> SummaryVectorPerTopic;
+            // For each topic, provide information about the set of words in the topic and their corresponding scores.
+            public readonly Dictionary<int, KeyValuePair<int, float>[]> WordScoresPerTopic;
 
-            internal LdaTopicSummary()
+            internal LdaTopicSummary(Dictionary<int, KeyValuePair<int, float>[]> wordScoresPerTopic)
             {
-                SummaryVectorPerTopic = new Dictionary<int, KeyValuePair<int, float>[]>();
+                WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
@@ -449,22 +455,24 @@ namespace Microsoft.ML.Transforms.Text
                 //do the preparation
                 if (!_predictionPreparationDone)
                 {
-                    _ldaTrainer.InitializeBeforeTest();
-                    _predictionPreparationDone = true;
+                    lock (_preparationSyncRoot)
+                    {
+                        _ldaTrainer.InitializeBeforeTest();
+                        _predictionPreparationDone = true;
+                    }
                 }
             }
 
             internal LdaTopicSummary GetTopicSummary()
             {
-                var topicSummary = new LdaTopicSummary();
-
+                var wordScoresPerTopic = new Dictionary<int, KeyValuePair<int, float>[]>();
                 for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                 {
-                    var summaryVector = _ldaTrainer.GetTopicSummary(i);
-                    topicSummary.SummaryVectorPerTopic.Add(i, summaryVector);
+                    var wordScores = _ldaTrainer.GetTopicSummary(i);
+                    wordScoresPerTopic.Add(i, wordScores);
                 }
 
-                return topicSummary;
+                return new LdaTopicSummary(wordScoresPerTopic);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -1055,8 +1063,8 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing a fixed length vector of input tokens.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="inputColumn">The column representing the document as a fixed length vector of floats.</param>
+        /// <param name="outputColumn">The column containing the output scores over a set of topics, represented as a vector of floats. A null value for the column means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
