@@ -285,10 +285,10 @@ namespace Microsoft.ML.Transforms.Text
                 transformInfos[i] = new TransformInfo(columns[i]);
             }
             _transformInfos = transformInfos.ToImmutableArray();
-            _ngramMaps = Train(columns, input, out _invDocFreqs);
+            _ngramMaps = Train(Host, columns, _transformInfos, input, out _invDocFreqs);
         }
 
-        private SequencePool[] Train(ColumnInfo[] columns, IDataView trainingData, out double[][] invDocFreqs)
+        private static SequencePool[] Train(IHostEnvironment env, ColumnInfo[] columns, ImmutableArray<TransformInfo> transformInfos, IDataView trainingData, out double[][] invDocFreqs)
         {
             var helpers = new NgramBufferBuilder[columns.Length];
             var getters = new ValueGetter<VBuffer<uint>>[columns.Length];
@@ -308,11 +308,11 @@ namespace Microsoft.ML.Transforms.Text
                 activeInput[srcCols[iinfo]] = true;
             }
             using (var cursor = trainingData.GetRowCursor(col => activeInput[col]))
-            using (var pch = Host.StartProgressChannel("Building n-gram dictionary"))
+            using (var pch = env.StartProgressChannel("Building n-gram dictionary"))
             {
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    Host.Assert(srcTypes[iinfo].IsVector && srcTypes[iinfo].ItemType.IsKey);
+                    env.Assert(srcTypes[iinfo].IsVector && srcTypes[iinfo].ItemType.IsKey);
                     var ngramLength = columns[iinfo].NgramLength;
                     var skipLength = columns[iinfo].SkipLength;
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms.Text
                     // Note: GetNgramIdFinderAdd will control how many ngrams of a specific length will
                     // be added (using lims[iinfo]), therefore we set slotLim to the maximum
                     helpers[iinfo] = new NgramBufferBuilder(ngramLength, skipLength, Utils.ArrayMaxSize,
-                        GetNgramIdFinderAdd(counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo], _transformInfos[iinfo].RequireIdf, Host));
+                        GetNgramIdFinderAdd(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo], transformInfos[iinfo].RequireIdf));
                 }
 
                 int cInfoFull = 0;
@@ -348,11 +348,11 @@ namespace Microsoft.ML.Transforms.Text
                             keyCount = uint.MaxValue;
                         if (!infoFull[iinfo])
                         {
-                            if (_transformInfos[iinfo].RequireIdf)
+                            if (transformInfos[iinfo].RequireIdf)
                                 helpers[iinfo].Reset();
 
                             helpers[iinfo].AddNgrams(in src[iinfo], 0, keyCount);
-                            if (_transformInfos[iinfo].RequireIdf)
+                            if (transformInfos[iinfo].RequireIdf)
                             {
                                 int totalNgrams = counts[iinfo].Sum();
                                 Utils.EnsureSize(ref invDocFreqs[iinfo], totalNgrams);
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Transforms.Text
                                 }
                             }
                         }
-                        AssertValid(counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
+                        AssertValid(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
                     }
                 }
 
@@ -378,11 +378,11 @@ namespace Microsoft.ML.Transforms.Text
 
                 for (int iinfo = 0; iinfo < columns.Length; iinfo++)
                 {
-                    AssertValid(counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
+                    AssertValid(env, counts[iinfo], columns[iinfo].Limits, ngramMaps[iinfo]);
 
-                    int ngramLength = _transformInfos[iinfo].NgramLength;
+                    int ngramLength = transformInfos[iinfo].NgramLength;
                     for (int i = 0; i < ngramLength; i++)
-                        _transformInfos[iinfo].NonEmptyLevels[i] = counts[iinfo][i] > 0;
+                        transformInfos[iinfo].NonEmptyLevels[i] = counts[iinfo][i] > 0;
                 }
 
                 return ngramMaps;
@@ -390,36 +390,36 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [Conditional("DEBUG")]
-        private void AssertValid(int[] counts, ImmutableArray<int> lims, SequencePool pool)
+        private static void AssertValid(IHostEnvironment env, int[] counts, ImmutableArray<int> lims, SequencePool pool)
         {
             int count = 0;
             int countFull = 0;
             for (int i = 0; i < lims.Length; i++)
             {
-                Host.Assert(counts[i] >= 0);
-                Host.Assert(counts[i] <= lims[i]);
+                env.Assert(counts[i] >= 0);
+                env.Assert(counts[i] <= lims[i]);
                 if (counts[i] == lims[i])
                     countFull++;
                 count += counts[i];
             }
-            Host.Assert(count == pool.Count);
+            env.Assert(count == pool.Count);
         }
 
-        private static NgramIdFinder GetNgramIdFinderAdd(int[] counts, ImmutableArray<int> lims, SequencePool pool, bool requireIdf, IHost host)
+        private static NgramIdFinder GetNgramIdFinderAdd(IHostEnvironment env, int[] counts, ImmutableArray<int> lims, SequencePool pool, bool requireIdf)
         {
-            Contracts.AssertValue(host);
-            host.Assert(lims.Length > 0);
-            host.Assert(lims.Length == Utils.Size(counts));
+            Contracts.AssertValue(env);
+            env.Assert(lims.Length > 0);
+            env.Assert(lims.Length == Utils.Size(counts));
 
             int numFull = lims.Count(l => l <= 0);
             int ngramLength = lims.Length;
             return
                 (uint[] ngram, int lim, int icol, ref bool more) =>
                 {
-                    host.Assert(0 < lim && lim <= Utils.Size(ngram));
-                    host.Assert(lim <= Utils.Size(counts));
-                    host.Assert(lim <= lims.Length);
-                    host.Assert(icol == 0);
+                    env.Assert(0 < lim && lim <= Utils.Size(ngram));
+                    env.Assert(lim <= Utils.Size(counts));
+                    env.Assert(lim <= lims.Length);
+                    env.Assert(icol == 0);
 
                     var max = lim - 1;
                     int slot = -1;
