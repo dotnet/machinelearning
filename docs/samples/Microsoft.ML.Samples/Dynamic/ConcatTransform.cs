@@ -1,14 +1,13 @@
-﻿        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-        using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Runtime.Api;
-        using System;
-        using System.Linq;
-        using System.Collections.Generic;
-        using Microsoft.ML.Transforms;
+﻿using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Api;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class ConcatTransformExample
     {
         class SampleInfertDataWithFeatures
         {

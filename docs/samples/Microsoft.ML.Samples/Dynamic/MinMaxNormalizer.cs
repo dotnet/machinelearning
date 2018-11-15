@@ -1,13 +1,12 @@
-﻿        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-        using Microsoft.ML.Runtime.Api;
-        using Microsoft.ML.Data;
-        using Microsoft.ML.Transforms.Normalizers;
-        using System;
-        using System.Collections.Generic;
+﻿using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.Normalizers;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class MinMaxNormalizerExample
     {
         public static void MinMaxNormalizer()
         {
