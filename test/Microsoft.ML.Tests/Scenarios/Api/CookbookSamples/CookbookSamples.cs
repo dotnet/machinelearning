@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact]
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
-                DeleteOutputPath("cook_model.zip"));
+                DeleteOutputPath("cook_model_static.zip"));
 
         private ITransformer TrainOnIris(string irisDataPath)
         {
