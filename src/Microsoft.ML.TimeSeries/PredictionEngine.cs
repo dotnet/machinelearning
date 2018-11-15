@@ -17,50 +17,28 @@ namespace Microsoft.ML.TimeSeries
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class PredictionEngine<TSrc, TDst>
+    public sealed class TimeSeriesPredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
-        private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
-        private readonly IRowReadableAs<TDst> _outputRow;
-        private readonly IStatefulRowReadableAs<TDst>[] _statefulRows;
-        private readonly Action _disposer;
+        private IStatefulRowReadableAs<TDst>[] _statefulRows;
 
-        internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
+        internal TimeSeriesPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, StreamChecker(env, modelStream), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            : base(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
-        private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
-        {
-            env.CheckValue(modelStream, nameof(modelStream));
-            return schema =>
-            {
-                var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
-                var transformer = new TransformWrapper(env, pipe);
-                env.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-                return transformer.GetRowToRowMapper(schema);
-            };
-        }
-
-        internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
+        internal TimeSeriesPredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, new TransformWrapper(env, env.CheckRef(dataPipe, nameof(dataPipe))), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            : base(env, dataPipe, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
-        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        internal TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, TransformerChecker(env, transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
-        }
-
-        private static Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
-        {
-            ectx.CheckValue(transformer, nameof(transformer));
-            ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-            return transformer.GetRowToRowMapper;
         }
 
         public void GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
@@ -88,6 +66,7 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 outRow = input;
+                return;
             }
 
             // For each of the inner mappers, we will be calling their GetRow method, but to do so we need to know
@@ -108,7 +87,7 @@ namespace Microsoft.ML.TimeSeries
                     result = innerMappers[i].GetRow(result, deps[i], out localDisp);
 
                 if (result is IStatefulRow)
-                    rows.Add((IStatefulRow)input);
+                    rows.Add((IStatefulRow)result);
 
                 if (localDisp != null)
                 {
@@ -120,48 +99,25 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            outRow = input;
+            outRow = result;
         }
 
-        private PredictionEngine(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
-                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
+        internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
+                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.AssertValue(makeMapper);
-
-            _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
-            var mapper = makeMapper(_inputRow.Schema);
 
             List<IStatefulRow> rows = new List<IStatefulRow>();
             if (mapper is CompositeRowToRowMapper)
-                GetStatefulRows(_inputRow, mapper, col => true, rows, out _disposer, out var outRow);
+                GetStatefulRows(inputRow, mapper, col => true, rows, out disposer, out var outRow);
 
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRow = mapper.GetRow(_inputRow, col => true, out _disposer);
+            var outputRowLocal = mapper.GetRow(inputRow, col => true, out disposer);
 
-            if (rows.Count == 0 && outputRow is IStatefulRow)
-                rows.Add((IStatefulRow)outputRow);
+            if (rows.Count == 0 && outputRowLocal is IStatefulRow)
+                rows.Add((IStatefulRow)outputRowLocal);
 
             _statefulRows = rows.Select(row => cursorable.GetRow(row)).ToArray();
-
-            _outputRow = cursorable.GetRow(outputRow);
-        }
-
-        ~PredictionEngine()
-        {
-            _disposer?.Invoke();
-        }
-
-        /// <summary>
-        /// Run prediction pipeline on one example.
-        /// </summary>
-        /// <param name="example">The example to run on.</param>
-        /// <returns>The result of prediction. A new object is created for every call.</returns>
-        public TDst Predict(TSrc example)
-        {
-            var result = new TDst();
-            Predict(example, ref result);
-            return result;
+            outputRow = cursorable.GetRow(outputRowLocal);
         }
 
         /// <summary>
@@ -170,73 +126,41 @@ namespace Microsoft.ML.TimeSeries
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        public void Predict(TSrc example, ref TDst prediction)
+        public override void Predict(TSrc example, ref TDst prediction)
         {
             Contracts.CheckValue(example, nameof(example));
-            _inputRow.ExtractValues(example);
+            ExtractValues(example);
             if (prediction == null)
                 prediction = new TDst();
 
             foreach (var row in _statefulRows)
                 row.PingValues(prediction);
 
-            _outputRow.FillValues(prediction);
+            FillValues(prediction);
         }
     }
 
-    /// <summary>
-    /// A prediction engine class, that takes instances of <typeparamref name="TSrc"/> through
-    /// the transformer pipeline and produces instances of <typeparamref name="TDst"/> as outputs.
-    /// </summary>
-    public sealed class PredictionFunction<TSrc, TDst>
-                where TSrc : class
-                where TDst : class, new()
+    public sealed class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionFunctionBase<TSrc, TDst>
+         where TSrc : class
+         where TDst : class, new()
     {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
-
-        /// <summary>
-        /// Create an instance of <see cref="PredictionFunction{TSrc, TDst}"/>.
-        /// </summary>
-        /// <param name="env">The host environment.</param>
-        /// <param name="transformer">The model (transformer) to use for prediction.</param>
-        public PredictionFunction(IHostEnvironment env, ITransformer transformer)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(transformer, nameof(transformer));
-
-            IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
-        }
-
-        /// <summary>
-        /// Perform one prediction using the model.
-        /// </summary>
-        /// <param name="example">The object that holds values to predict from.</param>
-        /// <returns>The object populated with prediction results.</returns>
-        public TDst Predict(TSrc example) => _engine.Predict(example);
-
-        /// <summary>
-        /// Perform one prediction using the model.
-        /// Reuses the provided prediction object, which is more efficient in high-load scenarios.
-        /// </summary>
-        /// <param name="example">The object that holds values to predict from.</param>
-        /// <param name="prediction">The object to store the predictions in. If it's <c>null</c>, a new object is created,
-        /// otherwise the provided object is used.</param>
-        public void Predict(TSrc example, ref TDst prediction) => _engine.Predict(example, ref prediction);
+        public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer) : base(env, transformer) { }
+        internal override void CreatePredictionEngine(IHostEnvironment env, ITransformer transformer, out PredictionEngineBase<TSrc, TDst> engine) =>
+            engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
     }
 
     public static class PredictionFunctionExtensions
     {
-        public static PredictionEngine<TSrc, TDst> CreateTimeSeriesPredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
-    bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-    where TSrc : class
-    where TDst : class, new()
+        public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesPredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
+            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            where TSrc : class
+            where TDst : class, new()
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(transformer, nameof(transformer));
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
-            return new PredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
 
         /// <summary>

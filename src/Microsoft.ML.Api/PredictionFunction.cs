@@ -7,29 +7,39 @@ using Microsoft.ML.Runtime.Api;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    public sealed class PredictionFunction<TSrc, TDst> : PredictionFunctionBase<TSrc, TDst>
+            where TSrc : class
+            where TDst : class, new()
+    {
+        public PredictionFunction(IHostEnvironment env, ITransformer transformer) : base(env, transformer) { }
+    }
+
     /// <summary>
     /// A prediction engine class, that takes instances of <typeparamref name="TSrc"/> through
     /// the transformer pipeline and produces instances of <typeparamref name="TDst"/> as outputs.
     /// </summary>
-    public sealed class PredictionFunction<TSrc, TDst>
+    public abstract class PredictionFunctionBase<TSrc, TDst>
                 where TSrc : class
                 where TDst : class, new()
     {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
+        private readonly PredictionEngineBase<TSrc, TDst> _engine;
 
         /// <summary>
         /// Create an instance of <see cref="PredictionFunction{TSrc, TDst}"/>.
         /// </summary>
         /// <param name="env">The host environment.</param>
         /// <param name="transformer">The model (transformer) to use for prediction.</param>
-        public PredictionFunction(IHostEnvironment env, ITransformer transformer)
+        public PredictionFunctionBase(IHostEnvironment env, ITransformer transformer)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(transformer, nameof(transformer));
 
             IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(transformer);
+            CreatePredictionEngine(env, transformer, out _engine);
         }
+
+        internal virtual void CreatePredictionEngine(IHostEnvironment env, ITransformer transformer, out PredictionEngineBase<TSrc, TDst> engine) =>
+            engine = env.CreatePredictionEngine<TSrc, TDst>(transformer);
 
         /// <summary>
         /// Perform one prediction using the model.

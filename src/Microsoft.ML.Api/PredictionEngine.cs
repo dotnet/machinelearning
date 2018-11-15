@@ -124,6 +124,29 @@ namespace Microsoft.ML.Runtime.Api
         }
     }
 
+    public sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+       where TSrc : class
+       where TDst : class, new()
+    {
+        internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : base(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : base(env, dataPipe, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+    }
+
     /// <summary>
     /// A class that runs the previously trained model (and the preceding transform pipeline) on the
     /// in-memory data, one example at a time.
@@ -132,20 +155,22 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class PredictionEngine<TSrc, TDst>
+    public abstract class PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
-        private readonly IRowReadableAs<TDst> _outputRow;
-        private readonly Action _disposer;
+        protected readonly IRowReadableAs<TDst> OutputRow;
+        protected readonly Action Disposer;
 
-        internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
+        [BestFriend]
+        internal PredictionEngineBase(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : this(env, StreamChecker(env, modelStream), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
+        [BestFriend]
         private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
         {
             env.CheckValue(modelStream, nameof(modelStream));
@@ -158,13 +183,15 @@ namespace Microsoft.ML.Runtime.Api
             };
         }
 
-        internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
+        [BestFriend]
+        internal PredictionEngineBase(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : this(env, new TransformWrapper(env, env.CheckRef(dataPipe, nameof(dataPipe))), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
-        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        [BestFriend]
+        internal PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : this(env, TransformerChecker(env, transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
@@ -177,22 +204,27 @@ namespace Microsoft.ML.Runtime.Api
             return transformer.GetRowToRowMapper;
         }
 
-        private PredictionEngine(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
+        internal PredictionEngineBase(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
         {
             Contracts.CheckValue(env, nameof(env));
             env.AssertValue(makeMapper);
-
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
-            var mapper = makeMapper(_inputRow.Schema);
-            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRow = mapper.GetRow(_inputRow, col => true, out _disposer);
-            _outputRow = cursorable.GetRow(outputRow);
+
+            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out Disposer, out OutputRow);
         }
 
-        ~PredictionEngine()
+        internal virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
+                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
-            _disposer?.Invoke();
+            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
+            var outputRowLocal = mapper.GetRow(_inputRow, col => true, out disposer);
+            outputRow = cursorable.GetRow(outputRowLocal);
+        }
+
+        ~PredictionEngineBase()
+        {
+            Disposer?.Invoke();
         }
 
         /// <summary>
@@ -207,19 +239,25 @@ namespace Microsoft.ML.Runtime.Api
             return result;
         }
 
+        public void ExtractValues(TSrc example) =>
+            _inputRow.ExtractValues(example);
+
+        public void FillValues(TDst prediction) => OutputRow.FillValues(prediction);
+
         /// <summary>
         /// Run prediction pipeline on one example.
         /// </summary>
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        public void Predict(TSrc example, ref TDst prediction)
+        public virtual void Predict(TSrc example, ref TDst prediction)
         {
             Contracts.CheckValue(example, nameof(example));
-            _inputRow.ExtractValues(example);
+            ExtractValues(example);
             if (prediction == null)
                 prediction = new TDst();
-            _outputRow.FillValues(prediction);
+
+            FillValues(prediction);
         }
     }
 

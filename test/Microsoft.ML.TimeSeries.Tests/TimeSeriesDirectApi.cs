@@ -26,11 +26,13 @@ namespace Microsoft.ML.Tests
 
         sealed class Data
         {
+            public string Text;
             public float Random;
             public float Value;
 
             public Data(float value)
             {
+                Text = "random123value";
                 Random = -1;
                 Value = value;
             }
@@ -142,17 +144,27 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
-            using (var env = new ConsoleEnvironment(conc: 1))
-            {
-                const int ChangeHistorySize = 10;
-                const int SeasonalitySize = 10;
-                const int NumberOfSeasonsInTraining = 5;
-                const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
-                List<Data> data = new List<Data>();
-                var dataView = env.CreateStreamingDataView(data);
+            List<Data> data = new List<Data>();
 
-                var args = new SsaChangePointDetector.Arguments()
+            var ml = new MLContext(seed: 1, conc: 1);
+            var dataView = ml.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
                 {
                     Confidence = 95,
                     Source = "Value",
@@ -160,22 +172,14 @@ namespace Microsoft.ML.Tests
                     ChangeHistoryLength = ChangeHistorySize,
                     TrainingWindowSize = MaxTrainingSize,
                     SeasonalWindowSize = SeasonalitySize
-                };
+                }));
 
-                for (int j = 0; j < NumberOfSeasonsInTraining; j++)
-                for (int i = 0; i < SeasonalitySize; i++)
-                    data.Add(new Data(i));
-
-                for (int i = 0; i < ChangeHistorySize; i++)
-                    data.Add(new Data(i * 100));
-
-                // Train
-                SsaChangePointDetector detector = new SsaChangePointEstimator(env, args).Fit(dataView);
-                var engine = detector.MakeTimeSeriesPredictionFunction<Data, Prediction1>(env);
-                //Even though time series column is not requested it will pass the observation through time series transform.
-                var prediction = engine.Predict(new Data(1));
-                Assert.Equal(-1, prediction.Random); 
-            }
+            // Train.
+            var model = pipeline.Fit(dataView);
+            var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction1>(ml);
+            //Even though time series column is not requested it will pass the observation through time series transform.
+            var prediction = engine.Predict(new Data(1));
+            Assert.Equal(-1, prediction.Random);
         }
     }
 }
