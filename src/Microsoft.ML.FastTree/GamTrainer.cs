@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
-            public int NumIterations = 9500;
+            public int NumIterations = GamDefaults.NumIterations;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumThreads = null;
@@ -62,13 +62,13 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
-            public double LearningRates = 0.002; // Small learning rate.
+            public double LearningRates = GamDefaults.LearningRates;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
-            public int MaxBins = 255; // Save one for undefs.
+            public int MaxBins = GamDefaults.MaxBins;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaxOutput = Double.PositiveInfinity;
@@ -137,15 +137,16 @@ namespace Microsoft.ML.Trainers.FastTree
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
-            int minDatapointsInLeaves,
+            int numIterations,
             double learningRate,
+            int maxBins,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
-
-            Args.MinDocuments = minDatapointsInLeaves;
+            Args.NumIterations = numIterations;
             Args.LearningRates = learningRate;
+            Args.MaxBins = maxBins;
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
@@ -1422,5 +1423,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
+    }
+
+    internal static class GamDefaults
+    {
+        internal const int NumIterations = 9500;
+        internal const int MaxBins = 255;
+        internal const double LearningRates = 0.002; // A small value
     }
 }
