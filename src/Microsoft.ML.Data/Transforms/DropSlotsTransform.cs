@@ -15,10 +15,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
-    DropSlotsTransform.FriendlyName, "DropSlots", "DropSlotsTransform")]
+[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(IDataTransform), typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
+    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature, "DropSlots")]
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(IDataTransform), typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
     DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
 
 [assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadModel),
@@ -537,49 +537,49 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 //using (var bldr = Metadata.BuildMetadata(iinfo, input, _parent.ColumnPairs[iinfo].input,
                 //    MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
                 //{
-                    var typeSrc = _srcTypes[iinfo];
-                    if (!typeSrc.IsVector)
-                    {
-                        type = typeSrc;
-                        suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
-                    }
-                    else if (!typeSrc.IsKnownSizeVector)
-                    {
-                        type = typeSrc;
-                        suppressed = false;
-                    }
-                    else
-                    {
-                        Host.Assert(typeSrc.IsKnownSizeVector);
-                        var dstLength = slotDropper.DstLength;
-                        var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
-                        type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
-                        suppressed = dstLength == 0;
+                var typeSrc = _srcTypes[iinfo];
+                if (!typeSrc.IsVector)
+                {
+                    type = typeSrc;
+                    suppressed = slotsMin.Length > 0 && slotsMin[0] == 0;
+                }
+                else if (!typeSrc.IsKnownSizeVector)
+                {
+                    type = typeSrc;
+                    suppressed = false;
+                }
+                else
+                {
+                    Host.Assert(typeSrc.IsKnownSizeVector);
+                    var dstLength = slotDropper.DstLength;
+                    var hasSlotNames = input.HasSlotNames(_cols[iinfo], _srcTypes[iinfo].VectorSize);
+                    type = new VectorType(typeSrc.ItemType.AsPrimitive, Math.Max(dstLength, 1));
+                    suppressed = dstLength == 0;
 
-                        //if (hasSlotNames && dstLength > 0)
-                        //{
-                        //    // Add slot name metadata.
-                        //    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
-                        //        new VectorType(TextType.Instance, dstLength), GetSlotNames);
-                        //}
-                    }
-
-                    //if (!suppressed)
+                    //if (hasSlotNames && dstLength > 0)
                     //{
-                    //    if (MetadataUtils.TryGetCategoricalFeatureIndices(input, _cols[iinfo], out categoricalRanges))
-                    //    {
-                    //        VBuffer<int> dst = default(VBuffer<int>);
-                    //        GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
-                    //        // REVIEW: cache dst as opposed to caculating it again.
-                    //        if (dst.Length > 0)
-                    //        {
-                    //            Contracts.Assert(dst.Length % 2 == 0);
-
-                    //            bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
-                    //                MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
-                    //        }
-                    //    }
+                    //    // Add slot name metadata.
+                    //    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
+                    //        new VectorType(TextType.Instance, dstLength), GetSlotNames);
                     //}
+                }
+
+                //if (!suppressed)
+                //{
+                //    if (MetadataUtils.TryGetCategoricalFeatureIndices(input, _cols[iinfo], out categoricalRanges))
+                //    {
+                //        VBuffer<int> dst = default(VBuffer<int>);
+                //        GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
+                //        // REVIEW: cache dst as opposed to caculating it again.
+                //        if (dst.Length > 0)
+                //        {
+                //            Contracts.Assert(dst.Length % 2 == 0);
+
+                //            bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
+                //                MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
+                //        }
+                //    }
+                //}
                 //}
             }
 
@@ -907,7 +907,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                             if (dst.Length > 0)
                             {
                                 Contracts.Assert(dst.Length % 2 == 0);
-                                 // Add slot name metadata.
+                                // Add slot name metadata.
                                 ValueGetter<VBuffer<int>> categoricalSlotRangesGetter = (ref VBuffer<int> dest) => GetCategoricalSlotRanges(iinfo, ref dest);
                                 builder.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), null), categoricalSlotRangesGetter);
                             }
