@@ -9,7 +9,7 @@ using System.Collections.Generic;
 // line by line. 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TrainerSamples
+    public class MatrixFactorizationExample
     {
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
         // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses

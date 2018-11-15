@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TextTransformExample
+    public class TextTransformExample
     {
         public static void TextTransform()
         {
