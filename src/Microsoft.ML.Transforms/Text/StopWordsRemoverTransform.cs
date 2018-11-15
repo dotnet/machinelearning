@@ -278,7 +278,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (_langsDictionary == null)
                 {
                     var langsDictionary = Enum.GetValues(typeof(Language)).Cast<Language>()
-                        .ToDictionary(lang => lang.ToString().AsMemory());
+                        .ToDictionary(lang => lang.ToString().AsMemory(), new TextAnalytics.ReadonlyMemoryComparer());
                     Interlocked.CompareExchange(ref _langsDictionary, langsDictionary, null);
                 }
 
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopwords.Span, buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopword.Span, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)

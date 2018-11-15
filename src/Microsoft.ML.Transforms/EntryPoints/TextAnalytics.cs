@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Text;
 
@@ -157,6 +157,19 @@ namespace Microsoft.ML.Transforms.Text
                 Model = new TransformModel(h, view, input.Data),
                 OutputData = view
             };
+        }
+
+        internal sealed class ReadonlyMemoryComparer : IEqualityComparer<ReadOnlyMemory<char>>
+        {
+            public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
+            {
+                return x.Span.SequenceEqual(y.Span);
+            }
+
+            public int GetHashCode(ReadOnlyMemory<char> obj)
+            {
+                return obj.ToString().GetHashCode();
+            }
         }
     }
 }
