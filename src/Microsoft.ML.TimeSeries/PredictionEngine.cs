@@ -169,9 +169,9 @@ namespace Microsoft.ML.TimeSeries
         /// It will be accepting instances of <typeparamref name="TSrc"/> as input, and produce
         /// instances of <typeparamref name="TDst"/> as output.
         /// </summary>
-        public static PredictionFunction<TSrc, TDst> MakeTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env)
+        public static TimeSeriesPredictionFunction<TSrc, TDst> MakeTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env)
                 where TSrc : class
                 where TDst : class, new()
-            => new PredictionFunction<TSrc, TDst>(env, transformer);
+            => new TimeSeriesPredictionFunction<TSrc, TDst>(env, transformer);
     }
 }
