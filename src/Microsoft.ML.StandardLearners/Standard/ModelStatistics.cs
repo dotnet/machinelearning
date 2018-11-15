@@ -250,8 +250,8 @@ namespace Microsoft.ML.Runtime.Learners
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
             bool denseStdError = stats._coeffStdError.Value.IsDense;
-            int[] stdErrorIndices = stats._coeffStdError.Value.Indices;
-            var coeffStdErrorValues = stats._coeffStdError.Value.GetValues();
+            ReadOnlySpan<int> stdErrorIndices = stats._coeffStdError.Value.GetIndices();
+            ReadOnlySpan<float> coeffStdErrorValues = stats._coeffStdError.Value.GetValues();
             for (int i = 1; i < stats.ParametersCount; i++)
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
@@ -272,9 +272,10 @@ namespace Microsoft.ML.Runtime.Learners
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var mutation = VBufferMutationContext.Create(ref dst, statisticsCount);
+                    ReadOnlySpan<int> stdErrorIndices2 = stats._coeffStdError.Value.GetIndices();
                     for (int i = 1; i <= statisticsCount; i++)
                     {
-                        int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
+                        int wi = denseStdError ? i - 1 : stdErrorIndices2[i] - 1;
                         mutation.Values[i - 1] = slotNames.GetItemOrDefault(wi);
                     }
                     dst = mutation.CreateBuffer();
@@ -301,7 +302,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             List<CoefficientStatistics> result = new List<CoefficientStatistics>(_paramCount - 1);
             bool denseStdError = _coeffStdError.Value.IsDense;
-            int[] stdErrorIndices = _coeffStdError.Value.Indices;
+            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.Value.GetIndices();
             Single[] zScores = new Single[_paramCount - 1];
             for (int i = 1; i < _paramCount; i++)
             {

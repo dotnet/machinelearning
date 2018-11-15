@@ -1471,19 +1471,13 @@ namespace Microsoft.ML.Data
                     Ctx.Assert(valueCount <= len);
                     Ctx.Assert(valueCount == len || indexCount == valueCount);
 
-                    T[] values = value.Values;
-                    Utils.EnsureSize(ref values, valueCount);
-                    _values.CopyTo(_valueBoundaries[idx], values, valueCount);
-                    int[] indices = value.Indices;
+                    var mutation = VBufferMutationContext.Create(ref value, len, valueCount);
+                    _values.CopyTo(_valueBoundaries[idx], mutation.Values, valueCount);
 
                     if (valueCount < len)
-                    {
-                        Utils.EnsureSize(ref indices, indexCount);
-                        _indices.CopyTo(_indexBoundaries[idx], indices, indexCount);
-                        value = new VBuffer<T>(len, indexCount, values, indices);
-                    }
-                    else
-                        value = new VBuffer<T>(len, values, indices);
+                        _indices.CopyTo(_indexBoundaries[idx], mutation.Indices, indexCount);
+
+                    value = mutation.CreateBuffer();
                 }
 
                 public override void Freeze()
