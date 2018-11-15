@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private const uint VerTfIdfSupported = 0x00010002;
 
-        public const string LoaderSignature = "NgramTransform";
+        internal const string LoaderSignature = "NgramTransform";
         internal const string Summary = "Produces a bag of counts of ngrams (sequences of consecutive values of length 1-n) in a given vector of keys. "
             + "It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.";
 
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Contains the maximum number of grams to store in the dictionary, for each level of ngrams,
             /// from 1 (in position 0) up to ngramLength (in position ngramLength-1)
             /// </summary>
-            public readonly int[] Limits;
+            public readonly ImmutableArray<int> Limits;
 
             /// <summary>
             /// Describes how the transformer handles one Gcn column pair.
@@ -172,20 +173,21 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 AllLengths = allLengths;
                 Weighting = weighting;
+                var limits = new int[ngramLength];
                 if (!AllLengths)
                 {
                     Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 ||
                         Utils.Size(maxNumTerms) == 1 && maxNumTerms[0] > 0, nameof(maxNumTerms));
-                    Limits = new int[ngramLength];
-                    Limits[ngramLength - 1] = Utils.Size(maxNumTerms) == 0 ? NgramEstimator.Defaults.MaxNumTerms : maxNumTerms[0];
+                    limits[ngramLength - 1] = Utils.Size(maxNumTerms) == 0 ? NgramEstimator.Defaults.MaxNumTerms : maxNumTerms[0];
                 }
                 else
                 {
                     Contracts.CheckUserArg(Utils.Size(maxNumTerms) <= ngramLength, nameof(maxNumTerms));
                     Contracts.CheckUserArg(Utils.Size(maxNumTerms) == 0 || maxNumTerms.All(i => i >= 0) && maxNumTerms[maxNumTerms.Length - 1] > 0, nameof(maxNumTerms));
                     var extend = Utils.Size(maxNumTerms) == 0 ? NgramEstimator.Defaults.MaxNumTerms : maxNumTerms[maxNumTerms.Length - 1];
-                    Limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maxNumTerms) ? maxNumTerms[i] : extend);
+                    limits = Utils.BuildArray(ngramLength, i => i < Utils.Size(maxNumTerms) ? maxNumTerms[i] : extend);
                 }
+                Limits = ImmutableArray.Create(limits);
             }
         }
 
@@ -251,7 +253,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private readonly TransformInfo[] _transformInfos;
+        private readonly ImmutableArray<TransformInfo> _transformInfos;
 
         // These contain the ngram maps
         private readonly SequencePool[] _ngramMaps;
@@ -272,24 +274,22 @@ namespace Microsoft.ML.Transforms.Text
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, NgramEstimator.ExpectedColumnType, type.ToString());
         }
 
-        public NgramTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        internal NgramTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramTransformer)), GetColumnPairs(columns))
         {
-            _transformInfos = new TransformInfo[columns.Length];
+            var transformInfos = new TransformInfo[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 input.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol);
                 var typeSrc = input.Schema.GetColumnType(srcCol);
-                _transformInfos[i] = new TransformInfo(columns[i]);
+                transformInfos[i] = new TransformInfo(columns[i]);
             }
+            _transformInfos = transformInfos.ToImmutableArray();
             _ngramMaps = Train(columns, input, out _invDocFreqs);
         }
 
         private SequencePool[] Train(ColumnInfo[] columns, IDataView trainingData, out double[][] invDocFreqs)
         {
-            // Contains the maximum number of grams to store in the dictionary, for each level of ngrams,
-            // from 1 (in position 0) up to ngramLength (in position ngramLength-1)
-
             var helpers = new NgramBufferBuilder[columns.Length];
             var getters = new ValueGetter<VBuffer<uint>>[columns.Length];
             var src = new VBuffer<uint>[columns.Length];
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Transforms.Text
                     var skipLength = columns[iinfo].SkipLength;
 
                     getters[iinfo] = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, cursor, srcCols[iinfo]);
-                    src[iinfo] = default(VBuffer<uint>);
+                    src[iinfo] = default;
                     counts[iinfo] = new int[ngramLength];
                     ngramMaps[iinfo] = new SequencePool();
 
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [Conditional("DEBUG")]
-        private void AssertValid(int[] counts, int[] lims, SequencePool pool)
+        private void AssertValid(int[] counts, ImmutableArray<int> lims, SequencePool pool)
         {
             int count = 0;
             int countFull = 0;
@@ -405,11 +405,11 @@ namespace Microsoft.ML.Transforms.Text
             Host.Assert(count == pool.Count);
         }
 
-        private static NgramIdFinder GetNgramIdFinderAdd(int[] counts, int[] lims, SequencePool pool, bool requireIdf, IHost host)
+        private static NgramIdFinder GetNgramIdFinderAdd(int[] counts, ImmutableArray<int> lims, SequencePool pool, bool requireIdf, IHost host)
         {
             Contracts.AssertValue(host);
-            host.Assert(Utils.Size(lims) > 0);
-            host.Assert(Utils.Size(lims) == Utils.Size(counts));
+            host.Assert(lims.Length > 0);
+            host.Assert(lims.Length == Utils.Size(counts));
 
             int numFull = lims.Count(l => l <= 0);
             int ngramLength = lims.Length;
@@ -418,7 +418,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     host.Assert(0 < lim && lim <= Utils.Size(ngram));
                     host.Assert(lim <= Utils.Size(counts));
-                    host.Assert(lim <= Utils.Size(lims));
+                    host.Assert(lim <= lims.Length);
                     host.Assert(icol == 0);
 
                     var max = lim - 1;
@@ -457,12 +457,12 @@ namespace Microsoft.ML.Transforms.Text
             //   _transformInfo
             //   the ngram SequencePool
             //   the ngram inverse document frequencies
-            _transformInfos = new TransformInfo[columnsLength];
+            var transformInfos = new TransformInfo[columnsLength];
             _ngramMaps = new SequencePool[columnsLength];
             _invDocFreqs = new double[columnsLength][];
             for (int i = 0; i < columnsLength; i++)
             {
-                _transformInfos[i] = new TransformInfo(ctx, ctx.Header.ModelVerWritten >= VerTfIdfSupported);
+                transformInfos[i] = new TransformInfo(ctx, ctx.Header.ModelVerWritten >= VerTfIdfSupported);
                 _ngramMaps[i] = new SequencePool(ctx.Reader);
 
                 if (ctx.Header.ModelVerWritten >= VerTfIdfSupported)
@@ -472,6 +472,7 @@ namespace Microsoft.ML.Transforms.Text
                         Host.CheckDecode(_invDocFreqs[i][j] >= 0);
                 }
             }
+            _transformInfos = transformInfos.ToImmutableArray();
         }
 
         // Factory method for SignatureDataTransform.
@@ -577,7 +578,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
-                if (InputSchema.HasKeyNames(_srcCols[iinfo], _srcTypes[iinfo].ItemType.KeyCount))
+                if (InputSchema.HasKeyValues(_srcCols[iinfo], _srcTypes[iinfo].ItemType.KeyCount))
                 {
                     ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
@@ -594,7 +595,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var keyCount = _srcTypes[iinfo].ItemType.KeyCount;
-                Host.Assert(InputSchema.HasKeyNames(_srcCols[iinfo], keyCount));
+                Host.Assert(InputSchema.HasKeyValues(_srcCols[iinfo], keyCount));
 
                 var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
@@ -819,6 +820,12 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
+        /// </summary>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Array of columns with information how to transform data.</param>
         public NgramEstimator(IHostEnvironment env, params NgramTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -863,9 +870,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!IsSchemaColumnValid(col))
-                    throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, ExpectedColumnType, col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
-                if (col.HasKeyNames())
+                if (col.HasKeyValues())
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
             }
