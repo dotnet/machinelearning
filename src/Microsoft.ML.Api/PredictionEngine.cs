@@ -160,8 +160,8 @@ namespace Microsoft.ML.Runtime.Api
         where TDst : class, new()
     {
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
-        protected readonly IRowReadableAs<TDst> OutputRow;
-        protected readonly Action Disposer;
+        private readonly IRowReadableAs<TDst> _outputRow;
+        private readonly Action _disposer;
 
         [BestFriend]
         internal PredictionEngineBase(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
 
-            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out Disposer, out OutputRow);
+            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
         }
 
         internal virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.Api
 
         ~PredictionEngineBase()
         {
-            Disposer?.Invoke();
+            _disposer?.Invoke();
         }
 
         /// <summary>
@@ -239,10 +239,9 @@ namespace Microsoft.ML.Runtime.Api
             return result;
         }
 
-        public void ExtractValues(TSrc example) =>
-            _inputRow.ExtractValues(example);
+        public void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
 
-        public void FillValues(TDst prediction) => OutputRow.FillValues(prediction);
+        public void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
 
         /// <summary>
         /// Run prediction pipeline on one example.
