@@ -581,8 +581,7 @@ namespace Microsoft.ML.Transforms.Projections
 
                 if (count == 0)
                 {
-                    dst = VBufferMutationContext.Create(ref dst, length, 0)
-                        .CreateBuffer();
+                    VBufferUtils.Resize(ref dst, length, 0);
                     return;
                 }
                 ectx.Assert(count > 0);

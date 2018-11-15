@@ -132,7 +132,9 @@ namespace Microsoft.ML.Runtime.Data
         /// with a larger physical value count than was needed
         /// because the final value count was not known at creation time.
         /// </param>
-        /// <returns></returns>
+        /// <returns>
+        /// The newly created <see cref="VBuffer{T}"/>.
+        /// </returns>
         public VBuffer<T> CreateBuffer(int? physicalValuesCount = null)
         {
             int count = Values.Length;

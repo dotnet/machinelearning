@@ -1114,9 +1114,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             for (int i = 0; i < source.Length; i++)
             {
                 if (predicate(source[i]))
-                {
                     result++;
-                }
             }
             return result;
         }
@@ -1128,9 +1126,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             for (int i = 0; i < source.Length; i++)
             {
                 if (!predicate(source[i]))
-                {
                     return false;
-                }
             }
             return true;
         }

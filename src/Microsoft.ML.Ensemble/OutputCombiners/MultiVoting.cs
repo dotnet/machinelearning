@@ -77,8 +77,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             int count = Utils.Size(src);
             if (count == 0)
             {
-                dst = VBufferMutationContext.Create(ref dst, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref dst, 0);
                 return;
             }
 

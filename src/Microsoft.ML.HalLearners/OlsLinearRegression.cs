@@ -278,10 +278,11 @@ namespace Microsoft.ML.Trainers.HalLearners
             for (int i = 0; i < beta.Length; ++i)
                 ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
 
-            var weights = VBufferUtils.CreateDense<float>(beta.Length - 1);
-            var weightsMutation = VBufferMutationContext.CreateFromBuffer(ref weights);
+            var weightsValues = new float[beta.Length - 1];
             for (int i = 1; i < beta.Length; ++i)
-                weightsMutation.Values[i - 1] = (float)beta[i];
+                weightsValues[i - 1] = (float)beta[i];
+            var weights = new VBuffer<float>(weightsValues.Length, weightsValues);
+
             var bias = (float)beta[0];
             if (!(_l2Weight > 0) && m == n)
             {

@@ -746,8 +746,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcValues = src.GetValues();
                     if (srcValues.Length == 0)
                     {
-                        dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
-                            .CreateBuffer();
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);
@@ -809,8 +808,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var srcValues = src.GetValues();
                     if (srcValues.Length == 0)
                     {
-                        dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
-                            .CreateBuffer();
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length, srcValues.Length);

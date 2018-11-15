@@ -434,8 +434,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (IsEmpty)
             {
-                buffer = VBufferMutationContext.Create(ref buffer, _length, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref buffer, _length, 0);
                 return;
             }
 

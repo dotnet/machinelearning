@@ -403,8 +403,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (_count == 0)
                     {
-                        dst = VBufferMutationContext.Create(ref dst, _size, 0)
-                            .CreateBuffer();
+                        VBufferUtils.Resize(ref dst, _size, 0);
                         return;
                     }
 

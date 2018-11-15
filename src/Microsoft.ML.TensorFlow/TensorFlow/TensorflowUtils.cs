@@ -115,10 +115,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
                     schema.GetMetadata(TensorFlowUtils.InputOps, i, ref inputOps);
                 }
-                var inputOpsValues = inputOps.GetValues();
-                string[] inputOpsResult = new string[inputOpsValues.Length];
-                for (int j = 0; j < inputOpsValues.Length; j++)
-                    inputOpsResult[j] = inputOpsValues[j].ToString();
+
+                string[] inputOpsResult = inputOps.DenseValues()
+                    .Select(input => input.ToString())
+                    .ToArray();
 
                 yield return (name, opType.ToString(), type, inputOpsResult);
             }

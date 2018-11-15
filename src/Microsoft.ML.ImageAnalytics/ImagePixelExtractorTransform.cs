@@ -478,8 +478,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
                         if (src == null)
                         {
-                            dst = VBufferMutationContext.Create(ref dst, size, 0)
-                                .CreateBuffer();
+                            VBufferUtils.Resize(ref dst, size, 0);
                             return;
                         }
 
@@ -493,6 +492,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         float scale = ex.Scale;
                         Contracts.Assert(scale != 0);
 
+                        // REVIEW: split the getter into 2 specialized getters, one for float case and one for byte case.
                         Span<float> vf = typeof(TValue) == typeof(float) ? MemoryMarshal.Cast<TValue, float>(mutation.Values) : default;
                         Span<byte> vb = typeof(TValue) == typeof(byte) ? MemoryMarshal.Cast<TValue, byte>(mutation.Values) : default;
                         Contracts.Assert(!vf.IsEmpty || !vb.IsEmpty);

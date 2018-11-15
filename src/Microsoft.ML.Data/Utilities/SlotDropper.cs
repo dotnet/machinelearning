@@ -107,8 +107,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             if (newLength == 0)
             {
                 // All slots dropped.
-                dst = VBufferMutationContext.Create(ref dst, 1, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref dst, 1, 0);
                 return;
             }
 

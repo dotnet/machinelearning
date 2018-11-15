@@ -108,8 +108,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (count == 0)
             {
                 // dst is a zero vector.
-                dst = VBufferMutationContext.Create(ref dst, length, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref dst, length, 0);
                 return;
             }
 
@@ -392,14 +391,13 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     // Due to sparsity preservation from src, dst must be dense, in the same way.
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length);
-                    if (!mutation.CreatedNewValues) // We need to clear it
+                    if (!mutation.CreatedNewValues) // We need to clear it.
                         mutation.Values.Clear();
                     dst = mutation.CreateBuffer();
                 }
                 else
                 {
-                    dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
-                        .CreateBuffer();
+                    VBufferUtils.Resize(ref dst, src.Length, 0);
                 }
             }
             else if (c == -1)

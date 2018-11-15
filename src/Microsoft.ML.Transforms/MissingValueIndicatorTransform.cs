@@ -276,8 +276,7 @@ namespace Microsoft.ML.Transforms
         {
             if (input == 0)
             {
-                result = VBufferMutationContext.Create(ref result, 2, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref result, 2, 0);
                 return;
             }
 

@@ -1308,8 +1308,7 @@ namespace Microsoft.ML.Runtime.Data
                                     int scount = slim - smin;
                                     if (scount == 0)
                                     {
-                                        value = VBufferMutationContext.Create(ref value, len, 0)
-                                            .CreateBuffer();
+                                        VBufferUtils.Resize(ref value, len, 0);
                                         return;
                                     }
 

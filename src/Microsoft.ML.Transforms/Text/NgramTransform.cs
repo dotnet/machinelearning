@@ -320,10 +320,10 @@ namespace Microsoft.ML.Transforms.Text
                     ctx.SaveTextStream(string.Format("{0}-ngrams.txt", Infos[i].Name),
                         writer =>
                         {
-                            var ngramNameValues = ngramsNames.GetValues();
-                            writer.WriteLine("# Number of Ngrams terms = {0}", ngramNameValues.Length);
-                            for (int j = 0; j < ngramNameValues.Length; j++)
-                                writer.WriteLine("{0}\t{1}", j, ngramNameValues[j]);
+                            var explicitNgramNames = ngramsNames.GetValues();
+                            writer.WriteLine("# Number of Ngrams terms = {0}", explicitNgramNames.Length);
+                            for (int j = 0; j < explicitNgramNames.Length; j++)
+                                writer.WriteLine("{0}\t{1}", j, explicitNgramNames[j]);
                         });
                 }
             }

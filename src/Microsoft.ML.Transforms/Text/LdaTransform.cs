@@ -854,8 +854,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcValues = src.GetValues();
                 if (srcValues.Length == 0)
                 {
-                    dst = VBufferMutationContext.Create(ref dst, len, 0)
-                        .CreateBuffer();
+                    VBufferUtils.Resize(ref dst, len, 0);
                     return;
                 }
 

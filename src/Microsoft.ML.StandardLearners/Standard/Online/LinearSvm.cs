@@ -119,8 +119,7 @@ namespace Microsoft.ML.Trainers.Online
                 _batch++;
                 _numBatchExamples = 0;
                 _biasUpdate = 0;
-                _weightsUpdate = VBufferMutationContext.Create(ref _weightsUpdate, _weightsUpdate.Length, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref _weightsUpdate, _weightsUpdate.Length, 0);
             }
 
             private void FinishBatch(in VBuffer<Float> weightsUpdate, Float weightsUpdateScale)

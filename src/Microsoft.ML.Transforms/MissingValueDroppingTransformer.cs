@@ -240,8 +240,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (newCount == 0)
             {
-                dst = VBufferMutationContext.Create(ref dst, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref dst, 0);
                 return;
             }
 
@@ -251,8 +250,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!dst.IsDense)
                 {
                     Host.Assert(dst.GetValues().Length == newCount);
-                    dst = VBufferMutationContext.Create(ref dst, newCount)
-                        .CreateBuffer();
+                    VBufferUtils.Resize(ref dst, newCount);
                 }
                 return;
             }
@@ -286,8 +284,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (newCount == 0)
             {
-                dst = VBufferMutationContext.Create(ref dst, src.Length - srcValues.Length, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref dst, src.Length - srcValues.Length, 0);
                 return;
             }
 

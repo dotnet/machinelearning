@@ -314,10 +314,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static void Clear<T>(ref VBuffer<T> dst)
         {
-            int dstValuesCount = dst.GetValues().Length;
-            if (dstValuesCount == 0)
-                return;
-            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
+            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
             mutation.Values.Clear();
         }
 
@@ -346,8 +343,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             Contracts.CheckValue(manip, nameof(manip));
 
-            int dstValuesCount = dst.GetValues().Length;
-            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
+            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
             if (dst.IsDense)
             {
                 for (int i = 0; i < mutation.Values.Length; i++)
@@ -381,8 +377,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.CheckValue(manip, nameof(manip));
             Contracts.CheckValueOrNull(pred);
 
-            int dstValuesCount = dst.GetValues().Length;
-            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
+            var mutation = VBufferMutationContext.CreateFromBuffer(ref dst);
+            int dstValuesCount = mutation.Values.Length;
             if (dst.IsDense)
             {
                 // The vector is dense, so we can just do a direct access.
@@ -963,8 +959,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 if (srcValues.Length == 0)
                 {
-                    res = VBufferMutationContext.Create(ref res, length, 0)
-                        .CreateBuffer();
+                    Resize(ref res, length, 0);
                 }
                 else if (src.IsDense)
                 {
@@ -1209,8 +1204,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // equal lengths, but I don't care here.
             if (srcValues.Length == 0)
             {
-                dst = VBufferMutationContext.Create(ref dst, src.Length, 0)
-                    .CreateBuffer();
+                Resize(ref dst, src.Length, 0);
                 return;
             }
             var mutation = VBufferMutationContext.Create(ref dst,
@@ -1263,8 +1257,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (aValues.Length == 0 && bValues.Length == 0)
             {
                 // Case 1. Output will be empty.
-                dst = VBufferMutationContext.Create(ref dst, a.Length, 0)
-                    .CreateBuffer();
+                Resize(ref dst, a.Length, 0);
                 return;
             }
 
@@ -1440,6 +1433,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
             dst = mutation.CreateBuffer();
+        }
+
+        /// <summary>
+        /// Updates the logical length and number of physical values to be represented in
+        /// <paramref name="dst"/>, while preserving the underlying buffers.
+        /// </summary>
+        public static void Resize<T>(ref VBuffer<T> dst, int newLogicalLength, int? valuesCount = null)
+        {
+            dst = VBufferMutationContext.Create(ref dst, newLogicalLength, valuesCount)
+                .CreateBuffer();
         }
     }
 }

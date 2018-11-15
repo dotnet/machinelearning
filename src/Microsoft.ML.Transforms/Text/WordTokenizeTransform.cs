@@ -322,9 +322,7 @@ namespace Microsoft.ML.Transforms.Text
 
                         var mutation = VBufferMutationContext.Create(ref dst, terms.Count);
                         for (int i = 0; i < terms.Count; i++)
-                        {
                             mutation.Values[i] = terms[i];
-                        }
                         dst = mutation.CreateBuffer();
                     };
             }
