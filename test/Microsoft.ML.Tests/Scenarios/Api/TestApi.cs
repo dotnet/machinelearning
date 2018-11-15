@@ -157,7 +157,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, idv,
                     (input, state) => input.Label == 0, null);
 
-                Assert.Null(filter.GetRowCount(false));
+                Assert.Null(filter.GetRowCount());
 
                 // test re-apply
                 var applied = env.CreateDataView(data);

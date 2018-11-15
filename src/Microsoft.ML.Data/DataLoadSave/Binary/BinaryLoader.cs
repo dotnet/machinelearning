@@ -761,7 +761,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private long RowCount { get { return _header.RowCount; } }
 
-        public long? GetRowCount(bool lazy = true) { return RowCount; }
+        public long? GetRowCount() { return RowCount; }
 
         public bool CanShuffle { get { return true; } }
 

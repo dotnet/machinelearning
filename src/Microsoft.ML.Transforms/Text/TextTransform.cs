@@ -174,21 +174,21 @@ namespace Microsoft.ML.Transforms.Text
             public StopWordsRemoverTransform.Language StopwordsLanguage
                 =>(StopWordsRemoverTransform.Language) Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
 
-            public LpNormNormalizerTransform.NormalizerKind LpNormalizerKind
+            public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
                 get
                 {
                     switch (VectorNormalizer)
                     {
                         case TextNormKind.L1:
-                            return LpNormNormalizerTransform.NormalizerKind.L1Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L1Norm;
                         case TextNormKind.L2:
-                            return LpNormNormalizerTransform.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
                         case TextNormKind.LInf:
-                            return LpNormNormalizerTransform.NormalizerKind.LInf;
+                            return LpNormalizingEstimatorBase.NormalizerKind.LInf;
                         default:
                             Contracts.Assert(false, "Unexpected normalizer type");
-                            return LpNormNormalizerTransform.NormalizerKind.L2Norm;
+                            return LpNormalizingEstimatorBase.NormalizerKind.L2Norm;
                     }
                 }
             }
@@ -415,16 +415,13 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.VectorNormalizer != TextNormKind.None)
             {
-                var xfCols = new List<LpNormNormalizerTransform.Column>(2);
+                var xfCols = new List<LpNormalizingTransformer.LpNormColumnInfo>(2);
+
                 if (charFeatureCol != null)
                 {
                     var dstCol = GenerateColumnName(view.Schema, charFeatureCol, "LpCharNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormNormalizerTransform.Column()
-                    {
-                        Source = charFeatureCol,
-                        Name = dstCol
-                    });
+                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(charFeatureCol, dstCol, normalizerKind: tparams.LpNormalizerKind));
                     charFeatureCol = dstCol;
                 }
 
@@ -432,19 +429,12 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var dstCol = GenerateColumnName(view.Schema, wordFeatureCol, "LpWordNorm");
                     tempCols.Add(dstCol);
-                    xfCols.Add(new LpNormNormalizerTransform.Column()
-                    {
-                        Source = wordFeatureCol,
-                        Name = dstCol
-                    });
+                    xfCols.Add(new LpNormalizingTransformer.LpNormColumnInfo(wordFeatureCol, dstCol, normalizerKind: tparams.LpNormalizerKind));
                     wordFeatureCol = dstCol;
                 }
+
                 if (xfCols.Count > 0)
-                    view = new LpNormNormalizerTransform(h, new LpNormNormalizerTransform.Arguments()
-                    {
-                        NormKind = tparams.LpNormalizerKind,
-                        Column = xfCols.ToArray()
-                    }, view);
+                    view = new LpNormalizingTransformer(h, xfCols.ToArray()).Transform(view);
             }
 
             {

@@ -1352,7 +1352,7 @@ namespace Microsoft.ML.Runtime.Data
                 _files = files;
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
                 // We don't know how many rows there are.
                 // REVIEW: Should we try to support RowCount?

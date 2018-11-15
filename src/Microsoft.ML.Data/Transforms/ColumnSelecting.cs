@@ -628,7 +628,7 @@ namespace Microsoft.ML.Transforms
 
             Schema ISchematized.Schema => _mapper.Schema;
 
-            public long? GetRowCount(bool lazy = true) => Source.GetRowCount(lazy);
+            public long? GetRowCount() => Source.GetRowCount();
 
             public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
             {

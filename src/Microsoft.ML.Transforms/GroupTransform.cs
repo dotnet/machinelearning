@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
             _groupSchema.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // We have no idea how many total rows we'll have.
             return null;

@@ -502,7 +502,7 @@ namespace Microsoft.ML.Transforms.Text
                 invDocFreqs = new double[Infos.Length][];
 
                 long totalDocs = 0;
-                Double rowCount = trainingData.GetRowCount(true) ?? Double.NaN;
+                Double rowCount = trainingData.GetRowCount() ?? Double.NaN;
                 var buffers = new VBuffer<float>[Infos.Length];
                 pch.SetHeader(new ProgressHeader(new[] { "Total n-grams" }, new[] { "documents" }),
                     e => e.SetProgress(0, totalDocs, rowCount));
