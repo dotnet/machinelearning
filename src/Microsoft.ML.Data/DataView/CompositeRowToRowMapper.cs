@@ -19,7 +19,8 @@ namespace Microsoft.ML.Runtime.Data
         public Schema InputSchema { get; }
         public Schema Schema { get; }
 
-        public IRowToRowMapper[] InnerMappers => _innerMappers;
+        [BestFriend]
+        internal IRowToRowMapper[] InnerMappers => _innerMappers;
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
