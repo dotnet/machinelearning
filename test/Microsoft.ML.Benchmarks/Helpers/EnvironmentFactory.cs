@@ -11,27 +11,29 @@ namespace Microsoft.ML.Benchmarks
 {
     internal static class EnvironmentFactory
     {
-        internal static ConsoleEnvironment CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
+        internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
            where TLoader : IDataReader<IMultiStreamSource>
            where TTransformer : ITransformer
            where TTrainer : ITrainer
         {
-            var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance);
+            var ctx = new MLContext();
+            IHostEnvironment environment = ctx;
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TLoader).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTransformer).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTrainer).Assembly);
 
-            return environment;
+            return ctx;
         }
 
-        internal static ConsoleEnvironment CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
+        internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
             where TEvaluator : IEvaluator
             where TLoader : IDataReader<IMultiStreamSource>
             where TTransformer : ITransformer
             where TTrainer : ITrainer
         {
-            var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance);
+            var ctx = new MLContext();
+            IHostEnvironment environment = ctx;
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TEvaluator).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TLoader).Assembly);
@@ -40,7 +42,7 @@ namespace Microsoft.ML.Benchmarks
 
             environment.ComponentCatalog.RegisterAssembly(typeof(MissingValueHandlingTransformer).Assembly);
 
-            return environment;
+            return ctx;
         }
     }
 }

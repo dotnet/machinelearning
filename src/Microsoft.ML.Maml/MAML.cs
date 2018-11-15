@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Tools
         /// so we always write . If set to true though, this executable will also print stack traces from the
         /// marked exceptions as well.</param>
         /// <returns></returns>
-        internal static int MainCore(ConsoleEnvironment env, string args, bool alwaysPrintStacktrace)
+        internal static int MainCore(IHostEnvironment env, string args, bool alwaysPrintStacktrace)
         {
             // REVIEW: How should extra dlls, tracking, etc be handled? Should the args objects for
             // all commands derive from a common base?

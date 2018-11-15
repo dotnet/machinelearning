@@ -114,7 +114,8 @@ namespace Microsoft.ML.Runtime.Data
     /// AddListener/RemoveListener methods, and exposes the <see cref="ProgressReporting.ProgressTracker"/> to
     /// query progress.
     /// </summary>
-    public abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider, IMessageDispatcher
+    [BestFriend]
+    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider, IMessageDispatcher
         where TEnv : HostEnvironmentBase<TEnv>
     {
         /// <summary>

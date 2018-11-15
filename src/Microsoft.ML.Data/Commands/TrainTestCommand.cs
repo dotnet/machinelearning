@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -185,11 +186,12 @@ namespace Microsoft.ML.Runtime.Data
                 Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
 
             IDataLoader testPipe;
-            using (var file = !string.IsNullOrEmpty(Args.OutputModelFile) ?
-                Host.CreateOutputFile(Args.OutputModelFile) : Host.CreateTempFile(".zip"))
+            bool hasOutfile = !string.IsNullOrEmpty(Args.OutputModelFile);
+            var tempFilePath = hasOutfile ? null : Path.GetTempFileName();
+
+            using (var file = new SimpleFileHandle(ch, hasOutfile ? Args.OutputModelFile : tempFilePath, true, !hasOutfile))
             {
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
-
                 ch.Trace("Constructing the testing pipeline");
                 using (var stream = file.OpenReadStream())
                 using (var rep = RepositoryReader.Open(stream, ch))

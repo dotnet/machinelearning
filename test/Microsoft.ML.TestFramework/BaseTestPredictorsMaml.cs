@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 // Not capturing into a specific log.
                 Log("*** Start raw predictor output");
-                res = MainForTest(Env, LogWriter, string.Join(" ", ctx.Command, runcmd), ctx.BaselineProgress);
+                res = MainForTest(_env, LogWriter, string.Join(" ", ctx.Command, runcmd), ctx.BaselineProgress);
                 Log("*** End raw predictor output, return={0}", res);
                 return;
             }
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Log("  Saving ini file: {0}", str);
                 }
 
-                MainForTest(Env, LogWriter, str);
+                MainForTest(_env, LogWriter, str);
                 files.ForEach(file => CheckEqualityNormalized(dir, file, digitsOfPrecision: digitsOfPrecision));
             }
 

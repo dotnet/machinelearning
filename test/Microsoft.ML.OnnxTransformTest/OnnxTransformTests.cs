@@ -166,42 +166,40 @@ namespace Microsoft.ML.Tests
 
             var modelFile = "squeezenet/00000001/model.onnx";
 
-            using (var env = new ConsoleEnvironment(null, false, 0, 1, null, null))
+            var env = new MLContext(conc: 1);
+            var imageHeight = 224;
+            var imageWidth = 224;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = TextLoader.CreateReader(env, ctx => (
+                imagePath: ctx.LoadText(0),
+                name: ctx.LoadText(1)))
+                .Read(dataFile);
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            var pipe = data.MakeNewEstimator()
+                .Append(row => (
+                    row.name,
+                    data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+
+            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+            using (var cursor = result.GetRowCursor(col => col == output))
             {
-                var imageHeight = 224;
-                var imageWidth = 224;
-                var dataFile = GetDataPath("images/images.tsv");
-                var imageFolder = Path.GetDirectoryName(dataFile);
-
-                var data = TextLoader.CreateReader(env, ctx => (
-                    imagePath: ctx.LoadText(0),
-                    name: ctx.LoadText(1)))
-                    .Read(dataFile);
-
-                // Note that CamelCase column names are there to match the TF graph node names.
-                var pipe = data.MakeNewEstimator()
-                    .Append(row => (
-                        row.name,
-                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
-
-                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
-
-                var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
-                using (var cursor = result.GetRowCursor(col => col == output))
+                var buffer = default(VBuffer<float>);
+                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var numRows = 0;
+                while (cursor.MoveNext())
                 {
-                    var buffer = default(VBuffer<float>);
-                    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                    var numRows = 0;
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref buffer);
-                        Assert.Equal(1000, buffer.Length);
-                        numRows += 1;
-                    }
-                    Assert.Equal(3, numRows);
+                    getter(ref buffer);
+                    Assert.Equal(1000, buffer.Length);
+                    numRows += 1;
                 }
+                Assert.Equal(3, numRows);
             }
         }
 
@@ -211,11 +209,9 @@ namespace Microsoft.ML.Tests
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnx}}" });
-                Assert.Equal(0, x);
-            }
+            var env = new MLContext();
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnx}}" });
+            Assert.Equal(0, x);
         }
     }
 }

@@ -72,6 +72,8 @@ namespace Microsoft.ML.Runtime
         /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
         /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
         /// </summary>
+        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
+            "Handle your own temporary files. If you cannot, reconsider your life choices.")]
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
 
         /// <summary>

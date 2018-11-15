@@ -563,9 +563,9 @@ namespace Microsoft.ML.Runtime.Api
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            // REVIEW: Take an env as a parameter.
-            var env = new ConsoleEnvironment();
-            return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
+            // REVIEW: Take this as a parameter, or else make it a method on he context itself.
+            var ml = new MLContext(42);
+            return data.AsCursorable<TRow>(ml, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
@@ -604,9 +604,9 @@ namespace Microsoft.ML.Runtime.Api
             bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            // REVIEW: Take an env as a parameter.
-            var env = new ConsoleEnvironment();
-            return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
+            // REVIEW: Take this as a parameter, or else make it a method on the context itself.
+            var ml = new MLContext();
+            return data.AsEnumerable<TRow>(ml, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }
 }

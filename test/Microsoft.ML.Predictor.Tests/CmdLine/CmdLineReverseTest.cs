@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Cmd Parsing")]
         public void ArgumentParseTest()
         {
-            var env = new ConsoleEnvironment(seed: 42);
+            var env = new MLContext(seed: 42);
             var innerArg1 = new SimpleArg()
             {
                 required = -2,

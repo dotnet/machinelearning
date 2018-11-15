@@ -163,20 +163,20 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <returns>An array of ParamaterSets which are the candidate configurations to sweep.</returns>
         private ParameterSet[] GenerateCandidateConfigurations(int numOfCandidates, IEnumerable<IRunResult> previousRuns, FastForestRegressionPredictor forest)
         {
-            ParameterSet[] configs = new ParameterSet[numOfCandidates];
-
             // Get k best previous runs ParameterSets.
             ParameterSet[] bestKParamSets = GetKBestConfigurations(previousRuns, forest, _args.LocalSearchParentCount);
 
             // Perform local searches using the k best previous run configurations.
             ParameterSet[] eiChallengers = GreedyPlusRandomSearch(bestKParamSets, forest, (int)Math.Ceiling(numOfCandidates / 2.0F), previousRuns);
 
-            // Generate another set of random configurations to interleave
+            // Generate another set of random configurations to interleave.
             ParameterSet[] randomChallengers = _randomSweeper.ProposeSweeps(numOfCandidates - eiChallengers.Length, previousRuns);
 
-            // Return interleaved challenger candidates with random candidates
-            for (int j = 0; j < configs.Length; j++)
-                configs[j] = j % 2 == 0 ? eiChallengers[j / 2] : randomChallengers[j / 2];
+            // Return interleaved challenger candidates with random candidates. Since the number of candidates from either can be less than
+            // the number asked for, since we only generate unique candidates, and the number from either method may vary considerably.
+            ParameterSet[] configs = new ParameterSet[eiChallengers.Length + randomChallengers.Length];
+            Array.Copy(eiChallengers, 0, configs, 0, eiChallengers.Length);
+            Array.Copy(randomChallengers, 0, configs, eiChallengers.Length, randomChallengers.Length);
 
             return configs;
         }

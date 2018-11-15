@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                     new ValueToKeyMappingTransformer.ColumnInfo("Term" ,"T") });
-                    
+
             var termTransformer = termEst.Fit(dataView);
             var result = termTransformer.Transform(dataView);
             result.Schema.TryGetColumnIndex("T", out int termIndex);
@@ -155,10 +155,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));
-            }
+            var env = new MLContext();
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));
         }
 
         private void ValidateTermTransformer(IDataView result)

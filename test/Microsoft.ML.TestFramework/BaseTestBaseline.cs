@@ -74,7 +74,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
-        protected ConsoleEnvironment Env;
+        private protected ConsoleEnvironment _env;
+        protected IHostEnvironment Env => _env;
         protected MLContext ML;
         private bool _normal;
         private bool _passed;
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
             ML = new MLContext(42);
         }
@@ -106,9 +107,8 @@ namespace Microsoft.ML.Runtime.RunTests
         // It is called as a first step in test clean up.
         protected override void Cleanup()
         {
-            if (Env != null)
-                Env.Dispose();
-            Env = null;
+            _env?.Dispose();
+            _env = null;
 
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
@@ -535,7 +535,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
-                if(!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
                 {
                     return false;
                 }
@@ -562,23 +562,23 @@ namespace Microsoft.ML.Runtime.RunTests
             // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
             // (1.82844949 - 1.8284502) = -0.00000071
 
-                double delta2 = 0;
-                if (!inRange)
-                {
-                    delta2 = Math.Round(expected - actual, digitsOfPrecision);
-                    inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
-                }
+            double delta2 = 0;
+            if (!inRange)
+            {
+                delta2 = Math.Round(expected - actual, digitsOfPrecision);
+                inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
+            }
 
-                if (!inRange)
-                {
-                    var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
+            if (!inRange)
+            {
+                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
 
-                    Fail(_allowMismatch, message +
-                            $"Values to compare are {expected} and {actual}" + Environment.NewLine +
-                            $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
-                            $"\t delta: {delta}" + Environment.NewLine +
-                            $"\t delta2: {delta2}" + Environment.NewLine);
-                }
+                Fail(_allowMismatch, message +
+                        $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                        $"\t delta: {delta}" + Environment.NewLine +
+                        $"\t delta2: {delta2}" + Environment.NewLine);
+            }
 
             return inRange;
         }
@@ -817,11 +817,8 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected static int MainForTest(string args)
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                int result = Maml.MainCore(env, args, false);
-                return result;
-            }
+            var env = new MLContext();
+            return Maml.MainCore(env, args, false);
         }
     }
 
