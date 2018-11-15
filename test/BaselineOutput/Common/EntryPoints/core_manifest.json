@@ -20233,8 +20233,8 @@
           ],
           "Required": false,
           "SortOrder": 50.0,
-          "IsNullable": true,
-          "Default": null
+          "IsNullable": false,
+          "Default": 0
         },
         {
           "Name": "NumMaxDocToken",

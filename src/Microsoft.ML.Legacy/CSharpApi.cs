@@ -14155,7 +14155,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The number of training threads. Default value depends on number of logical processors.
             /// </summary>
-            public int? NumThreads { get; set; }
+            public int NumThreads { get; set; }
 
             /// <summary>
             /// The threshold of maximum count of tokens per doc
