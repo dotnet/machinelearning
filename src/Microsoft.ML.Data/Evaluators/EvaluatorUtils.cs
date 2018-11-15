@@ -692,7 +692,7 @@ namespace Microsoft.ML.Runtime.Data
                     (in VBuffer<uint> src, ref VBuffer<uint> dst) =>
                     {
                         var srcValues = src.GetValues();
-                        var mutation = VBufferEditor.Create(
+                        var editor = VBufferEditor.Create(
                             ref dst,
                             src.Length,
                             srcValues.Length);
@@ -701,9 +701,9 @@ namespace Microsoft.ML.Runtime.Data
                             for (int j = 0; j < src.Length; j++)
                             {
                                 if (srcValues[j] == 0 || srcValues[j] > keyMapperCur.Length)
-                                    mutation.Values[j] = 0;
+                                    editor.Values[j] = 0;
                                 else
-                                    mutation.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
+                                    editor.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
                             }
                         }
                         else
@@ -712,13 +712,13 @@ namespace Microsoft.ML.Runtime.Data
                             for (int j = 0; j < srcValues.Length; j++)
                             {
                                 if (srcValues[j] == 0 || srcValues[j] > keyMapperCur.Length)
-                                    mutation.Values[j] = 0;
+                                    editor.Values[j] = 0;
                                 else
-                                    mutation.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
-                                mutation.Indices[j] = srcIndices[j];
+                                    editor.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
+                                editor.Indices[j] = srcIndices[j];
                             }
                         }
-                        dst = mutation.Commit();
+                        dst = editor.Commit();
                     };
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;

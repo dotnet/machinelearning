@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             }
 
             int len = GetClassCount(src);
-            var mutation = VBufferEditor.Create(ref dst, len);
-            if (!mutation.CreatedNewValues)
-                mutation.Values.Clear();
+            var editor = VBufferEditor.Create(ref dst, len);
+            if (!editor.CreatedNewValues)
+                editor.Values.Clear();
 
             int voteCount = 0;
             for (int i = 0; i < count; i++)
@@ -92,17 +92,17 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 int index = VectorUtils.ArgMax(in src[i]);
                 if (index >= 0)
                 {
-                    mutation.Values[index]++;
+                    editor.Values[index]++;
                     voteCount++;
                 }
             }
 
             // Normalize by dividing by the number of votes.
             for (int i = 0; i < len; i++)
-                mutation.Values[i] /= voteCount;
+                editor.Values[i] /= voteCount;
 
             // Set the output to values.
-            dst = mutation.Commit();
+            dst = editor.Commit();
         }
     }
 }

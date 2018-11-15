@@ -583,13 +583,13 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         int deno = 0;
                         srcGetter(ref src);
-                        var mutation = VBufferEditor.Create(ref dst, 3 * dimension);
+                        var editor = VBufferEditor.Create(ref dst, 3 * dimension);
                         int offset = 2 * dimension;
                         for (int i = 0; i < dimension; i++)
                         {
-                            mutation.Values[i] = float.MaxValue;
-                            mutation.Values[i + dimension] = 0;
-                            mutation.Values[i + offset] = float.MinValue;
+                            editor.Values[i] = float.MaxValue;
+                            editor.Values[i + dimension] = 0;
+                            editor.Values[i + offset] = float.MinValue;
                         }
                         var srcValues = src.GetValues();
                         for (int word = 0; word < srcValues.Length; word++)
@@ -600,20 +600,20 @@ namespace Microsoft.ML.Transforms.Text
                                 for (int i = 0; i < dimension; i++)
                                 {
                                     float currentTerm = wordVector[i];
-                                    if (mutation.Values[i] > currentTerm)
-                                        mutation.Values[i] = currentTerm;
-                                    mutation.Values[dimension + i] += currentTerm;
-                                    if (mutation.Values[offset + i] < currentTerm)
-                                        mutation.Values[offset + i] = currentTerm;
+                                    if (editor.Values[i] > currentTerm)
+                                        editor.Values[i] = currentTerm;
+                                    editor.Values[dimension + i] += currentTerm;
+                                    if (editor.Values[offset + i] < currentTerm)
+                                        editor.Values[offset + i] = currentTerm;
                                 }
                             }
                         }
 
                         if (deno != 0)
                             for (int index = 0; index < dimension; index++)
-                                mutation.Values[index + dimension] /= deno;
+                                editor.Values[index + dimension] /= deno;
 
-                        dst = mutation.Commit();
+                        dst = editor.Commit();
                     };
             }
         }

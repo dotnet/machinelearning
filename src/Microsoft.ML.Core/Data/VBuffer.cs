@@ -123,14 +123,14 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyToDense(ref VBuffer<T> dst)
         {
-            // create a dense mutation context
-            var mutation = VBufferEditor.Create(ref dst, Length, Length);
+            // create a dense editor
+            var editor = VBufferEditor.Create(ref dst, Length);
 
             if (!IsDense)
-                CopyTo(mutation.Values);
+                CopyTo(editor.Values);
             else if (Length > 0)
-                _values.AsSpan(0, Length).CopyTo(mutation.Values);
-            dst = mutation.Commit();
+                _values.AsSpan(0, Length).CopyTo(editor.Values);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -138,24 +138,24 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyTo(ref VBuffer<T> dst)
         {
-            var mutation = VBufferEditor.Create(ref dst, Length, _count);
+            var editor = VBufferEditor.Create(ref dst, Length, _count);
             if (IsDense)
             {
                 if (Length > 0)
                 {
-                    _values.AsSpan(0, Length).CopyTo(mutation.Values);
+                    _values.AsSpan(0, Length).CopyTo(editor.Values);
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
                 Contracts.Assert(dst.IsDense);
             }
             else
             {
                 if (_count > 0)
                 {
-                    _values.AsSpan(0, _count).CopyTo(mutation.Values);
-                    _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
+                    _values.AsSpan(0, _count).CopyTo(editor.Values);
+                    _indices.AsSpan(0, _count).CopyTo(editor.Indices);
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
             }
         }
 
@@ -169,12 +169,12 @@ namespace Microsoft.ML.Runtime.Data
 
             if (IsDense)
             {
-                var mutation = VBufferEditor.Create(ref dst, length, length);
+                var editor = VBufferEditor.Create(ref dst, length, length);
                 if (length > 0)
                 {
-                    _values.AsSpan(srcMin, length).CopyTo(mutation.Values);
+                    _values.AsSpan(srcMin, length).CopyTo(editor.Values);
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
                 Contracts.Assert(dst.IsDense);
             }
             else
@@ -186,22 +186,22 @@ namespace Microsoft.ML.Runtime.Data
                     int copyLim = _indices.FindIndexSorted(copyMin, _count, srcMin + length);
                     Contracts.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
-                    var mutation = VBufferEditor.Create(ref dst, length, copyCount);
+                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
                     if (copyCount > 0)
                     {
-                        _values.AsSpan(copyMin, copyCount).CopyTo(mutation.Values);
+                        _values.AsSpan(copyMin, copyCount).CopyTo(editor.Values);
                         if (copyCount < length)
                         {
                             for (int i = 0; i < copyCount; ++i)
-                                mutation.Indices[i] = _indices[i + copyMin] - srcMin;
+                                editor.Indices[i] = _indices[i + copyMin] - srcMin;
                         }
                     }
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 }
                 else
                 {
-                    var mutation = VBufferEditor.Create(ref dst, length, copyCount);
-                    dst = mutation.Commit();
+                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
+                    dst = editor.Commit();
                 }
             }
         }
@@ -253,12 +253,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
             Contracts.CheckParam(0 <= srcIndex && srcIndex <= Utils.Size(src) - length, nameof(srcIndex));
-            var mutation = VBufferEditor.Create(ref dst, length, length);
+            var editor = VBufferEditor.Create(ref dst, length, length);
             if (length > 0)
             {
-                src.AsSpan(srcIndex, length).CopyTo(mutation.Values);
+                src.AsSpan(srcIndex, length).CopyTo(editor.Values);
             }
-            dst = mutation.Commit();
+            dst = editor.Commit();
         }
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)

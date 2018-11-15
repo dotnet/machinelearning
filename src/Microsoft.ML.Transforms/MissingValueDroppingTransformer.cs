@@ -258,15 +258,15 @@ namespace Microsoft.ML.Runtime.Data
             int iDst = 0;
 
             // Densifying sparse vectors since default value equals NA and hence should be dropped.
-            var mutation = VBufferEditor.Create(ref dst, newCount);
+            var editor = VBufferEditor.Create(ref dst, newCount);
             for (int i = 0; i < srcValues.Length; i++)
             {
                 if (!isNA(in srcValues[i]))
-                    mutation.Values[iDst++] = srcValues[i];
+                    editor.Values[iDst++] = srcValues[i];
             }
             Host.Assert(iDst == newCount);
 
-            dst = mutation.Commit();
+            dst = editor.Commit();
         }
 
         private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
@@ -297,22 +297,22 @@ namespace Microsoft.ML.Runtime.Data
             int iDst = 0;
             if (src.IsDense)
             {
-                var mutation = VBufferEditor.Create(ref dst, newCount);
+                var editor = VBufferEditor.Create(ref dst, newCount);
                 for (int i = 0; i < srcValues.Length; i++)
                 {
                     if (!isNA(in srcValues[i]))
                     {
-                        mutation.Values[iDst] = srcValues[i];
+                        editor.Values[iDst] = srcValues[i];
                         iDst++;
                     }
                 }
                 Host.Assert(iDst == newCount);
-                dst = mutation.Commit();
+                dst = editor.Commit();
             }
             else
             {
                 var newLength = src.Length - srcValues.Length - newCount;
-                var mutation = VBufferEditor.Create(ref dst, newLength, newCount);
+                var editor = VBufferEditor.Create(ref dst, newLength, newCount);
 
                 var srcIndices = src.GetIndices();
                 int offset = 0;
@@ -320,8 +320,8 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (!isNA(in srcValues[i]))
                     {
-                        mutation.Values[iDst] = srcValues[i];
-                        mutation.Indices[iDst] = srcIndices[i] - offset;
+                        editor.Values[iDst] = srcValues[i];
+                        editor.Indices[iDst] = srcIndices[i] - offset;
                         iDst++;
                     }
                     else
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 Host.Assert(iDst == newCount);
                 Host.Assert(offset == srcValues.Length - newCount);
-                dst = mutation.Commit();
+                dst = editor.Commit();
             }
         }
     }

@@ -729,11 +729,11 @@ namespace Microsoft.ML.Transforms.Projections
                 int length = src.Length;
 
                 // Since the whitening process produces dense vector, always use dense representation of dst.
-                var mutation = VBufferEditor.Create(ref dst, cdst);
+                var editor = VBufferEditor.Create(ref dst, cdst);
                 if (src.IsDense)
                 {
                     Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
-                        1, model, length, values, 1, 0, mutation.Values, 1);
+                        1, model, length, values, 1, 0, editor.Values, 1);
                 }
                 else
                 {
@@ -744,11 +744,11 @@ namespace Microsoft.ML.Transforms.Projections
                     {
                         // Returns a dot product of dense vector 'model' starting from offset 'offs' and sparse vector 'values'
                         // with first 'count' valid elements and their corresponding 'indices'.
-                        mutation.Values[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
+                        editor.Values[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
                         offs += length;
                     }
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
             }
 
             private static float DotProduct(float[] a, int aOffset, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)

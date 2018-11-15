@@ -115,11 +115,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // End of the trivial cases
             // At this point, we need to drop some slots and keep some slots.
-            VBufferEditor<TDst> mutation;
+            VBufferEditor<TDst> editor;
             var srcValues = src.GetValues();
             if (src.IsDense)
             {
-                mutation = VBufferEditor.Create(ref dst, newLength);
+                editor = VBufferEditor.Create(ref dst, newLength);
 
                 int iDst = 0;
                 int iSrc = 0;
@@ -129,17 +129,17 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     while (iSrc < lim)
                     {
                         Contracts.Assert(iDst <= iSrc);
-                        mutation.Values[iDst++] = srcValues[iSrc++];
+                        editor.Values[iDst++] = srcValues[iSrc++];
                     }
                     iSrc = SlotsMax[i] + 1;
                 }
                 while (iSrc < src.Length)
                 {
                     Contracts.Assert(iDst <= iSrc);
-                    mutation.Values[iDst++] = srcValues[iSrc++];
+                    editor.Values[iDst++] = srcValues[iSrc++];
                 }
                 Contracts.Assert(iDst == newLength);
-                dst = mutation.Commit();
+                dst = editor.Commit();
                 return;
             }
 
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             Contracts.Assert(newCount <= src.Length);
 
-            mutation = VBufferEditor.Create(
+            editor = VBufferEditor.Create(
                 ref dst,
                 newLength,
                 newCount,
@@ -172,8 +172,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 if (index < min)
                 {
                     Contracts.Assert(iiDst <= iiSrc);
-                    mutation.Indices[iiDst] = index - iOffset;
-                    mutation.Values[iiDst++] = srcValues[iiSrc++];
+                    editor.Indices[iiDst] = index - iOffset;
+                    editor.Values[iiDst++] = srcValues[iiSrc++];
                     continue;
                 }
                 if (index <= max)
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            dst = mutation.CommitTruncated(iiDst);
+            dst = editor.CommitTruncated(iiDst);
         }
     }
 }

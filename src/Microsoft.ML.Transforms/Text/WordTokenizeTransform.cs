@@ -320,10 +320,10 @@ namespace Microsoft.ML.Transforms.Text
                         for (int i = 0; i < srcValues.Length; i++)
                             AddTerms(srcValues[i], separators, terms);
 
-                        var mutation = VBufferEditor.Create(ref dst, terms.Count);
+                        var editor = VBufferEditor.Create(ref dst, terms.Count);
                         for (int i = 0; i < terms.Count; i++)
-                            mutation.Values[i] = terms[i];
-                        dst = mutation.Commit();
+                            editor.Values[i] = terms[i];
+                        dst = editor.Commit();
                     };
             }
 

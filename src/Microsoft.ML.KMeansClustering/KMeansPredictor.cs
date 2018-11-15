@@ -148,9 +148,9 @@ namespace Microsoft.ML.Trainers.KMeans
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
-                    var mutation = VBufferEditor.Create(ref dst, _k);
-                    Map(in src, mutation.Values);
-                    dst = mutation.Commit();
+                    var editor = VBufferEditor.Create(ref dst, _k);
+                    Map(in src, editor.Values);
+                    dst = editor.Commit();
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;

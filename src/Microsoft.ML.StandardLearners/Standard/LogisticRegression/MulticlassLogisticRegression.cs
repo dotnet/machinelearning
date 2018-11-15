@@ -218,9 +218,9 @@ namespace Microsoft.ML.Runtime.Learners
                 float mult = weight * (modelProb - probLabel);
                 VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
-                var mutation = VBufferEditor.CreateFromBuffer(ref grad);
-                Contracts.Assert(mutation.Values.Length >= BiasCount && (grad.IsDense || mutation.Indices[BiasCount - 1] == BiasCount - 1));
-                mutation.Values[c] += mult;
+                var editor = VBufferEditor.CreateFromBuffer(ref grad);
+                Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+                editor.Values[c] += mult;
             }
 
             Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");

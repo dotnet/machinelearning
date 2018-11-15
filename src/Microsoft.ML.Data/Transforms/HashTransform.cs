@@ -749,27 +749,27 @@ namespace Microsoft.ML.Transforms.Conversions
                         VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
 
                     for (int i = 0; i < srcValues.Length; ++i)
-                        mutation.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                     if (!src.IsDense)
-                        src.GetIndices().CopyTo(mutation.Indices);
+                        src.GetIndices().CopyTo(editor.Indices);
 
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                var mutation = VBufferEditor.Create(ref dst, src.Length);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
 
                 var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
                     for (int i = 0; i < srcValues.Length; ++i)
-                        mutation.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
                 else
                 {
@@ -778,13 +778,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     // values, rather than having complicated logic to do a simultaneous traversal of the
                     // sparse vs. dense array.
                     for (int i = 0; i < src.Length; ++i)
-                        mutation.Values[i] = defaultHash;
+                        editor.Values[i] = defaultHash;
                     // Next overwrite the values in the explicit entries.
                     var srcIndices = src.GetIndices();
                     for (int i = 0; i < srcValues.Length; ++i)
-                        mutation.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
+                        editor.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
             };
         }
 
@@ -811,35 +811,35 @@ namespace Microsoft.ML.Transforms.Conversions
                         VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
 
                     if (src.IsDense)
                     {
                         for (int i = 0; i < srcValues.Length; ++i)
-                            mutation.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                     }
                     else
                     {
                         var srcIndices = src.GetIndices();
                         for (int i = 0; i < srcValues.Length; ++i)
-                            mutation.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)srcIndices[i]), mask, srcValues[i]);
-                        srcIndices.CopyTo(mutation.Indices);
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)srcIndices[i]), mask, srcValues[i]);
+                        srcIndices.CopyTo(editor.Indices);
 
                     }
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                var mutation = VBufferEditor.Create(ref dst, src.Length);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
 
                 var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
                     for (int i = 0; i < srcValues.Length; ++i)
-                        mutation.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
+                        editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                 }
                 else
                 {
@@ -849,14 +849,14 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
                         if (srcIndices.Length <= j || srcIndices[j] > i)
-                            mutation.Values[i] = hasher.HashCore(indexSeed, mask, default);
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, default);
                         else if (srcIndices[j] == i)
-                            mutation.Values[i] = hasher.HashCore(indexSeed, mask, srcValues[j++]);
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, srcValues[j++]);
                         else
                             Contracts.Assert(false, "this should have never happened.");
                     }
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
             };
         }
 

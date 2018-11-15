@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms.Text
                         }
                     }
 
-                    var mutation = VBufferEditor.Create(ref dst, len);
+                    var editor = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
                         int index = 0;
@@ -477,17 +477,17 @@ namespace Microsoft.ML.Transforms.Text
                             if (srcValues[i].IsEmpty)
                                 continue;
                             if (_parent._useMarkerChars)
-                                mutation.Values[index++] = TextStartMarker;
+                                editor.Values[index++] = TextStartMarker;
                             var span = srcValues[i].Span;
                             for (int ich = 0; ich < srcValues[i].Length; ich++)
-                                mutation.Values[index++] = span[ich];
+                                editor.Values[index++] = span[ich];
                             if (_parent._useMarkerChars)
-                                mutation.Values[index++] = TextEndMarker;
+                                editor.Values[index++] = TextEndMarker;
                         }
                         Contracts.Assert(index == len);
                     }
 
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 };
 
                 ValueGetter<VBuffer<ushort>> getterWithUnitSep = (ref VBuffer<ushort> dst) =>
@@ -511,7 +511,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (_parent._useMarkerChars)
                         len += TextMarkersCount;
 
-                    var mutation = VBufferEditor.Create(ref dst, len);
+                    var editor = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
                         int index = 0;
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Transforms.Text
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
                         // Insert UnitSeparator after every piece of text in the vector.
                         if (_parent._useMarkerChars)
-                            mutation.Values[index++] = TextStartMarker;
+                            editor.Values[index++] = TextStartMarker;
 
                         for (int i = 0; i < srcValues.Length; i++)
                         {
@@ -531,20 +531,20 @@ namespace Microsoft.ML.Transforms.Text
                                 continue;
 
                             if (i > 0)
-                                mutation.Values[index++] = UnitSeparator;
+                                editor.Values[index++] = UnitSeparator;
 
                             var span = srcValues[i].Span;
                             for (int ich = 0; ich < srcValues[i].Length; ich++)
-                                mutation.Values[index++] = span[ich];
+                                editor.Values[index++] = span[ich];
                         }
 
                         if (_parent._useMarkerChars)
-                            mutation.Values[index++] = TextEndMarker;
+                            editor.Values[index++] = TextEndMarker;
 
                         Contracts.Assert(index == len);
                     }
 
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 };
                 return _parent._isSeparatorStartEnd ? getterWithStartEndSep : getterWithUnitSep;
             }

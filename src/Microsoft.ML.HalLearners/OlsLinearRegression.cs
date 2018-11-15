@@ -783,15 +783,15 @@ namespace Microsoft.ML.Trainers.HalLearners
             }
 
             var size = _pValues.Length - 1;
-            var mutation = VBufferEditor.Create(ref weights, size);
+            var editor = VBufferEditor.Create(ref weights, size);
             for (int i = 0; i < size; i++)
             {
                 var score = -(float)Math.Log(_pValues[i + 1]);
                 if (score > float.MaxValue)
                     score = float.MaxValue;
-                mutation.Values[i] = score;
+                editor.Values[i] = score;
             }
-            weights = mutation.Commit();
+            weights = editor.Commit();
         }
     }
 }

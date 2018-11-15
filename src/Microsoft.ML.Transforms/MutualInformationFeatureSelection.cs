@@ -774,19 +774,19 @@ namespace Microsoft.ML.Transforms
         private static void MapVector<TSrc, TDst>(this ValueMapper<TSrc, TDst> map, in VBuffer<TSrc> input, ref VBuffer<TDst> output)
         {
             var inputValues = input.GetValues();
-            var mutation = VBufferEditor.Create(ref output, input.Length, inputValues.Length);
+            var editor = VBufferEditor.Create(ref output, input.Length, inputValues.Length);
             for (int i = 0; i < inputValues.Length; i++)
             {
                 TSrc val = inputValues[i];
-                map(in val, ref mutation.Values[i]);
+                map(in val, ref editor.Values[i]);
             }
 
             if (!input.IsDense && inputValues.Length > 0)
             {
-                input.GetIndices().CopyTo(mutation.Indices);
+                input.GetIndices().CopyTo(editor.Indices);
             }
 
-            output = mutation.Commit();
+            output = editor.Commit();
         }
     }
 }

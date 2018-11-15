@@ -485,16 +485,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                         Host.Check(src.Height == height && src.Width == width);
 
-                        var mutation = VBufferEditor.Create(ref dst, size);
-                        var values = mutation.Values;
+                        var editor = VBufferEditor.Create(ref dst, size);
+                        var values = editor.Values;
 
                         float offset = ex.Offset;
                         float scale = ex.Scale;
                         Contracts.Assert(scale != 0);
 
                         // REVIEW: split the getter into 2 specialized getters, one for float case and one for byte case.
-                        Span<float> vf = typeof(TValue) == typeof(float) ? MemoryMarshal.Cast<TValue, float>(mutation.Values) : default;
-                        Span<byte> vb = typeof(TValue) == typeof(byte) ? MemoryMarshal.Cast<TValue, byte>(mutation.Values) : default;
+                        Span<float> vf = typeof(TValue) == typeof(float) ? MemoryMarshal.Cast<TValue, float>(editor.Values) : default;
+                        Span<byte> vb = typeof(TValue) == typeof(byte) ? MemoryMarshal.Cast<TValue, byte>(editor.Values) : default;
                         Contracts.Assert(!vf.IsEmpty || !vb.IsEmpty);
                         bool needScale = offset != 0 || scale != 1;
                         Contracts.Assert(!needScale || !vf.IsEmpty);
@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             }
                         }
 
-                        dst = mutation.Commit();
+                        dst = editor.Commit();
                     };
             }
 

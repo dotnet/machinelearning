@@ -858,7 +858,7 @@ namespace Microsoft.ML.Transforms.Text
                     return;
                 }
 
-                VBufferEditor<float> mutation;
+                VBufferEditor<float> editor;
                 // Make sure all the frequencies are valid and truncate if the sum gets too large.
                 int docSize = 0;
                 int termNum = 0;
@@ -870,10 +870,10 @@ namespace Microsoft.ML.Transforms.Text
                         // REVIEW: Should this log a warning message? And what should it produce?
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW: Need a utility method to do this...
-                        mutation = VBufferEditor.Create(ref dst, len);
+                        editor = VBufferEditor.Create(ref dst, len);
                         for (int k = 0; k < len; k++)
-                            mutation.Values[k] = Float.NaN;
-                        dst = mutation.Commit();
+                            editor.Values[k] = Float.NaN;
+                        dst = editor.Commit();
                         return;
                     }
 
@@ -894,7 +894,7 @@ namespace Microsoft.ML.Transforms.Text
                 int count = retTopics.Count;
                 Contracts.Assert(count <= len);
 
-                mutation = VBufferEditor.Create(ref dst, len, count);
+                editor = VBufferEditor.Create(ref dst, len, count);
                 double normalizer = 0;
                 for (int i = 0; i < count; i++)
                 {
@@ -904,22 +904,22 @@ namespace Microsoft.ML.Transforms.Text
                     Contracts.Assert(0 <= index && index < len);
                     if (count < len)
                     {
-                        Contracts.Assert(i == 0 || mutation.Indices[i - 1] < index);
-                        mutation.Indices[i] = index;
+                        Contracts.Assert(i == 0 || editor.Indices[i - 1] < index);
+                        editor.Indices[i] = index;
                     }
                     else
                         Contracts.Assert(index == i);
 
-                    mutation.Values[i] = value;
+                    editor.Values[i] = value;
                     normalizer += value;
                 }
 
                 if (normalizer > 0)
                 {
                     for (int i = 0; i < count; i++)
-                        mutation.Values[i] = (Float)(mutation.Values[i] / normalizer);
+                        editor.Values[i] = (Float)(editor.Values[i] / normalizer);
                 }
-                dst = mutation.Commit();
+                dst = editor.Commit();
             }
 
             public void Dispose()

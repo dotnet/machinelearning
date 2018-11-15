@@ -280,19 +280,19 @@ namespace Microsoft.ML.Transforms
                 return;
             }
 
-            var mutation = VBufferEditor.Create(ref result, 2, 1);
+            var editor = VBufferEditor.Create(ref result, 2, 1);
             if (Float.IsNaN(input))
             {
-                mutation.Values[0] = 1;
-                mutation.Indices[0] = 1;
+                editor.Values[0] = 1;
+                editor.Indices[0] = 1;
             }
             else
             {
-                mutation.Values[0] = input;
-                mutation.Indices[0] = 0;
+                editor.Values[0] = input;
+                editor.Indices[0] = 0;
             }
 
-            result = mutation.Commit();
+            result = editor.Commit();
         }
 
         // This converts in place.
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Transforms
             ectx.Check(0 <= size & size < int.MaxValue / 2);
 
             var values = buffer.GetValues();
-            var mutation = VBufferEditor.Create(ref buffer, size * 2, values.Length);
+            var editor = VBufferEditor.Create(ref buffer, size * 2, values.Length);
             int iivDst = 0;
             if (buffer.IsDense)
             {
@@ -316,13 +316,13 @@ namespace Microsoft.ML.Transforms
                         continue;
                     if (Float.IsNaN(val))
                     {
-                        mutation.Values[iivDst] = 1;
-                        mutation.Indices[iivDst] = 2 * ivSrc + 1;
+                        editor.Values[iivDst] = 1;
+                        editor.Indices[iivDst] = 2 * ivSrc + 1;
                     }
                     else
                     {
-                        mutation.Values[iivDst] = val;
-                        mutation.Indices[iivDst] = 2 * ivSrc;
+                        editor.Values[iivDst] = val;
+                        editor.Indices[iivDst] = 2 * ivSrc;
                     }
                     iivDst++;
                 }
@@ -344,20 +344,20 @@ namespace Microsoft.ML.Transforms
                     ivPrev = iv;
                     if (Float.IsNaN(val))
                     {
-                        mutation.Values[iivDst] = 1;
-                        mutation.Indices[iivDst] = 2 * iv + 1;
+                        editor.Values[iivDst] = 1;
+                        editor.Indices[iivDst] = 2 * iv + 1;
                     }
                     else
                     {
-                        mutation.Values[iivDst] = val;
-                        mutation.Indices[iivDst] = 2 * iv;
+                        editor.Values[iivDst] = val;
+                        editor.Indices[iivDst] = 2 * iv;
                     }
                     iivDst++;
                 }
             }
 
             ectx.Assert(0 <= iivDst & iivDst <= values.Length);
-            buffer = mutation.CommitTruncated(iivDst);
+            buffer = editor.CommitTruncated(iivDst);
         }
     }
 }

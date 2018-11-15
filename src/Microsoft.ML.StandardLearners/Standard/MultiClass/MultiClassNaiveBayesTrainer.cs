@@ -380,8 +380,8 @@ namespace Microsoft.ML.Trainers
             var srcValues = src.GetValues();
             var srcIndices = src.GetIndices();
 
-            var mutation = VBufferEditor.Create(ref dst, _labelCount);
-            Span<float> labelScores = mutation.Values;
+            var editor = VBufferEditor.Create(ref dst, _labelCount);
+            Span<float> labelScores = editor.Values;
             for (int iLabel = 0; iLabel < _labelCount; iLabel += 1)
             {
                 double labelOccurrenceCount = _labelHistogram[iLabel];
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Trainers
                     (float)(logProb + (_absentFeaturesLogProb[iLabel] - absentFeatureLogProb));
             }
 
-            dst = mutation.Commit();
+            dst = editor.Commit();
         }
     }
 }

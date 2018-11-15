@@ -595,18 +595,18 @@ namespace Microsoft.ML.Transforms.Projections
                 if (normScale < MinScale)
                     normScale = 1;
 
-                VBufferEditor<float> mutation;
+                VBufferEditor<float> editor;
                 if (offset == 0)
                 {
-                    mutation = VBufferEditor.Create(ref dst, length, count);
-                    var dstValues = mutation.Values;
+                    editor = VBufferEditor.Create(ref dst, length, count);
+                    var dstValues = editor.Values;
                     if (!src.IsDense)
                     {
-                        src.GetIndices().CopyTo(mutation.Indices);
+                        src.GetIndices().CopyTo(editor.Indices);
                     }
 
                     CpuMathUtils.Scale(normScale, src.GetValues(), dstValues, count);
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
 
                     return;
                 }
@@ -614,11 +614,11 @@ namespace Microsoft.ML.Transforms.Projections
                 // Subtracting the mean requires a dense representation.
                 src.CopyToDense(ref dst);
 
-                mutation = VBufferEditor.CreateFromBuffer(ref dst);
+                editor = VBufferEditor.CreateFromBuffer(ref dst);
                 if (normScale != 1)
-                    CpuMathUtils.ScaleAdd(normScale, -offset, mutation.Values);
+                    CpuMathUtils.ScaleAdd(normScale, -offset, editor.Values);
                 else
-                    CpuMathUtils.Add(-offset, mutation.Values);
+                    CpuMathUtils.Add(-offset, editor.Values);
             }
 
             /// <summary>

@@ -448,17 +448,17 @@ namespace Microsoft.ML.Runtime.Data
 
             if (_dense)
             {
-                var mutation = VBufferEditor.Create(ref buffer, _length);
-                _values.AsSpan(0, _length).CopyTo(mutation.Values);
-                buffer = mutation.Commit();
+                var editor = VBufferEditor.Create(ref buffer, _length);
+                _values.AsSpan(0, _length).CopyTo(editor.Values);
+                buffer = editor.Commit();
             }
             else
             {
                 Contracts.Assert(_count < _length);
-                var mutation = VBufferEditor.Create(ref buffer, _length, _count);
-                _values.AsSpan(0, _count).CopyTo(mutation.Values);
-                _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                buffer = mutation.Commit();
+                var editor = VBufferEditor.Create(ref buffer, _length, _count);
+                _values.AsSpan(0, _count).CopyTo(editor.Values);
+                _indices.AsSpan(0, _count).CopyTo(editor.Indices);
+                buffer = editor.Commit();
             }
         }
     }

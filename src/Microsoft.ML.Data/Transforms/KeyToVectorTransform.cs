@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         int lenDst = checked(size * lenSrc);
                         var values = src.GetValues();
                         int cntSrc = values.Length;
-                        var mutation = VBufferEditor.Create(ref dst, lenDst, cntSrc);
+                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc);
 
                         int count = 0;
                         if (src.IsDense)
@@ -579,8 +579,8 @@ namespace Microsoft.ML.Transforms.Conversions
                                 uint key = values[slot] - 1;
                                 if (key >= (uint)size)
                                     continue;
-                                mutation.Values[count] = 1;
-                                mutation.Indices[count++] = slot * size + (int)key;
+                                editor.Values[count] = 1;
+                                editor.Indices[count++] = slot * size + (int)key;
                             }
                         }
                         else
@@ -592,11 +592,11 @@ namespace Microsoft.ML.Transforms.Conversions
                                 uint key = values[islot] - 1;
                                 if (key >= (uint)size)
                                     continue;
-                                mutation.Values[count] = 1;
-                                mutation.Indices[count++] = indices[islot] * size + (int)key;
+                                editor.Values[count] = 1;
+                                editor.Indices[count++] = indices[islot] * size + (int)key;
                             }
                         }
-                        dst = mutation.CommitTruncated(count);
+                        dst = editor.CommitTruncated(count);
                     };
             }
 

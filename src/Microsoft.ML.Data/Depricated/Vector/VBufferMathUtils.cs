@@ -87,11 +87,11 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (c == 1 || dst.GetValues().Length == 0)
                 return;
-            var mutation = VBufferEditor.CreateFromBuffer(ref dst);
+            var editor = VBufferEditor.CreateFromBuffer(ref dst);
             if (c != 0)
-                CpuMathUtils.Scale(c, mutation.Values);
+                CpuMathUtils.Scale(c, editor.Values);
             else // Maintain density of dst.
-                mutation.Values.Clear();
+                editor.Values.Clear();
             // REVIEW: Any benefit in sparsifying?
         }
 
@@ -115,23 +115,23 @@ namespace Microsoft.ML.Runtime.Numeric
             if (src.IsDense)
             {
                 // Maintain the density of src to dst in order to avoid slow down of L-BFGS.
-                var mutation = VBufferEditor.Create(ref dst, length);
+                var editor = VBufferEditor.Create(ref dst, length);
                 Contracts.Assert(length == count);
                 if (c == 0)
-                    mutation.Values.Clear();
+                    editor.Values.Clear();
                 else
-                    CpuMathUtils.Scale(c, srcValues, mutation.Values, length);
-                dst = mutation.Commit();
+                    CpuMathUtils.Scale(c, srcValues, editor.Values, length);
+                dst = editor.Commit();
             }
             else
             {
-                var mutation = VBufferEditor.Create(ref dst, length, count);
-                src.GetIndices().CopyTo(mutation.Indices);
+                var editor = VBufferEditor.Create(ref dst, length, count);
+                src.GetIndices().CopyTo(editor.Indices);
                 if (c == 0)
-                    mutation.Values.Clear();
+                    editor.Values.Clear();
                 else
-                    CpuMathUtils.Scale(c, srcValues, mutation.Values, count);
-                dst = mutation.Commit();
+                    CpuMathUtils.Scale(c, srcValues, editor.Values, count);
+                dst = editor.Commit();
             }
         }
 
@@ -148,11 +148,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
-                var mutation = VBufferEditor.Create(ref dst, dst.Length);
+                var editor = VBufferEditor.Create(ref dst, dst.Length);
                 if (src.IsDense)
-                    CpuMathUtils.Add(srcValues, mutation.Values, src.Length);
+                    CpuMathUtils.Add(srcValues, editor.Values, src.Length);
                 else
-                    CpuMathUtils.Add(srcValues, src.GetIndices(), mutation.Values, srcValues.Length);
+                    CpuMathUtils.Add(srcValues, src.GetIndices(), editor.Values, srcValues.Length);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -176,11 +176,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
-                var mutation = VBufferEditor.Create(ref dst, dst.Length);
+                var editor = VBufferEditor.Create(ref dst, dst.Length);
                 if (src.IsDense)
-                    CpuMathUtils.AddScale(c, srcValues, mutation.Values, src.Length);
+                    CpuMathUtils.AddScale(c, srcValues, editor.Values, src.Length);
                 else
-                    CpuMathUtils.AddScale(c, srcValues, src.GetIndices(), mutation.Values, srcValues.Length);
+                    CpuMathUtils.AddScale(c, srcValues, src.GetIndices(), editor.Values, srcValues.Length);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -207,9 +207,9 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(length > 0);
             if (dst.IsDense && src.IsDense)
             {
-                var mutation = VBufferEditor.Create(ref res, length);
-                CpuMathUtils.AddScaleCopy(c, srcValues, dst.GetValues(), mutation.Values, length);
-                res = mutation.Commit();
+                var editor = VBufferEditor.Create(ref res, length);
+                CpuMathUtils.AddScaleCopy(c, srcValues, dst.GetValues(), editor.Values, length);
+                res = editor.Commit();
                 return;
             }
 
@@ -247,13 +247,13 @@ namespace Microsoft.ML.Runtime.Numeric
             var srcValues = src.GetValues();
             if (srcValues.Length == 0 || c == 0)
                 return;
-            VBufferEditor<float> mutation;
+            VBufferEditor<float> editor;
             Span<float> values;
             if (dst.IsDense)
             {
                 // This is by far the most common case.
-                mutation = VBufferEditor.Create(ref dst, dst.Length);
-                values = mutation.Values.Slice(offset);
+                editor = VBufferEditor.Create(ref dst, dst.Length);
+                values = editor.Values.Slice(offset);
                 if (src.IsDense)
                     CpuMathUtils.AddScale(c, srcValues, values, srcValues.Length);
                 else
@@ -295,12 +295,12 @@ namespace Microsoft.ML.Runtime.Numeric
             }
             // Extend dst so that it has room for this additional stuff. Shift things over as well.
             var dstValues = dst.GetValues();
-            mutation = VBufferEditor.Create(ref dst,
+            editor = VBufferEditor.Create(ref dst,
                 dst.Length,
                 dstValues.Length + gapCount,
                 keepOldOnResize: true);
-            var indices = mutation.Indices;
-            values = mutation.Values;
+            var indices = editor.Indices;
+            values = editor.Values;
             if (gapCount > 0)
             {
                 // Shift things over, unless there's nothing to shift over, or no new elements are being introduced anyway.
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     }
                 }
             }
-            dst = mutation.Commit();
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -390,10 +390,10 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (src.Length > 0 && src.IsDense)
                 {
                     // Due to sparsity preservation from src, dst must be dense, in the same way.
-                    var mutation = VBufferEditor.Create(ref dst, src.Length);
-                    if (!mutation.CreatedNewValues) // We need to clear it.
-                        mutation.Values.Clear();
-                    dst = mutation.Commit();
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
+                    if (!editor.CreatedNewValues) // We need to clear it.
+                        editor.Values.Clear();
+                    dst = editor.Commit();
                 }
                 else
                 {

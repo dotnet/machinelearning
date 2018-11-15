@@ -1358,17 +1358,17 @@ namespace Microsoft.ML.Trainers.FastTree
                     (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
                         var srcValues = src.GetValues();
-                        var mutation = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                        var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
                         if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)
                             {
-                                src.GetIndices().CopyTo(mutation.Indices);
+                                src.GetIndices().CopyTo(editor.Indices);
                             }
                             for (int i = 0; i < srcValues.Length; ++i)
-                                conv(in srcValues[i], ref mutation.Values[i]);
+                                conv(in srcValues[i], ref editor.Values[i]);
                         }
-                        dst = mutation.Commit();
+                        dst = editor.Commit();
                     };
             }
 

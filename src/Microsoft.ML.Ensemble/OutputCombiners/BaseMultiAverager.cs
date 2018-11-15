@@ -35,11 +35,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 return;
             }
 
-            var mutation = VBufferEditor.Create(ref dst, len);
-            if (!mutation.CreatedNewValues)
-                mutation.Values.Clear();
+            var editor = VBufferEditor.Create(ref dst, len);
+            if (!editor.CreatedNewValues)
+                editor.Values.Clear();
             // Set the output to values.
-            dst = mutation.Commit();
+            dst = editor.Commit();
 
             Single weightTotal;
             if (weights == null)

@@ -53,14 +53,14 @@ namespace Microsoft.ML.Runtime.Ensemble
                 if (cardinality >= src.Length / 2)
                 {
                     T defaultValue = default;
-                    var mutation = VBufferEditor.Create(ref dst, src.Length);
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
                     for (int i = 0; i < srcValues.Length; i++)
-                        mutation.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
-                    dst = mutation.Commit();
+                        editor.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
+                    dst = editor.Commit();
                 }
                 else
                 {
-                    var mutation = VBufferEditor.Create(ref dst, src.Length, cardinality);
+                    var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                     int count = 0;
                     for (int i = 0; i < srcValues.Length; i++)
@@ -68,19 +68,19 @@ namespace Microsoft.ML.Runtime.Ensemble
                         if (includedIndices[i])
                         {
                             Contracts.Assert(count < cardinality);
-                            mutation.Values[count] = srcValues[i];
-                            mutation.Indices[count] = i;
+                            editor.Values[count] = srcValues[i];
+                            editor.Indices[count] = i;
                             count++;
                         }
                     }
 
                     Contracts.Assert(count == cardinality);
-                    dst = mutation.Commit();
+                    dst = editor.Commit();
                 }
             }
             else
             {
-                var mutation = VBufferEditor.Create(ref dst, src.Length, cardinality);
+                var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                 int count = 0;
                 var srcIndices = src.GetIndices();
@@ -88,13 +88,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 {
                     if (includedIndices[srcIndices[i]])
                     {
-                        mutation.Values[count] = srcValues[i];
-                        mutation.Indices[count] = srcIndices[i];
+                        editor.Values[count] = srcValues[i];
+                        editor.Indices[count] = srcIndices[i];
                         count++;
                     }
                 }
 
-                dst = mutation.CommitTruncated(count);
+                dst = editor.CommitTruncated(count);
             }
         }
     }

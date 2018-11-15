@@ -654,7 +654,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             else
                 weights = VBufferUtils.CreateDense<float>(numFeatures);
 
-            var weightsMutation = VBufferEditor.CreateFromBuffer(ref weights);
+            var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights);
 
             // Reference: Parasail. SymSGD.
             bool tuneLR = _args.LearningRate == null;
@@ -690,7 +690,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                             pch.SetHeader(new ProgressHeader(new[] { "iterations" }),
                                 entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
-                            Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsMutation.Values, ref bias, numFeatures,
+                            Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
                                 _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                             shouldInitialize = false;
                         }
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                                 // If all of this leaves us with 0 passes, then set numPassesForThisBatch to 1
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
-                                Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsMutation.Values, ref bias, numFeatures,
+                                Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
                                     numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                                 shouldInitialize = false;
 
@@ -732,7 +732,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
                         // Maps back the dense features that are mislocated
                         if (numThreads > 1)
-                            Native.MapBackWeightVector(weightsMutation.Values, stateGCHandle);
+                            Native.MapBackWeightVector(weightsEditor.Values, stateGCHandle);
                         Native.DeallocateSequentially(stateGCHandle);
                     }
                 }

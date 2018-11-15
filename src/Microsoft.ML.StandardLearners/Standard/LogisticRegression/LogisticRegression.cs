@@ -157,9 +157,9 @@ namespace Microsoft.ML.Runtime.Learners
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
-            var mutation = VBufferEditor.CreateFromBuffer(ref grad);
-            Contracts.Assert(mutation.Values.Length >= BiasCount && (grad.IsDense || mutation.Indices[BiasCount - 1] == BiasCount - 1));
-            mutation.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
 
             return weight * datumLoss;
         }

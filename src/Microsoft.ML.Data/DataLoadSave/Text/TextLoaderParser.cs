@@ -407,16 +407,16 @@ namespace Microsoft.ML.Runtime.Data
                         return;
                     }
 
-                    var mutation = VBufferEditor.Create(ref dst, _size, _count);
-                    _values.AsSpan(0, _count).CopyTo(mutation.Values);
+                    var editor = VBufferEditor.Create(ref dst, _size, _count);
+                    _values.AsSpan(0, _count).CopyTo(editor.Values);
                     if (_count == _size)
                     {
-                        dst = mutation.Commit();
+                        dst = editor.Commit();
                         return;
                     }
 
-                    _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                    dst = mutation.Commit();
+                    _indices.AsSpan(0, _count).CopyTo(editor.Indices);
+                    dst = editor.Commit();
                 }
             }
 

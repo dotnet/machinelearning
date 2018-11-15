@@ -1294,12 +1294,12 @@ namespace Microsoft.ML.Runtime.Data
                                 (ref VBuffer<T> value) =>
                                 {
                                     EnsureValid();
-                                    VBufferEditor<T> mutation;
+                                    VBufferEditor<T> editor;
                                     if (_inputValue.IsDense)
                                     {
-                                        mutation = VBufferEditor.Create(ref value, len);
-                                        _inputValue.GetValues().Slice(min, len).CopyTo(mutation.Values);
-                                        value = mutation.Commit();
+                                        editor = VBufferEditor.Create(ref value, len);
+                                        _inputValue.GetValues().Slice(min, len).CopyTo(editor.Values);
+                                        value = editor.Commit();
                                         return;
                                     }
                                     // In the sparse case we have ranges on Indices/Values to consider.
@@ -1312,20 +1312,20 @@ namespace Microsoft.ML.Runtime.Data
                                         return;
                                     }
 
-                                    mutation = VBufferEditor.Create(ref value, len, scount);
+                                    editor = VBufferEditor.Create(ref value, len, scount);
                                     bool isDense = len == scount;
                                     if (!isDense)
                                     {
-                                        _inputValue.GetIndices().Slice(smin, scount).CopyTo(mutation.Indices);
+                                        _inputValue.GetIndices().Slice(smin, scount).CopyTo(editor.Indices);
 
                                         if (min != 0)
                                         {
                                             for (int i = 0; i < scount; ++i)
-                                                mutation.Indices[i] -= min;
+                                                editor.Indices[i] -= min;
                                         }
                                     }
-                                    _inputValue.GetValues().Slice(smin, scount).CopyTo(mutation.Values);
-                                    value = mutation.Commit();
+                                    _inputValue.GetValues().Slice(smin, scount).CopyTo(editor.Values);
+                                    value = editor.Commit();
                                 };
                         }
 

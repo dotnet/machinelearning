@@ -1112,26 +1112,26 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (count < 0)
                     {
                         // dense
-                        var mutation = VBufferEditor.Create(ref value, length);
+                        var editor = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
                             _values.AsSpan(_valuesOffset, length)
-                                .CopyTo(mutation.Values);
+                                .CopyTo(editor.Values);
                         }
-                        value = mutation.Commit();
+                        value = editor.Commit();
                     }
                     else
                     {
                         // sparse
-                        var mutation = VBufferEditor.Create(ref value, length, count);
+                        var editor = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
                             _values.AsSpan(_valuesOffset, count)
-                                .CopyTo(mutation.Values);
+                                .CopyTo(editor.Values);
                             _indices.AsSpan(_indicesOffset, count)
-                                .CopyTo(mutation.Indices);
+                                .CopyTo(editor.Indices);
                         }
-                        value = mutation.Commit();
+                        value = editor.Commit();
                     }
                 }
             }
