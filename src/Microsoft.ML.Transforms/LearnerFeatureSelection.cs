@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 
@@ -104,7 +105,6 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);
 
-                var dsArgs = new DropSlotsTransform.Arguments();
                 return new DropSlotsTransform(host, column).Transform(input) as IDataTransform;
             }
         }

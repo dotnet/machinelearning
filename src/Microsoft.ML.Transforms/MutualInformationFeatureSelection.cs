@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +22,7 @@ using System.Reflection;
 [assembly: LoadableClass(MutualInformationFeatureSelectionEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectionEstimator), typeof(MutualInformationFeatureSelectionEstimator.Arguments), typeof(SignatureDataTransform),
     MutualInformationFeatureSelectionEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectionEstimator.ShortName)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.FeatureSelection
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
     public sealed class MutualInformationFeatureSelectionEstimator : IEstimator<ITransformer>
@@ -97,8 +97,15 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
             _columns = columns;
+            _labelColumn = labelColumn;
             _slotsInOutput = slotsInOutput;
             _numBins = numBins;
+        }
+
+        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env, string input, string output = null,
+            string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
+            : this(env, labelColumn, slotsInOutput, numBins, (input, output ?? input))
+        {
         }
 
         public ITransformer Fit(IDataView input)

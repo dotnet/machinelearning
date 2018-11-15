@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(DropSlotsTransform), null, typeof(SignatureLoadRowMapper),
    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.FeatureSelection
 {
     /// <summary>
     /// Transform to drop slots from columns. If the column is scalar, the only slot that can be dropped is slot 0.
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms
             public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
                 // By default drop everything.
-                slots = slots ?? new (int min, int? max)[] { (0, null) };
+                slots = slots ?? new (int min, int? max)[1];
                 foreach (var (min, max) in slots)
                     Contracts.Assert(min >= 0 && (max == null || min <= max));
                 Input = input;
@@ -263,6 +263,16 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Initializes a new <see cref="DropSlotsTransform"/> object.
         /// </summary>
+        /// TODO
+        public DropSlotsTransform(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
+            : this(env, new ColumnInfo(input, output, (min, max)))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="DropSlotsTransform"/> object.
+        /// </summary>
+        /// TODO
         public DropSlotsTransform(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {

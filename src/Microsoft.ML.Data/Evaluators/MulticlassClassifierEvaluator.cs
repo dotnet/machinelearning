@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1112,12 +1113,9 @@ namespace Microsoft.ML.Runtime.Data
             if (perInstSchema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
             {
                 var type = perInstSchema.GetColumnType(sortedClassesIndex);
+                // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
                 if (_numTopClasses < type.VectorSize)
-                {
-                    // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                    var column = new DropSlotsTransform.ColumnInfo(MultiClassPerInstanceEvaluator.SortedClasses, slots: (_numTopClasses, null));
-                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
-                }
+                    perInst = new DropSlotsTransform(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
@@ -1125,10 +1123,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var type = perInst.Schema.GetColumnType(sortedScoresIndex);
                 if (_numTopClasses < type.VectorSize)
-                {
-                    var column = new DropSlotsTransform.ColumnInfo(MultiClassPerInstanceEvaluator.SortedScores, slots: (_numTopClasses, null));
-                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
-                }
+                   perInst = new DropSlotsTransform(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;
         }

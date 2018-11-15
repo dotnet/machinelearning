@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ using System.Reflection;
 [assembly: LoadableClass(CountFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(CountFeatureSelectingEstimator), typeof(CountFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
     CountFeatureSelectingEstimator.UserName, "CountFeatureSelectionTransform", "CountFeatureSelection")]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.FeatureSelection
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
     public sealed class CountFeatureSelectingEstimator : IEstimator<ITransformer>

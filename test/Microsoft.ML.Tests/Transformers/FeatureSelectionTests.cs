@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
 using System.IO;
 using Xunit;
@@ -35,8 +36,8 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words")
-                .Append(new CountFeatureSelector(Env, "bag_of_words", "bag_of_words_count", 10)
-                .Append(new MutualInformationFeatureSelector(Env, "bag_of_words", "bag_of_words_mi", labelColumn: "label")));
+                .Append(new CountFeatureSelectingEstimator(Env, "bag_of_words", "bag_of_words_count", 10)
+                .Append(new MutualInformationFeatureSelectionEstimator(Env, "bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
             var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))

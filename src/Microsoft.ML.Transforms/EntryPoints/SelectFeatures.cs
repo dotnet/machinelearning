@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 
 [assembly: LoadableClass(typeof(void), typeof(SelectFeatures), null, typeof(SignatureEntryPointModule), "SelectFeatures")]
 

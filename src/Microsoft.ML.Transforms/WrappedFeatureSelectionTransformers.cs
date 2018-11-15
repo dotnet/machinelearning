@@ -9,7 +9,6 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
 using System.Linq;
-using static Microsoft.ML.Transforms.MutualInformationFeatureSelectionEstimator;
 
 namespace Microsoft.ML.Transforms
 {

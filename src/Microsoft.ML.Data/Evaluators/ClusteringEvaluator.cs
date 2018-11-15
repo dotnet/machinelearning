@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -882,20 +882,14 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
-                {
-                    var column = new DropSlotsTransform.ColumnInfo(ClusteringPerInstanceEvaluator.SortedClusters, slots: (_numTopClusters, null));
-                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
-                }
+                    perInst = new DropSlotsTransform(Host, ClusteringPerInstanceEvaluator.SortedClusters, min: _numTopClusters).Transform(perInst);
             }
 
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusterScores, out index))
             {
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
-                {
-                    var column = new DropSlotsTransform.ColumnInfo(ClusteringPerInstanceEvaluator.SortedClusterScores, slots: (_numTopClusters, null));
-                    perInst = new DropSlotsTransform(Host, column).Transform(perInst);
-                }
+                    perInst = new DropSlotsTransform(Host, ClusteringPerInstanceEvaluator.SortedClusterScores, min: _numTopClusters).Transform(perInst);
             }
             return perInst;
         }
