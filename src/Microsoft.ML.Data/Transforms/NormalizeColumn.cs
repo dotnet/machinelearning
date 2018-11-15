@@ -392,7 +392,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
-            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
+            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -437,7 +437,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("AffineOffset", typeSrc, Offset);
                 }
 
-                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizerTransformer.AffineNormalizerModelParametersBase<TFloat> { Scale = Scale, Offset = Offset };
+
             }
 
             private abstract class ImplVec<TFloat> : AffineColumnFunction, NormalizerTransformer.IAffineData<ImmutableArray<TFloat>>
@@ -487,7 +489,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizerTransformer.AffineNormalizerModelParametersBase<ImmutableArray<TFloat>> { Scale = ImmutableArray.Create(Scale), Offset = ImmutableArray.Create(Offset) };
             }
         }
 
@@ -513,7 +516,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public abstract Delegate GetGetter(IRow input, int icol);
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
-            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
+            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -563,7 +566,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
                 }
 
-                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizerTransformer.CdfNormalizerModelParametersBase<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
             }
 
             private abstract class ImplVec<TFloat> : CdfColumnFunction, NormalizerTransformer.ICdfData<ImmutableArray<TFloat>>
@@ -610,7 +614,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                public override NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams() => this;
+                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizerTransformer.CdfNormalizerModelParametersBase<ImmutableArray<TFloat>>() { Mean = ImmutableArray.Create(Mean), Stddev = ImmutableArray.Create(Stddev), UseLog = UseLog };
             }
 
             public const string LoaderSignature = "CdfNormalizeFunction";
@@ -653,7 +658,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 // REVIEW: How to attach information on the bins, to metadata?
             }
 
-            public abstract NormalizerTransformer.INormalizerModelParameters GetNormalizerModelParams();
+            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static BinColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
