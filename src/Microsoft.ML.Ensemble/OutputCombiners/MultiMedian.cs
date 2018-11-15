@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     }
 
                     // Set the output to values.
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
         }
     }

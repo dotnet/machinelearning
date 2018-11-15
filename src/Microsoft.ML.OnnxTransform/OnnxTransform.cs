@@ -284,7 +284,7 @@ namespace Microsoft.ML.Transforms
 
                     var mutation = VBufferMutationContext.Create(ref dst, _outputColType.VectorSize);
                     OnnxUtils.CopyTo(outputTensors[0], mutation.Values);
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
 
                 return valueGetter;

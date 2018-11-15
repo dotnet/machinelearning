@@ -450,7 +450,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var mutation = VBufferMutationContext.Create(ref buffer, _length);
                 _values.AsSpan(0, _length).CopyTo(mutation.Values);
-                buffer = mutation.CreateBuffer();
+                buffer = mutation.Commit();
             }
             else
             {
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Runtime.Data
                 var mutation = VBufferMutationContext.Create(ref buffer, _length, _count);
                 _values.AsSpan(0, _count).CopyTo(mutation.Values);
                 _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                buffer = mutation.CreateBuffer();
+                buffer = mutation.Commit();
             }
         }
     }

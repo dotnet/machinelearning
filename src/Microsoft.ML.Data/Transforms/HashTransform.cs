@@ -756,7 +756,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (!src.IsDense)
                         src.GetIndices().CopyTo(mutation.Indices);
 
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
             }
             // It is not sparsity preserving.
@@ -784,7 +784,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     for (int i = 0; i < srcValues.Length; ++i)
                         mutation.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             };
         }
 
@@ -826,7 +826,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         srcIndices.CopyTo(mutation.Indices);
 
                     }
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
             }
             // It is not sparsity preserving.
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             Contracts.Assert(false, "this should have never happened.");
                     }
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             };
         }
 

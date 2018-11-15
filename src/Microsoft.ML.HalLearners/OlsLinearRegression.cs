@@ -791,7 +791,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                     score = float.MaxValue;
                 mutation.Values[i] = score;
             }
-            weights = mutation.CreateBuffer();
+            weights = mutation.Commit();
         }
     }
 }

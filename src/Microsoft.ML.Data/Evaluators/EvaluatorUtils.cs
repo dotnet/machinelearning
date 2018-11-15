@@ -718,7 +718,7 @@ namespace Microsoft.ML.Runtime.Data
                                 mutation.Indices[j] = srcIndices[j];
                             }
                         }
-                        dst = mutation.CreateBuffer();
+                        dst = mutation.Commit();
                     };
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;

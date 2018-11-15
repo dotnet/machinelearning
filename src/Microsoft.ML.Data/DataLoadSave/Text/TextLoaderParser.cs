@@ -411,12 +411,12 @@ namespace Microsoft.ML.Runtime.Data
                     _values.AsSpan(0, _count).CopyTo(mutation.Values);
                     if (_count == _size)
                     {
-                        dst = mutation.CreateBuffer();
+                        dst = mutation.Commit();
                         return;
                     }
 
                     _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 }
             }
 

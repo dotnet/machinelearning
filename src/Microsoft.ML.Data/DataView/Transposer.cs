@@ -1299,7 +1299,7 @@ namespace Microsoft.ML.Runtime.Data
                                     {
                                         mutation = VBufferMutationContext.Create(ref value, len);
                                         _inputValue.GetValues().Slice(min, len).CopyTo(mutation.Values);
-                                        value = mutation.CreateBuffer();
+                                        value = mutation.Commit();
                                         return;
                                     }
                                     // In the sparse case we have ranges on Indices/Values to consider.
@@ -1325,7 +1325,7 @@ namespace Microsoft.ML.Runtime.Data
                                         }
                                     }
                                     _inputValue.GetValues().Slice(smin, scount).CopyTo(mutation.Values);
-                                    value = mutation.CreateBuffer();
+                                    value = mutation.Commit();
                                 };
                         }
 

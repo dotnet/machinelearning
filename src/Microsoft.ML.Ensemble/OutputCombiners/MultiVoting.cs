@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 mutation.Values[i] /= voteCount;
 
             // Set the output to values.
-            dst = mutation.CreateBuffer();
+            dst = mutation.Commit();
         }
     }
 }

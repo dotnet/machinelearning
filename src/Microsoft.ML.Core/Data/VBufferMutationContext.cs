@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
     /// An object capable of mutation a <see cref="VBuffer{T}"/> by filling out
     /// <see cref="Values"/> (and <see cref="Indices"/> if the buffer is not dense).
     /// </summary>
-    public ref struct VBufferMutationContext<T>
+    public readonly ref struct VBufferMutationContext<T>
     {
         private readonly int _logicalLength;
         private readonly T[] _values;
@@ -122,29 +122,40 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Creates a new <see cref="VBuffer{T}"/> using the current
-        /// Values and Indices.
+        /// Commits the edits and creates a new <see cref="VBuffer{T}"/> using
+        /// the current Values and Indices.
+        /// </summary>
+        /// <returns>
+        /// The newly created <see cref="VBuffer{T}"/>.
+        /// </returns>
+        public VBuffer<T> Commit()
+        {
+            return new VBuffer<T>(_logicalLength, Values.Length, _values, _indices);
+        }
+
+        /// <summary>
+        /// Commits the edits and creates a new <see cref="VBuffer{T}"/> using
+        /// the current Values and Indices, while allowing to truncate the length
+        /// of Values and Indices.
         /// </summary>
         /// <param name="physicalValuesCount">
-        /// An optional size that allows reducing the number of physical values to be
-        /// represented in the created buffer.
-        /// This is useful in sparse situations where the mutation context was created
-        /// with a larger physical value count than was needed
-        /// because the final value count was not known at creation time.
+        /// The new number of physical values to be represented in the created buffer.
         /// </param>
         /// <returns>
         /// The newly created <see cref="VBuffer{T}"/>.
         /// </returns>
-        public VBuffer<T> CreateBuffer(int? physicalValuesCount = null)
+        /// <remarks>
+        /// CommitTruncated allows to modify the length of the explicitly
+        /// defined values.
+        /// This is useful in sparse situations where the <see cref="VBufferMutationContext{T}"/>
+        /// was created with a larger physical value count than was needed
+        /// because the final value count was not known at creation time.
+        /// </remarks>
+        public VBuffer<T> CommitTruncated(int physicalValuesCount)
         {
-            int count = Values.Length;
-            if (physicalValuesCount.HasValue)
-            {
-                Contracts.Check(physicalValuesCount.Value <= count, "Updating physicalValuesCount during Complete cannot be greater than the original physicalValuesCount value used in Create.");
-                count = physicalValuesCount.Value;
-            }
+            Contracts.CheckParam(physicalValuesCount <= Values.Length, nameof(physicalValuesCount), "Updating physicalValuesCount during CommitTruncated cannot be greater than the original physicalValuesCount value used in Create.");
 
-            return new VBuffer<T>(_logicalLength, count, _values, _indices);
+            return new VBuffer<T>(_logicalLength, physicalValuesCount, _values, _indices);
         }
     }
 }

@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     mutation.Values[iDst++] = srcValues[iSrc++];
                 }
                 Contracts.Assert(iDst == newLength);
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
                 return;
             }
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            dst = mutation.CreateBuffer(iiDst);
+            dst = mutation.CommitTruncated(iiDst);
         }
     }
 }

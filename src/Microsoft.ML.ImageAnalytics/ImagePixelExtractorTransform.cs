@@ -607,7 +607,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             }
                         }
 
-                        dst = mutation.CreateBuffer();
+                        dst = mutation.Commit();
                     };
             }
 

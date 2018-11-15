@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Data
                 CopyTo(mutation.Values);
             else if (Length > 0)
                 _values.AsSpan(0, Length).CopyTo(mutation.Values);
-            dst = mutation.CreateBuffer();
+            dst = mutation.Commit();
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     _values.AsSpan(0, Length).CopyTo(mutation.Values);
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
                 Contracts.Assert(dst.IsDense);
             }
             else
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values.AsSpan(0, _count).CopyTo(mutation.Values);
                     _indices.AsSpan(0, _count).CopyTo(mutation.Indices);
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     _values.AsSpan(srcMin, length).CopyTo(mutation.Values);
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
                 Contracts.Assert(dst.IsDense);
             }
             else
@@ -196,12 +196,12 @@ namespace Microsoft.ML.Runtime.Data
                                 mutation.Indices[i] = _indices[i + copyMin] - srcMin;
                         }
                     }
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 }
                 else
                 {
                     var mutation = VBufferMutationContext.Create(ref dst, length, copyCount);
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 }
             }
         }
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 src.AsSpan(srcIndex, length).CopyTo(mutation.Values);
             }
-            dst = mutation.CreateBuffer();
+            dst = mutation.Commit();
         }
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)

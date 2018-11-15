@@ -606,7 +606,7 @@ namespace Microsoft.ML.Transforms.Projections
                     }
 
                     CpuMathUtils.Scale(normScale, src.GetValues(), dstValues, count);
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
 
                     return;
                 }

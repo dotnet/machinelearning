@@ -292,7 +292,7 @@ namespace Microsoft.ML.Transforms
                 mutation.Indices[0] = 0;
             }
 
-            result = mutation.CreateBuffer();
+            result = mutation.Commit();
         }
 
         // This converts in place.
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Transforms
             }
 
             ectx.Assert(0 <= iivDst & iivDst <= values.Length);
-            buffer = mutation.CreateBuffer(iivDst);
+            buffer = mutation.CommitTruncated(iivDst);
         }
     }
 }

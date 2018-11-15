@@ -873,7 +873,7 @@ namespace Microsoft.ML.Transforms.Text
                         mutation = VBufferMutationContext.Create(ref dst, len);
                         for (int k = 0; k < len; k++)
                             mutation.Values[k] = Float.NaN;
-                        dst = mutation.CreateBuffer();
+                        dst = mutation.Commit();
                         return;
                     }
 
@@ -919,7 +919,7 @@ namespace Microsoft.ML.Transforms.Text
                     for (int i = 0; i < count; i++)
                         mutation.Values[i] = (Float)(mutation.Values[i] / normalizer);
                 }
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
 
             public void Dispose()

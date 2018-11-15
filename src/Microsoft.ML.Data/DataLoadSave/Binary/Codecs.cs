@@ -1118,7 +1118,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                             _values.AsSpan(_valuesOffset, length)
                                 .CopyTo(mutation.Values);
                         }
-                        value = mutation.CreateBuffer();
+                        value = mutation.Commit();
                     }
                     else
                     {
@@ -1131,7 +1131,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                             _indices.AsSpan(_indicesOffset, count)
                                 .CopyTo(mutation.Indices);
                         }
-                        value = mutation.CreateBuffer();
+                        value = mutation.Commit();
                     }
                 }
             }

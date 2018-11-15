@@ -487,7 +487,7 @@ namespace Microsoft.ML.Transforms.Text
                         Contracts.Assert(index == len);
                     }
 
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
 
                 ValueGetter<VBuffer<ushort>> getterWithUnitSep = (ref VBuffer<ushort> dst) =>
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Transforms.Text
                         Contracts.Assert(index == len);
                     }
 
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 };
                 return _parent._isSeparatorStartEnd ? getterWithStartEndSep : getterWithUnitSep;
             }

@@ -266,7 +266,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             Host.Assert(iDst == newCount);
 
-            dst = mutation.CreateBuffer();
+            dst = mutation.Commit();
         }
 
         private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 Host.Assert(iDst == newCount);
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
             else
             {
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 Host.Assert(iDst == newCount);
                 Host.Assert(offset == srcValues.Length - newCount);
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
         }
     }

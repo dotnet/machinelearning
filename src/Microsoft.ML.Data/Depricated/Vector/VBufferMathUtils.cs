@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     mutation.Values.Clear();
                 else
                     CpuMathUtils.Scale(c, srcValues, mutation.Values, length);
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
             else
             {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     mutation.Values.Clear();
                 else
                     CpuMathUtils.Scale(c, srcValues, mutation.Values, count);
-                dst = mutation.CreateBuffer();
+                dst = mutation.Commit();
             }
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 var mutation = VBufferMutationContext.Create(ref res, length);
                 CpuMathUtils.AddScaleCopy(c, srcValues, dst.GetValues(), mutation.Values, length);
-                res = mutation.CreateBuffer();
+                res = mutation.Commit();
                 return;
             }
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     }
                 }
             }
-            dst = mutation.CreateBuffer();
+            dst = mutation.Commit();
         }
 
         /// <summary>
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     var mutation = VBufferMutationContext.Create(ref dst, src.Length);
                     if (!mutation.CreatedNewValues) // We need to clear it.
                         mutation.Values.Clear();
-                    dst = mutation.CreateBuffer();
+                    dst = mutation.Commit();
                 }
                 else
                 {
