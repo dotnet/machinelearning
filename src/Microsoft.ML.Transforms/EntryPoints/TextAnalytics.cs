@@ -119,19 +119,19 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LightLda",
-            Desc = LdaTransformer.Summary,
-            UserName = LdaTransformer.UserName,
-            ShortName = LdaTransformer.ShortName,
+            Desc = LatentDirichletAllocationTransformer.Summary,
+            UserName = LatentDirichletAllocationTransformer.UserName,
+            ShortName = LatentDirichletAllocationTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""LightLDA""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""LightLDA""]/*' />" })]
-        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LatentDirichletAllocationTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var cols = input.Column.Select(colPair => new LdaTransformer.ColumnInfo(colPair, input)).ToArray();
-            var est = new LdaEstimator(h, cols);
+            var cols = input.Column.Select(colPair => new LatentDirichletAllocationTransformer.ColumnInfo(colPair, input)).ToArray();
+            var est = new LatentDirichletAllocationEstimator(h, cols);
             var view = est.Fit(input.Data).Transform(input.Data);
 
             return new CommonOutputs.TransformOutput()

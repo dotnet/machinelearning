@@ -253,7 +253,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LdaEstimator(env, "bag_of_words", "topics", 10,
+                Append(new LatentDirichletAllocationEstimator(env, "bag_of_words", "topics", 10,
                     numIterations: 10,
                     resetRandomGenerator: true));
 
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Tests.Transformers
             builder.AddColumn("F1V", NumberType.Float, data);
             var srcView = builder.GetDataView();
 
-            var est = ml.Transforms.Text.Lda("F1V");
+            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");
             TestEstimatorCore(est, srcView);
         }
 

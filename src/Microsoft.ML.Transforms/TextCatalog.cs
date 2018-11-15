@@ -170,7 +170,7 @@ namespace Microsoft.ML
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LdaEstimator"/>.
+        /// Initializes a new instance of <see cref="LatentDirichletAllocationEstimator"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">The column containing a fixed length vector of input tokens.</param>
@@ -186,30 +186,30 @@ namespace Microsoft.ML
         /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
         /// <param name="numBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-        public static LdaEstimator Lda(this TransformsCatalog.TextTransforms catalog,
+        public static LatentDirichletAllocationEstimator LatentDirichletAllocation(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            int numTopic = LdaEstimator.Defaults.NumTopic,
-            float alphaSum = LdaEstimator.Defaults.AlphaSum,
-            float beta = LdaEstimator.Defaults.Beta,
-            int mhstep = LdaEstimator.Defaults.Mhstep,
-            int numIterations = LdaEstimator.Defaults.NumIterations,
-            int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
-            int numThreads = LdaEstimator.Defaults.NumThreads,
-            int numMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken,
-            int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
-            int numBurninIterations = LdaEstimator.Defaults.NumBurninIterations,
-            bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator)
-            => new LdaEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
+            int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+            float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+            float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+            int mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
+            int numIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+            int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+            int numThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads,
+            int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
+            int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
+            int numBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+            bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
+            => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LdaEstimator"/>.
+        /// Initializes a new instance of <see cref="LatentDirichletAllocationEstimator"/>.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of LDA for each column pair.</param>
-        public static LdaEstimator Lda(this TransformsCatalog.TextTransforms catalog, params LdaTransformer.ColumnInfo[] columns)
-            => new LdaEstimator(CatalogUtils.GetEnvironment(catalog), columns);
+        public static LatentDirichletAllocationEstimator LatentDirichletAllocation(this TransformsCatalog.TextTransforms catalog, params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
+            => new LatentDirichletAllocationEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
     }
 }

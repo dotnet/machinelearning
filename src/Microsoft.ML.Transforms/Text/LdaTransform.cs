@@ -18,17 +18,17 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(LdaTransformer.Summary, typeof(IDataTransform), typeof(LdaTransformer), typeof(LdaTransformer.Arguments), typeof(SignatureDataTransform),
-    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature, "Lda")]
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(IDataTransform), typeof(LatentDirichletAllocationTransformer), typeof(LatentDirichletAllocationTransformer.Arguments), typeof(SignatureDataTransform),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature, "Lda")]
 
-[assembly: LoadableClass(LdaTransformer.Summary, typeof(IDataTransform), typeof(LdaTransformer), null, typeof(SignatureLoadDataTransform),
-    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(IDataTransform), typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadDataTransform),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(LdaTransformer.Summary, typeof(LdaTransformer), null, typeof(SignatureLoadModel),
-    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadModel),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(LdaTransformer), null, typeof(SignatureLoadRowMapper),
-    "Latent Dirichlet Allocation Transform", LdaTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadRowMapper),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Transforms.Text
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
     // for an example on how to use LdaTransformer.
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaTransformer : OneToOneTransformerBase
+    public sealed class LatentDirichletAllocationTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -58,48 +58,48 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
             [TlcModule.SweepableDiscreteParam("NumTopic", new object[] { 20, 40, 100, 200 })]
-            public int NumTopic = LdaEstimator.Defaults.NumTopic;
+            public int NumTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
             [TGUI(SuggestedSweeps = "1,10,100,200")]
             [TlcModule.SweepableDiscreteParam("AlphaSum", new object[] { 1, 10, 100, 200 })]
-            public float AlphaSum = LdaEstimator.Defaults.AlphaSum;
+            public float AlphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
             [TGUI(SuggestedSweeps = "0.01,0.015,0.07,0.02")]
             [TlcModule.SweepableDiscreteParam("Beta", new object[] { 0.01f, 0.015f, 0.07f, 0.02f })]
-            public float Beta = LdaEstimator.Defaults.Beta;
+            public float Beta = LatentDirichletAllocationEstimator.Defaults.Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             [TGUI(SuggestedSweeps = "2,4,8,16")]
             [TlcModule.SweepableDiscreteParam("Mhstep", new object[] { 2, 4, 8, 16 })]
-            public int Mhstep = LdaEstimator.Defaults.Mhstep;
+            public int Mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter")]
             [TGUI(SuggestedSweeps = "100,200,300,400")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 100, 200, 300, 400 })]
-            public int NumIterations = LdaEstimator.Defaults.NumIterations;
+            public int NumIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Compute log likelihood over local dataset on this iteration interval", ShortName = "llInterval")]
-            public int LikelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval;
+            public int LikelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval;
 
             // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
             public int? NumThreads;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
-            public int NumMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken;
+            public int NumMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of words to summarize the topic", ShortName = "ns")]
-            public int NumSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic;
+            public int NumSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of burn-in iterations", ShortName = "burninIter")]
             [TGUI(SuggestedSweeps = "10,20,30,40")]
             [TlcModule.SweepableDiscreteParam("NumBurninIterations", new object[] { 10, 20, 30, 40 })]
-            public int NumBurninIterations = LdaEstimator.Defaults.NumBurninIterations;
+            public int NumBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Reset the random number generator for each document", ShortName = "reset")]
-            public bool ResetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator;
+            public bool ResetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the topic-word summary in text format", ShortName = "summary")]
             public bool OutputTopicWordSummary;
@@ -194,17 +194,17 @@ namespace Microsoft.ML.Transforms.Text
             /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
             public ColumnInfo(string input,
                 string output = null,
-                int numTopic = LdaEstimator.Defaults.NumTopic,
-                float alphaSum = LdaEstimator.Defaults.AlphaSum,
-                float beta = LdaEstimator.Defaults.Beta,
-                int mhStep = LdaEstimator.Defaults.Mhstep,
-                int numIter = LdaEstimator.Defaults.NumIterations,
-                int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
-                int numThread = LdaEstimator.Defaults.NumThreads,
-                int numMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken,
-                int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
-                int numBurninIter = LdaEstimator.Defaults.NumBurninIterations,
-                bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator)
+                int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+                float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+                float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+                int mhStep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
+                int numIter = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+                int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+                int numThread = LatentDirichletAllocationEstimator.Defaults.NumThreads,
+                int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
+                int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
+                int numBurninIter = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+                bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             {
                 Input = input;
                 Contracts.CheckValue(Input, nameof(Input));
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        internal sealed class LdaState : IDisposable
+        private sealed class LdaState : IDisposable
         {
             internal readonly ColumnInfo InfoEx;
             private readonly int _numVocab;
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Transforms.Text
             public void Output(in VBuffer<Double> src, ref VBuffer<float> dst, int numBurninIter, bool reset)
             {
                 // Prediction for a single document.
-                // LdafloatBox.InitializeBeforeTest() is NOT thread-safe.
+                // LdaSingleBox.InitializeBeforeTest() is NOT thread-safe.
                 if (!_predictionPreparationDone)
                 {
                     lock (_preparationSyncRoot)
@@ -659,11 +659,11 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase
         {
-            private readonly LdaTransformer _parent;
+            private readonly LatentDirichletAllocationTransformer _parent;
             private readonly ColumnType[] _srcTypes;
             private readonly int[] _srcCols;
 
-            public Mapper(LdaTransformer parent, Schema inputSchema)
+            public Mapper(LatentDirichletAllocationTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -721,7 +721,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public const string LoaderSignature = "LdaTransformer";
+        public const string LoaderSignature = "LdaTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LdaTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(LatentDirichletAllocationTransformer).Assembly.FullName);
         }
 
         private readonly ColumnInfo[] _columns;
@@ -749,20 +749,20 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Initializes a new <see cref="LdaTransformer"/> object.
+        /// Initializes a new <see cref="LatentDirichletAllocationTransformer"/> object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="ldas">An array of LdaState objects, where ldas[i] is learnt from the i-th element of <paramref name="columns"/>.</param>
         /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
-        internal LdaTransformer(IHostEnvironment env, LdaState[] ldas, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransformer)), GetColumnPairs(columns))
+        private LatentDirichletAllocationTransformer(IHostEnvironment env, LdaState[] ldas, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LatentDirichletAllocationTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
             _columns = columns;
             _ldas = ldas;
         }
 
-        private LdaTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
+        private LatentDirichletAllocationTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
         {
             Host.AssertValue(ctx);
 
@@ -782,15 +782,15 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        // Computes the LdaState needed for computing LDA features from training data.
-        internal static LdaState[] TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params ColumnInfo[] columns)
+        internal static LatentDirichletAllocationTransformer TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params ColumnInfo[] columns)
         {
             var ldas = new LdaState[columns.Length];
             using (var ch = env.Start("Train"))
             {
                 Train(env, ch, inputData, ldas, columns);
             }
-            return ldas;
+
+            return new LatentDirichletAllocationTransformer(env, ldas, columns);
         }
 
         private void Dispose(bool disposing)
@@ -809,7 +809,7 @@ namespace Microsoft.ML.Transforms.Text
             Dispose(true);
         }
 
-        ~LdaTransformer()
+        ~LatentDirichletAllocationTransformer()
         {
             Dispose(false);
         }
@@ -839,12 +839,11 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(args.Column, nameof(args.Column));
 
             var cols = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
-            var ldas = TrainLdaTransformer(env, input, cols);
-            return new LdaTransformer(env, ldas, cols).MakeDataTransform(input);
+            return TrainLdaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel
-        private static LdaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static LatentDirichletAllocationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(RegistrationName);
@@ -861,7 +860,7 @@ namespace Microsoft.ML.Transforms.Text
                     // <remainder handled in ctors>
                     int cbFloat = ctx.Reader.ReadInt32();
                     h.CheckDecode(cbFloat == sizeof(float));
-                    return new LdaTransformer(h, ctx);
+                    return new LatentDirichletAllocationTransformer(h, ctx);
                 });
         }
 
@@ -1038,7 +1037,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaEstimator : IEstimator<LdaTransformer>
+    public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
     {
         internal static class Defaults
         {
@@ -1056,7 +1055,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly ImmutableArray<LdaTransformer.ColumnInfo> _columns;
+        private readonly ImmutableArray<LatentDirichletAllocationTransformer.ColumnInfo> _columns;
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
@@ -1073,7 +1072,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
         /// <param name="numBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-        public LdaEstimator(IHostEnvironment env,
+        public LatentDirichletAllocationEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
             int numTopic = Defaults.NumTopic,
@@ -1087,7 +1086,7 @@ namespace Microsoft.ML.Transforms.Text
             int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
             int numBurninIterations = Defaults.NumBurninIterations,
             bool resetRandomGenerator = Defaults.ResetRandomGenerator)
-            : this(env, new[] { new LdaTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
+            : this(env, new[] { new LatentDirichletAllocationTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
                 numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
         { }
@@ -1095,10 +1094,10 @@ namespace Microsoft.ML.Transforms.Text
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
-        public LdaEstimator(IHostEnvironment env, params LdaTransformer.ColumnInfo[] columns)
+        public LatentDirichletAllocationEstimator(IHostEnvironment env, params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(LdaEstimator));
+            _host = env.Register(nameof(LatentDirichletAllocationEstimator));
             _columns = columns.ToImmutableArray();
         }
 
@@ -1122,10 +1121,9 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public LdaTransformer Fit(IDataView input)
+        public LatentDirichletAllocationTransformer Fit(IDataView input)
         {
-            var ldas = LdaTransformer.TrainLdaTransformer(_host, input, _columns.ToArray());
-            return new LdaTransformer(_host, ldas, _columns.ToArray());
+            return LatentDirichletAllocationTransformer.TrainLdaTransformer(_host, input, _columns.ToArray());
         }
     }
 }

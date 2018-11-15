@@ -819,7 +819,7 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1V", NumberType.Float, data);
             var srcView = builder.GetDataView();
 
-            var est = new LdaEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
             var ldaTransform = est.Fit(srcView).Transform(srcView);
 
             using (var cursor = ldaTransform.GetRowCursor(c => true))
@@ -866,18 +866,18 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("Zeros", NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LdaTransformer.Column()
+            var col = new LatentDirichletAllocationTransformer.Column()
             {
                 Source = "Zeros",
             };
-            var args = new LdaTransformer.Arguments()
+            var args = new LatentDirichletAllocationTransformer.Arguments()
             {
                 Column = new[] { col }
             };
 
             try
             {
-                var lda = new LdaEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
+                var lda = new LatentDirichletAllocationEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {

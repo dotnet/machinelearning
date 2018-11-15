@@ -24,8 +24,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="result"></param>
         public delegate void OnFit(LdaFitResult result);
 
-        public LdaTransformer.LdaTopicSummary LdaTopicSummary;
-        public LdaFitResult(LdaTransformer.LdaTopicSummary ldaTopicSummary)
+        public LatentDirichletAllocationTransformer.LdaTopicSummary LdaTopicSummary;
+        public LdaFitResult(LatentDirichletAllocationTransformer.LdaTopicSummary ldaTopicSummary)
         {
             LdaTopicSummary = ldaTopicSummary;
         }
@@ -47,11 +47,11 @@ namespace Microsoft.ML.Transforms.Text
             public readonly int NumBurninIter;
             public readonly bool ResetRandomGenerator;
 
-            public readonly Action<LdaTransformer.LdaTopicSummary> OnFit;
+            public readonly Action<LatentDirichletAllocationTransformer.LdaTopicSummary> OnFit;
 
             public Config(int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
                 int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator,
-                Action<LdaTransformer.LdaTopicSummary> onFit)
+                Action<LatentDirichletAllocationTransformer.LdaTopicSummary> onFit)
             {
                 NumTopic = numTopic;
                 AlphaSum = alphaSum;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private static Action<LdaTransformer.LdaTopicSummary> Wrap(LdaFitResult.OnFit onFit)
+        private static Action<LatentDirichletAllocationTransformer.LdaTopicSummary> Wrap(LdaFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
@@ -104,13 +104,13 @@ namespace Microsoft.ML.Transforms.Text
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                var infos = new LdaTransformer.ColumnInfo[toOutput.Length];
-                Action<LdaTransformer> onFit = null;
+                var infos = new LatentDirichletAllocationTransformer.ColumnInfo[toOutput.Length];
+                Action<LatentDirichletAllocationTransformer> onFit = null;
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ILdaCol)toOutput[i];
 
-                    infos[i] = new LdaTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                    infos[i] = new LatentDirichletAllocationTransformer.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
                         tcol.Config.NumTopic,
                         tcol.Config.AlphaSum,
                         tcol.Config.Beta,
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
 
-                var est = new LdaEstimator(env, infos);
+                var est = new LatentDirichletAllocationEstimator(env, infos);
                 if (onFit == null)
                     return est;
 
@@ -153,17 +153,17 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         public static Vector<float> ToLdaTopicVector(this Vector<float> input,
-            int numTopic = LdaEstimator.Defaults.NumTopic,
-            Single alphaSum = LdaEstimator.Defaults.AlphaSum,
-            Single beta = LdaEstimator.Defaults.Beta,
-            int mhstep = LdaEstimator.Defaults.Mhstep,
-            int numIterations = LdaEstimator.Defaults.NumIterations,
-            int likelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval,
-            int numThreads = LdaEstimator.Defaults.NumThreads,
-            int numMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken,
-            int numSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic,
-            int numBurninIterations = LdaEstimator.Defaults.NumBurninIterations,
-            bool resetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator,
+            int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+            Single alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+            Single beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+            int mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
+            int numIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+            int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+            int numThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads,
+            int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
+            int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
+            int numBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+            bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator,
             LdaFitResult.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));

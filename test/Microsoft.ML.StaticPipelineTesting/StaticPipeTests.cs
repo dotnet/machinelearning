@@ -22,7 +22,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.Transforms.Text.LdaTransformer;
+using static Microsoft.ML.Transforms.Text.LatentDirichletAllocationTransformer;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
