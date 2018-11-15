@@ -6,10 +6,10 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +28,7 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadRowMapper),
    MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
     public sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private Delegate GetIsNADelegate<T>(ColumnType type)
             {
-                return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
             public override Schema.Column[] GetOutputColumns()
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 if (col.Kind != SchemaShape.Column.VectorKind.Vector)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Expected vector", col.GetTypeString());
