@@ -46,15 +46,13 @@ namespace Microsoft.ML.Runtime.Learners
         protected readonly IHost Host;
         protected readonly ICalibratorTrainer Calibrator;
 
-        private TScalarTrainer _trainer;
+        private readonly TScalarTrainer _trainer;
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
-
-        public TScalarTrainer SingleEstimator;
 
         /// <summary>
         /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
@@ -75,19 +73,17 @@ namespace Microsoft.ML.Runtime.Learners
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
-            // Create the first trainer so errors in the args surface early.
-            _trainer = singleEstimator ?? CreateTrainer();
+            _trainer = singleEstimator;
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
-
             if (args.Calibrator != null)
                 Calibrator = args.Calibrator.CreateComponent(Host);
 
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
-            Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
-            SingleEstimator = singleEstimator;
-    }
+            var trainer = _trainer ?? CreateTrainer();
+            Info = new TrainerInfo(normalization: trainer.Info.NeedNormalization);
+        }
 
         private TScalarTrainer CreateTrainer()
         {
@@ -122,11 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected TScalarTrainer GetTrainer()
         {
-            if(SingleEstimator == null)
-            {
-                _trainer = Args.PredictorType != null ? Args.PredictorType.CreateComponent(Host) : new LinearSvm(Host, new LinearSvm.Arguments());
-            }
-            return _trainer;
+            return _trainer ?? CreateTrainer();
         }
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
