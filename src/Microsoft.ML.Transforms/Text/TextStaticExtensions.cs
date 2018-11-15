@@ -5,13 +5,12 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
-namespace Microsoft.ML.Transforms.Text
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Extensions for statically typed word tokenizer.
