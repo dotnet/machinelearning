@@ -298,7 +298,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             var aggregators = new CountAggregator[size];
             long rowCur = 0;
-            double rowCount = input.GetRowCount(true) ?? double.NaN;
+            double rowCount = input.GetRowCount() ?? double.NaN;
             using (var pch = env.StartProgressChannel("Aggregating counts"))
             using (var cursor = input.GetRowCursor(col => activeInput[col]))
             {

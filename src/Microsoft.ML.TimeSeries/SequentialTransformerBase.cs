@@ -356,9 +356,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema => _bindings.Schema;
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
-                return _transform.GetRowCount(lazy);
+                return _transform.GetRowCount();
             }
 
             public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)

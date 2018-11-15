@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static long ComputeRowCount(IDataView view)
         {
-            long? countNullable = view.GetRowCount(lazy: false);
+            long? countNullable = view.GetRowCount();
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;

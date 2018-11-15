@@ -149,13 +149,13 @@ namespace Microsoft.ML.Transforms
             _schemaImpl.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // Row count is known if the input's row count is known, and pivot column sizes are fixed.
             var commonSize = _schemaImpl.GetCommonPivotColumnSize();
             if (commonSize > 0)
             {
-                long? srcRowCount = Source.GetRowCount(true);
+                long? srcRowCount = Source.GetRowCount();
                 if (srcRowCount.HasValue && srcRowCount.Value <= (long.MaxValue / commonSize))
                     return srcRowCount.Value * commonSize;
             }
