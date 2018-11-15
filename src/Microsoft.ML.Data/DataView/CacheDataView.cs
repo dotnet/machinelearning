@@ -194,20 +194,12 @@ namespace Microsoft.ML.Data
         public Schema Schema => _subsetInput.Schema;
 
         /// <summary>
-        /// This implementation can cost more than O(1) operations because it tries its best to
-        /// compute the actual row count.
+        /// Return the number of rows if available.
         /// </summary>
-        /// <returns>number of rows</returns>
         public long? GetRowCount()
         {
             if (_rowCount < 0)
-            {
-                if (_cacheDefaultWaiter == null)
-                    KickoffFiller(new int[0]);
-                _host.Assert(_cacheDefaultWaiter != null);
-                _cacheDefaultWaiter.Wait(long.MaxValue);
-                _host.Assert(_rowCount >= 0);
-            }
+                return null;
             return _rowCount;
         }
 

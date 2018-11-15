@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
         /// not YET know the number of rows, but may in the future. Its implementation's computation
         /// complexity should be O(1).
         ///
-        /// Most implementation will return the same answer from time to time. Some, like a cache, might
+        /// Most implementation will return the same answer every time. Some, like a cache, might
         /// return null until the cache is fully populated.
         /// </summary>
         long? GetRowCount();
