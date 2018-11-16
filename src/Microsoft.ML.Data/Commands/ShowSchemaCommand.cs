@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
             var value = default(VBuffer<T>);
             schema.GetMetadata(kind, col, ref value);
 
-            itw.Write(": Length={0}, Count={0}", value.Length, value.Count);
+            itw.Write(": Length={0}, Count={0}", value.Length, value.GetValues().Length);
 
             using (itw.Nest())
             {

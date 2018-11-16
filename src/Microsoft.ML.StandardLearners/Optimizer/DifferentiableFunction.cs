@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         /// <param name="f"></param>
         /// <param name="x"></param>
-        public static void TestAllCoords(DifferentiableFunction f, ref VBuffer<Float> x)
+        public static void TestAllCoords(DifferentiableFunction f, in VBuffer<Float> x)
         {
             // REVIEW: Delete this method?
             VBuffer<Float> grad = default(VBuffer<Float>);
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="f">Function to test</param>
         /// <param name="x">Point at which to test</param>
         /// <param name="coords">List of coordinates to test</param>
-        public static void TestCoords(DifferentiableFunction f, ref VBuffer<Float> x, IList<int> coords)
+        public static void TestCoords(DifferentiableFunction f, in VBuffer<Float> x, IList<int> coords)
         {
             // REVIEW: Delete this method?
             VBuffer<Float> grad = default(VBuffer<Float>);

@@ -631,18 +631,20 @@ namespace Microsoft.ML.Transforms
                             cachedIndex = 0;
                         }
 
+                        var rowValues = row.GetValues();
                         if (_pivotColPosition >= row.Length)
                             value = naValue;
                         else if (row.IsDense)
-                            value = row.Values[_pivotColPosition];
+                            value = rowValues[_pivotColPosition];
                         else
                         {
                             // The row is sparse.
-                            while (cachedIndex < row.Count && _pivotColPosition > row.Indices[cachedIndex])
+                            var rowIndices = row.GetIndices();
+                            while (cachedIndex < rowIndices.Length && _pivotColPosition > rowIndices[cachedIndex])
                                 cachedIndex++;
 
-                            if (cachedIndex < row.Count && _pivotColPosition == row.Indices[cachedIndex])
-                                value = row.Values[cachedIndex];
+                            if (cachedIndex < rowIndices.Length && _pivotColPosition == rowIndices[cachedIndex])
+                                value = rowValues[cachedIndex];
                             else
                                 value = default(T);
                         }

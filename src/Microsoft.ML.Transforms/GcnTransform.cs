@@ -483,8 +483,9 @@ namespace Microsoft.ML.Transforms.Projections
                                 (ref VBuffer<float> dst) =>
                                 {
                                     getSrc(ref src);
-                                    var mean = Mean(src.Values, src.Count, src.Length);
-                                    var divisor = StdDev(src.Values, src.Count, src.Length, mean);
+                                    var srcValues = src.GetValues();
+                                    var mean = Mean(srcValues, src.Length);
+                                    var divisor = StdDev(srcValues, src.Length, mean);
                                     FillValues(Host, in src, ref dst, divisor, scale, mean);
                                 };
                             return del;
@@ -493,8 +494,9 @@ namespace Microsoft.ML.Transforms.Projections
                                (ref VBuffer<float> dst) =>
                                {
                                    getSrc(ref src);
-                                   var mean = Mean(src.Values, src.Count, src.Length);
-                                   var divisor = L2Norm(src.Values, src.Count, mean);
+                                   var srcValues = src.GetValues();
+                                   var mean = Mean(srcValues, src.Length);
+                                   var divisor = L2Norm(srcValues, mean);
                                    FillValues(Host, in src, ref dst, divisor, scale, mean);
                                };
                             return del;
@@ -503,8 +505,9 @@ namespace Microsoft.ML.Transforms.Projections
                                (ref VBuffer<float> dst) =>
                                {
                                    getSrc(ref src);
-                                   var mean = Mean(src.Values, src.Count, src.Length);
-                                   var divisor = L1Norm(src.Values, src.Count, mean);
+                                   var srcValues = src.GetValues();
+                                   var mean = Mean(srcValues, src.Length);
+                                   var divisor = L1Norm(srcValues, mean);
                                    FillValues(Host, in src, ref dst, divisor, scale, mean);
                                };
                             return del;
@@ -513,8 +516,9 @@ namespace Microsoft.ML.Transforms.Projections
                                (ref VBuffer<float> dst) =>
                                {
                                    getSrc(ref src);
-                                   var mean = Mean(src.Values, src.Count, src.Length);
-                                   var divisor = LInfNorm(src.Values, src.Count, mean);
+                                   var srcValues = src.GetValues();
+                                   var mean = Mean(srcValues, src.Length);
+                                   var divisor = LInfNorm(srcValues, mean);
                                    FillValues(Host, in src, ref dst, divisor, scale, mean);
                                };
                             return del;
@@ -531,7 +535,7 @@ namespace Microsoft.ML.Transforms.Projections
                             (ref VBuffer<float> dst) =>
                             {
                                 getSrc(ref src);
-                                var divisor = StdDev(src.Values, src.Count, src.Length);
+                                var divisor = StdDev(src.GetValues(), src.Length);
                                 FillValues(Host, in src, ref dst, divisor, scale);
                             };
                         return del;
@@ -540,7 +544,7 @@ namespace Microsoft.ML.Transforms.Projections
                            (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               var divisor = L2Norm(src.Values, src.Count);
+                               var divisor = L2Norm(src.GetValues());
                                FillValues(Host, in src, ref dst, divisor, scale);
                            };
                         return del;
@@ -549,7 +553,7 @@ namespace Microsoft.ML.Transforms.Projections
                            (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               var divisor = L1Norm(src.Values, src.Count);
+                               var divisor = L1Norm(src.GetValues());
                                FillValues(Host, in src, ref dst, divisor, scale);
                            };
                         return del;
@@ -558,7 +562,7 @@ namespace Microsoft.ML.Transforms.Projections
                            (ref VBuffer<float> dst) =>
                            {
                                getSrc(ref src);
-                               var divisor = LInfNorm(src.Values, src.Count);
+                               var divisor = LInfNorm(src.GetValues());
                                FillValues(Host, in src, ref dst, divisor, scale);
                            };
                         return del;
@@ -570,14 +574,14 @@ namespace Microsoft.ML.Transforms.Projections
 
             private static void FillValues(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst, float divisor, float scale, float offset = 0)
             {
-                int count = src.Count;
+                var srcValues = src.GetValues();
+                int count = srcValues.Length;
                 int length = src.Length;
-                ectx.Assert(Utils.Size(src.Values) >= count);
                 ectx.Assert(divisor >= 0);
 
                 if (count == 0)
                 {
-                    dst = new VBuffer<float>(length, 0, dst.Values, dst.Indices);
+                    VBufferUtils.Resize(ref dst, length, 0);
                     return;
                 }
                 ectx.Assert(count > 0);
@@ -591,21 +595,18 @@ namespace Microsoft.ML.Transforms.Projections
                 if (normScale < MinScale)
                     normScale = 1;
 
+                VBufferEditor<float> editor;
                 if (offset == 0)
                 {
-                    var dstValues = dst.Values;
-                    if (Utils.Size(dstValues) < count)
-                        dstValues = new float[count];
-                    var dstIndices = dst.Indices;
+                    editor = VBufferEditor.Create(ref dst, length, count);
+                    var dstValues = editor.Values;
                     if (!src.IsDense)
                     {
-                        if (Utils.Size(dstIndices) < count)
-                            dstIndices = new int[count];
-                        Array.Copy(src.Indices, dstIndices, count);
+                        src.GetIndices().CopyTo(editor.Indices);
                     }
 
-                    CpuMathUtils.Scale(normScale, src.Values, dstValues, count);
-                    dst = new VBuffer<float>(length, count, dstValues, dstIndices);
+                    CpuMathUtils.Scale(normScale, src.GetValues(), dstValues, count);
+                    dst = editor.Commit();
 
                     return;
                 }
@@ -613,10 +614,11 @@ namespace Microsoft.ML.Transforms.Projections
                 // Subtracting the mean requires a dense representation.
                 src.CopyToDense(ref dst);
 
+                editor = VBufferEditor.CreateFromBuffer(ref dst);
                 if (normScale != 1)
-                    CpuMathUtils.ScaleAdd(normScale, -offset, dst.Values.AsSpan(0, length));
+                    CpuMathUtils.ScaleAdd(normScale, -offset, editor.Values);
                 else
-                    CpuMathUtils.Add(-offset, dst.Values.AsSpan(0, length));
+                    CpuMathUtils.Add(-offset, editor.Values);
             }
 
             /// <summary>
@@ -624,21 +626,21 @@ namespace Microsoft.ML.Transforms.Projections
             /// based on centered values (i.e. after subtracting the mean). But since the centered
             /// values mean is approximately zero, we can use variance of non-centered values.
             /// </summary>
-            private static float StdDev(float[] values, int count, int length)
+            private static float StdDev(ReadOnlySpan<float> values, int length)
             {
-                Contracts.Assert(0 <= count && count <= length);
-                if (count == 0)
+                Contracts.Assert(0 <= values.Length && values.Length <= length);
+                if (values.Length == 0)
                     return 0;
                 // We need a mean to compute variance.
-                var tmpMean = CpuMathUtils.Sum(values.AsSpan(0, count)) / length;
+                var tmpMean = CpuMathUtils.Sum(values) / length;
                 float sumSq = 0;
-                if (count != length && tmpMean != 0)
+                if (values.Length != length && tmpMean != 0)
                 {
                     // Sparse representation.
                     float meanSq = tmpMean * tmpMean;
-                    sumSq = (length - count) * meanSq;
+                    sumSq = (length - values.Length) * meanSq;
                 }
-                sumSq += CpuMathUtils.SumSq(tmpMean, values.AsSpan(0, count));
+                sumSq += CpuMathUtils.SumSq(tmpMean, values);
                 return MathUtils.Sqrt(sumSq / length);
             }
 
@@ -646,19 +648,19 @@ namespace Microsoft.ML.Transforms.Projections
             /// Compute Standard Deviation.
             /// We have two overloads of StdDev instead of one with <see cref="Nullable{Float}"/> mean for perf reasons.
             /// </summary>
-            private static float StdDev(float[] values, int count, int length, float mean)
+            private static float StdDev(ReadOnlySpan<float> values, int length, float mean)
             {
-                Contracts.Assert(0 <= count && count <= length);
-                if (count == 0)
+                Contracts.Assert(0 <= values.Length && values.Length <= length);
+                if (values.Length == 0)
                     return 0;
                 float sumSq = 0;
-                if (count != length && mean != 0)
+                if (values.Length != length && mean != 0)
                 {
                     // Sparse representation.
                     float meanSq = mean * mean;
-                    sumSq = (length - count) * meanSq;
+                    sumSq = (length - values.Length) * meanSq;
                 }
-                sumSq += CpuMathUtils.SumSq(mean, values.AsSpan(0, count));
+                sumSq += CpuMathUtils.SumSq(mean, values);
                 return MathUtils.Sqrt(sumSq / length);
             }
 
@@ -666,40 +668,40 @@ namespace Microsoft.ML.Transforms.Projections
             /// Compute L2-norm. L2-norm computation doesn't subtract the mean from the source values.
             /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
             /// </summary>
-            private static float L2Norm(float[] values, int count, float mean = 0)
+            private static float L2Norm(ReadOnlySpan<float> values, float mean = 0)
             {
-                if (count == 0)
+                if (values.Length == 0)
                     return 0;
-                return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values.AsSpan(0, count)));
+                return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values));
             }
 
             /// <summary>
             /// Compute L1-norm. L1-norm computation doesn't subtract the mean from the source values.
             /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
             /// </summary>
-            private static float L1Norm(float[] values, int count, float mean = 0)
+            private static float L1Norm(ReadOnlySpan<float> values, float mean = 0)
             {
-                if (count == 0)
+                if (values.Length == 0)
                     return 0;
-                return CpuMathUtils.SumAbs(mean, values.AsSpan(0, count));
+                return CpuMathUtils.SumAbs(mean, values);
             }
 
             /// <summary>
             /// Compute LInf-norm. LInf-norm computation doesn't subtract the mean from the source values.
             /// However, we substract the mean here in case subMean is true (if subMean is false, mean is zero).
             /// </summary>
-            private static float LInfNorm(float[] values, int count, float mean = 0)
+            private static float LInfNorm(ReadOnlySpan<float> values, float mean = 0)
             {
-                if (count == 0)
+                if (values.Length == 0)
                     return 0;
-                return CpuMathUtils.MaxAbsDiff(mean, values.AsSpan(0, count));
+                return CpuMathUtils.MaxAbsDiff(mean, values);
             }
 
-            private static float Mean(float[] src, int count, int length)
+            private static float Mean(ReadOnlySpan<float> src, int length)
             {
-                if (length == 0 || count == 0)
+                if (length == 0 || src.Length == 0)
                     return 0;
-                return CpuMathUtils.Sum(src.AsSpan(0, count)) / length;
+                return CpuMathUtils.Sum(src) / length;
             }
         }
     }

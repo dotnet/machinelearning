@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="function">Function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum</param>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DifferentiableFunction function, in VBuffer<Float> initial, ref VBuffer<Float> result)
         {
             Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
@@ -387,96 +387,102 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(x.Length == xprev.Length, "Vectors must have the same dimensionality.");
             Contracts.Assert(FloatUtils.IsFinite(xprev.GetValues()));
 
-            if (!FloatUtils.IsFinite(x.GetValues()))
+            var xValues = x.GetValues();
+            if (!FloatUtils.IsFinite(xValues))
                 return true;
 
+            var xprevValues = xprev.GetValues();
             if (x.IsDense && xprev.IsDense)
             {
-                for (int i = 0; i < x.Length; i++)
+                for (int i = 0; i < xValues.Length; i++)
                 {
-                    if (x.Values[i] != xprev.Values[i])
+                    if (xValues[i] != xprevValues[i])
                         return false;
                 }
             }
             else if (xprev.IsDense)
             {
+                var xIndices = x.GetIndices();
                 int j = 0;
-                for (int ii = 0; ii < x.Count; ii++)
+                for (int ii = 0; ii < xValues.Length; ii++)
                 {
-                    int i = x.Indices[ii];
+                    int i = xIndices[ii];
                     while (j < i)
                     {
-                        if (xprev.Values[j++] != 0)
+                        if (xprevValues[j++] != 0)
                             return false;
                     }
                     Contracts.Assert(i == j);
-                    if (x.Values[ii] != xprev.Values[j++])
+                    if (xValues[ii] != xprevValues[j++])
                         return false;
                 }
 
-                while (j < xprev.Length)
+                while (j < xprevValues.Length)
                 {
-                    if (xprev.Values[j++] != 0)
+                    if (xprevValues[j++] != 0)
                         return false;
                 }
             }
             else if (x.IsDense)
             {
+                var xprevIndices = xprev.GetIndices();
                 int i = 0;
-                for (int jj = 0; jj < xprev.Count; jj++)
+                for (int jj = 0; jj < xprevValues.Length; jj++)
                 {
-                    int j = xprev.Indices[jj];
+                    int j = xprevIndices[jj];
                     while (i < j)
                     {
-                        if (x.Values[i++] != 0)
+                        if (xValues[i++] != 0)
                             return false;
                     }
                     Contracts.Assert(j == i);
-                    if (x.Values[i++] != xprev.Values[jj])
+                    if (xValues[i++] != xprevValues[jj])
                         return false;
                 }
 
-                while (i < x.Length)
+                while (i < xValues.Length)
                 {
-                    if (x.Values[i++] != 0)
+                    if (xValues[i++] != 0)
                         return false;
                 }
             }
             else
             {
                 // Both sparse.
+                var xIndices = x.GetIndices();
+                var xprevIndices = xprev.GetIndices();
                 int ii = 0;
                 int jj = 0;
-                while (ii < x.Count && jj < xprev.Count)
+                while (ii < xValues.Length && jj < xprevValues.Length)
                 {
-                    int i = x.Indices[ii];
-                    int j = xprev.Indices[jj];
+                    int i = xIndices[ii];
+                    int j = xprevIndices[jj];
                     if (i == j)
                     {
-                        if (x.Values[ii++] != xprev.Values[jj++])
+                        if (xValues[ii++] != xprevValues[jj++])
                             return false;
                     }
                     else if (i < j)
                     {
-                        if (x.Values[ii++] != 0)
+                        if (xValues[ii++] != 0)
                             return false;
                     }
                     else
                     {
-                        if (xprev.Values[jj++] != 0)
+                        if (xprevValues[jj++] != 0)
                             return false;
                     }
                 }
 
-                while (ii < x.Count)
+                while (ii < xValues.Length)
                 {
-                    if (x.Values[ii++] != 0)
+                    if (xValues[ii++] != 0)
                         return false;
                 }
 
-                while (jj < xprev.Count)
+                while (jj < xprevValues.Length)
                 {
-                    if (xprev.Values[jj++] != 0)
+                    if (xprevValues[jj++] != 0)
                         return false;
                 }
             }
