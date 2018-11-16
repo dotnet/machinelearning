@@ -21,7 +21,7 @@ Please feel free to search this page and use any code that suits your needs.
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
-- [How do I debug my experiment?](#how-do-i-debug-my-experiment)
+- [How do I debug my experiment or preview my pipeline?](#how-do-i-debug-my-experiment-or-preview-my-pipeline)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
@@ -34,6 +34,7 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
 - [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
+- [How can I define my own transformation of data?](#how-can-i-define-my-own-transformation-of-data)
 
 ### General questions about the samples
 
@@ -245,7 +246,7 @@ var reader = mlContext.Data.TextReader(new[] {
 var data = reader.Read(dataPath);
 ```
 
-## How do I debug my experiment?
+## How do I debug my experiment or preview my pipeline?
 
 Most ML.NET operations are 'lazy': they are not actually processing data, they just validate that the operation is possible, and then defer execution until the output data is actually requested. This provides good efficiency, but makes it hard to step through and debug the experiment.
 
@@ -253,10 +254,11 @@ In order to improve debug-ability, we have added a `Preview()` extension method 
 
 - `Preview` of a data view contains first 100 rows (configurable) of the data view, encoded as objects, in a single in-memory structure.
 - `Preview` of a transformer takes data as input, and outputs the preview of the transformed data.
-- `Preview` of an estimator also takes data as input, fits an 'approximated model' on the first 100 rows (configurabele) of data, and then outputs the preview of the resulting transformer.
+- `Preview` of an estimator also takes data as input, fits an 'approximated model' on the first 100 rows (configurable) of data, and then outputs the preview of the resulting transformer.
 
-This feature is only available starting from version 0.8.
+We tried to make `Preview` debugger-friendly: our expectation is that, if you enter, say `data.Preview()` in your Watch window, you will be able to easily inspect the data there.
 
+Here is the code sample:
 ```csharp
 var mlContext = new MLContext();
 var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
@@ -268,10 +270,10 @@ var data = mlContext.Data.ReadFromTextFile(new TextLoader.Column[] {
     new TextLoader.Column("Features", DataKind.R4, 1, 4) }, filePath);
 
 // Preview the data. 
-data.Preview();
+var dataPreview = data.Preview();
 
 // Preview the result of training and transformation.
-estimator.Preview(data);
+var transformationPreview = estimator.Preview(data);
 ```
 
 ## How do I look at the intermediate data?
@@ -1395,4 +1397,104 @@ dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLa
 var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
 // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
+```
+
+## How can I define my own transformation of data?
+
+ML.NET has quite a lot of built-in transformers, but we can not possibly cover everything. Inevitably, you will need to perform custom user-defined operations.
+We added `MLContext.Transforms.CustomMapping` for this very purpose: it is a user-defined arbitrary *mapping* of the data.
+
+Suppose that we have the dataset with float 'Income' column, and we want to compute 'Label', that is equal to `true` if the income is more than 50000, and `false` otherwise.
+
+Here's how we can do this via a custom transformer:
+
+```csharp
+// Define a class for all the input columns that we intend to consume.
+class InputRow
+{
+    public float Income { get; set; }
+}
+
+// Define a class for all output columns that we intend to produce.
+class OutputRow
+{
+    public bool Label { get; set; }
+}
+
+public static IDataView PrepareData(MLContext mlContext, IDataView data)
+{
+    // Define the operation code.
+    Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
+    // Make a custom transformer and transform the data.
+    var transformer = mlContext.Transforms.CustomMappingTransformer(mapping, null);
+    return transformer.Transform(data);
+}
+```
+
+You can also insert a custom mapping inside an estimator pipeline:
+```csharp
+public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
+{
+    // Define the custom operation.
+    Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
+    // Construct the learning pipeline.
+    var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+        .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+
+    return estimator.Fit(trainData);
+}
+```
+
+Please note that you need to make your `mapping` operation into a 'pure function':
+- It should be reentrant (we will call it simultaneously from multiple threads)
+- It should not have side effects (we may call it arbitrarily at any time, or omit the call)
+
+One important caveat is: if you want your custom transformation to be part of your saved model, you will need to provide a `contractName` for it.
+At loading time, you will need to reconstruct the custom transformer and inject it into MLContext. 
+
+Here is a complete example that saves and loads a model with a custom mapping.
+```csharp
+/// <summary>
+/// One class that contains all custom mappings that we need for our model.
+/// </summary>
+public class CustomMappings
+{
+    // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+    public static void IncomeMapping(InputRow input, OutputRow output) => output.Label = input.Income > 50000;
+
+    // MLContext is needed to create a new transformer. We are using 'Import' to have ML.NET populate
+    // this property.
+    [Import]
+    public MLContext MLContext { get; set; }
+
+    // We are exporting the custom transformer by the name 'IncomeMapping'.
+    [Export(nameof(IncomeMapping))]
+    public ITransformer MyCustomTransformer 
+        => MLContext.Transforms.CustomMappingTransformer<InputRow, OutputRow>(IncomeMapping, nameof(IncomeMapping));
+}
+```
+
+```csharp
+// Construct the learning pipeline. Note that we are now providing a contract name for the custom mapping:
+// otherwise we will not be able to save the model.
+var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
+    .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
+
+// Train the model.
+var model = estimator.Fit(trainData);
+
+// Save the model.
+using (var fs = File.Create(modelPath))
+    mlContext.Model.Save(model, fs);
+
+// Now pretend we are in a different process.
+var newContext = new MLContext();
+
+// Create a custom composition container for all our custom mapping actions.
+newContext.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(CustomMappings)));
+
+// Now we can load the model.
+ITransformer loadedModel;
+using (var fs = File.OpenRead(modelPath))
+    loadedModel = newContext.Model.Load(fs);
 ```
