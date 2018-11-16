@@ -615,9 +615,11 @@ namespace Microsoft.ML.Transforms.Projections
                 {
                     // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                     // no need to zero them out.
-                    featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
-                        src.Count, productAligned, transformInfo.NewDim);
+                    var srcValues = src.GetValues();
+                    var srcIndices = src.GetIndices();
+                    featuresAligned.CopyFrom(srcIndices, srcValues, 0, 0, srcValues.Length, zeroItems: false);
+                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, srcIndices, featuresAligned, 0, 0,
+                        srcValues.Length, productAligned, transformInfo.NewDim);
                 }
 
                 for (int i = 0; i < transformInfo.NewDim; i++)

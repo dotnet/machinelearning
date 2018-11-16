@@ -42,7 +42,7 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                IDataView pipeline = new ConcatTransform(env, "Features",
+                IDataView pipeline = new ColumnConcatenatingTransformer(env, "Features",
                     "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
                 // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto

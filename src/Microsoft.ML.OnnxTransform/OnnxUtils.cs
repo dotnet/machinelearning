@@ -99,19 +99,20 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<VBuffer<T>> _srcgetter;
             private readonly OnnxShape _tensorShape;
             private VBuffer<T> _vBuffer;
-            private VBuffer<T> _vBufferDense;
+            private T[] _denseData;
             public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tensorShape = tensorShape;
                 _vBuffer = default;
-                _vBufferDense = default;
+                _denseData = default;
             }
             public Tensor GetTensor()
             {
                 _srcgetter(ref _vBuffer);
-                _vBuffer.CopyToDense(ref _vBufferDense);
-                return OnnxUtils.CreateTensor(_vBufferDense.Values, _tensorShape);
+                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
+                _vBuffer.CopyTo(_denseData);
+                return OnnxUtils.CreateTensor(_denseData, _tensorShape);
             }
         }
     }
@@ -338,12 +339,18 @@ namespace Microsoft.ML.Transforms
         /// Also Tensor.CopyTo(List&lt;T&gt; dst) requires a list input, whereas ML.NET
         /// provides array buffers to copy values to. This mismatch causes an extra copy.
         /// </summary>
-        public static void CopyTo<T>(Tensor tensor, T[] dst)
+        public static unsafe void CopyTo<T>(Tensor tensor, Span<T> dst)
         {
             if (typeof(T) == typeof(System.Single))
             {
-                var typedDst = (System.Single[])(object)dst;
-                tensor.CopyTo(typedDst);
+                DataType dataType = tensor.GetDataType();
+                if (dataType != DataType.Type_Float)
+                {
+                    throw new InvalidOperationException(string.Format("Cannot copy source tensor {0} to managed type System.Single (DataType.Type_Float).", dataType));
+                }
+
+                Span<T> tensorSpan = new Span<T>(tensor.UnsafeGetData().ToPointer(), tensor.GetSize());
+                tensorSpan.CopyTo(dst);
                 // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
                 // during the method call. Use KeepAlive for now, and remove
                 // after permanent fix in CopyTo().

@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _convertToUInt = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
                 }
 
-                private void MapKey(ref TKey src, ref TValue dst)
+                private void MapKey(in TKey src, ref TValue dst)
                 {
                     uint uintSrc = 0;
                     _convertToUInt(in src, ref uintSrc);
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             (ref TValue dst) =>
                             {
                                 getSrc(ref src);
-                                MapKey(ref src, ref dst);
+                                MapKey(in src, ref dst);
                             };
                         return retVal;
                     }
@@ -376,8 +376,8 @@ namespace Microsoft.ML.Transforms.Conversions
                             {
                                 getSrc(ref src);
                                 int srcSize = src.Length;
-                                int srcCount = src.Count;
-                                var srcValues = src.Values;
+                                var srcValues = src.GetValues();
+                                int srcCount = srcValues.Length;
                                 var dstValues = dst.Values;
                                 var dstIndices = dst.Indices;
 
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
-                                        MapKey(ref srcValues[slot], ref dstValues[slot]);
+                                        MapKey(in srcValues[slot], ref dstValues[slot]);
 
                                         // REVIEW:
                                         // The current implementation always maps dense to dense, even if the resulting columns could benefit from
@@ -408,17 +408,17 @@ namespace Microsoft.ML.Transforms.Conversions
                                     // Currently this always maps sparse to dense, as long as the output type's NA does not equal its default value.
                                     Utils.EnsureSize(ref dstValues, srcSize, maxSize, keepOld: false);
 
-                                    var srcIndices = src.Indices;
-                                    int nextExplicitSlot = src.Count == 0 ? srcSize : srcIndices[0];
+                                    var srcIndices = src.GetIndices();
+                                    int nextExplicitSlot = srcCount == 0 ? srcSize : srcIndices[0];
                                     int islot = 0;
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
                                         if (nextExplicitSlot == slot)
                                         {
                                             // Current slot has an explicitly defined value.
-                                            Parent.Host.Assert(islot < src.Count);
-                                            MapKey(ref srcValues[islot], ref dstValues[slot]);
-                                            nextExplicitSlot = ++islot == src.Count ? srcSize : srcIndices[islot];
+                                            Parent.Host.Assert(islot < srcCount);
+                                            MapKey(in srcValues[islot], ref dstValues[slot]);
+                                            nextExplicitSlot = ++islot == srcCount ? srcSize : srcIndices[islot];
                                             Parent.Host.Assert(slot < nextExplicitSlot);
                                         }
                                         else
@@ -434,12 +434,12 @@ namespace Microsoft.ML.Transforms.Conversions
                                     // As the default value equals the NA value for the output type, we produce sparse output.
                                     Utils.EnsureSize(ref dstValues, srcCount, maxSize, keepOld: false);
                                     Utils.EnsureSize(ref dstIndices, srcCount, maxSize, keepOld: false);
-                                    var srcIndices = src.Indices;
+                                    var srcIndices = src.GetIndices();
                                     for (int islotSrc = 0; islotSrc < srcCount; ++islotSrc)
                                     {
                                         // Current slot has an explicitly defined value.
                                         Parent.Host.Assert(islotSrc < srcCount);
-                                        MapKey(ref srcValues[islotSrc], ref dstItem);
+                                        MapKey(in srcValues[islotSrc], ref dstItem);
                                         if (!_isDefault(in dstItem))
                                         {
                                             dstValues[islotDst] = dstItem;

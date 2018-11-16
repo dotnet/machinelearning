@@ -138,8 +138,8 @@ namespace Microsoft.ML.Transforms
 
             var replaceCols = new List<MissingValueReplacingTransformer.ColumnInfo>();
             var naIndicatorCols = new List<MissingValueIndicatorTransformer.Column>();
-            var naConvCols = new List<ConvertingTransform.ColumnInfo>();
-            var concatCols = new List<ConcatTransform.TaggedColumn>();
+            var naConvCols = new List<TypeConvertingTransformer.ColumnInfo>();
+            var concatCols = new List<ColumnConcatenatingTransformer.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Column.Length, "IsMissing");
             var tmpReplaceColNames = input.Schema.GetTempColumnNames(args.Column.Length, "Replace");
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Transforms
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new ConvertingTransform.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
+                    naConvCols.Add(new TypeConvertingTransformer.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new MissingValueReplacingTransformer.ColumnInfo(column.Source, tmpReplacementColName, (MissingValueReplacingTransformer.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
                 // Add the ConcatTransform column.
                 if (replaceType.IsVector)
                 {
-                    concatCols.Add(new ConcatTransform.TaggedColumn()
+                    concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {
                         Name = column.Name,
                         Source = new[] {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else
                 {
-                    concatCols.Add(new ConcatTransform.TaggedColumn()
+                    concatCols.Add(new ColumnConcatenatingTransformer.TaggedColumn()
                     {
                         Name = column.Name,
                         Source = new[]
@@ -220,14 +220,14 @@ namespace Microsoft.ML.Transforms
             {
                 h.AssertValue(output);
                 //REVIEW: all this need to be converted to estimatorChain as soon as we done with dropcolumns.
-                output = new ConvertingTransform(h, naConvCols.ToArray()).Transform(output) as IDataTransform;
+                output = new TypeConvertingTransformer(h, naConvCols.ToArray()).Transform(output) as IDataTransform;
             }
             // Create the NAReplace transform.
             output = MissingValueReplacingTransformer.Create(env, output ?? input, replaceCols.ToArray());
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)
-                output = ConcatTransform.Create(h, new ConcatTransform.TaggedArguments() { Column = concatCols.ToArray() }, output);
+                output = ColumnConcatenatingTransformer.Create(h, new ColumnConcatenatingTransformer.TaggedArguments() { Column = concatCols.ToArray() }, output);
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)

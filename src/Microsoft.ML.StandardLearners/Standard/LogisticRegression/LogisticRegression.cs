@@ -157,8 +157,9 @@ namespace Microsoft.ML.Runtime.Learners
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
 
             return weight * datumLoss;
         }
@@ -298,7 +299,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // Increment the first entry of hessian.
                     hessian[0] += variance;
 
-                    var values = cursor.Features.Values;
+                    var values = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
                         int ioff = 1;
@@ -324,8 +325,8 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     else
                     {
-                        var indices = cursor.Features.Indices;
-                        for (int ii = 0; ii < cursor.Features.Count; ++ii)
+                        var indices = cursor.Features.GetIndices();
+                        for (int ii = 0; ii < values.Length; ++ii)
                         {
                             int i = indices[ii];
                             int wi = i + 1;

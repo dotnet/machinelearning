@@ -229,110 +229,107 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertValue(isNA);
 
+            var srcValues = src.GetValues();
             int newCount = 0;
-            for (int i = 0; i < src.Count; i++)
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
+                if (!isNA(in srcValues[i]))
                     newCount++;
             }
-            Host.Assert(newCount <= src.Count);
+            Host.Assert(newCount <= srcValues.Length);
 
             if (newCount == 0)
             {
-                dst = new VBuffer<TDst>(0, dst.Values, dst.Indices);
+                VBufferUtils.Resize(ref dst, 0);
                 return;
             }
 
-            if (newCount == src.Count)
+            if (newCount == srcValues.Length)
             {
                 Utils.Swap(ref src, ref dst);
                 if (!dst.IsDense)
                 {
-                    Host.Assert(dst.Count == newCount);
-                    dst = new VBuffer<TDst>(dst.Count, dst.Values, dst.Indices);
+                    Host.Assert(dst.GetValues().Length == newCount);
+                    VBufferUtils.Resize(ref dst, newCount);
                 }
                 return;
             }
 
             int iDst = 0;
-            var values = dst.Values;
-            if (Utils.Size(values) < newCount)
-                values = new TDst[newCount];
 
             // Densifying sparse vectors since default value equals NA and hence should be dropped.
-            for (int i = 0; i < src.Count; i++)
+            var editor = VBufferEditor.Create(ref dst, newCount);
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
-                    values[iDst++] = src.Values[i];
+                if (!isNA(in srcValues[i]))
+                    editor.Values[iDst++] = srcValues[i];
             }
             Host.Assert(iDst == newCount);
 
-            dst = new VBuffer<TDst>(newCount, values, dst.Indices);
+            dst = editor.Commit();
         }
 
         private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
         {
             Host.AssertValue(isNA);
 
+            var srcValues = src.GetValues();
             int newCount = 0;
-            for (int i = 0; i < src.Count; i++)
+            for (int i = 0; i < srcValues.Length; i++)
             {
-                if (!isNA(in src.Values[i]))
+                if (!isNA(in srcValues[i]))
                     newCount++;
             }
-            Host.Assert(newCount <= src.Count);
+            Host.Assert(newCount <= srcValues.Length);
 
             if (newCount == 0)
             {
-                dst = new VBuffer<TDst>(src.Length - src.Count, 0, dst.Values, dst.Indices);
+                VBufferUtils.Resize(ref dst, src.Length - srcValues.Length, 0);
                 return;
             }
 
-            if (newCount == src.Count)
+            if (newCount == srcValues.Length)
             {
                 Utils.Swap(ref src, ref dst);
                 return;
             }
 
-            var values = dst.Values;
-            if (Utils.Size(values) < newCount)
-                values = new TDst[newCount];
-
             int iDst = 0;
             if (src.IsDense)
             {
-                for (int i = 0; i < src.Count; i++)
+                var editor = VBufferEditor.Create(ref dst, newCount);
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (!isNA(in src.Values[i]))
+                    if (!isNA(in srcValues[i]))
                     {
-                        values[iDst] = src.Values[i];
+                        editor.Values[iDst] = srcValues[i];
                         iDst++;
                     }
                 }
                 Host.Assert(iDst == newCount);
-                dst = new VBuffer<TDst>(newCount, values, dst.Indices);
+                dst = editor.Commit();
             }
             else
             {
-                var indices = dst.Indices;
-                if (Utils.Size(indices) < newCount)
-                    indices = new int[newCount];
+                var newLength = src.Length - srcValues.Length - newCount;
+                var editor = VBufferEditor.Create(ref dst, newLength, newCount);
 
+                var srcIndices = src.GetIndices();
                 int offset = 0;
-                for (int i = 0; i < src.Count; i++)
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    if (!isNA(in src.Values[i]))
+                    if (!isNA(in srcValues[i]))
                     {
-                        values[iDst] = src.Values[i];
-                        indices[iDst] = src.Indices[i] - offset;
+                        editor.Values[iDst] = srcValues[i];
+                        editor.Indices[iDst] = srcIndices[i] - offset;
                         iDst++;
                     }
                     else
                         offset++;
                 }
                 Host.Assert(iDst == newCount);
-                Host.Assert(offset == src.Count - newCount);
-                dst = new VBuffer<TDst>(src.Length - offset, newCount, values, indices);
+                Host.Assert(offset == srcValues.Length - newCount);
+                dst = editor.Commit();
             }
         }
     }

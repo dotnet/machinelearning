@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _sorted = sorted;
                 }
 
-                public override bool TryAdd(ref ReadOnlyMemory<char> val)
+                public override bool TryAdd(in ReadOnlyMemory<char> val)
                 {
                     if (val.IsEmpty)
                         return false;
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _sort = sort;
                 }
 
-                public override bool TryAdd(ref T val)
+                public override bool TryAdd(in T val)
                 {
                     return !_mapsToMissing(in val) && _values.TryAdd(val);
                 }
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// Ensures that the item is in the set. Returns true iff it added the item.
             /// </summary>
             /// <param name="val">The value to consider</param>
-            public abstract bool TryAdd(ref T val);
+            public abstract bool TryAdd(in T val);
 
             /// <summary>
             /// Handling for the "terms" arg.
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Transforms.Categorical
                         ch.Warning("Empty strings ignored in 'terms' specification");
                     else if (!tryParse(in term, out val))
                         throw ch.Except($"Item '{term}' in 'terms' specification could not be parsed as '{ItemType}'");
-                    else if (!TryAdd(ref val))
+                    else if (!TryAdd(in val))
                         ch.Warning($"Duplicate item '{term}' ignored in 'terms' specification", term);
                 }
 
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Transforms.Categorical
                         ch.Warning("Empty strings ignored in 'term' specification");
                     else if (!tryParse(in term, out val))
                         ch.Warning("Item '{0}' ignored in 'term' specification since it could not be parsed as '{1}'", term, ItemType);
-                    else if (!TryAdd(ref val))
+                    else if (!TryAdd(in val))
                         ch.Warning("Duplicate item '{0}' ignored in 'term' specification", term);
                 }
 
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     if (_remaining <= 0)
                         return false;
                     _getter(ref _val);
-                    return !_bldr.TryAdd(ref _val) || --_remaining > 0;
+                    return !_bldr.TryAdd(in _val) || --_remaining > 0;
                 }
             }
 
@@ -381,10 +381,10 @@ namespace Microsoft.ML.Transforms.Categorical
                     _bldr = bldr;
                 }
 
-                private bool AccumAndDecrement(ref T val)
+                private bool AccumAndDecrement(in T val)
                 {
                     Contracts.Assert(_remaining > 0);
-                    return !_bldr.TryAdd(ref val) || --_remaining > 0;
+                    return !_bldr.TryAdd(in val) || --_remaining > 0;
                 }
 
                 public sealed override bool ProcessRow()
@@ -393,11 +393,12 @@ namespace Microsoft.ML.Transforms.Categorical
                     if (_remaining <= 0)
                         return false;
                     _getter(ref _val);
+                    var values = _val.GetValues();
                     if (_val.IsDense || _addedDefaultFromSparse)
                     {
-                        for (int i = 0; i < _val.Count; ++i)
+                        for (int i = 0; i < values.Length; ++i)
                         {
-                            if (!AccumAndDecrement(ref _val.Values[i]))
+                            if (!AccumAndDecrement(in values[i]))
                                 return false;
                         }
                         return true;
@@ -412,21 +413,22 @@ namespace Microsoft.ML.Transforms.Categorical
                     // excited about the slight inefficiency of that first if check.
                     Contracts.Assert(!_val.IsDense && !_addedDefaultFromSparse);
                     T def = default(T);
-                    for (int i = 0; i < _val.Count; ++i)
+                    var valIndices = _val.GetIndices();
+                    for (int i = 0; i < values.Length; ++i)
                     {
-                        if (!_addedDefaultFromSparse && _val.Indices[i] != i)
+                        if (!_addedDefaultFromSparse && valIndices[i] != i)
                         {
                             _addedDefaultFromSparse = true;
-                            if (!AccumAndDecrement(ref def))
+                            if (!AccumAndDecrement(in def))
                                 return false;
                         }
-                        if (!AccumAndDecrement(ref _val.Values[i]))
+                        if (!AccumAndDecrement(in values[i]))
                             return false;
                     }
                     if (!_addedDefaultFromSparse)
                     {
                         _addedDefaultFromSparse = true;
-                        if (!AccumAndDecrement(ref def))
+                        if (!AccumAndDecrement(in def))
                             return false;
                     }
                     return true;
@@ -960,15 +962,15 @@ namespace Microsoft.ML.Transforms.Categorical
 
                                     bldr.Reset(cval, dense: false);
 
-                                    var values = src.Values;
-                                    var indices = !src.IsDense ? src.Indices : null;
-                                    int count = src.Count;
+                                    var values = src.GetValues();
+                                    var indices = src.GetIndices();
+                                    int count = values.Length;
                                     for (int islot = 0; islot < count; islot++)
                                     {
                                         map(in values[islot], ref dstItem);
                                         if (dstItem != 0)
                                         {
-                                            int slot = indices != null ? indices[islot] : islot;
+                                            int slot = !src.IsDense ? indices[islot] : islot;
                                             bldr.AddFeature(slot, dstItem);
                                         }
                                     }
@@ -998,7 +1000,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                     // unrecognized items.
                                     bldr.Reset(cval, dense: false);
 
-                                    var values = src.Values;
+                                    var values = src.GetValues();
                                     if (src.IsDense)
                                     {
                                         for (int slot = 0; slot < src.Length; ++slot)
@@ -1010,19 +1012,19 @@ namespace Microsoft.ML.Transforms.Categorical
                                     }
                                     else
                                     {
-                                        var indices = src.Indices;
-                                        int nextExplicitSlot = src.Count == 0 ? src.Length : indices[0];
+                                        var indices = src.GetIndices();
+                                        int nextExplicitSlot = indices.Length == 0 ? src.Length : indices[0];
                                         int islot = 0;
                                         for (int slot = 0; slot < src.Length; ++slot)
                                         {
                                             if (nextExplicitSlot == slot)
                                             {
                                                 // This was an explicitly defined value.
-                                                _host.Assert(islot < src.Count);
+                                                _host.Assert(islot < values.Length);
                                                 map(in values[islot], ref dstItem);
                                                 if (dstItem != 0)
                                                     bldr.AddFeature(slot, dstItem);
-                                                nextExplicitSlot = ++islot == src.Count ? src.Length : indices[islot];
+                                                nextExplicitSlot = ++islot == indices.Length ? src.Length : indices[islot];
                                             }
                                             else
                                             {
