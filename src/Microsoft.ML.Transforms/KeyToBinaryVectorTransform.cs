@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     sb.Append('.');
 
                     int len = sb.Length;
-                    foreach (var key in bits.Values)
+                    foreach (var key in bits.GetValues())
                     {
                         sb.Length = len;
                         sb.AppendMemory(key);

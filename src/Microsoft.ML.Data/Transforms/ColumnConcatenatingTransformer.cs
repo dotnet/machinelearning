@@ -722,7 +722,7 @@ namespace Microsoft.ML.Runtime.Data
                                         .MarkSensitive(MessageSensitivity.Schema);
                                 }
                                 dstLength = checked(dstLength + tmpBufs[i].Length);
-                                dstCount = checked(dstCount + tmpBufs[i].Count);
+                                dstCount = checked(dstCount + tmpBufs[i].GetValues().Length);
                             }
                             else
                             {
@@ -749,22 +749,24 @@ namespace Microsoft.ML.Runtime.Data
                                 if (_srcTypes[j].IsVector)
                                 {
                                     var buffer = tmpBufs[j];
-                                    Contracts.Assert(buffer.Count <= dstCount - count);
+                                    var bufferValues = buffer.GetValues();
+                                    Contracts.Assert(bufferValues.Length <= dstCount - count);
                                     Contracts.Assert(buffer.Length <= dstLength - offset);
                                     if (buffer.IsDense)
                                     {
-                                        for (int i = 0; i < buffer.Length; i++)
+                                        for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            values[count] = buffer.Values[i];
+                                            values[count] = bufferValues[i];
                                             indices[count++] = offset + i;
                                         }
                                     }
                                     else
                                     {
-                                        for (int i = 0; i < buffer.Count; i++)
+                                        var bufferIndices = buffer.GetIndices();
+                                        for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            values[count] = buffer.Values[i];
-                                            indices[count++] = offset + buffer.Indices[i];
+                                            values[count] = bufferValues[i];
+                                            indices[count++] = offset + bufferIndices[i];
                                         }
                                     }
                                     offset += buffer.Length;

@@ -118,7 +118,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public bool GetWordVector(ref ReadOnlyMemory<char> word, float[] wordVector)
+            public bool GetWordVector(in ReadOnlyMemory<char> word, float[] wordVector)
             {
                 NormStr str = _pool.Get(word);
                 if (str != null)
@@ -583,38 +583,37 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         int deno = 0;
                         srcGetter(ref src);
-                        var values = dst.Values;
-                        if (Utils.Size(values) != 3 * dimension)
-                            values = new float[3 * dimension];
+                        var editor = VBufferEditor.Create(ref dst, 3 * dimension);
                         int offset = 2 * dimension;
                         for (int i = 0; i < dimension; i++)
                         {
-                            values[i] = float.MaxValue;
-                            values[i + dimension] = 0;
-                            values[i + offset] = float.MinValue;
+                            editor.Values[i] = float.MaxValue;
+                            editor.Values[i + dimension] = 0;
+                            editor.Values[i + offset] = float.MinValue;
                         }
-                        for (int word = 0; word < src.Count; word++)
+                        var srcValues = src.GetValues();
+                        for (int word = 0; word < srcValues.Length; word++)
                         {
-                            if (_parent._currentVocab.GetWordVector(ref src.Values[word], wordVector))
+                            if (_parent._currentVocab.GetWordVector(in srcValues[word], wordVector))
                             {
                                 deno++;
                                 for (int i = 0; i < dimension; i++)
                                 {
                                     float currentTerm = wordVector[i];
-                                    if (values[i] > currentTerm)
-                                        values[i] = currentTerm;
-                                    values[dimension + i] += currentTerm;
-                                    if (values[offset + i] < currentTerm)
-                                        values[offset + i] = currentTerm;
+                                    if (editor.Values[i] > currentTerm)
+                                        editor.Values[i] = currentTerm;
+                                    editor.Values[dimension + i] += currentTerm;
+                                    if (editor.Values[offset + i] < currentTerm)
+                                        editor.Values[offset + i] = currentTerm;
                                 }
                             }
                         }
 
                         if (deno != 0)
                             for (int index = 0; index < dimension; index++)
-                                values[index + dimension] /= deno;
+                                editor.Values[index + dimension] /= deno;
 
-                        dst = new VBuffer<float>(values.Length, values, dst.Indices);
+                        dst = editor.Commit();
                     };
             }
         }

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            using (var env = new ConsoleEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,

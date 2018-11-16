@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return "Expected float or float vector of known size";
 
             if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)
-                return "Vector size exceeds limit";
+                return "Vector size exceeds maximum size for one dimensional array (2 146 435 071 elements)";
 
             return null;
         }
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms.Projections
         // A more reliable solution is to turely iterate through all rows via a RowCursor.
         private static long GetRowCount(IDataView inputData, params ColumnInfo[] columns)
         {
-            long? rows = inputData.GetRowCount(lazy: false);
+            long? rows = inputData.GetRowCount();
             if (rows != null)
                 return rows.GetValueOrDefault();
 
@@ -613,10 +613,19 @@ namespace Microsoft.ML.Transforms.Projections
                 MinOvr = (byte)'O',
             }
 
+            public static unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float[] a, int lda, ReadOnlySpan<float> x, int incx, float beta, Span<float> y, int incy)
+            {
+                fixed (float* pA = a)
+                fixed (float* pX = x)
+                fixed (float* pY = y)
+                    Gemv(layout, trans, m, n, alpha, pA, lda, pX, incx, beta, pY, incy);
+            }
+
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(DllName, EntryPoint = "cblas_sgemv")]
-            public static extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
-                float[] a, int lda, float[] x, int incx, float beta, float[] y, int incy);
+            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
             [DllImport(DllName, EntryPoint = "cblas_sgemm")]
@@ -715,36 +724,34 @@ namespace Microsoft.ML.Transforms.Projections
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)
             {
-                int count = src.Count;
+                var values = src.GetValues();
+                int count = values.Length;
                 int length = src.Length;
-                var values = src.Values;
-                var indices = src.Indices;
-                Contracts.Assert(Utils.Size(values) >= count);
 
                 // Since the whitening process produces dense vector, always use dense representation of dst.
-                var a = Utils.Size(dst.Values) >= cdst ? dst.Values : new float[cdst];
+                var editor = VBufferEditor.Create(ref dst, cdst);
                 if (src.IsDense)
                 {
                     Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
-                        1, model, length, values, 1, 0, a, 1);
+                        1, model, length, values, 1, 0, editor.Values, 1);
                 }
                 else
                 {
-                    Contracts.Assert(Utils.Size(indices) >= count);
+                    var indices = src.GetIndices();
 
                     int offs = 0;
                     for (int i = 0; i < cdst; i++)
                     {
                         // Returns a dot product of dense vector 'model' starting from offset 'offs' and sparse vector 'values'
                         // with first 'count' valid elements and their corresponding 'indices'.
-                        a[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
+                        editor.Values[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
                         offs += length;
                     }
                 }
-                dst = new VBuffer<float>(cdst, a, dst.Indices);
+                dst = editor.Commit();
             }
 
-            private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
+            private static float DotProduct(float[] a, int aOffset, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
             {
                 Contracts.Assert(count <= indices.Length);
                 return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
@@ -810,73 +817,5 @@ namespace Microsoft.ML.Transforms.Projections
             }
             return new SchemaShape(result.Values);
         }
-    }
-
-    /// <summary>
-    /// Extensions for statically typed Whitening estimator.
-    /// </summary>
-    public static class VectorWhiteningExtensions
-    {
-        private sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Vector<float> Input;
-
-            public OutPipelineColumn(Vector<float> input, WhiteningKind kind, float eps, int maxRows, int pcaNum)
-                : base(new Reconciler(kind, eps, maxRows, pcaNum), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly WhiteningKind _kind;
-            private readonly float _eps;
-            private readonly int _maxRows;
-            private readonly int _pcaNum;
-
-            public Reconciler(WhiteningKind kind, float eps, int maxRows, int pcaNum)
-            {
-                _kind = kind;
-                _eps = eps;
-                _maxRows = maxRows;
-                _pcaNum = pcaNum;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var infos = new VectorWhiteningTransformer.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new VectorWhiteningTransformer.ColumnInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _pcaNum);
-
-                return new VectorWhiteningEstimator(env, infos);
-            }
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-        public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransformer.Defaults.Eps,
-            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
-            => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Whitening constant, prevents division by zero.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransformer.Defaults.Eps,
-            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows)
-            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningTransformer.Defaults.PcaNum);
     }
 }

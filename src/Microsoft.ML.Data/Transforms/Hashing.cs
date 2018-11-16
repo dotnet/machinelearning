@@ -743,36 +743,33 @@ namespace Microsoft.ML.Transforms.Conversions
                 return (ref VBuffer<uint> dst) =>
                 {
                     srcGetter(ref src);
-                    int[] indices = dst.Indices;
-                    if (src.Count == 0)
+                    var srcValues = src.GetValues();
+                    if (srcValues.Length == 0)
                     {
-                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                     if (!src.IsDense)
-                    {
-                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
-                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
-                    }
-                    var values = dst.Values;
-                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
-                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
-                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                        src.GetIndices().CopyTo(editor.Indices);
+
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                uint[] values = dst.Values;
-                Utils.EnsureSize(ref values, src.Length, keepOld: false);
-                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+
+                var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
                 else
                 {
@@ -781,12 +778,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     // values, rather than having complicated logic to do a simultaneous traversal of the
                     // sparse vs. dense array.
                     for (int i = 0; i < src.Length; ++i)
-                        values[i] = defaultHash;
+                        editor.Values[i] = defaultHash;
                     // Next overwrite the values in the explicit entries.
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[src.Indices[i]] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                    var srcIndices = src.GetIndices();
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
-                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+                dst = editor.Commit();
             };
         }
 
@@ -807,60 +805,58 @@ namespace Microsoft.ML.Transforms.Conversions
                 return (ref VBuffer<uint> dst) =>
                 {
                     srcGetter(ref src);
-                    int[] indices = dst.Indices;
-                    if (src.Count == 0)
+                    var srcValues = src.GetValues();
+                    if (srcValues.Length == 0)
                     {
-                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    if (!src.IsDense)
-                    {
-                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
-                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
-                    }
-                    var values = dst.Values;
-                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
-                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+
                     if (src.IsDense)
                     {
-                        for (int i = 0; i < srcValuesSpan.Length; ++i)
-                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                        for (int i = 0; i < srcValues.Length; ++i)
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                     }
                     else
                     {
-                        for (int i = 0; i < srcValuesSpan.Length; ++i)
-                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)src.Indices[i]), mask, srcValuesSpan[i]);
+                        var srcIndices = src.GetIndices();
+                        for (int i = 0; i < srcValues.Length; ++i)
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)srcIndices[i]), mask, srcValues[i]);
+                        srcIndices.CopyTo(editor.Indices);
+
                     }
-                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                uint[] values = dst.Values;
-                Utils.EnsureSize(ref values, src.Length, keepOld: false);
-                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+
+                var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                 }
                 else
                 {
+                    var srcIndices = src.GetIndices();
                     int j = 0;
                     for (int i = 0; i < src.Length; i++)
                     {
                         uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
-                        if (src.Count <= j || src.Indices[j] > i)
-                            values[i] = hasher.HashCore(indexSeed, mask, default);
-                        else if (src.Indices[j] == i)
-                            values[i] = hasher.HashCore(indexSeed, mask, srcValuesSpan[j++]);
+                        if (srcIndices.Length <= j || srcIndices[j] > i)
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, default);
+                        else if (srcIndices[j] == i)
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, srcValues[j++]);
                         else
                             Contracts.Assert(false, "this should have never happened.");
                     }
                 }
-                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+                dst = editor.Commit();
             };
         }
 
@@ -1111,12 +1107,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _srcGetter(ref _value);
                     _dstGetter(ref _hash);
+
+                    var valueValues = _value.GetValues();
+                    var hashValues = _hash.GetValues();
+
                     // The two arrays should be consistent in their density, length, count, etc.
                     Contracts.Assert(_value.IsDense == _hash.IsDense);
                     Contracts.Assert(_value.Length == _hash.Length);
-                    Contracts.Assert(_value.Count == _hash.Count);
-                    for (int i = 0; i < _value.Count; ++i)
-                        Collector.Add(_hash.Values[i], _value.Values[i]);
+                    Contracts.Assert(valueValues.Length == hashValues.Length);
+
+                    for (int i = 0; i < valueValues.Length; ++i)
+                        Collector.Add(hashValues[i], valueValues[i]);
                 }
             }
 
@@ -1151,19 +1152,24 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _srcGetter(ref _value);
                     _dstGetter(ref _hash);
+
+                    var valueValues = _value.GetValues();
+                    var hashValues = _hash.GetValues();
+
                     // The two arrays should be consistent in their density, length, count, etc.
                     Contracts.Assert(_value.IsDense == _hash.IsDense);
                     Contracts.Assert(_value.Length == _hash.Length);
-                    Contracts.Assert(_value.Count == _hash.Count);
+                    Contracts.Assert(valueValues.Length == hashValues.Length);
                     if (_hash.IsDense)
                     {
-                        for (int i = 0; i < _value.Count; ++i)
-                            Collector.Add(_hash.Values[i], new KeyValuePair<int, T>(i, _value.Values[i]));
+                        for (int i = 0; i < valueValues.Length; ++i)
+                            Collector.Add(hashValues[i], new KeyValuePair<int, T>(i, valueValues[i]));
                     }
                     else
                     {
-                        for (int i = 0; i < _value.Count; ++i)
-                            Collector.Add(_hash.Values[i], new KeyValuePair<int, T>(_hash.Indices[i], _value.Values[i]));
+                        var hashIndices = _hash.GetIndices();
+                        for (int i = 0; i < valueValues.Length; ++i)
+                            Collector.Add(hashValues[i], new KeyValuePair<int, T>(hashIndices[i], valueValues[i]));
                     }
                 }
             }

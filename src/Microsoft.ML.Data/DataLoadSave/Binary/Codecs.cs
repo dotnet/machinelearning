@@ -1109,29 +1109,29 @@ namespace Microsoft.ML.Runtime.Data.IO
                     int length = FixedLength ? _size : _lengths[_vectorIndex];
                     int count = _counts[_vectorIndex];
 
-                    int[] indices = value.Indices;
-                    T[] values = value.Values;
                     if (count < 0)
                     {
                         // dense
+                        var editor = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
-                            Utils.EnsureSize(ref values, length);
-                            Array.Copy(_values, _valuesOffset, values, 0, length);
+                            _values.AsSpan(_valuesOffset, length)
+                                .CopyTo(editor.Values);
                         }
-                        value = new VBuffer<T>(length, values, indices);
+                        value = editor.Commit();
                     }
                     else
                     {
                         // sparse
+                        var editor = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
-                            Utils.EnsureSize(ref values, count);
-                            Utils.EnsureSize(ref indices, count);
-                            Array.Copy(_values, _valuesOffset, values, 0, count);
-                            Array.Copy(_indices, _indicesOffset, indices, 0, count);
+                            _values.AsSpan(_valuesOffset, count)
+                                .CopyTo(editor.Values);
+                            _indices.AsSpan(_indicesOffset, count)
+                                .CopyTo(editor.Indices);
                         }
-                        value = new VBuffer<T>(length, count, values, indices);
+                        value = editor.Commit();
                     }
                 }
             }

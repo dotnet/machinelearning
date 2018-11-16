@@ -316,18 +316,14 @@ namespace Microsoft.ML.Transforms.Text
                         getSrc(ref src);
                         terms.Clear();
 
-                        for (int i = 0; i < src.Count; i++)
-                            AddTerms(src.Values[i], separators, terms);
+                        var srcValues = src.GetValues();
+                        for (int i = 0; i < srcValues.Length; i++)
+                            AddTerms(srcValues[i], separators, terms);
 
-                        var values = dst.Values;
-                        if (terms.Count > 0)
-                        {
-                            if (Utils.Size(values) < terms.Count)
-                                values = new ReadOnlyMemory<char>[terms.Count];
-                            terms.CopyTo(values);
-                        }
-
-                        dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
+                        var editor = VBufferEditor.Create(ref dst, terms.Count);
+                        for (int i = 0; i < terms.Count; i++)
+                            editor.Values[i] = terms[i];
+                        dst = editor.Commit();
                     };
             }
 
