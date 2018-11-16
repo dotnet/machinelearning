@@ -112,7 +112,6 @@ namespace Microsoft.ML.Runtime.Api
                         : _host.CreateDefaultScorer(new RoleMappedData(transformPipe, label: null, "Features"), pred);
                 }
 
-                var nonScoreSb = new StringBuilder();
                 var scoreSb = new StringBuilder();
                 for (int i = 0; i < scorer.Schema.ColumnCount; i++)
                 {
@@ -120,13 +119,14 @@ namespace Microsoft.ML.Runtime.Api
                         continue;
                     bool isScoreColumn = scorer.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnSetId, i) != null;
 
-                    var sb = isScoreColumn ? scoreSb : nonScoreSb;
+                    if (!isScoreColumn)
+                        continue;
 
-                    if (sb.Length > 0)
-                        sb.AppendLine();
+                    if (scoreSb.Length > 0)
+                        scoreSb.AppendLine();
 
                     ColumnType colType = scorer.Schema.GetColumnType(i);
-                    CodeGenerationUtils.AppendFieldDeclaration(codeProvider, sb, i, scorer.Schema.GetColumnName(i), colType, false, _args.SparseVectorDeclaration);
+                    CodeGenerationUtils.AppendFieldDeclaration(codeProvider, scoreSb, i, scorer.Schema.GetColumnName(i), colType, false, _args.SparseVectorDeclaration);
                 }
 
                 // Turn model path into a C# identifier and insert it.
@@ -139,7 +139,6 @@ namespace Microsoft.ML.Runtime.Api
                     new Dictionary<string, string>
                     {
                         { "EXAMPLE_CLASS_DECL", loaderSb.ToString() },
-                        { "SCORED_EXAMPLE_CLASS_DECL", nonScoreSb.ToString() },
                         { "SCORE_CLASS_DECL", scoreSb.ToString() },
                         { "MODEL_PATH", modelPath }
                     };

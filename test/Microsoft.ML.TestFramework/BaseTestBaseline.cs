@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Tools;
@@ -26,6 +27,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
+            // Load the commands in Microsoft.ML.Api.
+            Env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly);
         }
 
         internal const string RawSuffix = ".raw";
@@ -815,13 +818,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// This method is used in unit tests when the output is not baselined.
         /// If the output is to be baselined and compared, the other overload should be used.
         /// </summary>
-        protected static int MainForTest(string args)
+        protected int MainForTest(string args)
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                int result = Maml.MainCore(env, args, false);
-                return result;
-            }
+            return Maml.MainCore(Env, args, false);
         }
     }
 
