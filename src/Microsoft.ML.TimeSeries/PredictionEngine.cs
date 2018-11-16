@@ -10,8 +10,16 @@ using System.Reflection;
 
 namespace Microsoft.ML.TimeSeries
 {
+    public delegate void ValuePinger(ref bool value, int rowPosition);
+
     public interface IStatefulRow : IRow
     {
+        ValuePinger[] GetPingers();
+    }
+
+    public interface IStatefulRowMapper : IRowMapper
+    {
+        Delegate[] CreatePingers(IRow input, Func<int, bool> activeOutput, out Action disposer);
     }
 
     /// <summary>
@@ -26,7 +34,8 @@ namespace Microsoft.ML.TimeSeries
         where TSrc : class
         where TDst : class, new()
     {
-        private Action[][] _pingers;
+        private ValuePinger[][] _pingers;
+        private int _rowPosition;
 
         internal TimeSeriesPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
@@ -107,29 +116,14 @@ namespace Microsoft.ML.TimeSeries
             outRow = result;
         }
 
-        private Action[][] CreatePingers(List<IStatefulRow> rows)
+        private ValuePinger[][] CreatePingers(List<IStatefulRow> rows)
         {
-            List<Action[]> pingers = new List<Action[]>();
+            ValuePinger[][] pingers = new ValuePinger[rows.Count][];
+            int index = 0;
             foreach(var row in rows)
-            {
-                var list = new List<Action>();
-                for (int i = 0; i < row.Schema.ColumnCount; i++)
-                {
-                    var colType = row.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TimeSeriesColumn, i);
-                    if (colType != null)
-                    {
-                        colType = row.Schema.GetColumnType(i);
-                        MethodInfo meth = ((Func<IRow, int, Action>)CreateGetter<int>).GetMethodInfo().
-                            GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
+                pingers[index++] = row.GetPingers();
 
-                        list.Add((Action)meth.Invoke(this, new object[] { row, i }));
-                    }
-                }
-
-                pingers.Add(list.ToArray());
-            }
-
-            return pingers.ToArray();
+            return pingers;
         }
 
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
@@ -150,16 +144,6 @@ namespace Microsoft.ML.TimeSeries
             outputRow = cursorable.GetRow(outputRowLocal);
         }
 
-        private static Action CreateGetter<T>(IRow input, int col)
-        {
-            var getter = input.GetGetter<T>(col);
-            T value = default(T);
-            return () =>
-            {
-                getter(ref value);
-            };
-        }
-
         /// <summary>
         /// Run prediction pipeline on one example.
         /// </summary>
@@ -173,11 +157,16 @@ namespace Microsoft.ML.TimeSeries
             if (prediction == null)
                 prediction = new TDst();
 
+            //Update State.
+            bool status = false;
             foreach (var row in _pingers)
                 foreach(var pinger in row)
-                    pinger();
+                    pinger(ref status, _rowPosition);
 
+            //Predict.
             FillValues(prediction);
+
+            _rowPosition++;
         }
     }
 

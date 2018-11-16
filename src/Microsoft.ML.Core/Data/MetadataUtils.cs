@@ -82,8 +82,6 @@ namespace Microsoft.ML.Runtime.Data
             /// slots within that column.
             /// </summary>
             public const string CategoricalSlotRanges = "CategoricalSlotRanges";
-
-            public const string TimeSeriesColumn = "TimeSeriesColumn";
         }
 
         /// <summary>

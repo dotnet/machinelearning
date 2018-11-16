@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private long _previousPosition;
 
-            public IRow Row;
+            private bool _updateState;
 
             /// <summary>
             /// This method sets the window size and initializes the buffer only once.
@@ -84,25 +84,29 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="initialWindowSize">The size of the windowed initial buffer used for training</param>
             /// <param name="parentTransform">The parent transform of this state object</param>
             /// <param name="host">The host</param>
-            public void InitState(int windowSize, int initialWindowSize, SequentialTransformerBase<TInput, TOutput, TState> parentTransform, IHost host)
+            /// <param name="updateState"></param>
+            public void InitState(int windowSize, int initialWindowSize, SequentialTransformerBase<TInput, TOutput, TState> parentTransform, IHost host, bool updateState = true)
             {
-                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
-                host.Check(!_isIniatilized, "The window size can be set only once.");
-                host.CheckValue(parentTransform, nameof(parentTransform));
-                host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
-                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
+                if (!_isIniatilized)
+                {
+                    Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
+                    host.CheckValue(parentTransform, nameof(parentTransform));
+                    host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
+                    host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
 
-                Host = host;
-                WindowSize = windowSize;
-                InitialWindowSize = initialWindowSize;
-                ParentTransform = parentTransform;
-                WindowedBuffer = (WindowSize > 0) ? new FixedSizeQueue<TInput>(WindowSize) : new FixedSizeQueue<TInput>(1);
-                InitialWindowedBuffer = (InitialWindowSize > 0) ? new FixedSizeQueue<TInput>(InitialWindowSize) : new FixedSizeQueue<TInput>(1);
-                RowCounter = 0;
+                    Host = host;
+                    WindowSize = windowSize;
+                    InitialWindowSize = initialWindowSize;
+                    ParentTransform = parentTransform;
+                    WindowedBuffer = (WindowSize > 0) ? new FixedSizeQueue<TInput>(WindowSize) : new FixedSizeQueue<TInput>(1);
+                    InitialWindowedBuffer = (InitialWindowSize > 0) ? new FixedSizeQueue<TInput>(InitialWindowSize) : new FixedSizeQueue<TInput>(1);
+                    RowCounter = 0;
 
-                InitializeStateCore();
-                _isIniatilized = true;
-                _previousPosition = -1;
+                    InitializeStateCore();
+                    _isIniatilized = true;
+                    _previousPosition = -1;
+                    _updateState = updateState;
+                }
             }
 
             /// <summary>
@@ -120,24 +124,40 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _previousPosition = -1;
             }
 
+            public void UpdateState(ref TInput input, int rowPosition, bool buffer = true)
+            {
+                if (rowPosition > _previousPosition)
+                {
+                    _previousPosition = rowPosition;
+                    UpdateStateCore(ref input, buffer);
+                }
+            }
+
+            public void UpdateStateCore(ref TInput input, bool buffer = true)
+            {
+                if (InitialWindowedBuffer.Count < InitialWindowSize)
+                {
+                    InitialWindowedBuffer.AddLast(input);
+                    if (InitialWindowedBuffer.Count >= InitialWindowSize - WindowSize && buffer)
+                        WindowedBuffer.AddLast(input);
+                }
+                else
+                {
+                    if (buffer)
+                        WindowedBuffer.AddLast(input);
+
+                    IncrementRowCounter();
+                }
+            }
+
             public void Process(ref TInput input, ref TOutput output)
             {
-                bool updateState = false;
-                if (Row.Position > _previousPosition)
-                {
-                    _previousPosition = Row.Position;
-                    updateState = true;
-                }
+                if (_updateState)
+                    UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
-                    if (updateState)
-                        InitialWindowedBuffer.AddLast(input);
-
                     SetNaOutput(ref output);
-
-                    if (InitialWindowedBuffer.Count >= InitialWindowSize - WindowSize && updateState)
-                        WindowedBuffer.AddLast(input);
 
                     if (InitialWindowedBuffer.Count == InitialWindowSize)
                         LearnStateFromDataCore(InitialWindowedBuffer);
@@ -145,39 +165,23 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 else
                 {
                     TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output);
-                    if (updateState)
-                    {
-                        WindowedBuffer.AddLast(input);
-                        IncrementRowCounter();
-                    }
                 }
             }
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output)
             {
-                bool updateState = false;
-                if (Row.Position > _previousPosition)
-                {
-                    _previousPosition = Row.Position;
-                    updateState = true;
-                }
+                if (_updateState)
+                    UpdateStateCore(ref input, false);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
                 {
-                    if (updateState)
-                        InitialWindowedBuffer.AddLast(input);
-
                     SetNaOutput(ref output);
 
                     if (InitialWindowedBuffer.Count == InitialWindowSize)
                         LearnStateFromDataCore(InitialWindowedBuffer);
                 }
                 else
-                {
                     TransformCore(ref input, WindowedBuffer, RowCounter - InitialWindowSize, ref output);
-                    if (updateState)
-                        IncrementRowCounter();
-                }
             }
 
             /// <summary>
@@ -305,7 +309,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public abstract Schema GetOutputSchema(Schema inputSchema);
 
-        protected abstract IRowMapper MakeRowMapper(ISchema schema);
+        protected abstract IStatefulRowMapper MakeRowMapper(ISchema schema);
 
         protected SequentialDataTransform MakeDataTransform(IDataView input)
         {
@@ -323,7 +327,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
         {
-            private readonly IRowMapper _mapper;
+            private readonly IStatefulRowMapper _mapper;
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
             private readonly IDataTransform _transform;
             private readonly ColumnBindings _bindings;
@@ -331,7 +335,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private MetadataDispatcher Metadata { get; }
 
             public SequentialDataTransform(IHost host, SequentialTransformerBase<TInput, TOutput, TState> parent,
-                IDataView input, IRowMapper mapper)
+                IDataView input, IStatefulRowMapper mapper)
                 : base(parent.Host, input)
             {
                 Metadata = new MetadataDispatcher(1);
@@ -427,7 +431,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
-                new Row(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer));
+                new Row(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
+                    _mapper.CreatePingers(input, active, out disposer));
 
         }
 
@@ -436,6 +441,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly Schema _schema;
             private readonly IRow _input;
             private readonly Delegate[] _getters;
+            private readonly Delegate[] _pingers;
 
             public Schema Schema { get { return _schema; } }
 
@@ -443,7 +449,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public long Batch { get { return _input.Batch; } }
 
-            public Row(Schema schema, IRow input, Delegate[] getters)
+            public Row(Schema schema, IRow input, Delegate[] getters, Delegate[] pingers)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
@@ -451,6 +457,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _schema = schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
+                _pingers = pingers ?? new Delegate[0];
             }
 
             public ValueGetter<UInt128> GetIdGetter()
@@ -466,6 +473,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 if (fn == null)
                     throw Contracts.Except("Unexpected TValue in GetGetter");
                 return fn;
+            }
+
+            public ValuePinger[] GetPingers()
+            {
+                ValuePinger[] pingers = new ValuePinger[_pingers.Length];
+                int index = 0;
+                foreach (var pinger in _pingers)
+                {
+                    var fn = pinger as ValuePinger;
+                    pingers[index++] = fn ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(bool));
+                }
+
+                return pingers;
             }
 
             public bool IsColumnActive(int col)
@@ -514,7 +534,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa
     {
-        private readonly IRowMapper _mapper;
+        private readonly IStatefulRowMapper _mapper;
         private readonly ColumnBindings _bindings;
         public const string RegistrationName = "TimeSeriesRowToRowMapperTransform";
         public const string LoaderSignature = "TimeSeriesRowToRowMapper";
@@ -534,7 +554,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
-        public TimeSeriesRowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper)
+        public TimeSeriesRowToRowMapperTransform(IHostEnvironment env, IDataView input, IStatefulRowMapper mapper)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -555,7 +575,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // *** Binary format ***
             // _mapper
 
-            ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
+            ctx.LoadModel<IStatefulRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
             _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
         }
 
@@ -702,7 +722,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new StatefulRow(input, this, Schema, getters);
+                return new StatefulRow(input, this, Schema, getters,
+                    _mapper.CreatePingers(input, pred, out disp));
             }
         }
 
@@ -710,6 +731,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private readonly IRow _input;
             private readonly Delegate[] _getters;
+            private readonly Delegate[] _pingers;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
 
@@ -719,12 +741,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public Schema Schema { get; }
 
-            public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent, Schema schema, Delegate[] getters)
+            public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent,
+                Schema schema, Delegate[] getters, Delegate[] pingers)
             {
                 _input = input;
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
+                _pingers = pingers;
             }
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
@@ -739,6 +763,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 if (fn == null)
                     throw Contracts.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
                 return fn;
+            }
+
+            public ValuePinger[] GetPingers()
+            {
+                ValuePinger[] pingers = new ValuePinger[_pingers.Length];
+                int index = 0;
+                foreach (var pinger in _pingers)
+                {
+                    var fn = pinger as ValuePinger;
+                    pingers[index++] = fn ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(bool));
+                }
+
+                return pingers;
             }
 
             public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();

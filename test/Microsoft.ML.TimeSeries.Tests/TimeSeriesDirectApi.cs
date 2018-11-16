@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void ChangePointDetectionWithSeasonalityPredictionEngine()
+        public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int ChangeHistorySize = 10;
             const int SeasonalitySize = 10;
@@ -182,6 +182,49 @@ namespace Microsoft.ML.Tests
             Assert.Equal(-1, prediction.Random);
             prediction = engine.Predict(new Data(2));
             Assert.Equal(-1, prediction.Random);
+        }
+
+        [Fact]
+        public void ChangePointDetectionWithSeasonalityPredictionEngine()
+        {
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1, conc: 1);
+            var dataView = ml.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                {
+                    Confidence = 95,
+                    Source = "Value",
+                    Name = "Change",
+                    ChangeHistoryLength = ChangeHistorySize,
+                    TrainingWindowSize = MaxTrainingSize,
+                    SeasonalWindowSize = SeasonalitySize
+                }));
+
+            // Train.
+            var model = pipeline.Fit(dataView);
+            var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var prediction = engine.Predict(new Data(1));
+            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
+            Assert.Equal(-2.3141059875488281, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
         }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -540,9 +541,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
 
-        private sealed class Mapper : IRowMapper
+        private sealed class Mapper : IStatefulRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
@@ -574,11 +575,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 var meta = new Schema.Metadata.Builder();
                 meta.AddSlotNames(_parent._outputLength, GetSlotNames);
-                ValueGetter<bool> getter = (ref bool dst) =>
-                {
-                    dst = true;
-                };
-                meta.Add(new Schema.Column(MetadataUtils.Kinds.TimeSeriesColumn, BoolType.Instance, null), getter);
                 var info = new Schema.Column[1];
                 info[0] = new Schema.Column(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
                 return info;
@@ -618,14 +614,39 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 ProcessData processData = _parent.WindowSize > 0 ?
                     (ProcessData)state.Process : state.ProcessWithoutBuffer;
 
-                state.Row = input;
-                ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                {
+                   TInput src = default;
+                   srcGetter(ref src);
+                   processData(ref src, ref dst);
+                };
+                return valueGetter;
+            }
+
+            public Delegate[] CreatePingers(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                disposer = null;
+                var getters = new Delegate[1];
+                if (activeOutput(0))
+                {
+                    TState state = new TState();
+                    state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host, false);
+                    getters[0] = MakePingers(input, state);
+                }
+                return getters;
+            }
+
+            private Delegate MakePingers(IRow input, TState state)
+            {
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
+                ValuePinger valuePinger = (ref bool status, int rowPosition) =>
                 {
                     TInput src = default;
                     srcGetter(ref src);
-                    processData(ref src, ref dst);
+                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
                 };
-                return valueGetter;
+                return valuePinger;
             }
         }
     }
