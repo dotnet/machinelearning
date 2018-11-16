@@ -45,8 +45,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected readonly ArgumentsBase Args;
         protected readonly IHost Host;
         protected readonly ICalibratorTrainer Calibrator;
-
-        private readonly TScalarTrainer _trainer;
+        protected readonly TScalarTrainer Trainer;
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
-            _trainer = singleEstimator;
+            Trainer = singleEstimator ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
             if (args.Calibrator != null)
@@ -81,8 +80,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
-            var trainer = _trainer ?? CreateTrainer();
-            Info = new TrainerInfo(normalization: trainer.Info.NeedNormalization);
+            Info = new TrainerInfo(normalization: Trainer.Info.NeedNormalization);
         }
 
         private TScalarTrainer CreateTrainer()
@@ -116,10 +114,10 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        protected TScalarTrainer GetTrainer()
-        {
-            return _trainer ?? CreateTrainer();
-        }
+        //protected TScalarTrainer GetTrainer()
+        //{
+        //    return _trainer ?? CreateTrainer();
+        //}
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
