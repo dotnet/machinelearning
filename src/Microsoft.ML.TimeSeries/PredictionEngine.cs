@@ -135,14 +135,14 @@ namespace Microsoft.ML.TimeSeries
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
-
+            IRow outputRowLocal = null;
             List<IStatefulRow> rows = new List<IStatefulRow>();
             if (mapper is CompositeRowToRowMapper)
-                GetStatefulRows(inputRow, mapper, col => true, rows, out disposer, out var outRow);
+                GetStatefulRows(inputRow, mapper, col => true, rows, out disposer, out outputRowLocal);
+            else
+                outputRowLocal = mapper.GetRow(inputRow, col => true, out disposer);
 
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRowLocal = mapper.GetRow(inputRow, col => true, out disposer);
-
             if (rows.Count == 0 && outputRowLocal is IStatefulRow)
                 rows.Add((IStatefulRow)outputRowLocal);
 

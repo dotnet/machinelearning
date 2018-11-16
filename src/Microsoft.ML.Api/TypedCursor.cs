@@ -250,8 +250,7 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        [BestFriend]
-        internal abstract class TypedRowBase : IRowReadableAs<TRow>
+        private abstract class TypedRowBase : IRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
@@ -262,9 +261,6 @@ namespace Microsoft.ML.Runtime.Api
             public long Position => _input.Position;
 
             public Schema Schema => _input.Schema;
-
-            [BestFriend]
-            internal IRow Input => _input;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {
@@ -474,8 +470,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        [BestFriend]
-        internal sealed class TypedRow : TypedRowBase
+        private sealed class TypedRow : TypedRowBase
         {
             public TypedRow(TypedCursorable<TRow> parent, IRow input)
                 : base(parent, input, "Row")
@@ -483,8 +478,7 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        [BestFriend]
-        internal sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        private sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
         {
             private readonly IRowCursor _input;
             private bool _disposed;
