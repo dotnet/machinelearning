@@ -311,7 +311,7 @@ namespace Microsoft.ML.StaticPipe
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.AffineNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
+                var aCol = (NormalizingTransformer.AffineNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
                 onFit(aCol.Scale, aCol.Offset);
             };
         }
@@ -323,7 +323,7 @@ namespace Microsoft.ML.StaticPipe
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.CdfNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
+                var aCol = (NormalizingTransformer.CdfNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
                 onFit(aCol.Mean, aCol.Stddev);
             };
         }
@@ -335,7 +335,7 @@ namespace Microsoft.ML.StaticPipe
                 return null;
             return col =>
             {
-                var aCol = (NormalizerTransformer.BinNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
+                var aCol = (NormalizingTransformer.BinNormalizerModelParameters<TData>)col?.GetNormalizerModelParams();
                 onFit(aCol.UpperBounds);
             };
         }
