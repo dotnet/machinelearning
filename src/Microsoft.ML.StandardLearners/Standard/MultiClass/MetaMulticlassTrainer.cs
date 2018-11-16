@@ -45,16 +45,13 @@ namespace Microsoft.ML.Runtime.Learners
         protected readonly ArgumentsBase Args;
         protected readonly IHost Host;
         protected readonly ICalibratorTrainer Calibrator;
-
-        private TScalarTrainer _trainer;
+        protected readonly TScalarTrainer Trainer;
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
-
-        public TScalarTrainer PredictorType;
 
         /// <summary>
         /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
@@ -75,17 +72,15 @@ namespace Microsoft.ML.Runtime.Learners
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
-            // Create the first trainer so errors in the args surface early.
-            _trainer = singleEstimator ?? CreateTrainer();
+            Trainer = singleEstimator ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
-
             if (args.Calibrator != null)
                 Calibrator = args.Calibrator.CreateComponent(Host);
 
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
-            Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
+            Info = new TrainerInfo(normalization: Trainer.Info.NeedNormalization);
         }
 
         private TScalarTrainer CreateTrainer()
@@ -117,15 +112,6 @@ namespace Microsoft.ML.Runtime.Learners
                 lab.Name, lab.Name, type, NumberType.Float,
                 (in T src, ref float dst) =>
                     dst = equalsTarget(in src) ? 1 : default(float));
-        }
-
-        protected TScalarTrainer GetTrainer()
-        {
-            // We may have instantiated the first trainer to use already, from the constructor.
-            // If so capture it and set the retained trainer to null; otherwise create a new one.
-            var train = _trainer ?? CreateTrainer();
-            _trainer = null;
-            return train;
         }
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
