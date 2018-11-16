@@ -59,7 +59,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeatureName
         {
+            #pragma warning disable 0649
             public ReadOnlyMemory<char> Name;
+            #pragma warning restore 0649
         }
 
         private readonly IHostEnvironment _env;
