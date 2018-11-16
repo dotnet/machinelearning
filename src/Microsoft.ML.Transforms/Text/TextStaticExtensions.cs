@@ -103,7 +103,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new TokenizeByCharactersEstimator(env, _useMarker, pairs.ToArray());
+                return new TokenizingByCharactersEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 
