@@ -104,20 +104,22 @@ namespace Microsoft.ML
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
+        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numIterations = GamDefaults.NumIterations,
+            double learningRate = GamDefaults.LearningRates,
+            int maxBins = GamDefaults.MaxBins,
             Action<BinaryClassificationGamTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new BinaryClassificationGamTrainer(env, labelColumn, featureColumn, weights, minDatapointsInLeaves, learningRate, advancedSettings);
+            return new BinaryClassificationGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins, advancedSettings);
         }
 
         /// <summary>
@@ -127,20 +129,22 @@ namespace Microsoft.ML
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The featureColumn column.</param>
         /// <param name="weights">The optional weights column.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
-        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
+        /// <param name="maxBins">The maximum number of bins to use to approximate features.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numIterations = GamDefaults.NumIterations,
+            double learningRate = GamDefaults.LearningRates,
+            int maxBins = GamDefaults.MaxBins,
             Action<RegressionGamTrainer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new RegressionGamTrainer(env, labelColumn, featureColumn, weights, minDatapointsInLeaves, learningRate, advancedSettings);
+            return new RegressionGamTrainer(env, labelColumn, featureColumn, weights, numIterations, learningRate, maxBins, advancedSettings);
         }
 
         /// <summary>
