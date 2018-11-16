@@ -16,11 +16,11 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS - any platform where x64 [.NET Core](https://github.com/dotnet/core) or later is available. In addition, .NET Framework on Windows x64 is also supported.
+ML.NET runs on Windows, Linux, and macOS using [.NET Core](https://github.com/dotnet/core), or Windows using .NET Framework. 64 bit is supported on all platforms. 32 bit is supported on Windows, except for TensorFlow, LightGBM, and ONNX related functionality.
 
-The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md) to see what's new.
+The current release is 0.7. Check out the [release notes](docs/release-notes/0.7/release-0.7.md) and [blog post](https://blogs.msdn.microsoft.com/dotnet/2018/11/08/announcing-ml-net-0-7-machine-learning-net/) to see what's new.
 
-First, ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64-bit process.
+First, ensure you have installed [.NET Core 2.1](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework 4.6.1 or later, but 4.7.2 or later is recommended.
 
 Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
 ```
@@ -65,18 +65,19 @@ Here's an example of code to train a model to predict sentiment from text sample
 (You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
-var env = new LocalEnvironment();
-var reader = TextLoader.CreateReader(env, ctx => (
-        Target: ctx.LoadFloat(2),
-        FeatureVector: ctx.LoadFloat(3, 6)),
-        separator: ',',
-        hasHeader: true);
-var data = reader.Read(new MultiFileSource(dataPath));
-var classification = new MulticlassClassificationContext(env);
-var learningPipeline = reader.MakeNewEstimator()
-    .Append(r => (
-    r.Target,
-    Prediction: classification.Trainers.Sdca(r.Target.ToKey(), r.FeatureVector)));
+var mlContext = new MLContext();
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+        {
+        Column = new[] {
+            new TextLoader.Column("SentimentText", DataKind.Text, 1),
+            new TextLoader.Column("Label", DataKind.Bool, 0),
+        },
+        HasHeader = true,
+        Separator = ","
+});
+var data = reader.Read(dataPath);
+var learningPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+        .Append(mlContext.BinaryClassification.Trainers.FastTree());
 var model = learningPipeline.Fit(data);
 
 ```
@@ -84,12 +85,12 @@ var model = learningPipeline.Fit(data);
 Now from the model we can make inferences (predictions):
 
 ```C#
-var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPrediction>(env);
+var predictionFunc = model.MakePredictionFunction<SentimentData, SentimentPrediction>(mlContext);
 var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
 });
-Console.WriteLine("prediction: " + prediction.Sentiment);
+Console.WriteLine("prediction: " + prediction.Prediction);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 

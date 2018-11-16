@@ -55,7 +55,7 @@ namespace Microsoft.ML.Tests
             public string[] data_0;
         }
 
-        private float[] getSampleArrayData()
+        private float[] GetSampleArrayData()
         {
             var samplevector = new float[inputSize];
             for (int i = 0; i < inputSize; i++)
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
 
             var modelFile = "squeezenet/00000001/model.onnx";
 
-            var samplevector = getSampleArrayData();
+            var samplevector = GetSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
                 new TestData[] {
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Tests
 
             var modelFile = "squeezenet/00000001/model.onnx";
 
-            var samplevector = getSampleArrayData();
+            var samplevector = GetSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
                 new TestData[] {

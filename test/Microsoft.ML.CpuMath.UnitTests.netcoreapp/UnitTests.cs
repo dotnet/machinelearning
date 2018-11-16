@@ -90,7 +90,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(false, mat, src, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(true, mat, src, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);

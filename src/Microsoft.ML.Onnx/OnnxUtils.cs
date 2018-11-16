@@ -368,8 +368,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 else if (type.ValueCount > 1)
                 {
                     var vec = type.AsVector;
-                    for (int i = 0; i < vec.DimCount; i++)
-                        dimsLocal.Add(vec.GetDim(i));
+                    for (int i = 0; i < vec.Dimensions.Length; i++)
+                        dimsLocal.Add(vec.Dimensions[i]);
                 }
             }
             //batch size.

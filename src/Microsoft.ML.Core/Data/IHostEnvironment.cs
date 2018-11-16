@@ -253,7 +253,7 @@ namespace Microsoft.ML.Runtime
         /// setting <see cref="MessageSensitivity.Unknown"/>.
         /// </summary>
         public static void Trace(this IChannel ch, string fmt, params object[] args)
-            => ch.Trace(MessageSensitivity.Unknown, fmt);
+            => ch.Trace(MessageSensitivity.Unknown, fmt, args);
 
         /// <summary>
         /// Convenience variant of <see cref="IChannel.Error(MessageSensitivity, string)"/>

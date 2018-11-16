@@ -5,14 +5,13 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using static Microsoft.ML.Transforms.Text.StopWordsRemoverTransform;
 
-namespace Microsoft.ML.Transforms.Text
+namespace Microsoft.ML.StaticPipe
 {
+    using Language = Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer.Language;
     /// <summary>
     /// Extensions for statically typed word tokenizer.
     /// </summary>
@@ -104,7 +103,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new CharacterTokenizingEstimator(env, _useMarker, pairs.ToArray());
+                return new TokenizeByCharactersEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 
@@ -256,7 +255,7 @@ namespace Microsoft.ML.Transforms.Text
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramTransform.WeightingCriteria weighting)
+                NgramCountingTransformer.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -269,9 +268,9 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramTransform.WeightingCriteria _weighting;
+            private readonly NgramCountingTransformer.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingTransformer.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -321,7 +320,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramCountingTransformer.WeightingCriteria weighting = NgramCountingTransformer.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
@@ -432,7 +431,7 @@ namespace Microsoft.ML.Transforms.Text
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramTransform.WeightingCriteria weighting)
+                NgramCountingTransformer.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -445,9 +444,9 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramTransform.WeightingCriteria _weighting;
+            private readonly NgramCountingTransformer.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingTransformer.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -500,7 +499,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+            NgramCountingTransformer.WeightingCriteria weighting = NgramCountingTransformer.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 

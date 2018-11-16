@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms
         /// Also Tensor.CopyTo(List&lt;T&gt; dst) requires a list input, whereas ML.NET
         /// provides array buffers to copy values to. This mismatch causes an extra copy.
         /// </summary>
-        public static void CopyTo<T>(Tensor tensor, T[] dst)
+        public static unsafe void CopyTo<T>(Tensor tensor, Span<T> dst)
         {
             if (typeof(T) == typeof(System.Boolean))
             {
@@ -292,7 +292,18 @@ namespace Microsoft.ML.Transforms
             }
             else if (typeof(T) == typeof(System.UInt16))
             {
-                tensor.CopyTo((System.UInt16[])(object)dst);
+                DataType dataType = tensor.GetDataType();
+                if (dataType != DataType.Type_Float)
+                {
+                    throw new InvalidOperationException(string.Format("Cannot copy source tensor {0} to managed type System.Single (DataType.Type_Float).", dataType));
+                }
+
+                Span<T> tensorSpan = new Span<T>(tensor.UnsafeGetData().ToPointer(), tensor.GetSize());
+                tensorSpan.CopyTo(dst);
+                // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
+                // during the method call. Use KeepAlive for now, and remove
+                // after permanent fix in CopyTo().
+                GC.KeepAlive(tensor);
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
