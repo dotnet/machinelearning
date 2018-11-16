@@ -473,6 +473,20 @@ namespace Microsoft.ML
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
+
+        public IDataView PermutationFeatureImportance(ITransformer model, IDataView data,
+            string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
+            int topExamples = 0, int progressIterations = 10)
+        {
+            Host.CheckValue(model, nameof(model));
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(features, nameof(features));
+
+            //var pfi= new PermutationFeatureImportanceRegression(Host);
+            //return pfi.GetImportanceMetricsMatrix(model, data, label, features);
+            return null;
+        }
     }
 
     /// <summary>

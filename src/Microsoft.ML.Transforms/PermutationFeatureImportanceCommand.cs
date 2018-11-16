@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using HelperCommands;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Command;
@@ -26,7 +26,7 @@ using Float = System.Single;
 [assembly: LoadableClass(typeof(PermutationFeatureImportanceCommand), typeof(PermutationFeatureImportanceCommand.Arguments), typeof(SignatureCommand),
     "Permutation Feature Importance", "PermutationFeatureImportance", "pfi")]
 
-namespace HelperCommands
+namespace Microsoft.ML.Transforms
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -286,6 +286,18 @@ namespace HelperCommands
 
                 ch.AssertValue(baselineMetricsView);
                 var baselineMetrics = EvaluateUtils.GetMetrics(baselineMetricsView);
+
+                ////////////////////////// new Changes
+                var mlContext = new MLContext();
+                ITransformer trainedModel = null;
+
+                var values = trainedModel.Transform(dataEval.Data /*what happens to roles here???*/);
+                var metrics = mlContext.Regression.Evaluate(values);
+                // how to get to baselineMetrics
+
+                var m2 = mlContext.Ranking.Evaluate(dataEval.Data, "label", "groupid");
+
+                //////////////////////////
 
                 // Get slot names.
                 RoleMappedData roleMapped = dataEval;

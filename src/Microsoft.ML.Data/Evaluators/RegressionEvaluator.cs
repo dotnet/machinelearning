@@ -212,6 +212,25 @@ namespace Microsoft.ML.Runtime.Data
                 LossFn = Fetch(RegressionEvaluator.Loss);
                 RSquared = Fetch(RegressionEvaluator.RSquared);
             }
+
+            private Result(double l1, double l2, double rms, double lossfn, double rsquared)
+            {
+                L1 = l1;
+                L2 = l2;
+                Rms = rms;
+                LossFn = lossfn;
+                RSquared = rsquared;
+            }
+
+            public static Result operator -(Result a, Result b)
+            {
+                return new Result(
+                    l1: a.L1 - b.L1,
+                    l2: a.L2 - b.L2,
+                    rms: a.Rms - b.Rms,
+                    lossfn: a.LossFn - b.LossFn,
+                    rsquared: a.RSquared - b.RSquared);
+            }
         }
 
         /// <summary>
