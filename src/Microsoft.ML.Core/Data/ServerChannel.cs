@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime
     /// that the library will publish some sort of restful API.
     /// </summary>
     [BestFriend]
-    public sealed class ServerChannel : ServerChannel.IPendingBundleNotification, IDisposable
+    internal sealed class ServerChannel : ServerChannel.IPendingBundleNotification, IDisposable
     {
         // See ServerChannel.md for a more elaborate discussion of high level usage and design.
         private readonly IChannelProvider _chp;

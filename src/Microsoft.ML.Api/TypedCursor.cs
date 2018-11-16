@@ -563,8 +563,8 @@ namespace Microsoft.ML.Runtime.Api
             SchemaDefinition schemaDefinition = null)
             where TRow : class, new()
         {
-            // REVIEW: Take this as a parameter, or else make it a method on he context itself.
-            var ml = new MLContext(42);
+            // REVIEW: Take this as a parameter, or else make it a method on the context itself.
+            var ml = new MLContext();
             return data.AsCursorable<TRow>(ml, ignoreMissingColumns, schemaDefinition);
         }
 

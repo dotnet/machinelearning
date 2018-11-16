@@ -17,7 +17,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// This holds useful base classes for commands that ingest a primary dataset and deal with associated model files.
     /// </summary>
-    public static class DataCommand
+    [BestFriend]
+    internal static class DataCommand
     {
         public abstract class ArgumentsBase
         {

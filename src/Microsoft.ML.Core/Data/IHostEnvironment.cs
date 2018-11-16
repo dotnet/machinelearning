@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime
         /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
         /// </summary>
         [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
-            "Handle your own temporary files. If you cannot, reconsider your life choices.")]
+            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
 
         /// <summary>
