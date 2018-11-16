@@ -25,50 +25,48 @@ namespace Microsoft.ML.Scenarios
             string dataPath = GetDataPath("iris.txt");
             string testDataPath = dataPath;
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
-            {
-                // Pipeline
-                var loader = TextLoader.ReadFile(env,
-                    new TextLoader.Arguments()
+            var env = new MLContext(seed: 1, conc: 1);
+            // Pipeline
+            var loader = TextLoader.ReadFile(env,
+                new TextLoader.Arguments()
+                {
+                    HasHeader = false,
+                    Column = new[]
                     {
-                        HasHeader = false,
-                        Column = new[]
-                        {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
                             new TextLoader.Column("SepalWidth", DataKind.R4, 2),
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4)
-                        }
-                    }, new MultiFileSource(dataPath));
+                    }
+                }, new MultiFileSource(dataPath));
 
-                IDataView pipeline = new ColumnConcatenatingTransformer(env, "Features",
-                    "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
+            IDataView pipeline = new ColumnConcatenatingTransformer(env, "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
-                // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
-                pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
+            // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
+            pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
-                // Train
-                var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
+            // Train
+            var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: s => s.NumThreads = 1);
 
-                // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
-                var cached = new CacheDataView(env, pipeline, prefetch: null);
-                var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
-                var pred = trainer.Train(trainRoles);
+            // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
+            var cached = new CacheDataView(env, pipeline, prefetch: null);
+            var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
+            var pred = trainer.Train(trainRoles);
 
-                // Get scorer and evaluate the predictions from test data
-                IDataScorerTransform testDataScorer = GetScorer(env, pipeline, pred, testDataPath);
-                var metrics = Evaluate(env, testDataScorer);
-                CompareMatrics(metrics);
+            // Get scorer and evaluate the predictions from test data
+            IDataScorerTransform testDataScorer = GetScorer(env, pipeline, pred, testDataPath);
+            var metrics = Evaluate(env, testDataScorer);
+            CompareMatrics(metrics);
 
-                // Create prediction engine and test predictions
-                var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(testDataScorer);
-                ComparePredictions(model);
+            // Create prediction engine and test predictions
+            var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(testDataScorer);
+            ComparePredictions(model);
 
-                // Get feature importance i.e. weight vector
-                var summary = ((MulticlassLogisticRegressionPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
-                Assert.Equal(7.757864, Convert.ToDouble(summary[0].Value), 5);
-            }
+            // Get feature importance i.e. weight vector
+            var summary = pred.GetSummaryInKeyValuePairs(trainRoles.Schema);
+            Assert.Equal(7.76443, Convert.ToDouble(summary[0].Value), 5);
         }
 
         private void ComparePredictions(PredictionEngine<IrisData, IrisPrediction> model)

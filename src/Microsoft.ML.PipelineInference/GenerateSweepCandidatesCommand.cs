@@ -10,23 +10,23 @@ using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.MLTesting.Inference;
 using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.Sweeper;
 
 [assembly: LoadableClass(typeof(GenerateSweepCandidatesCommand), typeof(GenerateSweepCandidatesCommand.Arguments), typeof(SignatureCommand),
     "Generate Experiment Candidates", "GenerateSweepCandidates", DocName = "command/GenerateSweepCandidates.md")]
 
-namespace Microsoft.ML.Runtime.MLTesting.Inference
+namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
     /// This is a command that takes as an input:
     /// 1- the schema of a dataset, in the format produced by InferSchema
-    /// 2- the path to the datafile 
-    /// and generates experiment candidates by combining all the transform recipes suggested for the dataset, with all the learners available for the task. 
+    /// 2- the path to the datafile
+    /// and generates experiment candidates by combining all the transform recipes suggested for the dataset, with all the learners available for the task.
     /// </summary>
-    public sealed class GenerateSweepCandidatesCommand : ICommand
+    internal sealed class GenerateSweepCandidatesCommand : ICommand
     {
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.Required, HelpText = "Text file with data to analyze.", ShortName = "data")]
@@ -53,6 +53,7 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
             [Argument(ArgumentType.AtMostOnce, HelpText = "If this option is provided, the result RSP are indented and written in separate files for easier visual inspection. Otherwise all the generated RSPs are written to a single file, one RSP per line.")]
             public bool Indent;
         }
+#pragma warning disable CS0649
 
         private readonly IHost _host;
         private readonly string _dataFile;

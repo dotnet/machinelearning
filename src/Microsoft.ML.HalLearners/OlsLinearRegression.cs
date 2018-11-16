@@ -130,7 +130,7 @@ namespace Microsoft.ML.Trainers.HalLearners
         private static Double ProbClamp(Double p)
             => Math.Max(0, Math.Min(p, 1));
 
-        protected override OlsLinearRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override OlsLinearRegressionPredictor TrainModelCore(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {

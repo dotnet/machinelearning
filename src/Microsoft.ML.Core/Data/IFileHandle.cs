@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime
         // handle has been disposed.
         private List<Stream> _streams;
 
-        private bool IsDisposed { get { return _streams == null; } }
+        private bool IsDisposed => _streams == null;
 
         public SimpleFileHandle(IExceptionContext ectx, string path, bool needsWrite, bool autoDelete)
         {
@@ -84,15 +84,9 @@ namespace Microsoft.ML.Runtime
             _streams = new List<Stream>();
         }
 
-        public bool CanWrite
-        {
-            get { return !_wrote && !IsDisposed; }
-        }
+        public bool CanWrite => !_wrote && !IsDisposed;
 
-        public bool CanRead
-        {
-            get { return _wrote && !IsDisposed; }
-        }
+        public bool CanRead => _wrote && !IsDisposed;
 
         public void Dispose()
         {

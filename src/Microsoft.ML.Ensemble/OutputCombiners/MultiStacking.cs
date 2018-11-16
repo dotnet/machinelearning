@@ -21,7 +21,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
+    internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
         public const string LoaderSignature = "MultiStackingCombiner";
@@ -37,9 +37,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderAssemblyName: typeof(MultiStacking).Assembly.FullName);
         }
 
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
@@ -49,6 +51,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
         }
+#pragma warning restore CS0649
 
         public MultiStacking(IHostEnvironment env, Arguments args)
             : base(env, LoaderSignature, args)

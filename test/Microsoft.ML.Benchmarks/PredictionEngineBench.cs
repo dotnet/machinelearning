@@ -36,32 +36,30 @@ namespace Microsoft.ML.Benchmarks
 
             string _irisDataPath = Program.GetInvariantCultureDataPath("iris.txt");
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                var reader = new TextLoader(env,
-                    new TextLoader.Arguments()
+            var env = new MLContext(seed: 1, conc: 1);
+            var reader = new TextLoader(env,
+                new TextLoader.Arguments()
+                {
+                    Separator = "\t",
+                    HasHeader = true,
+                    Column = new[]
                     {
-                        Separator = "\t",
-                        HasHeader = true,
-                        Column = new[]
-                        {
                             new TextLoader.Column("Label", DataKind.R4, 0),
                             new TextLoader.Column("SepalLength", DataKind.R4, 1),
                             new TextLoader.Column("SepalWidth", DataKind.R4, 2),
                             new TextLoader.Column("PetalLength", DataKind.R4, 3),
                             new TextLoader.Column("PetalWidth", DataKind.R4, 4),
-                        }
-                    });
+                    }
+                });
 
-                IDataView data = reader.Read(_irisDataPath);
+            IDataView data = reader.Read(_irisDataPath);
 
-                var pipeline = new ColumnConcatenatingEstimator (env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                    .Append(new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+            var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
-                var model = pipeline.Fit(data);
+            var model = pipeline.Fit(data);
 
-                _irisModel = model.MakePredictionFunction<IrisData, IrisPrediction>(env);
-            }
+            _irisModel = model.MakePredictionFunction<IrisData, IrisPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeSentimentPredictions))]
@@ -74,9 +72,8 @@ namespace Microsoft.ML.Benchmarks
 
             string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                var reader = new TextLoader(env,
+            var env = new MLContext(seed: 1, conc: 1);
+            var reader = new TextLoader(env,
                     new TextLoader.Arguments()
                     {
                         Separator = "\t",
@@ -88,15 +85,14 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(_sentimentDataPath);
+            IDataView data = reader.Read(_sentimentDataPath);
 
-                var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
-                    .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+            var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
+                .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
-                var model = pipeline.Fit(data);
+            var model = pipeline.Fit(data);
 
-                _sentimentModel = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
-            }
+            _sentimentModel = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
         }
 
         [GlobalSetup(Target = nameof(MakeBreastCancerPredictions))]
@@ -109,9 +105,8 @@ namespace Microsoft.ML.Benchmarks
 
             string _breastCancerDataPath = Program.GetInvariantCultureDataPath("breast-cancer.txt");
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                var reader = new TextLoader(env,
+            var env = new MLContext(seed: 1, conc: 1);
+            var reader = new TextLoader(env,
                     new TextLoader.Arguments()
                     {
                         Separator = "\t",
@@ -123,14 +118,13 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(_breastCancerDataPath);
+            IDataView data = reader.Read(_breastCancerDataPath);
 
-                var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
+            var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 
-                var model = pipeline.Fit(data);
+            var model = pipeline.Fit(data);
 
-                _breastCancerModel = model.MakePredictionFunction<BreastCancerData, BreastCancerPrediction>(env);
-            }
+            _breastCancerModel = model.MakePredictionFunction<BreastCancerData, BreastCancerPrediction>(env);
         }
 
         [Benchmark]

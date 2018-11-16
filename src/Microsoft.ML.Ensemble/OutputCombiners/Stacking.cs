@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TScalarPredictor = IPredictorProducing<Single>;
-    public sealed class Stacking : BaseScalarStacking, IBinaryOutputCombiner, ICanSaveModel
+    internal sealed class Stacking : BaseScalarStacking, IBinaryOutputCombiner, ICanSaveModel
     {
         public const string UserName = "Stacking";
         public const string LoadName = "Stacking";
@@ -33,9 +33,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderAssemblyName: typeof(Stacking).Assembly.FullName);
         }
 
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         [TlcModule.Component(Name = LoadName, FriendlyName = UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportBinaryOutputCombinerFactory
         {
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
@@ -45,6 +47,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);
         }
+#pragma warning restore CS0649
 
         public Stacking(IHostEnvironment env, Arguments args)
             : base(env, LoaderSignature, args)
