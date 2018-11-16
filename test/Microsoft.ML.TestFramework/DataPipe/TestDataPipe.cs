@@ -735,7 +735,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         while (c.MoveNext())
                         {
                             getter(ref buffer);
-                            CompareVec(in buffer, in expected[index++], buffer.Count, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
+                            CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
                         }
                     }
                 };
