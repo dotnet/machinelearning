@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Runtime.Tools
 {
-    public sealed class VersionCommand : ICommand
+    internal sealed class VersionCommand : ICommand
     {
         internal const string Summary = "Prints the TLC version.";
 

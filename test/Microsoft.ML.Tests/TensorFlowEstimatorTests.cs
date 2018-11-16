@@ -133,10 +133,8 @@ namespace Microsoft.ML.Tests
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}"}), (int)0);
-            }
+            var env = new MLContext();
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}" }), (int)0);
         }
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
@@ -144,91 +142,87 @@ namespace Microsoft.ML.Tests
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var imageHeight = 32;
+            var imageWidth = 32;
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = TextLoader.CreateReader(env, ctx => (
+                imagePath: ctx.LoadText(0),
+                name: ctx.LoadText(1)))
+                .Read(dataFile);
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            var pipe = data.MakeNewEstimator()
+                .Append(row => (
+                    row.name,
+                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
+
+            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            result.Schema.TryGetColumnIndex("Output", out int output);
+            using (var cursor = result.GetRowCursor(col => col == output))
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
-                var dataFile = GetDataPath("images/images.tsv");
-                var imageFolder = Path.GetDirectoryName(dataFile);
-
-                var data = TextLoader.CreateReader(env, ctx => (
-                    imagePath: ctx.LoadText(0),
-                    name: ctx.LoadText(1)))
-                    .Read(dataFile);
-
-                // Note that CamelCase column names are there to match the TF graph node names.
-                var pipe = data.MakeNewEstimator()
-                    .Append(row => (
-                        row.name,
-                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
-
-                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
-
-                var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("Output", out int output);
-                using (var cursor = result.GetRowCursor(col => col == output))
+                var buffer = default(VBuffer<float>);
+                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var numRows = 0;
+                while (cursor.MoveNext())
                 {
-                    var buffer = default(VBuffer<float>);
-                    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                    var numRows = 0;
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref buffer);
-                        Assert.Equal(10, buffer.Length);
-                        numRows += 1;
-                    }
-                    Assert.Equal(3, numRows);
+                    getter(ref buffer);
+                    Assert.Equal(10, buffer.Length);
+                    numRows += 1;
                 }
+                Assert.Equal(3, numRows);
             }
         }
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTensorFlowStaticWithSchema()
         {
-            var modelLocation = "cifar_model/frozen_model.pb";
+            const string modelLocation = "cifar_model/frozen_model.pb";
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
+            var schema = tensorFlowModel.GetInputSchema();
+            Assert.True(schema.TryGetColumnIndex("Input", out int column));
+            var type = (VectorType)schema.GetColumnType(column);
+            var imageHeight = type.Dimensions[0];
+            var imageWidth = type.Dimensions[1];
+
+            var dataFile = GetDataPath("images/images.tsv");
+            var imageFolder = Path.GetDirectoryName(dataFile);
+
+            var data = TextLoader.CreateReader(env, ctx => (
+                imagePath: ctx.LoadText(0),
+                name: ctx.LoadText(1)))
+                .Read(dataFile);
+
+            // Note that CamelCase column names are there to match the TF graph node names.
+            var pipe = data.MakeNewEstimator()
+                .Append(row => (
+                    row.name,
+                    Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
+
+            TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+            var result = pipe.Fit(data).Transform(data).AsDynamic;
+            result.Schema.TryGetColumnIndex("Output", out int output);
+            using (var cursor = result.GetRowCursor(col => col == output))
             {
-                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
-                var schema = tensorFlowModel.GetInputSchema();
-                Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = (VectorType)schema.GetColumnType(column);
-                var imageHeight = type.Dimensions[0];
-                var imageWidth = type.Dimensions[1];
-
-                var dataFile = GetDataPath("images/images.tsv");
-                var imageFolder = Path.GetDirectoryName(dataFile);
-
-                var data = TextLoader.CreateReader(env, ctx => (
-                    imagePath: ctx.LoadText(0),
-                    name: ctx.LoadText(1)))
-                    .Read(dataFile);
-
-                // Note that CamelCase column names are there to match the TF graph node names.
-                var pipe = data.MakeNewEstimator()
-                    .Append(row => (
-                        row.name,
-                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
-
-                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
-
-                var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("Output", out int output);
-                using (var cursor = result.GetRowCursor(col => col == output))
+                var buffer = default(VBuffer<float>);
+                var getter = cursor.GetGetter<VBuffer<float>>(output);
+                var numRows = 0;
+                while (cursor.MoveNext())
                 {
-                    var buffer = default(VBuffer<float>);
-                    var getter = cursor.GetGetter<VBuffer<float>>(output);
-                    var numRows = 0;
-                    while (cursor.MoveNext())
-                    {
-                        getter(ref buffer);
-                        Assert.Equal(10, buffer.Length);
-                        numRows += 1;
-                    }
-                    Assert.Equal(3, numRows);
+                    getter(ref buffer);
+                    Assert.Equal(10, buffer.Length);
+                    numRows += 1;
                 }
+                Assert.Equal(3, numRows);
             }
         }
 

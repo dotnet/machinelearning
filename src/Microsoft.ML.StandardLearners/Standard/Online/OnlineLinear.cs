@@ -254,7 +254,7 @@ namespace Microsoft.ML.Trainers.Online
             return args;
         }
 
-        protected sealed override TModel TrainModelCore(TrainContext context)
+        private protected sealed override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;

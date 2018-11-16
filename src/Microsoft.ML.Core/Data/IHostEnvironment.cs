@@ -72,6 +72,8 @@ namespace Microsoft.ML.Runtime
         /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
         /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
         /// </summary>
+        [Obsolete("The host environment is not disposable, so it is inappropriate to use this method. " +
+            "Please handle your own temporary files within the component yourself, including their proper disposal and deletion.")]
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
 
         /// <summary>
@@ -188,7 +190,8 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         public string Message => _args != null ? string.Format(_message, _args) : _message;
 
-        public ChannelMessage(ChannelMessageKind kind, MessageSensitivity sensitivity, string message)
+        [BestFriend]
+        internal ChannelMessage(ChannelMessageKind kind, MessageSensitivity sensitivity, string message)
         {
             Contracts.CheckNonEmpty(message, nameof(message));
             Kind = kind;
@@ -197,7 +200,8 @@ namespace Microsoft.ML.Runtime
             _args = null;
         }
 
-        public ChannelMessage(ChannelMessageKind kind, MessageSensitivity sensitivity, string fmt, params object[] args)
+        [BestFriend]
+        internal ChannelMessage(ChannelMessageKind kind, MessageSensitivity sensitivity, string fmt, params object[] args)
         {
             Contracts.CheckNonEmpty(fmt, nameof(fmt));
             Contracts.CheckNonEmpty(args, nameof(args));

@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.FastTree
             data.CheckRegressionLabel();
         }
 
-        protected override RegressionGamPredictor TrainModelCore(TrainContext context)
+        private protected override RegressionGamPredictor TrainModelCore(TrainContext context)
         {
             TrainBase(context);
             return new RegressionGamPredictor(Host, InputLength, TrainSet, MeanEffect, BinEffects, FeatureMap);

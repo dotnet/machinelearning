@@ -21,10 +21,11 @@ namespace Microsoft.ML.Transforms
     /// is greater than a threshold.
     /// Instantiates a DropSlots transform to actually drop the slots.
     /// </summary>
-    public static class LearnerFeatureSelectionTransform
+    internal static class LearnerFeatureSelectionTransform
     {
         internal const string Summary = "Selects the slots for which the absolute value of the corresponding weight in a linear learner is greater than a threshold.";
 
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If the corresponding absolute value of the weight for a slot is greater than this threshold, the slot is preserved", ShortName = "ft", SortOrder = 2)]
@@ -33,6 +34,8 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of slots to preserve", ShortName = "topk", SortOrder = 1)]
             public int? NumSlotsToKeep;
 
+            // If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer, but the utility
+            // of this would be limited because estimators and transformers now act more or less like this transform used to.
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1, SignatureType = typeof(SignatureFeatureScorerTrainer))]
             public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<Single>>> Filter =
                 ComponentFactoryUtils.CreateFromFunction(env =>
@@ -74,6 +77,7 @@ namespace Microsoft.ML.Transforms
                 ectx.CheckUserArg((NumSlotsToKeep ?? int.MaxValue) > 0, nameof(NumSlotsToKeep), "Must be positive");
             }
         }
+#pragma warning restore CS0649
 
         internal static string RegistrationName = "LearnerFeatureSelectionTransform";
 

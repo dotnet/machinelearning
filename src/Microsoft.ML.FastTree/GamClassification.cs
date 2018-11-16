@@ -102,7 +102,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return boolArray;
         }
 
-        protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
+        private protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
             var predictor = new BinaryClassGamPredictor(Host, InputLength, TrainSet,

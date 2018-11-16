@@ -22,10 +22,9 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
-            {
-                // Pipeline
-                var loader = TextLoader.ReadFile(env,
+            var env = new MLContext(seed: 1, conc: 1);
+            // Pipeline
+            var loader = TextLoader.ReadFile(env,
                 new TextLoader.Arguments()
                 {
                     Separator = "tab",
@@ -37,46 +36,45 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
+            var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
+            {
+                Column = new TextFeaturizingEstimator.Column
                 {
-                    Column = new TextFeaturizingEstimator.Column
-                    {
-                        Name = "Features",
-                        Source = new[] { "SentimentText" }
-                    },
-                    OutputTokens = true,
-                    KeepPunctuations = false,
-                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
-                    CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
-                    WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
+                    Name = "Features",
+                    Source = new[] { "SentimentText" }
                 },
-                loader);
+                OutputTokens = true,
+                KeepPunctuations = false,
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
+                CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
+            },
+            loader);
 
-                // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, 
-                    numLeaves:5, numTrees:5, minDatapointsInLeaves: 2);
+            // Train
+            var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features,
+                numLeaves: 5, numTrees: 5, minDatapointsInLeaves: 2);
 
-                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                var pred = trainer.Train(trainRoles);
+            var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+            var pred = trainer.Train(trainRoles);
 
-                // Get scorer and evaluate the predictions from test data
-                IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
-                var metrics = EvaluateBinary(env, testDataScorer);
-                ValidateBinaryMetrics(metrics);
+            // Get scorer and evaluate the predictions from test data
+            IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+            var metrics = EvaluateBinary(env, testDataScorer);
+            ValidateBinaryMetrics(metrics);
 
-                // Create prediction engine and test predictions
-                var model = env.CreateBatchPredictionEngine<SentimentData, SentimentPrediction>(testDataScorer);
-                var sentiments = GetTestData();
-                var predictions = model.Predict(sentiments, false);
-                Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment);
-                Assert.True(predictions.ElementAt(1).Sentiment);
+            // Create prediction engine and test predictions
+            var model = env.CreateBatchPredictionEngine<SentimentData, SentimentPrediction>(testDataScorer);
+            var sentiments = GetTestData();
+            var predictions = model.Predict(sentiments, false);
+            Assert.Equal(2, predictions.Count());
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
-                // Get feature importance based on feature gain during training
-                var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
-                Assert.Equal(1.0, (double)summary[0].Value, 1);
-            }
+            // Get feature importance based on feature gain during training
+            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
         [Fact]
@@ -85,10 +83,9 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
-            {
-                // Pipeline
-                var loader = TextLoader.ReadFile(env,
+            var env = new MLContext(seed: 1, conc: 1);
+            // Pipeline
+            var loader = TextLoader.ReadFile(env,
                 new TextLoader.Arguments()
                 {
                     Separator = "tab",
@@ -100,60 +97,60 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
+            var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
+            {
+                Column = new TextFeaturizingEstimator.Column
                 {
-                    Column = new TextFeaturizingEstimator.Column
-                    {
-                        Name = "WordEmbeddings",
-                        Source = new[] { "SentimentText" }
-                    },
-                    OutputTokens = true,
-                    KeepPunctuations= false,
-                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
-                    CharFeatureExtractor = null,
-                    WordFeatureExtractor = null,
+                    Name = "WordEmbeddings",
+                    Source = new[] { "SentimentText" }
                 },
-                loader);
+                OutputTokens = true,
+                KeepPunctuations = false,
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
+                CharFeatureExtractor = null,
+                WordFeatureExtractor = null,
+            },
+            loader);
 
-                var trans = WordEmbeddingsExtractingTransformer.Create(env, new WordEmbeddingsExtractingTransformer.Arguments()
+            var trans = WordEmbeddingsExtractingTransformer.Create(env, new WordEmbeddingsExtractingTransformer.Arguments()
+            {
+                Column = new WordEmbeddingsExtractingTransformer.Column[1]
                 {
-                    Column = new WordEmbeddingsExtractingTransformer.Column[1]
-                    {
                         new WordEmbeddingsExtractingTransformer.Column
                         {
                             Name = "Features",
                             Source = "WordEmbeddings_TransformedText"
                         }
-                    },
-                    ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
-                }, text);
-                // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDatapointsInLeaves:2);
+                },
+                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
+            }, text);
+            // Train
+            var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees: 5, minDatapointsInLeaves: 2);
 
-                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                var pred = trainer.Train(trainRoles);
-                // Get scorer and evaluate the predictions from test data
-                IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
-                var metrics = EvaluateBinary(env, testDataScorer);
+            var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+            var pred = trainer.Train(trainRoles);
+            // Get scorer and evaluate the predictions from test data
+            IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+            var metrics = EvaluateBinary(env, testDataScorer);
 
-                // SSWE is a simple word embedding model + we train on a really small dataset, so metrics are not great.
-                Assert.Equal(.6667, metrics.Accuracy, 4);
-                Assert.Equal(.71, metrics.Auc, 1);
-                Assert.Equal(.58, metrics.Auprc, 2);
-                // Create prediction engine and test predictions
-                var model = env.CreateBatchPredictionEngine<SentimentData, SentimentPrediction>(testDataScorer);
-                var sentiments = GetTestData();
-                var predictions = model.Predict(sentiments, false);
-                Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment);
-                Assert.True(predictions.ElementAt(1).Sentiment);
+            // SSWE is a simple word embedding model + we train on a really small dataset, so metrics are not great.
+            Assert.Equal(.6667, metrics.Accuracy, 4);
+            Assert.Equal(.71, metrics.Auc, 1);
+            Assert.Equal(.58, metrics.Auprc, 2);
+            // Create prediction engine and test predictions
+            var model = env.CreateBatchPredictionEngine<SentimentData, SentimentPrediction>(testDataScorer);
+            var sentiments = GetTestData();
+            var predictions = model.Predict(sentiments, false);
+            Assert.Equal(2, predictions.Count());
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
-                // Get feature importance based on feature gain during training
-                var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
-                Assert.Equal(1.0, (double)summary[0].Value, 1);
-            }
+            // Get feature importance based on feature gain during training
+            var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+            Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
+
         private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
