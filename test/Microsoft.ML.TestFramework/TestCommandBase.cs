@@ -2101,6 +2101,9 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void CommandCodeGen()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             // REVIEW petelu: this tests that the generated output matches the baseline. This does NOT baseline
             // the console output. Currently, there's no console output either, but if some is added, a baseline test
             // will be in order.
