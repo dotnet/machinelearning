@@ -287,13 +287,13 @@ namespace Microsoft.ML.Transforms.Text
 
                         AddTerms(src, separators, terms);
 
-                        var mutation = VBufferMutationContext.Create(ref dst, terms.Count);
+                        var editor = VBufferEditor.Create(ref dst, terms.Count);
                         if (terms.Count > 0)
                         {
-                            terms.CopyTo(mutation.Values);
+                            terms.CopyTo(editor.Values);
                         }
 
-                        dst = mutation.CreateBuffer();
+                        dst = editor.Commit();
                     };
             }
 

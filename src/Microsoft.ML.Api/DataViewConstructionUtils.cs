@@ -238,10 +238,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    var dstMutation = VBufferMutationContext.Create(ref dst, n);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     for (int i = 0; i < n; i++)
-                        dstMutation.Values[i] = convert(buf[i]);
-                    dst = dstMutation.CreateBuffer();
+                        dstEditor.Values[i] = convert(buf[i]);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -266,10 +266,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    var dstMutation = VBufferMutationContext.Create(ref dst, n);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     if (buf != null)
-                        buf.AsSpan(0, n).CopyTo(dstMutation.Values);
-                    dst = dstMutation.CreateBuffer();
+                        buf.AsSpan(0, n).CopyTo(dstEditor.Values);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -954,12 +954,12 @@ namespace Microsoft.ML.Runtime.Api
         {
             var value = (string[])(object)Value;
             var n = Utils.Size(value);
-            var dstMutation = VBufferMutationContext.Create(ref dst, n);
+            var dstEditor = VBufferEditor.Create(ref dst, n);
 
             for (int i = 0; i < n; i++)
-                dstMutation.Values[i] = value[i].AsMemory();
+                dstEditor.Values[i] = value[i].AsMemory();
 
-            dst = dstMutation.CreateBuffer();
+            dst = dstEditor.Commit();
         }
 
         private ValueGetter<VBuffer<TDst>> GetArrayGetter<TDst>()
@@ -968,10 +968,10 @@ namespace Microsoft.ML.Runtime.Api
             var n = Utils.Size(value);
             return (ref VBuffer<TDst> dst) =>
             {
-                var dstMutation = VBufferMutationContext.Create(ref dst, n);
+                var dstEditor = VBufferEditor.Create(ref dst, n);
                 if (value != null)
-                    value.AsSpan(0, n).CopyTo(dstMutation.Values);
-                dst = dstMutation.CreateBuffer();
+                    value.AsSpan(0, n).CopyTo(dstEditor.Values);
+                dst = dstEditor.Commit();
             };
         }
 

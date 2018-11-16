@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int slotLim = _types[iinfo].VectorSize;
                 Host.Assert(slotLim == (long)typeSrc.VectorSize * _bitsPerKey[iinfo]);
 
-                var mutation = VBufferMutationContext.Create(ref dst, slotLim);
+                var editor = VBufferEditor.Create(ref dst, slotLim);
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -343,12 +343,12 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         sb.Length = len;
                         sb.AppendMemory(key);
-                        mutation.Values[slot++] = sb.ToString().AsMemory();
+                        editor.Values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)

@@ -258,10 +258,10 @@ namespace Microsoft.ML.Transforms.Text
                 var keyValuesBoundaries = _keyValuesBoundaries;
                 Host.AssertValue(keyValuesBoundaries);
 
-                var mutation = VBufferMutationContext.Create(ref dst, CharsCount);
+                var editor = VBufferEditor.Create(ref dst, CharsCount);
                 for (int i = 0; i < CharsCount; i++)
-                    mutation.Values[i] = keyValuesStr.AsMemory().Slice(keyValuesBoundaries[i], keyValuesBoundaries[i + 1] - keyValuesBoundaries[i]);
-                dst = mutation.CreateBuffer();
+                    editor.Values[i] = keyValuesStr.AsMemory().Slice(keyValuesBoundaries[i], keyValuesBoundaries[i + 1] - keyValuesBoundaries[i]);
+                dst = editor.Commit();
             }
 
             private void AppendCharRepr(char c, StringBuilder bldr)
@@ -419,21 +419,21 @@ namespace Microsoft.ML.Transforms.Text
                         getSrc(ref src);
 
                         var len = !src.IsEmpty ? (_parent._useMarkerChars ? src.Length + TextMarkersCount : src.Length) : 0;
-                        var mutation = VBufferMutationContext.Create(ref dst, len);
+                        var editor = VBufferEditor.Create(ref dst, len);
                         if (len > 0)
                         {
                             int index = 0;
                             if (_parent._useMarkerChars)
-                                mutation.Values[index++] = TextStartMarker;
+                                editor.Values[index++] = TextStartMarker;
                             var span = src.Span;
                             for (int ich = 0; ich < src.Length; ich++)
-                                mutation.Values[index++] = span[ich];
+                                editor.Values[index++] = span[ich];
                             if (_parent._useMarkerChars)
-                                mutation.Values[index++] = TextEndMarker;
+                                editor.Values[index++] = TextEndMarker;
                             Contracts.Assert(index == len);
                         }
 
-                        dst = mutation.CreateBuffer();
+                        dst = editor.Commit();
                     };
             }
 

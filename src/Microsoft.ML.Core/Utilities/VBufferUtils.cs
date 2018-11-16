@@ -1444,15 +1444,5 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             dst = VBufferEditor.Create(ref dst, newLogicalLength, valuesCount)
                 .Commit();
         }
-
-        /// <summary>
-        /// Updates the logical length and number of physical values to be represented in
-        /// <paramref name="dst"/>, while preserving the underlying buffers.
-        /// </summary>
-        public static void Resize<T>(ref VBuffer<T> dst, int newLogicalLength, int? valuesCount = null)
-        {
-            dst = VBufferMutationContext.Create(ref dst, newLogicalLength, valuesCount)
-                .CreateBuffer();
-        }
     }
 }

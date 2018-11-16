@@ -731,10 +731,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<Single> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var mutation = VBufferMutationContext.Create(ref dst, _numClusters);
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            mutation.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = mutation.CreateBuffer();
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
@@ -745,10 +745,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var mutation = VBufferMutationContext.Create(ref dst, _numClusters);
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            mutation.Values[i] = (uint)sortedIndices[i] + 1;
-                        dst = mutation.CreateBuffer();
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterCol] = topKClassesFn;
             }
@@ -779,10 +779,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, numTopClusters);
+                    var editor = VBufferEditor.Create(ref dst, numTopClusters);
                     for (int i = 1; i <= numTopClusters; i++)
-                        mutation.Values[i - 1] = $"#{i} {suffix}".AsMemory();
-                    dst = mutation.CreateBuffer();
+                        editor.Values[i - 1] = $"#{i} {suffix}".AsMemory();
+                    dst = editor.Commit();
                 };
         }
 

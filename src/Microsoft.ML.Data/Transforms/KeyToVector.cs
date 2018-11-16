@@ -388,7 +388,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var keys = new ReadOnlyMemory<char>[keyCount];
                 namesKeySrc.CopyTo(keys);
 
-                var mutation = VBufferMutationContext.Create(ref dst, slotLim);
+                var editor = VBufferEditor.Create(ref dst, slotLim);
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -407,12 +407,12 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         sb.Length = len;
                         sb.AppendMemory(key);
-                        mutation.Values[slot++] = sb.ToString().AsMemory();
+                        editor.Values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             }
 
             private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
@@ -477,11 +477,11 @@ namespace Microsoft.ML.Transforms.Conversions
                             return;
                         }
 
-                        var mutation = VBufferMutationContext.Create(ref dst, size, 1);
-                        mutation.Values[0] = 1;
-                        mutation.Indices[0] = (int)src - 1;
+                        var editor = VBufferEditor.Create(ref dst, size, 1);
+                        editor.Values[0] = 1;
+                        editor.Indices[0] = (int)src - 1;
 
-                        dst = mutation.CreateBuffer();
+                        dst = editor.Commit();
                     };
             }
 

@@ -448,13 +448,13 @@ namespace Microsoft.ML.Transforms
                 // Densify and shift labels.
                 VBufferUtils.Densify(ref labels);
                 Contracts.Assert(labels.IsDense);
-                var labelsMutation = VBufferMutationContext.CreateFromBuffer(ref labels);
+                var labelsEditor = VBufferEditor.CreateFromBuffer(ref labels);
                 for (int i = 0; i < labels.Length; i++)
                 {
-                    labelsMutation.Values[i] -= min;
-                    Contracts.Assert(labelsMutation.Values[i] < _numLabels);
+                    labelsEditor.Values[i] -= min;
+                    Contracts.Assert(labelsEditor.Values[i] < _numLabels);
                 }
-                _labels = labelsMutation.CreateBuffer();
+                _labels = labelsEditor.Commit();
             }
 
             private delegate VBuffer<int> KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);

@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> dir = new VBuffer<Float>(x.Length, 1, new Float[] { 1 }, new int[] { 0 });
             for (int n = 0; n < x.Length; n++)
             {
-                VBufferMutationContext.CreateFromBuffer(ref dir).Values[0] = n;
+                VBufferEditor.CreateFromBuffer(ref dir).Values[0] = n;
                 VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(in newX, ref newGrad, null);
 
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> dir = new VBuffer<Float>(x.Length, 1, new Float[] { 1 }, new int[] { 0 });
             foreach (int n in coords)
             {
-                VBufferMutationContext.CreateFromBuffer(ref dir).Values[0] = n;
+                VBufferEditor.CreateFromBuffer(ref dir).Values[0] = n;
                 VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(in newX, ref newGrad, null);
 

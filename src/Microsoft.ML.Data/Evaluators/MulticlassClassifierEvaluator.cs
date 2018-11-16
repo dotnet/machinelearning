@@ -487,10 +487,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var mutation = VBufferMutationContext.Create(ref slotNames, ClassNames.Length);
+                var editor = VBufferEditor.Create(ref slotNames, ClassNames.Length);
                 for (int i = 0; i < ClassNames.Length; i++)
-                    mutation.Values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
-                slotNames = mutation.CreateBuffer();
+                    editor.Values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = editor.Commit();
             }
         }
 
@@ -801,10 +801,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var mutation = VBufferMutationContext.Create(ref dst, _numClasses);
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            mutation.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = mutation.CreateBuffer();
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -815,10 +815,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var mutation = VBufferMutationContext.Create(ref dst, _numClasses);
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            mutation.Values[i] = (uint)sortedIndices[i] + 1;
-                        dst = mutation.CreateBuffer();
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClassesCol] = topKClassesFn;
             }
@@ -878,10 +878,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, numTopClasses);
+                    var editor = VBufferEditor.Create(ref dst, numTopClasses);
                     for (int i = 1; i <= numTopClasses; i++)
-                        mutation.Values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
-                    dst = mutation.CreateBuffer();
+                        editor.Values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -890,10 +890,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, _numClasses);
+                    var editor = VBufferEditor.Create(ref dst, _numClasses);
                     for (int i = 0; i < _numClasses; i++)
-                        mutation.Values[i] = _classNames[i];
-                    dst = mutation.CreateBuffer();
+                        editor.Values[i] = _classNames[i];
+                    dst = editor.Commit();
                 };
         }
 

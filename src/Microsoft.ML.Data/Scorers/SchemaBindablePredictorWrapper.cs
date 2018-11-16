@@ -754,10 +754,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(Utils.Size(_slotNames) > 0);
 
                 int size = Utils.Size(_slotNames);
-                var mutation = VBufferMutationContext.Create(ref dst, size);
+                var editor = VBufferEditor.Create(ref dst, size);
                 for (int i = 0; i < _slotNames.Length; i++)
-                    mutation.Values[i] = _slotNames[i].AsMemory();
-                dst = mutation.CreateBuffer();
+                    editor.Values[i] = _slotNames[i].AsMemory();
+                dst = editor.Commit();
             }
         }
     }

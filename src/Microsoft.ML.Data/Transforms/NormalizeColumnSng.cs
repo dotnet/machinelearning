@@ -1417,7 +1417,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in val))
                         return false;
-                    VBufferMutationContext.CreateFromBuffer(ref _buffer).Values[0] = val;
+                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = val;
                     Aggregator.ProcessValue(in _buffer);
                     return true;
                 }
@@ -1561,7 +1561,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in origVal))
                         return false;
-                    VBufferMutationContext.CreateFromBuffer(ref _buffer).Values[0] = origVal;
+                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = origVal;
                     _aggregator.ProcessValue(in _buffer);
                     return true;
                 }

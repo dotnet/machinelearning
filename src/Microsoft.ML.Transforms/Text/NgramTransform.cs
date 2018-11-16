@@ -607,8 +607,7 @@ namespace Microsoft.ML.Transforms.Text
                 var values = dst.Values;
 
                 var ngramCount = pool.Count;
-                if (Utils.Size(values) < ngramCount)
-                    Array.Resize(ref values, ngramCount);
+                var dstEditor = VBufferEditor.Create(ref dst, ngramCount);
 
                 StringBuilder sb = new StringBuilder();
                 uint[] ngram = new uint[_parent._transformInfos[iinfo].NgramLength];
@@ -620,10 +619,10 @@ namespace Microsoft.ML.Transforms.Text
                     // Get the unigrams composing the current ngram.
                     ComposeNgramString(ngram, n, sb, keyCount,
                         unigramNames.GetItemOrDefault);
-                    values[slot] = sb.ToString().AsMemory();
+                    dstEditor.Values[slot] = sb.ToString().AsMemory();
                 }
 
-                dst = new VBuffer<ReadOnlyMemory<char>>(ngramCount, values, dst.Indices);
+                dst = dstEditor.Commit();
             }
 
             private delegate void TermGetter(int index, ref ReadOnlyMemory<char> term);
@@ -697,7 +696,7 @@ namespace Microsoft.ML.Transforms.Text
                                     VBufferUtils.Apply(ref dst, (int i, ref float v) => v = (float)(v * _parent._invDocFreqs[iinfo][i]));
                                 }
                                 else
-                                    dst = new VBuffer<float>(0, dst.Values, dst.Indices);
+                                    VBufferUtils.Resize(ref dst, 0);
                             };
                         break;
                     case NgramCountingEstimator.WeightingCriteria.Idf:
@@ -714,7 +713,7 @@ namespace Microsoft.ML.Transforms.Text
                                     VBufferUtils.Apply(ref dst, (int i, ref float v) => v = v >= 1 ? (float)_parent._invDocFreqs[iinfo][i] : 0);
                                 }
                                 else
-                                    dst = new VBuffer<float>(0, dst.Values, dst.Indices);
+                                    VBufferUtils.Resize(ref dst, 0);
                             };
                         break;
                     case NgramCountingEstimator.WeightingCriteria.Tf:
@@ -729,7 +728,7 @@ namespace Microsoft.ML.Transforms.Text
                                     bldr.GetResult(ref dst);
                                 }
                                 else
-                                    dst = new VBuffer<float>(0, dst.Values, dst.Indices);
+                                    VBufferUtils.Resize(ref dst, 0);
                             };
                         break;
                     default:

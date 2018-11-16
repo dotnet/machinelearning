@@ -269,21 +269,21 @@ namespace Microsoft.ML.Runtime.Data
 
                 var srcValues = src.GetValues();
                 int count = srcValues.Length;
-                var mutation = VBufferMutationContext.Create(ref dst, src.Length, count);
+                var editor = VBufferEditor.Create(ref dst, src.Length, count);
                 if (count > 0)
                 {
                     // REVIEW: This would be faster if there were loops for each std conversion.
                     // Consider adding those to the Conversions class.
                     for (int i = 0; i < count; i++)
-                        conv(in srcValues[i], ref mutation.Values[i]);
+                        conv(in srcValues[i], ref editor.Values[i]);
 
                     if (!src.IsDense)
                     {
                         var srcIndices = src.GetIndices();
-                        srcIndices.CopyTo(mutation.Indices);
+                        srcIndices.CopyTo(editor.Indices);
                     }
                 }
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             };
         }
 
@@ -441,15 +441,15 @@ namespace Microsoft.ML.Runtime.Data
                     getSrc(ref src);
                     // Unfortunately defaults in one to not translate to defaults of the other,
                     // so this will not be sparsity preserving. Assume a dense output.
-                    var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
                     foreach (var kv in src.Items(all: true))
                     {
                         if (0 < kv.Value && kv.Value <= keyMax)
-                            mutation.Values[kv.Key] = kv.Value - 1;
+                            editor.Values[kv.Key] = kv.Value - 1;
                         else
-                            mutation.Values[kv.Key] = Single.NaN;
+                            editor.Values[kv.Key] = Single.NaN;
                     }
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 };
         }
 

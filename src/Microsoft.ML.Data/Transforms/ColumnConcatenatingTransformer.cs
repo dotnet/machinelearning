@@ -734,7 +734,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (dstCount <= dstLength / 2)
                         {
                             // Concatenate into a sparse representation.
-                            var mutation = VBufferMutationContext.Create(ref dst, dstLength, dstCount);
+                            var editor = VBufferEditor.Create(ref dst, dstLength, dstCount);
 
                             int offset = 0;
                             int count = 0;
@@ -751,8 +751,8 @@ namespace Microsoft.ML.Runtime.Data
                                     {
                                         for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            mutation.Values[count] = bufferValues[i];
-                                            mutation.Indices[count++] = offset + i;
+                                            editor.Values[count] = bufferValues[i];
+                                            editor.Indices[count++] = offset + i;
                                         }
                                     }
                                     else
@@ -760,8 +760,8 @@ namespace Microsoft.ML.Runtime.Data
                                         var bufferIndices = buffer.GetIndices();
                                         for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            mutation.Values[count] = bufferValues[i];
-                                            mutation.Indices[count++] = offset + bufferIndices[i];
+                                            editor.Values[count] = bufferValues[i];
+                                            editor.Indices[count++] = offset + bufferIndices[i];
                                         }
                                     }
                                     offset += buffer.Length;
@@ -770,19 +770,19 @@ namespace Microsoft.ML.Runtime.Data
                                 {
                                     Contracts.Assert(count < dstCount);
                                     srcGetterOnes[j](ref tmp);
-                                    mutation.Values[count] = tmp;
-                                    mutation.Indices[count++] = offset;
+                                    editor.Values[count] = tmp;
+                                    editor.Indices[count++] = offset;
                                     offset++;
                                 }
                             }
                             Contracts.Assert(count <= dstCount);
                             Contracts.Assert(offset == dstLength);
-                            dst = mutation.CreateBuffer(count);
+                            dst = editor.CommitTruncated(count);
                         }
                         else
                         {
                             // Concatenate into a dense representation.
-                            var mutation = VBufferMutationContext.Create(ref dst, dstLength);
+                            var editor = VBufferEditor.Create(ref dst, dstLength);
 
                             int offset = 0;
                             for (int j = 0; j < SrcIndices.Length; j++)
@@ -790,17 +790,17 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
                                 if (_srcTypes[j].IsVector)
                                 {
-                                    tmpBufs[j].CopyTo(mutation.Values, offset);
+                                    tmpBufs[j].CopyTo(editor.Values, offset);
                                     offset += tmpBufs[j].Length;
                                 }
                                 else
                                 {
                                     srcGetterOnes[j](ref tmp);
-                                    mutation.Values[offset++] = tmp;
+                                    editor.Values[offset++] = tmp;
                                 }
                             }
                             Contracts.Assert(offset == dstLength);
-                            dst = mutation.CreateBuffer();
+                            dst = editor.Commit();
                         }
                     };
                     return result;

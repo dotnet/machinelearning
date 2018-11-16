@@ -242,10 +242,10 @@ namespace Microsoft.ML.Runtime.Learners
 
             var statisticsCount = stats.ParametersCount - 1;
 
-            var estimateMutation = VBufferMutationContext.Create(ref estimate, statisticsCount);
-            var stdErrorMutation = VBufferMutationContext.Create(ref stdErr, statisticsCount);
-            var zScoreMutation = VBufferMutationContext.Create(ref zScore, statisticsCount);
-            var pValueMutation = VBufferMutationContext.Create(ref pValue, statisticsCount);
+            var estimateEditor = VBufferEditor.Create(ref estimate, statisticsCount);
+            var stdErrorEditor = VBufferEditor.Create(ref stdErr, statisticsCount);
+            var zScoreEditor = VBufferEditor.Create(ref zScore, statisticsCount);
+            var pValueEditor = VBufferEditor.Create(ref pValue, statisticsCount);
 
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
@@ -256,29 +256,29 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
                 Contracts.Assert(0 <= wi && wi < weights.Length);
-                var weight = estimateMutation.Values[i - 1] = weights.GetItemOrDefault(wi);
-                var stdError = stdErrorMutation.Values[wi] = coeffStdErrorValues[i];
-                zScoreMutation.Values[i - 1] = weight / stdError;
-                pValueMutation.Values[i - 1] = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScoreMutation.Values[i - 1] / sqrt2));
+                var weight = estimateEditor.Values[i - 1] = weights.GetItemOrDefault(wi);
+                var stdError = stdErrorEditor.Values[wi] = coeffStdErrorValues[i];
+                zScoreEditor.Values[i - 1] = weight / stdError;
+                pValueEditor.Values[i - 1] = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScoreEditor.Values[i - 1] / sqrt2));
             }
 
-            estimate = estimateMutation.CreateBuffer();
-            stdErr = stdErrorMutation.CreateBuffer();
-            zScore = zScoreMutation.CreateBuffer();
-            pValue = pValueMutation.CreateBuffer();
+            estimate = estimateEditor.Commit();
+            stdErr = stdErrorEditor.Commit();
+            zScore = zScoreEditor.Commit();
+            pValue = pValueEditor.Commit();
 
             var slotNames = names;
             getSlotNames =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, statisticsCount);
+                    var editor = VBufferEditor.Create(ref dst, statisticsCount);
                     ReadOnlySpan<int> stdErrorIndices2 = stats._coeffStdError.Value.GetIndices();
                     for (int i = 1; i <= statisticsCount; i++)
                     {
                         int wi = denseStdError ? i - 1 : stdErrorIndices2[i] - 1;
-                        mutation.Values[i - 1] = slotNames.GetItemOrDefault(wi);
+                        editor.Values[i - 1] = slotNames.GetItemOrDefault(wi);
                     }
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 };
         }
 

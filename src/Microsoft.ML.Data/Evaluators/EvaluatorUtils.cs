@@ -505,11 +505,11 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
-                            var mutation = VBufferMutationContext.Create(ref dst, slotNames.Count);
+                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
 
                             foreach (var kvp in src.Items())
-                                mutation.Values[map[kvp.Key]] = kvp.Value;
-                            dst = mutation.CreateBuffer();
+                                editor.Values[map[kvp.Key]] = kvp.Value;
+                            dst = editor.Commit();
                         };
                 }
                 else
@@ -529,13 +529,13 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
-                            var mutation = VBufferMutationContext.Create(ref dst, slotNames.Count);
+                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
 
                             foreach (var kvp in src.Items(true))
-                                mutation.Values[map[kvp.Key]] = kvp.Value;
+                                editor.Values[map[kvp.Key]] = kvp.Value;
                             foreach (var j in naIndices)
-                                mutation.Values[j] = def;
-                            dst = mutation.CreateBuffer();
+                                editor.Values[j] = def;
+                            dst = editor.Commit();
                         };
                 }
 
@@ -1018,10 +1018,10 @@ namespace Microsoft.ML.Runtime.Data
                         schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                     else
                     {
-                        var mutation = VBufferMutationContext.Create(ref names, type.VectorSize);
+                        var editor = VBufferEditor.Create(ref names, type.VectorSize);
                         for (int j = 0; j < type.VectorSize; j++)
-                            mutation.Values[j] = string.Format("Label_{0}", j).AsMemory();
-                        names = mutation.CreateBuffer();
+                            editor.Values[j] = string.Format("Label_{0}", j).AsMemory();
+                        names = editor.Commit();
                     }
                     foreach (var name in names.Items(all: true))
                         metricNames.Add(string.Format("{0}{1}", metricName, name.Value));

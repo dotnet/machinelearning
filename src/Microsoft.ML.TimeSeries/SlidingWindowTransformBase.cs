@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
 
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = VBufferMutationContext.Create(ref output, size);
+                var result = VBufferEditor.Create(ref output, size);
 
                 TInput value = _parentSliding._nanValue;
                 switch (_parentSliding._begin)
@@ -151,13 +151,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 for (int i = 0; i < size; ++i)
                     result.Values[i] = value;
-                output = result.CreateBuffer();
+                output = result.Commit();
             }
 
             private protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
             {
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = VBufferMutationContext.Create(ref output, size);
+                var result = VBufferEditor.Create(ref output, size);
 
                 if (_parentSliding._lag == 0)
                 {
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     for (int i = 0; i < size; ++i)
                         result.Values[i] = windowedBuffer[i];
                 }
-                output = result.CreateBuffer();
+                output = result.Commit();
             }
 
             private protected override void InitializeStateCore()

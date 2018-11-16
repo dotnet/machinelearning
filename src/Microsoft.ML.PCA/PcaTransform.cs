@@ -630,14 +630,14 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 ectx.Check(src.Length == transformInfo.Dimension);
 
-                var mutation = VBufferMutationContext.Create(ref dst, transformInfo.Rank);
+                var editor = VBufferEditor.Create(ref dst, transformInfo.Rank);
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    mutation.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
+                    editor.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             }
         }
 

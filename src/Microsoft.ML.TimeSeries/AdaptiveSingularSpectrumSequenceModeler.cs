@@ -1436,36 +1436,36 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             var output = result as SsaForecastResult;
 
-            var resMutation = VBufferMutationContext.Create(ref result.PointForecast, horizon);
+            var resEditor = VBufferEditor.Create(ref result.PointForecast, horizon);
 
             int i;
             int j;
             int k;
 
             // Computing the point forecasts
-            resMutation.Values[0] = _nextPrediction;
+            resEditor.Values[0] = _nextPrediction;
             for (i = 1; i < horizon; ++i)
             {
                 k = 0;
-                resMutation.Values[i] = _autoregressionNoiseMean + _observationNoiseMean;
+                resEditor.Values[i] = _autoregressionNoiseMean + _observationNoiseMean;
                 for (j = i; j < _windowSize - 1; ++j, ++k)
-                    resMutation.Values[i] += _state[j] * _alpha[k];
+                    resEditor.Values[i] += _state[j] * _alpha[k];
 
                 for (j = Math.Max(0, i - _windowSize + 1); j < i; ++j, ++k)
-                    resMutation.Values[i] += resMutation.Values[j] * _alpha[k];
+                    resEditor.Values[i] += resEditor.Values[j] * _alpha[k];
             }
 
             // Computing the forecast variances
             if (ShouldComputeForecastIntervals)
             {
-                var sdMutation = VBufferMutationContext.Create(ref output.ForecastStandardDeviation, horizon);
+                var sdEditor = VBufferEditor.Create(ref output.ForecastStandardDeviation, horizon);
                 var lastCol = new FixedSizeQueue<Single>(_windowSize - 1);
 
                 for (i = 0; i < _windowSize - 3; ++i)
                     lastCol.AddLast(0);
                 lastCol.AddLast(1);
                 lastCol.AddLast(_alpha[_windowSize - 2]);
-                sdMutation.Values[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
+                sdEditor.Values[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
 
                 for (i = 1; i < horizon; ++i)
                 {
@@ -1474,16 +1474,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                         temp += _alpha[j] * lastCol[j];
                     lastCol.AddLast(temp);
 
-                    sdMutation.Values[i] = sdMutation.Values[i - 1] + _autoregressionNoiseVariance * temp * temp;
+                    sdEditor.Values[i] = sdEditor.Values[i - 1] + _autoregressionNoiseVariance * temp * temp;
                 }
 
                 for (i = 0; i < horizon; ++i)
-                    sdMutation.Values[i] = (float)Math.Sqrt(sdMutation.Values[i]);
+                    sdEditor.Values[i] = (float)Math.Sqrt(sdEditor.Values[i]);
 
-                output.ForecastStandardDeviation = sdMutation.CreateBuffer();
+                output.ForecastStandardDeviation = sdEditor.Commit();
             }
 
-            result.PointForecast = resMutation.CreateBuffer();
+            result.PointForecast = resEditor.Commit();
             output.CanComputeForecastIntervals = ShouldComputeForecastIntervals;
             output.BoundOffset = 0;
         }
@@ -1522,8 +1522,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             if (horizon == 0)
                 return;
 
-            var upper = VBufferMutationContext.Create(ref forecast.UpperBound, horizon);
-            var lower = VBufferMutationContext.Create(ref forecast.LowerBound, horizon);
+            var upper = VBufferEditor.Create(ref forecast.UpperBound, horizon);
+            var lower = VBufferEditor.Create(ref forecast.LowerBound, horizon);
 
             var z = ProbabilityFunctions.Probit(0.5 + confidenceLevel / 2.0);
             double temp;
@@ -1535,8 +1535,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 lower.Values[i] = (Single)(meanForecast[i] + forecast.BoundOffset - temp);
             }
 
-            forecast.UpperBound = upper.CreateBuffer();
-            forecast.LowerBound = lower.CreateBuffer();
+            forecast.UpperBound = upper.Commit();
+            forecast.LowerBound = lower.Commit();
         }
     }
 }

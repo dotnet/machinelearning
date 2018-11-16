@@ -100,14 +100,14 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
                 Contracts.Assert(nameList.Count == indexList.Count);
 
-                var mutation = VBufferMutationContext.Create(ref dst, _collection.Count, nameList.Count);
-                nameList.CopyTo(mutation.Values);
+                var editor = VBufferEditor.Create(ref dst, _collection.Count, nameList.Count);
+                nameList.CopyTo(editor.Values);
                 if (nameList.Count < _collection.Count)
                 {
-                    indexList.CopyTo(mutation.Indices);
+                    indexList.CopyTo(editor.Indices);
                 }
 
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             }
         }
 

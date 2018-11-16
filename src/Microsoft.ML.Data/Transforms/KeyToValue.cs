@@ -386,10 +386,10 @@ namespace Microsoft.ML.Transforms.Conversions
                                 var keyValues = _values.GetValues();
                                 if (src.IsDense)
                                 {
-                                    var mutation = VBufferMutationContext.Create(ref dst, srcSize);
+                                    var editor = VBufferEditor.Create(ref dst, srcSize);
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
-                                        MapKey(in srcValues[slot], keyValues, ref mutation.Values[slot]);
+                                        MapKey(in srcValues[slot], keyValues, ref editor.Values[slot]);
 
                                         // REVIEW:
                                         // The current implementation always maps dense to dense, even if the resulting columns could benefit from
@@ -400,13 +400,13 @@ namespace Microsoft.ML.Transforms.Conversions
                                         // defaults is hit. We assume that if the user was willing to densify the data into key values that they will
                                         // be fine with this output being dense.
                                     }
-                                    dst = mutation.CreateBuffer();
+                                    dst = editor.Commit();
                                 }
                                 else if (!_naMapsToDefault)
                                 {
                                     // Sparse input will always result in dense output unless the key metadata maps back to key types.
                                     // Currently this always maps sparse to dense, as long as the output type's NA does not equal its default value.
-                                    var mutation = VBufferMutationContext.Create(ref dst, srcSize);
+                                    var editor = VBufferEditor.Create(ref dst, srcSize);
 
                                     var srcIndices = src.GetIndices();
                                     int nextExplicitSlot = srcCount == 0 ? srcSize : srcIndices[0];
@@ -417,22 +417,22 @@ namespace Microsoft.ML.Transforms.Conversions
                                         {
                                             // Current slot has an explicitly defined value.
                                             Parent.Host.Assert(islot < srcCount);
-                                            MapKey(in srcValues[islot], keyValues, ref mutation.Values[slot]);
+                                            MapKey(in srcValues[islot], keyValues, ref editor.Values[slot]);
                                             nextExplicitSlot = ++islot == srcCount ? srcSize : srcIndices[islot];
                                             Parent.Host.Assert(slot < nextExplicitSlot);
                                         }
                                         else
                                         {
                                             Parent.Host.Assert(slot < nextExplicitSlot);
-                                            mutation.Values[slot] = _na;
+                                            editor.Values[slot] = _na;
                                         }
                                     }
-                                    dst = mutation.CreateBuffer();
+                                    dst = editor.Commit();
                                 }
                                 else
                                 {
                                     // As the default value equals the NA value for the output type, we produce sparse output.
-                                    var mutation = VBufferMutationContext.Create(ref dst, srcSize, srcCount);
+                                    var editor = VBufferEditor.Create(ref dst, srcSize, srcCount);
                                     var srcIndices = src.GetIndices();
                                     var islotDst = 0;
                                     for (int islotSrc = 0; islotSrc < srcCount; ++islotSrc)
@@ -442,11 +442,11 @@ namespace Microsoft.ML.Transforms.Conversions
                                         MapKey(in srcValues[islotSrc], keyValues, ref dstItem);
                                         if (!_isDefault(in dstItem))
                                         {
-                                            mutation.Values[islotDst] = dstItem;
-                                            mutation.Indices[islotDst++] = srcIndices[islotSrc];
+                                            editor.Values[islotDst] = dstItem;
+                                            editor.Indices[islotDst++] = srcIndices[islotSrc];
                                         }
                                     }
-                                    dst = mutation.CreateBuffer(islotDst);
+                                    dst = editor.CommitTruncated(islotDst);
                                 }
                             };
                         return retVal;

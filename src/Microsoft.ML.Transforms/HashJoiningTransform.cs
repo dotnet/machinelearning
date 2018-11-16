@@ -411,7 +411,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.AssertValue(_exes[iinfo].SlotMap);
 
             int n = _exes[iinfo].OutputValueCount;
-            var dstMutation = VBufferMutationContext.Create(ref dst, n);
+            var dstEditor = VBufferEditor.Create(ref dst, n);
 
             var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
             bool useDefaultSlotNames = !Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
@@ -443,10 +443,10 @@ namespace Microsoft.ML.Transforms.Conversions
                         outputSlotName.Append(srcSlotNameValues[inputSlotIndex]);
                 }
 
-                dstMutation.Values[slot] = outputSlotName.ToString().AsMemory();
+                dstEditor.Values[slot] = outputSlotName.ToString().AsMemory();
             }
 
-            dst = dstMutation.CreateBuffer();
+            dst = dstEditor.Commit();
         }
 
         private delegate uint HashDelegate<TSrc>(in TSrc value, uint seed);
@@ -563,7 +563,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         values = denseValues;
                     }
 
-                    var hashes = VBufferMutationContext.Create(ref dst, n);
+                    var hashes = VBufferEditor.Create(ref dst, n);
 
                     for (int i = 0; i < n; i++)
                     {
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         hashes.Values[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                     }
 
-                    dst = hashes.CreateBuffer();
+                    dst = hashes.Commit();
                 };
         }
 

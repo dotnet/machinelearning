@@ -741,7 +741,7 @@ namespace Microsoft.ML.Transforms
                 // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
                 // does is over-allocate space if the replacement value is the default value in a dataset with a
                 // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
-                var dstMutation = VBufferMutationContext.Create(ref dst, srcSize, srcCount);
+                var dstEditor = VBufferEditor.Create(ref dst, srcSize, srcCount);
 
                 int iivDst = 0;
                 if (src.IsDense)
@@ -758,7 +758,7 @@ namespace Microsoft.ML.Transforms
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstMutation.Values[ivSrc] = isNA(in srcVal) ? rep : srcVal;
+                        dstEditor.Values[ivSrc] = isNA(in srcVal) ? rep : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -780,21 +780,21 @@ namespace Microsoft.ML.Transforms
 
                         if (!isNA(in srcVal))
                         {
-                            dstMutation.Values[iivDst] = srcVal;
-                            dstMutation.Indices[iivDst++] = iv;
+                            dstEditor.Values[iivDst] = srcVal;
+                            dstEditor.Indices[iivDst++] = iv;
                         }
                         else if (!repIsDefault)
                         {
                             // Allow for further sparsification.
-                            dstMutation.Values[iivDst] = rep;
-                            dstMutation.Indices[iivDst++] = iv;
+                            dstEditor.Values[iivDst] = rep;
+                            dstEditor.Indices[iivDst++] = iv;
                         }
                     }
                     Host.Assert(iivDst <= srcCount);
                 }
                 Host.Assert(0 <= iivDst);
                 Host.Assert(repIsDefault || iivDst == srcCount);
-                dst = dstMutation.CreateBuffer(iivDst);
+                dst = dstEditor.CommitTruncated(iivDst);
             }
 
             /// <summary>
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Transforms
                 // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
                 // does is over-allocate space if the replacement value is the default value in a dataset with a
                 // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
-                var dstMutation = VBufferMutationContext.Create(ref dst, srcSize, srcCount);
+                var dstEditor = VBufferEditor.Create(ref dst, srcSize, srcCount);
 
                 int iivDst = 0;
                 if (src.IsDense)
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Transforms
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstMutation.Values[ivSrc] = isNA(in srcVal) ? rep[ivSrc] : srcVal;
+                        dstEditor.Values[ivSrc] = isNA(in srcVal) ? rep[ivSrc] : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -854,20 +854,20 @@ namespace Microsoft.ML.Transforms
 
                         if (!isNA(in srcVal))
                         {
-                            dstMutation.Values[iivDst] = srcVal;
-                            dstMutation.Indices[iivDst++] = iv;
+                            dstEditor.Values[iivDst] = srcVal;
+                            dstEditor.Indices[iivDst++] = iv;
                         }
                         else if (!repIsDefault[iv])
                         {
                             // Allow for further sparsification.
-                            dstMutation.Values[iivDst] = rep[iv];
-                            dstMutation.Indices[iivDst++] = iv;
+                            dstEditor.Values[iivDst] = rep[iv];
+                            dstEditor.Indices[iivDst++] = iv;
                         }
                     }
                     Host.Assert(iivDst <= srcCount);
                 }
                 Host.Assert(0 <= iivDst);
-                dst = dstMutation.CreateBuffer(iivDst);
+                dst = dstEditor.CommitTruncated(iivDst);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)

@@ -650,17 +650,17 @@ namespace Microsoft.ML.Transforms.Categorical
 
                 public override void GetTerms(ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, _pool.Count);
+                    var editor = VBufferEditor.Create(ref dst, _pool.Count);
                     int slot = 0;
                     foreach (var nstr in _pool)
                     {
-                        Contracts.Assert(0 <= nstr.Id & nstr.Id < mutation.Values.Length);
+                        Contracts.Assert(0 <= nstr.Id & nstr.Id < editor.Values.Length);
                         Contracts.Assert(nstr.Id == slot);
-                        mutation.Values[nstr.Id] = nstr.Value;
+                        editor.Values[nstr.Id] = nstr.Value;
                         slot++;
                     }
 
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 }
 
                 internal override void WriteTextTerms(TextWriter writer)
@@ -734,11 +734,11 @@ namespace Microsoft.ML.Transforms.Categorical
                         VBufferUtils.Resize(ref dst, 0);
                         return;
                     }
-                    var mutation = VBufferMutationContext.Create(ref dst, Count);
+                    var editor = VBufferEditor.Create(ref dst, Count);
                     Contracts.AssertValue(_values);
                     Contracts.Assert(_values.Count == Count);
-                    _values.CopyTo(mutation.Values);
-                    dst = mutation.CreateBuffer();
+                    _values.CopyTo(editor.Values);
+                    dst = editor.Commit();
                 }
 
                 internal override void WriteTextTerms(TextWriter writer)
@@ -785,14 +785,14 @@ namespace Microsoft.ML.Transforms.Categorical
             // The way the term map metadata getters are structured right now, this is impossible.
             Contracts.Assert(src.IsDense);
 
-            var mutation = VBufferMutationContext.Create(ref dst, src.Length);
+            var editor = VBufferEditor.Create(ref dst, src.Length);
             var srcValues = src.GetValues();
             for (int i = 0; i < srcValues.Length; ++i)
             {
                 stringMapper(in srcValues[i], ref sb);
-                mutation.Values[i] = sb.ToString().AsMemory();
+                editor.Values[i] = sb.ToString().AsMemory();
             }
-            dst = mutation.CreateBuffer();
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -1120,7 +1120,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
-                            var mutation = VBufferMutationContext.Create(ref dst, TypedMap.OutputType.KeyCount);
+                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.KeyCount);
                             uint convKeyVal = 0;
                             foreach (var pair in keyVals.Items(all: true))
                             {
@@ -1128,9 +1128,9 @@ namespace Microsoft.ML.Transforms.Categorical
                                 conv(in keyVal, ref convKeyVal);
                                 // The builder for the key values should not have any missings.
                                 _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
-                                srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref mutation.Values[pair.Key]);
+                                srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref editor.Values[pair.Key]);
                             }
-                            dst = mutation.CreateBuffer();
+                            dst = editor.Commit();
                         };
 
                     if (IsTextMetadata && !srcMetaType.IsText)

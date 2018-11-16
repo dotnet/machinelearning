@@ -363,10 +363,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var mutation = VBufferMutationContext.Create(ref slotNames, _size);
+                var editor = VBufferEditor.Create(ref slotNames, _size);
                 for (int i = 0; i < _size; i++)
-                    mutation.Values[i] = string.Format("(Label_{0})", i).AsMemory();
-                slotNames = mutation.CreateBuffer();
+                    editor.Values[i] = string.Format("(Label_{0})", i).AsMemory();
+                slotNames = editor.Commit();
             }
         }
     }
@@ -602,10 +602,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var mutation = VBufferMutationContext.Create(ref dst, length);
+                    var editor = VBufferEditor.Create(ref dst, length);
                     for (int i = 0; i < length; i++)
-                        mutation.Values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
-                    dst = mutation.CreateBuffer();
+                        editor.Values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
+                    dst = editor.Commit();
                 };
         }
     }

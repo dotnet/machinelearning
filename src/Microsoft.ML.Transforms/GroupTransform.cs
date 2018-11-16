@@ -516,9 +516,9 @@ namespace Microsoft.ML.Transforms
 
                     private void Getter(ref VBuffer<TValue> dst)
                     {
-                        var mutation = VBufferMutationContext.Create(ref dst, _size);
-                        _buffer.AsSpan(0, _size).CopyTo(mutation.Values);
-                        dst = mutation.CreateBuffer();
+                        var editor = VBufferEditor.Create(ref dst, _size);
+                        _buffer.AsSpan(0, _size).CopyTo(editor.Values);
+                        dst = editor.Commit();
                     }
 
                     public override ValueGetter<T> GetGetter<T>(IExceptionContext ctx)

@@ -2534,7 +2534,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public void CopyTo(int length, ref VBuffer<Double> dst)
             {
                 Contracts.Assert(0 <= length);
-                VBufferMutationContext<double> mutation;
+                VBufferEditor<double> editor;
                 if (!_isSparse)
                 {
                     Contracts.Assert(_dense.Count <= length);
@@ -2542,28 +2542,28 @@ namespace Microsoft.ML.Trainers.FastTree
                         Sparsify();
                     else
                     {
-                        mutation = VBufferMutationContext.Create(ref dst, length);
+                        editor = VBufferEditor.Create(ref dst, length);
                         if (_dense.Count < length)
                         {
-                            _dense.CopyTo(mutation.Values);
-                            mutation.Values.Slice(_dense.Count, length - _dense.Count).Clear();
+                            _dense.CopyTo(editor.Values);
+                            editor.Values.Slice(_dense.Count, length - _dense.Count).Clear();
                         }
                         else
-                            _dense.CopyTo(mutation.Values, length);
-                        dst = mutation.CreateBuffer();
+                            _dense.CopyTo(editor.Values, length);
+                        dst = editor.Commit();
                         return;
                     }
                 }
                 int count = _sparse.Count;
                 Contracts.Assert(count <= length);
-                mutation = VBufferMutationContext.Create(ref dst, length, count);
+                editor = VBufferEditor.Create(ref dst, length, count);
                 for (int i = 0; i < _sparse.Count; ++i)
                 {
-                    mutation.Indices[i] = _sparse[i].Key;
-                    mutation.Values[i] = _sparse[i].Value;
+                    editor.Indices[i] = _sparse[i].Key;
+                    editor.Values[i] = _sparse[i].Value;
                 }
-                Contracts.Assert(Utils.IsIncreasing(0, mutation.Indices, count, length));
-                dst = mutation.CreateBuffer();
+                Contracts.Assert(Utils.IsIncreasing(0, editor.Indices, count, length));
+                dst = editor.Commit();
             }
 
             /// <summary>
@@ -3252,8 +3252,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // If there are no trees or no splits, there are no gains.
             if (gainMap.Count == 0)
             {
-                weights = VBufferMutationContext.Create(ref weights, numFeatures, 0)
-                    .CreateBuffer();
+                VBufferUtils.Resize(ref weights, numFeatures, 0);
                 return;
             }
 

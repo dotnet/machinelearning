@@ -467,9 +467,9 @@ namespace Microsoft.ML.Runtime.Learners
                         var tmp = src;
                         Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
 
-                        var mutation = VBufferMutationContext.Create(ref dst, maps.Length);
-                        buffer.CopyTo(mutation.Values);
-                        dst = mutation.CreateBuffer();
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 
@@ -542,9 +542,9 @@ namespace Microsoft.ML.Runtime.Learners
                             });
                         Normalize(buffer, maps.Length);
 
-                        var mutation = VBufferMutationContext.Create(ref dst, maps.Length);
-                        buffer.CopyTo(mutation.Values);
-                        dst = mutation.CreateBuffer();
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 

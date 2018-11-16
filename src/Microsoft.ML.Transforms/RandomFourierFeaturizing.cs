@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms.Projections
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        VBufferMutationContext.CreateFromBuffer(ref oneDimensionalVector).Values[0] = src;
+                        VBufferEditor.CreateFromBuffer(ref oneDimensionalVector).Values[0] = src;
                         TransformFeatures(in oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
@@ -620,20 +620,20 @@ namespace Microsoft.ML.Transforms.Projections
                         srcValues.Length, productAligned, transformInfo.NewDim);
                 }
 
-                var dstMutation = VBufferMutationContext.Create(ref dst, newDstLength);
+                var dstEditor = VBufferEditor.Create(ref dst, newDstLength);
                 for (int i = 0; i < transformInfo.NewDim; i++)
                 {
                     var dotProduct = productAligned[i];
                     if (transformInfo.RotationTerms != null)
-                        dstMutation.Values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
+                        dstEditor.Values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
                     else
                     {
-                        dstMutation.Values[2 * i] = (float)MathUtils.Cos(dotProduct) * scale;
-                        dstMutation.Values[2 * i + 1] = (float)MathUtils.Sin(dotProduct) * scale;
+                        dstEditor.Values[2 * i] = (float)MathUtils.Cos(dotProduct) * scale;
+                        dstEditor.Values[2 * i + 1] = (float)MathUtils.Sin(dotProduct) * scale;
                     }
                 }
 
-                dst = dstMutation.CreateBuffer();
+                dst = dstEditor.Commit();
             }
         }
     }

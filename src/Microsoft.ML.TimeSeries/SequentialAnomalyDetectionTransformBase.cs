@@ -364,12 +364,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected override void SetNaOutput(ref VBuffer<Double> dst)
             {
                 var outputLength = Parent._outputLength;
-                var mutation = VBufferMutationContext.Create(ref dst, outputLength);
+                var editor = VBufferEditor.Create(ref dst, outputLength);
 
                 for (int i = 0; i < outputLength; ++i)
-                    mutation.Values[i] = Double.NaN;
+                    editor.Values[i] = Double.NaN;
 
-                dst = mutation.CreateBuffer();
+                dst = editor.Commit();
             }
 
             private protected override sealed void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var outputLength = Parent._outputLength;
                 Host.Assert(outputLength >= 2);
 
-                var result = VBufferMutationContext.Create(ref dst, outputLength);
+                var result = VBufferEditor.Create(ref dst, outputLength);
                 float rawScore = 0;
 
                 for (int i = 0; i < outputLength; ++i)
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     result.Values[0] = Convert.ToDouble(alert);
                 }
 
-                dst = result.CreateBuffer();
+                dst = result.Commit();
             }
 
             private protected override sealed void InitializeStateCore()

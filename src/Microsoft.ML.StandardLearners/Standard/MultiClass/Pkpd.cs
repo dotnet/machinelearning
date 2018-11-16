@@ -469,9 +469,9 @@ namespace Microsoft.ML.Runtime.Learners
 
                     ReconcilePredictions(buffer);
 
-                    var mutation = VBufferMutationContext.Create(ref dst, _numClasses);
-                    ComputeProbabilities(buffer, mutation.Values);
-                    dst = mutation.CreateBuffer();
+                    var editor = VBufferEditor.Create(ref dst, _numClasses);
+                    ComputeProbabilities(buffer, editor.Values);
+                    dst = editor.Commit();
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }

@@ -522,19 +522,19 @@ namespace Microsoft.ML.Runtime.Data
                 return
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
-                        var mutation = VBufferMutationContext.Create(ref dst, UnweightedCounters.TruncationLevel);
+                        var editor = VBufferEditor.Create(ref dst, UnweightedCounters.TruncationLevel);
                         for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                            mutation.Values[i] = string.Format("{0}@{1}", prefix, i + 1).AsMemory();
-                        dst = mutation.CreateBuffer();
+                            editor.Values[i] = string.Format("{0}@{1}", prefix, i + 1).AsMemory();
+                        dst = editor.Commit();
                     };
             }
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var mutation = VBufferMutationContext.Create(ref slotNames, UnweightedCounters.TruncationLevel);
+                var editor = VBufferEditor.Create(ref slotNames, UnweightedCounters.TruncationLevel);
                 for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                    mutation.Values[i] = string.Format("@{0}", i + 1).AsMemory();
-                slotNames = mutation.CreateBuffer();
+                    editor.Values[i] = string.Format("@{0}", i + 1).AsMemory();
+                slotNames = editor.Commit();
             }
         }
 
@@ -699,12 +699,12 @@ namespace Microsoft.ML.Runtime.Data
                 private void SlotNamesGetter(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    var mutation = VBufferMutationContext.Create(ref dst, _truncationLevel);
+                    var editor = VBufferEditor.Create(ref dst, _truncationLevel);
                     for (int i = 0; i < _truncationLevel; i++)
-                        mutation.Values[i] =
+                        editor.Values[i] =
                             string.Format("{0}@{1}", iinfo == NdcgCol ? Ndcg : iinfo == DcgCol ? Dcg : MaxDcg,
                                 i + 1).AsMemory();
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 }
             }
 
@@ -794,9 +794,9 @@ namespace Microsoft.ML.Runtime.Data
             private void Copy(Double[] src, ref VBuffer<Double> dst)
             {
                 Host.AssertValue(src);
-                var mutation = VBufferMutationContext.Create(ref dst, src.Length);
-                src.CopyTo(mutation.Values);
-                dst = mutation.CreateBuffer();
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+                src.CopyTo(editor.Values);
+                dst = editor.Commit();
             }
 
             protected override ValueGetter<short> GetLabelGetter(IRow row)

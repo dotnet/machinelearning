@@ -731,12 +731,12 @@ namespace Microsoft.ML.Runtime.Learners
             if (!src.IsDense)
                 weights = DensifyWeights();
 
-            var mutation = VBufferMutationContext.Create(ref dst, _numClasses);
+            var editor = VBufferEditor.Create(ref dst, _numClasses);
             for (int i = 0; i < _biases.Length; i++)
-                mutation.Values[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
+                editor.Values[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
 
-            Calibrate(mutation.Values);
-            dst = mutation.CreateBuffer();
+            Calibrate(editor.Values);
+            dst = editor.Commit();
         }
 
         private VBuffer<float>[] DensifyWeights()

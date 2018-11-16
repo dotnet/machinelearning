@@ -329,8 +329,7 @@ namespace Microsoft.ML.Runtime.Learners
                     (in VBuffer<float> x, ref VBuffer<float> grad) =>
                     {
                         // Zero out the gradient by sparsifying.
-                        grad = VBufferMutationContext.Create(ref grad, grad.Length, 0)
-                            .CreateBuffer();
+                        VBufferUtils.Resize(ref grad, grad.Length, 0);
                         EnsureBiases(ref grad);
 
                         if (cursor == null || !cursor.MoveNext())

@@ -339,16 +339,15 @@ namespace Microsoft.ML.Transforms
                     if (sense)
                     {
                         // Return empty VBuffer.
-                        dst = VBufferMutationContext.Create(ref dst, srcLength, 0)
-                            .CreateBuffer();
+                        VBufferUtils.Resize(ref dst, srcLength, 0);
                         return;
                     }
 
                     // Return VBuffer filled with 1's.
-                    var mutation = VBufferMutationContext.Create(ref dst, srcLength);
+                    var editor = VBufferEditor.Create(ref dst, srcLength);
                     for (int i = 0; i < srcLength; i++)
-                        mutation.Values[i] = true;
-                    dst = mutation.CreateBuffer();
+                        editor.Values[i] = true;
+                    dst = editor.Commit();
                     return;
                 }
 
@@ -356,20 +355,20 @@ namespace Microsoft.ML.Transforms
                 {
                     // Will produce sparse output.
                     int dstCount = indices.Count;
-                    var mutation = VBufferMutationContext.Create(ref dst, srcLength, dstCount);
+                    var editor = VBufferEditor.Create(ref dst, srcLength, dstCount);
 
-                    indices.CopyTo(mutation.Indices);
+                    indices.CopyTo(editor.Indices);
                     for (int ii = 0; ii < dstCount; ii++)
-                        mutation.Values[ii] = true;
+                        editor.Values[ii] = true;
 
                     Host.Assert(dstCount <= srcLength);
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 }
                 else if (!sense && srcLength - indices.Count < srcLength / 2)
                 {
                     // Will produce sparse output.
                     int dstCount = srcLength - indices.Count;
-                    var mutation = VBufferMutationContext.Create(ref dst, srcLength, dstCount);
+                    var editor = VBufferEditor.Create(ref dst, srcLength, dstCount);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -385,8 +384,8 @@ namespace Microsoft.ML.Transforms
                         if (i < iNext)
                         {
                             Host.Assert(iiDst < dstCount);
-                            mutation.Values[iiDst] = true;
-                            mutation.Indices[iiDst++] = i;
+                            editor.Values[iiDst] = true;
+                            editor.Indices[iiDst++] = i;
                         }
                         else
                         {
@@ -398,12 +397,12 @@ namespace Microsoft.ML.Transforms
                     Host.Assert(srcLength == iiSrc + iiDst);
                     Host.Assert(iiDst == dstCount);
 
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 }
                 else
                 {
                     // Will produce dense output.
-                    var mutation = VBufferMutationContext.Create(ref dst, srcLength);
+                    var editor = VBufferEditor.Create(ref dst, srcLength);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -415,16 +414,16 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(0 <= i && i <= indices[ii]);
                         if (i == indices[ii])
                         {
-                            mutation.Values[i] = sense;
+                            editor.Values[i] = sense;
                             ii++;
                             Host.Assert(ii < indices.Count);
                             Host.Assert(indices[ii - 1] < indices[ii]);
                         }
                         else
-                            mutation.Values[i] = !sense;
+                            editor.Values[i] = !sense;
                     }
 
-                    dst = mutation.CreateBuffer();
+                    dst = editor.Commit();
                 }
             }
         }
