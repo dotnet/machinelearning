@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Training;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
-    public abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
+    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
     {
         public abstract class ArgumentsBase
         {

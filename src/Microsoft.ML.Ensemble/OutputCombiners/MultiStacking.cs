@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
-            // TODO: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]

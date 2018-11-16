@@ -122,9 +122,7 @@ namespace Microsoft.ML.Benchmarks
 
             // Train
             var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", maxIterations: 20);
-            var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-
-            var predicted = trainer.Train(trainRoles);
+            var predicted = trainer.Fit(trans);
             _consumer.Consume(predicted);
         }
 

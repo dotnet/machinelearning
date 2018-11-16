@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
@@ -14,7 +15,7 @@ namespace Microsoft.ML.Benchmarks
         internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
            where TLoader : IDataReader<IMultiStreamSource>
            where TTransformer : ITransformer
-           where TTrainer : ITrainer
+           where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
         {
             var ctx = new MLContext();
             IHostEnvironment environment = ctx;
@@ -30,7 +31,7 @@ namespace Microsoft.ML.Benchmarks
             where TEvaluator : IEvaluator
             where TLoader : IDataReader<IMultiStreamSource>
             where TTransformer : ITransformer
-            where TTrainer : ITrainer
+            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
         {
             var ctx = new MLContext();
             IHostEnvironment environment = ctx;

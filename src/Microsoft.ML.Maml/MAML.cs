@@ -58,7 +58,9 @@ namespace Microsoft.ML.Runtime.Tools
             string currentDirectory = Path.GetDirectoryName(typeof(Maml).Module.FullyQualifiedName);
 
             using (var env = CreateEnvironment())
+#pragma warning disable CS0618 // This is the command line project, so the usage here is OK.
             using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
+#pragma warning restore CS0618
             using (var progressCancel = new CancellationTokenSource())
             {
                 var progressTrackerTask = Task.Run(() => TrackProgress(env, progressCancel.Token));
