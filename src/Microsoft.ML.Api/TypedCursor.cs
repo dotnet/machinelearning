@@ -8,8 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -383,13 +381,14 @@ namespace Microsoft.ML.Runtime.Api
                 return row =>
                 {
                     typedPeek(row, Position, ref buf);
-                    value = new VBuffer<TDst>(0, buf, value.Indices);
                     getter(ref value);
-                    if (value.Length == Utils.Size(buf) && value.IsDense && RefersToSameMemory(buf, value.GetValues()))
+                    if (value.Length == Utils.Size(buf) && value.IsDense)
                     {
-                        // In this case, value.GetValues() (that is, 'buf') alone is enough to represent the vector.
-                        // Otherwise, we are either sparse (and need densifying), or value.GetValues is too large,
-                        // and we need to truncate.
+                        // In this case, buf (which came from the input object) is the
+                        // right size to represent the vector.
+                        // Otherwise, we are either sparse (and need densifying), or value.GetValues()
+                        // is a different length than buf.
+                        value.CopyTo(buf);
                     }
                     else
                     {
@@ -406,15 +405,6 @@ namespace Microsoft.ML.Runtime.Api
 
                     typedPoke(row, buf);
                 };
-            }
-
-            private static bool RefersToSameMemory<T>(T[] array, ReadOnlySpan<T> span)
-            {
-                if (array == null || span.IsEmpty)
-                    return false;
-
-                ref T pinnableReference = ref MemoryMarshal.GetReference(span);
-                return Unsafe.AreSame(ref array[0], ref pinnableReference);
             }
 
             private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Func<TSrc, TDst> convert)

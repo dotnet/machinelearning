@@ -11,7 +11,6 @@
     <PackageReference Include="MathNet.Numerics.Signed" Version="$(MathNumericPackageVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafePackageVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowPackageVersion)" />
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
