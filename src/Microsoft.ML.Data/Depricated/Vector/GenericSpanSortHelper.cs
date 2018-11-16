@@ -3,16 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 /*============================================================
-** Purpose: class to sort Spans
-**
-** Taken from https://github.com/dotnet/coreclr/blob/480defd204b58fae05b692937295c6533673d3a2/src/System.Private.CoreLib/shared/System/Collections/Generic/ArraySortHelper.cs#L871-L1112
-** and changed to support Span instead of arrays.
-**
-** This can be removed once https://github.com/dotnet/corefx/issues/15329 is fixed.
+* Purpose: class to sort Spans
+*
+* Taken from https://github.com/dotnet/coreclr/blob/480defd204b58fae05b692937295c6533673d3a2/src/System.Private.CoreLib/shared/System/Collections/Generic/ArraySortHelper.cs#L871-L1112
+* and changed to support Span instead of arrays.
+*
+* Code changes from coreclr:
+*  1. Name changed from GenericArraySortHelper => GenericSpanSortHelper
+*  2. Changed Array usages to Span
+*  3. Change Sort method to static
+*  4. Changed single-line, multi-variable declarations to be multi-line.
+*  5. Contracts.Assert => Contracts.Assert
+*
+*This can be removed once https://github.com/dotnet/corefx/issues/15329 is fixed.
 ===========================================================*/
 
 using System;
-using System.Diagnostics;
 
 namespace Microsoft.ML.Runtime.Numeric
 {
@@ -40,8 +46,8 @@ namespace Microsoft.ML.Runtime.Numeric
     {
         public static void Sort(Span<TKey> keys, Span<TValue> values, int index, int length)
         {
-            Debug.Assert(keys != null, "Check the arguments in the caller!");
-            Debug.Assert(index >= 0 && length >= 0 && (keys.Length - index >= length), "Check the arguments in the caller!");
+            Contracts.Assert(keys != null, "Check the arguments in the caller!");
+            Contracts.Assert(index >= 0 && length >= 0 && (keys.Length - index >= length), "Check the arguments in the caller!");
 
             IntrospectiveSort(keys, values, index, length);
         }
@@ -79,13 +85,13 @@ namespace Microsoft.ML.Runtime.Numeric
 
         internal static void IntrospectiveSort(Span<TKey> keys, Span<TValue> values, int left, int length)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(values != null);
-            Debug.Assert(left >= 0);
-            Debug.Assert(length >= 0);
-            Debug.Assert(length <= keys.Length);
-            Debug.Assert(length + left <= keys.Length);
-            Debug.Assert(length + left <= values.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(values != null);
+            Contracts.Assert(left >= 0);
+            Contracts.Assert(length >= 0);
+            Contracts.Assert(length <= keys.Length);
+            Contracts.Assert(length + left <= keys.Length);
+            Contracts.Assert(length + left <= values.Length);
 
             if (length < 2)
                 return;
@@ -95,10 +101,10 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static void IntroSort(Span<TKey> keys, Span<TValue> values, int lo, int hi, int depthLimit)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(values != null);
-            Debug.Assert(lo >= 0);
-            Debug.Assert(hi < keys.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(values != null);
+            Contracts.Assert(lo >= 0);
+            Contracts.Assert(hi < keys.Length);
 
             while (hi > lo)
             {
@@ -142,11 +148,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static int PickPivotAndPartition(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(values != null);
-            Debug.Assert(lo >= 0);
-            Debug.Assert(hi > lo);
-            Debug.Assert(hi < keys.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(values != null);
+            Contracts.Assert(lo >= 0);
+            Contracts.Assert(hi > lo);
+            Contracts.Assert(hi < keys.Length);
 
             // Compute median-of-three.  But also partition them, since we've done the comparison.
             int middle = lo + ((hi - lo) / 2);
@@ -187,11 +193,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static void Heapsort(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(values != null);
-            Debug.Assert(lo >= 0);
-            Debug.Assert(hi > lo);
-            Debug.Assert(hi < keys.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(values != null);
+            Contracts.Assert(lo >= 0);
+            Contracts.Assert(hi > lo);
+            Contracts.Assert(hi < keys.Length);
 
             int n = hi - lo + 1;
             for (int i = n / 2; i >= 1; i = i - 1)
@@ -207,9 +213,9 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static void DownHeap(Span<TKey> keys, Span<TValue> values, int i, int n, int lo)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(lo >= 0);
-            Debug.Assert(lo < keys.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(lo >= 0);
+            Contracts.Assert(lo < keys.Length);
 
             TKey d = keys[lo + i - 1];
             TValue dValue = values[lo + i - 1];
@@ -233,11 +239,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static void InsertionSort(Span<TKey> keys, Span<TValue> values, int lo, int hi)
         {
-            Debug.Assert(keys != null);
-            Debug.Assert(values != null);
-            Debug.Assert(lo >= 0);
-            Debug.Assert(hi >= lo);
-            Debug.Assert(hi <= keys.Length);
+            Contracts.Assert(keys != null);
+            Contracts.Assert(values != null);
+            Contracts.Assert(lo >= 0);
+            Contracts.Assert(hi >= lo);
+            Contracts.Assert(hi <= keys.Length);
 
             int i;
             int j;
