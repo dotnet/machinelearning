@@ -218,8 +218,9 @@ namespace Microsoft.ML.Runtime.Learners
                 float mult = weight * (modelProb - probLabel);
                 VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
-                Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-                grad.Values[c] += mult;
+                var editor = VBufferEditor.CreateFromBuffer(ref grad);
+                Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+                editor.Values[c] += mult;
             }
 
             Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");
@@ -663,21 +664,22 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
-                                    ctx.Writer.Write(fw.Values[i]);
+                                    ctx.Writer.Write(fwValues[i]);
                                     count++;
                                 }
                             }
                         }
                         else
                         {
-                            ctx.Writer.WriteSinglesNoCount(fw.GetValues());
-                            count += fw.Count;
+                            ctx.Writer.WriteSinglesNoCount(fwValues);
+                            count += fwValues.Length;
                         }
                     }
                     Host.Assert(count == numIndices);
@@ -697,21 +699,11 @@ namespace Microsoft.ML.Runtime.Learners
         private static int NonZeroCount(in VBuffer<float> vector)
         {
             int count = 0;
-            if (!vector.IsDense)
+            var values = vector.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                for (int i = 0; i < vector.Count; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < vector.Length; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
+                if (values[i] != 0)
+                    count++;
             }
             return count;
         }

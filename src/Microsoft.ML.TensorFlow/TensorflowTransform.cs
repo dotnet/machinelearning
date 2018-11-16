@@ -927,12 +927,9 @@ namespace Microsoft.ML.Transforms
                     var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < tensorSize)
-                        values = new T[tensorSize];
-
-                    TensorFlowUtils.FetchData<T>(tensor.Data, values);
-                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
+                    TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
+                    dst = editor.Commit();
                 };
                 return valuegetter;
             }
@@ -1058,7 +1055,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<VBuffer<T>> _srcgetter;
             private readonly TFShape _tfShape;
             private VBuffer<T> _vBuffer;
-            private VBuffer<T> _vBufferDense;
+            private T[] _denseData;
             private readonly T[] _bufferedData;
             private int _position;
 
@@ -1067,7 +1064,7 @@ namespace Microsoft.ML.Transforms
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tfShape = tfShape;
                 _vBuffer = default;
-                _vBufferDense = default;
+                _denseData = default;
 
                 long size = 0;
                 _position = 0;
@@ -1083,8 +1080,11 @@ namespace Microsoft.ML.Transforms
             public TFTensor GetTensor()
             {
                 _srcgetter(ref _vBuffer);
-                _vBuffer.CopyToDense(ref _vBufferDense);
-                return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
+
+                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
+                _vBuffer.CopyTo(_denseData);
+
+                return TFTensor.Create(_denseData, _vBuffer.Length, _tfShape);
             }
 
             public void BufferTrainingData()

@@ -167,7 +167,7 @@ namespace Microsoft.ML.Trainers
                     }
                     else
                     {
-                        normSquared = VectorUtils.NormSquared(features);
+                        normSquared = VectorUtils.NormSquared(in features);
                         if (Args.BiasLearningRate == 0)
                             normSquared += 1;
 
@@ -240,10 +240,11 @@ namespace Microsoft.ML.Trainers
                                         : 0;
                                     }
 
+                                    var featureValues = features.GetValues();
                                     if (features.IsDense)
-                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
-                                    else if (features.Count > 0)
-                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
+                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
+                                    else if (featureValues.Length > 0)
+                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
                                 }
 
                                 break;
@@ -267,10 +268,11 @@ namespace Microsoft.ML.Trainers
                             ? intermediateBias - Math.Sign(intermediateBias) * l1Threshold
                             : 0;
 
+                        var featureValues = features.GetValues();
                         if (features.IsDense)
-                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
-                        else if (features.Count > 0)
-                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
+                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
+                        else if (featureValues.Length > 0)
+                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
                     }
 
                     rowCount++;

@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new ConcatTransform(_host, _name, _source);
+            return new ColumnConcatenatingTransformer(_host, _name, _source);
         }
 
         private bool HasCategoricals(SchemaShape.Column col)

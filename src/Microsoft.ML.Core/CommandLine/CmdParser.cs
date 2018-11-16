@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime.CommandLine
     ///
     /// This allows components to be created by name, signature type, and a settings string.
     /// </summary>
-    public interface ICommandLineComponentFactory : IComponentFactory
+    [BestFriend]
+    internal interface ICommandLineComponentFactory : IComponentFactory
     {
         Type SignatureType { get; }
         string Name { get; }

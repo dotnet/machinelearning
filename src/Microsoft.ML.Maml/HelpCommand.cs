@@ -23,14 +23,15 @@ using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Runtime.Tools
 {
-    public interface IGenerator
+    [BestFriend]
+    internal interface IGenerator
     {
         void Generate(IEnumerable<HelpCommand.Component> infos);
     }
 
     public delegate void SignatureModuleGenerator(string regenerate);
 
-    public sealed class HelpCommand : ICommand
+    internal sealed class HelpCommand : ICommand
     {
         public sealed class Arguments
         {
@@ -100,7 +101,9 @@ namespace Microsoft.ML.Runtime.Tools
 
         public void Run(int? columns)
         {
+#pragma warning disable CS0618 // The help command should be entirely within the command line anyway.
             AssemblyLoadingUtils.LoadAndRegister(_env, _extraAssemblies);
+#pragma warning restore CCS0618
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))
@@ -423,7 +426,7 @@ namespace Microsoft.ML.Runtime.Tools
         }
     }
 
-    public sealed class XmlGenerator : IGenerator
+    internal sealed class XmlGenerator : IGenerator
     {
         public sealed class Arguments
         {

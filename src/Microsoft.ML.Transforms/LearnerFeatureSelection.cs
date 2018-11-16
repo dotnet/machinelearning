@@ -8,7 +8,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 
@@ -22,23 +21,26 @@ namespace Microsoft.ML.Transforms
     /// is greater than a threshold.
     /// Instantiates a DropSlots transform to actually drop the slots.
     /// </summary>
-    public static class LearnerFeatureSelectionTransform
+    internal static class LearnerFeatureSelectionTransform
     {
         internal const string Summary = "Selects the slots for which the absolute value of the corresponding weight in a linear learner is greater than a threshold.";
 
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If the corresponding absolute value of the weight for a slot is greater than this threshold, the slot is preserved", ShortName = "ft", SortOrder = 2)]
-            public float? Threshold;
+            public Single? Threshold;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of slots to preserve", ShortName = "topk", SortOrder = 1)]
             public int? NumSlotsToKeep;
 
+            // If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer, but the utility
+            // of this would be limited because estimators and transformers now act more or less like this transform used to.
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1, SignatureType = typeof(SignatureFeatureScorerTrainer))]
-            public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<float>>> Filter =
+            public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<Single>>> Filter =
                 ComponentFactoryUtils.CreateFromFunction(env =>
                     // ML.Transforms doesn't have a direct reference to ML.StandardLearners, so use ComponentCatalog to create the Filter
-                    ComponentCatalog.CreateInstance<ITrainer<IPredictorWithFeatureWeights<float>>>(env, typeof(SignatureFeatureScorerTrainer), "SDCA", options: null));
+                    ComponentCatalog.CreateInstance<ITrainer<IPredictorWithFeatureWeights<Single>>>(env, typeof(SignatureFeatureScorerTrainer), "SDCA", options: null));
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Column to use for features", ShortName = "feat,col", SortOrder = 3, Purpose = SpecialPurpose.ColumnName)]
             public string FeatureColumn = DefaultColumnNames.Features;
@@ -75,6 +77,7 @@ namespace Microsoft.ML.Transforms
                 ectx.CheckUserArg((NumSlotsToKeep ?? int.MaxValue) > 0, nameof(NumSlotsToKeep), "Must be positive");
             }
         }
+#pragma warning restore CS0649
 
         internal static string RegistrationName = "LearnerFeatureSelectionTransform";
 
@@ -89,7 +92,7 @@ namespace Microsoft.ML.Transforms
             host.CheckValue(input, nameof(input));
             args.Check(host);
 
-            var scores = default(VBuffer<float>);
+            var scores = default(VBuffer<Single>);
             TrainCore(host, input, args, ref scores);
 
             using (var ch = host.Start("Dropping Slots"))
@@ -105,22 +108,31 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);
 
-                return new DropSlotsTransform(host, column).Transform(input) as IDataTransform;
+                var dsArgs = new DropSlotsTransform.Arguments();
+                dsArgs.Column = new[] { column };
+                return new DropSlotsTransform(host, dsArgs, input);
             }
         }
 
-        private static DropSlotsTransform.ColumnInfo CreateDropSlotsColumn(Arguments args, in VBuffer<float> scores, out int selectedCount)
+        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
             // 2. If it's less, we assume that the rest of the scores are zero and we drop the slots.
             // 3. If it's greater, the drop slots ignores the ranges that are outside the valid range of indices for the column.
             Contracts.Assert(args.Threshold.HasValue != args.NumSlotsToKeep.HasValue);
+            var col = new DropSlotsTransform.Column();
+            col.Source = args.FeatureColumn;
             selectedCount = 0;
+            var scoresValues = scores.GetValues();
 
             // Degenerate case, dropping all slots.
-            if (scores.Count == 0)
-                return new DropSlotsTransform.ColumnInfo(args.FeatureColumn);
+            if (scoresValues.Length == 0)
+            {
+                var range = new DropSlotsTransform.Range();
+                col.Slots = new DropSlotsTransform.Range[] { range };
+                return col;
+            }
 
             int tiedScoresToKeep;
             float threshold;
@@ -132,13 +144,13 @@ namespace Microsoft.ML.Transforms
             else
             {
                 Contracts.Assert(args.NumSlotsToKeep.HasValue);
-                threshold = ComputeThreshold(scores.Values, scores.Count, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
+                threshold = ComputeThreshold(scoresValues, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
             }
 
-            var slots = new List<(int min, int? max)>();
-            for (int i = 0; i < scores.Count; i++)
+            var slots = new List<DropSlotsTransform.Range>();
+            for (int i = 0; i < scoresValues.Length; i++)
             {
-                var score = Math.Abs(scores.Values[i]);
+                var score = Math.Abs(scoresValues[i]);
                 if (score > threshold)
                 {
                     selectedCount++;
@@ -151,10 +163,11 @@ namespace Microsoft.ML.Transforms
                     continue;
                 }
 
-                int min = i;
-                while (++i < scores.Count)
+                var range = new DropSlotsTransform.Range();
+                range.Min = i;
+                while (++i < scoresValues.Length)
                 {
-                    score = Math.Abs(scores.Values[i]);
+                    score = Math.Abs(scoresValues[i]);
                     if (score > threshold)
                     {
                         selectedCount++;
@@ -167,62 +180,78 @@ namespace Microsoft.ML.Transforms
                         break;
                     }
                 }
-                int max = i - 1;
-                slots.Add((min, max));
+                range.Max = i - 1;
+                slots.Add(range);
             }
 
             if (!scores.IsDense)
             {
+                var scoresIndices = scores.GetIndices();
                 int ii = 0;
                 var count = slots.Count;
                 for (int i = 0; i < count; i++)
                 {
                     var range = slots[i];
-                    Contracts.Assert(range.max != null);
-                    var min = range.min;
-                    var max = range.max.Value;
+                    Contracts.Assert(range.Max != null);
+                    var min = range.Min;
+                    var max = range.Max.Value;
                     Contracts.Assert(min <= max);
-                    Contracts.Assert(max < scores.Count);
+                    Contracts.Assert(max < scoresValues.Length);
 
-                    range.min = min == 0 ? 0 : scores.Indices[min - 1] + 1;
-                    range.max = max == scores.Count - 1 ? scores.Length - 1 : scores.Indices[max + 1] - 1;
+                    range.Min = min == 0 ? 0 : scoresIndices[min - 1] + 1;
+                    range.Max = max == scoresIndices.Length - 1 ? scores.Length - 1 : scoresIndices[max + 1] - 1;
 
                     // Add the gaps before this range.
                     for (; ii < min; ii++)
                     {
-                        var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
-                        var gapMax = scores.Indices[ii] - 1;
+                        var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
+                        var gapMax = scoresIndices[ii] - 1;
                         if (gapMin <= gapMax)
-                            slots.Add((gapMin, gapMax));
+                        {
+                            var gap = new DropSlotsTransform.Range();
+                            gap.Min = gapMin;
+                            gap.Max = gapMax;
+                            slots.Add(gap);
+                        }
                     }
                     ii = max;
                 }
 
                 // Add the gaps after the last range.
-                for (; ii <= scores.Count; ii++)
+                for (; ii <= scoresIndices.Length; ii++)
                 {
-                    var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
-                    var gapMax = ii == scores.Count ? scores.Length - 1 : scores.Indices[ii] - 1;
+                    var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
+                    var gapMax = ii == scoresIndices.Length ? scores.Length - 1 : scoresIndices[ii] - 1;
                     if (gapMin <= gapMax)
-                        slots.Add((gapMin, gapMax));
+                    {
+                        var gap = new DropSlotsTransform.Range();
+                        gap.Min = gapMin;
+                        gap.Max = gapMax;
+                        slots.Add(gap);
+                    }
                 }
 
                 // Remove all slots past scores.Length.
-                slots.Add((scores.Length, null));
+                var lastRange = new DropSlotsTransform.Range();
+                lastRange.Min = scores.Length;
+                slots.Add(lastRange);
             }
 
             if (slots.Count > 0)
-                return new DropSlotsTransform.ColumnInfo(args.FeatureColumn, slots: slots.ToArray());
+            {
+                col.Slots = slots.ToArray();
+                return col;
+            }
 
             return null;
         }
 
-        private static float ComputeThreshold(float[] scores, int count, int topk, out int tiedScoresToKeep)
+        private static float ComputeThreshold(ReadOnlySpan<float> scores, int topk, out int tiedScoresToKeep)
         {
             // Use a min-heap for the topk elements
             var heap = new Heap<float>((f1, f2) => f1 > f2, topk);
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < scores.Length; i++)
             {
                 var score = Math.Abs(scores[i]);
                 if (float.IsNaN(score))
@@ -252,7 +281,7 @@ namespace Microsoft.ML.Transforms
             return threshold;
         }
 
-        private static void TrainCore(IHost host, IDataView input, Arguments args, ref VBuffer<float> scores)
+        private static void TrainCore(IHost host, IDataView input, Arguments args, ref VBuffer<Single> scores)
         {
             Contracts.AssertValue(host);
             host.AssertValue(args);
@@ -283,7 +312,7 @@ namespace Microsoft.ML.Transforms
                 var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     null, 0, args.CacheData);
 
-                var rfs = predictor as IPredictorWithFeatureWeights<float>;
+                var rfs = predictor as IPredictorWithFeatureWeights<Single>;
                 Contracts.AssertValue(rfs);
                 rfs.GetFeatureWeights(ref scores);
             }
@@ -292,7 +321,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Returns a score for each slot of the features column.
         /// </summary>
-        public static void Train(IHostEnvironment env, IDataView input, Arguments args, ref VBuffer<float> scores)
+        public static void Train(IHostEnvironment env, IDataView input, Arguments args, ref VBuffer<Single> scores)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);

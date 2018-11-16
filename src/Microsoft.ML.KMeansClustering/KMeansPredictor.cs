@@ -148,21 +148,19 @@ namespace Microsoft.ML.Trainers.KMeans
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _k)
-                        values = new Float[_k];
-                    Map(in src, values);
-                    dst = new VBuffer<Float>(_k, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, _k);
+                    Map(in src, editor.Values);
+                    dst = editor.Commit();
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(in VBuffer<Float> src, Float[] distances)
+        private void Map(in VBuffer<Float> src, Span<Float> distances)
         {
-            Host.Assert(Utils.Size(distances) >= _k);
+            Host.Assert(distances.Length >= _k);
 
-            Float instanceL2 = VectorUtils.NormSquared(src);
+            Float instanceL2 = VectorUtils.NormSquared(in src);
             for (int i = 0; i < _k; i++)
             {
                 Float distance = Math.Max(0,

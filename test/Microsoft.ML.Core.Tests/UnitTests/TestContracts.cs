@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Xunit;
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -42,7 +40,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void ExceptionSensitivity()
         {
-            var env = new ConsoleEnvironment();
+            var env = new MLContext();
             // Default sensitivity should be unknown, that is, all bits set.
             Helper(null, MessageSensitivity.Unknown);
             // If we set it to be not sensitive, then the messages should be marked insensitive,

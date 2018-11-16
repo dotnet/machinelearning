@@ -724,8 +724,8 @@ namespace Microsoft.ML.Runtime.Data
             colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
-            overall = new CopyColumnsTransform(Host, cols).Transform(overall);
-            IDataView fold = SelectColumnsTransform.CreateKeep(Host, overall, colsToKeep.ToArray());
+            overall = new ColumnsCopyingTransformer(Host, cols).Transform(overall);
+            IDataView fold = ColumnSelectingTransformer.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            return SelectColumnsTransform.CreateDrop(Host,
+            return ColumnSelectingTransformer.CreateDrop(Host,
                                                     overall,
                                                     AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
                                                     AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,

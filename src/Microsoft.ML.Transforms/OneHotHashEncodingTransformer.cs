@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
+        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and <see cref="KeyToVectorMappingTransformer.Arguments"/>
         /// with join option removed
         /// </summary>
         public sealed class Arguments : TransformInputBase
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public sealed class ColumnInfo
         {
-            public readonly HashTransformer.ColumnInfo HashInfo;
+            public readonly HashingTransformer.ColumnInfo HashInfo;
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
 
             /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -282,9 +282,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.input, x.output)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);

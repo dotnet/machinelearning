@@ -1357,20 +1357,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 return
                     (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
-                        var indices = dst.Indices;
-                        var values = dst.Values;
-                        if (src.Count > 0)
+                        var srcValues = src.GetValues();
+                        var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                        if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)
                             {
-                                Utils.EnsureSize(ref indices, src.Count);
-                                Array.Copy(src.Indices, indices, src.Count);
+                                src.GetIndices().CopyTo(editor.Indices);
                             }
-                            Utils.EnsureSize(ref values, src.Count);
-                            for (int i = 0; i < src.Count; ++i)
-                                conv(in src.Values[i], ref values[i]);
+                            for (int i = 0; i < srcValues.Length; ++i)
+                                conv(in srcValues[i], ref editor.Values[i]);
                         }
-                        dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
+                        dst = editor.Commit();
                     };
             }
 
@@ -1406,7 +1404,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group != null)
-                        data = new ConvertingTransform(Host, new ConvertingTransform.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.

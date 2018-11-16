@@ -613,10 +613,19 @@ namespace Microsoft.ML.Transforms.Projections
                 MinOvr = (byte)'O',
             }
 
+            public static unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float[] a, int lda, ReadOnlySpan<float> x, int incx, float beta, Span<float> y, int incy)
+            {
+                fixed (float* pA = a)
+                fixed (float* pX = x)
+                fixed (float* pY = y)
+                    Gemv(layout, trans, m, n, alpha, pA, lda, pX, incx, beta, pY, incy);
+            }
+
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(DllName, EntryPoint = "cblas_sgemv")]
-            public static extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
-                float[] a, int lda, float[] x, int incx, float beta, float[] y, int incy);
+            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
             [DllImport(DllName, EntryPoint = "cblas_sgemm")]
@@ -715,36 +724,34 @@ namespace Microsoft.ML.Transforms.Projections
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)
             {
-                int count = src.Count;
+                var values = src.GetValues();
+                int count = values.Length;
                 int length = src.Length;
-                var values = src.Values;
-                var indices = src.Indices;
-                Contracts.Assert(Utils.Size(values) >= count);
 
                 // Since the whitening process produces dense vector, always use dense representation of dst.
-                var a = Utils.Size(dst.Values) >= cdst ? dst.Values : new float[cdst];
+                var editor = VBufferEditor.Create(ref dst, cdst);
                 if (src.IsDense)
                 {
                     Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
-                        1, model, length, values, 1, 0, a, 1);
+                        1, model, length, values, 1, 0, editor.Values, 1);
                 }
                 else
                 {
-                    Contracts.Assert(Utils.Size(indices) >= count);
+                    var indices = src.GetIndices();
 
                     int offs = 0;
                     for (int i = 0; i < cdst; i++)
                     {
                         // Returns a dot product of dense vector 'model' starting from offset 'offs' and sparse vector 'values'
                         // with first 'count' valid elements and their corresponding 'indices'.
-                        a[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
+                        editor.Values[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
                         offs += length;
                     }
                 }
-                dst = new VBuffer<float>(cdst, a, dst.Indices);
+                dst = editor.Commit();
             }
 
-            private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
+            private static float DotProduct(float[] a, int aOffset, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
             {
                 Contracts.Assert(count <= indices.Length);
                 return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
