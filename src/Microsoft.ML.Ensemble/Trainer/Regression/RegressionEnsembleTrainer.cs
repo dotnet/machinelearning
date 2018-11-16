@@ -26,7 +26,7 @@ using Microsoft.ML.Trainers.Online;
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TScalarPredictor = IPredictorProducing<Single>;
-    public sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
+    internal sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
        IRegressionSubModelSelector, IRegressionOutputCombiner>,
        IModelCombiner
     {
@@ -43,6 +43,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportRegressionOutputCombinerFactory OutputCombiner = new MedianFactory();
 
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureRegressorTrainer))]
             public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
 

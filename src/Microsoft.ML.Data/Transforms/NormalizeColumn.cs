@@ -264,33 +264,6 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Potentially apply a min-max normalizer to the data's feature column, keeping all existing role
-        /// mappings except for the feature role mapping.
-        /// </summary>
-        /// <param name="env">The host environment to use to potentially instantiate the transform</param>
-        /// <param name="data">The role-mapped data that is potentially going to be modified by this method.</param>
-        /// <param name="trainer">The trainer to query as to whether it wants normalization. If the
-        /// <see cref="ITrainer.Info"/>'s <see cref="TrainerInfo.NeedNormalization"/> is <c>true</c></param>
-        /// <returns>True if the normalizer was applied and <paramref name="data"/> was modified</returns>
-        public static bool CreateIfNeeded(IHostEnvironment env, ref RoleMappedData data, ITrainer trainer)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValue(trainer, nameof(trainer));
-
-            // If the trainer does not need normalization, or if the features either don't exist
-            // or are not normalized, return false.
-            if (!trainer.Info.NeedNormalization || data.Schema.FeaturesAreNormalized() != false)
-                return false;
-            var featInfo = data.Schema.Feature;
-            env.AssertValue(featInfo); // Should be defined, if FeaturesAreNormalized returned a definite value.
-
-            var view = CreateMinMaxNormalizer(env, data.Data, name: featInfo.Name);
-            data = new RoleMappedData(view, data.Schema.GetColumnRoleNames());
-            return true;
-        }
-
-        /// <summary>
         /// Public create method corresponding to SignatureDataTransform.
         /// </summary>
         public static IDataTransform Create(IHostEnvironment env, MinMaxArguments args, IDataView input)

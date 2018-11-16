@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
+using System;
 using System.Collections.Generic;
 
 [assembly: LoadableClass(ScoringTransformer.Summary, typeof(IDataTransform), typeof(ScoringTransformer), typeof(ScoringTransformer.Arguments), typeof(SignatureDataTransform),
@@ -98,7 +99,11 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public static class TrainAndScoreTransformer
+    // Essentially, all trainer estimators when fitted return a transformer that produces scores -- which is to say, all machine
+    // learning algorithms actually behave more or less as this transform used to, so its presence is no longer necessary or helpful,
+    // from an API perspective, but this is still how things are invoked from the command line for now.
+    [BestFriend]
+    internal static class TrainAndScoreTransformer
     {
         public abstract class ArgumentsBase : TransformInputBase
         {

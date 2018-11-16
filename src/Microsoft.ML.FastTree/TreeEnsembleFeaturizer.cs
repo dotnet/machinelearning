@@ -547,8 +547,10 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
-    public static class TreeEnsembleFeaturizerTransform
+    [BestFriend]
+    internal static class TreeEnsembleFeaturizerTransform
     {
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments : TrainAndScoreTransformer.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTreeEnsembleTrainer))]
@@ -586,6 +588,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Required, HelpText = "Trainer to use", SortOrder = 10, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public IPredictorModel PredictorModel;
         }
+#pragma warning restore CS0649
 
         internal const string TreeEnsembleSummary =
             "Trains a tree ensemble, or loads it from a file, then maps a numeric feature vector " +
@@ -801,8 +804,9 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static partial class TreeFeaturize
+    internal static partial class TreeFeaturize
     {
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         [TlcModule.EntryPoint(Name = "Transforms.TreeLeafFeaturizer",
             Desc = TreeEnsembleFeaturizerTransform.TreeEnsembleSummary,
             UserName = TreeEnsembleFeaturizerTransform.UserName,
@@ -818,5 +822,6 @@ namespace Microsoft.ML.Runtime.Data
             var xf = TreeEnsembleFeaturizerTransform.CreateForEntryPoint(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
+#pragma warning restore CS0649
     }
 }

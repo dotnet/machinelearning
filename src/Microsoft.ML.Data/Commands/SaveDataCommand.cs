@@ -22,7 +22,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class SaveDataCommand : DataCommand.ImplBase<SaveDataCommand.Arguments>
+    internal sealed class SaveDataCommand : DataCommand.ImplBase<SaveDataCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class ShowDataCommand : DataCommand.ImplBase<ShowDataCommand.Arguments>
+    internal sealed class ShowDataCommand : DataCommand.ImplBase<ShowDataCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
