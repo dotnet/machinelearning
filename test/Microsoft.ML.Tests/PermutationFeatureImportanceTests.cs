@@ -9,9 +9,11 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime;
+using Microsoft.ML;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
@@ -91,31 +93,33 @@ namespace Microsoft.ML.Tests
             //var exRoleMapped = Env.CreateExamples(dataLoader, "Features", "Label");
             //var apiPredictor = Env.TrainPredictor("OnlineGradientDescent", exRoleMapped);
 
-            var pipeline = new ColumnConcatenatingEstimator(ML, "Features", "X1", "X2Important", "X3", "X4Rand")
-                .Append(new NormalizingEstimator)
+            var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
+                .Append(ML.Transforms.Normalize("Features"))
+                .Append(ML.Regression.Trainers.OnlineGradientDescent());
 
-#pragma warning disable 618 // Disable warnings about accessing IPredictor from Predictor.
-            var predictor = apiPredictor.GetPredictorObject() as IPredictor;
-#pragma warning restore 618
+            var model = pipeline.Fit(srcDV);
+
 
             // Call pfi and get IDV containing info on how badly evaluator's metrics get affected if given feature is permuted.
-            var pfi = new PermutationFeatureImportance(Env);
-            var evaluatedFeaturesCount = 0;
-            var resultView = pfi.GetImportanceMetricsMatrix(predictor, dataLoader, "Features", "Label", true, out evaluatedFeaturesCount, 0);
-            Dictionary<string, List<FeatureMetricData>> deltas = BuildMetricsDictionary(resultView);
+            var pfi = new PermutationFeatureImportanceRegression(Env);
+            var results = pfi.GetImportanceMetricsMatrix(model, srcDV);
 
             // permuted X4Rand should have min impact on SGD metrics, X2 -- max impact
-            Assert.True(evaluatedFeaturesCount == exRoleMapped.Schema.Feature.Type.VectorSize);
-            Assert.True(deltas["L1(avg)_Delta"].Min().Feature == "X4Rand");
-            Assert.True(deltas["L1(avg)_Delta"].Max().Feature == "X2Important");
-            Assert.True(deltas["L2(avg)_Delta"].Min().Feature == "X4Rand");
-            Assert.True(deltas["L2(avg)_Delta"].Max().Feature == "X2Important");
-            Assert.True(deltas["RMS(avg)_Delta"].Min().Feature == "X4Rand");
-            Assert.True(deltas["RMS(avg)_Delta"].Max().Feature == "X2Important");
-            Assert.True(deltas["Loss-fn(avg)_Delta"].Min().Feature == "X4Rand");
-            Assert.True(deltas["Loss-fn(avg)_Delta"].Max().Feature == "X2Important");
-            Assert.True(deltas["R Squared_Delta"].Min().Feature == "X2Important");
-            Assert.True(deltas["R Squared_Delta"].Max().Feature == "X4Rand");
+            Assert.True(results.OrderBy(r => r.metricsDelta.L1).First().featureName == "X4Rand");
+            Assert.True(results.OrderByDescending(r => r.metricsDelta.L1).First().featureName == "X2Important");
+            Assert.True(results.OrderBy(r => r.metricsDelta.L2).First().featureName == "X4Rand");
+            Assert.True(results.OrderByDescending(r => r.metricsDelta.L2).First().featureName == "X2Important");
+            Assert.True(results.OrderBy(r => r.metricsDelta.Rms).First().featureName == "X4Rand");
+            Assert.True(results.OrderByDescending(r => r.metricsDelta.Rms).First().featureName == "X2Important");
+
+            //Assert.True(deltas["L2(avg)_Delta"].Min().Feature == "X4Rand");
+            //Assert.True(deltas["L2(avg)_Delta"].Max().Feature == "X2Important");
+            //Assert.True(deltas["RMS(avg)_Delta"].Min().Feature == "X4Rand");
+            //Assert.True(deltas["RMS(avg)_Delta"].Max().Feature == "X2Important");
+            //Assert.True(deltas["Loss-fn(avg)_Delta"].Min().Feature == "X4Rand");
+            //Assert.True(deltas["Loss-fn(avg)_Delta"].Max().Feature == "X2Important");
+            //Assert.True(deltas["R Squared_Delta"].Min().Feature == "X2Important");
+            //Assert.True(deltas["R Squared_Delta"].Max().Feature == "X4Rand");
 
             Done();
         }
