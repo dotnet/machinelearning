@@ -53,14 +53,14 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramTokenizingTransformer.Summary,
-            UserName = NgramTokenizingTransformer.UserName,
-            ShortName = NgramTokenizingTransformer.LoaderSignature,
+            Desc = NgramCountingTransformer.Summary,
+            UserName = NgramCountingTransformer.UserName,
+            ShortName = NgramCountingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTokenizingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = new NgramTokenizingTransformer(h, input, input.Data);
+            var xf = new NgramCountingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -140,18 +140,18 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings",
-            Desc = WordEmbeddingsExtractorTransformer.Summary,
-            UserName = WordEmbeddingsExtractorTransformer.UserName,
-            ShortName = WordEmbeddingsExtractorTransformer.ShortName,
+            Desc = WordEmbeddingsExtractingTransformer.Summary,
+            UserName = WordEmbeddingsExtractingTransformer.UserName,
+            ShortName = WordEmbeddingsExtractingTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordEmbeddings""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordEmbeddings""]/*' />" })]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractorTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = WordEmbeddingsExtractorTransformer.Create(h, input, input.Data);
+            var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

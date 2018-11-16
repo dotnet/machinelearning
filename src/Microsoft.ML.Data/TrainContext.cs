@@ -127,7 +127,7 @@ namespace Microsoft.ML
             if (stratificationColumn == null)
             {
                 stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
-                data = new NumberGeneratingTransformer(Host, data, stratificationColumn);
+                data = new GenerateNumberTransform(Host, data, stratificationColumn);
             }
             else
             {

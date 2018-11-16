@@ -20,22 +20,22 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(WordEmbeddingsExtractorTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractorTransformer), typeof(WordEmbeddingsExtractorTransformer.Arguments),
-    typeof(SignatureDataTransform), WordEmbeddingsExtractorTransformer.UserName, "WordEmbeddingsTransform", WordEmbeddingsExtractorTransformer.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
+[assembly: LoadableClass(WordEmbeddingsExtractingTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractingTransformer), typeof(WordEmbeddingsExtractingTransformer.Arguments),
+    typeof(SignatureDataTransform), WordEmbeddingsExtractingTransformer.UserName, "WordEmbeddingsTransform", WordEmbeddingsExtractingTransformer.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
 
-[assembly: LoadableClass(WordEmbeddingsExtractorTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractorTransformer), null, typeof(SignatureLoadDataTransform),
-    WordEmbeddingsExtractorTransformer.UserName, WordEmbeddingsExtractorTransformer.LoaderSignature)]
+[assembly: LoadableClass(WordEmbeddingsExtractingTransformer.Summary, typeof(IDataTransform), typeof(WordEmbeddingsExtractingTransformer), null, typeof(SignatureLoadDataTransform),
+    WordEmbeddingsExtractingTransformer.UserName, WordEmbeddingsExtractingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(WordEmbeddingsExtractorTransformer), null, typeof(SignatureLoadModel),
-    WordEmbeddingsExtractorTransformer.UserName, WordEmbeddingsExtractorTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(WordEmbeddingsExtractingTransformer), null, typeof(SignatureLoadModel),
+    WordEmbeddingsExtractingTransformer.UserName, WordEmbeddingsExtractingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(WordEmbeddingsExtractorTransformer), null, typeof(SignatureLoadRowMapper),
-    WordEmbeddingsExtractorTransformer.UserName, WordEmbeddingsExtractorTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(WordEmbeddingsExtractingTransformer), null, typeof(SignatureLoadRowMapper),
+    WordEmbeddingsExtractingTransformer.UserName, WordEmbeddingsExtractingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-    public sealed class WordEmbeddingsExtractorTransformer : OneToOneTransformerBase
+    public sealed class WordEmbeddingsExtractingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(WordEmbeddingsExtractorTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(WordEmbeddingsExtractingTransformer).Assembly.FullName);
         }
 
         private readonly PretrainedModelKind? _modelKind;
@@ -170,37 +170,37 @@ namespace Microsoft.ML.Transforms.Text
         private const int Timeout = 10 * 60 * 1000;
 
         /// <summary>
-        /// Instantiates <see cref="WordEmbeddingsExtractorTransformer"/> using the pretrained word embedding model specified by <paramref name="modelKind"/>.
+        /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the pretrained word embedding model specified by <paramref name="modelKind"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
-        public WordEmbeddingsExtractorTransformer(IHostEnvironment env, string inputColumn, string outputColumn,
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string inputColumn, string outputColumn,
            PretrainedModelKind modelKind = PretrainedModelKind.Sswe)
            : this(env, modelKind, new ColumnInfo(inputColumn, outputColumn))
         {
         }
 
         /// <summary>
-        /// Instantiates <see cref="WordEmbeddingsExtractorTransformer"/> using the custom word embedding model by loading it from the file specified by the <paramref name="customModelFile"/>.
+        /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the custom word embedding model by loading it from the file specified by the <paramref name="customModelFile"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column.</param>
         /// <param name="customModelFile">Filename for custom word embedding model.</param>
-        public WordEmbeddingsExtractorTransformer(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
            : this(env, customModelFile, new ColumnInfo(inputColumn, outputColumn))
         {
         }
 
         /// <summary>
-        /// Instantiates <see cref="WordEmbeddingsExtractorTransformer"/> using the pretrained word embedding model specified by <paramref name="modelKind"/>.
+        /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the pretrained word embedding model specified by <paramref name="modelKind"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <param name="columns">Input/Output columns.</param>
-        public WordEmbeddingsExtractorTransformer(IHostEnvironment env, PretrainedModelKind modelKind, params ColumnInfo[] columns)
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, PretrainedModelKind modelKind, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             env.CheckUserArg(Enum.IsDefined(typeof(PretrainedModelKind), modelKind), nameof(modelKind));
@@ -211,12 +211,12 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Instantiates <see cref="WordEmbeddingsExtractorTransformer"/> using the custom word embedding model by loading it from the file specified by the <paramref name="customModelFile"/>.
+        /// Instantiates <see cref="WordEmbeddingsExtractingTransformer"/> using the custom word embedding model by loading it from the file specified by the <paramref name="customModelFile"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="customModelFile">Filename for custom word embedding model.</param>
         /// <param name="columns">Input/Output columns.</param>
-        public WordEmbeddingsExtractorTransformer(IHostEnvironment env, string customModelFile, params ColumnInfo[] columns)
+        public WordEmbeddingsExtractingTransformer(IHostEnvironment env, string customModelFile, params ColumnInfo[] columns)
            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             env.CheckValue(customModelFile, nameof(customModelFile));
@@ -258,12 +258,12 @@ namespace Microsoft.ML.Transforms.Text
 
             bool customLookup = !string.IsNullOrWhiteSpace(args.CustomLookupTable);
             if (customLookup)
-                return new WordEmbeddingsExtractorTransformer(env, args.CustomLookupTable, cols).MakeDataTransform(input);
+                return new WordEmbeddingsExtractingTransformer(env, args.CustomLookupTable, cols).MakeDataTransform(input);
             else
-                return new WordEmbeddingsExtractorTransformer(env, args.ModelKind.Value, cols).MakeDataTransform(input);
+                return new WordEmbeddingsExtractingTransformer(env, args.ModelKind.Value, cols).MakeDataTransform(input);
         }
 
-        private WordEmbeddingsExtractorTransformer(IHost host, ModelLoadContext ctx)
+        private WordEmbeddingsExtractingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             Host.AssertValue(ctx);
@@ -284,13 +284,13 @@ namespace Microsoft.ML.Transforms.Text
             _currentVocab = GetVocabularyDictionary();
         }
 
-        public static WordEmbeddingsExtractorTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static WordEmbeddingsExtractingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new WordEmbeddingsExtractorTransformer(h, ctx);
+            return new WordEmbeddingsExtractingTransformer(h, ctx);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -326,10 +326,10 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
-            private readonly WordEmbeddingsExtractorTransformer _parent;
+            private readonly WordEmbeddingsExtractingTransformer _parent;
             private readonly VectorType _outputType;
 
-            public Mapper(WordEmbeddingsExtractorTransformer parent, Schema inputSchema)
+            public Mapper(WordEmbeddingsExtractingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -781,35 +781,35 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-    public sealed class WordEmbeddingsExtractorEstimator : IEstimator<WordEmbeddingsExtractorTransformer>
+    public sealed class WordEmbeddingsExtractingEstimator : IEstimator<WordEmbeddingsExtractingTransformer>
     {
         private readonly IHost _host;
-        private readonly WordEmbeddingsExtractorTransformer.ColumnInfo[] _columns;
-        private readonly WordEmbeddingsExtractorTransformer.PretrainedModelKind? _modelKind;
+        private readonly WordEmbeddingsExtractingTransformer.ColumnInfo[] _columns;
+        private readonly WordEmbeddingsExtractingTransformer.PretrainedModelKind? _modelKind;
         private readonly string _customLookupTable;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractorTransformer.PretrainedModelKind"/> to use. </param>
-        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
-           WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe)
-            : this(env, modelKind, new WordEmbeddingsExtractorTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+           WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+            : this(env, modelKind, new WordEmbeddingsExtractingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="WordEmbeddingsExtractorEstimator"/>
+        /// Initializes a new instance of <see cref="WordEmbeddingsExtractingEstimator"/>
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
-            : this(env, customModelFile, new WordEmbeddingsExtractorTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string inputColumn, string outputColumn, string customModelFile)
+            : this(env, customModelFile, new WordEmbeddingsExtractingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 
@@ -817,22 +817,22 @@ namespace Microsoft.ML.Transforms.Text
         /// Extracts word embeddings.
         /// </summary>
         /// <param name="env">The local instance of <see cref="IHostEnvironment"/></param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractorTransformer.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
-        public WordEmbeddingsExtractorEstimator(IHostEnvironment env,
-            WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe, params WordEmbeddingsExtractorTransformer.ColumnInfo[] columns)
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env,
+            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe, params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractingEstimator));
             _modelKind = modelKind;
             _customLookupTable = null;
             _columns = columns;
         }
 
-        public WordEmbeddingsExtractorEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsExtractorTransformer.ColumnInfo[] columns)
+        public WordEmbeddingsExtractingEstimator(IHostEnvironment env, string customModelFile, params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(WordEmbeddingsExtractorEstimator));
+            _host = env.Register(nameof(WordEmbeddingsExtractingEstimator));
             _modelKind = null;
             _customLookupTable = customModelFile;
             _columns = columns;
@@ -855,13 +855,13 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public WordEmbeddingsExtractorTransformer Fit(IDataView input)
+        public WordEmbeddingsExtractingTransformer Fit(IDataView input)
         {
             bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
             if (customLookup)
-                return new WordEmbeddingsExtractorTransformer(_host, _customLookupTable, _columns);
+                return new WordEmbeddingsExtractingTransformer(_host, _customLookupTable, _columns);
             else
-                return new WordEmbeddingsExtractorTransformer(_host, _modelKind.Value, _columns);
+                return new WordEmbeddingsExtractingTransformer(_host, _modelKind.Value, _columns);
         }
     }
 
@@ -871,7 +871,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="input">Vector of tokenized text.</param>
         /// <param name="modelKind">The pretrained word embedding model.</param>
         /// <returns></returns>
-        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe)
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelKind);
@@ -890,7 +890,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(VarVector<string> input, WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe)
+            public OutColumn(VarVector<string> input, WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
                 : base(new Reconciler(modelKind), input)
             {
                 Input = input;
@@ -905,10 +905,10 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly WordEmbeddingsExtractorTransformer.PretrainedModelKind? _modelKind;
+            private readonly WordEmbeddingsExtractingTransformer.PretrainedModelKind? _modelKind;
             private readonly string _customLookupTable;
 
-            public Reconciler(WordEmbeddingsExtractorTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractorTransformer.PretrainedModelKind.Sswe)
+            public Reconciler(WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
             {
                 _modelKind = modelKind;
                 _customLookupTable = null;
@@ -928,18 +928,18 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var cols = new WordEmbeddingsExtractorTransformer.ColumnInfo[toOutput.Length];
+                var cols = new WordEmbeddingsExtractingTransformer.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var outCol = (OutColumn)toOutput[i];
-                    cols[i] = new WordEmbeddingsExtractorTransformer.ColumnInfo(inputNames[outCol.Input], outputNames[outCol]);
+                    cols[i] = new WordEmbeddingsExtractingTransformer.ColumnInfo(inputNames[outCol.Input], outputNames[outCol]);
                 }
 
                 bool customLookup = !string.IsNullOrWhiteSpace(_customLookupTable);
                 if (customLookup)
-                    return new WordEmbeddingsExtractorEstimator(env, _customLookupTable, cols);
+                    return new WordEmbeddingsExtractingEstimator(env, _customLookupTable, cols);
                 else
-                    return new WordEmbeddingsExtractorEstimator(env, _modelKind.Value, cols);
+                    return new WordEmbeddingsExtractingEstimator(env, _modelKind.Value, cols);
             }
         }
     }
