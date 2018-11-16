@@ -654,7 +654,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = staticFinalPipe.Fit(data);
 
             // And here is how we could've stayed in the dynamic pipeline and train that way.
-            dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLabel"));
+            dynamicPipe = dynamicPipe.Append(new KeyToValueMappingEstimator(mlContext, "PredictedLabel"));
             var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
             // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.

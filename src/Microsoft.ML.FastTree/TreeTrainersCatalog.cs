@@ -107,7 +107,7 @@ namespace Microsoft.ML
         /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static BinaryClassificationGamTrainer GeneralizedAdditiveMethods(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+        public static BinaryClassificationGamTrainer GeneralizedAdditiveModels(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,
@@ -130,7 +130,7 @@ namespace Microsoft.ML
         /// <param name="minDatapointsInLeaves">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static RegressionGamTrainer GeneralizedAdditiveMethods(this RegressionContext.RegressionTrainers ctx,
+        public static RegressionGamTrainer GeneralizedAdditiveModels(this RegressionContext.RegressionTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weights = null,

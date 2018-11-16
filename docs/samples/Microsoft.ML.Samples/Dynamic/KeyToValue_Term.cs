@@ -44,7 +44,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: TermTransform.SortOrder.Value));
+                .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = default_pipeline.Append(new KeyToValueEstimator(ml, defaultColumnName));
+            var pipeline = default_pipeline.Append(new KeyToValueMappingEstimator(ml, defaultColumnName));
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
