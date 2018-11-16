@@ -4,120 +4,46 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Transforms;
 using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
-
     using Stopwatch = System.Diagnostics.Stopwatch;
 
     public sealed class PermutationFeatureImportanceRegression
     {
-        /// <summary>
-        /// This is used as a hack to force Lambda Transform behave sequentially.
-        /// </summary>
-        private sealed class PermuterState
-        {
-            public int SampleIndex;
-        }
-
-        /// <summary>
-        /// Helper structure used for features permutation in Lambda Transform.
-        /// </summary>
-        private sealed class FeaturesBuffer
-        {
-            public VBuffer<Float> Features;
-        }
-
-        /// <summary>
-        /// Helper class for report's Lambda transform.
-        /// </summary>
-        private sealed class FeatureIndex
-        {
-            #pragma warning disable 0649
-            public int Index;
-            #pragma warning restore 0649
-        }
-
-        /// <summary>
-        ///  One more helper class for report's Lambda transform.
-        /// </summary>
-        private sealed class FeatureName
-        {
-            #pragma warning disable 0649
-            public ReadOnlyMemory<char> Name;
-            #pragma warning restore 0649
-        }
-
-        private readonly IHostEnvironment _env;
-
+        private readonly MLContext _mlContext;
         private VBuffer<ReadOnlyMemory<char>> _slotNames;
-
-        /// <summary>
-        /// Dictionary containing diff between Feature's Metric value (when the feature is permuted) and the baseline metric.
-        /// </summary>
         private readonly List<(string featureName, RegressionEvaluator.Result metricsDelta)> _metricsStats;
 
-        public PermutationFeatureImportanceRegression(IHostEnvironment env)
+        public PermutationFeatureImportanceRegression(MLContext mlContext)
         {
-            Contracts.CheckValue(env, nameof(env));
-            _env = env;
+            Contracts.CheckValue(mlContext, nameof(mlContext));
+            _mlContext = mlContext;
             _metricsStats = new List<(string featureName, RegressionEvaluator.Result metricsDelta)>();
         }
-
-        /// <summary>
-        /// Given predictor, loader (and few other params) this method will construct scoring pipeline and evaluator to get baseline metrics of the model.
-        /// Then each feature slot will be randomly permuted (individually) and evaluator's metrics will be compared to baseline,
-        /// </summary>
-        /// <returns> IDV with info how  permuting of a feature slot affects evaluator.
-        /// Example (X1 is less important feature):
-        /// Features	L1(avg)	    L2(avg)	        RMS(avg)	LOSS-FN(avg)
-        /// X1	        269.783 	20657720.411	380.933	    20657722.786
-        /// X2          31455.671 	3529601866.937	38302.485	3529601872.502
-        /// X3	        1496.281	118470005.501	2116.855	118470007.2876
-        /// </returns>
-        //public IDataView GetImportanceMetricsMatrix(IPredictor predictor, IDataView loader,
-        //    string features, string label, bool useFeatureWeightFilter, out int evaluatedFeaturesCount, int topExamples,
-        //    int progressIterations = 10, string group = null, string weight = null, string name = null,
-        //    IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> customColumns = null,
-        //    IComponentFactory<IMamlEvaluator> evalComp = null,
-        //    IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorer = null)
 
         public List<(string featureName, RegressionEvaluator.Result metricsDelta)>
             GetImportanceMetricsMatrix(ITransformer model, IDataView data,
             string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
             int topExamples = 0, int progressIterations = 10)
         {
-            var host = _env.Register(nameof(GetImportanceMetricsMatrix));
-            //host.CheckValue(predictor, nameof(predictor));
-            //host.CheckValue(loader, nameof(loader));
-            //host.CheckValue(features, nameof(features));
-            //host.CheckValue(label, nameof(label));
-
-            //IDataView resultView = null;
-
-            // Todo: fix this
-            var mlContext = new MLContext();
+            var host = ((IHostEnvironment)_mlContext).Register(nameof(GetImportanceMetricsMatrix));
+            host.CheckValue(model, nameof(model));
+            host.CheckValue(data, nameof(data));
+            host.CheckValue(features, nameof(features));
+            host.CheckValue(label, nameof(label));
 
             using (var ch = host.Start("GetImportanceMetrics"))
             {
                 ch.Trace("Scoring and evaluating baseline.");
-                var baselineMetrics = mlContext.Regression.Evaluate(model.Transform(data), label: label);
+                var baselineMetrics = _mlContext.Regression.Evaluate(model.Transform(data), label: label);
 
                 // Get slot names.
                 var featuresColumn = data.Schema[features];
@@ -221,7 +147,7 @@ namespace Microsoft.ML.Transforms
                     if (topExamples > 0 && valuesRowCount == topExamples)
                         viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
 
-                    var metrics = mlContext.Regression.Evaluate(model.Transform(viewPermuted), label: label);
+                    var metrics = _mlContext.Regression.Evaluate(model.Transform(viewPermuted), label: label);
 
                     UpdateFeatureMetricStats(baselineMetrics, metrics, ch, workingIndx);
 
@@ -248,11 +174,8 @@ namespace Microsoft.ML.Transforms
                     stopwatch.Stop();
                     ch.Info(string.Format("Processed slots up to {0} in {1}", processedCnt - 1, stopwatch.Elapsed));
                 }
-
-                //resultView = BuildFinalReport(workingFeatureIndices);
             }
 
-            //return resultView;
             return _metricsStats;
         }
 
@@ -263,49 +186,48 @@ namespace Microsoft.ML.Transforms
             _metricsStats.Add((featureName, delta));
         }
 
-        /// <summary>
-        /// Helper method that will add build IDV with each "row" containing info how each feature slot permutation impacted metrics
-        /// </summary>
-        private IDataView BuildFinalReport(List<int> workingFeatureIndices)
-        {
-            return null;
-            //var indices = workingFeatureIndices.ToArray();
-
-            //IDataView resultDV = null;
-            //if (workingFeatureIndices.Count > 0 && _metricsStats.Count > 0)
-            //{
-            //    var builder = new ArrayDataViewBuilder(_env);
-            //    builder.AddColumn("Index", NumberType.I4, indices);
-            //    foreach (var metricColumn in _metricsStats)
-            //        builder.AddColumn(metricColumn.Key + "_Delta", NumberType.R8, metricColumn.Value.ToArray());
-
-            //    resultDV = builder.GetDataView();
-
-            //    var schemaIn =
-            //    new SchemaDefinition
-            //    {
-            //        new SchemaDefinition.Column{MemberName = "Index", ColumnName = "Index"}
-            //    };
-
-            //    var schemaOut =
-            //        new SchemaDefinition
-            //    {
-            //        new SchemaDefinition.Column { MemberName = "Name", ColumnName = "Feature" }
-            //    };
-
-            //    resultDV = new CustomMappingTransformer<FeatureIndex, FeatureName>(_env,
-            //        (featureIndex, featureName) => featureName.Name = GetSlotName(featureIndex.Index), null, schemaIn, schemaOut).Transform(resultDV);
-            //}
-
-            //return resultDV;
-        }
-
         private string GetSlotName(int index)
         {
             var slotName = _slotNames.GetItemOrDefault(index);
             return !slotName.IsEmpty
                 ? slotName.ToString()
                 : string.Format("f{0}", index);
+        }
+
+        /// <summary>
+        /// This is used as a hack to force Lambda Transform behave sequentially.
+        /// </summary>
+        private sealed class PermuterState
+        {
+            public int SampleIndex;
+        }
+
+        /// <summary>
+        /// Helper structure used for features permutation in Lambda Transform.
+        /// </summary>
+        private sealed class FeaturesBuffer
+        {
+            public VBuffer<Float> Features;
+        }
+
+        /// <summary>
+        /// Helper class for report's Lambda transform.
+        /// </summary>
+        private sealed class FeatureIndex
+        {
+            #pragma warning disable 0649
+            public int Index;
+            #pragma warning restore 0649
+        }
+
+        /// <summary>
+        ///  One more helper class for report's Lambda transform.
+        /// </summary>
+        private sealed class FeatureName
+        {
+            #pragma warning disable 0649
+            public ReadOnlyMemory<char> Name;
+            #pragma warning restore 0649
         }
     }
 }
