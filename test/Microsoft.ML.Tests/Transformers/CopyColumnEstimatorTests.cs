@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("D", "A"), ("B", "E") });
                 try
                 {
                     var transformer = est.Fit(dataView);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 try
                 {
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 using (var ms = new MemoryStream())
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 var resultRoles = new RoleMappedData(result);
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
                 {
                     Column = new[] { new TermTransform.Column() { Source = "Term", Name = "T" } }
                 }, dataView);
-                var est = new CopyColumnsEstimator(env, "T", "T1");
+                var est = new ColumnsCopyingEstimator(env, "T", "T1");
                 var transformer = est.Fit(term);
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);

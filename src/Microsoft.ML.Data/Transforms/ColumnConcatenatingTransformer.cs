@@ -17,23 +17,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(ConcatTransform.Summary, typeof(IDataTransform), typeof(ConcatTransform), typeof(ConcatTransform.TaggedArguments), typeof(SignatureDataTransform),
-    ConcatTransform.UserName, ConcatTransform.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
+[assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), typeof(ColumnConcatenatingTransformer.TaggedArguments), typeof(SignatureDataTransform),
+    ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
 
-[assembly: LoadableClass(ConcatTransform.Summary, typeof(IDataTransform), typeof(ConcatTransform), null, typeof(SignatureLoadDataTransform),
-    ConcatTransform.UserName, ConcatTransform.LoaderSignature, ConcatTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(ColumnConcatenatingTransformer.Summary, typeof(IDataTransform), typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadDataTransform),
+    ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoaderSignature, ColumnConcatenatingTransformer.LoaderSignatureOld)]
 
-[assembly: LoadableClass(typeof(ConcatTransform), null, typeof(SignatureLoadModel),
-    ConcatTransform.UserName, ConcatTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadModel),
+    ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ConcatTransform), null, typeof(SignatureLoadRowMapper),
-    ConcatTransform.UserName, ConcatTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ColumnConcatenatingTransformer), null, typeof(SignatureLoadRowMapper),
+    ColumnConcatenatingTransformer.UserName, ColumnConcatenatingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
     using PfaType = PfaUtils.Type;
 
-    public sealed class ConcatTransform : ITransformer, ICanSaveModel
+    public sealed class ColumnConcatenatingTransformer : ITransformer, ICanSaveModel
     {
         internal const string Summary = "Concatenates one or more columns of the same item type.";
         internal const string UserName = "Concat Transform";
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Original columns are also preserved.
         /// The column types must match, and the output column type is always a vector.
         /// </summary>
-        public ConcatTransform(IHostEnvironment env, string outputName, params string[] inputNames)
+        public ColumnConcatenatingTransformer(IHostEnvironment env, string outputName, params string[] inputNames)
             : this(env, new ColumnInfo(outputName, inputNames))
         {
         }
@@ -226,10 +226,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Concatenates multiple groups of columns, each group is denoted by one of <paramref name="columns"/>.
         /// </summary>
-        public ConcatTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        public ColumnConcatenatingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ConcatTransform));
+            _host = env.Register(nameof(ColumnConcatenatingTransformer));
             Contracts.CheckValue(columns, nameof(columns));
             _columns = columns.ToArray();
         }
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
-                loaderAssemblyName: typeof(ConcatTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(ColumnConcatenatingTransformer).Assembly.FullName);
         }
 
         private const int VersionAddedAliases = 0x00010002;
@@ -271,10 +271,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Constructor for SignatureLoadModel.
         /// </summary>
-        public ConcatTransform(IHostEnvironment env, ModelLoadContext ctx)
+        public ColumnConcatenatingTransformer(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ConcatTransform));
+            _host = env.Register(nameof(ColumnConcatenatingTransformer));
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
             if (ctx.Header.ModelVerReadable >= VersionTransformer)
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Runtime.Data
             var cols = args.Column
                 .Select(c => new ColumnInfo(c.Name, c.Source))
                 .ToArray();
-            var transformer = new ConcatTransform(env, cols);
+            var transformer = new ColumnConcatenatingTransformer(env, cols);
             return transformer.MakeDataTransform(input);
         }
 
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Runtime.Data
             var cols = args.Column
                 .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key != "" ? kvp.Key : null))))
                 .ToArray();
-            var transformer = new ConcatTransform(env, cols);
+            var transformer = new ColumnConcatenatingTransformer(env, cols);
             return transformer.MakeDataTransform(input);
         }
 
@@ -406,13 +406,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Factory method for SignatureLoadDataTransform.
         /// </summary>
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            => new ConcatTransform(env, ctx).MakeDataTransform(input);
+            => new ColumnConcatenatingTransformer(env, ctx).MakeDataTransform(input);
 
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => new ConcatTransform(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+            => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
@@ -433,13 +433,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly IHost _host;
             private readonly Schema _inputSchema;
-            private readonly ConcatTransform _parent;
+            private readonly ColumnConcatenatingTransformer _parent;
             private readonly BoundColumn[] _columns;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(ConcatTransform parent, Schema inputSchema)
+            public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(inputSchema);

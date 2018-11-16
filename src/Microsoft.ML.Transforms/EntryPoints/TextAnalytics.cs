@@ -36,15 +36,15 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordTokenizer",
-            Desc = ML.Transforms.Text.WordTokenizeTransform.Summary,
-            UserName = ML.Transforms.Text.WordTokenizeTransform.UserName,
-            ShortName = ML.Transforms.Text.WordTokenizeTransform.LoaderSignature,
+            Desc = ML.Transforms.Text.WordTokenizingTransformer.Summary,
+            UserName = ML.Transforms.Text.WordTokenizingTransformer.UserName,
+            ShortName = ML.Transforms.Text.WordTokenizingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordTokenizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordTokenizer""]/*' />"})]
-        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizeTransform.Arguments input)
+        public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, WordTokenizingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "DelimitedTokenizeTransform", input);
-            var xf = ML.Transforms.Text.WordTokenizeTransform.Create(h, input, input.Data);
+            var xf = ML.Transforms.Text.WordTokenizingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -53,14 +53,14 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramTransform.Summary,
-            UserName = NgramTransform.UserName,
-            ShortName = NgramTransform.LoaderSignature,
+            Desc = NgramCountingTransformer.Summary,
+            UserName = NgramCountingTransformer.UserName,
+            ShortName = NgramCountingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramTransform.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = new NgramTransform(h, input, input.Data);
+            var xf = new NgramCountingTransformer(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -85,14 +85,14 @@ namespace Microsoft.ML.Transforms.Text
 
         [TlcModule.EntryPoint(Name = "Transforms.SentimentAnalyzer",
             Desc = "Uses a pretrained sentiment model to score input strings",
-            UserName = SentimentAnalyzingTransform.UserName,
-            ShortName = SentimentAnalyzingTransform.ShortName,
+            UserName = SentimentAnalyzingTransformer.UserName,
+            ShortName = SentimentAnalyzingTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""SentimentAnalyzer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""SentimentAnalyzer""]/*' />"})]
-        public static CommonOutputs.TransformOutput AnalyzeSentiment(IHostEnvironment env, SentimentAnalyzingTransform.Arguments input)
+        public static CommonOutputs.TransformOutput AnalyzeSentiment(IHostEnvironment env, SentimentAnalyzingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SentimentAnalyzer", input);
-            var view = SentimentAnalyzingTransform.Create(h, input, input.Data);
+            var view = SentimentAnalyzingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -101,17 +101,17 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CharacterTokenizer",
-            Desc = CharTokenizeTransform.Summary,
-            UserName = CharTokenizeTransform.UserName,
-            ShortName = CharTokenizeTransform.LoaderSignature,
+            Desc = TokenizingByCharactersTransformer.Summary,
+            UserName = TokenizingByCharactersTransformer.UserName,
+            ShortName = TokenizingByCharactersTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""CharacterTokenizer""]/*' />" })]
-        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, CharTokenizeTransform.Arguments input)
+        public static CommonOutputs.TransformOutput CharTokenize(IHostEnvironment env, TokenizingByCharactersTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "CharTokenize", input);
-            var view = CharTokenizeTransform.Create(h, input, input.Data);
+            var view = TokenizingByCharactersTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -140,18 +140,18 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordEmbeddings",
-            Desc = WordEmbeddingsTransform.Summary,
-            UserName = WordEmbeddingsTransform.UserName,
-            ShortName = WordEmbeddingsTransform.ShortName,
+            Desc = WordEmbeddingsExtractingTransformer.Summary,
+            UserName = WordEmbeddingsExtractingTransformer.UserName,
+            ShortName = WordEmbeddingsExtractingTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordEmbeddings""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordEmbeddings""]/*' />" })]
-        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsTransform.Arguments input)
+        public static CommonOutputs.TransformOutput WordEmbeddings(IHostEnvironment env, WordEmbeddingsExtractingTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = WordEmbeddingsTransform.Create(h, input, input.Data);
+            var view = WordEmbeddingsExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
