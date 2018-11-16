@@ -679,14 +679,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             // This will be populated once we call fit.
-            LdaTopicSummary ldaTopicSummary;
+            LdaSummary ldaSummary;
 
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaTopicSummary = m.LdaTopicSummary)));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
 
-            var tdata = est.Fit(data).Transform(data);
+            var transformer = est.Fit(data);
+            var tdata = transformer.Transform(data);
 
             var schema = tdata.AsDynamic.Schema;
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));

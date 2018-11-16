@@ -343,15 +343,33 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
         /// </summary>
-        public sealed class LdaTopicSummary
+        public sealed class LdaSummary
         {
-            // For each topic, provide information about the set of words in the topic and their corresponding scores.
-            public readonly Dictionary<int, KeyValuePair<int, float>[]> WordScoresPerTopic;
+            // For each topic, provide information about the (item, score) pairs.
+            public readonly Dictionary<int, List<Tuple<int, float>>> ItemScoresPerTopic;
 
-            internal LdaTopicSummary(Dictionary<int, KeyValuePair<int, float>[]> wordScoresPerTopic)
+            // For each topic, provide information about the (item, word, score) tuple.
+            public readonly Dictionary<int, List<Tuple<int, string, float>>> WordScoresPerTopic;
+
+            internal LdaSummary(Dictionary<int, List<Tuple<int, float>>> itemScoresPerTopic)
             {
-                WordScoresPerTopic = wordScoresPerTopic;
+                ItemScoresPerTopic = itemScoresPerTopic;
             }
+
+            internal LdaSummary(Dictionary<int, List<Tuple<int, string, float>>> wordScoresExPerTopic)
+            {
+                WordScoresPerTopic = wordScoresExPerTopic;
+            }
+        }
+
+        internal LdaSummary GetLdaDetails(int iinfo)
+        {
+            Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
+
+            var ldaState = _ldas[iinfo];
+            var mapping = _columnMappings[iinfo];
+
+            return ldaState.GetLdaSummary(mapping);
         }
 
         private sealed class LdaState : IDisposable
@@ -463,16 +481,43 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            internal LdaTopicSummary GetTopicSummary()
+            internal LdaSummary GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
             {
-                var wordScoresPerTopic = new Dictionary<int, KeyValuePair<int, float>[]>();
-                for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                if (mapping.Length == 0)
                 {
-                    var wordScores = _ldaTrainer.GetTopicSummary(i);
-                    wordScoresPerTopic.Add(i, wordScores);
-                }
+                    var itemScoresPerTopic = new Dictionary<int, List<Tuple<int, float>>>();
 
-                return new LdaTopicSummary(wordScoresPerTopic);
+                    for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                    {
+                        var scores = _ldaTrainer.GetTopicSummary(i);
+                        var itemScores = new List<Tuple<int, float>>();
+                        foreach (KeyValuePair<int, float> p in scores)
+                        {
+                            itemScores.Add(new Tuple<int, float>(p.Key, p.Value));
+                        }
+                        itemScoresPerTopic.Add(i, itemScores);
+                    }
+                    return new LdaSummary(itemScoresPerTopic);
+                }
+                else
+                {
+                    ReadOnlyMemory<char> slotName = default;
+                    var wordScoresPerTopic = new Dictionary<int, List<Tuple<int, string, float>>>();
+
+                    for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                    {
+                        var scores = _ldaTrainer.GetTopicSummary(i);
+                        var wordScores = new List<Tuple<int, string, float>>();
+                        foreach (KeyValuePair<int, float> p in scores)
+                        {
+                            mapping.GetItemOrDefault(p.Key, ref slotName);
+                            wordScores.Add(new Tuple<int, string, float>(p.Key, slotName.ToString(), p.Value));
+                        }
+                        wordScoresPerTopic.Add(i, wordScores);
+                    }
+
+                    return new LdaSummary(wordScoresPerTopic);
+                }
             }
 
             public void Save(ModelSaveContext ctx)
@@ -739,6 +784,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private readonly ColumnInfo[] _columns;
         private readonly LdaState[] _ldas;
+        private readonly List<VBuffer<ReadOnlyMemory<char>>> _columnMappings;
 
         private const string RegistrationName = "LightLda";
         private const string WordTopicModelFilename = "word_topic_summary.txt";
@@ -757,13 +803,18 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="ldas">An array of LdaState objects, where ldas[i] is learnt from the i-th element of <paramref name="columns"/>.</param>
+        /// <param name="columnMappings">A list of mappings, where columnMapping[i] is a map of slot names for the i-th element of <paramref name="columns"/>.</param>
         /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
-        private LatentDirichletAllocationTransformer(IHostEnvironment env, LdaState[] ldas, params ColumnInfo[] columns)
+        private LatentDirichletAllocationTransformer(IHostEnvironment env,
+            LdaState[] ldas,
+            List<VBuffer<ReadOnlyMemory<char>>> columnMappings,
+            params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LatentDirichletAllocationTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
-            _columns = columns;
             _ldas = ldas;
+            _columnMappings = columnMappings;
+            _columns = columns;
         }
 
         private LatentDirichletAllocationTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
@@ -789,12 +840,14 @@ namespace Microsoft.ML.Transforms.Text
         internal static LatentDirichletAllocationTransformer TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params ColumnInfo[] columns)
         {
             var ldas = new LdaState[columns.Length];
+
+            List<VBuffer<ReadOnlyMemory<char>>> columnMappings;
             using (var ch = env.Start("Train"))
             {
-                Train(env, ch, inputData, ldas, columns);
+                columnMappings = Train(env, ch, inputData, ldas, columns);
             }
 
-            return new LatentDirichletAllocationTransformer(env, ldas, columns);
+            return new LatentDirichletAllocationTransformer(env, ldas, columnMappings, columns);
         }
 
         private void Dispose(bool disposing)
@@ -816,14 +869,6 @@ namespace Microsoft.ML.Transforms.Text
         ~LatentDirichletAllocationTransformer()
         {
             Dispose(false);
-        }
-
-        internal LdaTopicSummary GetLdaTopicSummary(int iinfo)
-        {
-            Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
-
-            var ldaState = _ldas[iinfo];
-            return ldaState.GetTopicSummary();
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -895,7 +940,7 @@ namespace Microsoft.ML.Transforms.Text
             return result;
         }
 
-        private static void Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params ColumnInfo[] columns)
+        private static List<VBuffer<ReadOnlyMemory<char>>> Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params ColumnInfo[] columns)
         {
             env.AssertValue(ch);
             ch.AssertValue(inputData);
@@ -905,6 +950,8 @@ namespace Microsoft.ML.Transforms.Text
             bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
             int[] numVocabs = new int[columns.Length];
             int[] srcCols = new int[columns.Length];
+
+            var columnMappings = new List<VBuffer<ReadOnlyMemory<char>>>();
 
             var inputSchema = inputData.Schema;
             for (int i = 0; i < columns.Length; i++)
@@ -919,6 +966,13 @@ namespace Microsoft.ML.Transforms.Text
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
                 numVocabs[i] = 0;
+
+                VBuffer<ReadOnlyMemory<char>> dst = default;
+                if (inputSchema.HasSlotNames(srcCol, srcColType.ValueCount))
+                    inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
+                else
+                    dst = default(VBuffer<ReadOnlyMemory<char>>);
+                columnMappings.Add(dst);
             }
 
             //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
@@ -979,7 +1033,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 // No data to train on, just return
                 if (rowCount == 0)
-                    return;
+                    return columnMappings;
 
                 for (int i = 0; i < columns.Length; ++i)
                 {
@@ -1032,6 +1086,8 @@ namespace Microsoft.ML.Transforms.Text
                     states[i].CompleteTrain();
                 }
             }
+
+            return columnMappings;
         }
 
         protected override IRowMapper MakeRowMapper(Schema schema)

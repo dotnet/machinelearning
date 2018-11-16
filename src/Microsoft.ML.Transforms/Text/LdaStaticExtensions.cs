@@ -24,8 +24,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="result"></param>
         public delegate void OnFit(LdaFitResult result);
 
-        public LatentDirichletAllocationTransformer.LdaTopicSummary LdaTopicSummary;
-        public LdaFitResult(LatentDirichletAllocationTransformer.LdaTopicSummary ldaTopicSummary)
+        public LatentDirichletAllocationTransformer.LdaSummary LdaTopicSummary;
+        public LdaFitResult(LatentDirichletAllocationTransformer.LdaSummary ldaTopicSummary)
         {
             LdaTopicSummary = ldaTopicSummary;
         }
@@ -47,11 +47,11 @@ namespace Microsoft.ML.Transforms.Text
             public readonly int NumBurninIter;
             public readonly bool ResetRandomGenerator;
 
-            public readonly Action<LatentDirichletAllocationTransformer.LdaTopicSummary> OnFit;
+            public readonly Action<LatentDirichletAllocationTransformer.LdaSummary> OnFit;
 
             public Config(int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
                 int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator,
-                Action<LatentDirichletAllocationTransformer.LdaTopicSummary> onFit)
+                Action<LatentDirichletAllocationTransformer.LdaSummary> onFit)
             {
                 NumTopic = numTopic;
                 AlphaSum = alphaSum;
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private static Action<LatentDirichletAllocationTransformer.LdaTopicSummary> Wrap(LdaFitResult.OnFit onFit)
+        private static Action<LatentDirichletAllocationTransformer.LdaSummary> Wrap(LdaFitResult.OnFit onFit)
         {
             if (onFit == null)
                 return null;
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms.Text
                     if (tcol.Config.OnFit != null)
                     {
                         int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
-                        onFit += tt => tcol.Config.OnFit(tt.GetLdaTopicSummary(ii));
+                        onFit += tt => tcol.Config.OnFit(tt.GetLdaDetails(ii));
                     }
                 }
 
