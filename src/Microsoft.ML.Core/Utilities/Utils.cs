@@ -187,18 +187,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this int[] input, int value)
-        {
-            Contracts.AssertValue(input);
-            return FindIndexSorted(input, 0, input.Length, value);
-        }
-
-        /// <summary>
-        /// Assumes input is sorted and finds value using BinarySearch.
-        /// If value is not found, returns the logical index of 'value' in the sorted list i.e index of the first element greater than value.
-        /// In case of duplicates it returns the index of the first one.
-        /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
-        /// </summary>
         public static int FindIndexSorted(this IList<int> input, int value)
         {
             Contracts.AssertValue(input);
@@ -237,6 +225,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static bool TryFindIndexSorted(this int[] input, int min, int lim, int value, out int index)
         {
             index = input.FindIndexSorted(min, lim, value);
+            return index < lim && input[index] == value;
+        }
+
+        /// <summary>
+        /// Akin to <c>FindIndexSorted</c>, except stores the found index in the output
+        /// <c>index</c> parameter, and returns whether that index is a valid index
+        /// pointing to a value equal to the input parameter <c>value</c>.
+        /// </summary>
+        public static bool TryFindIndexSorted(ReadOnlySpan<int> input, int min, int lim, int value, out int index)
+        {
+            index = FindIndexSorted(input, min, lim, value);
             return index < lim && input[index] == value;
         }
 
@@ -466,9 +465,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return res;
         }
 
-        public static void FillIdentity(int[] a, int lim)
+        public static void FillIdentity(Span<int> a, int lim)
         {
-            Contracts.AssertValue(a);
             Contracts.Assert(0 <= lim & lim <= a.Length);
 
             for (int i = 0; i < lim; ++i)
@@ -857,12 +855,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </param>
         /// <returns>The new size, that is no less than <paramref name="min"/> and no more that <paramref name="max"/>.</returns>
         public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld = true)
+            => EnsureSize(ref array, min, max, keepOld, out bool _);
+
+        public static int EnsureSize<T>(ref T[] array, int min, int max, bool keepOld, out bool resized)
         {
             Contracts.CheckParam(min <= max, nameof(max), "min must not exceed max");
             // This code adapted from the private method EnsureCapacity code of List<T>.
             int size = Utils.Size(array);
             if (size >= min)
+            {
+                resized = false;
                 return size;
+            }
+
             int newSize = size == 0 ? 4 : size * 2;
             // This constant taken from the internal code of system\array.cs of mscorlib.
             if ((uint)newSize > max)
@@ -873,6 +878,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Array.Resize(ref array, newSize);
             else
                 array = new T[newSize];
+
+            resized = true;
             return newSize;
         }
 
@@ -1097,6 +1104,31 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
             return null;
+        }
+
+        public static int Count<TSource>(this ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        {
+            Contracts.CheckValue(predicate, nameof(predicate));
+
+            int result = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (predicate(source[i]))
+                    result++;
+            }
+            return result;
+        }
+
+        public static bool All<TSource>(this ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        {
+            Contracts.CheckValue(predicate, nameof(predicate));
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (!predicate(source[i]))
+                    return false;
+            }
+            return true;
         }
     }
 }

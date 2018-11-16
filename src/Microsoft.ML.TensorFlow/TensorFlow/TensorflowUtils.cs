@@ -115,8 +115,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
                     schema.GetMetadata(TensorFlowUtils.InputOps, i, ref inputOps);
                 }
-                yield return (name, opType.ToString(), type,
-                    Utils.Size(inputOps.Values) > 0 ? inputOps.Values.Select(input => input.ToString()).ToArray() : new string[0]);
+
+                string[] inputOpsResult = inputOps.DenseValues()
+                    .Select(input => input.ToString())
+                    .ToArray();
+
+                yield return (name, opType.ToString(), type, inputOpsResult);
             }
         }
 
@@ -328,16 +332,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return LoadTFSession(env, bytes, modelPath);
         }
 
-        internal static unsafe void FetchData<T>(IntPtr data, T[] result)
+        internal static unsafe void FetchData<T>(IntPtr data, Span<T> result)
         {
-            var size = result.Length;
-
-            GCHandle handle = GCHandle.Alloc(result, GCHandleType.Pinned);
-            IntPtr target = handle.AddrOfPinnedObject();
-
-            Int64 sizeInBytes = size * Marshal.SizeOf((typeof(T)));
-            Buffer.MemoryCopy(data.ToPointer(), target.ToPointer(), sizeInBytes, sizeInBytes);
-            handle.Free();
+            var dataSpan = new Span<T>(data.ToPointer(), result.Length);
+            dataSpan.CopyTo(result);
         }
 
         internal static bool IsTypeSupported(TFDataType tfoutput)

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML
 {
-    using CharTokenizingDefaults = CharacterTokenizingEstimator.Defaults;
+    using CharTokenizingDefaults = TokenizeByCharactersEstimator.Defaults;
     using TextNormalizeDefaults = TextNormalizingEstimator.Defaults;
 
     public static class TextCatalog
@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?range=6-12,17-86)]
+        /// [!code-csharp[FeaturizeText](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -57,11 +57,11 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static CharacterTokenizingEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizeByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters)
-            => new CharacterTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+            => new TokenizeByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 useMarkerCharacters, new[] { (inputColumn, outputColumn) });
 
         /// <summary>
@@ -71,10 +71,10 @@ namespace Microsoft.ML
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public static CharacterTokenizingEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
+        public static TokenizeByCharactersEstimator TokenizeCharacters(this TransformsCatalog.TextTransforms catalog,
             bool useMarkerCharacters = CharTokenizingDefaults.UseMarkerCharacters,
             params (string inputColumn, string outputColumn)[] columns)
-            => new CharacterTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, columns);
+            => new TokenizeByCharactersEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), useMarkerCharacters, columns);
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
@@ -103,12 +103,12 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, modelKind);
+            WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe)
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, modelKind);
 
         /// <summary>
         /// Extracts word embeddings.
@@ -117,23 +117,23 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The input column.</param>
         /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
         /// <param name="customModelFile">The path of the pre-trained embeedings model to use. </param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string customModelFile,
             string outputColumn = null)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(),
                 inputColumn, outputColumn, customModelFile);
 
         /// <summary>
         /// Extracts word embeddings.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsExtractingTransformer.PretrainedModelKind"/> to use. </param>
         /// <param name="columns">The array columns, and per-column configurations to extract embeedings from.</param>
-        public static WordEmbeddingsExtractorEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
-           WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
-           params WordEmbeddingsTransform.ColumnInfo[] columns)
-            => new WordEmbeddingsExtractorEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
+        public static WordEmbeddingsExtractingEstimator ExtractWordEmbeddings(this TransformsCatalog.TextTransforms catalog,
+           WordEmbeddingsExtractingTransformer.PretrainedModelKind modelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
+           params WordEmbeddingsExtractingTransformer.ColumnInfo[] columns)
+            => new WordEmbeddingsExtractingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), modelKind, columns);
 
         /// <summary>
         /// Tokenizes incoming text in <paramref name="inputColumn"/>, using <paramref name="separators"/> as separators,
@@ -166,7 +166,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         public static WordTokenizingEstimator TokenizeWords(this TransformsCatalog.TextTransforms catalog,
-            params WordTokenizeTransform.ColumnInfo[] columns)
+            params WordTokenizingTransformer.ColumnInfo[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
         /// <summary>
@@ -188,15 +188,15 @@ namespace Microsoft.ML
         /// ]]>
         /// </format>
         /// </example>
-        public static NgramEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            int ngramLength = NgramEstimator.Defaults.NgramLength,
-            int skipLength = NgramEstimator.Defaults.SkipLength,
-            bool allLengths = NgramEstimator.Defaults.AllLength,
-            int maxNumTerms = NgramEstimator.Defaults.MaxNumTerms,
-            NgramEstimator.WeightingCriteria weighting = NgramEstimator.Defaults.Weighting) =>
-            new NgramEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn,
+            int ngramLength = NgramCountingEstimator.Defaults.NgramLength,
+            int skipLength = NgramCountingEstimator.Defaults.SkipLength,
+            bool allLengths = NgramCountingEstimator.Defaults.AllLength,
+            int maxNumTerms = NgramCountingEstimator.Defaults.MaxNumTerms,
+            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.Defaults.Weighting) =>
+            new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn,
                 ngramLength, skipLength, allLengths, maxNumTerms, weighting);
 
         /// <summary>
@@ -210,14 +210,14 @@ namespace Microsoft.ML
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static NgramEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
             (string input, string output)[] columns,
-            int ngramLength = NgramEstimator.Defaults.NgramLength,
-            int skipLength = NgramEstimator.Defaults.SkipLength,
-            bool allLengths = NgramEstimator.Defaults.AllLength,
-            int maxNumTerms = NgramEstimator.Defaults.MaxNumTerms,
-            NgramEstimator.WeightingCriteria weighting = NgramEstimator.Defaults.Weighting)
-            => new NgramEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns,
+            int ngramLength = NgramCountingEstimator.Defaults.NgramLength,
+            int skipLength = NgramCountingEstimator.Defaults.SkipLength,
+            bool allLengths = NgramCountingEstimator.Defaults.AllLength,
+            int maxNumTerms = NgramCountingEstimator.Defaults.MaxNumTerms,
+            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.Defaults.Weighting)
+            => new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns,
                 ngramLength, skipLength, allLengths, maxNumTerms, weighting);
 
         /// <summary>
@@ -226,9 +226,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to run the ngram process on.</param>
-        public static NgramEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
-             params NgramTransformer.ColumnInfo[] columns)
-          => new NgramEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+             params NgramCountingTransformer.ColumnInfo[] columns)
+          => new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
     }
 }

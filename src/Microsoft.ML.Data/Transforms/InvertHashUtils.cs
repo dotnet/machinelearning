@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveTextStream("Terms.txt",
                 writer =>
                 {
-                    writer.WriteLine("# Number of terms = {0} of length {1}", v.Count, v.Length);
+                    writer.WriteLine("# Number of terms = {0} of length {1}", v.GetValues().Length, v.Length);
                     foreach (var pair in v.Items())
                     {
                         var text = pair.Value;

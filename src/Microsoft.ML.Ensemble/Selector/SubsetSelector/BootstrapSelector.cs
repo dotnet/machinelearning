@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
             for (int i = 0; i < Size; i++)
             {
                 // REVIEW: Consider ways to reintroduce "balanced" samples.
-                var viewTrain = new BootstrapSampleTransformer(Host, new BootstrapSampleTransformer.Arguments(), Data.Data);
+                var viewTrain = new BootstrapSamplingTransformer(Host, new BootstrapSamplingTransformer.Arguments(), Data.Data);
                 var dataTrain = new RoleMappedData(viewTrain, Data.Schema.GetColumnRoleNames());
                 yield return FeatureSelector.SelectFeatures(dataTrain, rand);
             }
