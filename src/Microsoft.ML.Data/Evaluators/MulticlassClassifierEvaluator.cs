@@ -1050,15 +1050,15 @@ namespace Microsoft.ML.Runtime.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            input = new CopyColumnsTransform(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
-            return SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy );
+            input = new ColumnsCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy );
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
             if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
             }
             return input;
         }

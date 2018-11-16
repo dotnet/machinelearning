@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Host.Assert(args.WindowSize == 1);
                 throw Host.ExceptUserArg(nameof(args.Lag),
-                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {CopyColumnsTransform.LoaderSignature} transform instead.");
+                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnsCopyingTransformer.LoaderSignature} transform instead.");
             }
             Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), "Undefined value.");
             _lag = args.Lag;
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private SlidingWindowTransformBase<TInput> _parentSliding;
 
-            protected override void SetNaOutput(ref VBuffer<TInput> output)
+            private protected override void SetNaOutput(ref VBuffer<TInput> output)
             {
 
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 output = new VBuffer<TInput>(size, result, output.Indices);
             }
 
-            protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
+            private protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
             {
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
                 var result = output.Values;
@@ -177,12 +177,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 output = new VBuffer<TInput>(size, result, output.Indices);
             }
 
-            protected override void InitializeStateCore()
+            private protected override void InitializeStateCore()
             {
                 _parentSliding = (SlidingWindowTransformBase<TInput>)base.ParentTransform;
             }
 
-            protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
             {
                 // This method is empty because there is no need for parameter learning from the initial windowed buffer for this transform.
             }

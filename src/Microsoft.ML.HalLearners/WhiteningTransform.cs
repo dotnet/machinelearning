@@ -19,17 +19,17 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransform), typeof(VectorWhiteningTransform.Arguments), typeof(SignatureDataTransform),
-    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature, "Whitening")]
+[assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Arguments), typeof(SignatureDataTransform),
+    VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature, "Whitening")]
 
-[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransform), null, typeof(SignatureLoadDataTransform),
-    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature, VectorWhiteningTransform.LoaderSignatureOld)]
+[assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), null, typeof(SignatureLoadDataTransform),
+    VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature, VectorWhiteningTransformer.LoaderSignatureOld)]
 
-[assembly: LoadableClass(VectorWhiteningTransform.Summary, typeof(VectorWhiteningTransform), null, typeof(SignatureLoadModel),
-    VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature)]
+[assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(VectorWhiteningTransformer), null, typeof(SignatureLoadModel),
+    VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(VectorWhiteningTransform), null, typeof(SignatureLoadRowMapper),
-   VectorWhiteningTransform.FriendlyName, VectorWhiteningTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(VectorWhiteningTransformer), null, typeof(SignatureLoadRowMapper),
+   VectorWhiteningTransformer.FriendlyName, VectorWhiteningTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Projections
 {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class VectorWhiteningTransform : OneToOneTransformerBase
+    public sealed class VectorWhiteningTransformer : OneToOneTransformerBase
     {
         internal static class Defaults
         {
@@ -234,20 +234,20 @@ namespace Microsoft.ML.Transforms.Projections
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
-                loaderAssemblyName: typeof(VectorWhiteningTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(VectorWhiteningTransformer).Assembly.FullName);
         }
 
         private readonly ColumnInfo[] _columns;
 
         /// <summary>
-        /// Initializes a new <see cref="VectorWhiteningTransform"/> object.
+        /// Initializes a new <see cref="VectorWhiteningTransformer"/> object.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="models">An array of whitening matrices where models[i] is learned from the i-th element of <paramref name="columns"/>.</param>
         /// <param name="invModels">An array of inverse whitening matrices, the i-th element being the inverse matrix of models[i].</param>
         /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
-        internal VectorWhiteningTransform(IHostEnvironment env, float[][] models, float[][] invModels, params ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), GetColumnPairs(columns))
+        internal VectorWhiteningTransformer(IHostEnvironment env, float[][] models, float[][] invModels, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
             _columns = columns;
@@ -255,8 +255,8 @@ namespace Microsoft.ML.Transforms.Projections
             _invModels = invModels;
         }
 
-        private VectorWhiteningTransform(IHostEnvironment env, ModelLoadContext ctx)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform)), ctx)
+        private VectorWhiteningTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransformer)), ctx)
         {
             Host.AssertValue(ctx);
 
@@ -284,11 +284,11 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         // Factory method for SignatureLoadModel
-        internal static VectorWhiteningTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static VectorWhiteningTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
-            return new VectorWhiteningTransform(env, ctx);
+            return new VectorWhiteningTransformer(env, ctx);
         }
 
         // Factory method for SignatureDataTransform.
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Transforms.Projections
         {
             var infos = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
             (var models, var invModels) = TrainVectorWhiteningTransform(env, input, infos);
-            return new VectorWhiteningTransform(env, models, invModels, infos).MakeDataTransform(input);
+            return new VectorWhiteningTransformer(env, models, invModels, infos).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return "Expected float or float vector of known size";
 
             if ((long)type.ValueCount * type.ValueCount > Utils.ArrayMaxSize)
-                return "Vector size exceeds limit";
+                return "Vector size exceeds maximum size for one dimensional array (2 146 435 071 elements)";
 
             return null;
         }
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Transforms.Projections
         // A more reliable solution is to turely iterate through all rows via a RowCursor.
         private static long GetRowCount(IDataView inputData, params ColumnInfo[] columns)
         {
-            long? rows = inputData.GetRowCount(lazy: false);
+            long? rows = inputData.GetRowCount();
             if (rows != null)
                 return rows.GetValueOrDefault();
 
@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                if(!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
+                if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
                 srcTypes[i] = inputSchema.GetColumnType(cols[i]);
                 var reason = TestColumn(srcTypes[i]);
@@ -613,10 +613,19 @@ namespace Microsoft.ML.Transforms.Projections
                 MinOvr = (byte)'O',
             }
 
+            public static unsafe void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float[] a, int lda, ReadOnlySpan<float> x, int incx, float beta, Span<float> y, int incy)
+            {
+                fixed (float* pA = a)
+                fixed (float* pX = x)
+                fixed (float* pY = y)
+                    Gemv(layout, trans, m, n, alpha, pA, lda, pX, incx, beta, pY, incy);
+            }
+
             // See: https://software.intel.com/en-us/node/520750
             [DllImport(DllName, EntryPoint = "cblas_sgemv")]
-            public static extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
-                float[] a, int lda, float[] x, int incx, float beta, float[] y, int incy);
+            private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
+                float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
             [DllImport(DllName, EntryPoint = "cblas_sgemm")]
@@ -634,11 +643,11 @@ namespace Microsoft.ML.Transforms.Projections
 
         private sealed class Mapper : MapperBase
         {
-            private readonly VectorWhiteningTransform _parent;
+            private readonly VectorWhiteningTransformer _parent;
             private readonly int[] _cols;
             private readonly ColumnType[] _srcTypes;
 
-            public Mapper(VectorWhiteningTransform parent, Schema inputSchema)
+            public Mapper(VectorWhiteningTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -715,36 +724,34 @@ namespace Microsoft.ML.Transforms.Projections
 
             private static void FillValues(float[] model, ref VBuffer<float> src, ref VBuffer<float> dst, int cdst)
             {
-                int count = src.Count;
+                var values = src.GetValues();
+                int count = values.Length;
                 int length = src.Length;
-                var values = src.Values;
-                var indices = src.Indices;
-                Contracts.Assert(Utils.Size(values) >= count);
 
                 // Since the whitening process produces dense vector, always use dense representation of dst.
-                var a = Utils.Size(dst.Values) >= cdst ? dst.Values : new float[cdst];
+                var editor = VBufferEditor.Create(ref dst, cdst);
                 if (src.IsDense)
                 {
                     Mkl.Gemv(Mkl.Layout.RowMajor, Mkl.Transpose.NoTrans, cdst, length,
-                        1, model, length, values, 1, 0, a, 1);
+                        1, model, length, values, 1, 0, editor.Values, 1);
                 }
                 else
                 {
-                    Contracts.Assert(Utils.Size(indices) >= count);
+                    var indices = src.GetIndices();
 
                     int offs = 0;
                     for (int i = 0; i < cdst; i++)
                     {
                         // Returns a dot product of dense vector 'model' starting from offset 'offs' and sparse vector 'values'
                         // with first 'count' valid elements and their corresponding 'indices'.
-                        a[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
+                        editor.Values[i] = CpuMathUtils.DotProductSparse(model.AsSpan(offs), values, indices, count);
                         offs += length;
                     }
                 }
-                dst = new VBuffer<float>(cdst, a, dst.Indices);
+                dst = editor.Commit();
             }
 
-            private static float DotProduct(float[] a, int aOffset, float[] b, int[] indices, int count)
+            private static float DotProduct(float[] a, int aOffset, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
             {
                 Contracts.Assert(count <= indices.Length);
                 return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
@@ -754,17 +761,17 @@ namespace Microsoft.ML.Transforms.Projections
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-    public sealed class VectorWhiteningEstimator : IEstimator<VectorWhiteningTransform>
+    public sealed class VectorWhiteningEstimator : IEstimator<VectorWhiteningTransformer>
     {
         private readonly IHost _host;
-        private readonly VectorWhiteningTransform.ColumnInfo[] _infos;
+        private readonly VectorWhiteningTransformer.ColumnInfo[] _infos;
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
-        public VectorWhiteningEstimator(IHostEnvironment env, params VectorWhiteningTransform.ColumnInfo[] columns)
+        public VectorWhiteningEstimator(IHostEnvironment env, params VectorWhiteningTransformer.ColumnInfo[] columns)
         {
-            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransform));
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransformer));
             _infos = columns;
         }
 
@@ -777,19 +784,19 @@ namespace Microsoft.ML.Transforms.Projections
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
         /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
         public VectorWhiteningEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
-            WhiteningKind kind = VectorWhiteningTransform.Defaults.Kind,
-            float eps = VectorWhiteningTransform.Defaults.Eps,
-            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransform.Defaults.PcaNum)
-            : this(env, new VectorWhiteningTransform.ColumnInfo(inputColumn, outputColumn, kind, eps, maxRows, pcaNum))
+            WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
+            float eps = VectorWhiteningTransformer.Defaults.Eps,
+            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
+            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
+            : this(env, new VectorWhiteningTransformer.ColumnInfo(inputColumn, outputColumn, kind, eps, maxRows, pcaNum))
         {
         }
 
-        public VectorWhiteningTransform Fit(IDataView input)
+        public VectorWhiteningTransformer Fit(IDataView input)
         {
             // Build transformation matrices for whitening process, then construct a trained transform.
-            (var models, var invModels) = VectorWhiteningTransform.TrainVectorWhiteningTransform(_host, input, _infos);
-            return new VectorWhiteningTransform(_host, models, invModels, _infos);
+            (var models, var invModels) = VectorWhiteningTransformer.TrainVectorWhiteningTransform(_host, input, _infos);
+            return new VectorWhiteningTransformer(_host, models, invModels, _infos);
         }
 
         /// <summary>
@@ -803,80 +810,12 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
-                var reason = VectorWhiteningTransform.TestColumn(col.ItemType);
+                var reason = VectorWhiteningTransformer.TestColumn(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptUserArg(nameof(inputSchema), reason);
                 result[colPair.Output] = new SchemaShape.Column(colPair.Output, col.Kind, col.ItemType, col.IsKey, null);
             }
             return new SchemaShape(result.Values);
         }
-    }
-
-    /// <summary>
-    /// Extensions for statically typed Whitening estimator.
-    /// </summary>
-    public static class VectorWhiteningExtensions
-    {
-        private sealed class OutPipelineColumn : Vector<float>
-        {
-            public readonly Vector<float> Input;
-
-            public OutPipelineColumn(Vector<float> input, WhiteningKind kind, float eps, int maxRows, int pcaNum)
-                : base(new Reconciler(kind, eps, maxRows, pcaNum), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly WhiteningKind _kind;
-            private readonly float _eps;
-            private readonly int _maxRows;
-            private readonly int _pcaNum;
-
-            public Reconciler(WhiteningKind kind, float eps, int maxRows, int pcaNum)
-            {
-                _kind = kind;
-                _eps = eps;
-                _maxRows = maxRows;
-                _pcaNum = pcaNum;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var infos = new VectorWhiteningTransform.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new VectorWhiteningTransform.ColumnInfo(inputNames[((OutPipelineColumn)toOutput[i]).Input], outputNames[toOutput[i]], _kind, _eps, _maxRows, _pcaNum);
-
-                return new VectorWhiteningEstimator(env, infos);
-            }
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        /// <param name="pcaNum">In case of PCA whitening, indicates the number of components to retain.</param>
-        public static Vector<float> PcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransform.Defaults.Eps,
-            int maxRows = VectorWhiteningTransform.Defaults.MaxRows,
-            int pcaNum = VectorWhiteningTransform.Defaults.PcaNum)
-            => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, pcaNum);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to which the transform will be applied.</param>
-        /// <param name="eps">Whitening constant, prevents division by zero.</param>
-        /// <param name="maxRows">Maximum number of rows used to train the transform.</param>
-        public static Vector<float> ZcaWhitening(this Vector<float> input,
-            float eps = VectorWhiteningTransform.Defaults.Eps,
-            int maxRows = VectorWhiteningTransform.Defaults.MaxRows)
-            => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, VectorWhiteningTransform.Defaults.PcaNum);
     }
 }

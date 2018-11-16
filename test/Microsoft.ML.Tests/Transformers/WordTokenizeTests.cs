@@ -40,8 +40,8 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidData = new[] { new TestWrong() { A =1, B = new float[2] { 2,3 } } };
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizeTransform.ColumnInfo("A", "TokenizeA"),
-                    new WordTokenizeTransform.ColumnInfo("B", "TokenizeB"),
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA"),
+                    new WordTokenizingTransformer.ColumnInfo("B", "TokenizeB"),
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
@@ -61,8 +61,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizeTransform.ColumnInfo("A", "TokenizeA"),
-                    new WordTokenizeTransform.ColumnInfo("B", "TokenizeB"),
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA"),
+                    new WordTokenizingTransformer.ColumnInfo("B", "TokenizeB"),
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

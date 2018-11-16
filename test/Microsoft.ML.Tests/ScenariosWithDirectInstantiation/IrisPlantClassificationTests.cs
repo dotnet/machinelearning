@@ -42,14 +42,14 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                IDataView pipeline = new ConcatTransform(env, "Features",
+                IDataView pipeline = new ColumnConcatenatingTransformer(env, "Features",
                     "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
                 // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
+                var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, pipeline, prefetch: null);

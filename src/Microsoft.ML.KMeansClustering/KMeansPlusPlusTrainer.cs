@@ -94,35 +94,42 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <summary>
         /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="env">The <see cref="IHostEnvironment"/> to use.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the example weights.</param>
+        /// <param name="weights">The name for the optional column containing the example weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="clustersCount">The number of clusters.</param>
-        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, int clustersCount = Defaults.K, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : this(env, new Arguments(), featureColumn, weightColumn, advancedSettings)
+        public KMeansPlusPlusTrainer(IHostEnvironment env,
+            string featureColumn = DefaultColumnNames.Features,
+            int clustersCount = Defaults.K,
+            string weights = null,
+            Action<Arguments> advancedSettings = null)
+            : this(env, new Arguments
+            {
+                FeatureColumn = featureColumn,
+                WeightColumn = weights,
+                K = clustersCount
+            }, advancedSettings)
         {
-            _k = clustersCount;
         }
 
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
-            : this(env, args, args.FeatureColumn, args.WeightColumn, null)
+            : this(env, args, null)
         {
 
         }
 
-        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
-            if (advancedSettings != null)
-                advancedSettings.Invoke(args);
+            // override with the advanced settings.
+            advancedSettings?.Invoke(args);
 
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
 
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            _featureColumn = featureColumn;
+            _featureColumn = args.FeatureColumn;
 
             _k = args.K;
 
@@ -389,7 +396,7 @@ namespace Microsoft.ML.Trainers.KMeans
                             "Not enough distinct instances to populate {0} clusters (only found {1} distinct instances)", k, i);
                     }
 
-                    candidate.CopyTo(centroids[i].Values);
+                    candidate.CopyToDense(ref centroids[i]);
                     centroidL2s[i] = cachedCandidateL2 ?? VectorUtils.NormSquared(candidate);
                 }
             }
@@ -648,7 +655,7 @@ namespace Microsoft.ML.Trainers.KMeans
             if (pointRowIndex != -1) // if the space was available for cur in initializationState.
             {
                 // pointNorm is necessary for using triangle inequality.
-                float pointNorm = VectorUtils.NormSquared(point);
+                float pointNorm = VectorUtils.NormSquared(in point);
                 // We have cached distance information for this point.
                 bestCluster = initializationState.GetBestCluster(pointRowIndex);
                 float bestWeight = initializationState.GetBestWeight(pointRowIndex);
@@ -781,6 +788,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 // The final chosen points, to be approximately clustered to determine starting
                 // centroids.
                 VBuffer<float>[] clusters = new VBuffer<float>[totalSamples];
+
                 // L2s, kept for distance trick.
                 float[] clustersL2s = new float[totalSamples];
 
@@ -1311,7 +1319,7 @@ namespace Microsoft.ML.Trainers.KMeans
             float[] centroidL2s = new float[k];
 
             for (int i = 0; i < k; i++)
-                centroidL2s[i] = VectorUtils.NormSquared(centroids[i]);
+                centroidL2s[i] = VectorUtils.NormSquared(in centroids[i]);
 
             using (var pch = host.StartProgressChannel("KMeansTrain"))
             {
@@ -1381,8 +1389,10 @@ namespace Microsoft.ML.Trainers.KMeans
 
                         for (int i = 0; i < k; i++)
                         {
+                            var reducedStateCacheValues = reducedState.CachedSumDebug[i].GetValues();
+                            var cachedSumCopyValues = cachedSumCopy[i].GetValues();
                             for (int j = 0; j < dimensionality; j++)
-                                Contracts.Assert(AlmostEq(reducedState.CachedSumDebug[i].Values[j], cachedSumCopy[i].Values[j]));
+                                Contracts.Assert(AlmostEq(reducedStateCacheValues[j], cachedSumCopyValues[j]));
                         }
                     }
 #endif

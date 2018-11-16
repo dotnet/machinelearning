@@ -137,14 +137,14 @@ namespace Microsoft.ML.Trainers.FastTree
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeaves,
             double learningRate,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
-            Args.MinDocuments = minDocumentsInLeafs;
+            Args.MinDocuments = minDatapointsInLeaves;
             Args.LearningRates = learningRate;
 
             //apply the advanced args, if the user supplied any

@@ -1,132 +1,6 @@
-//////////////////////////////////////////////////////////////////////////////
-//    Command Line Argument Parser
-//    ----------------------------
-//    Usage
-//    -----
-//
-//    Parsing command line arguments to a console application is a common problem.
-//    This library handles the common task of reading arguments from a command line
-//    and filling in the values in a type.
-//
-//    To use this library, define a class whose fields represent the data that your
-//    application wants to receive from arguments on the command line. Then call
-//    CommandLine.ParseArguments() to fill the object with the data
-//    from the command line. Each field in the class defines a command line argument.
-//    The type of the field is used to validate the data read from the command line.
-//    The name of the field defines the name of the command line option.
-//
-//    The parser can handle fields of the following types:
-//
-//    - string
-//    - int
-//    - uint
-//    - bool
-//    - enum
-//    - array of the above type
-//
-//    For example, suppose you want to read in the argument list for wc (word count).
-//    wc takes three optional boolean arguments: -l, -w, and -c and a list of files.
-//
-//    You could parse these arguments using the following code:
-//
-//    class WCArguments
-//    {
-//        public bool lines;
-//        public bool words;
-//        public bool chars;
-//        public string[] files;
-//    }
-//
-//    class WC
-//    {
-//        static void Main(string[] args)
-//        {
-//            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
-//            {
-//            //     insert application code here
-//            }
-//        }
-//    }
-//
-//    So you could call this aplication with the following command line to count
-//    lines in the foo and bar files:
-//
-//        wc.exe /lines /files:foo /files:bar
-//
-//    The program will display the following usage message when bad command line
-//    arguments are used:
-//
-//        wc.exe -x
-//
-//    Unrecognized command line argument '-x'
-//        /lines[+|-]                         short form /l
-//        /words[+|-]                         short form /w
-//        /chars[+|-]                         short form /c
-//        /files=<string>                     short form /f
-//        @<file>                             Read response file for more options
-//
-//    That was pretty easy. However, you realy want to omit the "/files:" for the
-//    list of files. The details of field parsing can be controled using custom
-//    attributes. The attributes which control parsing behaviour are:
-//
-//    ArgumentAttribute
-//        - controls short name, long name, required, allow duplicates, default value
-//        and help text
-//    DefaultArgumentAttribute
-//        - allows omition of the "/name".
-//        - This attribute is allowed on only one field in the argument class.
-//
-//    So for the wc.exe program we want this:
-//
-//    using System;
-//    using Utilities;
-//
-//    class WCArguments
-//    {
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of lines in the input text.")]
-//        public bool lines;
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of words in the input text.")]
-//        public bool words;
-//        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of chars in the input text.")]
-//        public bool chars;
-//        [DefaultArgument(ArgumentType.MultipleUnique, HelpText="Input files to count.")]
-//        public string[] files;
-//    }
-//
-//    class WC
-//    {
-//        static void Main(string[] args)
-//        {
-//            WCArguments parsedArgs = new WCArguments();
-//            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
-//            {
-//            //     insert application code here
-//            }
-//        }
-//    }
-//
-//
-//
-//    So now we have the command line we want:
-//
-//        wc.exe /lines foo bar
-//
-//    This will set lines to true and will set files to an array containing the
-//    strings "foo" and "bar".
-//
-//    The new usage message becomes:
-//
-//        wc.exe -x
-//
-//    Unrecognized command line argument '-x'
-//    /lines[+|-]  Count number of lines in the input text. (short form /l)
-//    /words[+|-]  Count number of words in the input text. (short form /w)
-//    /chars[+|-]  Count number of chars in the input text. (short form /c)
-//    @<file>      Read response file for more options
-//    <files>      Input files to count. (short form /f)
-//
-//    If you want more control over how error messages are reported, how /help is
-//    dealt with, etc you can instantiate the CommandLine.Parser class.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections;
@@ -142,103 +16,15 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.CommandLine
 {
-    /// <summary>
-    /// Used to control parsing of command line arguments.
-    /// </summary>
-    [Flags]
-    public enum ArgumentType
-    {
-        /// <summary>
-        /// Indicates that this field is required. An error will be displayed
-        /// if it is not present when parsing arguments.
-        /// </summary>
-        Required = 0x01,
-
-        /// <summary>
-        /// Only valid in conjunction with Multiple.
-        /// Duplicate values will result in an error.
-        /// </summary>
-        Unique = 0x02,
-
-        /// <summary>
-        /// Inidicates that the argument may be specified more than once.
-        /// Only valid if the argument is a collection
-        /// </summary>
-        Multiple = 0x04,
-
-        /// <summary>
-        /// The default type for non-collection arguments.
-        /// The argument is not required, but an error will be reported if it is specified more than once.
-        /// </summary>
-        AtMostOnce = 0x00,
-
-        /// <summary>
-        /// For non-collection arguments, when the argument is specified more than
-        /// once no error is reported and the value of the argument is the last
-        /// value which occurs in the argument list.
-        /// </summary>
-        LastOccurenceWins = Multiple,
-
-        /// <summary>
-        /// The default type for collection arguments.
-        /// The argument is permitted to occur multiple times, but duplicate
-        /// values will cause an error to be reported.
-        /// </summary>
-        MultipleUnique = Multiple | Unique,
-    }
-
-    /// <summary>
-    /// Indicates that this argument is the default argument.
-    /// '/' or '-' prefix only the argument value is specified.
-    /// The ShortName property should not be set for DefaultArgumentAttribute
-    /// instances. The LongName property is used for usage text only and
-    /// does not affect the usage of the argument.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class DefaultArgumentAttribute : ArgumentAttribute
-    {
-        /// <summary>
-        /// Indicates that this argument is the default argument.
-        /// </summary>
-        /// <param name="type"> Specifies the error checking to be done on the argument. </param>
-        public DefaultArgumentAttribute(ArgumentType type)
-            : base(type)
-        {
-        }
-    }
-
-    /// <summary>
-    /// On an enum value - indicates that the value should not be shown in help or UI.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class HideEnumValueAttribute : Attribute
-    {
-        public HideEnumValueAttribute()
-        {
-        }
-    }
-
-    /// <summary>
-    /// On an enum value - specifies the display name.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field)]
-    public class EnumValueDisplayAttribute : Attribute
-    {
-        public readonly string Name;
-
-        public EnumValueDisplayAttribute(string name)
-        {
-            Name = name;
-        }
-    }
 
     /// <summary>
     /// A delegate used in error reporting.
     /// </summary>
-    public delegate void ErrorReporter(string message);
+    internal delegate void ErrorReporter(string message);
 
     [Flags]
-    public enum SettingsFlags
+    [BestFriend]
+    internal enum SettingsFlags
     {
         None = 0x00,
 
@@ -260,6 +46,136 @@ namespace Microsoft.ML.Runtime.CommandLine
         string Name { get; }
         string GetSettingsString();
     }
+
+    //////////////////////////////////////////////////////////////////////////////
+    //    Command Line Argument Parser
+    //    ----------------------------
+    //    Usage
+    //    -----
+    //
+    //    Parsing command line arguments to a console application is a common problem.
+    //    This library handles the common task of reading arguments from a command line
+    //    and filling in the values in a type.
+    //
+    //    To use this library, define a class whose fields represent the data that your
+    //    application wants to receive from arguments on the command line. Then call
+    //    CommandLine.ParseArguments() to fill the object with the data
+    //    from the command line. Each field in the class defines a command line argument.
+    //    The type of the field is used to validate the data read from the command line.
+    //    The name of the field defines the name of the command line option.
+    //
+    //    The parser can handle fields of the following types:
+    //
+    //    - string
+    //    - int
+    //    - uint
+    //    - bool
+    //    - enum
+    //    - array of the above type
+    //
+    //    For example, suppose you want to read in the argument list for wc (word count).
+    //    wc takes three optional boolean arguments: -l, -w, and -c and a list of files.
+    //
+    //    You could parse these arguments using the following code:
+    //
+    //    class WCArguments
+    //    {
+    //        public bool lines;
+    //        public bool words;
+    //        public bool chars;
+    //        public string[] files;
+    //    }
+    //
+    //    class WC
+    //    {
+    //        static void Main(string[] args)
+    //        {
+    //            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
+    //            {
+    //            //     insert application code here
+    //            }
+    //        }
+    //    }
+    //
+    //    So you could call this aplication with the following command line to count
+    //    lines in the foo and bar files:
+    //
+    //        wc.exe /lines /files:foo /files:bar
+    //
+    //    The program will display the following usage message when bad command line
+    //    arguments are used:
+    //
+    //        wc.exe -x
+    //
+    //    Unrecognized command line argument '-x'
+    //        /lines[+|-]                         short form /l
+    //        /words[+|-]                         short form /w
+    //        /chars[+|-]                         short form /c
+    //        /files=<string>                     short form /f
+    //        @<file>                             Read response file for more options
+    //
+    //    That was pretty easy. However, you realy want to omit the "/files:" for the
+    //    list of files. The details of field parsing can be controled using custom
+    //    attributes. The attributes which control parsing behaviour are:
+    //
+    //    ArgumentAttribute
+    //        - controls short name, long name, required, allow duplicates, default value
+    //        and help text
+    //    DefaultArgumentAttribute
+    //        - allows omition of the "/name".
+    //        - This attribute is allowed on only one field in the argument class.
+    //
+    //    So for the wc.exe program we want this:
+    //
+    //    using System;
+    //    using Utilities;
+    //
+    //    class WCArguments
+    //    {
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of lines in the input text.")]
+    //        public bool lines;
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of words in the input text.")]
+    //        public bool words;
+    //        [Argument(ArgumentType.AtMostOnce, HelpText="Count number of chars in the input text.")]
+    //        public bool chars;
+    //        [DefaultArgument(ArgumentType.MultipleUnique, HelpText="Input files to count.")]
+    //        public string[] files;
+    //    }
+    //
+    //    class WC
+    //    {
+    //        static void Main(string[] args)
+    //        {
+    //            WCArguments parsedArgs = new WCArguments();
+    //            if (CommandLine.ParseArgumentsWithUsage(args, parsedArgs))
+    //            {
+    //            //     insert application code here
+    //            }
+    //        }
+    //    }
+    //
+    //
+    //
+    //    So now we have the command line we want:
+    //
+    //        wc.exe /lines foo bar
+    //
+    //    This will set lines to true and will set files to an array containing the
+    //    strings "foo" and "bar".
+    //
+    //    The new usage message becomes:
+    //
+    //        wc.exe -x
+    //
+    //    Unrecognized command line argument '-x'
+    //    /lines[+|-]  Count number of lines in the input text. (short form /l)
+    //    /words[+|-]  Count number of words in the input text. (short form /w)
+    //    /chars[+|-]  Count number of chars in the input text. (short form /c)
+    //    @<file>      Read response file for more options
+    //    <files>      Input files to count. (short form /f)
+    //
+    //    If you want more control over how error messages are reported, how /help is
+    //    dealt with, etc you can instantiate the CommandLine.Parser class.
 
     /// <summary>
     /// Parser for command line arguments.
@@ -285,7 +201,8 @@ namespace Microsoft.ML.Runtime.CommandLine
     /// Arguments which are array types are collection arguments. Collection
     /// arguments can be specified multiple times.
     /// </summary>
-    public sealed class CmdParser
+    [BestFriend]
+    internal sealed class CmdParser
     {
         private const int SpaceBeforeParam = 2;
         private readonly ErrorReporter _reporter;

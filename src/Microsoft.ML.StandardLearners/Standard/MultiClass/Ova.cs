@@ -82,9 +82,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
-            int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
+        public Ova(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000,
+            bool useProbabilities = true)
          : base(env,
                new Arguments
                {
@@ -225,7 +229,7 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType => _impl.InputType;
         public ColumnType OutputType { get; }
         public ColumnType DistType => OutputType;
-        public bool CanSavePfa => _impl.CanSavePfa;
+        bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
         [BestFriend]
         internal static OvaPredictor Create(IHost host, bool useProb, TScalarPredictor[] predictors)
@@ -337,7 +341,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ctx.SaveModel(preds[i], string.Format(SubPredictorFmt, i));
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));

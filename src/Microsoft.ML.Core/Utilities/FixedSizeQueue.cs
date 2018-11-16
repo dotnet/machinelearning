@@ -12,7 +12,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// A fixed-length circular array. Items are added at the end. If the array is full, adding
     ///  an item will result in discarding the least recently added item.
     /// </summary>
-    public sealed class FixedSizeQueue<T>
+    [BestFriend]
+    internal sealed class FixedSizeQueue<T>
     {
         private readonly T[] _array;
         private int _startIndex;
