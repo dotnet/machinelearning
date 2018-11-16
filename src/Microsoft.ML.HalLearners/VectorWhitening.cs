@@ -380,7 +380,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             for (int i = 0; i < columns.Length; i++)
             {
-                if(!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
+                if (!inputSchema.TryGetColumnIndex(columns[i].Input, out cols[i]))
                     throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input);
                 srcTypes[i] = inputSchema.GetColumnType(cols[i]);
                 var reason = TestColumn(srcTypes[i]);
