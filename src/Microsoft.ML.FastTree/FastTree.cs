@@ -1862,7 +1862,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Info("Changing data from row-wise to column-wise");
 
                     long pos = 0;
-                    double rowCountDbl = (double?)_data.Data.GetRowCount(lazy: true) ?? Double.NaN;
+                    double rowCountDbl = (double?)_data.Data.GetRowCount() ?? Double.NaN;
                     pch.SetHeader(new ProgressHeader("examples"),
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let

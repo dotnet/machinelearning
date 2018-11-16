@@ -398,7 +398,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public abstract long? GetRowCount(bool lazy = true);
+            public abstract long? GetRowCount();
 
             public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null);
 
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return true; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return _data.Count;
             }
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return (_data as ICollection<TRow>)?.Count;
             }
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return null;
             }
