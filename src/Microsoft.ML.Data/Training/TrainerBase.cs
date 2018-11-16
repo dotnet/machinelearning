@@ -19,7 +19,8 @@ namespace Microsoft.ML.Runtime.Training
         public abstract PredictionKind PredictionKind { get; }
         public abstract TrainerInfo Info { get; }
 
-        protected TrainerBase(IHostEnvironment env, string name)
+        [BestFriend]
+        private protected TrainerBase(IHostEnvironment env, string name)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(name, nameof(name));
@@ -30,6 +31,9 @@ namespace Microsoft.ML.Runtime.Training
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
-        public abstract TPredictor Train(TrainContext context);
+        TPredictor ITrainer<TPredictor>.Train(TrainContext context) => Train(context);
+
+        [BestFriend]
+        private protected abstract TPredictor Train(TrainContext context);
     }
 }

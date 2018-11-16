@@ -384,7 +384,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema { get; }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             return _rowCount;
         }

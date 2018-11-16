@@ -75,9 +75,10 @@ namespace Microsoft.ML.Legacy.Models
                     elements = new double[type.VectorSize, type.VectorSize];
 
                 countGetter(ref countValues);
-                for (int i = 0; i < countValues.Length; i++)
+                ReadOnlySpan<double> values = countValues.GetValues();
+                for (int i = 0; i < values.Length; i++)
                 {
-                    elements[valuesRowIndex, i] = countValues.Values[i];
+                    elements[valuesRowIndex, i] = values[i];
                 }
 
                 valuesRowIndex++;

@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers.PCA
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        protected override PcaPredictor TrainModelCore(TrainContext context)
+        private protected override PcaPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 

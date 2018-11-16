@@ -20,19 +20,16 @@ namespace Microsoft.ML.Sweeper.Tests
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
 
-            using (var writer = new StreamWriter(new MemoryStream()))
-            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
-            {
-                var sweeper = new UniformRandomSweeper(env,
+            var env = new MLContext(42);
+            var sweeper = new UniformRandomSweeper(env,
                     new SweeperBase.ArgumentsBase(),
                     new[] { valueGenerator });
 
-                var results = sweeper.ProposeSweeps(3);
-                Assert.NotNull(results);
+            var results = sweeper.ProposeSweeps(3);
+            Assert.NotNull(results);
 
-                int length = results.Length;
-                Assert.Equal(2, length);
-            }
+            int length = results.Length;
+            Assert.Equal(2, length);
         }
 
         [Fact]
@@ -40,19 +37,16 @@ namespace Microsoft.ML.Sweeper.Tests
         {
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
 
-            using (var writer = new StreamWriter(new MemoryStream()))
-            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
-            {
-                var sweeper = new RandomGridSweeper(env,
-                    new RandomGridSweeper.Arguments(),
-                    new[] { valueGenerator });
+            var env = new MLContext(42);
+            var sweeper = new RandomGridSweeper(env,
+                new RandomGridSweeper.Arguments(),
+                new[] { valueGenerator });
 
-                var results = sweeper.ProposeSweeps(3);
-                Assert.NotNull(results);
+            var results = sweeper.ProposeSweeps(3);
+            Assert.NotNull(results);
 
-                int length = results.Length;
-                Assert.Equal(2, length);
-            }
+            int length = results.Length;
+            Assert.Equal(2, length);
         }
 
         private static DiscreteValueGenerator CreateDiscreteValueGenerator()

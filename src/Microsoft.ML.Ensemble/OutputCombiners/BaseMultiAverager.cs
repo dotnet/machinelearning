@@ -35,14 +35,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 return;
             }
 
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
-            else
-                Array.Clear(values, 0, len);
-
+            var editor = VBufferEditor.Create(ref dst, len);
+            if (!editor.CreatedNewValues)
+                editor.Values.Clear();
             // Set the output to values.
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+            dst = editor.Commit();
 
             Single weightTotal;
             if (weights == null)

@@ -274,32 +274,25 @@ namespace Microsoft.ML.Transforms
 
         private static void FillValues(Float input, ref VBuffer<Float> result)
         {
-            var values = result.Values;
-            var indices = result.Indices;
-
             if (input == 0)
             {
-                result = new VBuffer<Float>(2, 0, values, indices);
+                VBufferUtils.Resize(ref result, 2, 0);
                 return;
             }
 
-            if (Utils.Size(values) < 1)
-                values = new Float[1];
-            if (Utils.Size(indices) < 1)
-                indices = new int[1];
-
+            var editor = VBufferEditor.Create(ref result, 2, 1);
             if (Float.IsNaN(input))
             {
-                values[0] = 1;
-                indices[0] = 1;
+                editor.Values[0] = 1;
+                editor.Indices[0] = 1;
             }
             else
             {
-                values[0] = input;
-                indices[0] = 0;
+                editor.Values[0] = input;
+                editor.Indices[0] = 0;
             }
 
-            result = new VBuffer<Float>(2, 1, values, indices);
+            result = editor.Commit();
         }
 
         // This converts in place.
@@ -308,18 +301,14 @@ namespace Microsoft.ML.Transforms
             int size = buffer.Length;
             ectx.Check(0 <= size & size < int.MaxValue / 2);
 
-            int count = buffer.Count;
-            var values = buffer.Values;
-            var indices = buffer.Indices;
+            var values = buffer.GetValues();
+            var editor = VBufferEditor.Create(ref buffer, size * 2, values.Length);
             int iivDst = 0;
-            if (count >= size)
+            if (buffer.IsDense)
             {
                 // Currently, it's dense. We always produce sparse.
-                ectx.Assert(Utils.Size(values) >= size);
-                if (Utils.Size(indices) < size)
-                    indices = new int[size];
 
-                for (int ivSrc = 0; ivSrc < count; ivSrc++)
+                for (int ivSrc = 0; ivSrc < values.Length; ivSrc++)
                 {
                     ectx.Assert(iivDst <= ivSrc);
                     var val = values[ivSrc];
@@ -327,13 +316,13 @@ namespace Microsoft.ML.Transforms
                         continue;
                     if (Float.IsNaN(val))
                     {
-                        values[iivDst] = 1;
-                        indices[iivDst] = 2 * ivSrc + 1;
+                        editor.Values[iivDst] = 1;
+                        editor.Indices[iivDst] = 2 * ivSrc + 1;
                     }
                     else
                     {
-                        values[iivDst] = val;
-                        indices[iivDst] = 2 * ivSrc;
+                        editor.Values[iivDst] = val;
+                        editor.Indices[iivDst] = 2 * ivSrc;
                     }
                     iivDst++;
                 }
@@ -341,11 +330,10 @@ namespace Microsoft.ML.Transforms
             else
             {
                 // Currently, it's sparse.
-                ectx.Assert(Utils.Size(values) >= count);
-                ectx.Assert(Utils.Size(indices) >= count);
 
+                var indices = buffer.GetIndices();
                 int ivPrev = -1;
-                for (int iivSrc = 0; iivSrc < count; iivSrc++)
+                for (int iivSrc = 0; iivSrc < values.Length; iivSrc++)
                 {
                     ectx.Assert(iivDst <= iivSrc);
                     var val = values[iivSrc];
@@ -356,20 +344,20 @@ namespace Microsoft.ML.Transforms
                     ivPrev = iv;
                     if (Float.IsNaN(val))
                     {
-                        values[iivDst] = 1;
-                        indices[iivDst] = 2 * iv + 1;
+                        editor.Values[iivDst] = 1;
+                        editor.Indices[iivDst] = 2 * iv + 1;
                     }
                     else
                     {
-                        values[iivDst] = val;
-                        indices[iivDst] = 2 * iv;
+                        editor.Values[iivDst] = val;
+                        editor.Indices[iivDst] = 2 * iv;
                     }
                     iivDst++;
                 }
             }
 
-            ectx.Assert(0 <= iivDst & iivDst <= count);
-            buffer = new VBuffer<Float>(size * 2, iivDst, values, indices);
+            ectx.Assert(0 <= iivDst & iivDst <= values.Length);
+            buffer = editor.CommitTruncated(iivDst);
         }
     }
 }

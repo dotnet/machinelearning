@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms
         private readonly GroupSchema _groupSchema;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="GroupTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
             _groupSchema.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // We have no idea how many total rows we'll have.
             return null;
