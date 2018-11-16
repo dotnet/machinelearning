@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void Process(ref TInput input, ref TOutput output)
             {
-                if (_updateState)
+                if (_previousPosition == -1)
                     UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)

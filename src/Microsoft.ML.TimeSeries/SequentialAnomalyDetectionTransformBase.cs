@@ -550,6 +550,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly ISchema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
+            private readonly TState _state;
 
             public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
@@ -569,6 +570,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parentSchema = inputSchema;
                 _slotNames = new VBuffer<ReadOnlyMemory<char>>(4, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
                     "P-Value Score".AsMemory(), "Martingale Score".AsMemory() });
+                _state = new TState();
             }
 
             public Schema.Column[] GetOutputColumns()
@@ -598,9 +600,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var getters = new Delegate[1];
                 if (activeOutput(0))
                 {
-                    TState state = new TState();
-                    state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host);
-                    getters[0] = MakeGetter(input, state);
+                    _state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host);
+                    getters[0] = MakeGetter(input, _state);
                 }
                 return getters;
             }
@@ -629,9 +630,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var getters = new Delegate[1];
                 if (activeOutput(0))
                 {
-                    TState state = new TState();
-                    state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host, false);
-                    getters[0] = MakePingers(input, state);
+                    _state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host, false);
+                    getters[0] = MakePingers(input, _state);
                 }
                 return getters;
             }
