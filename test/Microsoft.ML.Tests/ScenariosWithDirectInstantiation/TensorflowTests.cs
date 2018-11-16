@@ -310,15 +310,8 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
-            // Without shuffling
-            ExecuteTFTransformMNISTLRTrainingTest(false, null, 0.72173913043478266, 0.67482993197278918);
-
-            // With shuffling
-            ExecuteTFTransformMNISTLRTrainingTest(true, 5, 0.8, 0.691156462585034);
-        }
-
-        private void ExecuteTFTransformMNISTLRTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
-        {
+            const double expectedMicroAccuracy = 0.72173913043478266;
+            const double expectedMacroAccruacy = 0.67482993197278918;
             var model_location = "mnist_lr_model";
             try
             {
@@ -363,6 +356,7 @@ namespace Microsoft.ML.Scenarios
                 var predicted = trainedModel.Transform(testData);
                 var metrics = mlContext.MulticlassClassification.Evaluate(predicted, label: "KeyLabel");
                 Assert.InRange(metrics.AccuracyMicro, expectedMicroAccuracy, 1);
+                Assert.InRange(metrics.AccuracyMacro, expectedMacroAccruacy, 1);
                 var predictionFunction = trainedModel.MakePredictionFunction<MNISTData, MNISTPrediction>(mlContext);
 
                 var oneSample = GetOneMNISTExample();
@@ -406,8 +400,8 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
-            // Without shuffling
-            ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.70434782608695656 , 0.46054421768707482);
+            ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
         }
 
         private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
