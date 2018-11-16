@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public abstract class OneToOneTransformerBase : ITransformer, ICanSaveModel
+    /// <summary>
+    /// Base class for transformer which operates on pairs input and output columns.
+    /// </summary>
+    public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
-        protected readonly IHost Host;
         protected readonly (string input, string output)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns)
+        protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns) : base(host)
         {
-            Contracts.AssertValue(host);
             host.CheckValue(columns, nameof(columns));
-
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
@@ -30,13 +29,11 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.ExceptParam(nameof(columns), $"Output column '{column.output}' specified multiple times");
             }
 
-            Host = host;
             ColumnPairs = columns;
         }
 
-        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx)
+        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
         {
-            Host = host;
             // *** Binary format ***
             // int: number of added columns
             // for each added column
@@ -52,8 +49,6 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnPairs[i] = (input, output);
             }
         }
-
-        public abstract void Save(ModelSaveContext ctx);
 
         protected void SaveColumns(ModelSaveContext ctx)
         {
@@ -86,32 +81,6 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             // By default, there are no extra checks.
-        }
-
-        public bool IsRowToRowMapper => true;
-
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var simplerMapper = MakeRowMapper(inputSchema);
-            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper, MakeRowMapper);
-        }
-
-        protected abstract IRowMapper MakeRowMapper(Schema schema);
-
-        public Schema GetOutputSchema(Schema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var mapper = MakeRowMapper(inputSchema);
-            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
-        }
-
-        public IDataView Transform(IDataView input) => MakeDataTransform(input);
-
-        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         protected abstract class MapperBase : IRowMapper
