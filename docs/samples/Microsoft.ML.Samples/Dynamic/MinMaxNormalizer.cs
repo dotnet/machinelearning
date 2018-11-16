@@ -1,8 +1,9 @@
-﻿using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -34,7 +35,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var modelParams = transformer.Columns
                                          .First(x => x.Output == "Induced")
-                                         .ModelParameters as NormalizerTransformer.AffineNormalizerModelParameters<float>;
+                                         .ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
 
             Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
             //Preview 
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Inspect the weights of normalizing the columns
             var multiColModelParams = multiColtransformer.Columns
                 .First(x=> x.Output == "LogInduced")
-                .ModelParameters as NormalizerTransformer.CdfNormalizerModelParameters<float>;
+                .ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
 
             Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Offset = {multiColModelParams.Stddev}");
         }
