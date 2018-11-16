@@ -101,6 +101,7 @@ namespace Microsoft.ML.Runtime.Numeric
             VBuffer<Float> tempGrad = default(VBuffer<Float>);
             for (int i = from; i < to; ++i)
             {
+                VBufferUtils.Resize(ref tempGrad, 0, 0);
                 _tempVals[chunkIndex] += _func(i, in _input, ref tempGrad);
                 if (_tempGrads[chunkIndex].Length == 0)
                     tempGrad.CopyTo(ref _tempGrads[chunkIndex]);
