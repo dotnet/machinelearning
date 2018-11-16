@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.RunTests;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -282,8 +283,8 @@ namespace Microsoft.ML.Scenarios
                     }
                 });
 
-            var trainData = reader.Read(GetDataPath("Train-Tiny-28x28.txt"));
-            var testData = reader.Read(GetDataPath("MNIST.Test.tiny.txt"));
+            var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("Placeholder", "reshape_input"))
                 .Append(new TensorFlowEstimator(mlContext, "mnist_model/frozen_saved_model.pb", new[] { "Placeholder", "reshape_input" }, new[] { "Softmax", "dense/Relu" }))
@@ -292,10 +293,10 @@ namespace Microsoft.ML.Scenarios
 
             var trainedModel = pipe.Fit(trainData);
             var predicted = trainedModel.Transform(testData);
-            var _metrics = mlContext.MulticlassClassification.Evaluate(predicted);
+            var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
 
-            Assert.Equal(0.99, _metrics.AccuracyMicro, 2);
-            Assert.Equal(1.0, _metrics.AccuracyMacro, 2);
+            Assert.Equal(0.99, metrics.AccuracyMicro, 2);
+            Assert.Equal(1.0, metrics.AccuracyMacro, 2);
 
             var oneSample = GetOneMNISTExample();
 
@@ -334,8 +335,8 @@ namespace Microsoft.ML.Scenarios
                         }
                     });
 
-                var trainData = reader.Read(GetDataPath("Train-Tiny-28x28.txt"));
-                var testData = reader.Read(GetDataPath("MNIST.Test.tiny.txt"));
+                var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+                var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
                 var pipe = mlContext.Transforms.Categorical.OneHotEncoding("Label", "OneHotLabel")
                     .Append(mlContext.Transforms.Normalize(new NormalizingEstimator.MinMaxColumn("Placeholder", "Features")))
@@ -428,11 +429,8 @@ namespace Microsoft.ML.Scenarios
                     }
                 });
 
-                var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-                var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
-
-                var trainData = reader.Read(dataPath);
-                var testData = reader.Read(testDataPath);
+                var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+                var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
                 IDataView preprocessedTrainData = null;
                 IDataView preprocessedTestData = null;
@@ -522,8 +520,8 @@ namespace Microsoft.ML.Scenarios
                 }
             });
 
-            var trainData = reader.Read(GetDataPath("Train-Tiny-28x28.txt"));
-            var testData = reader.Read(GetDataPath("MNIST.Test.tiny.txt"));
+            var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
+            var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
 
             var pipe = mlContext.Transforms.CopyColumns(("Placeholder", "reshape_input"))
                 .Append(new TensorFlowEstimator(mlContext, "mnist_model", new[] { "Placeholder", "reshape_input" }, new[] { "Softmax", "dense/Relu" }))
@@ -553,7 +551,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvPipelineTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
-            var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+            var dataPath = GetDataPath(TestDatasets.mnistTiny28.trainFilename);
 
             var pipeline = new Legacy.LearningPipeline(seed: 1);
             pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));

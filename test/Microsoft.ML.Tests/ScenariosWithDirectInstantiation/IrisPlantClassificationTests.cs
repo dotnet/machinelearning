@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Normalizers;
 using System;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Scenarios
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Read training and test data sets
-            string dataPath = GetDataPath("iris.txt");
+            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             string testDataPath = dataPath;
             var trainData = reader.Read(dataPath);
             var testData = reader.Read(testDataPath);
