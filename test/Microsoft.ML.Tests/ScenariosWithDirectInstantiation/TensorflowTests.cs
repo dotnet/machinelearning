@@ -444,7 +444,7 @@ namespace Microsoft.ML.Scenarios
                 var pipe = mlContext.Transforms.CopyColumns(("Placeholder", "Features"))
                     .Append(new TensorFlowEstimator(mlContext, new TensorFlowTransform.Arguments()
                     {
-                        ModelLocation = model_location,
+                        ModelLocation = modelLocation,
                         InputColumns = new[] { "Features" },
                         OutputColumns = new[] { "Prediction" },
                         LabelColumn = "TfLabel",
