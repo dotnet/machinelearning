@@ -505,9 +505,13 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(label, nameof(label));
             Host.CheckNonEmpty(features, nameof(features));
 
-            //var pfi= new PermutationFeatureImportanceRegression(Host);
+            // Cannot access this, b/c ML.Transforms is no here
+            // and PermutationFeatureImportanceRegression needs ML.Api
+            // so it can't be here. Not sure how to resolve this
+            // circular dependency
+            //var pfi = new PermutationFeatureImportanceRegression(Host);
             //return pfi.GetImportanceMetricsMatrix(model, data, label, features);
-            return null;
+            throw new NotImplementedException();
         }
     }
 
