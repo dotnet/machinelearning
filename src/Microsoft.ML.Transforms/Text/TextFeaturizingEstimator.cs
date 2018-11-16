@@ -31,7 +31,7 @@ using System.Text;
 namespace Microsoft.ML.Transforms.Text
 {
     using CaseNormalizationMode = TextNormalizingEstimator.CaseNormalizationMode;
-    using StopWordsCol = StopWordsRemoverTransform.Column;
+    using StopWordsCol = StopWordsRemovingTransformer.Column;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class exposes <see cref="NgramExtractorTransform"/>/<see cref="NgramHashExtractorTransform"/> arguments.
+        /// This class exposes <see cref="NgramExtractingTransformer"/>/<see cref="NgramHashExtractingTransformer"/> arguments.
         /// </summary>
         public sealed class Arguments : TransformInputBase
         {
@@ -115,11 +115,11 @@ namespace Microsoft.ML.Transforms.Text
 
             [TGUI(Label = "Word Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for words (WordBag/WordHashBag).", ShortName = "wordExtractor", NullName = "<None>", SortOrder = 11)]
-            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
+            public INgramExtractorFactoryFactory WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
 
             [TGUI(Label = "Char Gram Extractor")]
             [Argument(ArgumentType.Multiple, HelpText = "Ngram feature extractor to use for characters (WordBag/WordHashBag).", ShortName = "charExtractor", NullName = "<None>", SortOrder = 12)]
-            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            public INgramExtractorFactoryFactory CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Normalize vectors (rows) individually by rescaling them to unit norm.", ShortName = "norm", SortOrder = 13)]
             public TextNormKind VectorNormalizer = TextNormKind.L2;
@@ -171,8 +171,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool OutputTextTokens;
             public readonly TermLoaderArguments Dictionary;
 
-            public StopWordsRemoverTransform.Language StopwordsLanguage
-                =>(StopWordsRemoverTransform.Language) Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
+            public StopWordsRemovingTransformer.Language StopwordsLanguage
+                =>(StopWordsRemovingTransformer.Language) Enum.Parse(typeof(StopWordsRemovingTransformer.Language), Language.ToString());
 
             public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
@@ -288,8 +288,8 @@ namespace Microsoft.ML.Transforms.Text
 
             _stopWordsRemover = null;
             _dictionary = null;
-            _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
-            _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+            _wordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments();
+            _charFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
         }
 
         public ITransformer Fit(IDataView input)
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms.Text
                 var srcCols = textCols;
                 textCols = new[] { GenerateColumnName(input.Schema, OutputColumn, "InitialConcat") };
                 tempCols.Add(textCols[0]);
-                view = new ConcatTransform(h, textCols[0], srcCols).Transform(view);
+                view = new ColumnConcatenatingTransformer(h, textCols[0], srcCols).Transform(view);
             }
 
             if (tparams.NeedsNormalizeTransform)
@@ -332,11 +332,11 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new WordTokenizeTransform.ColumnInfo[textCols.Length];
+                var xfCols = new WordTokenizingTransformer.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new WordTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
+                    var col = new WordTokenizingTransformer.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
                     wordTokCols[i] = col.Output;
                     tempCols.Add(col.Output);
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.OutputTextTokens)
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ConcatTransform(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
+                view = new ColumnConcatenatingTransformer(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
             }
 
             if (tparams.CharExtractorFactory != null)
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Transforms.Text
                         tempCols.Add(xfCols[i].output);
                         charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharTokenizeTransform(h, columns: xfCols).Transform(view);
+                    view = new TokenizingByCharactersTransformer(h, columns: xfCols).Transform(view);
                 }
 
                 {
@@ -459,7 +459,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 if (srcTaggedCols.Count > 0)
                 {
-                    view = new ConcatTransform(h, new ConcatTransform.ColumnInfo(OutputColumn,
+                    view = new ColumnConcatenatingTransformer(h, new ColumnConcatenatingTransformer.ColumnInfo(OutputColumn,
                         srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key))))
                         .Transform(view);
                 }

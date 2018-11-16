@@ -15,17 +15,17 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: LoadableClass(HashTransformer.Summary, typeof(IDataTransform), typeof(HashTransformer), typeof(HashTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(HashingTransformer.Summary, typeof(IDataTransform), typeof(HashingTransformer), typeof(HashingTransformer.Arguments), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]
 
-[assembly: LoadableClass(HashTransformer.Summary, typeof(IDataTransform), typeof(HashTransformer), null, typeof(SignatureLoadDataTransform),
-    "Hash Transform", HashTransformer.LoaderSignature)]
+[assembly: LoadableClass(HashingTransformer.Summary, typeof(IDataTransform), typeof(HashingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Hash Transform", HashingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(HashTransformer.Summary, typeof(HashTransformer), null, typeof(SignatureLoadModel),
-     "Hash Transform", HashTransformer.LoaderSignature)]
+[assembly: LoadableClass(HashingTransformer.Summary, typeof(HashingTransformer), null, typeof(SignatureLoadModel),
+     "Hash Transform", HashingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(HashTransformer), null, typeof(SignatureLoadRowMapper),
-   "Hash Transform", HashTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(HashingTransformer), null, typeof(SignatureLoadRowMapper),
+   "Hash Transform", HashingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Conversions
 {
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
-    public sealed class HashTransformer : OneToOneTransformerBase
+    public sealed class HashingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(HashTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(HashingTransformer).Assembly.FullName);
         }
 
         private readonly ColumnInfo[] _columns;
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public HashTransformer(IHostEnvironment env, ColumnInfo[] columns) :
+        public HashingTransformer(IHostEnvironment env, ColumnInfo[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        internal HashTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
+        internal HashingTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Transforms.Conversions
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
-        private static HashTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static HashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -329,10 +329,10 @@ namespace Microsoft.ML.Transforms.Conversions
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new HashTransformer(host, ctx);
+            return new HashingTransformer(host, ctx);
         }
 
-        private HashTransformer(IHost host, ModelLoadContext ctx)
+        private HashingTransformer(IHost host, ModelLoadContext ctx)
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     item.Ordered ?? args.Ordered,
                     item.InvertHash ?? args.InvertHash);
             };
-            return new HashTransformer(env, input, cols).MakeDataTransform(input);
+            return new HashingTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         #region Getters
@@ -743,36 +743,33 @@ namespace Microsoft.ML.Transforms.Conversions
                 return (ref VBuffer<uint> dst) =>
                 {
                     srcGetter(ref src);
-                    int[] indices = dst.Indices;
-                    if (src.Count == 0)
+                    var srcValues = src.GetValues();
+                    if (srcValues.Length == 0)
                     {
-                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                     if (!src.IsDense)
-                    {
-                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
-                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
-                    }
-                    var values = dst.Values;
-                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
-                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
-                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                        src.GetIndices().CopyTo(editor.Indices);
+
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                uint[] values = dst.Values;
-                Utils.EnsureSize(ref values, src.Length, keepOld: false);
-                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+
+                var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
                 else
                 {
@@ -781,12 +778,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     // values, rather than having complicated logic to do a simultaneous traversal of the
                     // sparse vs. dense array.
                     for (int i = 0; i < src.Length; ++i)
-                        values[i] = defaultHash;
+                        editor.Values[i] = defaultHash;
                     // Next overwrite the values in the explicit entries.
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[src.Indices[i]] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                    var srcIndices = src.GetIndices();
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[srcIndices[i]] = hasher.HashCore(seed, mask, srcValues[i]);
                 }
-                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+                dst = editor.Commit();
             };
         }
 
@@ -807,60 +805,58 @@ namespace Microsoft.ML.Transforms.Conversions
                 return (ref VBuffer<uint> dst) =>
                 {
                     srcGetter(ref src);
-                    int[] indices = dst.Indices;
-                    if (src.Count == 0)
+                    var srcValues = src.GetValues();
+                    if (srcValues.Length == 0)
                     {
-                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, src.Length, 0);
                         return;
                     }
-                    if (!src.IsDense)
-                    {
-                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
-                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
-                    }
-                    var values = dst.Values;
-                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
-                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                    var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+
                     if (src.IsDense)
                     {
-                        for (int i = 0; i < srcValuesSpan.Length; ++i)
-                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                        for (int i = 0; i < srcValues.Length; ++i)
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                     }
                     else
                     {
-                        for (int i = 0; i < srcValuesSpan.Length; ++i)
-                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)src.Indices[i]), mask, srcValuesSpan[i]);
+                        var srcIndices = src.GetIndices();
+                        for (int i = 0; i < srcValues.Length; ++i)
+                            editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)srcIndices[i]), mask, srcValues[i]);
+                        srcIndices.CopyTo(editor.Indices);
+
                     }
-                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                    dst = editor.Commit();
                 };
             }
             // It is not sparsity preserving.
             return (ref VBuffer<uint> dst) =>
             {
                 srcGetter(ref src);
-                uint[] values = dst.Values;
-                Utils.EnsureSize(ref values, src.Length, keepOld: false);
-                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+
+                var srcValues = src.GetValues();
                 if (src.IsDense)
                 {
-                    for (int i = 0; i < srcValuesSpan.Length; ++i)
-                        values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                    for (int i = 0; i < srcValues.Length; ++i)
+                        editor.Values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValues[i]);
                 }
                 else
                 {
+                    var srcIndices = src.GetIndices();
                     int j = 0;
                     for (int i = 0; i < src.Length; i++)
                     {
                         uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
-                        if (src.Count <= j || src.Indices[j] > i)
-                            values[i] = hasher.HashCore(indexSeed, mask, default);
-                        else if (src.Indices[j] == i)
-                            values[i] = hasher.HashCore(indexSeed, mask, srcValuesSpan[j++]);
+                        if (srcIndices.Length <= j || srcIndices[j] > i)
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, default);
+                        else if (srcIndices[j] == i)
+                            editor.Values[i] = hasher.HashCore(indexSeed, mask, srcValues[j++]);
                         else
                             Contracts.Assert(false, "this should have never happened.");
                     }
                 }
-                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+                dst = editor.Commit();
             };
         }
 
@@ -881,9 +877,9 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             private readonly ColumnType[] _types;
-            private readonly HashTransformer _parent;
+            private readonly HashingTransformer _parent;
 
-            public Mapper(HashTransformer parent, Schema inputSchema)
+            public Mapper(HashingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -1111,12 +1107,17 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _srcGetter(ref _value);
                     _dstGetter(ref _hash);
+
+                    var valueValues = _value.GetValues();
+                    var hashValues = _hash.GetValues();
+
                     // The two arrays should be consistent in their density, length, count, etc.
                     Contracts.Assert(_value.IsDense == _hash.IsDense);
                     Contracts.Assert(_value.Length == _hash.Length);
-                    Contracts.Assert(_value.Count == _hash.Count);
-                    for (int i = 0; i < _value.Count; ++i)
-                        Collector.Add(_hash.Values[i], _value.Values[i]);
+                    Contracts.Assert(valueValues.Length == hashValues.Length);
+
+                    for (int i = 0; i < valueValues.Length; ++i)
+                        Collector.Add(hashValues[i], valueValues[i]);
                 }
             }
 
@@ -1151,19 +1152,24 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     _srcGetter(ref _value);
                     _dstGetter(ref _hash);
+
+                    var valueValues = _value.GetValues();
+                    var hashValues = _hash.GetValues();
+
                     // The two arrays should be consistent in their density, length, count, etc.
                     Contracts.Assert(_value.IsDense == _hash.IsDense);
                     Contracts.Assert(_value.Length == _hash.Length);
-                    Contracts.Assert(_value.Count == _hash.Count);
+                    Contracts.Assert(valueValues.Length == hashValues.Length);
                     if (_hash.IsDense)
                     {
-                        for (int i = 0; i < _value.Count; ++i)
-                            Collector.Add(_hash.Values[i], new KeyValuePair<int, T>(i, _value.Values[i]));
+                        for (int i = 0; i < valueValues.Length; ++i)
+                            Collector.Add(hashValues[i], new KeyValuePair<int, T>(i, valueValues[i]));
                     }
                     else
                     {
-                        for (int i = 0; i < _value.Count; ++i)
-                            Collector.Add(_hash.Values[i], new KeyValuePair<int, T>(_hash.Indices[i], _value.Values[i]));
+                        var hashIndices = _hash.GetIndices();
+                        for (int i = 0; i < valueValues.Length; ++i)
+                            Collector.Add(hashValues[i], new KeyValuePair<int, T>(hashIndices[i], valueValues[i]));
                     }
                 }
             }
@@ -1171,9 +1177,9 @@ namespace Microsoft.ML.Transforms.Conversions
     }
 
     /// <summary>
-    /// Estimator for <see cref="HashTransformer"/>
+    /// Estimator for <see cref="HashingTransformer"/>
     /// </summary>
-    public sealed class HashingEstimator : IEstimator<HashTransformer>
+    public sealed class HashingEstimator : IEstimator<HashingTransformer>
     {
         internal const int NumBitsMin = 1;
         internal const int NumBitsLim = 32;
@@ -1187,7 +1193,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         private readonly IHost _host;
-        private readonly HashTransformer.ColumnInfo[] _columns;
+        private readonly HashingTransformer.ColumnInfo[] _columns;
 
         internal static bool IsColumnTypeValid(ColumnType type)
         {
@@ -1207,7 +1213,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         public HashingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new HashTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))
+            : this(env, new HashingTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
@@ -1216,14 +1222,14 @@ namespace Microsoft.ML.Transforms.Conversions
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public HashingEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)
+        public HashingEstimator(IHostEnvironment env, params HashingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(HashingEstimator));
             _columns = columns.ToArray();
         }
 
-        public HashTransformer Fit(IDataView input) => new HashTransformer(_host, input, _columns);
+        public HashingTransformer Fit(IDataView input) => new HashingTransformer(_host, input, _columns);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

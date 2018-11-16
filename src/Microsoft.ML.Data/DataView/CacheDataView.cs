@@ -193,18 +193,13 @@ namespace Microsoft.ML.Data
 
         public Schema Schema => _subsetInput.Schema;
 
-        public long? GetRowCount(bool lazy = true)
+        /// <summary>
+        /// Return the number of rows if available.
+        /// </summary>
+        public long? GetRowCount()
         {
             if (_rowCount < 0)
-            {
-                if (lazy)
-                    return null;
-                if (_cacheDefaultWaiter == null)
-                    KickoffFiller(new int[0]);
-                _host.Assert(_cacheDefaultWaiter != null);
-                _cacheDefaultWaiter.Wait(long.MaxValue);
-                _host.Assert(_rowCount >= 0);
-            }
+                return null;
             return _rowCount;
         }
 
@@ -317,7 +312,7 @@ namespace Microsoft.ML.Data
             _host.CheckValue(predicate, nameof(predicate));
             // The seeker needs to know the row count when it validates the row index to move to.
             // Calling GetRowCount here to force a wait indirectly so that _rowCount will have a valid value.
-            GetRowCount(false);
+            GetRowCount();
             _host.Assert(_rowCount >= 0);
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)
