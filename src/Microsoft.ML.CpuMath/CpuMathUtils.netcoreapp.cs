@@ -27,11 +27,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Multiplies a matrix times a source.
         /// </summary>
-        /// <param name="transpose"></param>
-        /// <param name="matrix"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="stride"></param>
+        /// <param name="transpose">Boolean to transpose the matrix or not.</param>
+        /// <param name="matrix">The input matrix.</param>
+        /// <param name="source">The source matrix.</param>
+        /// <param name="destination">The destination matrix.</param>
+        /// <param name="stride">The column stride.</param>
         public static void MatrixTimesSource(bool transpose, AlignedArray matrix, AlignedArray source, AlignedArray destination, int stride)
         {
             Contracts.Assert(matrix.Size == destination.Size * source.Size);
@@ -99,14 +99,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Multiplies a matrix times a source.
         /// </summary>
-        /// <param name="matrix"></param>
-        /// <param name="rgposSrc"></param>
-        /// <param name="sourceValues"></param>
-        /// <param name="posMin"></param>
-        /// <param name="iposMin"></param>
-        /// <param name="iposLimit"></param>
-        /// <param name="destination"></param>
-        /// <param name="stride"></param>
+        /// <param name="matrix">The input matrix.</param>
+        /// <param name="rgposSrc">The source position.</param>
+        /// <param name="sourceValues">The source values.</param>
+        /// <param name="posMin">The minimum position.</param>
+        /// <param name="iposMin">The minimum position index.</param>
+        /// <param name="iposLimit">The position limit.</param>
+        /// <param name="destination">The destination matrix.</param>
+        /// <param name="stride">The column stride.</param>
         public static void MatrixTimesSource(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
@@ -154,8 +154,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Adds a value to a destination.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="destination"></param>
+        /// <param name="value">The value to add.</param>
+        /// <param name="destination">The destination to add the value to.</param>
         public static void Add(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -180,8 +180,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Scales a value to a destination.
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="destination"></param>
+        /// <param name="value">The value to add.</param>
+        /// <param name="destination">The destination to add the value to.</param>
         public static void Scale(float value, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -207,10 +207,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Scales a values by a source to a destination.
         /// destination = value * source
         /// </summary>
-        /// <param name="value"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="value">The value to scale by.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="destination">The destination.</param>
+        /// <param name="count">The count of items.</param>
         public static void Scale(float value, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -240,9 +240,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Add to the destination by scale with an addend value.
         /// destination[i] = scale * (destination[i] + addend)
         /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="addend"></param>
-        /// <param name="destination"></param>
+        /// <param name="scale">The scale to add by.</param>
+        /// <param name="addend">The added value.</param>
+        /// <param name="destination">The destination.</param>
         public static void ScaleAdd(float scale, float addend, Span<float> destination)
         {
             Contracts.AssertNonEmpty(destination);
@@ -267,10 +267,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Add to the destination from the source by scale.
         /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="scale">The scale to add by.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="count">The count of items.</param>
         public static void AddScale(float scale, ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -299,11 +299,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Add to the destination by scale and source with indices.
         /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="source"></param>
-        /// <param name="indices"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="scale">The scale to add by.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="indices">The indices of value collection.</param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="count">The count of items.</param>
         public static void AddScale(float scale, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -335,11 +335,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Add to the destination by scale and source into a new result.
         /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="result"></param>
-        /// <param name="count"></param>
+        /// <param name="scale">The scale to add by.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="result">A new collection of values to be returned.</param>
+        /// <param name="count">The count of items.</param>
         public static void AddScaleCopy(float scale, ReadOnlySpan<float> source, ReadOnlySpan<float> destination, Span<float> result, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -370,9 +370,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Add from a source to a destination.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="source">The source values.</param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="count">The count of items.</param>
         public static void Add(ReadOnlySpan<float> source, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -401,10 +401,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Add from a source to a destination with indices.
         /// </summary>
-        /// <param name="source"></param>
+        /// <param name="source">The source values.</param>
         /// <param name="indices"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="count">The count of items.</param>
         public static void Add(ReadOnlySpan<float> source, ReadOnlySpan<int> indices, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -436,10 +436,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Multiply each element with left and right elements.
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="destination"></param>
-        /// <param name="count"></param>
+        /// <param name="left">The left element.</param>
+        /// <param name="right">The right element.</param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="count">The count of items.</param>
         public static void MulElementWise(ReadOnlySpan<float> left, ReadOnlySpan<float> right, Span<float> destination, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -470,8 +470,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sum the values in the source.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all items in the source.</returns>
         public static float Sum(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -498,8 +498,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sum the squares of each item in the source.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all items squared in the source.</returns>
         public static float SumSq(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -526,9 +526,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sum the square of each item in the source and subtract the mean.
         /// </summary>
-        /// <param name="mean"></param>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="mean">The mean value.</param>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all items in the source by the mean.</returns>
         public static float SumSq(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -555,8 +555,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sum the absolute value of each item in the source.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all absolute value of the items in the source.</returns>
         public static float SumAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -583,9 +583,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sum the absolute value of each item in the source and subtract the mean.
         /// </summary>
-        /// <param name="mean"></param>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="mean">The mean value.</param>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all items in the source subtracted by the mean.</returns>
         public static float SumAbs(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -612,8 +612,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Take the maximum absolute value within the source.
         /// </summary>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="source">The source values.</param>
+        /// <returns>The max of all absolute value items in the source.</returns>
         public static float MaxAbs(ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -644,9 +644,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Take the maximum absolute value within the source and subtract the mean.
         /// </summary>
-        /// <param name="mean"></param>
-        /// <param name="source"></param>
-        /// <returns></returns>
+        /// <param name="mean">The mean value.</param>
+        /// <param name="source">The source values.</param>
+        /// <returns>The sum of all absolute value items in the source subtracted by the mean.</returns>
         public static float MaxAbsDiff(float mean, ReadOnlySpan<float> source)
         {
             Contracts.AssertNonEmpty(source);
@@ -677,10 +677,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Returns the dot product of each item in the left and right spans.
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <param name="left">The left span.</param>
+        /// <param name="right">The right span.</param>
+        /// <param name="count">The count of items.</param>
+        /// <returns>The dot product.</returns>
         public static float DotProductDense(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -711,11 +711,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Returns the dot product of each item by index in the left and right spans.
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="indices"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <param name="left">The left span.</param>
+        /// <param name="right">The right span.</param>
+        /// <param name="indices">The indicies of the left span.</param>
+        /// <param name="count">The count of items.</param>
+        /// <returns>The dot product.</returns>
         public static float DotProductSparse(ReadOnlySpan<float> left, ReadOnlySpan<float> right, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -749,10 +749,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Returns the sum of the squared distance between the left and right spans.
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <param name="left">The left span.</param>
+        /// <param name="right">The right span.</param>
+        /// <param name="count">The count of items.</param>
+        /// <returns>The squared distance value.</returns>
         public static float L2DistSquared(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count)
         {
             Contracts.AssertNonEmpty(left);
@@ -784,10 +784,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Sets the matrix items to zero.
         /// </summary>
-        /// <param name="destination"></param>
-        /// <param name="ccol"></param>
-        /// <param name="cfltRow"></param>
-        /// <param name="indices"></param>
+        /// <param name="destination">The destination values.</param>
+        /// <param name="ccol">The stride column.</param>
+        /// <param name="cfltRow">The row to use.</param>
+        /// <param name="indices">The indicies.</param>
         public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices)
         {
             Contracts.Assert(ccol > 0);
@@ -856,12 +856,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Updates span items with threshold.
         /// </summary>
-        /// <param name="primalUpdate"></param>
-        /// <param name="count"></param>
-        /// <param name="source"></param>
-        /// <param name="threshold"></param>
-        /// <param name="v"></param>
-        /// <param name="w"></param>
+        /// <param name="primalUpdate">The primal update value.</param>
+        /// <param name="count">The count of items.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="threshold">The threshold value.</param>
+        /// <param name="v">The v span.</param>
+        /// <param name="w">The w span.</param>
         public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> source, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
@@ -894,13 +894,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Updates span items with threshold by indices.
         /// </summary>
-        /// <param name="primalUpdate"></param>
-        /// <param name="count"></param>
-        /// <param name="source"></param>
-        /// <param name="indices"></param>
-        /// <param name="threshold"></param>
-        /// <param name="v"></param>
-        /// <param name="w"></param>
+        /// <param name="primalUpdate">The primal update value.</param>
+        /// <param name="count">The count of items.</param>
+        /// <param name="source">The source values.</param>
+        /// <param name="indices">The indicies of the source span.</param>
+        /// <param name="threshold">The threshold.</param>
+        /// <param name="v">The v span.</param>
+        /// <param name="w">The w span.</param>
         public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> source, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(source);
