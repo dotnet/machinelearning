@@ -60,16 +60,12 @@ namespace Microsoft.ML.Runtime.Data
             ref VBuffer<T> destination,
             int newLogicalLength,
             int valuesCount,
-            int maxValuesCapacity,
-            bool keepOldOnResize = false,
-            bool requireIndicesOnDense = false)
+            int maxValuesCapacity)
         {
             return destination.GetEditor(
                 newLogicalLength,
                 valuesCount,
-                maxValuesCapacity,
-                keepOldOnResize,
-                requireIndicesOnDense);
+                maxValuesCapacity);
         }
     }
 
