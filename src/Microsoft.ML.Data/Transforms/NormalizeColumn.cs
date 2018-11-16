@@ -392,7 +392,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
-            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
+            public abstract NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static AffineColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -434,8 +434,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("AffineOffset", typeSrc, Offset);
                 }
 
-                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.AffineNormalizerModelParameters<TFloat> { Scale = Scale, Offset = Offset };
+                public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizingTransformer.AffineNormalizerModelParameters<TFloat> { Scale = Scale, Offset = Offset };
 
             }
 
@@ -482,8 +482,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>> { Scale = ImmutableArray.Create(Scale), Offset = ImmutableArray.Create(Offset) };
+                public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizingTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>> { Scale = ImmutableArray.Create(Scale), Offset = ImmutableArray.Create(Offset) };
             }
         }
 
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             public abstract Delegate GetGetter(IRow input, int icol);
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
-            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
+            public abstract NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static CdfColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {
@@ -555,8 +555,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
                 }
 
-                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.CdfNormalizerModelParameters<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
+                public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizingTransformer.CdfNormalizerModelParameters<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
             }
 
             private abstract class ImplVec<TFloat> : CdfColumnFunction
@@ -599,8 +599,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     src.CopyTo(ref dst);
                 }
 
-                public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.CdfNormalizerModelParameters<ImmutableArray<TFloat>>() { Mean = ImmutableArray.Create(Mean), Stddev = ImmutableArray.Create(Stddev), UseLog = UseLog };
+                public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                    => new NormalizingTransformer.CdfNormalizerModelParameters<ImmutableArray<TFloat>>() { Mean = ImmutableArray.Create(Mean), Stddev = ImmutableArray.Create(Stddev), UseLog = UseLog };
             }
 
             public const string LoaderSignature = "CdfNormalizeFunction";
@@ -643,7 +643,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 // REVIEW: How to attach information on the bins, to metadata?
             }
 
-            public abstract NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
+            public abstract NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
             public static BinColumnFunction Create(ModelLoadContext ctx, IHost host, ColumnType typeSrc)
             {

@@ -7,9 +7,9 @@ using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class MinMaxNormalizerExample
+    public class NormalizerExample
     {
-        public static void MinMaxNormalizer()
+        public static void Normalizer()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 .First(x=> x.Output == "LogInduced")
                 .ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
 
-            Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Offset = {multiColModelParams.Stddev}");
+            Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Stddev = {multiColModelParams.Stddev}");
         }
     }
 }
