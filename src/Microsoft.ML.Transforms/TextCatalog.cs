@@ -169,5 +169,66 @@ namespace Microsoft.ML
             params WordTokenizingTransformer.ColumnInfo[] columns)
           => new WordTokenizingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
 
+        /// <summary>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
+        /// and outputs bag of word vector as <paramref name="outputColumn"/>
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
+        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="ngramLength">Ngram length.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LpNormalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/NgramExtraction.cs?range=1-5,11-74)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+            string inputColumn,
+            string outputColumn = null,
+            int ngramLength = NgramCountingEstimator.Defaults.NgramLength,
+            int skipLength = NgramCountingEstimator.Defaults.SkipLength,
+            bool allLengths = NgramCountingEstimator.Defaults.AllLength,
+            int maxNumTerms = NgramCountingEstimator.Defaults.MaxNumTerms,
+            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.Defaults.Weighting) =>
+            new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn,
+                ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+
+        /// <summary>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
+        /// <param name="ngramLength">Ngram length.</param>
+        /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+        /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
+        /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
+        /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+            (string input, string output)[] columns,
+            int ngramLength = NgramCountingEstimator.Defaults.NgramLength,
+            int skipLength = NgramCountingEstimator.Defaults.SkipLength,
+            bool allLengths = NgramCountingEstimator.Defaults.AllLength,
+            int maxNumTerms = NgramCountingEstimator.Defaults.MaxNumTerms,
+            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.Defaults.Weighting)
+            => new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns,
+                ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+
+        /// <summary>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
+        /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
+        /// </summary>
+        /// <param name="catalog">The text-related transform's catalog.</param>
+        /// <param name="columns">Pairs of columns to run the ngram process on.</param>
+        public static NgramCountingEstimator ProduceNgrams(this TransformsCatalog.TextTransforms catalog,
+             params NgramCountingTransformer.ColumnInfo[] columns)
+          => new NgramCountingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns);
+
     }
 }

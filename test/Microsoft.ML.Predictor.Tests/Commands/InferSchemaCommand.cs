@@ -22,8 +22,9 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
     /// This command generates a suggested RSP to load the text file and recipes it prior to training.
     /// The results are output to the console and also to the RSP file, if it's specified.
     /// </summary>
-    public sealed class InferSchemaCommand : ICommand
+    internal sealed class InferSchemaCommand : ICommand
     {
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.Required, HelpText = "Text file with data to analyze", ShortName = "data")]
@@ -32,6 +33,7 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
             [Argument(ArgumentType.AtMostOnce, HelpText = "Path to the output json file describing the columns", ShortName = "out")]
             public string OutputFile;
         }
+#pragma warning restore CS0649
 
         private readonly IHost _host;
         private readonly string _dataFile;

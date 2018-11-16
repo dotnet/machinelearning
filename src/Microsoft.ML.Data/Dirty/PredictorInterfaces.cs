@@ -173,11 +173,6 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     {
     }
 
-    public interface IHasLabelGains : ITrainer
-    {
-        Double[] GetLabelGains();
-    }
-
     /// <summary>
     /// Interface for mapping input values to corresponding feature contributions.
     /// This interface is commonly implemented by predictors.

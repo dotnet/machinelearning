@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
@@ -15,14 +16,14 @@ namespace Microsoft.ML.Tests.Transformers
 {
     public sealed class PcaTests : TestDataPipeBase
     {
-        private readonly ConsoleEnvironment _env;
+        private readonly IHostEnvironment _env;
         private readonly string _dataSource;
         private readonly TextSaver _saver;
 
         public PcaTests(ITestOutputHelper helper)
             : base(helper)
         {
-            _env = new ConsoleEnvironment(seed: 1);
+            _env = new MLContext(seed: 1);
             _dataSource = GetDataPath("generated_regression_dataset.csv");
             _saver = new TextSaver(_env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }

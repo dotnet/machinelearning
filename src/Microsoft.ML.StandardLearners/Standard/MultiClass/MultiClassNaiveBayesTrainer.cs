@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
         protected override MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor> MakeTransformer(MultiClassNaiveBayesPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        protected override MultiClassNaiveBayesPredictor TrainModelCore(TrainContext context)
+        private protected override MultiClassNaiveBayesPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
