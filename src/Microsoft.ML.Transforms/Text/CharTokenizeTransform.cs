@@ -457,39 +457,37 @@ namespace Microsoft.ML.Transforms.Text
                     getSrc(ref src);
 
                     int len = 0;
-                    for (int i = 0; i < src.Count; i++)
+                    var srcValues = src.GetValues();
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        if (!src.Values[i].IsEmpty)
+                        if (!srcValues[i].IsEmpty)
                         {
-                            len += src.Values[i].Length;
+                            len += srcValues[i].Length;
                             if (_parent._useMarkerChars)
                                 len += TextMarkersCount;
                         }
                     }
 
-                    var values = dst.Values;
+                    var editor = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
-                        if (Utils.Size(values) < len)
-                            values = new ushort[len];
-
                         int index = 0;
-                        for (int i = 0; i < src.Count; i++)
+                        for (int i = 0; i < srcValues.Length; i++)
                         {
-                            if (src.Values[i].IsEmpty)
+                            if (srcValues[i].IsEmpty)
                                 continue;
                             if (_parent._useMarkerChars)
-                                values[index++] = TextStartMarker;
-                            var span = src.Values[i].Span;
-                            for (int ich = 0; ich < src.Values[i].Length; ich++)
-                                values[index++] = span[ich];
+                                editor.Values[index++] = TextStartMarker;
+                            var span = srcValues[i].Span;
+                            for (int ich = 0; ich < srcValues[i].Length; ich++)
+                                editor.Values[index++] = span[ich];
                             if (_parent._useMarkerChars)
-                                values[index++] = TextEndMarker;
+                                editor.Values[index++] = TextEndMarker;
                         }
                         Contracts.Assert(index == len);
                     }
 
-                    dst = new VBuffer<ushort>(len, values, dst.Indices);
+                    dst = editor.Commit();
                 };
 
                 ValueGetter<VBuffer<ushort>> getterWithUnitSep = (ref VBuffer<ushort> dst) =>
@@ -498,11 +496,12 @@ namespace Microsoft.ML.Transforms.Text
 
                     int len = 0;
 
-                    for (int i = 0; i < src.Count; i++)
+                    var srcValues = src.GetValues();
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        if (!src.Values[i].IsEmpty)
+                        if (!srcValues[i].IsEmpty)
                         {
-                            len += src.Values[i].Length;
+                            len += srcValues[i].Length;
 
                             if (i > 0)
                                 len += 1;  // add UnitSeparator character to len that will be added
@@ -512,12 +511,9 @@ namespace Microsoft.ML.Transforms.Text
                     if (_parent._useMarkerChars)
                         len += TextMarkersCount;
 
-                    var values = dst.Values;
+                    var editor = VBufferEditor.Create(ref dst, len);
                     if (len > 0)
                     {
-                        if (Utils.Size(values) < len)
-                            values = new ushort[len];
-
                         int index = 0;
 
                         // ReadOnlyMemory can be a result of either concatenating text columns together
@@ -527,33 +523,32 @@ namespace Microsoft.ML.Transforms.Text
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
                         // Insert UnitSeparator after every piece of text in the vector.
                         if (_parent._useMarkerChars)
-                            values[index++] = TextStartMarker;
+                            editor.Values[index++] = TextStartMarker;
 
-                        for (int i = 0; i < src.Count; i++)
+                        for (int i = 0; i < srcValues.Length; i++)
                         {
-                            if (src.Values[i].IsEmpty)
+                            if (srcValues[i].IsEmpty)
                                 continue;
 
                             if (i > 0)
-                                values[index++] = UnitSeparator;
+                                editor.Values[index++] = UnitSeparator;
 
-                            var span = src.Values[i].Span;
-                            for (int ich = 0; ich < src.Values[i].Length; ich++)
-                                values[index++] = span[ich];
+                            var span = srcValues[i].Span;
+                            for (int ich = 0; ich < srcValues[i].Length; ich++)
+                                editor.Values[index++] = span[ich];
                         }
 
                         if (_parent._useMarkerChars)
-                            values[index++] = TextEndMarker;
+                            editor.Values[index++] = TextEndMarker;
 
                         Contracts.Assert(index == len);
                     }
 
-                    dst = new VBuffer<ushort>(len, values, dst.Indices);
+                    dst = editor.Commit();
                 };
                 return _parent._isSeparatorStartEnd ? getterWithStartEndSep : getterWithUnitSep;
             }
         }
-
     }
 
     /// <summary>

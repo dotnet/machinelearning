@@ -216,11 +216,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
         /// <p>Example code can be found by searching for <i>SsaChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for changepoint detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,167-229)]
         /// ]]>
         /// </format>
+        /// </example>
         public SsaChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,

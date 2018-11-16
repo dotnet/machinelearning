@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                         writer.Write(FloatUtils.ToRoundTripString(value));
                         writer.Write("*");
-                        if (featureNames.Count > 0)
+                        if (featureNames.GetValues().Length > 0)
                             writer.Write(FeatureNameAsCode(featureNames.GetItemOrDefault(idx).ToString(), idx));
                         else
                             writer.Write("f_" + idx);
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var name = featureNames.GetItemOrDefault(idx);
 
                         inputBuilder.AppendLine("[Input:" + numNonZeroWeights + "]");
-                        inputBuilder.AppendLine("Name=" + (featureNames.Count == 0 ? "Feature_" + idx : name.IsEmpty ? $"f{idx}" : name.ToString()));
+                        inputBuilder.AppendLine("Name=" + (featureNames.GetValues().Length == 0 ? "Feature_" + idx : name.IsEmpty ? $"f{idx}" : name.ToString()));
                         inputBuilder.AppendLine("Transform=linear");
                         inputBuilder.AppendLine("Slope=1");
                         inputBuilder.AppendLine("Intercept=0");

@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema Schema { get { return _schema; } }
 
-            public long? GetRowCount(bool lazy = true) { return _rowCount; }
+            public long? GetRowCount() { return _rowCount; }
 
             public bool CanShuffle { get { return true; } }
 

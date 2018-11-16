@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             LdaInterface.SetAlphaSum(_engine, averageDocLength);
         }
 
-        public int LoadDoc(int[] termID, double[] termVal, int termNum, int numVocab)
+        public int LoadDoc(ReadOnlySpan<int> termID, ReadOnlySpan<double> termVal, int termNum, int numVocab)
         {
             Contracts.Check(numVocab == NumVocab);
             Contracts.Check(termNum > 0);
@@ -189,12 +189,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Contracts.Check(termVal.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
-            Array.Copy(termID, pID, termNum);
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
+            termID.Slice(0, termNum).CopyTo(pID);
             return LdaInterface.FeedInData(_engine, pID, pVal, termNum, NumVocab);
         }
 
-        public int LoadDocDense(double[] termVal, int termNum, int numVocab)
+        public int LoadDocDense(ReadOnlySpan<double> termVal, int termNum, int numVocab)
         {
             Contracts.Check(numVocab == NumVocab);
             Contracts.Check(termNum > 0);
@@ -202,9 +204,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Contracts.Check(termVal.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             return LdaInterface.FeedInDataDense(_engine, pVal, termNum, NumVocab);
-
         }
 
         public List<KeyValuePair<int, float>> GetDocTopicVector(int docID)
@@ -244,17 +247,19 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return topicRet;
         }
 
-        public List<KeyValuePair<int, float>> TestDoc(int[] termID, double[] termVal, int termNum, int numBurninIter, bool reset)
+        public List<KeyValuePair<int, float>> TestDoc(ReadOnlySpan<int> termID, ReadOnlySpan<double> termVal, int termNum, int numBurninIter, bool reset)
         {
             Contracts.Check(termNum > 0);
             Contracts.Check(termVal.Length >= termNum);
             Contracts.Check(termID.Length >= termNum);
 
             int[] pID = new int[termNum];
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             int[] pTopic = new int[NumTopic];
             int[] pProb = new int[NumTopic];
-            Array.Copy(termID, pID, termNum);
+            termID.Slice(0, termNum).CopyTo(pID);
 
             int numTopicReturn = NumTopic;
 
@@ -273,12 +278,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return topicRet;
         }
 
-        public List<KeyValuePair<int, float>> TestDocDense(double[] termVal, int termNum, int numBurninIter, bool reset)
+        public List<KeyValuePair<int, float>> TestDocDense(ReadOnlySpan<double> termVal, int termNum, int numBurninIter, bool reset)
         {
             Contracts.Check(termNum > 0);
             Contracts.Check(numBurninIter > 0);
             Contracts.Check(termVal.Length >= termNum);
-            int[] pVal = termVal.Select(item => (int)item).ToArray();
+            int[] pVal = new int[termVal.Length];
+            for (int i = 0; i < termVal.Length; i++)
+                pVal[i] = (int)termVal[i];
             int[] pTopic = new int[NumTopic];
             int[] pProb = new int[NumTopic];
 

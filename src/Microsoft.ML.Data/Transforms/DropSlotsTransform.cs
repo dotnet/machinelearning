@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(infoEx.SlotDropper.SlotsMin.Length == infoEx.SlotDropper.SlotsMax.Length);
                 Host.Assert(AreRangesValid(i));
                 ctx.Writer.WriteIntArray(infoEx.SlotDropper.SlotsMin);
-                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax, infoEx.SlotDropper.SlotsMax.Length);
+                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax);
             }
         }
 
@@ -701,7 +701,7 @@ namespace Microsoft.ML.Transforms
         // Delegates onto instance methods are more efficient than delegates onto static methods.
         private void VecTrivialGetter<TDst>(ref VBuffer<TDst> value)
         {
-            value = new VBuffer<TDst>(1, 0, value.Values, value.Indices);
+            VBufferUtils.Resize(ref value, 1, 0);
         }
 
         private Delegate MakeVecGetter(IRow input, int iinfo)

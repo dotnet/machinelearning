@@ -143,7 +143,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         internal const int NumTrees = 100;
         internal const int NumLeaves = 20;
-        internal const int MinDocumentsInLeafs = 10;
+        internal const int MinDocumentsInLeaves = 10;
         internal const double LearningRates = 0.2;
     }
 
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
-        public int MinDocumentsInLeafs = Defaults.MinDocumentsInLeafs;
+        public int MinDocumentsInLeafs = Defaults.MinDocumentsInLeaves;
 
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]

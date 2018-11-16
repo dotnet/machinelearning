@@ -103,9 +103,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema => Source.Schema;
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return Source.GetRowCount(lazy);
+            return Source.GetRowCount();
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)

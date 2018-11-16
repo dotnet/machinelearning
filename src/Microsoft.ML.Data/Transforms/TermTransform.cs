@@ -507,7 +507,7 @@ namespace Microsoft.ML.Transforms.Categorical
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
                 var trainer = Trainer.Create(cursor, colSrc, autoConvert, int.MaxValue, bldr);
-                double rowCount = termData.GetRowCount(true) ?? double.NaN;
+                double rowCount = termData.GetRowCount() ?? double.NaN;
                 long rowCur = 0;
                 pch.SetHeader(header,
                     e =>
@@ -606,7 +606,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 using (var pch = env.StartProgressChannel("Building term dictionary"))
                 {
                     long rowCur = 0;
-                    double rowCount = trainingData.GetRowCount(true) ?? double.NaN;
+                    double rowCount = trainingData.GetRowCount() ?? double.NaN;
                     var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
 
                     itrainer = 0;
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             Host.Assert(_unboundMaps.Length == _textMetadata.Length);
             Host.Assert(_textMetadata.Length == ColumnPairs.Length);
-            ctx.Writer.WriteBoolBytesNoCount(_textMetadata, _textMetadata.Length);
+            ctx.Writer.WriteBoolBytesNoCount(_textMetadata);
 
             // REVIEW: Should we do separate sub models for each dictionary?
             const string dir = "Vocabulary";

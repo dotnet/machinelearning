@@ -181,7 +181,7 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.Assert(Enum.IsDefined(typeof(WeightingCriteria), Weighting));
                 ctx.Writer.Write((int)Weighting);
                 Contracts.Assert(Utils.Size(NonEmptyLevels) == NgramLength);
-                ctx.Writer.WriteBoolBytesNoCount(NonEmptyLevels, NgramLength);
+                ctx.Writer.WriteBoolBytesNoCount(NonEmptyLevels);
             }
         }
 
@@ -315,14 +315,15 @@ namespace Microsoft.ML.Transforms.Text
                 if (_slotNamesTypes[i] != null)
                 {
                     GetSlotNames(i, ref ngramsNames);
-                    Host.Assert(_ngramMaps[i].Count == ngramsNames.Count);
+                    Host.Assert(_ngramMaps[i].Count == ngramsNames.GetValues().Length);
                     Host.Assert(ngramsNames.IsDense);
                     ctx.SaveTextStream(string.Format("{0}-ngrams.txt", Infos[i].Name),
                         writer =>
                         {
-                            writer.WriteLine("# Number of Ngrams terms = {0}", ngramsNames.Count);
-                            for (int j = 0; j < ngramsNames.Count; j++)
-                                writer.WriteLine("{0}\t{1}", j, ngramsNames.Values[j]);
+                            var explicitNgramNames = ngramsNames.GetValues();
+                            writer.WriteLine("# Number of Ngrams terms = {0}", explicitNgramNames.Length);
+                            for (int j = 0; j < explicitNgramNames.Length; j++)
+                                writer.WriteLine("{0}\t{1}", j, explicitNgramNames[j]);
                         });
                 }
             }
@@ -350,7 +351,14 @@ namespace Microsoft.ML.Transforms.Text
             var md = Metadata;
             for (int iinfo = 0; iinfo < _exes.Length; iinfo++)
             {
-                types[iinfo] = new VectorType(NumberType.Float, _ngramMaps[iinfo].Count);
+                var vectorSize = _ngramMaps[iinfo].Count;
+                if (vectorSize == 0)
+                {
+                    // If we the ngram map is empty, we should output the fixed-size vector of size 0. This is not a
+                    // valid VectorType (it would be considered variable), so we make it size 1 in this case.
+                    vectorSize = 1;
+                }
+                types[iinfo] = new VectorType(NumberType.Float, vectorSize);
                 var info = Infos[iinfo];
                 if (!Source.Schema.HasKeyNames(info.Source, info.TypeSrc.ItemType.KeyCount))
                     continue;
@@ -495,7 +503,7 @@ namespace Microsoft.ML.Transforms.Text
                 invDocFreqs = new double[Infos.Length][];
 
                 long totalDocs = 0;
-                Double rowCount = trainingData.GetRowCount(true) ?? Double.NaN;
+                Double rowCount = trainingData.GetRowCount() ?? Double.NaN;
                 var buffers = new VBuffer<float>[Infos.Length];
                 pch.SetHeader(new ProgressHeader(new[] { "Total n-grams" }, new[] { "documents" }),
                     e => e.SetProgress(0, totalDocs, rowCount));

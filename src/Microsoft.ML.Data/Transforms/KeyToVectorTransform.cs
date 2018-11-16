@@ -523,8 +523,8 @@ namespace Microsoft.ML.Transforms.Conversions
                         Host.Check(cv == 0 || src.Length == cv);
 
                         // The indices are irrelevant in the bagging case.
-                        var values = src.Values;
-                        int count = src.Count;
+                        var values = src.GetValues();
+                        int count = values.Length;
                         for (int slot = 0; slot < count; slot++)
                         {
                             uint key = values[slot] - 1;
@@ -564,17 +564,11 @@ namespace Microsoft.ML.Transforms.Conversions
                         Host.Check(lenSrc == cv || cv == 0);
 
                         // Since we generate values in order, no need for a builder.
-                        var valuesDst = dst.Values;
-                        var indicesDst = dst.Indices;
-
                         int lenDst = checked(size * lenSrc);
-                        int cntSrc = src.Count;
-                        if (Utils.Size(valuesDst) < cntSrc)
-                            valuesDst = new float[cntSrc];
-                        if (Utils.Size(indicesDst) < cntSrc)
-                            indicesDst = new int[cntSrc];
+                        var values = src.GetValues();
+                        int cntSrc = values.Length;
+                        var editor = VBufferEditor.Create(ref dst, lenDst, cntSrc);
 
-                        var values = src.Values;
                         int count = 0;
                         if (src.IsDense)
                         {
@@ -585,24 +579,24 @@ namespace Microsoft.ML.Transforms.Conversions
                                 uint key = values[slot] - 1;
                                 if (key >= (uint)size)
                                     continue;
-                                valuesDst[count] = 1;
-                                indicesDst[count++] = slot * size + (int)key;
+                                editor.Values[count] = 1;
+                                editor.Indices[count++] = slot * size + (int)key;
                             }
                         }
                         else
                         {
-                            var indices = src.Indices;
+                            var indices = src.GetIndices();
                             for (int islot = 0; islot < cntSrc; islot++)
                             {
                                 Host.Assert(count < cntSrc);
                                 uint key = values[islot] - 1;
                                 if (key >= (uint)size)
                                     continue;
-                                valuesDst[count] = 1;
-                                indicesDst[count++] = indices[islot] * size + (int)key;
+                                editor.Values[count] = 1;
+                                editor.Indices[count++] = indices[islot] * size + (int)key;
                             }
                         }
-                        dst = new VBuffer<float>(lenDst, count, valuesDst, indicesDst);
+                        dst = editor.CommitTruncated(count);
                     };
             }
 

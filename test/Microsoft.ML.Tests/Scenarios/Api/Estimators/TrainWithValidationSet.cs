@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var validData = preprocess.Transform(reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename)));
 
             // Train model with validation set.
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent();
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label","Features");
             var model = trainer.Train(trainData, validData);
         }
     }

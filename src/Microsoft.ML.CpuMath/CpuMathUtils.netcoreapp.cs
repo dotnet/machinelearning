@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Multiplies a matrix times a source.
         /// </summary>
         /// <param name="matrix">The input matrix.</param>
-        /// <param name="rgposSrc">The source position.</param>
+        /// <param name="rgposSrc">The source positions.</param>
         /// <param name="sourceValues">The source values.</param>
         /// <param name="posMin">The minimum position.</param>
         /// <param name="iposMin">The minimum position index.</param>

@@ -402,13 +402,13 @@ namespace Microsoft.ML.Transforms.Text
 
                 if (termLoaderArgs.DropUnknowns)
                 {
-                    var naDropArgs = new NADropTransform.Arguments { Column = new NADropTransform.Column[termCols.Count] };
+                    var naDropArgs = new MissingValueDroppingTransformer.Arguments { Column = new MissingValueDroppingTransformer.Column[termCols.Count] };
                     for (int iinfo = 0; iinfo < termCols.Count; iinfo++)
                     {
                         naDropArgs.Column[iinfo] =
-                            new NADropTransform.Column { Name = termCols[iinfo].Name, Source = termCols[iinfo].Name };
+                            new MissingValueDroppingTransformer.Column { Name = termCols[iinfo].Name, Source = termCols[iinfo].Name };
                     }
-                    view = new NADropTransform(h, naDropArgs, view);
+                    view = new MissingValueDroppingTransformer(h, naDropArgs, view);
                 }
             }
 

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Training
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Runtime.Training
                 validRoles = MakeRoles(cachedValid);
             }
 
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
