@@ -149,13 +149,13 @@ namespace Microsoft.ML.Transforms
             _schemaImpl.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // Row count is known if the input's row count is known, and pivot column sizes are fixed.
             var commonSize = _schemaImpl.GetCommonPivotColumnSize();
             if (commonSize > 0)
             {
-                long? srcRowCount = Source.GetRowCount(true);
+                long? srcRowCount = Source.GetRowCount();
                 if (srcRowCount.HasValue && srcRowCount.Value <= (long.MaxValue / commonSize))
                     return srcRowCount.Value * commonSize;
             }
@@ -630,18 +630,20 @@ namespace Microsoft.ML.Transforms
                             cachedIndex = 0;
                         }
 
+                        var rowValues = row.GetValues();
                         if (_pivotColPosition >= row.Length)
                             value = naValue;
                         else if (row.IsDense)
-                            value = row.Values[_pivotColPosition];
+                            value = rowValues[_pivotColPosition];
                         else
                         {
                             // The row is sparse.
-                            while (cachedIndex < row.Count && _pivotColPosition > row.Indices[cachedIndex])
+                            var rowIndices = row.GetIndices();
+                            while (cachedIndex < rowIndices.Length && _pivotColPosition > rowIndices[cachedIndex])
                                 cachedIndex++;
 
-                            if (cachedIndex < row.Count && _pivotColPosition == row.Indices[cachedIndex])
-                                value = row.Values[cachedIndex];
+                            if (cachedIndex < rowIndices.Length && _pivotColPosition == rowIndices[cachedIndex])
+                                value = rowValues[cachedIndex];
                             else
                                 value = default(T);
                         }

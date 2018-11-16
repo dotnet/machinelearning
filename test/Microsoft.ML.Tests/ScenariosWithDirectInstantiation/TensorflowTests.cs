@@ -288,14 +288,14 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
+                IDataView trans = ColumnsCopyingTransformer.Create(env, new ColumnsCopyingTransformer.Arguments()
                 {
-                    Column = new[] { new CopyColumnsTransform.Column()
+                    Column = new[] { new ColumnsCopyingTransformer.Column()
                                         { Name = "reshape_input", Source = "Placeholder" }
                                     }
                 }, loader);
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
-                trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
+                trans = new ColumnConcatenatingTransformer(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Scenarios
                         trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
                     }
 
-                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                    trans = new ColumnConcatenatingTransformer(env, "Features", "Prediction").Transform(trainedTfDataView);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                    IDataView trans = new CopyColumnsTransform(env,
+                    IDataView trans = new ColumnsCopyingTransformer(env,
                         ("Placeholder", "Features")).Transform(loader);
 
                     var args = new TensorFlowTransform.Arguments()
@@ -569,8 +569,8 @@ namespace Microsoft.ML.Scenarios
                         trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
                     }
 
-                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                    trans = new ConvertingTransform(env, new ConvertingTransform.ColumnInfo("Label", "Label", DataKind.R4)).Transform(trans);
+                    trans = new ColumnConcatenatingTransformer(env, "Features", "Prediction").Transform(trainedTfDataView);
+                    trans = new TypeConvertingTransformer(env, new TypeConvertingTransformer.ColumnInfo("Label", "Label", DataKind.R4)).Transform(trans);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -653,14 +653,14 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = CopyColumnsTransform.Create(env, new CopyColumnsTransform.Arguments()
+                IDataView trans = ColumnsCopyingTransformer.Create(env, new ColumnsCopyingTransformer.Arguments()
                 {
-                    Column = new[] { new CopyColumnsTransform.Column()
+                    Column = new[] { new ColumnsCopyingTransformer.Column()
                                         { Name = "reshape_input", Source = "Placeholder" }
                                     }
                 }, loader);
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
-                trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
+                trans = new ColumnConcatenatingTransformer(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -720,14 +720,14 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = new Legacy.LearningPipeline(seed: 1);
             pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
+            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnsCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
                 ModelLocation = model_location,
                 OutputColumns = new[] { "Softmax", "dense/Relu" },
                 InputColumns = new[] { "Placeholder", "reshape_input" }
             });
-            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
+            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ColumnConcatenatingTransformerColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
             pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
 
             var model = pipeline.Train<MNISTData, MNISTPrediction>();

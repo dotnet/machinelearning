@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract void Save(ModelSaveContext ctx);
 
-        public abstract long? GetRowCount(bool lazy = true);
+        public abstract long? GetRowCount();
 
         public virtual bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public sealed override long? GetRowCount(bool lazy = true) { return Source.GetRowCount(lazy); }
+        public sealed override long? GetRowCount() { return Source.GetRowCount(); }
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override long? GetRowCount(bool lazy = true) => null;
+        public override long? GetRowCount() => null;
 
         public sealed override Schema Schema => Source.Schema;
 
