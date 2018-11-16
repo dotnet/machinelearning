@@ -16,7 +16,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     ///
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public sealed class AlignedArray
+    [BestFriend]
+    internal sealed class AlignedArray
     {
         // Items includes "head" items filled with NaN, followed by _size entries, followed by "tail"
         // items, also filled with NaN. Note that _size * sizeof(Float) is divisible by _cbAlign.
