@@ -10,5 +10,5 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// black box to the graph. The macro itself will then case to the concrete type.
     /// </summary>
     public interface IMlState
-    {}
+    { }
 }

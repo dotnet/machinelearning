@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class EvaluateCommand : DataCommand.ImplBase<EvaluateCommand.Arguments>
+    internal sealed class EvaluateCommand : DataCommand.ImplBase<EvaluateCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {

@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        public override RandomPredictor Train(TrainContext context)
+        private protected override RandomPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             return new RandomPredictor(Host, Host.Rand.Next());
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        public override PriorPredictor Train(TrainContext context)
+        private protected override PriorPredictor Train(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             var data = context.TrainingSet;

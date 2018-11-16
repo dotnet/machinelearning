@@ -13,11 +13,6 @@
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
-
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\Common\AssemblyLoadingUtils.cs" Link="Common\AssemblyLoadingUtils.cs" />
   </ItemGroup>
 
 </Project>
