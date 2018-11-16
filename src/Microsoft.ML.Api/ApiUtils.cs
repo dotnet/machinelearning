@@ -9,13 +9,10 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Api
 {
-    [BestFriend]
     internal delegate void Peek<in TRow, TValue>(TRow row, long position, ref TValue value);
 
-    [BestFriend]
     internal delegate void Poke<TRow, TValue>(TRow dst, TValue src);
 
-    [BestFriend]
     internal static class ApiUtils
     {
         private static OpCode GetAssignmentOpCode(Type t)

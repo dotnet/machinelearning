@@ -6,9 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Microsoft.ML.TimeSeries
 {
+    public interface IStatefulRow : IRow
+    {
+    }
+
     /// <summary>
     /// A class that runs the previously trained model (and the preceding transform pipeline) on the
     /// in-memory data, one example at a time.
@@ -21,7 +26,7 @@ namespace Microsoft.ML.TimeSeries
         where TSrc : class
         where TDst : class, new()
     {
-        private IStatefulRowReadableAs<TDst>[] _statefulRows;
+        private Action[][] _pingers;
 
         internal TimeSeriesPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
@@ -102,6 +107,31 @@ namespace Microsoft.ML.TimeSeries
             outRow = result;
         }
 
+        private Action[][] CreatePingers(List<IStatefulRow> rows)
+        {
+            List<Action[]> pingers = new List<Action[]>();
+            foreach(var row in rows)
+            {
+                var list = new List<Action>();
+                for (int i = 0; i < row.Schema.ColumnCount; i++)
+                {
+                    var colType = row.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TimeSeriesColumn, i);
+                    if (colType != null)
+                    {
+                        colType = row.Schema.GetColumnType(i);
+                        MethodInfo meth = ((Func<IRow, int, Action>)CreateGetter<int>).GetMethodInfo().
+                            GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
+
+                        list.Add((Action)meth.Invoke(this, new object[] { row, i }));
+                    }
+                }
+
+                pingers.Add(list.ToArray());
+            }
+
+            return pingers.ToArray();
+        }
+
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
@@ -116,8 +146,18 @@ namespace Microsoft.ML.TimeSeries
             if (rows.Count == 0 && outputRowLocal is IStatefulRow)
                 rows.Add((IStatefulRow)outputRowLocal);
 
-            _statefulRows = rows.Select(row => cursorable.GetRow(row)).ToArray();
+            _pingers = CreatePingers(rows);
             outputRow = cursorable.GetRow(outputRowLocal);
+        }
+
+        private static Action CreateGetter<T>(IRow input, int col)
+        {
+            var getter = input.GetGetter<T>(col);
+            T value = default(T);
+            return () =>
+            {
+                getter(ref value);
+            };
         }
 
         /// <summary>
@@ -133,8 +173,9 @@ namespace Microsoft.ML.TimeSeries
             if (prediction == null)
                 prediction = new TDst();
 
-            foreach (var row in _statefulRows)
-                row.PingValues(prediction);
+            foreach (var row in _pingers)
+                foreach(var pinger in row)
+                    pinger();
 
             FillValues(prediction);
         }

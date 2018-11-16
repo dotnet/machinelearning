@@ -180,6 +180,8 @@ namespace Microsoft.ML.Tests
             //Even though time series column is not requested it will pass the observation through time series transform.
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(-1, prediction.Random);
+            prediction = engine.Predict(new Data(2));
+            Assert.Equal(-1, prediction.Random);
         }
     }
 }

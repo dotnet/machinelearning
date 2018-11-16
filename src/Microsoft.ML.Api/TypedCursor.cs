@@ -76,6 +76,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
+    [BestFriend]
     internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
         where TRow : class
     {
@@ -249,7 +250,8 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRowReadableAs<TRow>
+        [BestFriend]
+        internal abstract class TypedRowBase : IRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
@@ -260,6 +262,9 @@ namespace Microsoft.ML.Runtime.Api
             public long Position => _input.Position;
 
             public Schema Schema => _input.Schema;
+
+            [BestFriend]
+            internal IRow Input => _input;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {
@@ -469,7 +474,8 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private sealed class TypedRow : TypedRowBase
+        [BestFriend]
+        internal sealed class TypedRow : TypedRowBase
         {
             public TypedRow(TypedCursorable<TRow> parent, IRow input)
                 : base(parent, input, "Row")
@@ -477,7 +483,8 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        [BestFriend]
+        internal sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
         {
             private readonly IRowCursor _input;
             private bool _disposed;

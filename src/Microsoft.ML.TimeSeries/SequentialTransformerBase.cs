@@ -511,7 +511,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
 
-    public class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
+    public sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private readonly IRowMapper _mapper;
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-        public virtual IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
