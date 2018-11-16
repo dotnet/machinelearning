@@ -185,9 +185,8 @@ namespace Microsoft.ML.Transforms
 
             protected sealed override void ProcessRow(in VBuffer<TItem> src)
             {
-                var srcCount = src.Count;
-                var srcValues = src.Values;
-                Ch.Assert(Utils.Size(srcValues) >= srcCount);
+                var srcValues = src.GetValues();
+                var srcCount = srcValues.Length;
 
                 for (int slot = 0; slot < srcCount; slot++)
                     ProcessValue(in srcValues[slot]);
@@ -210,9 +209,8 @@ namespace Microsoft.ML.Transforms
 
             protected sealed override void ProcessRow(in VBuffer<TItem> src)
             {
-                var srcCount = src.Count;
-                var srcValues = src.Values;
-                Ch.Assert(Utils.Size(srcValues) >= srcCount);
+                var srcValues = src.GetValues();
+                var srcCount = srcValues.Length;
                 if (src.IsDense)
                 {
                     // The src vector is dense.
@@ -222,8 +220,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // The src vector is sparse.
-                    var srcIndices = src.Indices;
-                    Ch.Assert(Utils.Size(srcIndices) >= srcCount);
+                    var srcIndices = src.GetIndices();
                     for (int islot = 0; islot < srcCount; islot++)
                         ProcessValue(in srcValues[islot], srcIndices[islot]);
                 }

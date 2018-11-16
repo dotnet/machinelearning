@@ -17,6 +17,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
     {
         private readonly GreedyBinFinder _finder;
         private double[] _distinctValues;
+        private double[] _distinctCountsBuffer;
         private int[] _counts;
 
         private static double[] _trivialBinUpperBounds; // Will be initialized to a single element positive infinity array.
@@ -43,15 +44,19 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// The scheme is destructive, because it modifies the arrays within <paramref name="values"/>.
         /// </summary>
         /// <param name="values">The values we are binning</param>
+        /// <param name="valueBuffer">A buffer space to work over the values, so the original
+        /// values aren't modified.</param>
         /// <param name="distinctValues">This working array will be filled with a sorted list of the
         /// distinct values detected within <paramref name="values"/></param>
         /// <param name="counts">This working array will be filled with a sorted list of the distinct
         /// values detected within <paramref name="values"/></param>
         /// <returns>The logical length of both <paramref name="distinctValues"/> and
         /// <paramref name="counts"/></returns>
-        private int FindDistinctCounts(in VBuffer<Double> values, double[] distinctValues, int[] counts)
+        private int FindDistinctCounts(in VBuffer<Double> values, double[] valueBuffer, double[] distinctValues, int[] counts)
         {
-            if (values.Count == 0)
+            var explicitValues = values.GetValues();
+            var explicitValuesCount = explicitValues.Length;
+            if (explicitValuesCount == 0)
             {
                 if (values.Length == 0)
                     return 0;
@@ -59,30 +64,31 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 counts[0] = values.Length;
                 return 1;
             }
-            var valArray = values.Values;
 
             // Get histogram of values
-            Array.Sort(valArray, 0, values.Count);
+            Contracts.Assert(valueBuffer.Length >= explicitValuesCount);
+            explicitValues.CopyTo(valueBuffer);
+            Array.Sort(valueBuffer, 0, explicitValuesCount);
             // Note that Array.Sort will, by MSDN documentation, make NaN be the first item of a sorted
             // list (that is, NaN is considered to be ordered "below" any other value for the purpose of
             // a sort, including negative infinity). So when checking if values contains no NaN values, it
             // suffices to check only the first item.
-            if (double.IsNaN(valArray[0]))
+            if (double.IsNaN(valueBuffer[0]))
                 return -1;
             int idist = 0; // Index into the "distinct" arrays.
-            if (!values.IsDense && valArray[0] > 0)
+            if (!values.IsDense && valueBuffer[0] > 0)
             {
                 // Implicit zeros at the head.
                 distinctValues[0] = 0;
-                counts[0] = values.Length - values.Count;
+                counts[0] = values.Length - explicitValuesCount;
                 idist = 1;
             }
-            double last = distinctValues[idist] = valArray[0];
+            double last = distinctValues[idist] = valueBuffer[0];
             counts[idist] = 1;
 
-            for (int i = 1; i < values.Count; ++i)
+            for (int i = 1; i < explicitValuesCount; ++i)
             {
-                double curr = valArray[i];
+                double curr = valueBuffer[i];
                 if (curr != last)
                 {
                     Contracts.Assert(curr > last);
@@ -92,7 +98,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                     {
                         // This boundary is going from negative, to non-negative, and there are "implicit" zeros.
                         distinctValues[idist] = 0;
-                        counts[idist] = values.Length - values.Count;
+                        counts[idist] = values.Length - explicitValuesCount;
                         if (curr == 0)
                         {
                             // No need to do any more work.
@@ -117,7 +123,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             {
                 // Implicit zeros at the tail.
                 distinctValues[++idist] = 0;
-                counts[idist] = values.Length - values.Count;
+                counts[idist] = values.Length - explicitValuesCount;
             }
 
             return idist + 1;
@@ -224,17 +230,19 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             Contracts.Assert(maxBins > 0);
             Contracts.Assert(minPerLeaf >= 0);
 
-            if (values.Count == 0)
+            var valuesCount = values.GetValues().Length;
+            if (valuesCount == 0)
             {
                 binUpperBounds = TrivialBinUpperBounds;
                 return true;
             }
 
-            int arraySize = values.IsDense ? values.Count : values.Count + 1;
+            int arraySize = values.IsDense ? valuesCount : valuesCount + 1;
+            Utils.EnsureSize(ref _distinctCountsBuffer, arraySize, arraySize, keepOld: false);
             Utils.EnsureSize(ref _distinctValues, arraySize, arraySize, keepOld: false);
             Utils.EnsureSize(ref _counts, arraySize, arraySize, keepOld: false);
 
-            int numValues = FindDistinctCounts(in values, _distinctValues, _counts);
+            int numValues = FindDistinctCounts(in values, _distinctCountsBuffer, _distinctValues, _counts);
             if (numValues < 0)
             {
                 binUpperBounds = null;

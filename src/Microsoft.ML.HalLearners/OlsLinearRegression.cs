@@ -278,9 +278,11 @@ namespace Microsoft.ML.Trainers.HalLearners
             for (int i = 0; i < beta.Length; ++i)
                 ch.Check(FloatUtils.IsFinite(beta[i]), "Non-finite values detected in OLS solution");
 
-            var weights = VBufferUtils.CreateDense<float>(beta.Length - 1);
+            var weightsValues = new float[beta.Length - 1];
             for (int i = 1; i < beta.Length; ++i)
-                weights.Values[i - 1] = (float)beta[i];
+                weightsValues[i - 1] = (float)beta[i];
+            var weights = new VBuffer<float>(weightsValues.Length, weightsValues);
+
             var bias = (float)beta[0];
             if (!(_l2Weight > 0) && m == n)
             {
@@ -670,8 +672,9 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             _tValues = ctx.Reader.ReadDoubleArray(m);
             TValueCheckDecode(Bias, _tValues[0]);
+            var weightValues = Weight.GetValues();
             for (int i = 1; i < m; ++i)
-                TValueCheckDecode(Weight.Values[i - 1], _tValues[i]);
+                TValueCheckDecode(weightValues[i - 1], _tValues[i]);
 
             _pValues = ctx.Reader.ReadDoubleArray(m);
             for (int i = 0; i < m; ++i)
@@ -747,7 +750,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 const string format = "{0}\t{1}\t{2}\t{3:g4}\t{4:g4}\t{5:e4}";
                 writer.WriteLine(format, "", "Bias", Bias, _standardErrors[0], _tValues[0], _pValues[0]);
                 Contracts.Assert(Weight.IsDense);
-                var coeffs = Weight.Values;
+                var coeffs = Weight.GetValues();
                 for (int i = 0; i < coeffs.Length; i++)
                 {
                     var name = names.GetItemOrDefault(i);
@@ -762,7 +765,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 const string format = "{0}\t{1}\t{2}";
                 writer.WriteLine(format, "", "Bias", Bias);
                 Contracts.Assert(Weight.IsDense);
-                var coeffs = Weight.Values;
+                var coeffs = Weight.GetValues();
                 for (int i = 0; i < coeffs.Length; i++)
                 {
                     var name = names.GetItemOrDefault(i);
@@ -779,18 +782,16 @@ namespace Microsoft.ML.Trainers.HalLearners
                 return;
             }
 
-            var values = weights.Values;
             var size = _pValues.Length - 1;
-            if (Utils.Size(values) < size)
-                values = new float[size];
+            var editor = VBufferEditor.Create(ref weights, size);
             for (int i = 0; i < size; i++)
             {
                 var score = -(float)Math.Log(_pValues[i + 1]);
                 if (score > float.MaxValue)
                     score = float.MaxValue;
-                values[i] = score;
+                editor.Values[i] = score;
             }
-            weights = new VBuffer<float>(size, values, weights.Indices);
+            weights = editor.Commit();
         }
     }
 }

@@ -415,7 +415,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     var columnArgument = new StringBuilder();
                     var columnNameQuoted = new StringBuilder();
-                    var epColumns = new List<ML.Legacy.Transforms.ConvertingTransformColumn>();
+                    var epColumns = new List<ML.Legacy.Transforms.TypeConvertingTransformerColumn>();
 
                     foreach (var column in columns)
                     {
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             columnNameQuoted.AppendFormat("{0}", column.ColumnName);
                         }
 
-                        epColumns.Add(new ML.Legacy.Transforms.ConvertingTransformColumn
+                        epColumns.Add(new ML.Legacy.Transforms.TypeConvertingTransformerColumn
                         {
                             Name = columnNameQuoted.ToString(),
                             Source = columnNameQuoted.ToString(),
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = concatColumnName,
                                     Source = columnNames.ToArray()
@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = featuresTreeFeatColumn,
                                     Source = new [] { treeFeaturizerOutputColumnName }
@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = featuresKMeansColumn,
                                     Source = new [] { kMeansOutputColumnName }
@@ -1372,7 +1372,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Features,
                                     Source = columnListQuoted.ToArray()
@@ -1461,7 +1461,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Name,
                                     Source = columnNameQuoted.ToString()
@@ -1507,7 +1507,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Name,
                                     Source = columnListQuoted.ToArray()

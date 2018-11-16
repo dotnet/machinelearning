@@ -734,10 +734,8 @@ namespace Microsoft.ML.Transforms
                 Host.AssertValue(isNA);
 
                 int srcSize = src.Length;
-                int srcCount = src.Count;
-                var srcValues = src.Values;
-                Host.Assert(Utils.Size(srcValues) >= srcCount);
-                var srcIndices = src.Indices;
+                var srcValues = src.GetValues();
+                int srcCount = srcValues.Length;
 
                 var dstValues = dst.Values;
                 var dstIndices = dst.Indices;
@@ -768,8 +766,8 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // The source vector is sparse.
-                    Host.Assert(Utils.Size(srcIndices) >= srcCount);
                     Host.Assert(srcCount < srcSize);
+                    var srcIndices = src.GetIndices();
 
                     // Allocate more space if necessary.
                     // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
@@ -818,10 +816,8 @@ namespace Microsoft.ML.Transforms
                 Host.AssertValue(isNA);
 
                 int srcSize = src.Length;
-                int srcCount = src.Count;
-                var srcValues = src.Values;
-                Host.Assert(Utils.Size(srcValues) >= srcCount);
-                var srcIndices = src.Indices;
+                var srcValues = src.GetValues();
+                int srcCount = srcValues.Length;
 
                 var dstValues = dst.Values;
                 var dstIndices = dst.Indices;
@@ -830,7 +826,6 @@ namespace Microsoft.ML.Transforms
                 Utils.EnsureSize(ref dstValues, srcCount, srcSize, keepOld: false);
 
                 int iivDst = 0;
-                Host.Assert(Utils.Size(srcValues) >= srcCount);
                 if (src.IsDense)
                 {
                     // The source vector is dense.
@@ -852,8 +847,8 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // The source vector is sparse.
-                    Host.Assert(Utils.Size(srcIndices) >= srcCount);
                     Host.Assert(srcCount < srcSize);
+                    var srcIndices = src.GetIndices();
 
                     // Allocate more space if necessary.
                     // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
