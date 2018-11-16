@@ -141,7 +141,6 @@ var inputData = mlContext.CreateDataView(new InputExample[] { example });
 var outputData = model.Transform(inputData);
 var output = outputData.AsDynamic.AsEnumerable<OutputPrediction>(mlContext, reuseRowObject: false).Single();
 ```
-
 But this would be cumbersome, and would incur performance costs. 
 Instead, we have a 'prediction function' object that performs the same work, but faster and more convenient, via an extension method `MakePredictionFunction`:
 
@@ -160,12 +159,13 @@ With a vast variety of components in ML.NET, it is important to have a consisten
 
 Create one `MLContext` for your entire application. All ML.NET components and operations are available as methods of various sub-objects of `MLContext`.
 
-- `MLContext.Data` contains operations related to creating data views (other than transformers):
+- `MLContext.Data` contains operations related to creating `IDataView`s (other than transformers):
   - Loading / saving data to a file
   - Caching the data in memory
   - Filtering (removing rows from data)
 
-Remember that data views are immutable, so each of the above operations create a new data view.
+Remember that `IDataView`s are immutable, so each of the above operations create a new `IDataView`.
+On the other hand, `IDataView`s are also lazy, so there is no data replication from the above.
 
 - `MLContext.Model` contains operations related to models (transformers): saving and loading, creating prediction functions.
 
@@ -173,13 +173,15 @@ Remember that data views are immutable, so each of the above operations create a
   - `Categorical` for handling categorical values
   - `Text` for natural language processing
   - `Conversion` for various type conversions
-  - `Projection` for vector operations (like Primary Component Analysis, Random Fourier features, vector whitening etc.)
+  - `Projection` for vector operations (like Principal Component Analysis, Random Fourier features, Vector Whitening etc.)
   - Normalization/rescaling
-  - Column-related operations (rename, delete, clone, concatenate etc.)
+  - Column-related operations (rename, delete, clone, concatenate, etc.)
   - etc.
 
-- `MLContext.BinaryClassification`, `MulticlassClassification`, `Ranking` etc. are catalogs of learning operations for specific machine learning tasks.
+- `MLContext.BinaryClassification`, `MulticlassClassification`, `Ranking`, etc. are catalogs of learning algorithms for specific machine learning tasks.
   - `TrainTestSplit` and `CrossValidate` to facilitate the respective operations
   - `Trainers` containing various task-specific trainers.
+
+- `MLContext.Log` is a providing a stream of text messages about the long-running processes ML.NET is running.
 
 We are continuously adding new extensions to `MLContext` catalog, so if certain operations are not yet available, they will in the future.

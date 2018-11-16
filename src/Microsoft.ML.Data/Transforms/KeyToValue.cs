@@ -20,17 +20,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueTransform), typeof(KeyToValueTransform.Arguments), typeof(SignatureDataTransform),
-    KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature, "KeyToValue", "KeyToVal", "Unterm")]
+[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueMappingTransformer), typeof(KeyToValueMappingTransformer.Arguments), typeof(SignatureDataTransform),
+    KeyToValueMappingTransformer.UserName, KeyToValueMappingTransformer.LoaderSignature, "KeyToValue", "KeyToVal", "Unterm")]
 
-[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueTransform), null, typeof(SignatureLoadDataTransform),
-    KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IDataTransform), typeof(KeyToValueMappingTransformer), null, typeof(SignatureLoadDataTransform),
+    KeyToValueMappingTransformer.UserName, KeyToValueMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(KeyToValueTransform), null, typeof(SignatureLoadModel),
-    KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(KeyToValueMappingTransformer), null, typeof(SignatureLoadModel),
+    KeyToValueMappingTransformer.UserName, KeyToValueMappingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToValueTransform), null, typeof(SignatureLoadRowMapper),
-    KeyToValueTransform.UserName, KeyToValueTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToValueMappingTransformer), null, typeof(SignatureLoadRowMapper),
+    KeyToValueMappingTransformer.UserName, KeyToValueMappingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Conversions
 {
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Transforms.Conversions
     /// * Output columns utilize the KeyValues metadata.
     /// * Maps zero values of the key type to the NA of the output type.
     /// </summary>
-    public sealed class KeyToValueTransform : OneToOneTransformerBase
+    public sealed class KeyToValueMappingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -78,22 +78,22 @@ namespace Microsoft.ML.Transforms.Conversions
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(KeyToValueTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(KeyToValueMappingTransformer).Assembly.FullName);
         }
 
         /// <summary>
-        /// Create a <see cref="KeyToValueTransform"/> that takes and transforms one column.
+        /// Create a <see cref="KeyToValueMappingTransformer"/> that takes and transforms one column.
         /// </summary>
-        public KeyToValueTransform(IHostEnvironment env, string columnName)
+        public KeyToValueMappingTransformer(IHostEnvironment env, string columnName)
             : this(env, (columnName, columnName))
         {
         }
 
         /// <summary>
-        /// Create a <see cref="KeyToValueTransform"/> that takes multiple pairs of columns.
+        /// Create a <see cref="KeyToValueMappingTransformer"/> that takes multiple pairs of columns.
         /// </summary>
-        public KeyToValueTransform(IHostEnvironment env, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueTransform)), columns)
+        public KeyToValueMappingTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingTransformer)), columns)
         {
         }
 
@@ -107,23 +107,23 @@ namespace Microsoft.ML.Transforms.Conversions
             env.CheckValue(input, nameof(input));
             env.CheckNonEmpty(args.Column, nameof(args.Column));
 
-            var transformer = new KeyToValueTransform(env, args.Column.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
+            var transformer = new KeyToValueMappingTransformer(env, args.Column.Select(c => (c.Source ?? c.Name, c.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
         /// <summary>
         /// Factory method for SignatureLoadModel.
         /// </summary>
-        private static KeyToValueTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KeyToValueMappingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(KeyToValueTransform));
+            var host = env.Register(nameof(KeyToValueMappingTransformer));
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new KeyToValueTransform(host, ctx);
+            return new KeyToValueMappingTransformer(host, ctx);
         }
 
-        private KeyToValueTransform(IHost host, ModelLoadContext ctx)
+        private KeyToValueMappingTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
         }
@@ -156,11 +156,11 @@ namespace Microsoft.ML.Transforms.Conversions
 
         private sealed class Mapper : MapperBase, ISaveAsPfa
         {
-            private readonly KeyToValueTransform _parent;
+            private readonly KeyToValueMappingTransformer _parent;
             private readonly ColumnType[] _types;
             private readonly KeyToValueMap[] _kvMaps;
 
-            public Mapper(KeyToValueTransform parent, Schema inputSchema)
+            public Mapper(KeyToValueMappingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -329,7 +329,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _convertToUInt = Runtime.Data.Conversion.Conversions.Instance.GetStandardConversion<TKey, UInt32>(typeKey, NumberType.U4, out identity);
                 }
 
-                private void MapKey(ref TKey src, ref TValue dst)
+                private void MapKey(in TKey src, ref TValue dst)
                 {
                     uint uintSrc = 0;
                     _convertToUInt(in src, ref uintSrc);
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             (ref TValue dst) =>
                             {
                                 getSrc(ref src);
-                                MapKey(ref src, ref dst);
+                                MapKey(in src, ref dst);
                             };
                         return retVal;
                     }
@@ -376,8 +376,8 @@ namespace Microsoft.ML.Transforms.Conversions
                             {
                                 getSrc(ref src);
                                 int srcSize = src.Length;
-                                int srcCount = src.Count;
-                                var srcValues = src.Values;
+                                var srcValues = src.GetValues();
+                                int srcCount = srcValues.Length;
                                 var dstValues = dst.Values;
                                 var dstIndices = dst.Indices;
 
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
-                                        MapKey(ref srcValues[slot], ref dstValues[slot]);
+                                        MapKey(in srcValues[slot], ref dstValues[slot]);
 
                                         // REVIEW:
                                         // The current implementation always maps dense to dense, even if the resulting columns could benefit from
@@ -408,17 +408,17 @@ namespace Microsoft.ML.Transforms.Conversions
                                     // Currently this always maps sparse to dense, as long as the output type's NA does not equal its default value.
                                     Utils.EnsureSize(ref dstValues, srcSize, maxSize, keepOld: false);
 
-                                    var srcIndices = src.Indices;
-                                    int nextExplicitSlot = src.Count == 0 ? srcSize : srcIndices[0];
+                                    var srcIndices = src.GetIndices();
+                                    int nextExplicitSlot = srcCount == 0 ? srcSize : srcIndices[0];
                                     int islot = 0;
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
                                         if (nextExplicitSlot == slot)
                                         {
                                             // Current slot has an explicitly defined value.
-                                            Parent.Host.Assert(islot < src.Count);
-                                            MapKey(ref srcValues[islot], ref dstValues[slot]);
-                                            nextExplicitSlot = ++islot == src.Count ? srcSize : srcIndices[islot];
+                                            Parent.Host.Assert(islot < srcCount);
+                                            MapKey(in srcValues[islot], ref dstValues[slot]);
+                                            nextExplicitSlot = ++islot == srcCount ? srcSize : srcIndices[islot];
                                             Parent.Host.Assert(slot < nextExplicitSlot);
                                         }
                                         else
@@ -434,12 +434,12 @@ namespace Microsoft.ML.Transforms.Conversions
                                     // As the default value equals the NA value for the output type, we produce sparse output.
                                     Utils.EnsureSize(ref dstValues, srcCount, maxSize, keepOld: false);
                                     Utils.EnsureSize(ref dstIndices, srcCount, maxSize, keepOld: false);
-                                    var srcIndices = src.Indices;
+                                    var srcIndices = src.GetIndices();
                                     for (int islotSrc = 0; islotSrc < srcCount; ++islotSrc)
                                     {
                                         // Current slot has an explicitly defined value.
                                         Parent.Host.Assert(islotSrc < srcCount);
-                                        MapKey(ref srcValues[islotSrc], ref dstItem);
+                                        MapKey(in srcValues[islotSrc], ref dstItem);
                                         if (!_isDefault(in dstItem))
                                         {
                                             dstValues[islotDst] = dstItem;
@@ -495,15 +495,15 @@ namespace Microsoft.ML.Transforms.Conversions
         }
     }
 
-    public sealed class KeyToValueEstimator : TrivialEstimator<KeyToValueTransform>
+    public sealed class KeyToValueMappingEstimator : TrivialEstimator<KeyToValueMappingTransformer>
     {
-        public KeyToValueEstimator(IHostEnvironment env, string columnName)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueEstimator)), new KeyToValueTransform(env, columnName))
+        public KeyToValueMappingEstimator(IHostEnvironment env, string columnName)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columnName))
         {
         }
 
-        public KeyToValueEstimator(IHostEnvironment env, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueEstimator)), new KeyToValueTransform(env, columns))
+        public KeyToValueMappingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToValueMappingEstimator)), new KeyToValueMappingTransformer(env, columns))
         {
         }
 
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     var outCol = (IColInput)toOutput[i];
                     cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
                 }
-                return new KeyToValueEstimator(env, cols);
+                return new KeyToValueMappingEstimator(env, cols);
             }
         }
 

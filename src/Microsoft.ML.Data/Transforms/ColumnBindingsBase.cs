@@ -323,8 +323,8 @@ namespace Microsoft.ML.Runtime.Data
             // warning if we decide to rename this argument, and so know to change the below hard-coded
             // standard column name.
             const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(TermTransform.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ConcatTransform.Arguments.Column) == standardColumnArgName);
+            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
 
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {
@@ -817,8 +817,8 @@ namespace Microsoft.ML.Runtime.Data
             // warning if we decide to rename this argument, and so know to change the below hard-coded
             // standard column name.
             const string standardColumnArgName = "Column";
-            Contracts.Assert(nameof(TermTransform.Arguments.Column) == standardColumnArgName);
-            Contracts.Assert(nameof(ConcatTransform.Arguments.Column) == standardColumnArgName);
+            Contracts.Assert(nameof(ValueToKeyMappingTransformer.Arguments.Column) == standardColumnArgName);
+            Contracts.Assert(nameof(ColumnConcatenatingTransformer.Arguments.Column) == standardColumnArgName);
 
             Infos = new ColInfo[InfoCount];
             for (int i = 0; i < Infos.Length; i++)

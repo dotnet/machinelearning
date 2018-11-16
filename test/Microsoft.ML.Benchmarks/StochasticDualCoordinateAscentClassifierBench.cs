@@ -107,18 +107,18 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = WordEmbeddingsTransform.Create(env,
-                    new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsExtractingTransformer.Create(env,
+                    new WordEmbeddingsExtractingTransformer.Arguments()
                     {
-                        Column = new WordEmbeddingsTransform.Column[1]
+                        Column = new WordEmbeddingsExtractingTransformer.Column[1]
                         {
-                            new WordEmbeddingsTransform.Column
+                            new WordEmbeddingsExtractingTransformer.Column
                             {
                                 Name = "Features",
                                 Source = "WordEmbeddings_TransformedText"
                             }
                         },
-                        ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                        ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
                     }, text);
 
                 // Train

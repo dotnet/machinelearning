@@ -51,8 +51,8 @@ namespace Microsoft.ML.Benchmarks
                 IDataView trans = new OneHotEncodingEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
-                trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
-                trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
+                trans = new ColumnConcatenatingTransformer(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
+                trans = TrainAndScoreTransformer.Create(env, new TrainAndScoreTransformer.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
                         new KMeansPlusPlusTrainer(host, "Features", advancedSettings: s=> 
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks
                         })),
                     FeatureColumn = "Features"
                 }, trans);
-                trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
+                trans = new ColumnConcatenatingTransformer(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
                 var trainer = new LogisticRegression(env, "Label", "Features", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
