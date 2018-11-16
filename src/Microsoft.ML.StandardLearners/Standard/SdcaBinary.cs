@@ -788,7 +788,10 @@ namespace Microsoft.ML.Trainers
                     }
 
                     var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[0]);
-                    var l1IntermediateWeightsEditor = VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[0]);
+                    var l1IntermediateWeightsEditor =
+                        !l1ThresholdZero ? VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[0]) :
+                        default;
+
                     for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                     {
                         var dual = duals[idx];

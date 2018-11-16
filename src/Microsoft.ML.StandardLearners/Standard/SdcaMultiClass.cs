@@ -194,11 +194,14 @@ namespace Microsoft.ML.Trainers
                         if (iClass == label)
                             continue;
 
+                        var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[iClass]);
+                        var l1IntermediateWeightsEditor =
+                            !l1ThresholdZero ? VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[iClass]) :
+                            default;
+
                         // Loop trials for compare-and-swap updates of duals.
                         // In general, concurrent update conflict to the same dual variable is rare
                         // if data is shuffled.
-                        var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[iClass]);
-                        var l1IntermediateWeightsEditor = VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[iClass]);
                         for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                         {
                             long dualIndex = iClass + dualIndexInitPos;
