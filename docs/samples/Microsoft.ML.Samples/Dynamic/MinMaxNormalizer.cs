@@ -8,6 +8,7 @@
         using Microsoft.ML.Transforms.Normalizers;
         using System;
         using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -37,8 +38,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
             var transformer = pipeline.Fit(trainData);
 
-            var modelParams = transformer.Columns[0].ModelParameters as NormalizerTransformer.AffineNormalizerModelParametersBase<float>;
-           Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
+            var modelParams = transformer.Columns
+                                         .First(x => x.Output == "Induced")
+                                         .ModelParameters as NormalizerTransformer.AffineNormalizerModelParameters<float>;
+
+            Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
             //Preview 
             //
             //The normalization parameters are: Scale = 0.5 and Offset = 0"
@@ -70,7 +74,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Using log scale as the normalization mode. 
             var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new[] { ("Induced", "LogInduced"), ("Spontaneous", "LogSpontaneous") });
             // The transformed data.
-            var multiColtransformedData = multiColPipeline.Fit(trainData).Transform(trainData);
+            var multiColtransformer = multiColPipeline.Fit(trainData);
+            var multiColtransformedData = multiColtransformer.Transform(trainData);
 
             // Getting the newly created columns. 
             var normalizedInduced = multiColtransformedData.GetColumn<float>(ml, "LogInduced");
@@ -95,6 +100,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0
             // 0
             // 0.1586974
+            
+            // Inspect the weights of normalizing the columns
+            var multiColModelParams = multiColtransformer.Columns
+                .First(x=> x.Output == "LogInduced")
+                .ModelParameters as NormalizerTransformer.CdfNormalizerModelParameters<float>;
+
+            Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Offset = {multiColModelParams.Stddev}");
         }
     }
 }

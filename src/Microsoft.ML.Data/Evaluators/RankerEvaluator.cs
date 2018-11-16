@@ -573,8 +573,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-                Dcg = Fetch(RankerEvaluator.Dcg).Values;
-                Ndcg = Fetch(RankerEvaluator.Ndcg).Values;
+                Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
+                Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
             }
         }
     }
@@ -635,9 +635,9 @@ namespace Microsoft.ML.Runtime.Data
             _transform.Save(ctx);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return _transform.GetRowCount(lazy);
+            return _transform.GetRowCount();
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)

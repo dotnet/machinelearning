@@ -4,7 +4,11 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Xunit;
+using System;
+using System.Linq;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {

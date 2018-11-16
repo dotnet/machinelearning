@@ -1103,7 +1103,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
 
                     public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                         => new NormalizerTransformer.BinNormalizerModelParametersBase<TFloat>()
+                         => new NormalizerTransformer.BinNormalizerModelParameters<TFloat>()
                          {
                              UpperBounds = ImmutableArray.Create(_binUpperBounds),
                              Density = _den,
@@ -1258,7 +1258,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
 
                     public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                          => new NormalizerTransformer.BinNormalizerModelParametersBase<ImmutableArray<TFloat>>() {
+                          => new NormalizerTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>() {
                               UpperBounds = _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
                               Density = ImmutableArray.Create(_den),
                               Offset = ImmutableArray.Create(_offset)

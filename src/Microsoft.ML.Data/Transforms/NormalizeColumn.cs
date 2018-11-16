@@ -435,7 +435,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.AffineNormalizerModelParametersBase<TFloat> { Scale = Scale, Offset = Offset };
+                    => new NormalizerTransformer.AffineNormalizerModelParameters<TFloat> { Scale = Scale, Offset = Offset };
 
             }
 
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.AffineNormalizerModelParametersBase<ImmutableArray<TFloat>> { Scale = ImmutableArray.Create(Scale), Offset = ImmutableArray.Create(Offset) };
+                    => new NormalizerTransformer.AffineNormalizerModelParameters<ImmutableArray<TFloat>> { Scale = ImmutableArray.Create(Scale), Offset = ImmutableArray.Create(Offset) };
             }
         }
 
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.CdfNormalizerModelParametersBase<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
+                    => new NormalizerTransformer.CdfNormalizerModelParameters<TFloat>() { Mean = Mean, Stddev = Stddev, UseLog = UseLog };
             }
 
             private abstract class ImplVec<TFloat> : CdfColumnFunction
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 }
 
                 public override NormalizerTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                    => new NormalizerTransformer.CdfNormalizerModelParametersBase<ImmutableArray<TFloat>>() { Mean = ImmutableArray.Create(Mean), Stddev = ImmutableArray.Create(Stddev), UseLog = UseLog };
+                    => new NormalizerTransformer.CdfNormalizerModelParameters<ImmutableArray<TFloat>>() { Mean = ImmutableArray.Create(Mean), Stddev = ImmutableArray.Create(Stddev), UseLog = UseLog };
             }
 
             public const string LoaderSignature = "CdfNormalizeFunction";

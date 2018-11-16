@@ -4,6 +4,7 @@ Making per-feature arrays
 Changing data from row-wise to column-wise
 Processed 506 instances
 Binning and forming Feature objects
+Changing data from row-wise to column-wise
 Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
@@ -33,7 +34,11 @@ Virtual memory usage(MB): %Number%
 [2] 'FastTree in-memory bins initialization' finished in %Time%.
 [3] 'FastTree feature conversion' started.
 [3] 'FastTree feature conversion' finished in %Time%.
-[4] 'FastTree training' started.
-[4] 'FastTree training' finished in %Time%.
-[5] 'Saving model' started.
-[5] 'Saving model' finished in %Time%.
+[4] 'FastTree data preparation #2' started.
+[4] 'FastTree data preparation #2' finished in %Time%.
+[5] 'FastTree feature conversion #2' started.
+[5] 'FastTree feature conversion #2' finished in %Time%.
+[6] 'FastTree training' started.
+[6] 'FastTree training' finished in %Time%.
+[7] 'Saving model' started.
+[7] 'Saving model' finished in %Time%.

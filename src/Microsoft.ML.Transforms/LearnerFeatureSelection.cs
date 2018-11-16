@@ -120,9 +120,10 @@ namespace Microsoft.ML.Transforms
             var col = new DropSlotsTransform.Column();
             col.Source = args.FeatureColumn;
             selectedCount = 0;
+            var scoresValues = scores.GetValues();
 
             // Degenerate case, dropping all slots.
-            if (scores.Count == 0)
+            if (scoresValues.Length == 0)
             {
                 var range = new DropSlotsTransform.Range();
                 col.Slots = new DropSlotsTransform.Range[] { range };
@@ -139,13 +140,13 @@ namespace Microsoft.ML.Transforms
             else
             {
                 Contracts.Assert(args.NumSlotsToKeep.HasValue);
-                threshold = ComputeThreshold(scores.Values, scores.Count, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
+                threshold = ComputeThreshold(scoresValues, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
             }
 
             var slots = new List<DropSlotsTransform.Range>();
-            for (int i = 0; i < scores.Count; i++)
+            for (int i = 0; i < scoresValues.Length; i++)
             {
-                var score = Math.Abs(scores.Values[i]);
+                var score = Math.Abs(scoresValues[i]);
                 if (score > threshold)
                 {
                     selectedCount++;
@@ -160,9 +161,9 @@ namespace Microsoft.ML.Transforms
 
                 var range = new DropSlotsTransform.Range();
                 range.Min = i;
-                while (++i < scores.Count)
+                while (++i < scoresValues.Length)
                 {
-                    score = Math.Abs(scores.Values[i]);
+                    score = Math.Abs(scoresValues[i]);
                     if (score > threshold)
                     {
                         selectedCount++;
@@ -181,6 +182,7 @@ namespace Microsoft.ML.Transforms
 
             if (!scores.IsDense)
             {
+                var scoresIndices = scores.GetIndices();
                 int ii = 0;
                 var count = slots.Count;
                 for (int i = 0; i < count; i++)
@@ -190,16 +192,16 @@ namespace Microsoft.ML.Transforms
                     var min = range.Min;
                     var max = range.Max.Value;
                     Contracts.Assert(min <= max);
-                    Contracts.Assert(max < scores.Count);
+                    Contracts.Assert(max < scoresValues.Length);
 
-                    range.Min = min == 0 ? 0 : scores.Indices[min - 1] + 1;
-                    range.Max = max == scores.Count - 1 ? scores.Length - 1 : scores.Indices[max + 1] - 1;
+                    range.Min = min == 0 ? 0 : scoresIndices[min - 1] + 1;
+                    range.Max = max == scoresIndices.Length - 1 ? scores.Length - 1 : scoresIndices[max + 1] - 1;
 
                     // Add the gaps before this range.
                     for (; ii < min; ii++)
                     {
-                        var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
-                        var gapMax = scores.Indices[ii] - 1;
+                        var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
+                        var gapMax = scoresIndices[ii] - 1;
                         if (gapMin <= gapMax)
                         {
                             var gap = new DropSlotsTransform.Range();
@@ -212,10 +214,10 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Add the gaps after the last range.
-                for (; ii <= scores.Count; ii++)
+                for (; ii <= scoresIndices.Length; ii++)
                 {
-                    var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
-                    var gapMax = ii == scores.Count ? scores.Length - 1 : scores.Indices[ii] - 1;
+                    var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
+                    var gapMax = ii == scoresIndices.Length ? scores.Length - 1 : scoresIndices[ii] - 1;
                     if (gapMin <= gapMax)
                     {
                         var gap = new DropSlotsTransform.Range();
@@ -240,12 +242,12 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        private static float ComputeThreshold(float[] scores, int count, int topk, out int tiedScoresToKeep)
+        private static float ComputeThreshold(ReadOnlySpan<float> scores, int topk, out int tiedScoresToKeep)
         {
             // Use a min-heap for the topk elements
             var heap = new Heap<float>((f1, f2) => f1 > f2, topk);
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < scores.Length; i++)
             {
                 var score = Math.Abs(scores[i]);
                 if (float.IsNaN(score))

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            using (var env = new ConsoleEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -51,7 +51,7 @@ namespace Microsoft.ML.Benchmarks
                 IDataView trans = new OneHotEncodingEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
-                trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
+                trans = new ColumnConcatenatingTransformer(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks
                         })),
                     FeatureColumn = "Features"
                 }, trans);
-                trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
+                trans = new ColumnConcatenatingTransformer(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
                 var trainer = new LogisticRegression(env, "Label", "Features", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });

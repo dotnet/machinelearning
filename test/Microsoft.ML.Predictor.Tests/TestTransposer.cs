@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return values;
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Transposer")]
         public void TransposerTest()
         {

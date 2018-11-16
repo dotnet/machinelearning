@@ -294,8 +294,8 @@ namespace Microsoft.ML.Transforms
 
                 // Find the indices of all of the NAs.
                 indices.Clear();
-                var srcValues = src.Values;
-                var srcCount = src.Count;
+                var srcValues = src.GetValues();
+                var srcCount = srcValues.Length;
                 if (src.IsDense)
                 {
                     for (int i = 0; i < srcCount; i++)
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (!defaultIsNA)
                 {
-                    var srcIndices = src.Indices;
+                    var srcIndices = src.GetIndices();
                     for (int ii = 0; ii < srcCount; ii++)
                     {
                         if (isNA(in srcValues[ii]))
@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // Note that this adds non-NAs to indices -- this is indicated by sense being false.
-                    var srcIndices = src.Indices;
+                    var srcIndices = src.GetIndices();
                     for (int ii = 0; ii < srcCount; ii++)
                     {
                         if (!isNA(in srcValues[ii]))

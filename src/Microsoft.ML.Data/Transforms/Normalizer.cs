@@ -255,11 +255,9 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             public readonly string Input;
             public readonly string Output;
-            public readonly ColumnType InputType;
             public readonly NormalizerModelParametersBase ModelParameters;
+            internal readonly ColumnType InputType;
             internal readonly IColumnFunction ColumnFunction;
-
-            private ColumnInfo() { }
 
             internal ColumnInfo(string input, string output, ColumnType inputType, IColumnFunction columnFunction)
             {
@@ -267,7 +265,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Output = output;
                 InputType = inputType;
                 ColumnFunction = columnFunction;
-                ModelParameters = columnFunction?.GetNormalizerModelParams();
+                ModelParameters = columnFunction.GetNormalizerModelParams();
             }
 
             internal static ColumnType LoadType(ModelLoadContext ctx)
@@ -607,8 +605,8 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParametersBase{TData}"/>,
-        /// <see cref="BinNormalizerModelParametersBase{TData}"/>, <see cref="CdfNormalizerModelParametersBase{TData}"/>.
+        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParameters{TData}"/>,
+        /// <see cref="BinNormalizerModelParameters{TData}"/>, <see cref="CdfNormalizerModelParameters{TData}"/>.
         /// </summary>
         public abstract class NormalizerModelParametersBase
         {
@@ -621,7 +619,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// or methods in the <see cref="NormalizerCatalog"/> having the <see cref="NormalizingEstimator.NormalizerMode"/> parameter set to either
         /// <see cref="NormalizingEstimator.NormalizerMode.MinMax"/> or <see cref="NormalizingEstimator.NormalizerMode.MeanVariance"/>.
         /// </summary>
-        public class AffineNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
+        public sealed class AffineNormalizerModelParameters<TData> : NormalizerModelParametersBase
         {
             /// <summary>
             /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
@@ -644,7 +642,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// The function producing the model paramters is a cumulative density function of a normal distribution parameterized by
         /// the means and variance as observed during fitting.
         /// </summary>
-        public class CdfNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
+        public sealed class CdfNormalizerModelParameters<TData> : NormalizerModelParametersBase
         {
             /// <summary>
             /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
@@ -670,7 +668,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         /// or methods in the <see cref="NormalizerCatalog"/> having the <see cref="NormalizingEstimator.NormalizerMode"/> parameter set to either
         /// <see cref="NormalizingEstimator.NormalizerMode.Binning"/>.
         /// </summary>
-        public class BinNormalizerModelParametersBase<TData> : NormalizerModelParametersBase
+        public sealed class BinNormalizerModelParameters<TData> : NormalizerModelParametersBase
         {
             /// <summary>
             /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.

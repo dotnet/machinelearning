@@ -58,12 +58,24 @@ namespace Microsoft.ML.Trainers.FastTree
         protected TreeEnsemble TrainedEnsemble;
         protected int FeatureCount;
         protected RoleMappedData ValidData;
+        /// <summary>
+        /// If not null, it's a test data set passed in from training context. It will be converted to one element in
+        /// <see cref="Tests"/> by calling <see cref="ExamplesToFastTreeBins.GetCompatibleDataset"/> in <see cref="InitializeTests"/>.
+        /// </summary>
+        protected RoleMappedData TestData;
         protected IParallelTraining ParallelTraining;
         protected OptimizationAlgorithm OptimizationAlgorithm;
         protected Dataset TrainSet;
         protected Dataset ValidSet;
+        /// <summary>
+        /// Data sets used to evaluate the prediction scores produced the trained model during the triaining process.
+        /// </summary>
         protected Dataset[] TestSets;
         protected int[] FeatureMap;
+        /// <summary>
+        /// In the training process, <see cref="TrainSet"/>, <see cref="ValidSet"/>, <see cref="TestSets"/> would be
+        /// converted into <see cref="Tests"/> for efficient model evaluation.
+        /// </summary>
         protected List<Test> Tests;
         protected TestHistory PruningTest;
         protected int[] CategoricalFeatures;
@@ -129,7 +141,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
-            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
             // with memory consumption more than 5GB, GC get stuck in infinite loop.
             // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
@@ -150,7 +162,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
-            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true, supportTest: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
             // with memory consumption more than 5GB, GC get stuck in infinite loop.
             // Before, we could check a specific type of the environment here, but now it is internal, so we will need another
@@ -207,6 +219,8 @@ namespace Microsoft.ML.Trainers.FastTree
             FeatureMap = instanceConverter.FeatureMap;
             if (ValidData != null)
                 ValidSet = instanceConverter.GetCompatibleDataset(ValidData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit);
+            if (TestData != null)
+                TestSets = new[] { instanceConverter.GetCompatibleDataset(TestData, PredictionKind, CategoricalFeatures, Args.CategoricalSplit) };
         }
 
         private bool UseTranspose(bool? useTranspose, RoleMappedData data)
@@ -1343,20 +1357,18 @@ namespace Microsoft.ML.Trainers.FastTree
                 return
                     (in VBuffer<T1> src, ref VBuffer<T2> dst) =>
                     {
-                        var indices = dst.Indices;
-                        var values = dst.Values;
-                        if (src.Count > 0)
+                        var srcValues = src.GetValues();
+                        var editor = VBufferEditor.Create(ref dst, src.Length, srcValues.Length);
+                        if (srcValues.Length > 0)
                         {
                             if (!src.IsDense)
                             {
-                                Utils.EnsureSize(ref indices, src.Count);
-                                Array.Copy(src.Indices, indices, src.Count);
+                                src.GetIndices().CopyTo(editor.Indices);
                             }
-                            Utils.EnsureSize(ref values, src.Count);
-                            for (int i = 0; i < src.Count; ++i)
-                                conv(in src.Values[i], ref values[i]);
+                            for (int i = 0; i < srcValues.Length; ++i)
+                                conv(in srcValues[i], ref editor.Values[i]);
                         }
-                        dst = new VBuffer<T2>(src.Length, src.Count, values, indices);
+                        dst = editor.Commit();
                     };
             }
 
@@ -1392,7 +1404,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }
                     // Convert the group column, if one exists.
                     if (examples.Schema.Group != null)
-                        data = new ConvertingTransform(Host, new ConvertingTransform.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
+                        data = new TypeConvertingTransformer(Host, new TypeConvertingTransformer.ColumnInfo(examples.Schema.Group.Name, examples.Schema.Group.Name, DataKind.U8)).Transform(data);
 
                     // Since we've passed it through a few transforms, reconstitute the mapping on the
                     // newly transformed data.
@@ -1848,7 +1860,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     ch.Info("Changing data from row-wise to column-wise");
 
                     long pos = 0;
-                    double rowCountDbl = (double?)_data.Data.GetRowCount(lazy: true) ?? Double.NaN;
+                    double rowCountDbl = (double?)_data.Data.GetRowCount() ?? Double.NaN;
                     pch.SetHeader(new ProgressHeader("examples"),
                         e => e.SetProgress(0, pos, rowCountDbl));
                     // REVIEW: Should we ignore rows with bad label, weight, or group? The previous code seemed to let

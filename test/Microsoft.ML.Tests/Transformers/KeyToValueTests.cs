@@ -48,8 +48,8 @@ namespace Microsoft.ML.Tests.Transformers
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
 
-            var badData1 = new CopyColumnsTransform(Env, ("BareKey", "A")).Transform(data);
-            var badData2 = new CopyColumnsTransform(Env, ("VectorString", "B")).Transform(data);
+            var badData1 = new ColumnsCopyingTransformer(Env, ("BareKey", "A")).Transform(data);
+            var badData2 = new ColumnsCopyingTransformer(Env, ("VectorString", "B")).Transform(data);
 
             var est = new KeyToValueEstimator(Env, ("A", "A_back"), ("B", "B_back"));
             TestEstimatorCore(est, data, invalidInput: badData1);

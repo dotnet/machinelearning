@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
             Schema = schema;
         }
 
-        public long? GetRowCount(bool lazy = true) => 0;
+        public long? GetRowCount() => 0;
 
         public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
         {
