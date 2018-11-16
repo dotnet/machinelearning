@@ -124,6 +124,16 @@ namespace Microsoft.ML.Transforms
                     _modelManager.GetOutputShapesDict(_modelName, _ignoredVersion));
         }
 
+        public string[] GetInputNames()
+        {
+            return _inputNames.ToArray();
+        }
+
+        public string[] GetOutputNames()
+        {
+            return _outputNames.ToArray();
+        }
+
         private static OnnxNodeInfo[] DictToNodesInfo(
             Dictionary<string, DataType> typeDict,
             Dictionary<string, long[]> shapeDictArray)
