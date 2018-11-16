@@ -113,22 +113,20 @@ namespace Microsoft.ML.Runtime.Numeric
             }
 
             var newCount = topHeap.Count + bottomHeap.Count;
-            var indices = a.Indices;
-            Utils.EnsureSize(ref indices, newCount);
-            Contracts.Assert(Utils.Size(a.Values) >= newCount);
+            var aEditor = VBufferEditor.Create(ref a, a.Length, newCount, requireIndicesOnDense: true);
             int count = 0;
             while (topHeap.Count > 0)
             {
                 var pair = topHeap.Pop();
-                indices[count] = pair.Key;
-                a.Values[count++] = pair.Value;
+                aEditor.Indices[count] = pair.Key;
+                aEditor.Values[count++] = pair.Value;
             }
 
             while (bottomHeap.Count > 0)
             {
                 var pair = bottomHeap.Pop();
-                indices[count] = pair.Key;
-                a.Values[count++] = pair.Value;
+                aEditor.Indices[count] = pair.Key;
+                aEditor.Values[count++] = pair.Value;
             }
 
             Contracts.Assert(count == newCount);
@@ -137,7 +135,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 for (var i = 0; i < newCount; i++)
                 {
-                    var value = a.Values[i];
+                    var value = aEditor.Values[i];
                     var absValue = Math.Abs(value);
                     if (absValue > absMax)
                         absMax = absValue;
@@ -147,13 +145,13 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     var ratio = 1 / absMax;
                     for (var i = 0; i < newCount; i++)
-                        a.Values[i] = ratio * a.Values[i];
+                        aEditor.Values[i] = ratio * aEditor.Values[i];
                 }
             }
 
-            if (indices != null)
-                Array.Sort(indices, a.Values, 0, newCount);
-            a = new VBuffer<float>(a.Length, newCount, a.Values, indices);
+            if (!aEditor.Indices.IsEmpty)
+                GenericSpanSortHelper<int, float>.Sort(aEditor.Indices, aEditor.Values, 0, newCount);
+            a = aEditor.Commit();
         }
 
         /// <summary>
