@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
-            var pfi = new PermutationFeatureImportanceRegression(Env);
+            var pfi = new PermutationFeatureImportanceRegression(ML);
             var results = pfi.GetImportanceMetricsMatrix(model, data);
 
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
 
-            var pfi = new PermutationFeatureImportanceRegression(Env);
+            var pfi = new PermutationFeatureImportanceRegression(ML);
             var results = pfi.GetImportanceMetricsMatrix(model, data);
 
             // Permuted 2nd slot (f2) should have min impact on SGD metrics, X3 -- max impact.
