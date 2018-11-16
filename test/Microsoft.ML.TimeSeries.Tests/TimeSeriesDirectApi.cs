@@ -176,6 +176,8 @@ namespace Microsoft.ML.Tests
 
             // Train.
             var model = pipeline.Fit(dataView);
+
+            //Predict.
             var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction1>(ml);
             //Even though time series column is not requested it will pass the observation through time series transform.
             var prediction = engine.Predict(new Data(1));
@@ -219,6 +221,8 @@ namespace Microsoft.ML.Tests
 
             // Train.
             var model = pipeline.Fit(dataView);
+
+            //Predict.
             var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
