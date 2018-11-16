@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // valuesSrc contains only the non-zero entries. Those are copied into their logical positions in the dense array.
         // rgposSrc contains the logical positions + offset of the non-zero entries in the dense array.
         // rgposSrc runs parallel to the valuesSrc array.
-        public void CopyFrom(int[] rgposSrc, Float[] valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
+        public void CopyFrom(ReadOnlySpan<int> rgposSrc, ReadOnlySpan<Float> valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
         {
             Contracts.Assert(rgposSrc != null);
             Contracts.Assert(valuesSrc != null);

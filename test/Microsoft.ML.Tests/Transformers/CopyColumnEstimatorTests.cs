@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 ValidateCopyColumnTransformer(result);
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("D", "A"), ("B", "E") });
                 try
                 {
                     var transformer = est.Fit(dataView);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 try
                 {
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 using (var ms = new MemoryStream())
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
+                var est = new ColumnsCopyingEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 var resultRoles = new RoleMappedData(result);
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Tests
                 {
                     Column = new[] { new TermTransform.Column() { Source = "Term", Name = "T" } }
                 }, dataView);
-                var est = new CopyColumnsEstimator(env, "T", "T1");
+                var est = new ColumnsCopyingEstimator(env, "T", "T1");
                 var transformer = est.Fit(term);
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
@@ -208,40 +208,46 @@ namespace Microsoft.ML.Tests
             Contracts.Assert(size == 0 || v2.Length == size);
             Contracts.Assert(v1.Length == v2.Length);
 
+            var v1Values = v1.GetValues();
+            var v2Values = v2.GetValues();
+
             if (v1.IsDense && v2.IsDense)
             {
                 for (int i = 0; i < v1.Length; i++)
                 {
-                    var x1 = v1.Values[i];
-                    var x2 = v2.Values[i];
+                    var x1 = v1Values[i];
+                    var x2 = v2Values[i];
                     if (!fn(i, x1, x2))
                         return false;
                 }
                 return true;
             }
 
+            var v1Indices = v1.GetIndices();
+            var v2Indices = v2.GetIndices();
+
             Contracts.Assert(!v1.IsDense || !v2.IsDense);
             int iiv1 = 0;
             int iiv2 = 0;
             for (; ; )
             {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1.Count ? v1.Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2.Count ? v2.Indices[iiv2] : v2.Length;
+                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1Indices.Length ? v1Indices[iiv1] : v1.Length;
+                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
                 T x1, x2;
                 int iv;
                 if (iv1 == iv2)
                 {
                     if (iv1 == v1.Length)
                         return true;
-                    x1 = v1.Values[iiv1];
-                    x2 = v2.Values[iiv2];
+                    x1 = v1Values[iiv1];
+                    x2 = v2Values[iiv2];
                     iv = iv1;
                     iiv1++;
                     iiv2++;
                 }
                 else if (iv1 < iv2)
                 {
-                    x1 = v1.Values[iiv1];
+                    x1 = v1Values[iiv1];
                     x2 = default(T);
                     iv = iv1;
                     iiv1++;
@@ -249,7 +255,7 @@ namespace Microsoft.ML.Tests
                 else
                 {
                     x1 = default(T);
-                    x2 = v2.Values[iiv2];
+                    x2 = v2Values[iiv2];
                     iv = iv2;
                     iiv2++;
                 }

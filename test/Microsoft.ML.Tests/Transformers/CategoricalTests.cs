@@ -54,10 +54,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new OneHotEncodingEstimator(Env, new[]{
-                    new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
-                    new OneHotEncodingEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
-                    new OneHotEncodingEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
-                    new OneHotEncodingEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatB", OneHotEncodingTransformer.OutputKind.Bin),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatC", OneHotEncodingTransformer.OutputKind.Ind),
+                    new OneHotEncodingEstimator.ColumnInfo("A", "CatD", OneHotEncodingTransformer.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -111,18 +111,18 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new OneHotEncodingEstimator(Env, new[] {
-                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag),
-                new OneHotEncodingEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind),
-                new OneHotEncodingEstimator.ColumnInfo("G", "CatG", CategoricalTransform.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnInfo("H", "CatH", CategoricalTransform.OutputKind.Key),
-                new OneHotEncodingEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("C", "CatK", CategoricalTransform.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin) });
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatA", OneHotEncodingTransformer.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatB", OneHotEncodingTransformer.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("C", "CatC", OneHotEncodingTransformer.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("D", "CatD", OneHotEncodingTransformer.OutputKind.Bag),
+                new OneHotEncodingEstimator.ColumnInfo("E", "CatE", OneHotEncodingTransformer.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("F", "CatF", OneHotEncodingTransformer.OutputKind.Ind),
+                new OneHotEncodingEstimator.ColumnInfo("G", "CatG", OneHotEncodingTransformer.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnInfo("H", "CatH", OneHotEncodingTransformer.OutputKind.Key),
+                new OneHotEncodingEstimator.ColumnInfo("A", "CatI", OneHotEncodingTransformer.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("B", "CatJ", OneHotEncodingTransformer.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("C", "CatK", OneHotEncodingTransformer.OutputKind.Bin),
+                new OneHotEncodingEstimator.ColumnInfo("D", "CatL", OneHotEncodingTransformer.OutputKind.Bin) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);

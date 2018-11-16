@@ -48,14 +48,14 @@ namespace Microsoft.ML.Scenarios
                     KeepPunctuations = false,
                     StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
-                    CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
-                    WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
+                    CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
+                    WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
                 },
                 loader);
 
                 // Train
                 var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, 
-                    numLeaves:5, numTrees:5, minDocumentsInLeafs: 2);
+                    numLeaves:5, numTrees:5, minDatapointsInLeaves: 2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
@@ -116,20 +116,20 @@ namespace Microsoft.ML.Scenarios
                 },
                 loader);
 
-                var trans = WordEmbeddingsTransform.Create(env, new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsExtractingTransformer.Create(env, new WordEmbeddingsExtractingTransformer.Arguments()
                 {
-                    Column = new WordEmbeddingsTransform.Column[1]
+                    Column = new WordEmbeddingsExtractingTransformer.Column[1]
                     {
-                        new WordEmbeddingsTransform.Column
+                        new WordEmbeddingsExtractingTransformer.Column
                         {
                             Name = "Features",
                             Source = "WordEmbeddings_TransformedText"
                         }
                     },
-                    ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                    ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDocumentsInLeafs:2);
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDatapointsInLeaves:2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);

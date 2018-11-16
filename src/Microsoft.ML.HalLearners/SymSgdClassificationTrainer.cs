@@ -157,7 +157,10 @@ namespace Microsoft.ML.Trainers.SymSgd
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, Action<Arguments> advancedSettings = null)
+        public SymSgdClassificationTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeBoolScalarLabel(labelColumn))
         {
@@ -350,15 +353,13 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
 
             /// <summary>
-            /// Tries to add array <paramref name="instArray"/> to the storage without violating the restriction of memorySize.
+            /// Tries to add span <paramref name="instArray"/> to the storage without violating the restriction of memorySize.
             /// </summary>
-            /// <param name="instArray">The array to be added</param>
-            /// <param name="instArrayLength">Length of the array. <paramref name="instArray"/>.Length is unreliable since TLC cursoring
-            /// has its own allocation mechanism.</param>
+            /// <param name="instArray">The span to be added</param>
             /// <returns>Return if the allocation was successful</returns>
-            public bool AddToStorage(T[] instArray, int instArrayLength)
+            public bool AddToStorage(ReadOnlySpan<T> instArray)
             {
-                _ch.Assert(0 < instArrayLength && instArrayLength <= Utils.Size(instArray));
+                var instArrayLength = instArray.Length;
                 _ch.Assert(instArrayLength * _sizeofT * 2 < _trainer.AcceleratedMemoryBudgetBytes);
                 if (instArrayLength > _veryLongArrayLength)
                 {
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     _indexInCurArray = 0;
                     _storageIndex++;
                 }
-                Array.Copy(instArray, 0, _storage[_storageIndex].Buffer, _indexInCurArray, instArrayLength);
+                instArray.CopyTo(_storage[_storageIndex].Buffer.AsSpan(_indexInCurArray));
                 _indexInCurArray += instArrayLength;
                 return true;
             }
@@ -525,7 +526,8 @@ namespace Microsoft.ML.Trainers.SymSgd
 
                 while (_cursorMoveNext)
                 {
-                    int featureCount = _cursor.Features.Count;
+                    var featureValues = _cursor.Features.GetValues();
+                    int featureCount = featureValues.Length;
                     // If the instance has no feature, ignore it!
                     if (featureCount == 0)
                     {
@@ -546,10 +548,10 @@ namespace Microsoft.ML.Trainers.SymSgd
                     bool couldLoad = true;
                     if (!_cursor.Features.IsDense)
                         // If it is a sparse instance, load its indices to instIndices buffer
-                        couldLoad = _instIndices.AddToStorage(_cursor.Features.Indices, featureCount);
+                        couldLoad = _instIndices.AddToStorage(_cursor.Features.GetIndices());
                     // Load values of an instance into instValues
                     if (couldLoad)
-                        couldLoad = _instValues.AddToStorage(_cursor.Features.Values, featureCount);
+                        couldLoad = _instValues.AddToStorage(featureValues);
 
                     // If the load was successful, load the instance properties to instanceProperties
                     if (couldLoad)
@@ -652,6 +654,8 @@ namespace Microsoft.ML.Trainers.SymSgd
             else
                 weights = VBufferUtils.CreateDense<float>(numFeatures);
 
+            var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights);
+
             // Reference: Parasail. SymSGD.
             bool tuneLR = _args.LearningRate == null;
             var lr = _args.LearningRate ?? 1.0f;
@@ -686,7 +690,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                             pch.SetHeader(new ProgressHeader(new[] { "iterations" }),
                                 entry => entry.SetProgress(0, state.PassIteration, _args.NumberOfIterations));
                             // If fully loaded, call the SymSGDNative and do not come back until learned for all iterations.
-                            Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
+                            Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
                                 _args.NumberOfIterations, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                             shouldInitialize = false;
                         }
@@ -707,7 +711,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                                 // If all of this leaves us with 0 passes, then set numPassesForThisBatch to 1
                                 numPassesForThisBatch = Math.Max(1, numPassesForThisBatch);
                                 state.PassIteration = iter;
-                                Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weights.Values, ref bias, numFeatures,
+                                Native.LearnAll(inputDataManager, tuneLR, ref lr, l2Const, piw, weightsEditor.Values, ref bias, numFeatures,
                                     numPassesForThisBatch, numThreads, tuneNumLocIter, ref numLocIter, _args.Tolerance, _args.Shuffle, shouldInitialize, stateGCHandle);
                                 shouldInitialize = false;
 
@@ -728,7 +732,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
                         // Maps back the dense features that are mislocated
                         if (numThreads > 1)
-                            Native.MapBackWeightVector(weights.Values, stateGCHandle);
+                            Native.MapBackWeightVector(weightsEditor.Values, stateGCHandle);
                         Native.DeallocateSequentially(stateGCHandle);
                     }
                 }
@@ -782,7 +786,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             /// <param name="shouldInitialize">Specifies if this is the first time to run SymSGD</param>
             /// <param name="stateGCHandle"></param>
             public static void LearnAll(InputDataManager inputDataManager, bool tuneLR,
-                ref float lr, float l2Const, float piw, float[] weightVector, ref float bias, int numFeatres, int numPasses,
+                ref float lr, float l2Const, float piw, Span<float> weightVector, ref float bias, int numFeatres, int numPasses,
                 int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, GCHandle stateGCHandle)
             {
                 inputDataManager.PrepareCursoring();
@@ -836,7 +840,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             /// </summary>
             /// <param name="weightVector">The weight vector</param>
             /// <param name="stateGCHandle"></param>
-            public static void MapBackWeightVector(float[] weightVector, GCHandle stateGCHandle)
+            public static void MapBackWeightVector(Span<float> weightVector, GCHandle stateGCHandle)
             {
                 fixed (float* pweightVector = &weightVector[0])
                     MapBackWeightVector(pweightVector, (State*)stateGCHandle.AddrOfPinnedObject());

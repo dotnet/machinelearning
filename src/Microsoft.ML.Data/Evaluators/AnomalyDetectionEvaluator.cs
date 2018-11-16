@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected IEnumerable<Info> ReverseHeap(Heap<Info> heap)
+                private protected Info[] ReverseHeap(Heap<Info> heap)
                 {
                     var res = new Info[heap.Count];
                     while (heap.Count > 0)
@@ -724,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
             colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
-            overall = new CopyColumnsTransform(Host, cols).Transform(overall);
+            overall = new ColumnsCopyingTransformer(Host, cols).Transform(overall);
             IDataView fold = SelectColumnsTransform.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;
