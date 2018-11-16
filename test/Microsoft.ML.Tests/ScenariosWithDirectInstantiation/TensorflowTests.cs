@@ -403,7 +403,7 @@ namespace Microsoft.ML.Scenarios
                     IDataView trainedTfDataView = null;
                     if (shuffle)
                     {
-                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        var shuffledView = new RowShufflingTransformer(env, new RowShufflingTransformer.Arguments()
                         {
                             ForceShuffle = shuffle,
                             ForceShuffleSeed = shuffleSeed
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Scenarios
                     IDataView trainedTfDataView = null;
                     if (shuffle)
                     {
-                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        var shuffledView = new RowShufflingTransformer(env, new RowShufflingTransformer.Arguments()
                         {
                             ForceShuffle = shuffle,
                             ForceShuffleSeed = shuffleSeed
