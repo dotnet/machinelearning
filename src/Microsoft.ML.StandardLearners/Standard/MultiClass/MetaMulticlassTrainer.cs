@@ -114,11 +114,6 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        //protected TScalarTrainer GetTrainer()
-        //{
-        //    return _trainer ?? CreateTrainer();
-        //}
-
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
         /// <summary>
