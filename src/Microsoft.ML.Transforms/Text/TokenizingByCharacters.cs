@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.Multiple, HelpText = "Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)",
                 ShortName = "mark", SortOrder = 2)]
-            public bool UseMarkerChars = TokenizeByCharactersEstimator.Defaults.UseMarkerCharacters;
+            public bool UseMarkerChars = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters;
 
             // REVIEW: support UTF-32 encoding through an argument option?
 
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizeByCharactersEstimator.Defaults.UseMarkerCharacters, params (string input, string output)[] columns) :
+        public TokenizingByCharactersTransformer(IHostEnvironment env, bool useMarkerCharacters = TokenizingByCharactersEstimator.Defaults.UseMarkerCharacters, params (string input, string output)[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
             _useMarkerChars = useMarkerCharacters;
@@ -119,8 +119,8 @@ namespace Microsoft.ML.Transforms.Text
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            if (!TokenizeByCharactersEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptParam(nameof(inputSchema), TokenizeByCharactersEstimator.ExpectedColumnType);
+            if (!TokenizingByCharactersEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptParam(nameof(inputSchema), TokenizingByCharactersEstimator.ExpectedColumnType);
         }
 
         private TokenizingByCharactersTransformer(IHost host, ModelLoadContext ctx) :
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <summary>
     /// Character tokenizer splits text into sequences of characters using a sliding window.
     /// </summary>
-    public sealed class TokenizeByCharactersEstimator : TrivialEstimator<TokenizingByCharactersTransformer>
+    public sealed class TokenizingByCharactersEstimator : TrivialEstimator<TokenizingByCharactersTransformer>
     {
         internal static class Defaults
         {
@@ -571,7 +571,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public TokenizeByCharactersEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = Defaults.UseMarkerCharacters)
+        public TokenizingByCharactersEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = Defaults.UseMarkerCharacters)
             : this(env, useMarkerCharacters, new[] { (inputColumn, outputColumn ?? inputColumn) })
         {
         }
@@ -583,8 +583,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
 
-        public TokenizeByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters, params (string input, string output)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TokenizeByCharactersEstimator)), new TokenizingByCharactersTransformer(env, useMarkerCharacters, columns))
+        public TokenizingByCharactersEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TokenizingByCharactersEstimator)), new TokenizingByCharactersTransformer(env, useMarkerCharacters, columns))
         {
         }
 

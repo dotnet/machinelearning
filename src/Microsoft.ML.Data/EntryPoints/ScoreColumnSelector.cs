@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     }
 
                     var copyColumn = new ColumnsCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
-                    var dropColumn = SelectColumnsTransform.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
+                    var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
                     return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }
