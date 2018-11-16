@@ -505,9 +505,10 @@ namespace Microsoft.ML.Transforms.Text
                         getters[i](ref src);
 
                         // compute term, doc instance#.
-                        for (int termID = 0; termID < src.Count; termID++)
+                        var srcValues = src.GetValues();
+                        for (int termID = 0; termID < srcValues.Length; termID++)
                         {
-                            int termFreq = GetFrequency(src.Values[termID]);
+                            int termFreq = GetFrequency(srcValues[termID]);
                             if (termFreq < 0)
                             {
                                 // Ignore this row.
@@ -792,9 +793,10 @@ namespace Microsoft.ML.Transforms.Text
                 int docSize = 0;
                 int termNum = 0;
 
-                for (int i = 0; i < input.Count; i++)
+                var inputValues = input.GetValues();
+                for (int i = 0; i < inputValues.Length; i++)
                 {
-                    int termFreq = GetFrequency(input.Values[i]);
+                    int termFreq = GetFrequency(inputValues[i]);
                     if (termFreq < 0)
                     {
                         // Ignore this row.
@@ -814,9 +816,9 @@ namespace Microsoft.ML.Transforms.Text
 
                 int actualSize = 0;
                 if (input.IsDense)
-                    actualSize = _ldaTrainer.LoadDocDense(input.Values, termNum, input.Length);
+                    actualSize = _ldaTrainer.LoadDocDense(inputValues, termNum, input.Length);
                 else
-                    actualSize = _ldaTrainer.LoadDoc(input.Indices, input.Values, termNum, input.Length);
+                    actualSize = _ldaTrainer.LoadDoc(input.GetIndices(), inputValues, termNum, input.Length);
 
                 ectx.Assert(actualSize == 2 * docSize + 1, string.Format("The doc size are distinct. Actual: {0}, Expected: {1}", actualSize, 2 * docSize + 1));
                 return actualSize;
@@ -849,30 +851,29 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 int len = InfoEx.NumTopic;
-                var values = dst.Values;
-                var indices = dst.Indices;
-                if (src.Count == 0)
+                var srcValues = src.GetValues();
+                if (srcValues.Length == 0)
                 {
-                    dst = new VBuffer<Float>(len, 0, values, indices);
+                    VBufferUtils.Resize(ref dst, len, 0);
                     return;
                 }
 
+                VBufferEditor<float> editor;
                 // Make sure all the frequencies are valid and truncate if the sum gets too large.
                 int docSize = 0;
                 int termNum = 0;
-                for (int i = 0; i < src.Count; i++)
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    int termFreq = GetFrequency(src.Values[i]);
+                    int termFreq = GetFrequency(srcValues[i]);
                     if (termFreq < 0)
                     {
                         // REVIEW: Should this log a warning message? And what should it produce?
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW: Need a utility method to do this...
-                        if (Utils.Size(values) < len)
-                            values = new Float[len];
+                        editor = VBufferEditor.Create(ref dst, len);
                         for (int k = 0; k < len; k++)
-                            values[k] = Float.NaN;
-                        dst = new VBuffer<Float>(len, values, indices);
+                            editor.Values[k] = Float.NaN;
+                        dst = editor.Commit();
                         return;
                     }
 
@@ -886,17 +887,14 @@ namespace Microsoft.ML.Transforms.Text
                 // REVIEW: Too much memory allocation here on each prediction.
                 List<KeyValuePair<int, float>> retTopics;
                 if (src.IsDense)
-                    retTopics = _ldaTrainer.TestDocDense(src.Values, termNum, numBurninIter, reset);
+                    retTopics = _ldaTrainer.TestDocDense(srcValues, termNum, numBurninIter, reset);
                 else
-                    retTopics = _ldaTrainer.TestDoc(src.Indices.Take(src.Count).ToArray(), src.Values.Take(src.Count).ToArray(), termNum, numBurninIter, reset);
+                    retTopics = _ldaTrainer.TestDoc(src.GetIndices(), srcValues, termNum, numBurninIter, reset);
 
                 int count = retTopics.Count;
                 Contracts.Assert(count <= len);
-                if (Utils.Size(values) < count)
-                    values = new Float[count];
-                if (count < len && Utils.Size(indices) < count)
-                    indices = new int[count];
 
+                editor = VBufferEditor.Create(ref dst, len, count);
                 double normalizer = 0;
                 for (int i = 0; i < count; i++)
                 {
@@ -906,22 +904,22 @@ namespace Microsoft.ML.Transforms.Text
                     Contracts.Assert(0 <= index && index < len);
                     if (count < len)
                     {
-                        Contracts.Assert(i == 0 || indices[i - 1] < index);
-                        indices[i] = index;
+                        Contracts.Assert(i == 0 || editor.Indices[i - 1] < index);
+                        editor.Indices[i] = index;
                     }
                     else
                         Contracts.Assert(index == i);
 
-                    values[i] = value;
+                    editor.Values[i] = value;
                     normalizer += value;
                 }
 
                 if (normalizer > 0)
                 {
                     for (int i = 0; i < count; i++)
-                        values[i] = (Float)(values[i] / normalizer);
+                        editor.Values[i] = (Float)(editor.Values[i] / normalizer);
                 }
-                dst = new VBuffer<Float>(len, count, values, indices);
+                dst = editor.Commit();
             }
 
             public void Dispose()

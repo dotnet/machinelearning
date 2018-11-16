@@ -47,27 +47,20 @@ namespace Microsoft.ML.Runtime.Ensemble
             Contracts.Assert(cardinality == Utils.GetCardinality(includedIndices));
             Contracts.Assert(cardinality < src.Length);
 
-            var values = dst.Values;
-            var indices = dst.Indices;
-
             var srcValues = src.GetValues();
             if (src.IsDense)
             {
                 if (cardinality >= src.Length / 2)
                 {
                     T defaultValue = default;
-                    if (Utils.Size(values) < src.Length)
-                        values = new T[src.Length];
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
                     for (int i = 0; i < srcValues.Length; i++)
-                        values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
-                    dst = new VBuffer<T>(src.Length, values, indices);
+                        editor.Values[i] = !includedIndices[i] ? defaultValue : srcValues[i];
+                    dst = editor.Commit();
                 }
                 else
                 {
-                    if (Utils.Size(values) < cardinality)
-                        values = new T[cardinality];
-                    if (Utils.Size(indices) < cardinality)
-                        indices = new int[cardinality];
+                    var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                     int count = 0;
                     for (int i = 0; i < srcValues.Length; i++)
@@ -75,28 +68,19 @@ namespace Microsoft.ML.Runtime.Ensemble
                         if (includedIndices[i])
                         {
                             Contracts.Assert(count < cardinality);
-                            values[count] = srcValues[i];
-                            indices[count] = i;
+                            editor.Values[count] = srcValues[i];
+                            editor.Indices[count] = i;
                             count++;
                         }
                     }
 
                     Contracts.Assert(count == cardinality);
-                    dst = new VBuffer<T>(src.Length, count, values, indices);
+                    dst = editor.Commit();
                 }
             }
             else
             {
-                int valuesSize = Utils.Size(values);
-                int indicesSize = Utils.Size(indices);
-
-                if (valuesSize < srcValues.Length || indicesSize < srcValues.Length)
-                {
-                    if (valuesSize < cardinality)
-                        values = new T[cardinality];
-                    if (indicesSize < cardinality)
-                        indices = new int[cardinality];
-                }
+                var editor = VBufferEditor.Create(ref dst, src.Length, cardinality);
 
                 int count = 0;
                 var srcIndices = src.GetIndices();
@@ -104,13 +88,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 {
                     if (includedIndices[srcIndices[i]])
                     {
-                        values[count] = srcValues[i];
-                        indices[count] = srcIndices[i];
+                        editor.Values[count] = srcValues[i];
+                        editor.Indices[count] = srcIndices[i];
                         count++;
                     }
                 }
 
-                dst = new VBuffer<T>(src.Length, count, values, indices);
+                dst = editor.CommitTruncated(count);
             }
         }
     }

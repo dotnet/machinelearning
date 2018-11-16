@@ -318,7 +318,9 @@ namespace Microsoft.ML.Runtime.Data
 
             IReadOnlyList<ColumnInfo> list;
             if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema.HasSlotNames(list[0].Index, vectorSize))
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(vectorSize, 0, slotNames.Values, slotNames.Indices);
+            {
+                VBufferUtils.Resize(ref slotNames, vectorSize, 0);
+            }
             else
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
@@ -447,21 +449,22 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     int previousEndIndex = -1;
                     isValid = true;
-                    for (int i = 0; i < catIndices.Values.Length; i += 2)
+                    var catIndicesValues = catIndices.GetValues();
+                    for (int i = 0; i < catIndicesValues.Length; i += 2)
                     {
-                        if (catIndices.Values[i] > catIndices.Values[i + 1] ||
-                            catIndices.Values[i] <= previousEndIndex ||
-                            catIndices.Values[i] >= columnSlotsCount ||
-                            catIndices.Values[i + 1] >= columnSlotsCount)
+                        if (catIndicesValues[i] > catIndicesValues[i + 1] ||
+                            catIndicesValues[i] <= previousEndIndex ||
+                            catIndicesValues[i] >= columnSlotsCount ||
+                            catIndicesValues[i + 1] >= columnSlotsCount)
                         {
                             isValid = false;
                             break;
                         }
 
-                        previousEndIndex = catIndices.Values[i + 1];
+                        previousEndIndex = catIndicesValues[i + 1];
                     }
                     if (isValid)
-                        categoricalFeatures = catIndices.Values.Select(val => val).ToArray();
+                        categoricalFeatures = catIndicesValues.ToArray();
                 }
             }
 

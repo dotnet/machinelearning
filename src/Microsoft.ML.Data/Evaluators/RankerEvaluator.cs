@@ -573,8 +573,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-                Dcg = Fetch(RankerEvaluator.Dcg).Values;
-                Ndcg = Fetch(RankerEvaluator.Ndcg).Values;
+                Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
+                Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
             }
         }
     }

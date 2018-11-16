@@ -464,16 +464,17 @@ namespace Microsoft.ML.Transforms.Text
                     getSrc(ref src);
                     list.Clear();
 
-                    for (int i = 0; i < src.Count; i++)
+                    var srcValues = src.GetValues();
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        if (src.Values[i].IsEmpty)
+                        if (srcValues[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(srcValues[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (StopWords[(int)langToUse].Get(buffer) == null)
-                            list.Add(src.Values[i]);
+                            list.Add(srcValues[i]);
                     }
 
                     VBufferUtils.Copy(list, ref dst, list.Count);
@@ -936,16 +937,17 @@ namespace Microsoft.ML.Transforms.Text
                     getSrc(ref src);
                     list.Clear();
 
-                    for (int i = 0; i < src.Count; i++)
+                    var srcValues = src.GetValues();
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        if (src.Values[i].IsEmpty)
+                        if (srcValues[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(srcValues[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (_stopWordsMap.Get(buffer) == null)
-                            list.Add(src.Values[i]);
+                            list.Add(srcValues[i]);
                     }
 
                     VBufferUtils.Copy(list, ref dst, list.Count);

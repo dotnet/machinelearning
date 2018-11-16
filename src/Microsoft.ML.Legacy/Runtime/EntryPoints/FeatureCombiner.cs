@@ -129,10 +129,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return null;
             var sb = new StringBuilder();
             var pre = "";
-            for (int i = 0; i < metadata.Length; i++)
+            var metadataValues = metadata.GetValues();
+            for (int i = 0; i < metadataValues.Length; i++)
             {
                 sb.Append(pre);
-                sb.AppendMemory(metadata.Values[i]);
+                sb.AppendMemory(metadataValues[i]);
                 pre = ",";
             }
             return sb.ToString();

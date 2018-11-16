@@ -530,7 +530,7 @@ namespace Microsoft.ML.Runtime.Numeric
             GDOptimizer gdo = new GDOptimizer(term, null, true);
             print = true;
             CreateWrapped(out init, 0, 0);
-            gdo.Minimize(QuadTest2D, ref init, ref ans);
+            gdo.Minimize(QuadTest2D, in init, ref ans);
             QuadTest2D(in ans, ref grad);
             Console.WriteLine(VectorUtils.Norm(grad));
         }

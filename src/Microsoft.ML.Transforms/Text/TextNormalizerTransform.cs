@@ -308,7 +308,7 @@ namespace Microsoft.ML.Transforms.Text
                     (ref ReadOnlyMemory<char> dst) =>
                     {
                         getSrc(ref src);
-                        NormalizeSrc(ref src, ref dst, buffer);
+                        NormalizeSrc(in src, ref dst, buffer);
                     };
             }
 
@@ -325,9 +325,10 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         getSrc(ref src);
                         list.Clear();
-                        for (int i = 0; i < src.Count; i++)
+                        var srcValues = src.GetValues();
+                        for (int i = 0; i < srcValues.Length; i++)
                         {
-                            NormalizeSrc(ref src.Values[i], ref temp, buffer);
+                            NormalizeSrc(in srcValues[i], ref temp, buffer);
                             if (!temp.IsEmpty)
                                 list.Add(temp);
                         }
@@ -336,7 +337,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
+            private void NormalizeSrc(in ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
             {
                 Host.AssertValue(buffer);
 
