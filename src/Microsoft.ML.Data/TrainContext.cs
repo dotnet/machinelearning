@@ -496,7 +496,8 @@ namespace Microsoft.ML
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
 
-        public IDataView PermutationFeatureImportance(ITransformer model, IDataView data,
+        public List<(string featureName, RegressionEvaluator.Result metricsDelta)>
+            PermutationFeatureImportance(ITransformer model, IDataView data,
             string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
             int topExamples = 0, int progressIterations = 10)
         {
