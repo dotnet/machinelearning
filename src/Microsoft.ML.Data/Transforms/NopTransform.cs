@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -16,28 +15,6 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class NopTransformer : ITransformer
-    {
-        private readonly IHost _host;
-
-        public NopTransformer(IHostEnvironment env)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(NopTransformer));
-        }
-
-        public bool IsRowToRowMapper => true;
-
-        public Schema GetOutputSchema(Schema inputSchema)
-            => inputSchema;
-
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
-            => new NopTransform(_host, new EmptyDataView(_host, inputSchema));
-
-        public IDataView Transform(IDataView input)
-            => input;
-    }
-
     /// <summary>
     /// A transform that does nothing.
     /// </summary>
@@ -61,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
             return new NopTransform(env, input);
         }
 
-        internal NopTransform(IHostEnvironment env, IDataView input)
+        private NopTransform(IHostEnvironment env, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));

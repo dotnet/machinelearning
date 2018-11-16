@@ -100,7 +100,7 @@ namespace Microsoft.ML.Transforms
                 if (column == null)
                 {
                     ch.Info("No features are being dropped.");
-                    return NopTransformer.CreateIfNeeded(host, input);
+                    return NopTransform.CreateIfNeeded(host, input);
                 }
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);

@@ -211,15 +211,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             public readonly string Output;
             public readonly (int min, int? max)[] Slots;
 
+            // TODO commenting
             public ColumnInfo(string input, string output = null, params (int min, int? max)[] slots)
             {
-                // By default drop everything.
-                slots = slots ?? new (int min, int? max)[1];
-                foreach (var (min, max) in slots)
-                    Contracts.Assert(min >= 0 && (max == null || min <= max));
+                // TODO input check
                 Input = input;
                 Output = output ?? input;
-                Slots = slots;
+                // By default drop everything.
+                Slots = (slots.Length > 0) ? slots : new (int min, int? max)[1];
+                foreach (var (min, max) in Slots)
+                    Contracts.Assert(min >= 0 && (max == null || min <= max));
                 //GetSlotsMinMax(slots, out SlotsMin, out SlotsMax);
 
             }
@@ -290,13 +291,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             // for each added column
             //   int[]: slotsMin
             //   int[]: slotsMax (no count)
+
             Host.AssertNonEmpty(ColumnPairs);
             var size = ColumnPairs.Length;
+            SlotsMin = new int[size][];
+            SlotsMax = new int[size][];
             for (int i = 0; i < size; i++)
             {
                 SlotsMin[i] = ctx.Reader.ReadIntArray();
-                Host.CheckDecode(Utils.Size(SlotsMin) > 0);
-                SlotsMax[i] = ctx.Reader.ReadIntArray(SlotsMin.Length);
+                Host.CheckDecode(Utils.Size(SlotsMin[i]) > 0);
+                SlotsMax[i] = ctx.Reader.ReadIntArray(SlotsMin[i].Length);
             }
             Host.Assert(AreRangesValid(SlotsMin, SlotsMax));
         }
@@ -324,9 +328,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        //internal static IDataTransform MakeDataTransform(DropSlotsTransform transform, IDataView input)
-        //    => transform.MakeDataTransform(input);
-
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -338,7 +339,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             // for each added column
             //   int[]: slotsMin
             //   int[]: slotsMax (no count)
+
             SaveColumns(ctx);
+
             Host.Assert(AreRangesValid(SlotsMin, SlotsMax));
             for (int i = 0; i < ColumnPairs.Length; i++)
             {
@@ -395,7 +398,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // 2. to prevent overflows when adding 1 to it.
                     slotsMax[i][j] = range.max ?? int.MaxValue - 1;
                 }
-                Array.Sort(slotsMin, slotsMax);
+                Array.Sort(slotsMin[i], slotsMax[i]);
                 var iDst = 0;
                 for (int j = 1; j < slots.Length; j++)
                 {
@@ -424,7 +427,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             for (int iinfo = 0; iinfo < slotsMin.Length; iinfo++)
             {
                 var prevmax = -2;
-                for (int i = 0; i < slotsMin.Length; i++)
+                for (int i = 0; i < slotsMin[iinfo].Length; i++)
                 {
                     if (!(0 <= slotsMin[iinfo][i] && slotsMin[iinfo][i] < int.MaxValue))
                         return false;
@@ -530,7 +533,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 Host.AssertNonEmpty(slotsMin);
                 Host.AssertNonEmpty(slotsMax);
                 Host.Assert(slotsMin.Length == slotsMax.Length);
-                Host.Assert(0 <= iinfo && iinfo < slotsMax.Length);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 categoricalRanges = null;
                 //// Register for metadata. Propagate the IsNormalized metadata.

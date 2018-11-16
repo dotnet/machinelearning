@@ -106,21 +106,35 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             using (var ch = _host.Start("Dropping Slots"))
             {
-                int[] selectedCount;
-                var dropSlotsColumns = CreateDropSlotsColumns(_columns, size, scores, out selectedCount);
+                DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
+                (string input, string output)[] copyColumnsPairs;
+                CreateDropAndCopyColumns(_columns, size, scores, out int[] selectedCount, out dropSlotsColumns, out copyColumnsPairs);
 
-                if (dropSlotsColumns.Count <= 0)
-                {
-                    ch.Info("No features are being dropped.");
-                    return new NopTransformer(_host);
-                }
+                //var copyColumnArgs = new List<(string input, string output)>();
+                //var nonEmptyDropSlotsColumns = new List<DropSlotsTransform.ColumnInfo>();
+                //foreach (var dropSlotsColumn in dropSlotsColumns)
+                //{
+                //    if (dropSlotsColumn.Slots.Length <= 0)
+                //        copyColumnArgs.Add((dropSlotsColumn.Input, dropSlotsColumn.Output));
+                //    else
+                //        nonEmptyDropSlotsColumns.Add(dropSlotsColumn);
+                //}
 
                 for (int i = 0; i < selectedCount.Length; i++)
                     ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], _columns[i].Input);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
-                var dsArgs = new DropSlotsTransform.Arguments();
-                return new DropSlotsTransform(_host, dropSlotsColumns.ToArray());
+                if (dropSlotsColumns.Length <= 0)
+                    return new CopyColumnsTransform(_host, copyColumnsPairs);
+                else if (copyColumnsPairs.Length <= 0)
+                    return new DropSlotsTransform(_host, dropSlotsColumns);
+
+                var transformerChain = new TransformerChain<DropSlotsTransform>(
+                    new ITransformer[] {
+                        new CopyColumnsTransform(_host, copyColumnsPairs),
+                        new DropSlotsTransform(_host, dropSlotsColumns)
+                    });
+                return transformerChain;
             }
         }
 
@@ -160,7 +174,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         }
 
-        private static List<DropSlotsTransform.ColumnInfo> CreateDropSlotsColumns(ColumnInfo[] columnInfos, int size, long[][] scores, out int[] selectedCount)
+        private static void CreateDropAndCopyColumns(ColumnInfo[] columnInfos, int size, long[][] scores,
+            out int[] selectedCount, out DropSlotsTransform.ColumnInfo[] dropSlotsColumns, out (string input, string output)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
@@ -168,7 +183,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Contracts.Assert(Utils.Size(columnInfos) == size);
 
             selectedCount = new int[scores.Length];
-            var columns = new List<DropSlotsTransform.ColumnInfo>();
+            var dropSlotsCols = new List<DropSlotsTransform.ColumnInfo>();
+            var copyCols = new List<(string input, string output)>();
             for (int i = 0; i < size; i++)
             {
                 var slots = new List<(int min, int? max)>();
@@ -190,13 +206,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     else
                         selectedCount[i]++;
                 }
-                if (slots.Count > 0)
-                {
-                    var col = new DropSlotsTransform.ColumnInfo(columnInfos[i].Input, columnInfos[i].Output, slots.ToArray());
-                    columns.Add(col);
-                }
+                if (slots.Count <= 0)
+                    copyCols.Add((columnInfos[i].Input, columnInfos[i].Output));
+                else
+                    dropSlotsCols.Add(new DropSlotsTransform.ColumnInfo(columnInfos[i].Input, columnInfos[i].Output, slots.ToArray()));
             }
-            return columns;
+            dropSlotsColumns = dropSlotsCols.ToArray();
+            copyColumnsPairs = copyCols.ToArray();
         }
     }
 

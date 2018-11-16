@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
         }
 
-        [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
+        [Fact]
         public void FeatureSelectionWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -51,6 +52,91 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("FeatureSelection", "featureselection.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void DropSlotsTransform()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                ScalarFloat: ctx.LoadFloat(1),
+                ScalarDouble: ctx.LoadDouble(1),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDouble: ctx.LoadDouble(4, 8)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+
+            var columns = new[]
+            {
+                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped1", (min: 0, max: 1)),
+                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped2"),
+                new DropSlotsTransform.ColumnInfo("ScalarFloat", "dropped3", (min:0, max: 3)),
+                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped4", (min: 1, max: 2)),
+                new DropSlotsTransform.ColumnInfo("VectorDouble", "dropped5", (min: 1, null)),
+                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped6", (min: 100, null))
+
+            };
+            var trans = new DropSlotsTransform(env, columns);
+
+            var outputPath = GetOutputPath("FeatureSelection", "dropslots.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, trans.Transform(data), 4);
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("FeatureSelection", "dropslots.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void TestCountFeatureSelectionCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=DropSlots{col=B:A:1-4} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void CountFeatureSelectionWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                ScalarFloat: ctx.LoadFloat(6),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDouble: ctx.LoadDouble(4, 8)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+
+            var columns = new[] {
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", count: 1),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing690", count: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing100", count: 100),
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing690", count: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing100", count: 100)
+            };
+            var est = new CountFeatureSelectingEstimator(env, "VectorFloat", "FeatureSelect", count: 1)
+                .Append(new CountFeatureSelectingEstimator(env, columns));
+
+            TestEstimatorCore(est, data);
+
+            var outputPath = GetOutputPath("FeatureSelection", "countFeatureSelect.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("FeatureSelection", "countFeatureSelect.tsv");
             Done();
         }
     }

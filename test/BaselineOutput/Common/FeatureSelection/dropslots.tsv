@@ -3,7 +3,7 @@
 #@   col=ScalarFloat:R4:0
 #@   col=ScalarDouble:R8:1
 #@   col=VectorFloat:R4:2-5
-#@   col=VectorDoulbe:R8:6-10
+#@   col=VectorDouble:R8:6-10
 #@   col=dropped1:R4:11-12
 #@   col=dropped2:R4:13-13
 #@   col=dropped3:R4:14

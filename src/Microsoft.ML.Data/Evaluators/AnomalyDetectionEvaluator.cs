@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override IDataTransform GetPerInstanceMetrics(RoleMappedData data)
         {
-            return NopTransformer.CreateIfNeeded(Host, data.Data);
+            return NopTransform.CreateIfNeeded(Host, data.Data);
         }
 
         public override IEnumerable<MetricColumn> GetOverallMetricColumns()

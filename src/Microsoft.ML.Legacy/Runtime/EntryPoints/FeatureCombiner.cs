@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var labelType = input.Data.Schema.GetColumnType(labelCol);
             if (labelType.IsKey || labelType.IsBool)
             {
-                var nop = NopTransformer.CreateIfNeeded(env, input.Data);
+                var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var predictedLabelType = input.Data.Schema.GetColumnType(predictedLabelCol);
             if (predictedLabelType.IsNumber || predictedLabelType.IsBool)
             {
-                var nop = NopTransformer.CreateIfNeeded(env, input.Data);
+                var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var labelType = input.Data.Schema.GetColumnType(labelCol);
             if (labelType == NumberType.R4 || !labelType.IsNumber)
             {
-                var nop = NopTransformer.CreateIfNeeded(env, input.Data);
+                var nop = NopTransform.CreateIfNeeded(env, input.Data);
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 

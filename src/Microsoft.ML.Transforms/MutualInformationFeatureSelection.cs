@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (columns.Count <= 0)
                 {
                     ch.Info("No features are being dropped.");
-                    return new NopTransformer(_host);
+                    //return new NopTransform(_host);
                 }
 
                 for (int i = 0; i < selectedCount.Length; i++)
