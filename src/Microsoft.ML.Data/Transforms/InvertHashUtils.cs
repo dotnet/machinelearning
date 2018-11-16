@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyNames(col, type.KeyCount))
+            if (schema.HasKeyValues(col, type.KeyCount))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
