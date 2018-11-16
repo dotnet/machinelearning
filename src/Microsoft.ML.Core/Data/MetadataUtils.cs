@@ -325,7 +325,7 @@ namespace Microsoft.ML.Runtime.Data
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
 
-        public static bool HasKeyNames(this Schema schema, int col, int keyCount)
+        public static bool HasKeyValues(this Schema schema, int col, int keyCount)
         {
             if (keyCount == 0)
                 return false;
@@ -336,6 +336,14 @@ namespace Microsoft.ML.Runtime.Data
                 && type.IsVector
                 && type.VectorSize == keyCount
                 && type.ItemType.IsText;
+        }
+
+        [BestFriend]
+        internal static bool HasKeyValues(this SchemaShape.Column col)
+        {
+            return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
+                && metaCol.ItemType.IsText;
         }
 
         /// <summary>

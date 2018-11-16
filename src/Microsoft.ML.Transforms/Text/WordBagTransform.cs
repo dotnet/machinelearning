@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
-            public NgramCountingTransformer.WeightingCriteria? Weighting;
+            public NgramCountingEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramCountingTransformer.WeightingCriteria? Weighting;
+            public NgramCountingEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -230,18 +230,18 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
                 ShortName = "skips")]
-            public int SkipLength = 0;
+            public int SkipLength = NgramCountingEstimator.Defaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all")]
-            public bool AllLengths = true;
+            public bool AllLengths = NgramCountingEstimator.Defaults.AllLength;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramCountingTransformer.Arguments.DefaultMaxTerms };
+            public int[] MaxNumTerms = new int[] { NgramCountingEstimator.Defaults.MaxNumTerms };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramCountingTransformer.WeightingCriteria Weighting = NgramCountingTransformer.WeightingCriteria.Tf;
+            public NgramCountingEstimator.WeightingCriteria Weighting = NgramCountingEstimator.Defaults.Weighting;
         }
 
         [TlcModule.Component(Name = "NGram", FriendlyName = "NGram Extractor Transform", Alias = "NGramExtractorTransform,NGramExtractor",
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms.Text
                     termArgs =
                         new ValueToKeyMappingTransformer.Arguments()
                         {
-                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramCountingTransformer.Arguments.DefaultMaxTerms,
+                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramCountingEstimator.Defaults.MaxNumTerms,
                             Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
@@ -350,34 +350,20 @@ namespace Microsoft.ML.Transforms.Text
                     view = new MissingValueDroppingTransformer(h, naDropArgs, view);
             }
 
-            var ngramArgs =
-                new NgramCountingTransformer.Arguments()
-                {
-                    MaxNumTerms = args.MaxNumTerms,
-                    NgramLength = args.NgramLength,
-                    SkipLength = args.SkipLength,
-                    AllLengths = args.AllLengths,
-                    Weighting = args.Weighting,
-                    Column = new NgramCountingTransformer.Column[args.Column.Length]
-                };
-
+            var ngramColumns = new NgramCountingTransformer.ColumnInfo[args.Column.Length];
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
-                ngramArgs.Column[iinfo] =
-                    new NgramCountingTransformer.Column()
-                    {
-                        Name = column.Name,
-                        Source = isTermCol[iinfo] ? column.Name : column.Source,
-                        AllLengths = column.AllLengths,
-                        MaxNumTerms = column.MaxNumTerms,
-                        NgramLength = column.NgramLength,
-                        SkipLength = column.SkipLength,
-                        Weighting = column.Weighting
-                    };
+                ngramColumns[iinfo] = new NgramCountingTransformer.ColumnInfo(isTermCol[iinfo] ? column.Name : column.Source, column.Name,
+                    column.NgramLength ?? args.NgramLength,
+                    column.SkipLength ?? args.SkipLength,
+                    column.AllLengths ?? args.AllLengths,
+                    column.Weighting ?? args.Weighting,
+                    column.MaxNumTerms ?? args.MaxNumTerms
+                    );
             }
 
-            return new NgramCountingTransformer(h, ngramArgs, view);
+            return new NgramCountingEstimator(env, ngramColumns).Fit(view).Transform(view) as IDataTransform;
         }
 
         public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
