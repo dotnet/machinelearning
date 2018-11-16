@@ -2,6 +2,7 @@
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
