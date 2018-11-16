@@ -690,7 +690,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public static class CalibratorUtils
+    [BestFriend]
+    internal static class CalibratorUtils
     {
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
