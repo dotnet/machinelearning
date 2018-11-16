@@ -4,21 +4,21 @@
 
 using System;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
 [assembly: LoadableClass(typeof(FastTreeParallelInterfaceChecker),
-    null, typeof(Microsoft.ML.Runtime.FastTree.SignatureParallelTrainer), "FastTreeParallelInterfaceChecker")]
+    null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "FastTreeParallelInterfaceChecker")]
 
 namespace Microsoft.ML.Runtime.RunTests
 {
-    using SplitInfo = Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
-    using LeafSplitCandidates = Microsoft.ML.Runtime.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
+    using SplitInfo = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
+    using LeafSplitCandidates = Microsoft.ML.Trainers.FastTree.Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
 
-    public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Runtime.FastTree.IParallelTraining
+    public sealed class FastTreeParallelInterfaceChecker : Microsoft.ML.Trainers.FastTree.IParallelTraining
     {
         private bool _isInitEnv = false;
         private bool _isInitTreeLearner = false;
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         public void FindGlobalBestSplit(LeafSplitCandidates smallerChildSplitCandidates,
             LeafSplitCandidates largerChildSplitCandidates,
-            Microsoft.ML.Runtime.FastTree.FindBestThresholdFromRawArrayFun findFunction,
+            Microsoft.ML.Trainers.FastTree.FindBestThresholdFromRawArrayFun findFunction,
             SplitInfo[] bestSplits)
         {
             Assert.True(_isInitEnv);

@@ -93,6 +93,6 @@
   T1: Text
   T2: Text
   Features: Vec<R4, 32>
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 1 columns:
   Features: Vec<R4, 32>

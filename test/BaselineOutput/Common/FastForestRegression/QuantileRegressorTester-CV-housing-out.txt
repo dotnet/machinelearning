@@ -1,0 +1,58 @@
+maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} scorer=QuantileRegression{quantiles = 0.25,0.5,0.75} threads=- dout=%Output% loader=Text{col=Label:0 col=Features:~ header=+} data=%Data% seed=1
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 241 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 265 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+L1(avg):            3.180943
+L2(avg):            22.529859
+RMS(avg):           4.746563
+Loss-fn(avg):       22.529858
+R Squared:          0.730805
+L1(avg):            3.240456
+L2(avg):            20.642272
+RMS(avg):           4.543377
+Loss-fn(avg):       20.642272
+R Squared:          0.757759
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            3.210700 (0.0298)
+L2(avg):            21.586065 (0.9438)
+RMS(avg):           4.644970 (0.1016)
+Loss-fn(avg):       21.586065 (0.9438)
+R Squared:          0.744282 (0.0135)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'FastTree data preparation #2' started.
+[5] 'FastTree data preparation #2' finished in %Time%.
+[6] 'FastTree in-memory bins initialization #2' started.
+[6] 'FastTree in-memory bins initialization #2' finished in %Time%.
+[7] 'FastTree feature conversion #2' started.
+[7] 'FastTree feature conversion #2' finished in %Time%.
+[8] 'FastTree training #2' started.
+[8] 'FastTree training #2' finished in %Time%.

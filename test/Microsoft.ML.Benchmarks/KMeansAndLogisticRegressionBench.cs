@@ -4,10 +4,13 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -18,7 +21,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            using (var env = new ConsoleEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -45,7 +48,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_dataPath));
 
-                IDataView trans = new CategoricalEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
+                IDataView trans = new OneHotEncodingEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
                 trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
@@ -61,7 +64,7 @@ namespace Microsoft.ML.Benchmarks
                 trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
-                var trainer = new LogisticRegression(env, "Features", "Label", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
+                var trainer = new LogisticRegression(env, "Label", "Features", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 return trainer.Train(trainRoles);
             }

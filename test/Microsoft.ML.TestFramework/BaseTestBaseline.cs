@@ -59,6 +59,9 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        // The Regex matches both positive and negative decimal point numbers present in a string.
+        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
+        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -233,6 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private static readonly Regex _matchTime = new Regex(@"[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?", RegexOptions.Compiled);
         private static readonly Regex _matchShortTime = new Regex(@"\([0-9]{2}:[0-9]{2}(\.[0-9]+)?\)", RegexOptions.Compiled);
         private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+", RegexOptions.Compiled);
+        private static readonly Regex _matchReservedMemory = new Regex(@": [0-9]+ bytes", RegexOptions.Compiled);
         private static readonly Regex _matchElapsed = new Regex(@"Time elapsed\(s\): [0-9.]+", RegexOptions.Compiled);
         private static readonly Regex _matchTimes = new Regex(@"Instances caching time\(s\): [0-9\.]+", RegexOptions.Compiled);
         private static readonly Regex _matchUpdatesPerSec = new Regex(@", ([0-9\.]+|Infinity)M WeightUpdates/sec", RegexOptions.Compiled);
@@ -281,6 +285,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     line = _matchShortTime.Replace(line, "(%Time%)");
                     line = _matchElapsed.Replace(line, "Time elapsed(s): %Number%");
                     line = _matchMemory.Replace(line, "memory usage(MB): %Number%");
+                    line = _matchReservedMemory.Replace(line, ": %Number% bytes");
                     line = _matchTimes.Replace(line, "Instances caching time(s): %Number%");
                     line = _matchUpdatesPerSec.Replace(line, ", %Number%M WeightUpdates/sec");
                     line = _matchParameterT.Replace(line, "=PARAM:/t:%Number%");
@@ -301,7 +306,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// When hardware dependent baseline values should be tolerated, scope the code
         /// that does the comparisons with an instance of this disposable struct.
         /// </summary>
-        protected struct MismatchContext : IDisposable
+        protected readonly struct MismatchContext : IDisposable
         {
             // The test class instance.
             private readonly BaseTestBaseline _host;
@@ -490,9 +495,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
 
                     count++;
-                    GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
+                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
-                    if (line1 != line2)
+                    if (!inRange || line1 != line2)
                     {
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
@@ -504,47 +509,78 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private bool GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            MatchCollection firstCollection = _matchNumer.Matches(firstString);
-            MatchCollection secondCollection = _matchNumer.Matches(secondString);
+
+            MatchCollection firstCollection = MatchNumbers.Matches(firstString);
+            MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
-                MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
-            firstString = _matchNumer.Replace(firstString, "%Number%");
-            secondString = _matchNumer.Replace(secondString, "%Number%");
+            {
+                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
+                {
+                    return false;
+                }
+            }
+
+            firstString = MatchNumbers.Replace(firstString, "%Number%");
+            secondString = MatchNumbers.Replace(secondString, "%Number%");
+            return true;
         }
 
-        private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
-                // this follows the IEEE recommendations for how to compare floating point numbers
-                double allowedVariance = Math.Pow(10, -digitsOfPrecision);
-                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
-                // limitting to the digits we care about. 
-                delta = Math.Round(delta, digitsOfPrecision);
+                if(!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
+                {
+                    return false;
+                }
+            }
 
-                bool inRange = delta > -allowedVariance && delta < allowedVariance;
+            return true;
+        }
 
-                // for some cases, rounding up is not beneficial
-                // so checking on whether the difference is significant prior to rounding, and failing only then. 
-                // example, for 5 digits of precision. 
-                // F1 = 1.82844949 Rounds to 1.8284
-                // F2 = 1.8284502  Rounds to 1.8285
-                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
-                // (1.82844949 - 1.8284502) = -0.00000071
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
+        {
+            // this follows the IEEE recommendations for how to compare floating point numbers
+            double allowedVariance = Math.Pow(10, -digitsOfPrecision);
+            double delta = Round(expected, digitsOfPrecision) - Round(actual, digitsOfPrecision);
+            // limitting to the digits we care about. 
+            delta = Math.Round(delta, digitsOfPrecision);
+
+            bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+            // for some cases, rounding up is not beneficial
+            // so checking on whether the difference is significant prior to rounding, and failing only then. 
+            // example, for 5 digits of precision. 
+            // F1 = 1.82844949 Rounds to 1.8284
+            // F2 = 1.8284502  Rounds to 1.8285
+            // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+            // (1.82844949 - 1.8284502) = -0.00000071
+
+                double delta2 = 0;
+                if (!inRange)
+                {
+                    delta2 = Math.Round(expected - actual, digitsOfPrecision);
+                    inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
+                }
 
                 if (!inRange)
                 {
-                    delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                    var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
+
+                    Fail(_allowMismatch, message +
+                            $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                            $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                            $"\t delta: {delta}" + Environment.NewLine +
+                            $"\t delta2: {delta2}" + Environment.NewLine);
                 }
-            }
+
+            return inRange;
         }
 
         private static double Round(double value, int digitsOfPrecision)

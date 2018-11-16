@@ -5,10 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Scenarios\Api\AspirationalExamples.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Ensemble\Microsoft.ML.Ensemble.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.csproj" />
@@ -19,6 +15,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.PipelineInference\Microsoft.ML.PipelineInference.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
@@ -32,6 +29,7 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
@@ -42,10 +40,6 @@
   <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.4-test" />

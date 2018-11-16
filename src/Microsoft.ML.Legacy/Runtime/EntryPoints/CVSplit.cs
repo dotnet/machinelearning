@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(CVSplit), null, typeof(SignatureEntryPointModule), "CVSplit")]
 
@@ -67,11 +68,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 var trainData = new RangeFilter(host,
                     new RangeFilter.Arguments { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = true }, data);
-                output.TrainData[i] = new DropColumnsTransform(host, new DropColumnsTransform.Arguments { Column = new[] { stratCol } }, trainData);
+                output.TrainData[i] = SelectColumnsTransform.CreateDrop(host, trainData, stratCol);
 
                 var testData = new RangeFilter(host,
                     new RangeFilter.Arguments { Column = stratCol, Min = i * fraction, Max = (i + 1) * fraction, Complement = false }, data);
-                output.TestData[i] = new DropColumnsTransform(host, new DropColumnsTransform.Arguments { Column = new[] { stratCol } }, testData);
+                output.TestData[i] = SelectColumnsTransform.CreateDrop(host, testData,  stratCol);
             }
 
             return output;

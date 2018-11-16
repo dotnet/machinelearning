@@ -40,6 +40,8 @@ The following are the minimum requirements:
 
 ## Building Instructions
 
+In order to fetch dependencies which come through Git submodules the following command needs to be run before building: `git submodule update --init`.
+
 ### Building From Visual Studio 2017
 
 First, set up the required tools, from a (non-admin) Command Prompt window:

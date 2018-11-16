@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+using Microsoft.ML.Runtime;
+
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// This is dummy optimizer. As Random forest does not have any boosting based optimization, this is place holder to be consistent
@@ -12,7 +14,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     {
         private IGradientAdjuster _gradientWrapper;
         // REVIEW: When the FastTree appliation is decoupled with tree learner and boosting logic, this class should be removed.
-        public RandomForestOptimizer(Ensemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public RandomForestOptimizer(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             _gradientWrapper = gradientWrapper;

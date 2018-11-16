@@ -95,6 +95,8 @@
                           RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" />                         
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MatrixFactorizationNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.MatrixFactorization\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>

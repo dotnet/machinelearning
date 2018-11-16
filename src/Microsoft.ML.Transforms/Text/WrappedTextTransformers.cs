@@ -5,11 +5,10 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.TextAnalytics;
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Text
 {
 
     /// <summary>

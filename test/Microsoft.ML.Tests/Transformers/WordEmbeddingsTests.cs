@@ -30,9 +30,9 @@ namespace Microsoft.ML.Tests.Transformers
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath);
 
-            var dynamicData = TextTransform.Create(Env, new TextTransform.Arguments()
+            var dynamicData = TextFeaturizingEstimator.Create(Env, new TextFeaturizingEstimator.Arguments()
             {
-                Column = new TextTransform.Column
+                Column = new TextFeaturizingEstimator.Column
                 {
                     Name = "SentimentText_Features",
                     Source = new[] { "SentimentText" }
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
                 OutputTokens = true,
                 KeepPunctuations = false,
                 StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = TextTransform.TextNormKind.None,
+                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
             }, data.AsDynamic);

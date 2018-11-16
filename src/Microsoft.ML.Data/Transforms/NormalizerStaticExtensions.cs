@@ -6,6 +6,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,8 +18,8 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class NormalizerStaticExtensions
     {
-        private const long MaxTrain = Normalizer.Defaults.MaxTrainingExamples;
-        private const bool FZ = Normalizer.Defaults.FixZero;
+        private const long MaxTrain = NormalizingEstimator.Defaults.MaxTrainingExamples;
+        private const bool FZ = NormalizingEstimator.Defaults.FixZero;
 
         /// <summary>
         /// Learns an affine function based on the minimum and maximum, so that all values between the minimum and
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
-            return new Impl<T>(input, (src, name) => new Normalizer.MinMaxColumn(src, name, maxTrainingExamples, fixZero), AffineMapper(onFit));
+            return new Impl<T>(input, (src, name) => new NormalizingEstimator.MinMaxColumn(src, name, maxTrainingExamples, fixZero), AffineMapper(onFit));
         }
 
         // We have a slightly different breaking up of categories of normalizers versus the dynamic API. Both the mean-var and
@@ -173,8 +174,8 @@ namespace Microsoft.ML.Runtime.Data
             return new Impl<T>(input, (src, name) =>
             {
                 if (useLog)
-                    return new Normalizer.LogMeanVarColumn(src, name, maxTrainingExamples, useCdf);
-                return new Normalizer.MeanVarColumn(src, name, maxTrainingExamples, fixZero, useCdf);
+                    return new NormalizingEstimator.LogMeanVarColumn(src, name, maxTrainingExamples, useCdf);
+                return new NormalizingEstimator.MeanVarColumn(src, name, maxTrainingExamples, fixZero, useCdf);
             }, onFit);
         }
 
@@ -197,7 +198,7 @@ namespace Microsoft.ML.Runtime.Data
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<float> NormalizeByBinning(
-            this Vector<float> input, int maxBins = Normalizer.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
+            this Vector<float> input, int maxBins = NormalizingEstimator.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
             OnFitBinned<ImmutableArray<float>> onFit = null)
         {
             return NormalizeByBinningCore(input, maxBins, fixZero, maxTrainingExamples, onFit);
@@ -222,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
         /// vector values.</remarks>
         /// <returns>The normalized column.</returns>
         public static NormVector<double> NormalizeByBinning(
-            this Vector<double> input, int maxBins = Normalizer.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
+            this Vector<double> input, int maxBins = NormalizingEstimator.Defaults.NumBins, bool fixZero = FZ, long maxTrainingExamples = MaxTrain,
             OnFitBinned<ImmutableArray<double>> onFit = null)
         {
             return NormalizeByBinningCore(input, maxBins, fixZero, maxTrainingExamples, onFit);
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckParam(numBins > 1, nameof(maxTrainingExamples), "Must be greater than 1");
             Contracts.CheckParam(maxTrainingExamples > 1, nameof(maxTrainingExamples), "Must be greater than 1");
-            return new Impl<T>(input, (src, name) => new Normalizer.BinningColumn(src, name, maxTrainingExamples, fixZero, numBins), BinMapper(onFit));
+            return new Impl<T>(input, (src, name) => new NormalizingEstimator.BinningColumn(src, name, maxTrainingExamples, fixZero, numBins), BinMapper(onFit));
         }
 
         /// <summary>
@@ -270,7 +271,7 @@ namespace Microsoft.ML.Runtime.Data
         public delegate void OnFitBinned<TData>(ImmutableArray<TData> upperBounds);
 
         #region Implementation support
-        private delegate Normalizer.ColumnBase CreateNormCol(string input, string name);
+        private delegate NormalizingEstimator.ColumnBase CreateNormCol(string input, string name);
 
         private sealed class Rec : EstimatorReconciler
         {
@@ -280,7 +281,7 @@ namespace Microsoft.ML.Runtime.Data
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
                 IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
             {
-                var cols = new Normalizer.ColumnBase[toOutput.Length];
+                var cols = new NormalizingEstimator.ColumnBase[toOutput.Length];
                 List<(int idx, Action<IColumnFunction> onFit)> onFits = null;
 
                 for (int i = 0; i < toOutput.Length; ++i)
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (col.OnFit != null)
                         Utils.Add(ref onFits, (i, col.OnFit));
                 }
-                var norm = new Normalizer(env, cols);
+                var norm = new NormalizingEstimator(env, cols);
                 if (Utils.Size(onFits) == 0)
                     return norm;
                 return norm.WithOnFitDelegate(normTrans =>

@@ -4,9 +4,11 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -53,8 +55,8 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(_irisDataPath);
 
-                var pipeline = new ConcatEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                    .Append(new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+                var pipeline = new ColumnConcatenatingEstimator (env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                    .Append(new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -88,8 +90,8 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(_sentimentDataPath);
 
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+                var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
+                    .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -123,7 +125,7 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(_breastCancerDataPath);
 
-                var pipeline = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
+                var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 
                 var model = pipeline.Fit(data);
 

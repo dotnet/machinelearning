@@ -17,12 +17,14 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         protected const int IndexLength = 1000003;
         protected const int Length = 1000003;
-        
+        protected const int MatrixIndexLength = 100;
+
         private const int DefaultSeed = 253421;
         protected const float DefaultScale = 1.11f;
 
         protected float[] src, dst, original, src1, src2, result;
         protected int[] idx;
+        protected int[] matrixIdx;
 
         private int _seed = DefaultSeed;
 
@@ -67,6 +69,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             original = new float[Length];
             result = new float[Length];
             idx = new int[IndexLength];
+            matrixIdx = new int[MatrixIndexLength];
 
             _seed = GetSeed();
             Random rand = new Random(_seed);
@@ -84,6 +87,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             for (int i = 0; i < IndexLength; i++)
             {
                 idx[i] = rand.Next(0, Length);
+            }
+
+            for (int i = 0; i < MatrixIndexLength; i++)
+            {
+                matrixIdx[i] = rand.Next(0, 1000);
             }
         }
 

@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Train.
             var model = pipeline.Fit(data);

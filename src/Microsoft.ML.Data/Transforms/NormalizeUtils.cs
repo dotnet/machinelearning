@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Transforms.Normalizers;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using Microsoft.ML.StaticPipe;
 
 [assembly: LoadableClass(typeof(void), typeof(Normalize), null, typeof(SignatureEntryPointModule), "Normalize")]
 
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Updates the aggregate function with a value
         /// </summary>
-        void ProcessValue(ref T val);
+        void ProcessValue(in T val);
 
         /// <summary>
         /// Finishes the aggregation

@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree.Internal;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -170,9 +170,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return cats.ToArray();
         }
 
-        public FastTree.Internal.Ensemble GetModel(int[] categoricalFeatureBoudaries)
+        public TreeEnsemble GetModel(int[] categoricalFeatureBoudaries)
         {
-            FastTree.Internal.Ensemble res = new FastTree.Internal.Ensemble();
+            TreeEnsemble res = new TreeEnsemble();
             string modelString = GetModelString();
             string[] lines = modelString.Split('\n');
             int i = 0;

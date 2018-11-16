@@ -4,8 +4,10 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Collections.Generic;
 
@@ -25,7 +27,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// <summary>
     /// Base class for all training with LightGBM.
     /// </summary>
-    public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictorProducing<TOutput>
     {
@@ -51,37 +53,48 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
-        private protected FastTree.Internal.Ensemble TrainedEnsemble;
+        private protected TreeEnsemble TrainedEnsemble;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
         public override TrainerInfo Info => _info;
 
-        private protected LightGbmTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<LightGbmArguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private protected LightGbmTrainerBase(IHostEnvironment env,
+            string name,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int? numLeaves,
+            int? minDataPerLeaf,
+            double? learningRate,
+            int numBoostRound,
+            Action<LightGbmArguments> advancedSettings)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new LightGbmArguments();
 
+            Args.NumLeaves = numLeaves;
+            Args.MinDataPerLeaf = minDataPerLeaf;
+            Args.LearningRate = learningRate;
+            Args.NumBoostRound = numBoostRound;
+
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = weightColumn;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = groupIdColumn;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
 
             InitParallelTraining();
         }
 
         private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
-           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Host.CheckValue(args, nameof(args));
 
@@ -158,32 +171,6 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             data.CheckFeatureFloatVector();
             ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
-        }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// REVIEW: we should somehow mark the arguments that are set apart in those two places. Currently they stand out by their sort order annotation.
-        /// </summary>
-        protected void CheckArgsAndAdvancedSettingMismatch(int? numLeaves,
-            int? minDataPerLeaf,
-            double? learningRate,
-            int numBoostRound,
-            LightGbmArguments snapshot,
-            LightGbmArguments currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, currentArgs.NumLeaves, nameof(numLeaves));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numBoostRound, snapshot.NumBoostRound, currentArgs.NumBoostRound, nameof(numBoostRound));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDataPerLeaf, snapshot.MinDataPerLeaf, currentArgs.MinDataPerLeaf, nameof(minDataPerLeaf));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRate, currentArgs.LearningRate, nameof(learningRate));
-            }
         }
 
         protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
@@ -404,7 +391,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 while (cursor.MoveNext() && numRows > 0)
                 {
-                    nonZeroCount += cursor.Features.Count;
+                    nonZeroCount += cursor.Features.GetValues().Length;
                     totalCount += cursor.Features.Length;
                     --numRows;
                 }
@@ -424,7 +411,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             bool hasGroup = false;
             if (PredictionKind == PredictionKind.Ranking)
             {
-                ch.Check(factory.Data.Schema != null, "The data for ranking task should have group field.");
+                ch.Check(factory.Data.Schema.Group != null, "The data for ranking task should have group field.");
                 hasGroup = true;
             }
             List<float> weightList = hasWeights ? new List<float>() : null;
@@ -495,21 +482,22 @@ namespace Microsoft.ML.Runtime.LightGBM
             return true;
         }
 
-        private void GetFeatureValueDense(IChannel ch, FloatLabelCursor cursor, CategoricalMetaData catMetaData, IRandom rand, out float[] featureValues)
+        private void GetFeatureValueDense(IChannel ch, FloatLabelCursor cursor, CategoricalMetaData catMetaData, IRandom rand, out ReadOnlySpan<float> featureValues)
         {
+            var cursorFeaturesValues = cursor.Features.GetValues();
             if (catMetaData.CategoricalBoudaries != null)
             {
-                featureValues = new float[catMetaData.NumCol];
+                float[] featureValuesTemp = new float[catMetaData.NumCol];
                 for (int i = 0; i < catMetaData.NumCol; ++i)
                 {
-                    float fv = cursor.Features.Values[catMetaData.CategoricalBoudaries[i]];
+                    float fv = cursorFeaturesValues[catMetaData.CategoricalBoudaries[i]];
                     if (catMetaData.IsCategoricalFeature[i])
                     {
                         int hotIdx = catMetaData.CategoricalBoudaries[i] - 1;
                         int nhot = 0;
                         for (int j = catMetaData.CategoricalBoudaries[i]; j < catMetaData.CategoricalBoudaries[i + 1]; ++j)
                         {
-                            if (cursor.Features.Values[j] > 0)
+                            if (cursorFeaturesValues[j] > 0)
                             {
                                 // Reservoir Sampling.
                                 nhot++;
@@ -521,36 +509,39 @@ namespace Microsoft.ML.Runtime.LightGBM
                         // All-Zero is category 0.
                         fv = hotIdx - catMetaData.CategoricalBoudaries[i] + 1;
                     }
-                    featureValues[i] = fv;
+                    featureValuesTemp[i] = fv;
                 }
+                featureValues = featureValuesTemp;
             }
             else
             {
-                featureValues = cursor.Features.Values;
+                featureValues = cursorFeaturesValues;
             }
         }
 
         private void GetFeatureValueSparse(IChannel ch, FloatLabelCursor cursor,
-            CategoricalMetaData catMetaData, IRandom rand, out int[] indices,
-            out float[] featureValues, out int cnt)
+            CategoricalMetaData catMetaData, IRandom rand, out ReadOnlySpan<int> indices,
+            out ReadOnlySpan<float> featureValues, out int cnt)
         {
+            var cursorFeaturesValues = cursor.Features.GetValues();
+            var cursorFeaturesIndices = cursor.Features.GetIndices();
             if (catMetaData.CategoricalBoudaries != null)
             {
                 List<int> featureIndices = new List<int>();
                 List<float> values = new List<float>();
                 int lastIdx = -1;
                 int nhot = 0;
-                for (int i = 0; i < cursor.Features.Count; ++i)
+                for (int i = 0; i < cursorFeaturesValues.Length; ++i)
                 {
-                    float fv = cursor.Features.Values[i];
-                    int colIdx = cursor.Features.Indices[i];
+                    float fv = cursorFeaturesValues[i];
+                    int colIdx = cursorFeaturesIndices[i];
                     int newColIdx = catMetaData.OnehotIndices[colIdx];
                     if (catMetaData.IsCategoricalFeature[newColIdx])
                         fv = catMetaData.OnehotBias[colIdx] + 1;
                     if (newColIdx != lastIdx)
                     {
-                        featureIndices.Push(newColIdx);
-                        values.Push(fv);
+                        featureIndices.Add(newColIdx);
+                        values.Add(fv);
                         nhot = 1;
                     }
                     else
@@ -569,9 +560,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             }
             else
             {
-                indices = cursor.Features.Indices;
-                featureValues = cursor.Features.Values;
-                cnt = cursor.Features.Count;
+                indices = cursorFeaturesIndices;
+                featureValues = cursorFeaturesValues;
+                cnt = cursorFeaturesValues.Length;
             }
         }
 
@@ -612,7 +603,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 {
                     if (cursor.Features.IsDense)
                     {
-                        GetFeatureValueDense(ch, cursor, catMetaData, rand, out float[] featureValues);
+                        GetFeatureValueDense(ch, cursor, catMetaData, rand, out ReadOnlySpan<float> featureValues);
                         for (int i = 0; i < catMetaData.NumCol; ++i)
                         {
                             float fv = featureValues[i];
@@ -628,7 +619,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                     }
                     else
                     {
-                        GetFeatureValueSparse(ch, cursor, catMetaData, rand, out int[] featureIndices, out float[] featureValues, out int cnt);
+                        GetFeatureValueSparse(ch, cursor, catMetaData, rand, out ReadOnlySpan<int> featureIndices, out ReadOnlySpan<float> featureValues, out int cnt);
                         for (int i = 0; i < cnt; ++i)
                         {
                             int colIdx = featureIndices[i];
@@ -729,7 +720,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                     {
                         ch.Assert(totalRowCount < numRow);
                         // Need push rows to LightGBM.
-                        if (numElem + cursor.Features.Count > features.Length)
+                        if (numElem + cursor.Features.GetValues().Length > features.Length)
                         {
                             // Mini batch size is greater than size of one row.
                             // So, at least we have the data of one row.
@@ -774,14 +765,14 @@ namespace Microsoft.ML.Runtime.LightGBM
             {
                 if (cursor.Features.IsDense)
                 {
-                    GetFeatureValueDense(ch, cursor, catMetaData, rand, out float[] featureValues);
+                    GetFeatureValueDense(ch, cursor, catMetaData, rand, out ReadOnlySpan<float> featureValues);
                     for (int i = 0; i < catMetaData.NumCol; ++i)
                         features[numElem + i] = featureValues[i];
                     numElem += catMetaData.NumCol;
                 }
                 else
                 {
-                    GetFeatureValueSparse(ch, cursor, catMetaData, rand, out int[] indices, out float[] featureValues, out int cnt);
+                    GetFeatureValueSparse(ch, cursor, catMetaData, rand, out ReadOnlySpan<int> indices, out ReadOnlySpan<float> featureValues, out int cnt);
                     int lastIdx = 0;
                     for (int i = 0; i < cnt; i++)
                     {
@@ -808,7 +799,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         private void CopyToCsr(IChannel ch, FloatLabelCursor cursor,
             int[] indices, float[] features, CategoricalMetaData catMetaData, IRandom rand, ref int numElem)
         {
-            int numValue = cursor.Features.Count;
+            int numValue = cursor.Features.GetValues().Length;
             if (numValue > 0)
             {
                 ch.Assert(indices.Length >= numElem + numValue);
@@ -816,7 +807,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
                 if (cursor.Features.IsDense)
                 {
-                    GetFeatureValueDense(ch, cursor, catMetaData, rand, out float[] featureValues);
+                    GetFeatureValueDense(ch, cursor, catMetaData, rand, out ReadOnlySpan<float> featureValues);
                     for (int i = 0; i < catMetaData.NumCol; ++i)
                     {
                         float fv = featureValues[i];
@@ -829,7 +820,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                 }
                 else
                 {
-                    GetFeatureValueSparse(ch, cursor, catMetaData, rand, out int[] featureIndices, out float[] featureValues, out int cnt);
+                    GetFeatureValueSparse(ch, cursor, catMetaData, rand, out ReadOnlySpan<int> featureIndices, out ReadOnlySpan<float> featureValues, out int cnt);
                     for (int i = 0; i < cnt; ++i)
                     {
                         int colIdx = featureIndices[i];

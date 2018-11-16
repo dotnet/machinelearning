@@ -90,7 +90,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(false, mat, src, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(true, mat, src, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -116,14 +116,14 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f })]
         [InlineData(1, 1, 0, new float[] { 910f, 2190f, 3470f, 4750f, 6030f, 7310f, 8590f, 9870f })]
         [InlineData(1, 0, 1, new float[] { 95f, 231f, 367f, 503f, 639f, 775f, 911f, 1047f, 1183f, 1319f, 1455f, 1591f, 1727f, 1863f, 1999f, 2135f })]
-        public void MatMulPATest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatTimesSrcSparseTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -346,7 +346,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [Theory]
         [InlineData(0, -187.8f)]
         [InlineData(1, -191.09f)]
-        public void SumUTest(int test, float expected)
+        public void SumTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
             var actual = CpuMathUtils.Sum(src);

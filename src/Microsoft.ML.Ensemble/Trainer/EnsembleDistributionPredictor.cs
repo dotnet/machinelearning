@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var probabilities = new Single[_mappers.Length];
             var vBuffers = new VBuffer<Single>[_mappers.Length];
             ValueMapper<VBuffer<Single>, Single> del =
-                (ref VBuffer<Single> src, ref Single dst) =>
+                (in VBuffer<Single> src, ref Single dst) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);
@@ -141,11 +141,11 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
-                            maps[i](ref vBuffers[i], ref predictions[i], ref probabilities[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                            maps[i](in vBuffers[i], ref predictions[i], ref probabilities[i]);
                         }
                         else
-                            maps[i](ref tmp, ref predictions[i], ref probabilities[i]);
+                            maps[i](in tmp, ref predictions[i], ref probabilities[i]);
                     });
 
                     // REVIEW: DistributionEnsemble - AveragedWeights are used only in one of the two PredictDistributions overloads
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             var probabilities = new Single[_mappers.Length];
             var vBuffers = new VBuffer<Single>[_mappers.Length];
             ValueMapper<VBuffer<Single>, Single, Single> del =
-                (ref VBuffer<Single> src, ref Single score, ref Single prob) =>
+                (in VBuffer<Single> src, ref Single score, ref Single prob) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);
@@ -179,11 +179,11 @@ namespace Microsoft.ML.Runtime.Ensemble
                         var model = Models[i];
                         if (model.SelectedFeatures != null)
                         {
-                            EnsembleUtils.SelectFeatures(ref tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
-                            maps[i](ref vBuffers[i], ref predictions[i], ref probabilities[i]);
+                            EnsembleUtils.SelectFeatures(in tmp, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                            maps[i](in vBuffers[i], ref predictions[i], ref probabilities[i]);
                         }
                         else
-                            maps[i](ref tmp, ref predictions[i], ref probabilities[i]);
+                            maps[i](in tmp, ref predictions[i], ref probabilities[i]);
                     });
 
                     combine(ref score, predictions, _averagedWeights);

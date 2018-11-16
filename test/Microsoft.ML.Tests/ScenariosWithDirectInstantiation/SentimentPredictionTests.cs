@@ -6,7 +6,7 @@ using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
@@ -37,9 +37,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var trans = TextTransform.Create(env, new TextTransform.Arguments()
+                var trans = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new TextFeaturizingEstimator.Column
                     {
                         Name = "Features",
                         Source = new[] { "SentimentText" }
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Scenarios
                     OutputTokens = true,
                     KeepPunctuations = false,
                     StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.L2,
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                     WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
                 },
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Scenarios
 
                 // Train
                 var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, 
-                    numLeaves:5, numTrees:5, minDocumentsInLeafs: 2);
+                    numLeaves:5, numTrees:5, minDatapointsInLeaves: 2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
@@ -100,9 +100,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var text = TextTransform.Create(env, new TextTransform.Arguments()
+                var text = TextFeaturizingEstimator.Create(env, new TextFeaturizingEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new TextFeaturizingEstimator.Column
                     {
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Scenarios
                     OutputTokens = true,
                     KeepPunctuations= false,
                     StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.None,
+                    VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                     CharFeatureExtractor = null,
                     WordFeatureExtractor = null,
                 },
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Scenarios
                     ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDocumentsInLeafs:2);
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDatapointsInLeaves:2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);

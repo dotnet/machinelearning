@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             // Not a passthrough.
             return RowCount;
@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
                                     len++;
                                     Ch.Assert(len <= _len);
                                     getter(ref value);
-                                    if (isDefault(ref value))
+                                    if (isDefault(in value))
                                         continue;
                                     Utils.EnsureSize(ref indices, ++count);
                                     indices[count - 1] = len;
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.Data
                 var type = _view.Schema.GetColumnType(_colCurr);
                 Ch.Assert(type.ItemType.RawType == typeof(T));
                 Ch.Assert(type.ValueCount > 0);
-                RefPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+                InPredicate<T> isDefault = Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
                 int vecLen = type.ValueCount;
                 int maxPossibleSize = _rbuff.Length * vecLen;
                 const int sparseThresholdRatio = 5;
@@ -616,24 +616,26 @@ namespace Microsoft.ML.Runtime.Data
                                         int rowNum = offset + r;
                                         var rbuff = _rbuff[r];
 
+                                        var rbuffValues = rbuff.GetValues();
                                         if (rbuff.IsDense)
                                         {
                                             // Store it as sparse. We will densify later, if we must.
-                                            if (!isDefault(ref rbuff.Values[s]))
+                                            if (!isDefault(in rbuffValues[s]))
                                             {
                                                 indices[_counts[s]] = rowNum;
-                                                values[_counts[s]++] = rbuff.Values[s];
+                                                values[_counts[s]++] = rbuffValues[s];
                                             }
                                         }
                                         else
                                         {
+                                            var rbuffIndices = rbuff.GetIndices();
                                             int ii = _rbuffIndices[r];
-                                            if (ii < rbuff.Count && rbuff.Indices[ii] == s)
+                                            if (ii < rbuffIndices.Length && rbuffIndices[ii] == s)
                                             {
-                                                if (!isDefault(ref rbuff.Values[ii]))
+                                                if (!isDefault(in rbuffValues[ii]))
                                                 {
                                                     indices[_counts[s]] = rowNum;
-                                                    values[_counts[s]++] = rbuff.Values[ii];
+                                                    values[_counts[s]++] = rbuffValues[ii];
                                                 }
                                                 _rbuffIndices[r]++;
                                             }
@@ -652,8 +654,8 @@ namespace Microsoft.ML.Runtime.Data
                                 for (int r = 0; r < irbuff; ++r)
                                 {
                                     var rbuff = _rbuff[r];
-                                    if (rbuff.Count > 0)
-                                        heap.Add(new KeyValuePair<int, int>(rbuff.IsDense ? 0 : rbuff.Indices[0], r));
+                                    if (rbuff.GetValues().Length > 0)
+                                        heap.Add(new KeyValuePair<int, int>(rbuff.IsDense ? 0 : rbuff.GetIndices()[0], r));
                                 }
                                 while (heap.Count > 0)
                                 {
@@ -666,12 +668,14 @@ namespace Microsoft.ML.Runtime.Data
                                         values = _values[s];
                                     }
                                     var rbuff = _rbuff[pair.Value];
+                                    var rbuffValues = rbuff.GetValues();
+                                    var rbuffIndices = rbuff.GetIndices();
                                     int ii = rbuff.IsDense ? s : _rbuffIndices[pair.Value]++;
-                                    Ch.Assert(rbuff.IsDense || rbuff.Indices[ii] == s);
+                                    Ch.Assert(rbuff.IsDense || rbuffIndices[ii] == s);
                                     indices[_counts[s]] = pair.Value + offset;
-                                    values[_counts[s]++] = rbuff.Values[ii];
-                                    if (++ii < rbuff.Count) // Still more stuff. Add another followup item to the heap.
-                                        heap.Add(new KeyValuePair<int, int>(rbuff.IsDense ? s + 1 : rbuff.Indices[ii], pair.Value));
+                                    values[_counts[s]++] = rbuffValues[ii];
+                                    if (++ii < rbuffValues.Length) // Still more stuff. Add another followup item to the heap.
+                                        heap.Add(new KeyValuePair<int, int>(rbuff.IsDense ? s + 1 : rbuffIndices[ii], pair.Value));
                                 }
                             }
                             Array.Clear(_rbuffIndices, 0, irbuff);
@@ -684,7 +688,7 @@ namespace Microsoft.ML.Runtime.Data
                         int idx = checked((int)cursor.Position);
                         Ch.Assert(0 <= idx && idx < _len);
                         getter(ref _rbuff[irbuff]);
-                        countSum += _rbuff[irbuff].Count;
+                        countSum += _rbuff[irbuff].GetValues().Length;
                         if (++irbuff == _rbuff.Length)
                             copyPhase();
                     }
@@ -814,9 +818,9 @@ namespace Microsoft.ML.Runtime.Data
                 _schema = new SchemaImpl(this, nameToCol);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
-                return _input.GetRowCount(lazy);
+                return _input.GetRowCount();
             }
 
             /// <summary>
@@ -1499,7 +1503,7 @@ namespace Microsoft.ML.Runtime.Data
                 _schemaImpl = new SchemaImpl(this);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
                 var type = _data.Schema.GetColumnType(_col);
                 int valueCount = type.ValueCount;

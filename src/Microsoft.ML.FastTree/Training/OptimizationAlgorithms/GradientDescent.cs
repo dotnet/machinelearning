@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public class GradientDescent : OptimizationAlgorithm
     {
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private double[] _droppedScores;
         private double[] _scores;
 
-        public GradientDescent(Ensemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public GradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores)
         {
             _gradientWrapper = gradientWrapper;

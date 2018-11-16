@@ -104,10 +104,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected readonly bool IsAdaptive;
         protected readonly ErrorFunctionUtils.ErrorFunction ErrorFunction;
         protected readonly Func<Double, Double, Double> ErrorFunc;
-        protected readonly ISequenceModeler<Single, Single> Model;
+        protected readonly SequenceModelerBase<Single, Single> Model;
 
-        public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env, IDataView input)
-            : base(args.WindowSize, 0, args.Source, args.Name, name, env, input, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
+        public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
+            : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
         {
             Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
             Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
@@ -118,18 +118,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ErrorFunction = args.ErrorFunction;
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
             IsAdaptive = args.IsAdaptive;
-
             // Creating the master SSA model
             Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
-                DiscountFactor, null, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
-
-            // Training the master SSA model
-            var data = new RoleMappedData(input, null, InputColumnName);
-            Model.Train(data);
+                DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
         }
 
-        public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
-            : base(env, ctx, name, input)
+        public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+            : base(env, ctx, name)
         {
             // *** Binary format ***
             // <base>
@@ -155,8 +150,22 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             IsAdaptive = ctx.Reader.ReadBoolean();
 
-            ctx.LoadModel<ISequenceModeler<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
+            ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
             Host.CheckDecode(Model != null);
+        }
+
+        public override Schema GetOutputSchema(Schema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+            var colType = inputSchema.GetColumnType(col);
+            if (colType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberType.R4.ToString(), colType.ToString());
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -188,22 +197,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class State : AnomalyDetectionStateBase
         {
-            private ISequenceModeler<Single, Single> _model;
+            private SequenceModelerBase<Single, Single> _model;
             private SsaAnomalyDetectionBase _parentAnomalyDetector;
 
-            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need to implement a training logic here.
             }
 
-            protected override void InitializeAnomalyDetector()
+            private protected override void InitializeAnomalyDetector()
             {
                 _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
                 _model = _parentAnomalyDetector.Model.Clone();
-                _model.InitState();
             }
 
-            protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
+            private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
             {
                 // Get the prediction for the next point opn the series
                 Single expectedValue = 0;

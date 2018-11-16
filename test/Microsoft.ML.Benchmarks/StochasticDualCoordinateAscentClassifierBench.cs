@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Globalization;
@@ -90,10 +91,10 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_sentimentDataPath));
 
-                var text = TextTransform.Create(env,
-                    new TextTransform.Arguments()
+                var text = TextFeaturizingEstimator.Create(env,
+                    new TextFeaturizingEstimator.Arguments()
                     {
-                        Column = new TextTransform.Column
+                        Column = new TextFeaturizingEstimator.Column
                         {
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
@@ -101,7 +102,7 @@ namespace Microsoft.ML.Benchmarks
                         OutputTokens = true,
                         KeepPunctuations=false,
                         StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
-                        VectorNormalizer = TextTransform.TextNormKind.None,
+                        VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
                     }, loader);
@@ -121,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
                     }, text);
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", maxIterations: 20);
+                var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", maxIterations: 20);
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
 
                 var predicted = trainer.Train(trainRoles);

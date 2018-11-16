@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -14,6 +9,12 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
@@ -328,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
                     int inc = 0;
                     while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    output = new HashEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
+                    output = new HashingEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
                 }
             }
 
@@ -353,7 +354,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class FoldHelper
         {
-            public struct FoldResult
+            public readonly struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
                 public readonly Schema ScoreSchema;

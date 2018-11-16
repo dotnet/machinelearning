@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static partial class Utils
+    internal static partial class Utils
     {
         private const int CbitUint = 32;
         private const int CbitUlong = 64;

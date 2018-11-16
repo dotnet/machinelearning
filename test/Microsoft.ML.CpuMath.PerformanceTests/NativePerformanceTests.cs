@@ -113,11 +113,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
         
         [Benchmark]
-        public unsafe float SumU()
+        public unsafe float Sum()
         {
             fixed (float* psrc = src)
             {
-                return CpuMathNativeUtils.SumU(psrc, Length);
+                return CpuMathNativeUtils.Sum(psrc, Length);
             }
         }
         
@@ -248,6 +248,18 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             fixed (float* psrc1 = &src1[0])
             {
                 Thunk.MatMulTran(psrc1, psrc, pdst, 1000, 1000);
+            }
+        }
+
+        [Benchmark]
+        public unsafe void MatMulP()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
+            fixed (int* pidx = &matrixIdx[0])
+            {
+                Thunk.MatMulP(psrc1, pidx, psrc, 0, 0, MatrixIndexLength, pdst, 1000, 1000);
             }
         }
     }

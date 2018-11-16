@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.TreePredictor;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]
@@ -190,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
                 InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
-                var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
+                var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.TrainedEnsemble.NumTrees);
                 // An indicator vector with length = the total number of leaves in the ensemble, indicating which leaf the example
                 // ends up in all the trees in the ensemble.
                 var leafIdType = new VectorType(NumberType.Float, _owner._totalLeafCount);
@@ -201,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 // plus one (since the root node is not a child of any node). So we have #internal + #leaf = 2*(#internal) + 1,
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
-                var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
+                var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.TrainedEnsemble.NumTrees);
                 Schema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
@@ -279,10 +281,10 @@ namespace Microsoft.ML.Runtime.Data
                     _ectx = ectx;
                     _ectx.AssertValue(input);
                     _ectx.AssertValue(ensemble);
-                    _ectx.Assert(ensemble.NumTrees > 0);
+                    _ectx.Assert(ensemble.TrainedEnsemble.NumTrees > 0);
                     _input = input;
                     _ensemble = ensemble;
-                    _numTrees = _ensemble.NumTrees;
+                    _numTrees = _ensemble.TrainedEnsemble.NumTrees;
                     _numLeaves = numLeaves;
 
                     _src = default(VBuffer<float>);
@@ -325,7 +327,7 @@ namespace Microsoft.ML.Runtime.Data
 
                         _leafIdBuilder.Reset(_numLeaves, false);
                         var offset = 0;
-                        var trees = _ensemble.GetTrees();
+                        var trees = ((ITreeEnsemble)_ensemble).GetTrees();
                         for (int i = 0; i < trees.Length; i++)
                         {
                             _leafIdBuilder.AddFeature(offset + _leafIds[i], 1);
@@ -349,7 +351,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (_pathIdBuilder == null)
                             _pathIdBuilder = BufferBuilder<float>.CreateDefault();
 
-                        var trees = _ensemble.GetTrees();
+                        var trees = ((ITreeEnsemble)_ensemble).GetTrees();
                         _pathIdBuilder.Reset(_numLeaves - _numTrees, dense: false);
                         var offset = 0;
                         for (int i = 0; i < _numTrees; i++)
@@ -383,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                         _ectx.Assert(Utils.Size(_pathIds) == _numTrees);
 
                         for (int i = 0; i < _numTrees; i++)
-                            _leafIds[i] = _ensemble.GetLeaf(i, ref _src, ref _pathIds[i]);
+                            _leafIds[i] = _ensemble.GetLeaf(i, in _src, ref _pathIds[i]);
 
                         _cachedPosition = _input.Position;
                     }
@@ -470,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(ensemble);
 
-            var trees = ensemble.GetTrees();
+            var trees = ((ITreeEnsemble)ensemble).GetTrees();
             var numTrees = trees.Length;
             var totalLeafCount = 0;
             for (int i = 0; i < numTrees; i++)
@@ -480,7 +482,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private void GetTreeSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < numTrees)
@@ -494,7 +496,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private void GetLeafSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < _totalLeafCount)
@@ -502,7 +504,7 @@ namespace Microsoft.ML.Runtime.Data
 
             int i = 0;
             int t = 0;
-            foreach (var tree in _ensemble.GetTrees())
+            foreach (var tree in ((ITreeEnsemble)_ensemble).GetTrees())
             {
                 for (int l = 0; l < tree.NumLeaves; l++)
                     names[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
@@ -514,7 +516,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private void GetPathSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
-            var numTrees = _ensemble.NumTrees;
+            var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
             var totalNodeCount = _totalLeafCount - numTrees;
             var names = dst.Values;
@@ -523,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
 
             int i = 0;
             int t = 0;
-            foreach (var tree in _ensemble.GetTrees())
+            foreach (var tree in ((ITreeEnsemble)_ensemble).GetTrees())
             {
                 var numLeaves = tree.NumLeaves;
                 for (int l = 0; l < tree.NumLeaves - 1; l++)
@@ -745,14 +747,14 @@ namespace Microsoft.ML.Runtime.Data
             if (seed == 0)
             {
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)(temp - 1);
                     };
             }
@@ -761,14 +763,14 @@ namespace Microsoft.ML.Runtime.Data
                 ch.Check(type.Count > 0, "Label must be of known cardinality.");
                 int[] permutation = Utils.GetRandomPermutation(RandomUtils.Create(seed), type.Count);
                 mapper =
-                    (ref TInput src, ref Single dst) =>
+                    (in TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
                         }
-                        converter(ref src, ref temp);
+                        converter(in src, ref temp);
                         dst = (Single)permutation[(int)(temp - 1)];
                     };
             }

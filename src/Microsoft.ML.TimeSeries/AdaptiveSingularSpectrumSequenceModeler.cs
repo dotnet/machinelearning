@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 
-[assembly: LoadableClass(typeof(ISequenceModeler<Single, Single>), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",
     AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
     /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class AdaptiveSingularSpectrumSequenceModeler : ISequenceModeler<Single, Single>
+    public sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
     {
         public const string LoaderSignature = "SSAModel";
 
@@ -221,12 +221,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             return new VersionInfo(
                 modelSignature: "SSAMODLR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Added saving _state and _nextPrediction
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(AdaptiveSingularSpectrumSequenceModeler).Assembly.FullName);
         }
+
+        private const int VersionSavingStateAndPrediction = 0x00010002;
 
         /// <summary>
         /// The constructor for Adaptive SSA model.
@@ -236,7 +239,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
-        /// <param name="buffer">The buffer used to keep the series in the memory. If null, an internal buffer is created (default = null).</param>
         /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
         /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
         /// If set to null, the rank is automatically determined based on prediction error minimization. (default = null)</param>
@@ -246,8 +248,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
         public AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
-            FixedSizeQueue<Single> buffer = null, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
+            RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
+            : base()
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
@@ -282,10 +285,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _trainSize = trainSize;
             _discountFactor = discountFactor;
 
-            if (buffer == null)
-                _buffer = new FixedSizeQueue<Single>(seriesLength);
-            else
-                _buffer = buffer;
+            _buffer = new FixedSizeQueue<Single>(seriesLength);
 
             _alpha = new Single[windowSize - 1];
             _state = new Single[windowSize - 1];
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         /// <summary>
-        /// The copy constructor
+        /// The copy constructor.
         /// </summary>
         /// <param name="model">An object whose contents are copied to the current object.</param>
         private AdaptiveSingularSpectrumSequenceModeler(AdaptiveSingularSpectrumSequenceModeler model)
@@ -333,6 +333,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _autoregressionNoiseVariance = model._autoregressionNoiseVariance;
             _observationNoiseMean = model._observationNoiseMean;
             _autoregressionNoiseMean = model._autoregressionNoiseMean;
+            _nextPrediction = model._nextPrediction;
             _maxTrendRatio = model._maxTrendRatio;
             _shouldStablize = model._shouldStablize;
             _shouldMaintainInfo = model._shouldMaintainInfo;
@@ -368,11 +369,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -404,6 +407,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _alpha = ctx.Reader.ReadFloatArray();
             _host.CheckDecode(Utils.Size(_alpha) == _windowSize - 1);
 
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+            {
+                _state = ctx.Reader.ReadFloatArray();
+                _host.CheckDecode(Utils.Size(_state) == _windowSize - 1);
+            }
+            else
+                _state = new Single[_windowSize - 1];
+
             ShouldComputeForecastIntervals = ctx.Reader.ReadBoolByte();
 
             _observationNoiseVariance = ctx.Reader.ReadSingle();
@@ -414,6 +425,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             _observationNoiseMean = ctx.Reader.ReadSingle();
             _autoregressionNoiseMean = ctx.Reader.ReadSingle();
+            if (ctx.Header.ModelVerReadable >= VersionSavingStateAndPrediction)
+                _nextPrediction = ctx.Reader.ReadSingle();
 
             _maxRank = ctx.Reader.ReadInt32();
             _host.CheckDecode(1 <= _maxRank && _maxRank <= _windowSize - 1);
@@ -444,12 +457,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             _buffer = new FixedSizeQueue<Single>(_seriesLength);
-            _state = new Single[_windowSize - 1];
+
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
 
-        public void Save(ModelSaveContext ctx)
+        public override void Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -475,11 +488,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: _isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
             // float: _observationNoiseMean
             // float: _autoregressionNoiseMean
+            // float: _nextPrediction
             // int: _maxRank
             // bool: _shouldStablize
             // bool: _shouldMaintainInfo
@@ -493,12 +508,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(_discountFactor);
             ctx.Writer.Write((byte)_rankSelectionMethod);
             ctx.Writer.WriteBoolByte(_wTrans != null);
-            ctx.Writer.WriteFloatArray(_alpha);
+            ctx.Writer.WriteSingleArray(_alpha);
+            ctx.Writer.WriteSingleArray(_state);
             ctx.Writer.WriteBoolByte(ShouldComputeForecastIntervals);
             ctx.Writer.Write(_observationNoiseVariance);
             ctx.Writer.Write(_autoregressionNoiseVariance);
             ctx.Writer.Write(_observationNoiseMean);
             ctx.Writer.Write(_autoregressionNoiseMean);
+            ctx.Writer.Write(_nextPrediction);
             ctx.Writer.Write(_maxRank);
             ctx.Writer.WriteBoolByte(_shouldStablize);
             ctx.Writer.WriteBoolByte(_shouldMaintainInfo);
@@ -510,7 +527,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var tempArray = new Single[_rank * _windowSize];
                 int iv = 0;
                 _wTrans.CopyTo(tempArray, ref iv);
-                ctx.Writer.WriteFloatArray(tempArray);
+                ctx.Writer.WriteSingleArray(tempArray);
             }
         }
 
@@ -721,7 +738,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return minIndex + 1;
         }
 
-        public void InitState()
+        internal override void InitState()
         {
             for (int i = 0; i < _windowSize - 2; ++i)
                 _state[i] = 0;
@@ -1094,7 +1111,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="input">The next observation on the series.</param>
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
-        public void Consume(ref Single input, bool updateModel = false)
+        internal override void Consume(ref Single input, bool updateModel = false)
         {
             if (Single.IsNaN(input))
                 return;
@@ -1157,7 +1174,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Train the model parameters based on a training series.
         /// </summary>
         /// <param name="data">The training time-series.</param>
-        public void Train(FixedSizeQueue<Single> data)
+        internal override void Train(FixedSizeQueue<Single> data)
         {
             _host.CheckParam(data != null, nameof(data), "The input series for training cannot be null.");
             _host.CheckParam(data.Count >= _trainSize, nameof(data), "The input series for training does not have enough points for training.");
@@ -1198,7 +1215,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Train the model parameters based on a training series.
         /// </summary>
         /// <param name="data">The training time-series.</param>
-        public void Train(RoleMappedData data)
+        internal override void Train(RoleMappedData data)
         {
             _host.CheckParam(data != null, nameof(data), "The input series for training cannot be null.");
             if (data.Schema.Feature.Type != NumberType.Float)
@@ -1408,7 +1425,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="result">The forecast result.</param>
         /// <param name="horizon">The forecast horizon.</param>
-        public void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
+        internal override void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
         {
             _host.CheckParam(horizon >= 1, nameof(horizon), "The horizon parameter should be greater than 0.");
             if (result == null)
@@ -1480,12 +1497,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Predicts the next value on the series.
         /// </summary>
         /// <param name="output">The prediction result.</param>
-        public void PredictNext(ref Single output)
+        internal override void PredictNext(ref Single output)
         {
             output = _nextPrediction;
         }
 
-        public ISequenceModeler<Single, Single> Clone()
+        internal override SequenceModelerBase<Single, Single> Clone()
         {
             return new AdaptiveSingularSpectrumSequenceModeler(this);
         }

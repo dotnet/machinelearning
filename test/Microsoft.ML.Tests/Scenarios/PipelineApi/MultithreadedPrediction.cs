@@ -29,7 +29,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var testDataPath = GetDataPath(SentimentDataPath);
             var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
+            var loader = new TextLoader(dataPath).CreateFrom<SentimentData>();
+            loader.Arguments.HasHeader = true;
+            pipeline.Add(loader);
 
             pipeline.Add(MakeSentimentTextTransform());
 

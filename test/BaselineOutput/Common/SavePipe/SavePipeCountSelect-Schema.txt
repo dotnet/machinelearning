@@ -1,0 +1,61 @@
+---- BoundLoader ----
+3 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+---- RowToRowMapperTransform ----
+4 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  OneInd: Key<U4, 0-1023>
+---- RowToRowMapperTransform ----
+5 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+---- DropSlotsTransform ----
+6 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'
+---- RowToRowMapperTransform ----
+7 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  Key: Vec<R4, 10>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '9'
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'
+---- DropSlotsTransform ----
+8 columns:
+  One: Text
+  Num: Vec<R4, 8>
+  Key: Key<U1, 1-10>
+  Key: Vec<R4, 10>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '9'
+    Metadata 'IsNormalized': Bool: '1'
+  Key: Vec<R4, 3>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '2'
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Key<U4, 0-1023>
+  OneInd: Vec<R4, 1024>
+    Metadata 'IsNormalized': Bool: '1'
+  OneInd: Vec<R4, 10>
+    Metadata 'IsNormalized': Bool: '1'

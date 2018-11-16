@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Transforms.Categorical;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -32,7 +33,7 @@ using System.Threading;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransform), null, typeof(SignatureLoadRowMapper),
     TermTransform.UserName, TermTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Categorical
 {
     // TermTransform builds up term vocabularies (dictionaries).
     // Notes:
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Runtime.Data
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = TermEstimator.Defaults.MaxNumTerms;
+            public int MaxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Terms;
@@ -128,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = TermEstimator.Defaults.Sort;
+            public SortOrder Sort = ValueToKeyMappingEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -158,7 +159,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public class ColumnInfo
         {
-            public ColumnInfo(string input, string output, int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
+            public ColumnInfo(string input, string output, int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
             {
                 Input = input;
                 Output = output;
@@ -387,7 +388,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         /// <summary>
         /// Convenience constructor for public facing API.
@@ -401,7 +402,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
-            int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
+            int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort) =>
             new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
@@ -506,7 +507,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
                 var trainer = Trainer.Create(cursor, colSrc, autoConvert, int.MaxValue, bldr);
-                double rowCount = termData.GetRowCount(true) ?? double.NaN;
+                double rowCount = termData.GetRowCount() ?? double.NaN;
                 long rowCur = 0;
                 pch.SetHeader(header,
                     e =>
@@ -605,7 +606,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var pch = env.StartProgressChannel("Building term dictionary"))
                 {
                     long rowCur = 0;
-                    double rowCount = trainingData.GetRowCount(true) ?? double.NaN;
+                    double rowCount = trainingData.GetRowCount() ?? double.NaN;
                     var header = new ProgressHeader(new[] { "Total Terms" }, new[] { "examples" });
 
                     itrainer = 0;
@@ -676,7 +677,7 @@ namespace Microsoft.ML.Runtime.Data
 
             Host.Assert(_unboundMaps.Length == _textMetadata.Length);
             Host.Assert(_textMetadata.Length == ColumnPairs.Length);
-            ctx.Writer.WriteBoolBytesNoCount(_textMetadata, _textMetadata.Length);
+            ctx.Writer.WriteBoolBytesNoCount(_textMetadata);
 
             // REVIEW: Should we do separate sub models for each dictionary?
             const string dir = "Vocabulary";
@@ -711,8 +712,8 @@ namespace Microsoft.ML.Runtime.Data
             return _unboundMaps[iinfo];
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-          => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema)
+          => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {

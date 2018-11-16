@@ -134,13 +134,17 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumns">The name of  column hosting the features.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="weights">The name of the optional weights' column.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, string labelColumn, string[] featureColumns,
-            string weightColumn = null, TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
+        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
+            string[] featureColumns,
+            string labelColumn = DefaultColumnNames.Label,
+            string weights = null,
+            TrainerEstimatorContext context = null,
+            Action<Arguments> advancedSettings = null)
             : base(env, LoadName)
         {
             var args = new Arguments();
@@ -157,7 +161,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumns[i] = new SchemaShape.Column(featureColumns[i], SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-            WeightColumn = weightColumn != null ? new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
+            WeightColumn = weights != null ? new SchemaShape.Column(weights, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false) : null;
         }
 
         /// <summary>
@@ -498,8 +502,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                     throw Host.Except($"{defaultName} column '{column.Name}' is not compatible");
             }
 
-            if (LabelColumn != null)
-                CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
+            CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
 
             foreach (var feat in FeatureColumns)
             {

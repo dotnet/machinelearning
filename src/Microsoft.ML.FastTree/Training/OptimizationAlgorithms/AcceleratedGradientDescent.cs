@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+using Microsoft.ML.Runtime;
+
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     //Accelerated gradient descent score tracker
     public class AcceleratedGradientDescent : GradientDescent
     {
-        public AcceleratedGradientDescent(Ensemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public AcceleratedGradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             UseFastTrainingScoresUpdate = false;

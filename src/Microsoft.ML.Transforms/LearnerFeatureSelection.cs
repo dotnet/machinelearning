@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(LearnerFeatureSelectionTransform.Summary, typeof(IDataTransform), typeof(LearnerFeatureSelectionTransform), typeof(LearnerFeatureSelectionTransform.Arguments), typeof(SignatureDataTransform),
     "Learner Feature Selection Transform", "LearnerFeatureSelectionTransform", "LearnerFeatureSelection")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Selects the slots for which the absolute value of the corresponding weight in a linear learner
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("Dropping Slots"))
             {
                 int selectedCount;
-                var column = CreateDropSlotsColumn(args, ref scores, out selectedCount);
+                var column = CreateDropSlotsColumn(args, in scores, out selectedCount);
 
                 if (column == null)
                 {
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, ref VBuffer<Single> scores, out int selectedCount)
+        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.

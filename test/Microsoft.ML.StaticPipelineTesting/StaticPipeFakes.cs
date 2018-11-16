@@ -163,7 +163,7 @@ namespace FakeStaticPipes
 
     public static class TextTransformExtensions
     {
-        private static FakeTransformReconciler _rec = new FakeTransformReconciler("TextTransform");
+        private static FakeTransformReconciler _rec = new FakeTransformReconciler("FeaturizeTextEstimator");
 
         /// <summary>
         /// Performs text featurization on the input text. This will tokenize, do n-gram featurization,

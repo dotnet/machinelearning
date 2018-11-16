@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.IO;
 using Xunit;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new NAIndicatorEstimator(Env,
+            var pipe = new MissingValueIndicatorEstimator(Env,
                 new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             TestEstimatorCore(pipe, dataView);
             Done();
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new NAIndicatorEstimator(Env,
+            var pipe = new MissingValueIndicatorEstimator(Env,
                 new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
-            var est = new NAIndicatorEstimator(Env,
+            var est = new MissingValueIndicatorEstimator(Env,
                new (string input, string output)[] { ("ScalarFloat", "A"), ("ScalarDouble", "B"), ("VectorFloat", "C"), ("VectorDoulbe", "D") });
 
             TestEstimatorCore(est, data, invalidInput: invalidData);
@@ -123,8 +124,8 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env, "A", "CatA");
-            var newpipe = pipe.Append(new NAIndicatorEstimator(Env, new (string input, string output)[] { ("CatA", "NAA") }));
+            var pipe = new OneHotEncodingEstimator(Env, "A", "CatA");
+            var newpipe = pipe.Append(new MissingValueIndicatorEstimator(Env, new (string input, string output)[] { ("CatA", "NAA") }));
             var result = newpipe.Fit(dataView).Transform(dataView);
             Assert.True(result.Schema.TryGetColumnIndex("NAA", out var col));
             // Check that the column is normalized.

@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
     "Drop Slots Transform", "DropSlots", "DropSlotsTransform")]
@@ -19,7 +20,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
     "Drop Slots Transform", DropSlotsTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Transform to drop slots from columns. If the column is scalar, the only slot that can be dropped is slot 0.
@@ -299,7 +300,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(infoEx.SlotDropper.SlotsMin.Length == infoEx.SlotDropper.SlotsMax.Length);
                 Host.Assert(AreRangesValid(i));
                 ctx.Writer.WriteIntArray(infoEx.SlotDropper.SlotsMin);
-                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax, infoEx.SlotDropper.SlotsMax.Length);
+                ctx.Writer.WriteIntsNoCount(infoEx.SlotDropper.SlotsMax);
             }
         }
 

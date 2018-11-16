@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                protected override void UpdateCore(Float label, ref float score, ref double loss, Float weight)
+                protected override void UpdateCore(Float label, in float score, in double loss, Float weight)
                 {
                     Double currL1Loss = Math.Abs((Double)label - score);
                     TotalL1Loss += currL1Loss * weight;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
                     TotalLoss += loss * weight; // REVIEW: Fix this! += (Double)loss * wht; //Loss as reported by regressor, note it can result in NaN if loss is NaN
                 }
 
-                protected override void Normalize(ref double src, ref double dst)
+                protected override void Normalize(in double src, ref double dst)
                 {
                     dst = src / SumWeights;
                 }
@@ -140,12 +140,12 @@ namespace Microsoft.ML.Runtime.Data
                 _weightedCounters = Weighted ? new Counters() : null;
             }
 
-            protected override void ApplyLossFunction(ref float score, float label, ref double loss)
+            protected override void ApplyLossFunction(in float score, float label, ref double loss)
             {
                 loss = LossFunction.Loss(score, label);
             }
 
-            protected override bool IsNaN(ref Float score)
+            protected override bool IsNaN(in Float score)
             {
                 return Float.IsNaN(score);
             }

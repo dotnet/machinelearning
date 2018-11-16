@@ -1,0 +1,14 @@
+---- BoundLoader ----
+2 columns:
+  CatU8: Vec<Key<U8, 0-100>, 9>
+  CatU2: Vec<Key<U2, 0-*>, 3>
+---- NgramHashTransform ----
+4 columns:
+  CatU8: Vec<Key<U8, 0-100>, 9>
+  CatU2: Vec<Key<U2, 0-*>, 3>
+  NgramHash: Vec<R4, 32>
+  NgramHash2: Vec<R4, 32>
+---- SelectColumnsDataTransform ----
+2 columns:
+  NgramHash: Vec<R4, 32>
+  NgramHash2: Vec<R4, 32>

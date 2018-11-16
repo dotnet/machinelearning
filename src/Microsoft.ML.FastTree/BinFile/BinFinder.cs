@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Threading;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// A class that bins vectors of doubles into a specified number of equal mass bins.
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// values detected within <paramref name="values"/></param>
         /// <returns>The logical length of both <paramref name="distinctValues"/> and
         /// <paramref name="counts"/></returns>
-        private int FindDistinctCounts(ref VBuffer<Double> values, double[] distinctValues, int[] counts)
+        private int FindDistinctCounts(in VBuffer<Double> values, double[] distinctValues, int[] counts)
         {
             if (values.Count == 0)
             {
@@ -218,7 +219,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// <param name="binUpperBounds">The calculated upper bound of each bin</param>
         /// <returns>Whether finding the bins is successful. If there were NaN values in <paramref name="values"/>,
         /// this will return false and the output arrays will be <c>null</c>. Otherwise it will return true.</returns>
-        public bool FindBins(ref VBuffer<Double> values, int maxBins, int minPerLeaf, out double[] binUpperBounds)
+        public bool FindBins(in VBuffer<Double> values, int maxBins, int minPerLeaf, out double[] binUpperBounds)
         {
             Contracts.Assert(maxBins > 0);
             Contracts.Assert(minPerLeaf >= 0);
@@ -233,7 +234,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             Utils.EnsureSize(ref _distinctValues, arraySize, arraySize, keepOld: false);
             Utils.EnsureSize(ref _counts, arraySize, arraySize, keepOld: false);
 
-            int numValues = FindDistinctCounts(ref values, _distinctValues, _counts);
+            int numValues = FindDistinctCounts(in values, _distinctValues, _counts);
             if (numValues < 0)
             {
                 binUpperBounds = null;

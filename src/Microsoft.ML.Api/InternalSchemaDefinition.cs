@@ -217,7 +217,10 @@ namespace Microsoft.ML.Runtime.Api
         public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition)
         {
             Contracts.AssertValue(userType);
-            Contracts.AssertValue(userSchemaDefinition);
+            Contracts.AssertValueOrNull(userSchemaDefinition);
+
+            if (userSchemaDefinition == null)
+                userSchemaDefinition = SchemaDefinition.Create(userType);
 
             Column[] dstCols = new Column[userSchemaDefinition.Count];
 

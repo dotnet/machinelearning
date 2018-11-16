@@ -5,6 +5,9 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System.Linq;
 using Xunit;
 
@@ -24,10 +27,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
-            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
 
-            var pipeline = new ConcatEstimator(ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(new TermEstimator(ml, "Label"), TransformerScope.TrainTest)
+            var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(ml, sdcaTrainer))
                 .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 

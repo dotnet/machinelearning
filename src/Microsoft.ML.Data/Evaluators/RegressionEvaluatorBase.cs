@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var res = Zero();
                         if (SumWeights > 0)
-                            Normalize(ref TotalL1Loss, ref res);
+                            Normalize(in TotalL1Loss, ref res);
                         return res;
                     }
                 }
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var res = Zero();
                         if (SumWeights > 0)
-                            Normalize(ref TotalL2Loss, ref res);
+                            Normalize(in TotalL2Loss, ref res);
                         return res;
                     }
                 }
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var res = Zero();
                         if (SumWeights > 0)
-                            Normalize(ref TotalLoss, ref res);
+                            Normalize(in TotalLoss, ref res);
                         return res;
                     }
                 }
@@ -160,12 +160,12 @@ namespace Microsoft.ML.Runtime.Data
                     SumWeights += weight;
                     TotalLabelW += label * weight;
                     TotalLabelSquaredW += label * label * weight;
-                    UpdateCore(label, ref score, ref loss, weight);
+                    UpdateCore(label, in score, in loss, weight);
                 }
 
-                protected abstract void UpdateCore(float label, ref TScore score, ref TMetrics loss, float weight);
+                protected abstract void UpdateCore(float label, in TScore score, in TMetrics loss, float weight);
 
-                protected abstract void Normalize(ref TMetrics src, ref TMetrics dst);
+                protected abstract void Normalize(in TMetrics src, ref TMetrics dst);
 
                 protected abstract TMetrics Zero();
             }
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.Data
                     return;
                 }
 
-                if (IsNaN(ref Score))
+                if (IsNaN(in Score))
                 {
                     NumBadScores++;
                     return;
@@ -236,15 +236,15 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                ApplyLossFunction(ref Score, label, ref Loss);
+                ApplyLossFunction(in Score, label, ref Loss);
                 UnweightedCounters.Update(ref Score, label, 1, ref Loss);
                 if (WeightedCounters != null)
                     WeightedCounters.Update(ref Score, label, weight, ref Loss);
             }
 
-            protected abstract void ApplyLossFunction(ref TScore score, float label, ref TMetrics loss);
+            protected abstract void ApplyLossFunction(in TScore score, float label, ref TMetrics loss);
 
-            protected abstract bool IsNaN(ref TScore score);
+            protected abstract bool IsNaN(in TScore score);
 
             public abstract void AddColumn(ArrayDataViewBuilder dvBldr, string metricName, params TMetrics[] metric);
         }

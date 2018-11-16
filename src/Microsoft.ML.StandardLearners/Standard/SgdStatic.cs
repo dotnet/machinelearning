@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
@@ -19,7 +19,7 @@ namespace Microsoft.ML.StaticPipe
     public static class SgdExtensions
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Trainers.StochasticGradientDescentClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="ctx">The binary classificaiton context trainer object.</param>
         /// <param name="label">The name of the label column.</param>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentClassificationTrainer(env, featuresName, labelName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
+                    var trainer = new StochasticGradientDescentClassificationTrainer(env, labelName, featuresName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

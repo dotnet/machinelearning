@@ -14,7 +14,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Convenience utilities for vector operations on <see cref="VBuffer{T}"/>.
     /// </summary>
-    public static class VBufferUtils
+    [BestFriend]
+    internal static class VBufferUtils
     {
         private const float SparsityThreshold = 0.25f;
 
@@ -91,41 +92,45 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static bool HasNaNs(ref VBuffer<Single> buffer)
+        public static bool HasNaNs(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Single.IsNaN(buffer.Values[i]))
+                if (Single.IsNaN(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNaNs(ref VBuffer<Double> buffer)
+        public static bool HasNaNs(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Double.IsNaN(buffer.Values[i]))
+                if (Double.IsNaN(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNonFinite(ref VBuffer<Single> buffer)
+        public static bool HasNonFinite(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNonFinite(ref VBuffer<Double> buffer)
+        public static bool HasNonFinite(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
@@ -147,21 +152,23 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Applies <paramref name="visitor"/> to every explicitly defined element of the vector,
         /// in order of index.
         /// </summary>
-        public static void ForEachDefined<T>(ref VBuffer<T> a, Action<int, T> visitor)
+        public static void ForEachDefined<T>(in VBuffer<T> a, Action<int, T> visitor)
         {
             Contracts.CheckValue(visitor, nameof(visitor));
 
             // REVIEW: This is analogous to an old Vector method, but is there
             // any real reason to have it given that we have the Items extension method?
+            var aValues = a.GetValues();
             if (a.IsDense)
             {
-                for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i]);
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(i, aValues[i]);
             }
             else
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i]);
             }
         }
 
@@ -175,37 +182,43 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="b">The second vector</param>
         /// <param name="visitor">Delegate to apply to each pair of non-zero values.
         /// This is passed the index, and two values</param>
-        public static void ForEachBothDefined<T>(ref VBuffer<T> a, ref VBuffer<T> b, Action<int, T, T> visitor)
+        public static void ForEachBothDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i], b.Values[a.Indices[i]]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i], bValues[aIndices[i]]);
             }
             else if (a.IsDense)
             {
-                for (int i = 0; i < b.Count; i++)
-                    visitor(b.Indices[i], a.Values[b.Indices[i]], b.Values[i]);
+                var bIndices = b.GetIndices();
+                for (int i = 0; i < bValues.Length; i++)
+                    visitor(bIndices[i], aValues[bIndices[i]], bValues[i]);
             }
             else
             {
                 // Both sparse.
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int i = a.Indices[aI];
-                    int j = b.Indices[bI];
+                    int i = aIndices[aI];
+                    int j = bIndices[bI];
                     if (i == j)
-                        visitor(i, a.Values[aI++], b.Values[bI++]);
+                        visitor(i, aValues[aI++], bValues[bI++]);
                     else if (i < j)
                         aI++;
                     else
@@ -220,32 +233,36 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="a">a vector</param>
         /// <param name="b">another vector</param>
         /// <param name="visitor">Function to apply to each pair of non-zero values - passed the index, and two values</param>
-        public static void ForEachEitherDefined<T>(ref VBuffer<T> a, ref VBuffer<T> b, Action<int, T, T> visitor)
+        public static void ForEachEitherDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; ++i)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
                 int aI = 0;
+                var aIndices = a.GetIndices();
                 for (int i = 0; i < b.Length; i++)
                 {
-                    T aVal = (aI < a.Count && i == a.Indices[aI]) ? a.Values[aI++] : default(T);
-                    visitor(i, aVal, b.Values[i]);
+                    T aVal = (aI < aValues.Length && i == aIndices[aI]) ? aValues[aI++] : default(T);
+                    visitor(i, aVal, bValues[i]);
                 }
             }
             else if (a.IsDense)
             {
                 int bI = 0;
+                var bIndices = b.GetIndices();
                 for (int i = 0; i < a.Length; i++)
                 {
-                    T bVal = (bI < b.Count && i == b.Indices[bI]) ? b.Values[bI++] : default(T);
-                    visitor(i, a.Values[i], bVal);
+                    T bVal = (bI < bValues.Length && i == bIndices[bI]) ? bValues[bI++] : default(T);
+                    visitor(i, aValues[i], bVal);
                 }
             }
             else
@@ -253,36 +270,38 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // Both sparse
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int diff = a.Indices[aI] - b.Indices[bI];
+                    int diff = aIndices[aI] - bIndices[bI];
                     if (diff == 0)
                     {
-                        visitor(b.Indices[bI], a.Values[aI], b.Values[bI]);
+                        visitor(bIndices[bI], aValues[aI], bValues[bI]);
                         aI++;
                         bI++;
                     }
                     else if (diff < 0)
                     {
-                        visitor(a.Indices[aI], a.Values[aI], default(T));
+                        visitor(aIndices[aI], aValues[aI], default(T));
                         aI++;
                     }
                     else
                     {
-                        visitor(b.Indices[bI], default(T), b.Values[bI]);
+                        visitor(bIndices[bI], default(T), bValues[bI]);
                         bI++;
                     }
                 }
 
-                while (aI < a.Count)
+                while (aI < aValues.Length)
                 {
-                    visitor(a.Indices[aI], a.Values[aI], default(T));
+                    visitor(aIndices[aI], aValues[aI], default(T));
                     aI++;
                 }
 
-                while (bI < b.Count)
+                while (bI < bValues.Length)
                 {
-                    visitor(b.Indices[bI], default(T), b.Values[bI]);
+                    visitor(bIndices[bI], default(T), bValues[bI]);
                     bI++;
                 }
             }
@@ -370,7 +389,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 manip(slot, ref dst.Values[idx]);
                 return;
             }
-            // The vector is sparse and there is no correpsonding item, yet.
+            // The vector is sparse and there is no corresponding item, yet.
             T value = default(T);
             manip(slot, ref value);
             // If this item is not defined and it's default, no need to proceed of course.
@@ -492,7 +511,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Creates a maybe sparse copy of a VBuffer.
         /// Whether the created copy is sparse or not is determined by the proportion of non-default entries compared to the sparsity parameter.
         /// </summary>
-        public static void CreateMaybeSparseCopy<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
+        public static void CreateMaybeSparseCopy<T>(in VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
         {
             Contracts.CheckParam(0 < sparsityThreshold && sparsityThreshold < 1, nameof(sparsityThreshold));
             if (!src.IsDense || src.Length < 20)
@@ -505,7 +524,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var sparseCountThreshold = (int)(src.Length * sparsityThreshold);
             for (int i = 0; i < src.Length; i++)
             {
-                if (!isDefaultPredicate(ref src.Values[i]))
+                if (!isDefaultPredicate(in src.Values[i]))
                     sparseCount++;
 
                 if (sparseCount > sparseCountThreshold)
@@ -527,7 +546,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 int j = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (!isDefaultPredicate(ref src.Values[i]))
+                    if (!isDefaultPredicate(in src.Values[i]))
                     {
                         Contracts.Assert(j < sparseCount);
                         indices[j] = i;
@@ -573,9 +592,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWith<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWith<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: false);
+            ApplyWithCore(in src, ref dst, manip, outer: false);
         }
 
         /// <summary>
@@ -589,12 +608,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
+        public static void ApplyWithCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
         {
-            ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer: false);
+            ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer: false);
         }
 
         /// <summary>
@@ -608,9 +628,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWithEitherDefined<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: true);
+            ApplyWithCore(in src, ref dst, manip, outer: true);
         }
 
         /// <summary>
@@ -622,12 +642,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithEitherDefinedCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
+        public static void ApplyWithEitherDefinedCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
         {
-            ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer: true);
+            ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer: true);
         }
 
         /// <summary>
@@ -636,7 +657,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// where necessary depending on whether this is an inner or outer join of the
         /// indices of <paramref name="src"/> on <paramref name="dst"/>.
         /// </summary>
-        private static void ApplyWithCore<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
+        private static void ApplyWithCore<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
@@ -773,7 +794,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // This is unnecessary -- falling through to the sparse code will
                 // actually handle this case just fine -- but it is more efficient.
                 Densify(ref dst);
-                ApplyWithCore(ref src, ref dst, manip, outer);
+                ApplyWithCore(in src, ref dst, manip, outer);
                 return;
             }
 
@@ -908,7 +929,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// where necessary depending on whether this is an inner or outer join of the
         /// indices of <paramref name="src"/> on <paramref name="dst"/>.
         /// </summary>
-        private static void ApplyWithCoreCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip, bool outer)
+        private static void ApplyWithCoreCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip, bool outer)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
@@ -1090,7 +1111,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         // This is unnecessary -- falling through to the sparse code will
                         // actually handle this case just fine -- but it is more efficient.
                         Densify(ref dst);
-                        ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer);
+                        ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer);
                     }
                     else
                     {
@@ -1152,7 +1173,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         /// <seealso cref="ApplyWith{TSrc,TDst}"/>
         /// <seealso cref="ApplyWithEitherDefined{TSrc,TDst}"/>
-        public static void ApplyIntoEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
+        public static void ApplyIntoEitherDefined<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
         {
             Contracts.CheckValue(func, nameof(func));
 
@@ -1189,7 +1210,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// necessarily be dense. Otherwise, if both are sparse, the output will be sparse iff
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
-        public static void ApplyInto<TSrc1, TSrc2, TDst>(ref VBuffer<TSrc1> a, ref VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
+        public static void ApplyInto<TSrc1, TSrc2, TDst>(in VBuffer<TSrc1> a, in VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(func, nameof(func));

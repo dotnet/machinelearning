@@ -398,7 +398,7 @@ namespace Microsoft.ML.Runtime.Tools
             }
         }
 
-        public struct Component
+        public readonly struct Component
         {
             public readonly string Kind;
             public readonly ComponentCatalog.LoadableClassInfo Info;

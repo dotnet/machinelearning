@@ -5,12 +5,8 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.SymSgd;
-using System;
-using System.IO;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.SymSgd;
 using System.Linq;
 using Xunit;
 
@@ -22,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new SymSgdClassificationTrainer(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -33,13 +29,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var initPredictor = new LinearClassificationTrainer(Env, "Features", "Label").Fit(transformedData);
+            var initPredictor = new SdcaBinaryTrainer(Env, "Label", "Features").Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymSgdClassificationTrainer(Env, "Features", "Label").Train(transformedData, initialPredictor: initPredictor.Model);
+            var withInitPredictor = new SymSgdClassificationTrainer(Env, "Label", "Features").Train(transformedData, initialPredictor: initPredictor.Model);
             var outInitData = withInitPredictor.Transform(transformedData);
 
-            var notInitPredictor = new SymSgdClassificationTrainer(Env, "Features", "Label").Train(transformedData);
+            var notInitPredictor = new SymSgdClassificationTrainer(Env, "Label", "Features").Train(transformedData);
             var outNoInitData = notInitPredictor.Transform(transformedData);
 
             int numExamples = 10;

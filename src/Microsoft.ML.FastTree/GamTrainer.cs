@@ -8,8 +8,8 @@ using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -21,14 +21,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
+using Timer = Microsoft.ML.Trainers.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
 
 [assembly: LoadableClass(typeof(void), typeof(Gam), null, typeof(SignatureEntryPointModule), "GAM")]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     using AutoResetEvent = System.Threading.AutoResetEvent;
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
@@ -132,15 +132,26 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected IParallelTraining ParallelTraining;
 
-        private protected GamTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, Action<TArgs> advancedSettings = null)
+        private protected GamTrainerBase(IHostEnvironment env,
+            string name,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            int minDatapointsInLeaves,
+            double learningRate,
+            Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
+            Args.MinDocuments = minDatapointsInLeaves;
+            Args.LearningRates = learningRate;
+
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
+
             Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;
@@ -154,7 +165,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(args, nameof(args));
@@ -768,7 +779,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
             for (int i = 0; i < _numFeatures; i++)
             {
-                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i], _binUpperBounds[i].Length);
+                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i]);
                 Host.Assert(_binUpperBounds[i].Length == _binEffects[i].Length);
             }
             ctx.Writer.Write(_inputFeatureToDatasetFeatureMap.Count);
@@ -788,28 +799,30 @@ namespace Microsoft.ML.Runtime.FastTree
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> features, ref float response)
+        private void Map(in VBuffer<float> features, ref float response)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i]);
+                        value += GetBinEffect(j, featuresValues[i]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i]) - GetBinEffect(j, 0);
                 }
             }
 
@@ -821,7 +834,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
-        internal void GetFeatureContributions(ref VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
+        internal void GetFeatureContributions(in VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
         {
             if (builder == null)
                 builder = new BufferBuilder<float>(R4Adder.Instance);
@@ -830,18 +843,20 @@ namespace Microsoft.ML.Runtime.FastTree
             builder.Reset(features.Length + 1, false);
             builder.AddFeature(0, (float)_intercept);
 
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, features.Values[i]));
+                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
                 }
             }
             else
             {
                 int k = -1;
-                int index = features.Indices[++k];
+                var featuresIndices = features.GetIndices();
+                int index = featuresIndices[++k];
                 for (int i = 0; i < _numFeatures; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
@@ -850,10 +865,10 @@ namespace Microsoft.ML.Runtime.FastTree
                         if (i == index)
                         {
                             // Get the computed value
-                            value = GetBinEffect(j, features.Values[index]);
+                            value = GetBinEffect(j, featuresValues[index]);
                             // Increment index to the next feature
-                            if (k < features.Indices.Length - 1)
-                                index = features.Indices[++k];
+                            if (k < featuresIndices.Length - 1)
+                                index = featuresIndices[++k];
                         }
                         else
                             // For features not defined, the impact is the impact at 0
@@ -868,32 +883,34 @@ namespace Microsoft.ML.Runtime.FastTree
             return;
         }
 
-        internal double GetFeatureBinsAndScore(ref VBuffer<float> features, int[] bins)
+        internal double GetFeatureBinsAndScore(in VBuffer<float> features, int[] bins)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features));
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i], out bins[j]);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
                 Array.Copy(_binsAtAllZero, bins, _numFeatures);
 
                 // Update the results for features we have
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i], out bins[j]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]) - GetBinEffect(j, 0);
                 }
             }
             return value;
@@ -1075,7 +1092,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         while (cursor.MoveNext())
                         {
                             labels.Add(cursor.Label);
-                            var score = _pred.GetFeatureBinsAndScore(ref cursor.Features, bins);
+                            var score = _pred.GetFeatureBinsAndScore(in cursor.Features, bins);
                             scores.Add((float)score);
                             for (int f = 0; f < numFeatures; f++)
                                 _binDocsList[f][bins[f]].Add(doc);

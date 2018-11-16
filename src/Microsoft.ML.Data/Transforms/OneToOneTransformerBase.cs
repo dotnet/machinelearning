@@ -94,20 +94,16 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
-            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper);
+            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper, MakeRowMapper);
         }
 
-        protected abstract IRowMapper MakeRowMapper(ISchema schema);
+        protected abstract IRowMapper MakeRowMapper(Schema schema);
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-
-            // Check that all the input columns are present and correct.
-            for (int i = 0; i < ColumnPairs.Length; i++)
-                CheckInput(inputSchema, i, out int col);
-
-            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+            var mapper = MakeRowMapper(inputSchema);
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
@@ -115,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
         protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         protected abstract class MapperBase : IRowMapper

@@ -144,7 +144,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             name = "housing",
             trainFilename = "housing.txt",
-            testFilename = "housing.txt"
+            testFilename = "housing.txt",
+            loaderSettings = "loader=Text{col=Label:0 col=Features:~ header=+}"
         };
 
         public static TestDataset generatedRegressionDatasetmacro = new TestDataset
@@ -271,8 +272,7 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = "adult.train",
             testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:~}",
-            mamlExtraSettings = new[] { "xf=CatHash{col=Hash:5:Cat}", "xf=Concat{col=Features:Num,Hash}" },
-            extraSettings = @"/inst Pipe{loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:0,2,4,10-12} xf=CatHash{col=Hash:5:Cat} xf=Concat{col=Features:Num,Hash}}"
+            mamlExtraSettings = new[] { "xf=CatHash{col=Hash:5:Cat}", "xf=Concat{col=Features:Num,Hash}" }
         };
 
         public static TestDataset adultText = new TestDataset
@@ -676,6 +676,14 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = @"..\V3\Data\OCR\train.tsv",
             testFilename = @"..\V3\Data\OCR\train.tsv",
             loaderSettings = "loader=Text{col=Label:U1[0-25]:1 col=GroupId:U4[1-*]:3 col=Features:Num:4-*}"
+        };
+
+        public static TestDataset trivialMatrixFactorization = new TestDataset()
+        {
+            name = "trivialMatrixFactorization",
+            trainFilename = @"trivial-train.tsv",
+            testFilename = @"trivial-test.tsv",
+            loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
     }
 }

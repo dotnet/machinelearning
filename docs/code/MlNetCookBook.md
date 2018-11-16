@@ -21,6 +21,7 @@ Please feel free to search this page and use any code that suits your needs.
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
+- [How do I debug my experiment?](#how-do-i-debug-my-experiment)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
@@ -93,7 +94,7 @@ This is how you can read this data:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -113,11 +114,11 @@ If the schema of the data is not known at compile time, or too cumbersome, you c
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = new TextLoader(mlContext, new TextLoader.Arguments
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 {
     Column = new[] {
         // A boolean column depicting the 'label'.
-        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        new TextLoader.Column("IsOver50K", DataKind.BL, 0),
         // Three text columns.
         new TextLoader.Column("Workclass", DataKind.TX, 1),
         new TextLoader.Column("Education", DataKind.TX, 2),
@@ -148,12 +149,12 @@ Label	Workclass	education	marital-status
 
 This is how you can read this data:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(14),
         // Three text columns.
@@ -164,7 +165,31 @@ var reader = TextLoader.CreateReader(env, ctx => (
 
 // Now read the files (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(exampleFile1, exampleFile2);
+```
 
+The code is very similar using the dynamic API:
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // A boolean column depicting the 'label'.
+        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        // Three text columns.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+        new TextLoader.Column("Education", DataKind.TX, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true
+});
+
+var data = reader.Read(exampleFile1, exampleFile2);
+```
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
@@ -185,7 +210,7 @@ Reading this file using `TextLoader`:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -220,6 +245,35 @@ var reader = mlContext.Data.TextReader(new[] {
 var data = reader.Read(dataPath);
 ```
 
+## How do I debug my experiment?
+
+Most ML.NET operations are 'lazy': they are not actually processing data, they just validate that the operation is possible, and then defer execution until the output data is actually requested. This provides good efficiency, but makes it hard to step through and debug the experiment.
+
+In order to improve debug-ability, we have added a `Preview()` extension method to all data views, transformers, estimators and readers:
+
+- `Preview` of a data view contains first 100 rows (configurable) of the data view, encoded as objects, in a single in-memory structure.
+- `Preview` of a transformer takes data as input, and outputs the preview of the transformed data.
+- `Preview` of an estimator also takes data as input, fits an 'approximated model' on the first 100 rows (configurabele) of data, and then outputs the preview of the resulting transformer.
+
+This feature is only available starting from version 0.8.
+
+```csharp
+var mlContext = new MLContext();
+var estimator = mlContext.Transforms.Categorical.MapValueToKey("Label")
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
+
+var data = mlContext.Data.ReadFromTextFile(new TextLoader.Column[] {
+    new TextLoader.Column("Label", DataKind.Text, 0),
+    new TextLoader.Column("Features", DataKind.R4, 1, 4) }, filePath);
+
+// Preview the data. 
+data.Preview();
+
+// Preview the result of training and transformation.
+estimator.Preview(data);
+```
+
 ## How do I look at the intermediate data?
 
 Oftentimes, when we construct the experiment, we want to make sure that the data processing 'up to a certain moment' produces the results that we want. With ML.NET it is not very easy to do: since all ML.NET operations are lazy, the objects we construct are just 'promises' of data.
@@ -246,7 +300,7 @@ Label	Workclass	education	marital-status
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -302,6 +356,52 @@ private class InspectedRow
 }
 ```
 
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // A boolean column depicting the 'label'.
+        new TextLoader.Column("IsOver50k", DataKind.BL, 0),
+        // Three text columns.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+        new TextLoader.Column("Education", DataKind.TX, 2),
+        new TextLoader.Column("MaritalStatus", DataKind.TX, 3)
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true
+});
+
+// Start creating our processing pipeline. For now, let's just concatenate all the text columns
+// together into one.
+var dynamicPipeline = mlContext.Transforms.Concatenate("AllFeatures", "Education", "MaritalStatus");
+
+// Let's verify that the data has been read correctly. 
+// First, we read the data file.
+var data = reader.Read(dataPath);
+
+// Fit our data pipeline and transform data with it.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// 'transformedData' is a 'promise' of data. Let's actually read it.
+var someRows = transformedData
+    // Convert to an enumerable of user-defined type. 
+    .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
+    // Take a couple values as an array.
+    .Take(4).ToArray();
+
+// Extract the 'AllFeatures' column.
+// This will give the entire dataset: make sure to only take several row
+// in case the dataset is huge. The is similar to the static API, except
+// you have to specify the column name and type.
+var featureColumns = transformedData.GetColumn<string[]>(mlContext, "AllFeatures")
+    .Take(20).ToArray();
+```
 ## How do I train a regression model?
 
 Generally, in order to train any model in ML.NET, you will go through three steps:
@@ -326,7 +426,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -346,7 +446,7 @@ var trainData = reader.Read(trainDataPath);
 // We 'start' the pipeline with the output of the reader.
 var learningPipeline = reader.MakeNewEstimator()
     // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
-    // between -1 and 1 for all examples), and then train the model.
+    // between -1 and 1 for all examples)
     .Append(r => (
         // Retain the 'Target' column for evaluation purposes.
         r.Target,
@@ -354,10 +454,49 @@ var learningPipeline = reader.MakeNewEstimator()
         // the the same call.
         Prediction: mlContext.Regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
-// Step three. Train the pipeline.
+// Step three. Fit the pipeline to the training data.
 var model = learningPipeline.Fit(trainData);
 ```
 
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // We read the first 11 values as a single float vector.
+        new TextLoader.Column("FeatureVector", DataKind.R4, 0, 10),
+
+        // Separately, read the target variable.
+        new TextLoader.Column("Target", DataKind.R4, 11),
+    },
+    // First line of the file is a header, not a data row.
+    HasHeader = true,
+    // Default separator is tab, but we need a semicolon.
+    Separator = ";"
+});
+
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+var trainData = reader.Read(trainDataPath);
+
+// Step two: define the learning pipeline. 
+
+// We 'start' the pipeline with the output of the reader.
+var dynamicPipeline =
+    // First 'normalize' the data (rescale to be
+    // between -1 and 1 for all examples)
+    mlContext.Transforms.Normalize("FeatureVector")
+    // Add the SDCA regression trainer.
+    .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
+
+// Step three. Fit the pipeline to the training data.
+var model = dynamicPipeline.Fit(trainData);
+```
 ## How do I verify the model quality?
 
 This is the first question that arises after you train the model: how good it actually is?
@@ -371,6 +510,13 @@ Assuming the example above was used to train the model, here's how you calculate
 var testData = reader.Read(testDataPath);
 // Calculate metrics of the model on the test data.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+```
+Calculating the metrics with the dynamic API is as follows.
+```csharp
+// Read the test dataset.
+var testData = reader.Read(testDataPath);
+// Calculate metrics of the model on the test data.
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: "Target");
 ```
 
 ## How do I save and load the model?
@@ -394,6 +540,21 @@ using (var stream = File.OpenRead(modelPath))
     loadedModel = mlContext.Model.Load(stream);
 ```
 
+You can use the dynamic API to achieve the same.
+```csharp
+using (var stream = File.Create(modelPath))
+{
+    // Saving and loading happens to 'dynamic' models.
+    mlContext.Model.Save(model, stream);
+}
+
+// Potentially, the lines below can be in a different process altogether.
+
+// When you load the model, it's a 'dynamic' transformer. 
+ITransformer loadedModel;
+using (var stream = File.OpenRead(modelPath))
+    loadedModel = mlContext.Model.Load(stream);
+```
 ## How do I use the model to make one prediction?
 
 Since any ML.NET model is a transformer, you can of course use `model.Transform` to apply the model to the 'data view' and obtain predictions this way. 
@@ -411,7 +572,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -444,6 +605,46 @@ var learningPipeline = reader.MakeNewEstimator()
 
 // Train the model.
 var model = learningPipeline.Fit(trainData).AsDynamic;
+```
+
+You can also use the dynamic API to create the equivalent of the previous pipeline. 
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        new TextLoader.Column("SepalLength", DataKind.R4, 0),
+        new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+        new TextLoader.Column("PetalLength", DataKind.R4, 2),
+        new TextLoader.Column("PetalWidth", DataKind.R4, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Retrieve the training data.
+var trainData = reader.Read(irisDataPath);
+
+// Build the training pipeline.
+var dynamicPipeline =
+    // Concatenate all the features together into one column 'Features'.
+    mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+    // Note that the label is text, so it needs to be converted to key.
+    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Use the multi-class SDCA model to predict the label using features.
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
+    // Apply the inverse conversion from 'PredictedLabel' column back to string value.
+    .Append(mlContext.Transforms.Conversion.MapKeyToValue(("PredictedLabel", "Data")));
+
+// Train the model.
+var model = dynamicPipeline.Fit(trainData);
 ```
 
 Now, in order to use [schema comprehension](SchemaComprehension.md) for prediction, we define a pair of classes like following:
@@ -537,7 +738,7 @@ var trainData = mlContext.CreateStreamingDataView(churnData);
 // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
 var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
-    .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+    .Append(mlContext.Transforms.Concatenate("Features", "DemographicCategory", "LastVisits"))
     .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
 var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -578,7 +779,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -672,7 +873,7 @@ Here's a snippet of code that demonstrates normalization in learning pipelines. 
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
         Features: ctx.LoadFloat(0, 3),
         // Label: kind of iris.
@@ -698,6 +899,42 @@ var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 
 // Inspect one column of the resulting dataset.
 var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
+```
+
+You can achieve the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // The four features of the Iris dataset will be grouped together as one Features column.
+        new TextLoader.Column("Features", DataKind.R4, 0, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Read the training data.
+var trainData = reader.Read(dataPath);
+
+// Apply all kinds of standard ML.NET normalization to the raw features.
+var pipeline =
+    mlContext.Transforms.Normalize(
+        new NormalizingEstimator.MinMaxColumn("Features", "MinMaxNormalized", fixZero: true),
+        new NormalizingEstimator.MeanVarColumn("Features", "MeanVarNormalized", fixZero: true),
+        new NormalizingEstimator.BinningColumn("Features", "BinNormalized", numBins: 256));
+
+// Let's train our pipeline of normalizers, and then apply it to the same data.
+var normalizedData = pipeline.Fit(trainData).Transform(trainData);
+
+// Inspect one column of the resulting dataset.
+var meanVarValues = normalizedData.GetColumn<float[]>(mlContext, "MeanVarNormalized").ToArray();
 ```
 
 ## How do I train my model on categorical data?
@@ -730,7 +967,7 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         Label: ctx.LoadBool(0),
         // We will load all the categorical features into one vector column of size 8.
         CategoricalFeatures: ctx.LoadText(1, 8),
@@ -781,6 +1018,63 @@ var fullLearningPipeline = learningPipeline
 var model = fullLearningPipeline.Fit(data);
 ```
 
+You can achieve the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        new TextLoader.Column("Label", DataKind.BL, 0),
+        // We will load all the categorical features into one vector column of size 8.
+        new TextLoader.Column("CategoricalFeatures", DataKind.TX, 1, 8),
+        // Similarly, load all numerical features into one vector of size 6.
+        new TextLoader.Column("NumericalFeatures", DataKind.R4, 9, 14),
+        // Let's also separately load the 'Workclass' column.
+        new TextLoader.Column("Workclass", DataKind.TX, 1),
+    },
+    HasHeader = true
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Inspect the first 10 records of the categorical columns to check that they are correctly read.
+var catColumns = data.GetColumn<string[]>(mlContext, "CategoricalFeatures").Take(10).ToArray();
+
+// Build several alternative featurization pipelines.
+var dynamicPipeline =
+    // Convert each categorical feature into one-hot encoding independently.
+    mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalOneHot")
+    // Convert all categorical features into indices, and build a 'word bag' of these.
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", CategoricalTransform.OutputKind.Bag))
+    // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
+    .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
+    .Append(new CountFeatureSelector(mlContext, "WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+
+// Let's train our pipeline, and then apply it to the same data.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var categoricalBags = transformedData.GetColumn<float[]>(mlContext, "CategoricalBag").Take(10).ToArray();
+var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHotTrimmed").Take(10).ToArray();
+
+// Of course, if we want to train the model, we will need to compose a single float vector of all the features.
+// Here's how we could do this:
+
+var fullLearningPipeline = dynamicPipeline
+    // Concatenate two of the 3 categorical pipelines, and the numeric features.
+    .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+    // Now we're ready to train. We chose our FastTree trainer for this classification task.
+    .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
+
+// Train the model.
+var model = fullLearningPipeline.Fit(data);
+```
+
 ## How do I train my model on textual data?
 
 Generally speaking, *all ML.NET learners expect the features as a float vector*. So, if some of your data is not natively a float, you will need to convert to floats. 
@@ -812,7 +1106,7 @@ Sentiment   SentimentText
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         IsToxic: ctx.LoadBool(0),
         Message: ctx.LoadText(1)
     ), hasHeader: true);
@@ -851,6 +1145,61 @@ var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray()
 var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 ```
 
+You can achieve the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        new TextLoader.Column("IsToxic", DataKind.BL, 0),
+        new TextLoader.Column("Message", DataKind.TX, 1),
+    },
+    HasHeader = true
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Inspect the message texts that are read from the file.
+var messageTexts = data.GetColumn<string>(mlContext, "Message").Take(20).ToArray();
+
+// Apply various kinds of text operations supported by ML.NET.
+var dynamicPipeline =
+    // One-stop shop to run the full text featurization.
+    mlContext.Transforms.Text.FeaturizeText("Message", "TextFeatures")
+
+    // Normalize the message for later transforms
+    .Append(mlContext.Transforms.Text.NormalizeText("Message", "NormalizedMessage"))
+
+    // NLP pipeline 1: bag of words.
+    .Append(new WordBagEstimator(mlContext, "NormalizedMessage", "BagOfWords"))
+
+    // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
+    .Append(new WordHashBagEstimator(mlContext, "NormalizedMessage", "BagOfBigrams",
+                ngramLength: 2, allLengths: false))
+
+    // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
+    .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
+    .Append(new NgramEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf))
+
+    // NLP pipeline 4: word embeddings.
+    .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
+    .Append(mlContext.Transforms.Text.ExtractWordEmbeedings("TokenizedMessage", "Embeddings",
+                WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D));
+
+// Let's train our pipeline, and then apply it to the same data.
+// Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
+var transformedData = dynamicPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var embeddings = transformedData.GetColumn<float[]>(mlContext, "Embeddings").Take(10).ToArray();
+var unigrams = transformedData.GetColumn<float[]>(mlContext, "BagOfWords").Take(10).ToArray();
+```
 ## How do I train using cross-validation?
 
 [Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is a useful technique for ML applications. It helps estimate the variance of the model quality from one run to another and also eliminates the need to extract a separate test set for evaluation.
@@ -870,7 +1219,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -915,6 +1264,59 @@ var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
 Console.WriteLine(microAccuracies.Average());
 ```
 
+You can achieve the same results using the dynamic API.
+```csharp
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = mlContext.Data.TextReader(new TextLoader.Arguments
+{
+    Column = new[] {
+        // We read the first 11 values as a single float vector.
+        new TextLoader.Column("SepalLength", DataKind.R4, 0),
+        new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+        new TextLoader.Column("PetalLength", DataKind.R4, 2),
+        new TextLoader.Column("PetalWidth", DataKind.R4, 3),
+        // Label: kind of iris.
+        new TextLoader.Column("Label", DataKind.TX, 4),
+    },
+    // Default separator is tab, but the dataset has comma.
+    Separator = ","
+});
+
+// Read the data.
+var data = reader.Read(dataPath);
+
+// Build the training pipeline.
+var dynamicPipeline =
+    // Concatenate all the features together into one column 'Features'.
+    mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+    // Note that the label is text, so it needs to be converted to key.
+    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Use the multi-class SDCA model to predict the label using features.
+    .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
+
+// Split the data 90:10 into train and test sets, train and evaluate.
+var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
+
+// Train the model.
+var model = dynamicPipeline.Fit(trainData);
+// Compute quality metrics on the test set.
+var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData));
+Console.WriteLine(metrics.AccuracyMicro);
+
+// Now run the 5-fold cross-validation experiment, using the same pipeline.
+var cvResults = mlContext.MulticlassClassification.CrossValidate(data, dynamicPipeline, numFolds: 5);
+
+// The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
+// Let's compute the average micro-accuracy.
+var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+Console.WriteLine(microAccuracies.Average());
+
+```
 ## Can I mix and match static and dynamic pipelines?
 
 Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.
@@ -931,7 +1333,7 @@ var mlContext = new MLContext();
 
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -959,7 +1361,7 @@ var learningPipeline = reader.MakeNewEstimator()
 IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
 // Create a binary classification trainer.
-var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
+var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron("Label", "Features");
 
 // Append the OVA learner to the pipeline.
 dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     /// is passed to a row cursor getter, the callee is free to take ownership of
     /// and re-use the arrays (Values and Indices).
     /// </summary>
-    public struct VBuffer<T>
+    public readonly struct VBuffer<T>
     {
         /// <summary>
         /// The logical length of the buffer.
@@ -37,6 +37,23 @@ namespace Microsoft.ML.Runtime.Data
         /// it is parallel to values and specifies the logical indices for the corresponding values.
         /// </summary>
         public readonly int[] Indices;
+
+        /// <summary>
+        /// The explicitly represented values.
+        /// </summary>
+        public ReadOnlySpan<T> GetValues() => Values.AsSpan(0, Count);
+
+        /// <summary>
+        /// The indices. For a dense representation, this array is not used. For a sparse representation
+        /// it is parallel to values and specifies the logical indices for the corresponding values.
+        /// </summary>
+        /// <remarks>
+        /// For example, if GetIndices() returns [3, 5] and GetValues() produces [98, 76], this VBuffer
+        /// stands for a vector with:
+        ///  - non-zeros values 98 and 76 respectively at the 4th and 6th coordinates
+        ///  - zeros at all other coordinates
+        /// </remarks>
+        public ReadOnlySpan<int> GetIndices() => IsDense ? default : Indices.AsSpan(0, Count);
 
         /// <summary>
         /// Equivalent to Count == Length.
@@ -424,11 +441,6 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<T>(length, values, dst.Indices);
         }
 
-        public static void Copy(ref VBuffer<T> src, ref VBuffer<T> dst)
-        {
-            src.CopyTo(ref dst);
-        }
-
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
             return VBufferUtils.Items(Values, Indices, Length, Count, all);
@@ -463,5 +475,8 @@ namespace Microsoft.ML.Runtime.Data
                 return Values[index];
             return default(T);
         }
+
+        public override string ToString()
+            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
     }
 }

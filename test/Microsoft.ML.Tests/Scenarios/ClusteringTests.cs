@@ -21,7 +21,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
-                VectorNormalizer = TextTransformTextNormKind.L2,
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 1, AllLengths = true }
             });

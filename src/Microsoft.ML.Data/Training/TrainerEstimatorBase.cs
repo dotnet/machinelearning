@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Training
@@ -50,7 +51,10 @@ namespace Microsoft.ML.Runtime.Training
 
         public abstract PredictionKind PredictionKind { get; }
 
-        public TrainerEstimatorBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
+        public TrainerEstimatorBase(IHost host,
+            SchemaShape.Column feature,
+            SchemaShape.Column label,
+            SchemaShape.Column weight = null)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
@@ -141,7 +145,7 @@ namespace Microsoft.ML.Runtime.Training
                 validRoles = MakeRoles(cachedValid);
             }
 
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
@@ -149,9 +153,39 @@ namespace Microsoft.ML.Runtime.Training
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
-        private RoleMappedData MakeRoles(IDataView data) =>
+        protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
+    }
+
+    /// <summary>
+    /// This represents a basic class for 'simple trainer'.
+    /// A 'simple trainer' accepts one feature column and one label column, also optionally a weight column.
+    /// It produces a 'prediction transformer'.
+    /// </summary>
+    public abstract class TrainerEstimatorBaseWithGroupId<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
+        where TModel : IPredictor
+    {
+        /// <summary>
+        /// The optional groupID column that the ranking trainers expects.
+        /// </summary>
+        public readonly SchemaShape.Column GroupIdColumn;
+
+        public TrainerEstimatorBaseWithGroupId(IHost host,
+                SchemaShape.Column feature,
+                SchemaShape.Column label,
+                SchemaShape.Column weight = null,
+                SchemaShape.Column groupId = null)
+            :base(host, feature, label, weight)
+        {
+            Host.CheckValueOrNull(groupId);
+            GroupIdColumn = groupId;
+        }
+
+        protected override RoleMappedData MakeRoles(IDataView data) =>
+            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, group: GroupIdColumn?.Name, weight: WeightColumn?.Name);
+
     }
 }

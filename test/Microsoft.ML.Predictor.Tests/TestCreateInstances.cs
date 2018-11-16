@@ -7,7 +7,7 @@ using Float = System.Single;
 using System;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Trainers.PCA;
 
 namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 {

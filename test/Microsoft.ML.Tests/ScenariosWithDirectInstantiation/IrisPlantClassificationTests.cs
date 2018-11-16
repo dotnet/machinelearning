@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.IO;
 using Xunit;
@@ -42,11 +45,11 @@ namespace Microsoft.ML.Scenarios
                 IDataView pipeline = new ConcatTransform(env, "Features",
                     "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
-                // Normalizer is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
+                // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
+                var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, pipeline, prefetch: null);

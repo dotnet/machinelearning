@@ -7,7 +7,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ using System.Text;
 
 [assembly: EntryPointModule(typeof(NgramExtractorTransform.NgramExtractorArguments))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an INgramExtractorFactory.
@@ -160,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = new WordTokenizeEstimator(env, tokenizeColumns).Fit(view).Transform(view);
+            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
@@ -300,7 +301,7 @@ namespace Microsoft.ML.Runtime.Data
             if (termCols.Count > 0)
             {
                 TermTransform.Arguments termArgs = null;
-                NADropTransform.Arguments naDropArgs = null;
+                MissingValueDroppingTransformer.Arguments naDropArgs = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
@@ -317,7 +318,7 @@ namespace Microsoft.ML.Runtime.Data
                         };
 
                     if (termLoaderArgs.DropUnknowns)
-                        naDropArgs = new NADropTransform.Arguments { Column = new NADropTransform.Column[termCols.Count] };
+                        naDropArgs = new MissingValueDroppingTransformer.Arguments { Column = new MissingValueDroppingTransformer.Column[termCols.Count] };
                 }
                 else
                 {
@@ -341,12 +342,12 @@ namespace Microsoft.ML.Runtime.Data
                         };
 
                     if (naDropArgs != null)
-                        naDropArgs.Column[iinfo] = new NADropTransform.Column { Name = column.Name, Source = column.Name };
+                        naDropArgs.Column[iinfo] = new MissingValueDroppingTransformer.Column { Name = column.Name, Source = column.Name };
                 }
 
                 view = TermTransform.Create(h, termArgs, view);
                 if (naDropArgs != null)
-                    view = new NADropTransform(h, naDropArgs, view);
+                    view = new MissingValueDroppingTransformer(h, naDropArgs, view);
             }
 
             var ngramArgs =

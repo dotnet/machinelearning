@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -26,9 +26,8 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), MultiClassNaiveBayesTrainer.LoadName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
-    /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' />
     public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>, MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";
@@ -51,9 +50,11 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
+        public MultiClassNaiveBayesTrainer(IHostEnvironment env,
+            string featureColumn = DefaultColumnNames.Features,
+            string labelColumn = DefaultColumnNames.Label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(labelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -64,7 +65,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
         {
             Host.CheckValue(args, nameof(args));
         }
@@ -313,15 +314,15 @@ namespace Microsoft.ML.Runtime.Learners
             // int: _featureCount
             // int[_labelCount][_featureCount]: _featureHistogram
             // int[_labelCount]: _absentFeaturesLogProb
-            ctx.Writer.WriteIntArray(_labelHistogram, _labelCount);
+            ctx.Writer.WriteIntArray(_labelHistogram.AsSpan(0, _labelCount));
             ctx.Writer.Write(_featureCount);
             for (int i = 0; i < _labelCount; i += 1)
             {
                 if (_labelHistogram[i] > 0)
-                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i], _featureCount);
+                    ctx.Writer.WriteIntsNoCount(_featureHistogram[i].AsSpan(0, _featureCount));
             }
 
-            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb, _labelCount);
+            ctx.Writer.WriteDoublesNoCount(_absentFeaturesLogProb.AsSpan(0, _labelCount));
         }
 
         private static double[] CalculateAbsentFeatureLogProbabilities(int[] labelHistogram, int[][] featureHistogram, int featureCount)
@@ -370,7 +371,7 @@ namespace Microsoft.ML.Runtime.Learners
             absentFeatureLogProb += Math.Log(absentFeatureCount + 1) - Math.Log(labelOccurrenceCount + _labelCount);
         }
 
-        private void Map(ref VBuffer<float> src, ref VBuffer<float> dst)
+        private void Map(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _featureCount, "Invalid number of features passed.");
             float[] labelScores = (dst.Length >= _labelCount) ? dst.Values : new float[_labelCount];

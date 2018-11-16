@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+using Microsoft.ML.Runtime;
+
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     // Conjugate gradient descent
     public class ConjugateGradientDescent : GradientDescent
@@ -11,7 +13,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private double[] _currentGradient;
         private double[] _currentDk;
 
-        public ConjugateGradientDescent(Ensemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
+        public ConjugateGradientDescent(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores, IGradientAdjuster gradientWrapper)
             : base(ensemble, trainData, initTrainScores, gradientWrapper)
         {
             _currentDk = new double[trainData.NumDocs];

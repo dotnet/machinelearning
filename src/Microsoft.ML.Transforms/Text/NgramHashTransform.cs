@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(NgramHashTransform), typeof(NgramHashTransform.Arguments), typeof(SignatureDataTransform),
     "Ngram Hash Transform", "NgramHashTransform", "NgramHash")]
@@ -21,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(NgramHashTransform), null, typeof(SignatureLoadDataTransform),
     "Ngram Hash Transform", NgramHashTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -705,7 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (int i = 0; i < srcCount; i++)
                     {
                         getSrc[i](ref src);
-                        bldr.AddNgrams(ref src, i, keyCounts[i]);
+                        bldr.AddNgrams(in src, i, keyCounts[i]);
                     }
                     bldr.GetResult(ref dst);
                 };
@@ -930,12 +931,12 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(srcMap);
 
                     stringMapper =
-                        (ref NGram src, ref StringBuilder dst) =>
+                        (in NGram src, ref StringBuilder dst) =>
                         {
                             Contracts.Assert(src.ISrcCol == 0);
                             if (src.Lim == 1)
                             {
-                                srcMap(ref src.Grams[0], ref dst);
+                                srcMap(in src.Grams[0], ref dst);
                                 return;
                             }
                             ClearDst(ref dst);
@@ -943,7 +944,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 if (i > 0)
                                     dst.Append('|');
-                                srcMap(ref src.Grams[i], ref temp);
+                                srcMap(in src.Grams[i], ref temp);
                                 InvertHashUtils.AppendToEnd(temp, dst, ref buffer);
                             }
                         };
@@ -963,7 +964,7 @@ namespace Microsoft.ML.Runtime.Data
                     // We need to disambiguate the column name. This will be the same as the above format,
                     // just instead of "<Stuff>" it would be with "ColumnName:<Stuff>".
                     stringMapper =
-                        (ref NGram src, ref StringBuilder dst) =>
+                        (in NGram src, ref StringBuilder dst) =>
                         {
                             var srcMap = _srcTextGetters[srcIndices[src.ISrcCol]];
                             Contracts.AssertValue(srcMap);
@@ -974,7 +975,7 @@ namespace Microsoft.ML.Runtime.Data
                             {
                                 if (i > 0)
                                     dst.Append('|');
-                                srcMap(ref src.Grams[i], ref temp);
+                                srcMap(in src.Grams[i], ref temp);
                                 InvertHashUtils.AppendToEnd(temp, dst, ref buffer);
                             }
                         };
@@ -982,7 +983,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var collector = _iinfoToCollector[iinfo] = new InvertHashCollector<NGram>(
                     _parent._bindings.Types[iinfo].VectorSize, _invertHashMaxCounts[iinfo],
-                    stringMapper, EqualityComparer<NGram>.Default, (ref NGram src, ref NGram dst) => dst = src.Clone());
+                    stringMapper, EqualityComparer<NGram>.Default, (in NGram src, ref NGram dst) => dst = src.Clone());
 
                 return
                     (uint[] ngram, int lim, int icol, ref bool more) =>

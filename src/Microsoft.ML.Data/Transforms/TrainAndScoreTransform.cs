@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(ScoreTransform.Summary, typeof(IDataTransform), typeof(ScoreTransform), typeof(ScoreTransform.Arguments), typeof(SignatureDataTransform),
     "Score Predictor", "Score")]
@@ -16,7 +17,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(TrainAndScoreTransform.Summary, typeof(IDataTransform), typeof(TrainAndScoreTransform),
     typeof(TrainAndScoreTransform.Arguments), typeof(SignatureDataTransform), "Train and Score Predictor", "TrainScore")]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public static class ScoreTransform
     {

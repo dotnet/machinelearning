@@ -4,7 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+using Microsoft.ML.Runtime;
+
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public interface IEnsembleCompressor<TLabel>
     {
@@ -12,8 +14,8 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         void SetTreeScores(int idx, double[] scores);
 
-        bool Compress(IChannel ch, Ensemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression);
+        bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression);
 
-        Ensemble GetCompressedEnsemble();
+        TreeEnsemble GetCompressedEnsemble();
     }
 }

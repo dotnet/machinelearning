@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Trainers.KMeans;
 using System;
 
 namespace Microsoft.ML
@@ -23,7 +23,7 @@ namespace Microsoft.ML
         /// <param name="clustersCount">The number of clusters to use for KMeans.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         public static KMeansPlusPlusTrainer KMeans(this ClusteringContext.ClusteringTrainers ctx,
-           string features = DefaultColumnNames.Features,
+           string features,
            string weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
            Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null)

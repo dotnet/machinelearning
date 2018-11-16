@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// This implementation is based on:
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
         private Dataset _trainSet;
         private short[] _labels;
-        private Ensemble _compressedEnsemble;
+        private TreeEnsemble _compressedEnsemble;
         private int[] _sampleObservationIndices;
         private Random _rnd;
 
@@ -457,9 +458,9 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             return fit;
         }
 
-        private Ensemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, Ensemble originalEnsemble)
+        private TreeEnsemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, TreeEnsemble originalEnsemble)
         {
-            Ensemble ensemble = new Ensemble();
+            TreeEnsemble ensemble = new TreeEnsemble();
 
             int weightsCount = fit.NumberOfWeights[solutionIdx];
             for (int i = 0; i < weightsCount; i++)
@@ -533,7 +534,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        public bool Compress(IChannel ch, Ensemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
+        public bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
         {
             LoadTargets(trainScores, bestIteration);
 
@@ -551,7 +552,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             return true;
         }
 
-        public Ensemble GetCompressedEnsemble()
+        public TreeEnsemble GetCompressedEnsemble()
         {
             return _compressedEnsemble;
         }

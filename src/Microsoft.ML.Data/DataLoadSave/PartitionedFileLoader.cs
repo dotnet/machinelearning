@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema { get; }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             return null;
         }
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 return (ref TValue value) =>
                 {
-                    conv(ref _colValues[col], ref value);
+                    conv(in _colValues[col], ref value);
                 };
             }
 

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Numeric
             return CpuMathUtils.DotProductDense(a, b, a.Length);
         }
 
-        public static Float DotProduct(Float[] a, ref VBuffer<Float> b)
+        public static Float DotProduct(Float[] a, in VBuffer<Float> b)
         {
             Contracts.Check(Utils.Size(a) == b.Length, "Vectors must have the same dimensionality.");
             if (b.Count == 0)
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Numeric
             return CpuMathUtils.DotProductSparse(a, b.Values, b.Indices, b.Count);
         }
 
-        public static Float DotProduct(ref VBuffer<Float> a, ref VBuffer<Float> b)
+        public static Float DotProduct(in VBuffer<Float> a, in VBuffer<Float> b)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
 
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// Multiplies arrays Dst *= A element by element and returns the result in <paramref name="dst"/> (Hadamard product).
         /// </summary>
-        public static void MulElementWise(ref VBuffer<Float> a, ref VBuffer<Float> dst)
+        public static void MulElementWise(in VBuffer<Float> a, ref VBuffer<Float> dst)
         {
             Contracts.Check(a.Length == dst.Length, "Vectors must have the same dimensionality.");
 
             if (a.IsDense && dst.IsDense)
                 CpuMathUtils.MulElementWise(a.Values, dst.Values, dst.Values, a.Length);
             else
-                VBufferUtils.ApplyWithEitherDefined(ref a, ref dst, (int ind, Float v1, ref Float v2) => { v2 *= v1; });
+                VBufferUtils.ApplyWithEitherDefined(in a, ref dst, (int ind, Float v1, ref Float v2) => { v2 *= v1; });
         }
 
         private static Float L2DistSquaredSparse(Float[] valuesA, int[] indicesA, int countA, Float[] valuesB, int[] indicesB, int countB, int length)
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="b">the second array (given as a VBuffer)</param>
         /// <param name="offset">offset in 'a'</param>
         /// <returns>the dot product</returns>
-        public static Float DotProductWithOffset(ref VBuffer<Float> a, int offset, ref VBuffer<Float> b)
+        public static Float DotProductWithOffset(in VBuffer<Float> a, int offset, in VBuffer<Float> b)
         {
             Contracts.Check(0 <= offset && offset <= a.Length);
             Contracts.Check(b.Length <= a.Length - offset, "VBuffer b must be no longer than a.Length - offset.");
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="b">the second array (given as a VBuffer)</param>
         /// <param name="offset">offset in 'a'</param>
         /// <returns>the dot product</returns>
-        public static Float DotProductWithOffset(Float[] a, int offset, ref VBuffer<Float> b)
+        public static Float DotProductWithOffset(Float[] a, int offset, in VBuffer<Float> b)
         {
             Contracts.Check(0 <= offset && offset <= a.Length);
             Contracts.Check(b.Length <= a.Length - offset, "VBuffer b must be no longer than a.Length - offset.");
@@ -370,10 +370,10 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="a">one VBuffer</param>
         /// <param name="b">another VBuffer</param>
         /// <returns>L1 Distance from a to b</returns>
-        public static Float L1Distance(ref VBuffer<Float> a, ref VBuffer<Float> b)
+        public static Float L1Distance(in VBuffer<Float> a, in VBuffer<Float> b)
         {
             Float res = 0;
-            VBufferUtils.ForEachEitherDefined(ref a, ref b,
+            VBufferUtils.ForEachEitherDefined(in a, in b,
                 (slot, val1, val2) => res += Math.Abs(val1 - val2));
             return res;
         }
@@ -384,9 +384,9 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="a">one VBuffer</param>
         /// <param name="b">another VBuffer</param>
         /// <returns>Distance from a to b</returns>
-        public static Float Distance(ref VBuffer<Float> a, ref VBuffer<Float> b)
+        public static Float Distance(in VBuffer<Float> a, in VBuffer<Float> b)
         {
-            return MathUtils.Sqrt(L2DistSquared(ref a, ref b));
+            return MathUtils.Sqrt(L2DistSquared(in a, in b));
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="a">one VBuffer</param>
         /// <param name="b">another VBuffer</param>
         /// <returns>Distance from a to b</returns>
-        public static Float L2DistSquared(ref VBuffer<Float> a, ref VBuffer<Float> b)
+        public static Float L2DistSquared(in VBuffer<Float> a, in VBuffer<Float> b)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             if (a.IsDense)
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="a">The first vector, given as an array</param>
         /// <param name="b">The second vector, given as a VBuffer{Float}</param>
         /// <returns>The squared L2 distance between a and b</returns>
-        public static Float L2DistSquared(Float[] a, ref VBuffer<Float> b)
+        public static Float L2DistSquared(Float[] a, in VBuffer<Float> b)
         {
             Contracts.CheckValue(a, nameof(a));
             Contracts.Check(Utils.Size(a) == b.Length, "Vectors must have the same dimensionality.");
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="src">Buffer to add</param>
         /// <param name="dst">Array to add to</param>
         /// <param name="c">Coefficient</param>
-        public static void AddMult(ref VBuffer<Float> src, Float[] dst, Float c)
+        public static void AddMult(in VBuffer<Float> src, Float[] dst, Float c)
         {
             Contracts.CheckValue(dst, nameof(dst));
             Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="offset">The offset into <paramref name="dst"/> at which to add</param>
         /// <param name="c">Coefficient</param>
 
-        public static void AddMultWithOffset(ref VBuffer<Float> src, Float[] dst, int offset, Float c)
+        public static void AddMultWithOffset(in VBuffer<Float> src, Float[] dst, int offset, Float c)
         {
             Contracts.CheckValue(dst, nameof(dst));
             Contracts.Check(0 <= offset && offset <= dst.Length);

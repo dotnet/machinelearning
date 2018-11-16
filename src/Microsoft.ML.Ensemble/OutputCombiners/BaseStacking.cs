@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 (ref TOutput dst, TOutput[] src, Single[] weights) =>
                 {
                     FillFeatureBuffer(src, ref feat);
-                    map(ref feat, ref dst);
+                    map(in feat, ref dst);
                 };
             return res;
         }
@@ -159,11 +159,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                             var model = models[i];
                             if (model.SelectedFeatures != null)
                             {
-                                EnsembleUtils.SelectFeatures(ref cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
-                                maps[i](ref vBuffers[i], ref predictions[i]);
+                                EnsembleUtils.SelectFeatures(in cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                                maps[i](in vBuffers[i], ref predictions[i]);
                             }
                             else
-                                maps[i](ref cursor.Features, ref predictions[i]);
+                                maps[i](in cursor.Features, ref predictions[i]);
                         });
 
                         Utils.EnsureSize(ref labels, count + 1);

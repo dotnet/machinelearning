@@ -4,11 +4,12 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.KMeans;
-using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Reflection;
 
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
-            _ = typeof(CategoricalTransform).Assembly; // ML.Transforms
+            _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 
             // The following assemblies reference this assembly, so we can't directly reference them
 

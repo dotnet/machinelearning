@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime;
@@ -52,10 +53,13 @@ namespace Microsoft.ML.Runtime.Data
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
     public sealed class RowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
-        ITransformCanSaveOnnx, ITransformCanSavePfa
+        ITransformCanSaveOnnx, ITransformCanSavePfa, ITransformTemplate
     {
         private readonly IRowMapper _mapper;
         private readonly ColumnBindings _bindings;
+
+        // If this is not null, the transform is re-appliable without save/load.
+        private readonly Func<Schema, IRowMapper> _mapperFactory;
 
         public const string RegistrationName = "RowToRowMapperTransform";
         public const string LoaderSignature = "RowToRowMapper";
@@ -72,15 +76,17 @@ namespace Microsoft.ML.Runtime.Data
 
         public override Schema Schema => _bindings.Schema;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
-        public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
+        bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
-        public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper)
+        public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
+            Contracts.CheckValueOrNull(mapperFactory);
             _mapper = mapper;
+            _mapperFactory = mapperFactory;
             _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
         }
 
@@ -199,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             return cursors;
         }
 
-        public void SaveAsOnnx(OnnxContext ctx)
+        void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
@@ -209,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public void SaveAsPfa(BoundPfaContext ctx)
+        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa pfa)
@@ -245,6 +251,36 @@ namespace Microsoft.ML.Runtime.Data
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
                 return new Row(input, this, Schema, getters);
+            }
+        }
+
+        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        {
+            Contracts.CheckValue(env, nameof(env));
+
+            Contracts.CheckValue(newSource, nameof(newSource));
+            if (_mapperFactory != null)
+            {
+                var newMapper = _mapperFactory(newSource.Schema);
+                return new RowToRowMapperTransform(env.Register(nameof(RowToRowMapperTransform)), newSource, newMapper, _mapperFactory);
+            }
+            // Revert to serialization. This was how it worked in all the cases, now it's only when we can't re-create the mapper.
+            using (var stream = new MemoryStream())
+            {
+                using (var rep = RepositoryWriter.CreateNew(stream, env))
+                {
+                    ModelSaveContext.SaveModel(rep, this, "model");
+                    rep.Commit();
+                }
+
+                stream.Position = 0;
+                using (var rep = RepositoryReader.Open(stream, env))
+                {
+                    IDataTransform newData;
+                    ModelLoadContext.LoadModel<IDataTransform, SignatureLoadDataTransform>(env,
+                        out newData, rep, "model", newSource);
+                    return newData;
+                }
             }
         }
 

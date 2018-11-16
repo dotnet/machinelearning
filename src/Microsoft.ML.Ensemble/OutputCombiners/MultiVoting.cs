@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             int voteCount = 0;
             for (int i = 0; i < count; i++)
             {
-                int index = VectorUtils.ArgMax(ref src[i]);
+                int index = VectorUtils.ArgMax(in src[i]);
                 if (index >= 0)
                 {
                     values[index]++;

@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using System.Linq;
@@ -51,13 +53,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            dataView = new TermEstimator(Env, new[]{
+            dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
                 }).Fit(dataView).Transform(dataView);
 
-            var pipe = new KeyToVectorEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
+            var pipe = new KeyToVectorMappingEstimator(Env, new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
                 new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatC", true),
                 new KeyToVectorTransform.ColumnInfo("TermC", "CatCNonBag", false));
@@ -77,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env, new[] {
+            var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
@@ -108,7 +110,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var termEst = new TermEstimator(Env, new[] {
+            var termEst = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("A", "TA", textKeyValues: true),
                 new TermTransform.ColumnInfo("B", "TB"),
                 new TermTransform.ColumnInfo("C", "TC", textKeyValues: true),
@@ -120,7 +122,7 @@ namespace Microsoft.ML.Tests.Transformers
             var termTransformer = termEst.Fit(dataView);
             dataView = termTransformer.Transform(dataView);
 
-            var pipe = new KeyToVectorEstimator(Env,
+            var pipe = new KeyToVectorMappingEstimator(Env,
                  new KeyToVectorTransform.ColumnInfo("TA", "CatA", true),
                  new KeyToVectorTransform.ColumnInfo("TB", "CatB", false),
                  new KeyToVectorTransform.ColumnInfo("TC", "CatC", false),
@@ -224,14 +226,14 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new TermEstimator(Env, new[]{
+            var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC")
             });
             var transformer = est.Fit(dataView);
             dataView = transformer.Transform(dataView);
-            var pipe = new KeyToVectorEstimator(Env,
+            var pipe = new KeyToVectorMappingEstimator(Env,
                 new KeyToVectorTransform.ColumnInfo("TermA", "CatA", false),
                 new KeyToVectorTransform.ColumnInfo("TermB", "CatB", true)
             );

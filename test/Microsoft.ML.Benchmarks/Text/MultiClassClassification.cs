@@ -4,10 +4,12 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks
@@ -37,7 +39,7 @@ namespace Microsoft.ML.Benchmarks
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -54,7 +56,7 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, LightGbmMulticlassTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -72,7 +74,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -90,7 +92,7 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, SdcaMultiClassTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMultiClassTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -120,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
@@ -133,7 +135,7 @@ namespace Microsoft.ML.Benchmarks
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
-            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>())
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }

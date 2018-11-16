@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     //An interface that can be implemnted on
     public interface IFastTrainingScoresUpdate
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public delegate void PreScoreUpdateHandler(IChannel ch);
         public PreScoreUpdateHandler PreScoreUpdateEvent;
 
-        public Ensemble Ensemble;
+        public TreeEnsemble Ensemble;
 
         public ScoreTracker TrainingScores;
         public List<ScoreTracker> TrackedScores;
@@ -36,7 +37,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public Random DropoutRng;
         public bool UseFastTrainingScoresUpdate;
 
-        public OptimizationAlgorithm(Ensemble ensemble, Dataset trainData, double[] initTrainScores)
+        public OptimizationAlgorithm(TreeEnsemble ensemble, Dataset trainData, double[] initTrainScores)
         {
             Ensemble = ensemble;
             TrainingScores = ConstructScoreTracker("train", trainData, initTrainScores);
