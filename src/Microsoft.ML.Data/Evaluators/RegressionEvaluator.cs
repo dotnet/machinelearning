@@ -157,63 +157,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public sealed class Result
-        {
-            /// <summary>
-            /// Gets the absolute loss of the model.
-            /// </summary>
-            /// <remarks>
-            /// The absolute loss is defined as
-            /// L1 = (1/m) * sum( abs( yi - y&apos;i))
-            /// where m is the number of instances in the test set.
-            /// y'i are the predicted labels for each instance.
-            /// yi are the correct labels of each instance.
-            /// </remarks>
-            public double L1 { get; }
-
-            /// <summary>
-            /// Gets the squared loss of the model.
-            /// </summary>
-            /// <remarks>
-            /// The squared loss is defined as
-            /// L2 = (1/m) * sum(( yi - y&apos;i)^2)
-            /// where m is the number of instances in the test set.
-            /// y'i are the predicted labels for each instance.
-            /// yi are the correct labels of each instance.
-            /// </remarks>
-            public double L2 { get; }
-
-            /// <summary>
-            /// Gets the root mean square loss (or RMS) which is the square root of the L2 loss.
-            /// </summary>
-            public double Rms { get; }
-
-            /// <summary>
-            /// Gets the user defined loss function.
-            /// </summary>
-            /// <remarks>
-            /// This is the average of a loss function defined by the user,
-            /// computed over all the instances in the test set.
-            /// </remarks>
-            public double LossFn { get; }
-
-            /// <summary>
-            /// Gets the R squared value of the model, which is also known as
-            /// the coefficient of determination​.
-            /// </summary>
-            public double RSquared { get; }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
-                L1 = Fetch(RegressionEvaluator.L1);
-                L2 = Fetch(RegressionEvaluator.L2);
-                Rms = Fetch(RegressionEvaluator.Rms);
-                LossFn = Fetch(RegressionEvaluator.Loss);
-                RSquared = Fetch(RegressionEvaluator.RSquared);
-            }
-        }
-
         /// <summary>
         /// Evaluates scored regression data.
         /// </summary>
@@ -221,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the label column.</param>
         /// <param name="score">The name of the predicted score column.</param>
         /// <returns>The evaluation metrics for these outputs.</returns>
-        public Result Evaluate(IDataView data, string label, string score)
+        public RegressionMetrics Evaluate(IDataView data, string label, string score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
