@@ -2,27 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Reflection;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
-[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), typeof(MissingValueDroppingTransformer.Arguments), typeof(SignatureDataTransform),
     MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.ShortName, "NADropTransform")]
 
-[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(IDataTransform), typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadDataTransform),
     MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+[assembly: LoadableClass(MissingValueDroppingTransformer.Summary, typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadModel),
+    MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(MissingValueDroppingTransformer), null, typeof(SignatureLoadRowMapper),
+   MissingValueDroppingTransformer.FriendlyName, MissingValueDroppingTransformer.LoaderSignature)]
+
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
-    public sealed class MissingValueDroppingTransformer : OneToOneTransformBase
+    public sealed class MissingValueDroppingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -50,7 +59,7 @@ namespace Microsoft.ML.Runtime.Data
         internal const string Summary = "Removes NAs from vector columns.";
         internal const string FriendlyName = "NA Drop Transform";
         internal const string ShortName = "NADrop";
-        public const string LoaderSignature = "NADropTransform";
+        internal const string LoaderSignature = "NADropTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -65,272 +74,318 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string RegistrationName = "DropNAs";
 
-        // The isNA delegates, parallel to Infos.
-        private readonly Delegate[] _isNAs;
+        public IReadOnlyList<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="MissingValueDroppingTransformer"/>
         /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public MissingValueDroppingTransformer(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
+        public MissingValueDroppingTransformer(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), columns)
         {
         }
 
-        public MissingValueDroppingTransformer(IHostEnvironment env, Arguments args, IDataView input)
-            : base(Contracts.CheckRef(env, nameof(env)), RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestType)
+        internal MissingValueDroppingTransformer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), GetColumnPairs(args.Column))
         {
-            Host.CheckNonEmpty(args.Column, nameof(args.Column));
-            _isNAs = InitIsNAAndMetadata();
         }
 
-        private Delegate[] InitIsNAAndMetadata()
+        private MissingValueDroppingTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingTransformer)), ctx)
         {
-            var md = Metadata;
-            var isNAs = new Delegate[Infos.Length];
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
-            {
-                var type = Infos[iinfo].TypeSrc;
-                isNAs[iinfo] = GetIsNADelegate(type);
-                // Register for metadata. Propagate the IsNormalized metadata.
-                // SlotNames will not be propagated.
-                using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source,
-                    MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
-                {
-                    // Output does not have missings.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, false);
-                }
-            }
-            md.Seal();
-            return isNAs;
+            Host.CheckValue(ctx, nameof(ctx));
         }
 
-        /// <summary>
-        /// Returns the isNA predicate for the respective type.
-        /// </summary>
-        private Delegate GetIsNADelegate(ColumnType type)
+        private static (string input, string output)[] GetColumnPairs(Column[] columns)
+            => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-            return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+            var inType = inputSchema.GetColumnType(srcCol);
+            if (!inType.IsVector)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputSchema.GetColumnName(srcCol), "Vector", inType.ToString());
         }
 
-        private Delegate GetIsNADelegate<T>(ColumnType type)
-        {
-            return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
-        }
-
-        private static string TestType(ColumnType type)
-        {
-            if (!type.IsVector)
-            {
-                return string.Format("Type '{0}' is not supported by {1} since it is not a vector",
-                    type, LoaderSignature);
-            }
-
-            // Item type must have an NA value that exists.
-            Func<ColumnType, string> func = TestType<int>;
-            return Utils.MarshalInvoke(func, type.ItemType.RawType, type.ItemType);
-        }
-
-        private static string TestType<T>(ColumnType type)
-        {
-            Contracts.Assert(type.ItemType.RawType == typeof(T));
-            InPredicate<T> isNA;
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
-            {
-                return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
-                    type, LoaderSignature);
-            }
-            return null;
-        }
-
-        public static MissingValueDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        // Factory method for SignatureLoadModel
+        private static MissingValueDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new MissingValueDroppingTransformer(h, ctx, input));
+
+            return new MissingValueDroppingTransformer(env, ctx);
         }
 
-        private MissingValueDroppingTransformer(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestType)
-        {
-            Host.AssertValue(ctx);
-            // *** Binary format ***
-            // <base>
-            Host.AssertNonEmpty(Infos);
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+            => new MissingValueDroppingTransformer(env, args).MakeDataTransform(input);
 
-            _isNAs = InitIsNAAndMetadata();
-        }
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
 
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+
+        /// <summary>
+        /// Saves the transform.
+        /// </summary>
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // <base>
-            SaveBase(ctx);
+            SaveColumns(ctx);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return new VectorType(Infos[iinfo].TypeSrc.ItemType.AsPrimitive);
-        }
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        private sealed class Mapper : MapperBase
         {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
+            private readonly MissingValueDroppingTransformer _parent;
 
-            disposer = null;
-            Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
-            var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(Infos[iinfo].TypeSrc.ItemType.RawType);
-            return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
-        }
+            private readonly ColumnType[] _srcTypes;
+            private readonly int[] _srcCols;
+            private readonly ColumnType[] _types;
+            private readonly Delegate[] _isNAs;
 
-        private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
-        {
-            var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
-            var buffer = default(VBuffer<TDst>);
-            var isNA = (InPredicate<TDst>)_isNAs[iinfo];
-            var def = default(TDst);
-            if (isNA(in def))
+            public Mapper(MissingValueDroppingTransformer parent, Schema inputSchema)
+              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                // Case I: NA equals the default value.
+                _parent = parent;
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _srcTypes = new ColumnType[_parent.ColumnPairs.Length];
+                _srcCols = new int[_parent.ColumnPairs.Length];
+                _isNAs = new Delegate[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
+                    var srcCol = inputSchema[_srcCols[i]];
+                    _srcTypes[i] = srcCol.Type;
+                    _types[i] = new VectorType(srcCol.Type.ItemType.AsPrimitive);
+                    _isNAs[i] = GetIsNADelegate(srcCol.Type);
+                }
+            }
+
+            /// <summary>
+            /// Returns the isNA predicate for the respective type.
+            /// </summary>
+            private Delegate GetIsNADelegate(ColumnType type)
+            {
+                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+                return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+            }
+
+            private Delegate GetIsNADelegate<T>(ColumnType type) => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var builder = new Schema.Metadata.Builder();
+                    builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                }
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+
+                Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
+                return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
+            }
+
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
+            {
+                var srcGetter = input.GetGetter<VBuffer<TDst>>(iinfo);
+                var buffer = default(VBuffer<TDst>);
+                var isNA = (InPredicate<TDst>)_isNAs[iinfo];
+                var def = default(TDst);
+                if (isNA(in def))
+                {
+                    // Case I: NA equals the default value.
+                    return
+                        (ref VBuffer<TDst> value) =>
+                        {
+                            srcGetter(ref buffer);
+                            DropNAsAndDefaults(ref buffer, ref value, isNA);
+                        };
+                }
+
+                // Case II: NA is different form default value.
+                Host.Assert(!isNA(in def));
                 return
                     (ref VBuffer<TDst> value) =>
                     {
                         srcGetter(ref buffer);
-                        DropNAsAndDefaults(ref buffer, ref value, isNA);
+                        DropNAs(ref buffer, ref value, isNA);
                     };
             }
 
-            // Case II: NA is different form default value.
-            Host.Assert(!isNA(in def));
-            return
-                (ref VBuffer<TDst> value) =>
+            private void DropNAsAndDefaults<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
+            {
+                Host.AssertValue(isNA);
+
+                var srcValues = src.GetValues();
+                int newCount = 0;
+                for (int i = 0; i < srcValues.Length; i++)
                 {
-                    srcGetter(ref buffer);
-                    DropNAs(ref buffer, ref value, isNA);
-                };
-        }
-
-        private void DropNAsAndDefaults<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
-        {
-            Host.AssertValue(isNA);
-
-            var srcValues = src.GetValues();
-            int newCount = 0;
-            for (int i = 0; i < srcValues.Length; i++)
-            {
-                if (!isNA(in srcValues[i]))
-                    newCount++;
-            }
-            Host.Assert(newCount <= srcValues.Length);
-
-            if (newCount == 0)
-            {
-                VBufferUtils.Resize(ref dst, 0);
-                return;
-            }
-
-            if (newCount == srcValues.Length)
-            {
-                Utils.Swap(ref src, ref dst);
-                if (!dst.IsDense)
-                {
-                    Host.Assert(dst.GetValues().Length == newCount);
-                    VBufferUtils.Resize(ref dst, newCount);
+                    if (!isNA(in srcValues[i]))
+                        newCount++;
                 }
-                return;
-            }
+                Host.Assert(newCount <= srcValues.Length);
 
-            int iDst = 0;
+                if (newCount == 0)
+                {
+                    VBufferUtils.Resize(ref dst, 0);
+                    return;
+                }
 
-            // Densifying sparse vectors since default value equals NA and hence should be dropped.
-            var editor = VBufferEditor.Create(ref dst, newCount);
-            for (int i = 0; i < srcValues.Length; i++)
-            {
-                if (!isNA(in srcValues[i]))
-                    editor.Values[iDst++] = srcValues[i];
-            }
-            Host.Assert(iDst == newCount);
+                if (newCount == srcValues.Length)
+                {
+                    Utils.Swap(ref src, ref dst);
+                    if (!dst.IsDense)
+                    {
+                        Host.Assert(dst.GetValues().Length == newCount);
+                        VBufferUtils.Resize(ref dst, newCount);
+                    }
+                    return;
+                }
 
-            dst = editor.Commit();
-        }
+                int iDst = 0;
 
-        private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
-        {
-            Host.AssertValue(isNA);
-
-            var srcValues = src.GetValues();
-            int newCount = 0;
-            for (int i = 0; i < srcValues.Length; i++)
-            {
-                if (!isNA(in srcValues[i]))
-                    newCount++;
-            }
-            Host.Assert(newCount <= srcValues.Length);
-
-            if (newCount == 0)
-            {
-                VBufferUtils.Resize(ref dst, src.Length - srcValues.Length, 0);
-                return;
-            }
-
-            if (newCount == srcValues.Length)
-            {
-                Utils.Swap(ref src, ref dst);
-                return;
-            }
-
-            int iDst = 0;
-            if (src.IsDense)
-            {
+                // Densifying sparse vectors since default value equals NA and hence should be dropped.
                 var editor = VBufferEditor.Create(ref dst, newCount);
                 for (int i = 0; i < srcValues.Length; i++)
                 {
                     if (!isNA(in srcValues[i]))
-                    {
-                        editor.Values[iDst] = srcValues[i];
-                        iDst++;
-                    }
+                        editor.Values[iDst++] = srcValues[i];
                 }
                 Host.Assert(iDst == newCount);
+
                 dst = editor.Commit();
             }
-            else
-            {
-                var newLength = src.Length - srcValues.Length - newCount;
-                var editor = VBufferEditor.Create(ref dst, newLength, newCount);
 
-                var srcIndices = src.GetIndices();
-                int offset = 0;
+            private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
+            {
+                Host.AssertValue(isNA);
+
+                var srcValues = src.GetValues();
+                int newCount = 0;
                 for (int i = 0; i < srcValues.Length; i++)
                 {
                     if (!isNA(in srcValues[i]))
-                    {
-                        editor.Values[iDst] = srcValues[i];
-                        editor.Indices[iDst] = srcIndices[i] - offset;
-                        iDst++;
-                    }
-                    else
-                        offset++;
+                        newCount++;
                 }
-                Host.Assert(iDst == newCount);
-                Host.Assert(offset == srcValues.Length - newCount);
-                dst = editor.Commit();
+                Host.Assert(newCount <= srcValues.Length);
+
+                if (newCount == 0)
+                {
+                    VBufferUtils.Resize(ref dst, src.Length - srcValues.Length, 0);
+                    return;
+                }
+
+                if (newCount == srcValues.Length)
+                {
+                    Utils.Swap(ref src, ref dst);
+                    return;
+                }
+
+                int iDst = 0;
+                if (src.IsDense)
+                {
+                    var editor = VBufferEditor.Create(ref dst, newCount);
+                    for (int i = 0; i < srcValues.Length; i++)
+                    {
+                        if (!isNA(in srcValues[i]))
+                        {
+                            editor.Values[iDst] = srcValues[i];
+                            iDst++;
+                        }
+                    }
+                    Host.Assert(iDst == newCount);
+                    dst = editor.Commit();
+                }
+                else
+                {
+                    var newLength = src.Length - srcValues.Length - newCount;
+                    var editor = VBufferEditor.Create(ref dst, newLength, newCount);
+
+                    var srcIndices = src.GetIndices();
+                    int offset = 0;
+                    for (int i = 0; i < srcValues.Length; i++)
+                    {
+                        if (!isNA(in srcValues[i]))
+                        {
+                            editor.Values[iDst] = srcValues[i];
+                            editor.Indices[iDst] = srcIndices[i] - offset;
+                            iDst++;
+                        }
+                        else
+                            offset++;
+                    }
+                    Host.Assert(iDst == newCount);
+                    Host.Assert(offset == srcValues.Length - newCount);
+                    dst = editor.Commit();
+                }
             }
+        }
+    }
+    /// <summary>
+    /// Drops missing values from columns.
+    /// </summary>
+    public sealed class MissingValueDroppingEstimator : TrivialEstimator<MissingValueDroppingTransformer>
+    {
+        /// <summary>
+        /// Drops missing values from columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
+        public MissingValueDroppingEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MissingValueDroppingEstimator)), new MissingValueDroppingTransformer(env, columns))
+        {
+            Contracts.CheckValue(env, nameof(env));
+        }
+
+        /// <summary>
+        /// Drops missing values from columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="input">The name of the input column of the transformation.</param>
+        /// <param name="output">The name of the column produced by the transformation.</param>
+        public MissingValueDroppingEstimator(IHostEnvironment env, string input, string output = null)
+            : this(env, (input, output ?? input))
+        {
+        }
+
+        /// <summary>
+        /// Returns the schema that would be produced by the transformation.
+        /// </summary>
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector ||col.Kind == SchemaShape.Column.VectorKind.VariableVector))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                    metadata.Add(keyMeta);
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normMeta))
+                    metadata.Add(normMeta);
+                result[colPair.output] = new SchemaShape.Column(colPair.output, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
         }
     }
 }

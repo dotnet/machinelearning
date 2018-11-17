@@ -15421,7 +15421,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum NgramCountingTransformerWeightingCriteria
+        public enum NgramCountingEstimatorWeightingCriteria
         {
             Tf = 0,
             Idf = 1,
@@ -15454,7 +15454,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Statistical measure used to evaluate how important a word is to a document in a corpus
             /// </summary>
-            public NgramCountingTransformerWeightingCriteria? Weighting { get; set; }
+            public NgramCountingEstimatorWeightingCriteria? Weighting { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -15541,7 +15541,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public NgramCountingTransformerWeightingCriteria Weighting { get; set; } = NgramCountingTransformerWeightingCriteria.Tf;
+            public NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = NgramCountingEstimatorWeightingCriteria.Tf;
 
             /// <summary>
             /// Input dataset
@@ -20137,7 +20137,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Legacy.Transforms.NgramCountingTransformerWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramCountingTransformerWeightingCriteria.Tf;
+            public Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }

@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 labelType = trainRms.Label.Type;
                 if (labelType.IsKey &&
-                    trainRms.Schema.HasKeyNames(trainRms.Label.Index, labelType.KeyCount))
+                    trainRms.Schema.HasKeyValues(trainRms.Label.Index, labelType.KeyCount))
                 {
                     VBuffer<ReadOnlyMemory<char>> keyValues = default;
                     trainRms.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, trainRms.Label.Index,

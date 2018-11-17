@@ -216,12 +216,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordTokenizingEstimator(Env, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
-                .Append(new NgramEstimator(Env, "terms", "ngrams"))
+                .Append(new NgramCountingEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
 
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ngrams.tsv");
             using (var ch = Env.Start("save"))

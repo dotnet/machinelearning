@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 49)]
             public Column[] Column;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
             [TlcModule.SweepableDiscreteParam("NumTopic", new object[] { 20, 40, 100, 200 })]
             public int NumTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic;
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Column : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics")]
             public int? NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
@@ -179,9 +179,9 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the output column. Null means <paramref name="input"/> is replaced. </param>
-            /// <param name="numTopic">The number of topics in the LDA.</param>
+            /// <param name="input">The column representing the document as a vector of floats.</param>
+            /// <param name="output">The column containing the output scores over a set of topics, represented as a vector of floats. A null value for the column means <paramref name="input"/> is replaced. </param>
+            /// <param name="numTopic">The number of topics.</param>
             /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
             /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
             /// <param name="mhStep">Number of Metropolis Hasting step.</param>
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Transforms.Text
 
                     var srcCol = inputSchema[_srcCols[i]];
                     if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats.", srcCol.Type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats", srcCol.Type.ToString());
                 }
             }
 
@@ -960,7 +960,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var srcColType = inputSchema.GetColumnType(srcCol);
                 if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
-                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats.", srcColType.ToString());
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
 
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
@@ -1119,9 +1119,9 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column representing the document as a fixed length vector of floats.</param>
+        /// <param name="inputColumn">The column representing the document as a vector of floats.</param>
         /// <param name="outputColumn">The column containing the output scores over a set of topics, represented as a vector of floats. A null value for the column means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="numTopic">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
         /// <param name="mhstep">Number of Metropolis Hasting step.</param>
@@ -1172,8 +1172,8 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (col.ItemType.RawKind != DataKind.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "a fixed vector of floats.", col.GetTypeString());
+                if (col.ItemType.RawKind != DataKind.R4 || col.Kind == SchemaShape.Column.VectorKind.Scalar)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "a vector of floats", col.GetTypeString());
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
             }

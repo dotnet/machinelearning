@@ -139,8 +139,8 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="input">Fixed length vector of input tokens used by LDA.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="input">A vector of floats representing the document.</param>
+        /// <param name="numTopic">The number of topics.</param>
         /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
         /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
         /// <param name="mhstep">Number of Metropolis Hasting step.</param>
