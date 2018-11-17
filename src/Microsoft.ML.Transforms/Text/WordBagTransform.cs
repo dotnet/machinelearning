@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms.Text
             if (termCols.Count > 0)
             {
                 ValueToKeyMappingTransformer.Arguments termArgs = null;
-                MissingValueDroppingTransformer.Arguments naDropArgs = null;
+                string[] missingDropColumns = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
@@ -316,9 +316,8 @@ namespace Microsoft.ML.Transforms.Text
                             Sort = termLoaderArgs.Sort,
                             Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
-
                     if (termLoaderArgs.DropUnknowns)
-                        naDropArgs = new MissingValueDroppingTransformer.Arguments { Column = new MissingValueDroppingTransformer.Column[termCols.Count] };
+                        missingDropColumns = new string[termCols.Count];
                 }
                 else
                 {
@@ -341,13 +340,13 @@ namespace Microsoft.ML.Transforms.Text
                             MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
                         };
 
-                    if (naDropArgs != null)
-                        naDropArgs.Column[iinfo] = new MissingValueDroppingTransformer.Column { Name = column.Name, Source = column.Name };
+                    if (missingDropColumns != null)
+                        missingDropColumns[iinfo] = column.Name;
                 }
 
                 view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
-                if (naDropArgs != null)
-                    view = new MissingValueDroppingTransformer(h, naDropArgs, view);
+                if (missingDropColumns != null)
+                    view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
             var ngramColumns = new NgramCountingTransformer.ColumnInfo[args.Column.Length];
