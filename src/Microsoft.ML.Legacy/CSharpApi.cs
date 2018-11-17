@@ -14000,7 +14000,7 @@ namespace Microsoft.ML
         public sealed partial class LatentDirichletAllocationTransformerColumn : OneToOneColumn<LatentDirichletAllocationTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             public int? NumTopic { get; set; }
 
@@ -14118,7 +14118,7 @@ namespace Microsoft.ML
             public LatentDirichletAllocationTransformerColumn[] Column { get; set; }
 
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
             public int NumTopic { get; set; } = 100;
