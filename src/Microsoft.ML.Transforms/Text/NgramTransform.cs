@@ -604,7 +604,6 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Check(unigramNames.Length == keyCount);
 
                 var pool = _parent._ngramMaps[iinfo];
-                var values = dst.Values;
 
                 var ngramCount = pool.Count;
                 var dstEditor = VBufferEditor.Create(ref dst, ngramCount);
