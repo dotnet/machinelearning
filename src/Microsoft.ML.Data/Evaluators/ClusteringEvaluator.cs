@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the optional label column in <paramref name="data"/>.</param>
         /// <param name="features">The name of the optional feature column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results.</returns>
-        public Result Evaluate(IDataView data, string score, string label = null, string features = null)
+        public ClusteringMetrics Evaluate(IDataView data, string score, string label = null, string features = null)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(score, nameof(score));
@@ -81,12 +81,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            ClusteringMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor, _calculateDbi);
+                result = new ClusteringMetrics(Host, cursor, _calculateDbi);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }

@@ -73,7 +73,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (RegressionEvaluator.Result metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (RegressionMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this RegressionContext context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
@@ -129,7 +129,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (MultiClassClassifierEvaluator.Result metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (MulticlassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this MulticlassClassificationContext context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
@@ -185,7 +185,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (BinaryClassifierEvaluator.Result metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidateNonCalibrated<TInShape, TOutShape, TTransformer>(
+        public static (BinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidateNonCalibrated<TInShape, TOutShape, TTransformer>(
             this BinaryClassificationContext context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,
@@ -241,7 +241,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (BinaryClassifierEvaluator.CalibratedResult metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (CalibratedBinaryClassificationMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this BinaryClassificationContext context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,

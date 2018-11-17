@@ -816,12 +816,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            CalibratedResult result;
+            CalibratedBinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new CalibratedResult(Host, cursor);
+                result = new CalibratedBinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -837,7 +837,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
-        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public BinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -853,12 +853,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            BinaryClassificationMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor);
+                result = new BinaryClassificationMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }

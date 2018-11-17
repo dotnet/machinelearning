@@ -521,12 +521,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            MulticlassClassifierMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor, _outputTopKAcc ?? 0);
+                result = new MulticlassClassifierMetrics(Host, cursor, _outputTopKAcc ?? 0);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
