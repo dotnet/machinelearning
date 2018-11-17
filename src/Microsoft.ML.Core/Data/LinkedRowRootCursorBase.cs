@@ -10,7 +10,8 @@ namespace Microsoft.ML.Runtime.Data
     /// that the default <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes
     /// that each input column is exposed as an output column with the same column index.
     /// </summary>
-    public abstract class LinkedRowRootCursorBase : LinkedRootCursorBase<IRowCursor>, IRowCursor
+    [BestFriend]
+    internal abstract class LinkedRowRootCursorBase : LinkedRootCursorBase<IRowCursor>, IRowCursor
     {
         private readonly bool[] _active;
 

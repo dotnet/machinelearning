@@ -14,6 +14,16 @@ Count of training examples: 521
 Residual Deviance: 98.29433
 Null Deviance: 669.0935
 AIC: 118.2943
+(Bias): System.Single[]
+Features.thickness: System.Single[]
+Features.bare_nuclei: System.Single[]
+Features.uniform_shape: System.Single[]
+Features.uniform_size: System.Single[]
+Features.bland_chromatin: System.Single[]
+Features.adhesion: System.Single[]
+Features.normal_nucleoli: System.Single[]
+Features.epit_size: System.Single[]
+Cat.1: System.Single[]
 Partition model 1 summary:
 Per-feature gain summary for the boosted tree ensemble:
 Features.uniform_size: 1
@@ -43,6 +53,16 @@ Count of training examples: 520
 Residual Deviance: 94.19695
 Null Deviance: 673.3445
 AIC: 114.1969
+(Bias): System.Single[]
+Features.bare_nuclei: System.Single[]
+Features.thickness: System.Single[]
+Features.uniform_shape: System.Single[]
+Features.uniform_size: System.Single[]
+Features.normal_nucleoli: System.Single[]
+Features.bland_chromatin: System.Single[]
+Features.adhesion: System.Single[]
+Features.epit_size: System.Single[]
+Cat.1: System.Single[]
 Partition model 3 summary:
 Per-feature gain summary for the boosted tree ensemble:
 Features.uniform_size: 1

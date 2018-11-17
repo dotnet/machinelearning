@@ -156,6 +156,9 @@ namespace Microsoft.ML.Transforms
         /// Sonoma API only provides Tensor() constructors with overloaded
         /// versions based on data type.
         /// </summary>
+
+        private static Dictionary<System.Type, DataType> _typeMap;
+
         public static Tensor CreateScalarTensor<T>(T data)
         {
             if (typeof(T) == typeof(System.Boolean))
@@ -248,51 +251,20 @@ namespace Microsoft.ML.Transforms
         /// Also Tensor.CopyTo(List&lt;T&gt; dst) requires a list input, whereas ML.NET
         /// provides array buffers to copy values to. This mismatch causes an extra copy.
         /// </summary>
-        public static void CopyTo<T>(Tensor tensor, T[] dst)
+        public static unsafe void CopyTo<T>(Tensor tensor, Span<T> dst)
         {
-            if (typeof(T) == typeof(System.Boolean))
+            var typeMap = SystemTypeToOnnxType();
+            if (typeMap.ContainsKey(typeof(T)))
             {
-                tensor.CopyTo((System.Boolean[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Byte))
-            {
-                tensor.CopyTo((System.Byte[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Char))
-            {
-                tensor.CopyTo((System.Char[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Double))
-            {
-                tensor.CopyTo((System.Double[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Single))
-            {
-                tensor.CopyTo((System.Single[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Int32))
-            {
-                tensor.CopyTo((System.Int32[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Int64))
-            {
-                tensor.CopyTo((System.Int64[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.SByte))
-            {
-                tensor.CopyTo((System.SByte[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.Int16))
-            {
-                tensor.CopyTo((System.Int16[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.UInt32))
-            {
-                tensor.CopyTo((System.UInt32[])(object)dst);
-            }
-            else if (typeof(T) == typeof(System.UInt16))
-            {
-                tensor.CopyTo((System.UInt16[])(object)dst);
+                if (tensor.GetDataType() != typeMap[typeof(T)])
+                {
+                    throw new InvalidOperationException( string.Format("Cannot copy source tensor of type {0} to managed type {1}.", tensor.GetDataType(), typeof(T)));
+                }
+                Span<T> tensorSpan = new Span<T>(tensor.UnsafeGetData().ToPointer(), tensor.GetSize());
+                tensorSpan.CopyTo(dst);
+                // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
+                // during the method call. Use KeepAlive for now, and remove
+                // after permanent fix in CopyTo().
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
@@ -350,6 +322,24 @@ namespace Microsoft.ML.Transforms
             }
 
             return PrimitiveType.FromKind(kind);
+        }
+
+        internal static Dictionary<System.Type, DataType> SystemTypeToOnnxType()
+        {
+            if (_typeMap == null)
+            {
+                _typeMap = new Dictionary<System.Type, DataType>
+                {
+                    { typeof(Boolean) , DataType.Type_Bool },
+                    { typeof(Double) , DataType.Type_Double },
+                    { typeof(Single) , DataType.Type_Float },
+                    { typeof(Int16) , DataType.Type_Int16 },
+                    { typeof(Int32) , DataType.Type_Int32 },
+                    { typeof(Int64) , DataType.Type_Int64 },
+                    { typeof(UInt16) , DataType.Type_Uint16 }
+                };
+            }
+            return _typeMap;
         }
     }
 }

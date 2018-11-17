@@ -15,9 +15,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
   </ItemGroup>
 
 </Project>

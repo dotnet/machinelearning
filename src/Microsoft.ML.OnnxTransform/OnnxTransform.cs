@@ -126,7 +126,7 @@ namespace Microsoft.ML.Transforms
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null)
         {
@@ -189,12 +189,12 @@ namespace Microsoft.ML.Transforms
             return transform.Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, Schema.Create(schema));
+        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(_host, this, schema);
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
@@ -393,16 +393,10 @@ namespace Microsoft.ML.Transforms
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-
                     var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                    var tensorSize = tensor.GetShape().Where(x => x > 0).Aggregate((x, y) => x * y);
-
-                    var values = dst.Values;
-                    if (Utils.Size(values) < tensorSize)
-                        values = new T[tensorSize];
-
-                    OnnxUtils.CopyTo(tensor, values);
-                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, tensor.GetSize());
+                    OnnxUtils.CopyTo(tensor, editor.Values);
+                    dst = editor.Commit();
                 };
                 return valuegetter;
             }

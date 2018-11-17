@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Linq;
 
@@ -15,20 +16,30 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class EstimatorChain<TLastTransformer> : IEstimator<TransformerChain<TLastTransformer>>
         where TLastTransformer : class, ITransformer
     {
+        // Host is not null iff there is any 'true' values in _needCacheAfter (in this case, we need to create an instance of
+        // CacheDataView.
+        private readonly IHost _host;
         private readonly TransformerScope[] _scopes;
         private readonly IEstimator<ITransformer>[] _estimators;
+        private readonly bool[] _needCacheAfter;
         public readonly IEstimator<TLastTransformer> LastEstimator;
 
-        private EstimatorChain(IEstimator<ITransformer>[] estimators, TransformerScope[] scopes)
+        private EstimatorChain(IHostEnvironment env, IEstimator<ITransformer>[] estimators, TransformerScope[] scopes, bool[] needCacheAfter)
         {
+            Contracts.AssertValueOrNull(env);
             Contracts.AssertValueOrNull(estimators);
             Contracts.AssertValueOrNull(scopes);
+            Contracts.AssertValueOrNull(needCacheAfter);
             Contracts.Assert(Utils.Size(estimators) == Utils.Size(scopes));
+            Contracts.Assert(Utils.Size(estimators) == Utils.Size(needCacheAfter));
 
+            _host = env?.Register(nameof(EstimatorChain<TLastTransformer>));
             _estimators = estimators ?? new IEstimator<ITransformer>[0];
             _scopes = scopes ?? new TransformerScope[0];
             LastEstimator = estimators.LastOrDefault() as IEstimator<TLastTransformer>;
+            _needCacheAfter = needCacheAfter ?? new bool[0];
 
+            Contracts.Assert((_host != null) == _needCacheAfter.Any(x => x));
             Contracts.Assert((_estimators.Length > 0) == (LastEstimator != null));
         }
 
@@ -37,16 +48,17 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public EstimatorChain()
         {
+            _host = null;
             _estimators = new IEstimator<ITransformer>[0];
             _scopes = new TransformerScope[0];
+            _needCacheAfter = new bool[0];
             LastEstimator = null;
         }
 
         public TransformerChain<TLastTransformer> Fit(IDataView input)
         {
-            // REVIEW: before fitting, run schema propagation.
-            // Currently, it throws.
-            // GetOutputSchema(SchemaShape.Create(input.Schema);
+            // Before fitting, run schema propagation.
+            GetOutputSchema(SchemaShape.Create(input.Schema));
 
             IDataView current = input;
             var xfs = new ITransformer[_estimators.Length];
@@ -55,6 +67,11 @@ namespace Microsoft.ML.Runtime.Data
                 var est = _estimators[i];
                 xfs[i] = est.Fit(current);
                 current = xfs[i].Transform(current);
+                if (_needCacheAfter[i] && i < _estimators.Length - 1)
+                {
+                    Contracts.AssertValue(_host);
+                    current = new CacheDataView(_host, current, null);
+                }
             }
 
             return new TransformerChain<TLastTransformer>(xfs, _scopes);
@@ -72,7 +89,27 @@ namespace Microsoft.ML.Runtime.Data
             where TNewTrans : class, ITransformer
         {
             Contracts.CheckValue(estimator, nameof(estimator));
-            return new EstimatorChain<TNewTrans>(_estimators.AppendElement(estimator), _scopes.AppendElement(scope));
+            return new EstimatorChain<TNewTrans>(_host, _estimators.AppendElement(estimator), _scopes.AppendElement(scope), _needCacheAfter.AppendElement(false));
+        }
+
+        /// <summary>
+        /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
+        /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
+        /// </summary>
+        /// <param name="env">The host environment to use for caching.</param>
+        public EstimatorChain<TLastTransformer> AppendCacheCheckpoint(IHostEnvironment env)
+        {
+            Contracts.CheckValue(env, nameof(env));
+
+            if (_estimators.Length == 0 || _needCacheAfter.Last())
+            {
+                // If there are no estimators, or if we already need to cache after this, we don't need to do anything else.
+                return this;
+            }
+
+            bool[] newNeedCache = _needCacheAfter.ToArray();
+            newNeedCache[newNeedCache.Length - 1] = true;
+            return new EstimatorChain<TLastTransformer>(env, _estimators, _scopes, newNeedCache);
         }
     }
 }

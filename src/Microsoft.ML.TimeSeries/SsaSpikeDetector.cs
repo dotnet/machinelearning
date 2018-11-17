@@ -196,11 +196,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <p>Example code can be found by searching for <i>SsaSpikeDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+        /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for spike detection.")]
+        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs?range=6-12,17-37,100-163)]
         /// ]]>
         /// </format>
+        /// </example>
         public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)

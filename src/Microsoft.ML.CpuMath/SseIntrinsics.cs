@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulP(AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulP(AlignedArray mat, ReadOnlySpan<int> rgposSrc, AlignedArray src,
                                 int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
             MatMulP(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);

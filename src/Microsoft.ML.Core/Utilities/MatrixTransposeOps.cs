@@ -9,7 +9,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class MatrixTransposeOps
+    [BestFriend]
+    internal static class MatrixTransposeOps
     {
         private const int _block = 32;
 

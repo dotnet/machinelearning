@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="name">The component name.</param>
         /// <param name="labelColumn">The label column for the metalinear trainer and the binary trainer.</param>
         /// <param name="singleEstimator">The binary estimator.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitly provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null,
             TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="context">The trainig context for this learner.</param>
         /// <returns>The trained model.</returns>
-        public TModel Train(TrainContext context)
+        TModel ITrainer<TModel>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
             return cols;
         }
 
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
 
         /// <summary>
         /// Fits the data to the trainer.

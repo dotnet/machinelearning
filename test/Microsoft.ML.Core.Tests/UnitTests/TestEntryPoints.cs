@@ -461,19 +461,19 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = CopyColumnsTransform.Create(Env,
-                    new CopyColumnsTransform.Arguments()
+                individualScores[i] = ColumnsCopyingTransformer.Create(Env,
+                    new ColumnsCopyingTransformer.Arguments()
                     {
                         Column = new[]
                         {
-                            new CopyColumnsTransform.Column()
+                            new ColumnsCopyingTransformer.Column()
                             {
                                 Name = MetadataUtils.Const.ScoreValueKind.Score + i,
                                 Source = MetadataUtils.Const.ScoreValueKind.Score
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
+                individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -754,24 +754,24 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
-                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = TermTransform.Create(Env, new TermTransform.Arguments()
+                data = ValueToKeyMappingTransformer.Create(Env, new ValueToKeyMappingTransformer.Arguments()
                 {
                     Column = new[]
                     {
-                        new TermTransform.Column()
+                        new ValueToKeyMappingTransformer.Column()
                         {
                             Name = "Label",
                             Source = "Label",
-                            Sort = TermTransform.SortOrder.Value
+                            Sort = ValueToKeyMappingTransformer.SortOrder.Value
                         }
                     }
                 }, data);
@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var hasScoreCol = binaryScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out int scoreIndex);
             Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Binary ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Binary ensemble scored data does not have correct type of metadata.");
             var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with regression ensemble does not have a score column");
             type = regressionScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Regression ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
@@ -868,7 +868,7 @@ namespace Microsoft.ML.Runtime.RunTests
             hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
             Assert.True(hasScoreCol, "Data scored with anomaly detection ensemble does not have a score column");
             type = anomalyScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
-            Assert.True(type != null && type.IsText, "Anomaly detection ensemble scored data does not have correct type of metadata.");
+            Assert.True(type is TextType, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
             Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
@@ -1031,11 +1031,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
                 else
                 {
-                    data = WordHashBagTransform.Create(Env,
-                        new WordHashBagTransform.Arguments()
+                    data = WordHashBagProducingTransformer.Create(Env,
+                        new WordHashBagProducingTransformer.Arguments()
                         {
                             Column =
-                                new[] { new WordHashBagTransform.Column() { Name = "Features", Source = new[] { "Text" } }, }
+                                new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
                         },
                         data);
                 }
@@ -1223,15 +1223,15 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var data = splitOutput.TrainData[i];
                 data = new RandomFourierFeaturizingEstimator(Env, new[] {
-                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
-                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
+                    new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                var mlr = new MulticlassLogisticRegression(Env, "Features", "Label");
+                var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
@@ -1371,12 +1371,12 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = CategoricalTransform.Create(Env,
-                    new CategoricalTransform.Arguments()
+                data = OneHotEncodingTransformer.Create(Env,
+                    new OneHotEncodingTransformer.Arguments()
                     {
-                        Column = new[] { new CategoricalTransform.Column() { Name = "Cat", Source = "Cat" } }
+                        Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
                     }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Arguments
@@ -2520,7 +2520,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new SdcaBinaryTrainer.Arguments()
             {
                 NormalizeFeatures = NormalizeOption.Yes,
                 CheckFrequency = 42
@@ -3767,15 +3767,15 @@ namespace Microsoft.ML.Runtime.RunTests
 #pragma warning disable 0618
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
-            var cat = Categorical.CatTransformDict(Env, new CategoricalTransform.Arguments()
+            var cat = Categorical.CatTransformDict(Env, new OneHotEncodingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new CategoricalTransform.Column { Name = "Categories", Source = "Categories" } }
+                Column = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
-            var concat = SchemaManipulation.ConcatColumns(Env, new ConcatTransform.Arguments()
+            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
             {
                 Data = cat.OutputData,
-                Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
+                Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
             var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
@@ -3818,9 +3818,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     pathsGetter(ref pathIndicators);
 
                     Assert.Equal(5, treeValues.Length);
-                    Assert.Equal(5, treeValues.Count);
+                    Assert.Equal(5, treeValues.GetValues().Length);
                     Assert.Equal(20, leafIndicators.Length);
-                    Assert.Equal(5, leafIndicators.Count);
+                    Assert.Equal(5, leafIndicators.GetValues().Length);
                     Assert.Equal(15, pathIndicators.Length);
                 }
             }
@@ -3848,11 +3848,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe
+                Column = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursor((x => true)))
@@ -3863,8 +3863,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 while (cursor.MoveNext())
                 {
                     featGetter(ref feat);
-                    Assert.True(feat.Count == 150);
-                    Assert.True(feat.Values[0] != 0);
+                    Assert.Equal(150, feat.GetValues().Length);
+                    Assert.NotEqual(0, feat.GetValues()[0]);
                 }
             }
         }

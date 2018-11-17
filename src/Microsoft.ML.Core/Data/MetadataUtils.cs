@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Utilities for implementing and using the metadata API of ISchema.
+    /// Utilities for implementing and using the metadata API of <see cref="Schema"/>.
     /// </summary>
     public static class MetadataUtils
     {
@@ -318,7 +318,9 @@ namespace Microsoft.ML.Runtime.Data
 
             IReadOnlyList<ColumnInfo> list;
             if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema.HasSlotNames(list[0].Index, vectorSize))
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(vectorSize, 0, slotNames.Values, slotNames.Indices);
+            {
+                VBufferUtils.Resize(ref slotNames, vectorSize, 0);
+            }
             else
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
@@ -433,7 +435,7 @@ namespace Microsoft.ML.Runtime.Data
 
             bool isValid = false;
             categoricalFeatures = null;
-            if (!schema.GetColumnType(colIndex).IsKnownSizeVector)
+            if (!(schema.GetColumnType(colIndex) is VectorType vecType && vecType.Size > 0))
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
@@ -442,26 +444,27 @@ namespace Microsoft.ML.Runtime.Data
                 VBuffer<int> catIndices = default(VBuffer<int>);
                 schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
-                int columnSlotsCount = schema.GetColumnType(colIndex).AsVector.VectorSizeCore;
+                int columnSlotsCount = vecType.Size;
                 if (catIndices.Length > 0 && catIndices.Length % 2 == 0 && catIndices.Length <= columnSlotsCount * 2)
                 {
                     int previousEndIndex = -1;
                     isValid = true;
-                    for (int i = 0; i < catIndices.Values.Length; i += 2)
+                    var catIndicesValues = catIndices.GetValues();
+                    for (int i = 0; i < catIndicesValues.Length; i += 2)
                     {
-                        if (catIndices.Values[i] > catIndices.Values[i + 1] ||
-                            catIndices.Values[i] <= previousEndIndex ||
-                            catIndices.Values[i] >= columnSlotsCount ||
-                            catIndices.Values[i + 1] >= columnSlotsCount)
+                        if (catIndicesValues[i] > catIndicesValues[i + 1] ||
+                            catIndicesValues[i] <= previousEndIndex ||
+                            catIndicesValues[i] >= columnSlotsCount ||
+                            catIndicesValues[i + 1] >= columnSlotsCount)
                         {
                             isValid = false;
                             break;
                         }
 
-                        previousEndIndex = catIndices.Values[i + 1];
+                        previousEndIndex = catIndicesValues[i + 1];
                     }
                     if (isValid)
-                        categoricalFeatures = catIndices.Values.Select(val => val).ToArray();
+                        categoricalFeatures = catIndicesValues.ToArray();
                 }
             }
 
