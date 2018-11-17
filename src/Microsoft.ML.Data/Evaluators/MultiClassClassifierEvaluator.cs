@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these outputs.</returns>
-        public MulticlassClassifierMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public MultiClassClassifierMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -521,12 +521,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            MulticlassClassifierMetrics result;
+            MultiClassClassifierMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new MulticlassClassifierMetrics(Host, cursor, _outputTopKAcc ?? 0);
+                result = new MultiClassClassifierMetrics(Host, cursor, _outputTopKAcc ?? 0);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }

@@ -127,11 +127,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from the prediction of a multiclass classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassifierMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
-        public static MulticlassClassifierMetrics Evaluate<T, TKey>(
+        public static MultiClassClassifierMetrics Evaluate<T, TKey>(
             this MulticlassClassificationContext ctx,
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,

@@ -391,11 +391,11 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MulticlassClassifierMetrics.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MulticlassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public MultiClassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Host.CheckValue(data, nameof(data));
@@ -424,7 +424,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (MulticlassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));

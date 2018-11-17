@@ -129,7 +129,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public static (MulticlassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+        public static (MultiClassClassifierMetrics metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
             this MulticlassClassificationContext context,
             DataView<TInShape> data,
             Estimator<TInShape, TOutShape, TTransformer> estimator,

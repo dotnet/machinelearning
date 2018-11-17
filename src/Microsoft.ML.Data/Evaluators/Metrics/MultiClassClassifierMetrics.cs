@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {
-        public sealed class MulticlassClassifierMetrics
+    public sealed class MultiClassClassifierMetrics
     {
         /// <summary>
         /// Gets the micro-average accuracy of the model.
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </remarks>
         public double[] PerClassLogLoss { get; }
 
-        internal MulticlassClassifierMetrics(IExceptionContext ectx, IRow overallResult, int topK)
+        internal MultiClassClassifierMetrics(IExceptionContext ectx, IRow overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
