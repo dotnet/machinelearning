@@ -1051,11 +1051,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Get a buffer.
                     var values = codec._bufferPool.Get();
                     Utils.EnsureSize(ref values, totalItems, false);
-                    if (totalItems > 0)
-                    {
-                        using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
-                            reader.Read(values, 0, totalItems);
-                    }
+                    using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
+                        reader.Read(values, 0, totalItems);
                     _values = values;
                     _vectorIndex = -1;
                 }
