@@ -6,7 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            TransformSamples.KeyToValue_Term();
+            KeyToValue_TermExample.KeyToValue_Term();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TrainerSamples
+    public class SDCA_BinaryClassificationExample
     {
         public static void SDCA_BinaryClassification()
         {
@@ -43,7 +43,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
             // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
-                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(label: "Sentiment", features: "Features", l2Const: 0.001f));
+                    .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Sentiment", featureColumn: "Features", l2Const: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");
@@ -55,8 +55,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                                   .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent
-                                  (label: "Sentiment",
-                                   features: "Features",
+                                  (labelColumn: "Sentiment",
+                                   featureColumn: "Features",
                                    advancedSettings: s=>
                                        {
                                            s.ConvergenceTolerance = 0.01f;   // The learning rate for adjusting bias from being regularized

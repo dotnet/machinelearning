@@ -9,7 +9,7 @@ using System.Linq;
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public partial class TrainersSamples
+    public class FastTreeRegressionExample
     {
         public static void FastTreeRegression()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Samples.Static
                                             r.features,
                                             numTrees: 100, // try: (int) 20-2000
                                             numLeaves: 20, // try: (int) 2-128
-                                            minDatapointsInLeafs: 10, // try: (int) 1-100
+                                            minDatapointsInLeaves: 10, // try: (int) 1-100
                                             learningRate: 0.2, // try: (float) 0.025-0.4    
                                         onFit: p => pred = p)
                                 )

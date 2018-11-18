@@ -9,7 +9,7 @@ using System.Collections.Generic;
 // line by line. 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TrainerSamples
+    public class MatrixFactorizationExample
     {
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
         // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
@@ -67,8 +67,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
-                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
+            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+                nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex),
+                nameof(MatrixElement.Value),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;

@@ -63,8 +63,10 @@ namespace Microsoft.ML.Runtime.Learners
 
             public int Count => _pred.Weight.Length;
 
-            public Float this[int index] {
-                get {
+            public Float this[int index]
+            {
+                get
+                {
                     Contracts.CheckParam(0 <= index && index < Count, nameof(index), "Out of range");
                     Float value = 0;
                     _pred.Weight.GetItemOrDefault(index, ref value);
@@ -99,9 +101,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ColumnType OutputType => NumberType.Float;
 
-        public bool CanSavePfa => true;
+        bool ICanSavePfa.CanSavePfa => true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Constructs a new linear predictor.
@@ -203,7 +205,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.Writer.WriteSingleArray(Weight.GetValues());
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -230,7 +232,7 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("model.reg.linear", input, cellRef);
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Check(Utils.Size(outputs) == 1);
@@ -439,17 +441,7 @@ namespace Microsoft.ML.Runtime.Learners
             // (Base class)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -474,18 +466,11 @@ namespace Microsoft.ML.Runtime.Learners
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
             base.SaveCore(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
-
-            ctx.SetVersionInfo(GetVersionInfo());
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -562,7 +547,8 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        public override PredictionKind PredictionKind {
+        public override PredictionKind PredictionKind
+        {
             get { return PredictionKind.Regression; }
         }
 

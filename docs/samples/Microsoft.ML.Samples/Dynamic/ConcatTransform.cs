@@ -7,7 +7,7 @@ using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class ConcatTransformExample
     {
         class SampleInfertDataWithFeatures
         {

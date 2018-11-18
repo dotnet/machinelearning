@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class MinMaxNormalizerExample
     {
         public static void MinMaxNormalizer()
         {

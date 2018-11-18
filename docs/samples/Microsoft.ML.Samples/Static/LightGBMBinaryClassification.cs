@@ -9,7 +9,7 @@ using System;
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public partial class TrainersSamples
+    public class LightGbmBinaryClassificationExample
     {
         public static void LightGbmBinaryClassification()
         {

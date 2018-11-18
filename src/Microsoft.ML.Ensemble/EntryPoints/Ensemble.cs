@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 namespace Microsoft.ML.Ensemble.EntryPoints
 {
-    public static class Ensemble
+    internal static class Ensemble
     {
         [TlcModule.EntryPoint(Name = "Trainers.EnsembleBinaryClassifier", Desc = "Train binary ensemble.", UserName = EnsembleTrainer.UserNameValue)]
         public static CommonOutputs.BinaryClassificationOutput CreateBinaryEnsemble(IHostEnvironment env, EnsembleTrainer.Arguments input)

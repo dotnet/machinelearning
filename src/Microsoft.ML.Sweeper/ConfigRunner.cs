@@ -110,7 +110,9 @@ namespace Microsoft.ML.Runtime.Sweeper
                 string currentDirectory = Path.GetDirectoryName(typeof(ExeConfigRunnerBase).Module.FullyQualifiedName);
 
                 using (var ch = Host.Start("Finish"))
+#pragma warning disable CS0618 // As this deals with invoking command lines, this may be OK, though this code has some other problems.
                 using (AssemblyLoadingUtils.CreateAssemblyRegistrar(Host, currentDirectory))
+#pragma warning restore CS0618
                 {
                     var runs = RunNums.ToArray();
                     var args = Utils.BuildArray(RunNums.Count + 2,
