@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class ShowSchemaCommand : DataCommand.ImplBase<ShowSchemaCommand.Arguments>
+    internal sealed class ShowSchemaCommand : DataCommand.ImplBase<ShowSchemaCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
             var value = default(VBuffer<T>);
             schema.GetMetadata(kind, col, ref value);
 
-            itw.Write(": Length={0}, Count={0}", value.Length, value.Count);
+            itw.Write(": Length={0}, Count={0}", value.Length, value.GetValues().Length);
 
             using (itw.Nest())
             {

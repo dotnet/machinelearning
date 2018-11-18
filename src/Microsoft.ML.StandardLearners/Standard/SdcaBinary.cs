@@ -68,7 +68,7 @@ namespace Microsoft.ML.Trainers
         {
         }
 
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
@@ -105,12 +105,12 @@ namespace Microsoft.ML.Trainers
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new ShuffleTransform.Arguments
+                var shuffleArgs = new RowShufflingTransformer.Arguments
                 {
                     PoolOnly = false,
                     ForceShuffle = ShuffleData
                 };
-                idvToFeedTrain = new ShuffleTransform(Host, shuffleArgs, idvToShuffle);
+                idvToFeedTrain = new RowShufflingTransformer(Host, shuffleArgs, idvToShuffle);
             }
 
             ch.Assert(idvToFeedTrain.CanShuffle);
@@ -772,7 +772,7 @@ namespace Microsoft.ML.Trainers
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
-                    var features = cursor.Features;
+                    VBuffer<float> features = cursor.Features;
                     var label = cursor.Label;
                     float invariant;
                     if (invariants != null)
@@ -829,10 +829,11 @@ namespace Microsoft.ML.Trainers
                                         : 0;
                                 }
 
+                                var featureValues = features.GetValues();
                                 if (features.IsDense)
-                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
-                                else if (features.Count > 0)
-                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                else if (featureValues.Length > 0)
+                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
                             }
 
                             break;
@@ -919,6 +920,7 @@ namespace Microsoft.ML.Trainers
             var lossSum = new CompensatedSum();
             var dualLossSum = new CompensatedSum();
             var biasTotal = biasReg[0] + biasUnreg[0];
+            VBuffer<float> firstWeights = weights[0];
 
             using (var cursor = cursorFactory.Create())
             {
@@ -955,7 +957,7 @@ namespace Microsoft.ML.Trainers
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)weights[0].Values.Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)firstWeights.GetValues().Count(w => w != 0) / weights.Length;
 
             bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
 
@@ -964,7 +966,7 @@ namespace Microsoft.ML.Trainers
                 // Maintain a copy of weights and bias with best primal loss thus far.
                 // This is some extra work and uses extra memory, but it seems worth doing it.
                 // REVIEW: Sparsify bestWeights?
-                weights[0].CopyTo(ref bestWeights[0]);
+                firstWeights.CopyTo(ref bestWeights[0]);
                 bestBiasReg[0] = biasReg[0];
                 bestBiasUnreg[0] = biasUnreg[0];
                 bestPrimalLoss = metrics[(int)MetricKind.Loss];
@@ -1427,8 +1429,8 @@ namespace Microsoft.ML.Trainers
         /// Initializes a new instance of <see cref="SdcaBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
-        /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="labelColumn">The label, or dependent variable.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
         /// <param name="loss">The custom loss.</param>
         /// <param name="weightColumn">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
@@ -1439,8 +1441,8 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public SdcaBinaryTrainer(IHostEnvironment env,
-            string featureColumn,
-            string labelColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             ISupportSdcaClassificationLoss loss = null,
             float? l2Const = null,
@@ -1675,7 +1677,10 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Weight">The L2 regularizer constant.</param>
         /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, string weightColumn = null,
+        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightColumn = null,
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,
             float l2Weight = Arguments.Defaults.L2Weight,

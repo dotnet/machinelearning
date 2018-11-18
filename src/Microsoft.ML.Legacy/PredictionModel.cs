@@ -16,19 +16,15 @@ namespace Microsoft.ML.Legacy
 {
     public class PredictionModel
     {
-        private readonly TransformModel _predictorModel;
         private readonly IHostEnvironment _env;
 
         internal PredictionModel(Stream stream)
         {
-            _env = new ConsoleEnvironment();
-            _predictorModel = new TransformModel(_env, stream);
+            _env = new MLContext();
+            PredictorModel = new TransformModel(_env, stream);
         }
 
-        internal TransformModel PredictorModel
-        {
-            get { return _predictorModel; }
-        }
+        internal TransformModel PredictorModel { get; }
 
         /// <summary>
         /// Returns labels that correspond to indices of the score array in the case of
@@ -40,7 +36,7 @@ namespace Microsoft.ML.Legacy
         public bool TryGetScoreLabelNames(out string[] names, string scoreColumnName = DefaultColumnNames.Score)
         {
             names = null;
-            var schema = _predictorModel.OutputSchema;
+            var schema = PredictorModel.OutputSchema;
             int colIndex = -1;
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
@@ -125,15 +121,13 @@ namespace Microsoft.ML.Legacy
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            using (var environment = new ConsoleEnvironment())
-            {
-                AssemblyRegistration.RegisterAssemblies(environment);
+            var environment = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(environment);
 
-                BatchPredictionEngine<TInput, TOutput> predictor =
-                    environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);
+            BatchPredictionEngine<TInput, TOutput> predictor =
+                environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);
 
-                return Task.FromResult(new PredictionModel<TInput, TOutput>(predictor, stream));
-            }
+            return Task.FromResult(new PredictionModel<TInput, TOutput>(predictor, stream));
         }
 
         /// <summary>
@@ -141,7 +135,7 @@ namespace Microsoft.ML.Legacy
         /// </summary>
         /// <param name="input">Incoming IDataView</param>
         /// <returns>IDataView which contains predictions</returns>
-        public IDataView Predict(IDataView input) => _predictorModel.Apply(_env, input);
+        public IDataView Predict(IDataView input) => PredictorModel.Apply(_env, input);
 
         /// <summary>
         /// Save model to file.
@@ -168,7 +162,7 @@ namespace Microsoft.ML.Legacy
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
-            _predictorModel.Save(_env, stream);
+            PredictorModel.Save(_env, stream);
             return Task.CompletedTask;
         }
     }

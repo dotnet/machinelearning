@@ -103,10 +103,10 @@ namespace Microsoft.ML.Runtime.Data.IO
         void Write(in T value);
 
         /// <summary>
-        /// Writes an array of values. This should be equivalent to writing each element
+        /// Writes a span of values. This should be equivalent to writing each element
         /// singly, though possibly more efficient than such a naive implementation.
         /// </summary>
-        void Write(T[] values, int index, int count);
+        void Write(ReadOnlySpan<T> values);
     }
 
     /// <summary>

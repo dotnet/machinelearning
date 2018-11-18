@@ -55,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LogisticRegression(env, featuresName, labelName, weightsName,
+                    var trainer = new LogisticRegression(env, labelName, featuresName, weightsName,
                         l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings);
 
                     if (onFit != null)
@@ -110,7 +110,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new PoissonRegression(env, featuresName, labelName, weightsName,
+                    var trainer = new PoissonRegression(env, labelName, featuresName, weightsName,
                         l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity);
 
                     if (onFit != null)
@@ -166,7 +166,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new MulticlassLogisticRegression(env, featuresName, labelName, weightsName,
+                    var trainer = new MulticlassLogisticRegression(env, labelName, featuresName, weightsName,
                          l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity);
 
                     if (onFit != null)

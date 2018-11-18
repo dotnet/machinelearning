@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Pipeline.
             var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
                 .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
-                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Train.
             var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));

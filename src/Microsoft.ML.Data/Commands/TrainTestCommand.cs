@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -16,7 +17,8 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class TrainTestCommand : DataCommand.ImplBase<TrainTestCommand.Arguments>
+    [BestFriend]
+    internal sealed class TrainTestCommand : DataCommand.ImplBase<TrainTestCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -162,15 +164,34 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
+            // In addition to the training set, some trainers can accept two data sets, validation set and test set,
+            // in training phase. The major difference between validation set and test set is that training process may
+            // indirectly use validation set to improve the model but the learned model should totally independent of test set.
+            // Similar to validation set, the trainer can report the scores computed using test set.
+            RoleMappedData testDataUsedInTrainer = null;
+            if (!string.IsNullOrWhiteSpace(Args.TestFile))
+            {
+                // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
+                // because this is TrainTest command.
+                if (trainer.Info.SupportsTest)
+                {
+                    ch.Trace("Constructing the test pipeline");
+                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: Args.TestFile);
+                    testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, trainPipe, testPipeUsedInTrainer);
+                    testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
+                }
+            }
+
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
+                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
 
             IDataLoader testPipe;
-            using (var file = !string.IsNullOrEmpty(Args.OutputModelFile) ?
-                Host.CreateOutputFile(Args.OutputModelFile) : Host.CreateTempFile(".zip"))
+            bool hasOutfile = !string.IsNullOrEmpty(Args.OutputModelFile);
+            var tempFilePath = hasOutfile ? null : Path.GetTempFileName();
+
+            using (var file = new SimpleFileHandle(ch, hasOutfile ? Args.OutputModelFile : tempFilePath, true, !hasOutfile))
             {
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
-
                 ch.Trace("Constructing the testing pipeline");
                 using (var stream = file.OpenReadStream())
                 using (var rep = RepositoryReader.Open(stream, ch))

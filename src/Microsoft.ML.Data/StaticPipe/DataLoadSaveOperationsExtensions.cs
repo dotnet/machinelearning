@@ -41,7 +41,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
         /// <returns>A configured statically-typed reader for text files.</returns>
         public static DataReader<IMultiStreamSource, TShape> TextReader<[IsShape] TShape>(
-            this DataLoadSaveOperations catalog, Func<Context, TShape> func, IMultiStreamSource files = null,
+            this DataOperations catalog, Func<Context, TShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
          => TextLoader.CreateReader(catalog.Environment, func, files, hasHeader, separator, allowQuoting, allowSparse, trimWhitspace);

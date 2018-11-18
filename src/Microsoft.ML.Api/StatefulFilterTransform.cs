@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Api
 
         public Schema Schema => _bindings.Schema;
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             // REVIEW: currently stateful map is implemented via filter, and this is sub-optimal.
             return null;
