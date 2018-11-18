@@ -121,36 +121,41 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 ch.Info("Computing mutual information");
                 var sw = new Stopwatch();
                 sw.Start();
-                var colSet = new HashSet<string>();
-                foreach (var col in _columns)
-                {
-                    if (!colSet.Add(col.input))
-                        ch.Warning("Column '{0}' specified multiple time.", col);
-                }
-                var colArr = colSet.ToArray();
-                var colSizes = new int[colArr.Length];
-                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn, colArr, _numBins, colSizes);
+                //var colSet = new HashSet<string>();
+                //foreach (var col in _columns)
+                //{
+                //    if (!colSet.Add(col.input))
+                //        ch.Warning("Column '{0}' specified multiple time.", col);
+                //}
+                //var colArr = colSet.ToArray();
+                var colSizes = new int[_columns.Length];
+                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn,
+                    _columns.Select(col => col.input).ToArray(), _numBins, colSizes);
                 sw.Stop();
                 ch.Info("Finished mutual information computation in {0}", sw.Elapsed);
 
                 ch.Info("Selecting features to drop");
                 var threshold = ComputeThreshold(scores, _slotsInOutput, out int tiedScoresToKeep);
 
-                var columns = CreateDropSlotsColumns(colArr.Length, scores, threshold, tiedScoresToKeep, out int[] selectedCount, _columns);
-
-                if (columns.Count <= 0)
-                {
-                    ch.Info("No features are being dropped.");
-                    //return new NopTransform(_host);
-                }
+                DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
+                (string input, string output)[] copyColumnPairs;
+                CreateDropAndCopyColumns(_columns.Length, scores, threshold, tiedScoresToKeep, _columns, out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
 
                 for (int i = 0; i < selectedCount.Length; i++)
-                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], colArr[i]);
+                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], _columns[i].input);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
-                //var dsArgs = new DropSlotsTransform.Arguments();
-                //dsArgs.Column = columns.ToArray();
-                return new DropSlotsTransform(_host, columns.ToArray());
+                if (dropSlotsColumns.Length <= 0)
+                    return new ColumnsCopyingTransformer(_host, copyColumnPairs);
+                else if (copyColumnPairs.Length <= 0)
+                    return new DropSlotsTransform(_host, dropSlotsColumns);
+
+                var transformerChain = new TransformerChain<DropSlotsTransform>(
+                    new ITransformer[] {
+                        new ColumnsCopyingTransformer(_host, copyColumnPairs),
+                        new DropSlotsTransform(_host, dropSlotsColumns)
+                    });
+                return transformerChain;
             }
         }
 
@@ -267,15 +272,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return threshold;
         }
 
-        private static List<DropSlotsTransform.ColumnInfo> CreateDropSlotsColumns(int size, float[][] scores,
-            float threshold, int tiedScoresToKeep, out int[] selectedCount, (string input, string output)[] cols)
+        private static void CreateDropAndCopyColumns(int size, float[][] scores, float threshold, int tiedScoresToKeep, (string input, string output)[] cols,
+            out int[] selectedCount, out DropSlotsTransform.ColumnInfo[] dropSlotsColumns, out (string input, string output)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
             Contracts.Assert(Utils.Size(cols) == size);
             Contracts.Assert(threshold > 0 || (threshold == 0 && tiedScoresToKeep == 0));
 
-            var columns = new List<DropSlotsTransform.ColumnInfo>();
+            var dropCols = new List<DropSlotsTransform.ColumnInfo>();
+            var copyCols = new List<(string input, string output)>();
             selectedCount = new int[scores.Length];
             for (int i = 0; i < size; i++)
             {
@@ -317,13 +323,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     int max = j - 1;
                     slots.Add((min, max));
                 }
-                if (slots.Count > 0)
-                {
-                    var col = new DropSlotsTransform.ColumnInfo(cols[i].input, cols[i].output, slots.ToArray());
-                    columns.Add(col);
-                }
+                if (slots.Count <= 0)
+                    copyCols.Add(cols[i]);
+                else
+                    dropCols.Add(new DropSlotsTransform.ColumnInfo(cols[i].input, cols[i].output, slots.ToArray()));
             }
-            return columns;
+            dropSlotsColumns = dropCols.ToArray();
+            copyColumnsPairs = copyCols.ToArray();
         }
     }
 

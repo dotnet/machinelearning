@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void TestCountFeatureSelectionCommandLine()
+        public void TestDropSlotsSelectionCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=DropSlots{col=B:A:1-4} in=f:\2.txt" }), (int)0);
         }
@@ -139,5 +139,54 @@ namespace Microsoft.ML.Tests.Transformers
             CheckEquality("FeatureSelection", "countFeatureSelect.tsv");
             Done();
         }
+
+        [Fact]
+        public void TestCountFeatureSelectionCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=CountFeatureSelection​{col=B:A c=1} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void MutualInformationSelectionWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                Label: ctx.LoadKey(0, 0, 2),
+                ScalarFloat: ctx.LoadFloat(6),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDouble: ctx.LoadDouble(4, 8)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+
+            var est = new MutualInformationFeatureSelectionEstimator(env, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label")
+                .Append(new MutualInformationFeatureSelectionEstimator(env, labelColumn: "Label", slotsInOutput: 2, numBins: 100,
+                    columns: new[] {
+                        (input: "VectorFloat", output: "out1"),
+                        (input: "VectorDouble", output: "out2")
+                    }));
+            //TestEstimatorCore(est, data);
+
+            var outputPath = GetOutputPath("FeatureSelection", "mutualFeatureSelect.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("FeatureSelection", "mutualFeatureSelect.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void TestMutualInformationFeatureSelectionCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=MutualInformationFeatureSelection​{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
     }
 }

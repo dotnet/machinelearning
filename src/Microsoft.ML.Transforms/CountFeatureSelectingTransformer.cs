@@ -110,16 +110,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 (string input, string output)[] copyColumnsPairs;
                 CreateDropAndCopyColumns(_columns, size, scores, out int[] selectedCount, out dropSlotsColumns, out copyColumnsPairs);
 
-                //var copyColumnArgs = new List<(string input, string output)>();
-                //var nonEmptyDropSlotsColumns = new List<DropSlotsTransform.ColumnInfo>();
-                //foreach (var dropSlotsColumn in dropSlotsColumns)
-                //{
-                //    if (dropSlotsColumn.Slots.Length <= 0)
-                //        copyColumnArgs.Add((dropSlotsColumn.Input, dropSlotsColumn.Output));
-                //    else
-                //        nonEmptyDropSlotsColumns.Add(dropSlotsColumn);
-                //}
-
                 for (int i = 0; i < selectedCount.Length; i++)
                     ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], _columns[i].Input);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
@@ -138,24 +128,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
-        /////// <summary>
-        /////// A helper method to create CountFeatureSelection transform for public facing API.
-        /////// </summary>
-        /////// <param name="env">Host Environment.</param>
-        /////// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /////// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        /////// <param name="columns">Columns to use for feature selection.</param>
-        /////// <returns></returns>
-        ////internal static IDataTransform Create(IHostEnvironment env, IDataView input, long count = Defaults.Count, params string[] columns)
-        ////{
-        ////    var args = new Arguments()
-        ////    {
-        ////        Column = columns,
-        ////        Count = count
-        ////    };
-        ////    return Create(env, args, input);
-        ////}
-
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
         /// </summary>
@@ -171,7 +143,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             var columnInfos = args.Column.Select(column => new ColumnInfo(column, column, args.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
-
         }
 
         private static void CreateDropAndCopyColumns(ColumnInfo[] columnInfos, int size, long[][] scores,
