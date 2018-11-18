@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs?range=5-9,16-114)]
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
     /// ]]>
     /// </format>
     /// </example>

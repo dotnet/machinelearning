@@ -1,10 +1,9 @@
-    // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
-    using System;
-    using System.Linq;
-    using System.Collections.Generic;
-    using Microsoft.ML.Runtime.Data;
-    using Microsoft.ML.Runtime.Api;
-    using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.TimeSeriesProcessing;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

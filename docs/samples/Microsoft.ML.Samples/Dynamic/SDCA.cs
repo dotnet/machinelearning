@@ -1,7 +1,6 @@
-﻿        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
-        using Microsoft.ML.Runtime.Data;
-        using System;
-        using System.Linq;
+﻿using Microsoft.ML.Runtime.Data;
+using System;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
