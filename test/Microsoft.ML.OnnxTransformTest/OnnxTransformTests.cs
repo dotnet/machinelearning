@@ -220,7 +220,7 @@ namespace Microsoft.ML.Tests
                 return;
 
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnx}}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
             Assert.Equal(0, x);
         }
         
