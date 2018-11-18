@@ -154,51 +154,11 @@ namespace Microsoft.ML.Runtime.Api
         /// Create an on-demand prediction engine.
         /// </summary>
         /// <param name="env">The host environment to use.</param>
-        /// <param name="modelStream">The stream to deserialize the pipeline (transforms and predictor) from.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this IHostEnvironment env, Stream modelStream,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(modelStream, nameof(modelStream));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new PredictionEngine<TSrc, TDst>(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// Create an on-demand prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="dataPipe">The transformation pipe that may or may not include a scorer.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
-        /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
-        /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this IHostEnvironment env, IDataView dataPipe,
-            bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            where TSrc : class
-            where TDst : class, new()
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(dataPipe, nameof(dataPipe));
-            env.CheckValueOrNull(inputSchemaDefinition);
-            env.CheckValueOrNull(outputSchemaDefinition);
-            return new PredictionEngine<TSrc, TDst>(env, dataPipe, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// Create an on-demand prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
         /// <param name="transformer">The transformer.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
         /// <param name="inputSchemaDefinition">The optional input schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TSrc"/> type.</param>
         /// <param name="outputSchemaDefinition">The optional output schema. If <c>null</c>, the schema is inferred from the <typeparamref name="TDst"/> type.</param>
-        public static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
+        internal static PredictionEngine<TSrc, TDst> CreatePredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -208,23 +168,6 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
             return new PredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
-        }
-
-        /// <summary>
-        /// Create a prediction engine.
-        /// This encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
-        /// and the output is a float score. For binary classification predictors that can output probability, there are output
-        /// fields that report the predicted label and probability.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="modelStream">The model stream to load pipeline from.</param>
-        /// <param name="nFeatures">Number of features.</param>
-        public static SimplePredictionEngine CreateSimplePredictionEngine(this IHostEnvironment env, Stream modelStream, int nFeatures)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(modelStream, nameof(modelStream));
-            env.CheckParam(nFeatures > 0, nameof(nFeatures), "Number of features must be positive.");
-            return new SimplePredictionEngine(env, modelStream, nFeatures);
         }
 
         /// <summary>

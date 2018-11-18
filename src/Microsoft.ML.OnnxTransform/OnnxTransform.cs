@@ -282,12 +282,9 @@ namespace Microsoft.ML.Transforms
                     var outputTensors = _parent.Model.Run(inputTensors);
                     Contracts.Assert(outputTensors.Count() > 0);
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _outputColType.VectorSize)
-                        values = new T[_outputColType.VectorSize];
-
-                    OnnxUtils.CopyTo(outputTensors[0], values);
-                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, _outputColType.VectorSize);
+                    OnnxUtils.CopyTo(outputTensors[0], editor.Values);
+                    dst = editor.Commit();
                 };
 
                 return valueGetter;

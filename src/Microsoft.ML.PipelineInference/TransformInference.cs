@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     while (cursor.MoveNext())
                     {
                         getter(ref value);
-                        if (value.Count > 0 && value.Values.Any(Single.IsNaN))
+                        if (VBufferUtils.HasNaNs(value))
                             return true;
                     }
                     return false;
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         var epInput = new ML.Legacy.Transforms.TextToKeyConverter();
                         epInput.Column = new[]
                         {
-                            new ML.Legacy.Transforms.TermTransformColumn
+                            new ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn
                             {
                                 Name = dest,
                                 Source = source
@@ -415,7 +415,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -477,7 +477,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CategoricalHashTransformColumn
+                                new ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = dest,
                                     Source = source
@@ -590,8 +590,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     bool foundCatHash = false;
                     var colSpecCat = new StringBuilder();
                     var colSpecCatHash = new StringBuilder();
-                    var catColumns = new List<ML.Legacy.Transforms.CategoricalTransformColumn>();
-                    var catHashColumns = new List<ML.Legacy.Transforms.CategoricalHashTransformColumn>();
+                    var catColumns = new List<ML.Legacy.Transforms.OneHotEncodingTransformerColumn>();
+                    var catHashColumns = new List<ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>();
                     var featureCols = new List<string>();
 
                     foreach (var column in columns)
@@ -622,7 +622,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             foundCat = true;
                             colSpecCat.Append(columnArgument);
-                            catColumns.Add(new ML.Legacy.Transforms.CategoricalTransformColumn
+                            catColumns.Add(new ML.Legacy.Transforms.OneHotEncodingTransformerColumn
                             {
                                 Name = columnNameQuoted.ToString(),
                                 Source = columnNameQuoted.ToString()
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             ch.Info("Categorical column '{0}' has extremely high cardinality. Suggested hash-based category encoding.", column.ColumnName);
                             foundCatHash = true;
                             colSpecCatHash.Append(columnArgument);
-                            catHashColumns.Add(new ML.Legacy.Transforms.CategoricalHashTransformColumn
+                            catHashColumns.Add(new ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn
                             {
                                 Name = columnNameQuoted.ToString(),
                                 Source = columnNameQuoted.ToString()
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     var columnArgument = new StringBuilder();
                     var columnNameQuoted = new StringBuilder();
-                    var epColumns = new List<ML.Legacy.Transforms.ConvertingTransformColumn>();
+                    var epColumns = new List<ML.Legacy.Transforms.TypeConvertingTransformerColumn>();
 
                     foreach (var column in columns)
                     {
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             columnNameQuoted.AppendFormat("{0}", column.ColumnName);
                         }
 
-                        epColumns.Add(new ML.Legacy.Transforms.ConvertingTransformColumn
+                        epColumns.Add(new ML.Legacy.Transforms.TypeConvertingTransformerColumn
                         {
                             Name = columnNameQuoted.ToString(),
                             Source = columnNameQuoted.ToString(),
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = concatColumnName,
                                     Source = columnNames.ToArray()
@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = featuresTreeFeatColumn,
                                     Source = new [] { treeFeaturizerOutputColumnName }
@@ -1016,7 +1016,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = featuresKMeansColumn,
                                     Source = new [] { kMeansOutputColumnName }
@@ -1292,7 +1292,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.NAHandleTransformColumn
+                                new ML.Legacy.Transforms.MissingValueHandlingTransformerColumn
                                 {
                                     Name = name,
                                     Source = name
@@ -1372,7 +1372,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Features,
                                     Source = columnListQuoted.ToArray()
@@ -1461,7 +1461,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.CopyColumnsTransformColumn
+                                new ML.Legacy.Transforms.ColumnsCopyingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Name,
                                     Source = columnNameQuoted.ToString()
@@ -1507,7 +1507,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             Column = new[]
                             {
-                                new ML.Legacy.Transforms.ConcatTransformColumn
+                                new ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn
                                 {
                                     Name = DefaultColumnNames.Name,
                                     Source = columnListQuoted.ToArray()

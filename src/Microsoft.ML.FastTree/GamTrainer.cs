@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of iterations over all features", ShortName = "iter", SortOrder = 1)]
             [TGUI(SuggestedSweeps = "200,1500,9500")]
             [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
-            public int NumIterations = 9500;
+            public int NumIterations = GamDefaults.NumIterations;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
             public int? NumThreads = null;
@@ -62,13 +62,13 @@ namespace Microsoft.ML.Trainers.FastTree
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
             [TGUI(SuggestedSweeps = "0.001,0.1;log")]
             [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
-            public double LearningRates = 0.002; // Small learning rate.
+            public double LearningRates = GamDefaults.LearningRates;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to utilize the disk or the data's native transposition facilities (where applicable) when performing the transpose", ShortName = "dt")]
             public bool? DiskTranspose;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Maximum number of distinct values (bins) per feature", ShortName = "mb")]
-            public int MaxBins = 255; // Save one for undefs.
+            public int MaxBins = GamDefaults.MaxBins;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Upper bound on absolute value of single output", ShortName = "mo")]
             public double MaxOutput = Double.PositiveInfinity;
@@ -137,15 +137,16 @@ namespace Microsoft.ML.Trainers.FastTree
             SchemaShape.Column label,
             string featureColumn,
             string weightColumn,
-            int minDocumentsInLeafs,
+            int numIterations,
             double learningRate,
+            int maxBins,
             Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
-
-            Args.MinDocuments = minDocumentsInLeafs;
+            Args.NumIterations = numIterations;
             Args.LearningRates = learningRate;
+            Args.MaxBins = maxBins;
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InitializeThreads();
         }
 
-        protected void TrainBase(TrainContext context)
+        private protected void TrainBase(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
@@ -779,7 +780,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             for (int i = 0; i < _numFeatures; i++)
             {
-                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i], _binUpperBounds[i].Length);
+                ctx.Writer.WriteDoublesNoCount(_binUpperBounds[i]);
                 Host.Assert(_binUpperBounds[i].Length == _binEffects[i].Length);
             }
             ctx.Writer.Write(_inputFeatureToDatasetFeatureMap.Count);
@@ -804,23 +805,25 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i]);
+                        value += GetBinEffect(j, featuresValues[i]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i]) - GetBinEffect(j, 0);
                 }
             }
 
@@ -841,18 +844,20 @@ namespace Microsoft.ML.Trainers.FastTree
             builder.Reset(features.Length + 1, false);
             builder.AddFeature(0, (float)_intercept);
 
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (float) GetBinEffect(j, features.Values[i]));
+                        builder.AddFeature(i+1, (float) GetBinEffect(j, featuresValues[i]));
                 }
             }
             else
             {
                 int k = -1;
-                int index = features.Indices[++k];
+                var featuresIndices = features.GetIndices();
+                int index = featuresIndices[++k];
                 for (int i = 0; i < _numFeatures; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
@@ -861,10 +866,10 @@ namespace Microsoft.ML.Trainers.FastTree
                         if (i == index)
                         {
                             // Get the computed value
-                            value = GetBinEffect(j, features.Values[index]);
+                            value = GetBinEffect(j, featuresValues[index]);
                             // Increment index to the next feature
-                            if (k < features.Indices.Length - 1)
-                                index = features.Indices[++k];
+                            if (k < featuresIndices.Length - 1)
+                                index = featuresIndices[++k];
                         }
                         else
                             // For features not defined, the impact is the impact at 0
@@ -885,26 +890,28 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
 
             double value = _intercept;
+            var featuresValues = features.GetValues();
             if (features.IsDense)
             {
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        value += GetBinEffect(j, features.Values[i], out bins[j]);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]);
                 }
             }
             else
             {
+                var featuresIndices = features.GetIndices();
                 // Add in the precomputed results for all features
                 value += _valueAtAllZero;
                 Array.Copy(_binsAtAllZero, bins, _numFeatures);
 
                 // Update the results for features we have
-                for (int i = 0; i < features.Count; ++i)
+                for (int i = 0; i < featuresValues.Length; ++i)
                 {
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(featuresIndices[i], out int j))
                         // Add the value and subtract the value at zero that was previously accounted for
-                        value += GetBinEffect(j, features.Values[i], out bins[j]) - GetBinEffect(j, 0);
+                        value += GetBinEffect(j, featuresValues[i], out bins[j]) - GetBinEffect(j, 0);
                 }
             }
             return value;
@@ -975,7 +982,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <see cref="GamPredictorBase"/>, it is convenient to have the command itself nested within the base
         /// predictor class.
         /// </summary>
-        public sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
+        internal sealed class VisualizationCommand : DataCommand.ImplBase<VisualizationCommand.Arguments>
         {
             public const string Summary = "Loads a model trained with a GAM learner, and starts an interactive web session to visualize it.";
             public const string LoadName = "GamVisualization";
@@ -1416,5 +1423,12 @@ namespace Microsoft.ML.Trainers.FastTree
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
+    }
+
+    internal static class GamDefaults
+    {
+        internal const int NumIterations = 9500;
+        internal const int MaxBins = 255;
+        internal const double LearningRates = 0.002; // A small value
     }
 }

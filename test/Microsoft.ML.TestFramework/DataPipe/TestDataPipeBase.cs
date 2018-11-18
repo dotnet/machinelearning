@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -171,19 +172,16 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
-            bool forceDense = false, bool logCurs = false, ConsoleEnvironment env = null, bool roundTripText = true,
+            bool forceDense = false, bool logCurs = false, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
         {
             Contracts.AssertValue(Env);
-            if (env == null)
-                env = Env;
 
             MultiFileSource files;
             IDataLoader compositeLoader;
-            var pipe1 = compositeLoader = CreatePipeDataLoader(env, pathData, argsPipe, out files);
+            var pipe1 = compositeLoader = CreatePipeDataLoader(_env, pathData, argsPipe, out files);
 
-            if (actLoader != null)
-                actLoader(compositeLoader);
+            actLoader?.Invoke(compositeLoader);
 
             // Re-apply pipe to the loader and check equality.
             var comp = compositeLoader as CompositeDataLoader;
@@ -193,7 +191,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 srcLoader = comp.View;
                 while (srcLoader is IDataTransform)
                     srcLoader = ((IDataTransform)srcLoader).Source;
-                var reappliedPipe = ApplyTransformUtils.ApplyAllTransformsToData(env, comp.View, srcLoader);
+                var reappliedPipe = ApplyTransformUtils.ApplyAllTransformsToData(_env, comp.View, srcLoader);
                 if (!CheckMetadataTypes(reappliedPipe.Schema))
                     Failed();
 
@@ -209,12 +207,12 @@ namespace Microsoft.ML.Runtime.RunTests
                 string pathLog = DeleteOutputPath("SavePipe", name);
 
                 using (var writer = OpenWriter(pathLog))
-                using (env.RedirectChannelOutput(writer, writer))
+                using (_env.RedirectChannelOutput(writer, writer))
                 {
                     long count = 0;
                     // Set the concurrency to 1 for this; restore later.
-                    int conc = env.ConcurrencyFactor;
-                    env.ConcurrencyFactor = 1;
+                    int conc = _env.ConcurrencyFactor;
+                    _env.ConcurrencyFactor = 1;
                     using (var curs = pipe1.GetRowCursor(c => true, null))
                     {
                         while (curs.MoveNext())
@@ -223,14 +221,14 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }
                     writer.WriteLine("Cursored through {0} rows", count);
-                    env.ConcurrencyFactor = conc;
+                    _env.ConcurrencyFactor = conc;
                 }
 
                 CheckEqualityNormalized("SavePipe", name);
             }
 
             var pathModel = SavePipe(pipe1, suffix);
-            var pipe2 = LoadPipe(pathModel, env, files);
+            var pipe2 = LoadPipe(pathModel, _env, files);
             if (!CheckMetadataTypes(pipe2.Schema))
                 Failed();
 
@@ -242,21 +240,21 @@ namespace Microsoft.ML.Runtime.RunTests
             if (pipe1.Schema.ColumnCount > 0)
             {
                 // The text saver fails if there are no columns, so we cannot check in that case.
-                if (!SaveLoadText(pipe1, env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
+                if (!SaveLoadText(pipe1, _env, keepHidden, suffix, suffixBase, checkBaseline, forceDense, roundTripText))
                     Failed();
                 // The transpose saver likewise fails for the same reason.
-                if (checkTranspose && !SaveLoadTransposed(pipe1, env, suffix))
+                if (checkTranspose && !SaveLoadTransposed(pipe1, _env, suffix))
                     Failed();
             }
-            if (!SaveLoad(pipe1, env, suffix))
+            if (!SaveLoad(pipe1, _env, suffix))
                 Failed();
 
             // Check that the pipe doesn't shuffle when it cannot :).
             if (srcLoader != null)
             {
                 // First we need to cache the data so it can be shuffled.
-                var cachedData = new CacheDataView(env, srcLoader, null);
-                var newPipe = ApplyTransformUtils.ApplyAllTransformsToData(env, comp.View, cachedData);
+                var cachedData = new CacheDataView(_env, srcLoader, null);
+                var newPipe = ApplyTransformUtils.ApplyAllTransformsToData(_env, comp.View, cachedData);
                 if (!newPipe.CanShuffle)
                 {
                     using (var c1 = newPipe.GetRowCursor(col => true, new SysRandom(123)))
@@ -1219,40 +1217,46 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(size == 0 || v2.Length == size);
             Contracts.Assert(v1.Length == v2.Length);
 
+            var v1Values = v1.GetValues();
+            var v2Values = v2.GetValues();
+
             if (v1.IsDense && v2.IsDense)
             {
                 for (int i = 0; i < v1.Length; i++)
                 {
-                    var x1 = v1.Values[i];
-                    var x2 = v2.Values[i];
+                    var x1 = v1Values[i];
+                    var x2 = v2Values[i];
                     if (!fn(i, x1, x2))
                         return false;
                 }
                 return true;
             }
 
+            var v1Indices = v1.GetIndices();
+            var v2Indices = v2.GetIndices();
+
             Contracts.Assert(!v1.IsDense || !v2.IsDense);
             int iiv1 = 0;
             int iiv2 = 0;
             for (; ; )
             {
-                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1.Count ? v1.Indices[iiv1] : v1.Length;
-                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2.Count ? v2.Indices[iiv2] : v2.Length;
+                int iv1 = v1.IsDense ? iiv1 : iiv1 < v1Indices.Length ? v1Indices[iiv1] : v1.Length;
+                int iv2 = v2.IsDense ? iiv2 : iiv2 < v2Indices.Length ? v2Indices[iiv2] : v2.Length;
                 T x1, x2;
                 int iv;
                 if (iv1 == iv2)
                 {
                     if (iv1 == v1.Length)
                         return true;
-                    x1 = v1.Values[iiv1];
-                    x2 = v2.Values[iiv2];
+                    x1 = v1Values[iiv1];
+                    x2 = v2Values[iiv2];
                     iv = iv1;
                     iiv1++;
                     iiv2++;
                 }
                 else if (iv1 < iv2)
                 {
-                    x1 = v1.Values[iiv1];
+                    x1 = v1Values[iiv1];
                     x2 = default(T);
                     iv = iv1;
                     iiv1++;
@@ -1260,7 +1264,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 else
                 {
                     x1 = default(T);
-                    x2 = v2.Values[iiv2];
+                    x2 = v2Values[iiv2];
                     iv = iv2;
                     iiv2++;
                 }

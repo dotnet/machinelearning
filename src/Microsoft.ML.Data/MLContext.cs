@@ -53,7 +53,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Data loading and saving.
         /// </summary>
-        public DataLoadSaveOperations Data { get; }
+        public DataOperations Data { get; }
 
         // REVIEW: I think it's valuable to have the simplest possible interface for logging interception here,
         // and expand if and when necessary. Exposing classes like ChannelMessage, MessageSensitivity and so on
@@ -85,7 +85,7 @@ namespace Microsoft.ML
             Ranking = new RankingContext(_env);
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
-            Data = new DataLoadSaveOperations(_env);
+            Data = new DataOperations(_env);
         }
 
         private CompositionContainer MakeCompositionContainer()

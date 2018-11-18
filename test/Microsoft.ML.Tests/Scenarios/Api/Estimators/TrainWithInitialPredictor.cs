@@ -31,14 +31,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var trainData = pipeline.Fit(data).Transform(data);
 
             // Train the first predictor.
-            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1);
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => s.NumThreads = 1);
             var firstModel = trainer.Fit(trainData);
 
             // Train the second predictor on the same data.
-            var secondTrainer = ml.BinaryClassification.Trainers.AveragedPerceptron();
+            var secondTrainer = ml.BinaryClassification.Trainers.AveragedPerceptron("Label","Features");
 
             var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
-            var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
+            var finalModel = ((ITrainer)secondTrainer).Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
 
         }
     }
