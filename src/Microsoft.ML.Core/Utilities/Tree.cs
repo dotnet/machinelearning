@@ -17,7 +17,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// </summary>
     /// <typeparam name="TKey">Children are keyed with values of this type</typeparam>
     /// <typeparam name="TValue">The type of the node value</typeparam>
-    public sealed class Tree<TKey, TValue> : IDictionary<TKey, Tree<TKey, TValue>>
+    [BestFriend]
+    internal sealed class Tree<TKey, TValue> : IDictionary<TKey, Tree<TKey, TValue>>
     {
         // The key of this node in the parent, assuming this is a child node at all.
         // This back reference is necessary to complete any "remove" operations.

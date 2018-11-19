@@ -13,7 +13,8 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public class DoubleParser
+    [BestFriend]
+    internal static class DoubleParser
     {
         private const ulong TopBit = 0x8000000000000000UL;
         private const ulong TopTwoBits = 0xC000000000000000UL;

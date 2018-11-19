@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\Common\AssemblyLoadingUtils.cs" Link="Common\AssemblyLoadingUtils.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 

@@ -47,13 +47,11 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public abstract void Write(in T value);
 
-            public virtual void Write(T[] values, int index, int count)
+            public virtual void Write(ReadOnlySpan<T> values)
             {
-                Contracts.Assert(0 <= index && index <= Utils.Size(values));
-                Contracts.Assert(0 <= count && count <= Utils.Size(values) - index);
                 // Basic un-optimized reference implementation.
-                for (int i = 0; i < count; ++i)
-                    Write(in values[i + index]);
+                for (int i = 0; i < values.Length; ++i)
+                    Write(in values[i]);
             }
 
             public abstract void Commit();
@@ -220,17 +218,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _numWritten++;
                 }
 
-                public override void Write(T[] values, int index, int count)
+                public override void Write(ReadOnlySpan<T> values)
                 {
-                    Contracts.Assert(0 <= index && index <= Utils.Size(values));
-                    Contracts.Assert(0 <= count && count <= Utils.Size(values) - index);
+                    int count = values.Length;
                     _ops.Apply(values, ptr =>
                     {
                         // REVIEW: In some future work we will want to avoid needless copies by
                         // seeing if this is a stream that can work over IntPtr writes or reads.
-                        int offset = index * _ops.Size;
                         int byteLength = count * _ops.Size;
-                        ptr += offset;
                         while (byteLength > 0)
                         {
                             int sublen = Math.Min(byteLength, _buffer.Length);
@@ -939,18 +934,21 @@ namespace Microsoft.ML.Runtime.Data.IO
                         _lengths.Add(value.Length);
                     // REVIEW: In the non-fixed length case we can still check that the
                     // length is a multiple of the product of the non-zero tail sizes of the type.
+                    var valueValues = value.GetValues();
                     if (value.IsDense)
                     {
                         _counts.Add(-1);
-                        _valueWriter.Write(value.Values, 0, value.Length);
+                        _valueWriter.Write(valueValues);
                     }
                     else
                     {
-                        _counts.Add(value.Count);
-                        if (value.Count > 0)
+                        _counts.Add(valueValues.Length);
+                        if (valueValues.Length > 0)
                         {
-                            _indices.AddRange(value.Indices.Take(value.Count));
-                            _valueWriter.Write(value.Values, 0, value.Count);
+                            var valueIndices = value.GetIndices();
+                            for (int i = 0; i < valueIndices.Length; i++)
+                                _indices.Add(valueIndices[i]);
+                            _valueWriter.Write(valueValues);
                         }
                     }
                 }
@@ -1111,29 +1109,29 @@ namespace Microsoft.ML.Runtime.Data.IO
                     int length = FixedLength ? _size : _lengths[_vectorIndex];
                     int count = _counts[_vectorIndex];
 
-                    int[] indices = value.Indices;
-                    T[] values = value.Values;
                     if (count < 0)
                     {
                         // dense
+                        var editor = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
-                            Utils.EnsureSize(ref values, length);
-                            Array.Copy(_values, _valuesOffset, values, 0, length);
+                            _values.AsSpan(_valuesOffset, length)
+                                .CopyTo(editor.Values);
                         }
-                        value = new VBuffer<T>(length, values, indices);
+                        value = editor.Commit();
                     }
                     else
                     {
                         // sparse
+                        var editor = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
-                            Utils.EnsureSize(ref values, count);
-                            Utils.EnsureSize(ref indices, count);
-                            Array.Copy(_values, _valuesOffset, values, 0, count);
-                            Array.Copy(_indices, _indicesOffset, indices, 0, count);
+                            _values.AsSpan(_valuesOffset, count)
+                                .CopyTo(editor.Values);
+                            _indices.AsSpan(_indicesOffset, count)
+                                .CopyTo(editor.Indices);
                         }
-                        value = new VBuffer<T>(length, count, values, indices);
+                        value = editor.Commit();
                     }
                 }
             }
