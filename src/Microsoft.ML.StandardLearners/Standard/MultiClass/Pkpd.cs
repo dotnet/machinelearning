@@ -116,7 +116,7 @@ namespace Microsoft.ML.Runtime.Learners
                 for (int j = 0; j <= i; j++)
                 {
                     ch.Info($"Training learner ({i},{j})");
-                    predModels[i][j] = TrainOne(ch, GetTrainer(), data, i, j).Model;
+                    predModels[i][j] = TrainOne(ch, Trainer, data, i, j).Model;
                 }
             }
 
@@ -201,11 +201,11 @@ namespace Microsoft.ML.Runtime.Learners
                         // need to capture the featureColum, and it is the same for all the transformers
                         if (i == 0 && j == 0)
                         {
-                            var transformer = TrainOne(ch, GetTrainer(), td, i, j);
+                            var transformer = TrainOne(ch, Trainer, td, i, j);
                             featureColumn = transformer.FeatureColumn;
                         }
 
-                        predictors[i][j] = TrainOne(ch, GetTrainer(), td, i, j).Model;
+                        predictors[i][j] = TrainOne(ch, Trainer, td, i, j).Model;
                     }
                 }
             }

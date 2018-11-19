@@ -29,7 +29,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <summary>
     /// This is an internal utility command to measure the performance of the IntArray sumup operation.
     /// </summary>
-    public sealed class SumupPerformanceCommand : ICommand
+    internal sealed class SumupPerformanceCommand : ICommand
     {
         public sealed class Arguments
         {

@@ -514,7 +514,7 @@ namespace Microsoft.ML.Transforms.Categorical
             };
 
             var view = new ColumnsCopyingTransformer(host, cols.ToArray()).Transform(lookup);
-            view = SelectColumnsTransform.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
+            view = ColumnSelectingTransformer.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())

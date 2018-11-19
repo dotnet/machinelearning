@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string name = TestName + "4-out.txt";
             string pathOut = DeleteOutputPath("SavePipe", name);
             using (var writer = OpenWriter(pathOut))
-            using (Env.RedirectChannelOutput(writer, writer))
+            using (_env.RedirectChannelOutput(writer, writer))
             {
                 TestCore(pathData, true,
                     new[] {
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
-                Env.PrintProgress();
+                _env.PrintProgress();
             }
             CheckEqualityNormalized("SavePipe", name);
 
@@ -662,8 +662,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
                     var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
 
-                    IDataView view1 = SelectColumnsTransform.CreateKeep(Env, pipe, colsChoose);
-                    view2 = SelectColumnsTransform.CreateKeep(Env, view2, colsChoose);
+                    IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
+                    view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);
 
                     CheckSameValues(view1, view2);
                 },

@@ -61,7 +61,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Statistical measure used to evaluate how important a word is to a document in a corpus")]
-            public NgramCountingTransformer.WeightingCriteria? Weighting;
+            public NgramCountingEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Transforms.Text
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             public int[] MaxNumTerms = null;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramCountingTransformer.WeightingCriteria? Weighting;
+            public NgramCountingEstimator.WeightingCriteria? Weighting;
 
             public static Column Parse(string str)
             {
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="TermTransform.Arguments"/> and
+        /// This class is a merger of <see cref="ValueToKeyMappingTransformer.Arguments"/> and
         /// <see cref="NgramCountingTransformer.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -230,18 +230,18 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
                 ShortName = "skips")]
-            public int SkipLength = 0;
+            public int SkipLength = NgramCountingEstimator.Defaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all")]
-            public bool AllLengths = true;
+            public bool AllLengths = NgramCountingEstimator.Defaults.AllLength;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
-            public int[] MaxNumTerms = new int[] { NgramCountingTransformer.Arguments.DefaultMaxTerms };
+            public int[] MaxNumTerms = new int[] { NgramCountingEstimator.Defaults.MaxNumTerms };
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The weighting criteria")]
-            public NgramCountingTransformer.WeightingCriteria Weighting = NgramCountingTransformer.WeightingCriteria.Tf;
+            public NgramCountingEstimator.WeightingCriteria Weighting = NgramCountingEstimator.Defaults.Weighting;
         }
 
         [TlcModule.Component(Name = "NGram", FriendlyName = "NGram Extractor Transform", Alias = "NGramExtractorTransform,NGramExtractor",
@@ -260,7 +260,7 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
@@ -300,12 +300,12 @@ namespace Microsoft.ML.Transforms.Text
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
-                TermTransform.Arguments termArgs = null;
-                MissingValueDroppingTransformer.Arguments naDropArgs = null;
+                ValueToKeyMappingTransformer.Arguments termArgs = null;
+                string[] missingDropColumns = null;
                 if (termLoaderArgs != null)
                 {
                     termArgs =
-                        new TermTransform.Arguments()
+                        new ValueToKeyMappingTransformer.Arguments()
                         {
                             MaxNumTerms = int.MaxValue,
                             Terms = termLoaderArgs.Terms,
@@ -314,19 +314,18 @@ namespace Microsoft.ML.Transforms.Text
                             Loader = termLoaderArgs.Loader,
                             TermsColumn = termLoaderArgs.TermsColumn,
                             Sort = termLoaderArgs.Sort,
-                            Column = new TermTransform.Column[termCols.Count]
+                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
-
                     if (termLoaderArgs.DropUnknowns)
-                        naDropArgs = new MissingValueDroppingTransformer.Arguments { Column = new MissingValueDroppingTransformer.Column[termCols.Count] };
+                        missingDropColumns = new string[termCols.Count];
                 }
                 else
                 {
                     termArgs =
-                        new TermTransform.Arguments()
+                        new ValueToKeyMappingTransformer.Arguments()
                         {
-                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramCountingTransformer.Arguments.DefaultMaxTerms,
-                            Column = new TermTransform.Column[termCols.Count]
+                            MaxNumTerms = Utils.Size(args.MaxNumTerms) > 0 ? args.MaxNumTerms[0] : NgramCountingEstimator.Defaults.MaxNumTerms,
+                            Column = new ValueToKeyMappingTransformer.Column[termCols.Count]
                         };
                 }
 
@@ -334,50 +333,36 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var column = termCols[iinfo];
                     termArgs.Column[iinfo] =
-                        new TermTransform.Column()
+                        new ValueToKeyMappingTransformer.Column()
                         {
                             Name = column.Name,
                             Source = column.Source,
                             MaxNumTerms = Utils.Size(column.MaxNumTerms) > 0 ? column.MaxNumTerms[0] : default(int?)
                         };
 
-                    if (naDropArgs != null)
-                        naDropArgs.Column[iinfo] = new MissingValueDroppingTransformer.Column { Name = column.Name, Source = column.Name };
+                    if (missingDropColumns != null)
+                        missingDropColumns[iinfo] = column.Name;
                 }
 
-                view = TermTransform.Create(h, termArgs, view);
-                if (naDropArgs != null)
-                    view = new MissingValueDroppingTransformer(h, naDropArgs, view);
+                view = ValueToKeyMappingTransformer.Create(h, termArgs, view);
+                if (missingDropColumns != null)
+                    view = new MissingValueDroppingTransformer(h, missingDropColumns.Select(x => (x, x)).ToArray()).Transform(view);
             }
 
-            var ngramArgs =
-                new NgramCountingTransformer.Arguments()
-                {
-                    MaxNumTerms = args.MaxNumTerms,
-                    NgramLength = args.NgramLength,
-                    SkipLength = args.SkipLength,
-                    AllLengths = args.AllLengths,
-                    Weighting = args.Weighting,
-                    Column = new NgramCountingTransformer.Column[args.Column.Length]
-                };
-
+            var ngramColumns = new NgramCountingTransformer.ColumnInfo[args.Column.Length];
             for (int iinfo = 0; iinfo < args.Column.Length; iinfo++)
             {
                 var column = args.Column[iinfo];
-                ngramArgs.Column[iinfo] =
-                    new NgramCountingTransformer.Column()
-                    {
-                        Name = column.Name,
-                        Source = isTermCol[iinfo] ? column.Name : column.Source,
-                        AllLengths = column.AllLengths,
-                        MaxNumTerms = column.MaxNumTerms,
-                        NgramLength = column.NgramLength,
-                        SkipLength = column.SkipLength,
-                        Weighting = column.Weighting
-                    };
+                ngramColumns[iinfo] = new NgramCountingTransformer.ColumnInfo(isTermCol[iinfo] ? column.Name : column.Source, column.Name,
+                    column.NgramLength ?? args.NgramLength,
+                    column.SkipLength ?? args.SkipLength,
+                    column.AllLengths ?? args.AllLengths,
+                    column.Weighting ?? args.Weighting,
+                    column.MaxNumTerms ?? args.MaxNumTerms
+                    );
             }
 
-            return new NgramCountingTransformer(h, ngramArgs, view);
+            return new NgramCountingEstimator(env, ngramColumns).Fit(view).Transform(view) as IDataTransform;
         }
 
         public static IDataTransform Create(IHostEnvironment env, NgramExtractorArguments extractorArgs, IDataView input,
@@ -425,7 +410,7 @@ namespace Microsoft.ML.Transforms.Text
 
     /// <summary>
     /// Arguments for defining custom list of terms or data file containing the terms.
-    /// The class includes a subset of <see cref="TermTransform"/>'s arguments.
+    /// The class includes a subset of <see cref="ValueToKeyMappingTransformer"/>'s arguments.
     /// </summary>
     public sealed class TermLoaderArguments
     {
@@ -446,7 +431,7 @@ namespace Microsoft.ML.Transforms.Text
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
             "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
-        public TermTransform.SortOrder Sort = TermTransform.SortOrder.Occurrence;
+        public ValueToKeyMappingTransformer.SortOrder Sort = ValueToKeyMappingTransformer.SortOrder.Occurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
         public bool DropUnknowns = false;

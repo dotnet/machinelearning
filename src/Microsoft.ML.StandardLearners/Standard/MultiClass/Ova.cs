@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < predictors.Length; i++)
             {
                 ch.Info($"Training learner {i}");
-                predictors[i] = TrainOne(ch, GetTrainer(), data, i).Model;
+                predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
             return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
@@ -187,11 +187,11 @@ namespace Microsoft.ML.Runtime.Learners
 
                     if (i == 0)
                     {
-                        var transformer = TrainOne(ch, GetTrainer(), td, i);
+                        var transformer = TrainOne(ch, Trainer, td, i);
                         featureColumn = transformer.FeatureColumn;
                     }
 
-                    predictors[i] = TrainOne(ch, GetTrainer(), td, i).Model;
+                    predictors[i] = TrainOne(ch, Trainer, td, i).Model;
                 }
             }
 

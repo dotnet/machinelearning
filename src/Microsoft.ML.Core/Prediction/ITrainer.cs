@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using System;
 
 namespace Microsoft.ML.Runtime
 {
@@ -39,7 +40,8 @@ namespace Microsoft.ML.Runtime
     /// The base interface for a trainers. Implementors should not implement this interface directly,
     /// but rather implement the more specific <see cref="ITrainer{TPredictor}"/>.
     /// </summary>
-    public interface ITrainer
+    [BestFriend]
+    internal interface ITrainer
     {
         /// <summary>
         /// Auxiliary information about the trainer in terms of its capabilities
@@ -66,7 +68,8 @@ namespace Microsoft.ML.Runtime
     /// and produces a predictor.
     /// </summary>
     /// <typeparam name="TPredictor"> Type of predictor produced</typeparam>
-    public interface ITrainer<out TPredictor> : ITrainer
+    [BestFriend]
+    internal interface ITrainer<out TPredictor> : ITrainer
         where TPredictor : IPredictor
     {
         /// <summary>
@@ -77,7 +80,8 @@ namespace Microsoft.ML.Runtime
         new TPredictor Train(TrainContext context);
     }
 
-    public static class TrainerExtensions
+    [BestFriend]
+    internal static class TrainerExtensions
     {
         /// <summary>
         /// Convenience train extension for the case where one has only a training set with no auxiliary information.

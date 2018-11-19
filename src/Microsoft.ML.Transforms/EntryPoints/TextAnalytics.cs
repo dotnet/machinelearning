@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms.Text
         public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = new NgramCountingTransformer(h, input, input.Data);
+            var xf = NgramCountingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -67,13 +67,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer",
-            Desc = Categorical.TermTransform.Summary,
-            UserName = Categorical.TermTransform.UserName,
-            ShortName = Categorical.TermTransform.LoaderSignature)]
-        public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, TermTransform.Arguments input)
+            Desc = Categorical.ValueToKeyMappingTransformer.Summary,
+            UserName = Categorical.ValueToKeyMappingTransformer.UserName,
+            ShortName = Categorical.ValueToKeyMappingTransformer.LoaderSignature)]
+        public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, ValueToKeyMappingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
-            var xf = Categorical.TermTransform.Create(h, input, input.Data);
+            var xf = Categorical.ValueToKeyMappingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

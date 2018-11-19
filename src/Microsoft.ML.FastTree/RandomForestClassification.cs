@@ -168,7 +168,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
+        private protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;

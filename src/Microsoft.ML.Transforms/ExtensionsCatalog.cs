@@ -69,7 +69,7 @@ namespace Microsoft.ML
         /// <param name="columns">The input column.</param>
         /// <returns></returns>
         public static KeyToBinaryVectorMappingEstimator MapKeyToBinaryVector(this TransformsCatalog.CategoricalTransforms catalog,
-            params KeyToBinaryVectorTransform.ColumnInfo[] columns)
+            params KeyToBinaryVectorMappingTransformer.ColumnInfo[] columns)
         => new KeyToBinaryVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

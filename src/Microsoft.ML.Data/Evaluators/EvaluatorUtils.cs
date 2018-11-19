@@ -836,7 +836,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
+                            if (dv.Schema.HasKeyValues(i, type.ItemType.KeyCount))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema.HasSlotNames(i, type.VectorSize))
@@ -865,9 +865,9 @@ namespace Microsoft.ML.Runtime.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema.HasKeyValues(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyValues(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -907,7 +907,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
 
-                        idv = new KeyToValueTransform(env, keyCol).Transform(idv);
+                        idv = new KeyToValueMappingTransformer(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
                         idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
                     }
@@ -932,7 +932,7 @@ namespace Microsoft.ML.Runtime.Data
                                  variableSizeVectorColumnName, type);
 
                         // Drop the old column that does not have variable length.
-                        idv = SelectColumnsTransform.CreateDrop(env, idv, variableSizeVectorColumnName);
+                        idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };
@@ -1058,7 +1058,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    data = SelectColumnsTransform.CreateDrop(env, data, nonAveragedCols.ToArray());
+                    data = ColumnSelectingTransformer.CreateDrop(env, data, nonAveragedCols.ToArray());
                 }
                 idvList.Add(data);
             }
@@ -1068,7 +1068,7 @@ namespace Microsoft.ML.Runtime.Data
             // If there are stratified results, apply a KeyToValue transform to get the stratification column
             // names from the key column.
             if (hasStrat)
-                overall = new KeyToValueTransform(env, MetricKinds.ColumnNames.StratCol).Transform(overall);
+                overall = new KeyToValueMappingTransformer(env, MetricKinds.ColumnNames.StratCol).Transform(overall);
             return overall;
         }
 
@@ -1747,7 +1747,7 @@ namespace Microsoft.ML.Runtime.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            data = SelectColumnsTransform.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
+            data = ColumnSelectingTransformer.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
             return data;
         }
     }

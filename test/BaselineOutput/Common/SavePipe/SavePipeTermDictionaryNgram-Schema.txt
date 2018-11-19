@@ -39,7 +39,7 @@
     Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
       [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
       [10] 'pneumonia'
----- NgramTransform ----
+---- RowToRowMapperTransform ----
 7 columns:
   T1: Text
   T2: Text
