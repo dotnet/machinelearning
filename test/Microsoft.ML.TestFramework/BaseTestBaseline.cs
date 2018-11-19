@@ -27,8 +27,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-            // Load the commands in Microsoft.ML.Api.
-            Env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly);
         }
 
         internal const string RawSuffix = ".raw";
@@ -103,6 +101,7 @@ namespace Microsoft.ML.Runtime.RunTests
             _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
             ML = new MLContext(42);
+            ML.AddStandardComponents();
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -820,8 +819,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected int MainForTest(string args)
         {
-            var env = new MLContext();
-            return Maml.MainCore(env, args, false);
+            return Maml.MainCore(ML, args, false);
         }
     }
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Learners;
@@ -26,6 +27,7 @@ namespace Microsoft.ML.TestFramework
             env.ComponentCatalog.RegisterAssembly(typeof(KMeansPredictor).Assembly); // ML.KMeansClustering
             env.ComponentCatalog.RegisterAssembly(typeof(PcaPredictor).Assembly); // ML.PCA
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
+            env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly); // ML.Api
             return env;
         }
     }
