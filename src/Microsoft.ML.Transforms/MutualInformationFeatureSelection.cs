@@ -121,16 +121,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 ch.Info("Computing mutual information");
                 var sw = new Stopwatch();
                 sw.Start();
-                //var colSet = new HashSet<string>();
-                //foreach (var col in _columns)
-                //{
-                //    if (!colSet.Add(col.input))
-                //        ch.Warning("Column '{0}' specified multiple time.", col);
-                //}
-                //var colArr = colSet.ToArray();
-                var colSizes = new int[_columns.Length];
-                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn,
-                    _columns.Select(col => col.input).ToArray(), _numBins, colSizes);
+                var colSet = new HashSet<string>();
+                foreach (var col in _columns)
+                {
+                    if (!colSet.Add(col.input))
+                        ch.Warning("Column '{0}' specified multiple time.", col);
+                }
+                var colArr = colSet.ToArray();
+                var colSizes = new int[colArr.Length];
+                var scores = MutualInformationFeatureSelectionUtils.TrainCore(_host, input, _labelColumn, colArr, _numBins, colSizes);
                 sw.Stop();
                 ch.Info("Finished mutual information computation in {0}", sw.Elapsed);
 
@@ -139,10 +138,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
                 (string input, string output)[] copyColumnPairs;
-                CreateDropAndCopyColumns(_columns.Length, scores, threshold, tiedScoresToKeep, _columns, out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
+                CreateDropAndCopyColumns(colArr.Length, scores, threshold, tiedScoresToKeep, _columns.Where(col => colSet.Contains(col.input)).ToArray(), out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
 
                 for (int i = 0; i < selectedCount.Length; i++)
-                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], _columns[i].input);
+                    ch.Info("Selected {0} slots out of {1} in column '{2}'", selectedCount[i], colSizes[i], colArr[i]);
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
                 if (dropSlotsColumns.Length <= 0)
