@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema.Column[] GetOutputColumns()
             {
-                if (_outputColumns != null)
+                if (_outputColumns == null)
                     _outputColumns = GetOutputColumnsCore();
                 return _outputColumns;
             }
