@@ -64,11 +64,6 @@ namespace Microsoft.ML.Runtime.Data
             public const string IsUserVisible = "IsUserVisible";
 
             /// <summary>
-            /// Metadata kind that indicates if a column has missing values. The value is typically a Bool to allow for unknown status.
-            /// </summary>
-            public const string HasMissingValues = "HasMissingValues";
-
-            /// <summary>
             /// Metadata kind for the label values used in training to be used for the predicted label.
             /// The value is typically a fixed-sized vector of Text.
             /// </summary>
@@ -325,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
 
-        public static bool HasKeyNames(this Schema schema, int col, int keyCount)
+        public static bool HasKeyValues(this Schema schema, int col, int keyCount)
         {
             if (keyCount == 0)
                 return false;
@@ -336,6 +331,14 @@ namespace Microsoft.ML.Runtime.Data
                 && type.IsVector
                 && type.VectorSize == keyCount
                 && type.ItemType.IsText;
+        }
+
+        [BestFriend]
+        internal static bool HasKeyValues(this SchemaShape.Column col)
+        {
+            return col.Metadata.TryFindColumn(Kinds.KeyValues, out var metaCol)
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector
+                && metaCol.ItemType.IsText;
         }
 
         /// <summary>

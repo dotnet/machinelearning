@@ -125,21 +125,16 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Array.Copy(Items, start + _base, dst, index, count);
         }
 
-        public void CopyFrom(Float[] src, int index, int count)
+        public void CopyFrom(ReadOnlySpan<Float> src)
         {
-            Contracts.Assert(0 <= count && count <= _size);
-            Contracts.Assert(src != null);
-            Contracts.Assert(0 <= index && index <= src.Length - count);
-            Array.Copy(src, index, Items, _base, count);
+            Contracts.Assert(src.Length <= _size);
+            src.CopyTo(Items.AsSpan(_base));
         }
 
-        public void CopyFrom(int start, Float[] src, int index, int count)
+        public void CopyFrom(int start, ReadOnlySpan<Float> src)
         {
-            Contracts.Assert(0 <= count);
-            Contracts.Assert(0 <= start && start <= _size - count);
-            Contracts.Assert(src != null);
-            Contracts.Assert(0 <= index && index <= src.Length - count);
-            Array.Copy(src, index, Items, start + _base, count);
+            Contracts.Assert(0 <= start && start <= _size - src.Length);
+            src.CopyTo(Items.AsSpan(start + _base));
         }
 
         // Copies values from a sparse vector.

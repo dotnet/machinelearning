@@ -457,19 +457,19 @@ namespace Microsoft.ML.Runtime.Learners
                 for (int i = 0; i < Predictors.Length; i++)
                     maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
 
+                var buffer = new float[maps.Length];
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
 
-                        var values = dst.Values;
-                        if (Utils.Size(values) < maps.Length)
-                            values = new float[maps.Length];
-
                         var tmp = src;
-                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref values[i]));
-                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
+                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
+
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 
@@ -526,25 +526,25 @@ namespace Microsoft.ML.Runtime.Learners
                 for (int i = 0; i < Predictors.Length; i++)
                     maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
+                var buffer = new float[maps.Length];
                 return
                     (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
 
-                        var values = dst.Values;
-                        if (Utils.Size(values) < maps.Length)
-                            values = new float[maps.Length];
-
                         var tmp = src;
                         Parallel.For(0, maps.Length,
                             i =>
                             {
                                 float score = 0;
-                                maps[i](in tmp, ref score, ref values[i]);
+                                maps[i](in tmp, ref score, ref buffer[i]);
                             });
-                        Normalize(values, maps.Length);
-                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
+                        Normalize(buffer, maps.Length);
+
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 

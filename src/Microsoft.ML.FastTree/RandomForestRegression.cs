@@ -120,12 +120,10 @@ namespace Microsoft.ML.Trainers.FastTree
                     var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < quantiles.Length)
-                        values = new float[quantiles.Length];
+                    var editor = VBufferEditor.Create(ref dst, quantiles.Length);
                     for (int i = 0; i < quantiles.Length; i++)
-                        values[i] = qdist.GetQuantile((float)quantiles[i]);
-                    dst = new VBuffer<float>(quantiles.Length, values, dst.Indices);
+                        editor.Values[i] = qdist.GetQuantile((float)quantiles[i]);
+                    dst = editor.Commit();
                 };
         }
 

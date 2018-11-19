@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +20,7 @@ namespace Microsoft.ML.Legacy
         internal PredictionModel(Stream stream)
         {
             _env = new MLContext();
+            AssemblyRegistration.RegisterAssemblies(_env);
             PredictorModel = new TransformModel(_env, stream);
         }
 

@@ -490,12 +490,7 @@ namespace Microsoft.ML.Runtime.Data
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < reconciledSlotNames.Length)
-                        values = new ReadOnlyMemory<char>[reconciledSlotNames.Length];
-
-                    Array.Copy(reconciledSlotNames.Values, values, reconciledSlotNames.Length);
-                    dst = new VBuffer<ReadOnlyMemory<char>>(reconciledSlotNames.Length, values, dst.Indices);
+                    reconciledSlotNames.CopyTo(ref dst);
                 };
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
@@ -510,13 +505,11 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
+                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
 
-                            var values = dst.Values;
-                            if (Utils.Size(values) < slotNames.Count)
-                                values = new T[slotNames.Count];
                             foreach (var kvp in src.Items())
-                                values[map[kvp.Key]] = kvp.Value;
-                            dst = new VBuffer<T>(slotNames.Count, values, dst.Indices);
+                                editor.Values[map[kvp.Key]] = kvp.Value;
+                            dst = editor.Commit();
                         };
                 }
                 else
@@ -536,15 +529,13 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
-                            var values = dst.Values;
-                            if (Utils.Size(values) < slotNames.Count)
-                                values = new T[slotNames.Count];
+                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
 
                             foreach (var kvp in src.Items(true))
-                                values[map[kvp.Key]] = kvp.Value;
+                                editor.Values[map[kvp.Key]] = kvp.Value;
                             foreach (var j in naIndices)
-                                values[j] = def;
-                            dst = new VBuffer<T>(slotNames.Count, values, dst.Indices);
+                                editor.Values[j] = def;
+                            dst = editor.Commit();
                         };
                 }
 
@@ -836,7 +827,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
+                            if (dv.Schema.HasKeyValues(i, type.ItemType.KeyCount))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema.HasSlotNames(i, type.VectorSize))
@@ -865,9 +856,9 @@ namespace Microsoft.ML.Runtime.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema.HasKeyValues(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyValues(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -1027,12 +1018,10 @@ namespace Microsoft.ML.Runtime.Data
                         schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                     else
                     {
-                        var namesArray = names.Values;
-                        if (Utils.Size(namesArray) < type.VectorSize)
-                            namesArray = new ReadOnlyMemory<char>[type.VectorSize];
+                        var editor = VBufferEditor.Create(ref names, type.VectorSize);
                         for (int j = 0; j < type.VectorSize; j++)
-                            namesArray[j] = string.Format("Label_{0}", j).AsMemory();
-                        names = new VBuffer<ReadOnlyMemory<char>>(type.VectorSize, namesArray);
+                            editor.Values[j] = string.Format("Label_{0}", j).AsMemory();
+                        names = editor.Commit();
                     }
                     foreach (var name in names.Items(all: true))
                         metricNames.Add(string.Format("{0}{1}", metricName, name.Value));

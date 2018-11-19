@@ -1,14 +1,15 @@
-﻿using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class MinMaxNormalizerExample
+    public class NormalizerExample
     {
-        public static void MinMaxNormalizer()
+        public static void Normalizer()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
@@ -30,7 +31,19 @@ namespace Microsoft.ML.Samples.Dynamic
             // A pipeline for normalizing the Induced column.
             var pipeline = ml.Transforms.Normalize("Induced");
             // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
-            var transformedData = pipeline.Fit(trainData).Transform(trainData);
+            var transformer = pipeline.Fit(trainData);
+
+            var modelParams = transformer.Columns
+                                         .First(x => x.Output == "Induced")
+                                         .ModelParameters as NormalizingTransformer.AffineNormalizerModelParameters<float>;
+
+            Console.WriteLine($"The normalization parameters are: Scale = {modelParams.Scale} and Offset = {modelParams.Offset}");
+            //Preview 
+            //
+            //The normalization parameters are: Scale = 0.5 and Offset = 0"
+
+            var transformedData = transformer.Transform(trainData);
+
             // Getting the data of the newly created column, so we can preview it.
             var normalizedColumn = transformedData.GetColumn<float>(ml, "Induced");
 
@@ -56,7 +69,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Using log scale as the normalization mode. 
             var multiColPipeline = ml.Transforms.Normalize(NormalizingEstimator.NormalizerMode.LogMeanVariance, new[] { ("Induced", "LogInduced"), ("Spontaneous", "LogSpontaneous") });
             // The transformed data.
-            var multiColtransformedData = multiColPipeline.Fit(trainData).Transform(trainData);
+            var multiColtransformer = multiColPipeline.Fit(trainData);
+            var multiColtransformedData = multiColtransformer.Transform(trainData);
 
             // Getting the newly created columns. 
             var normalizedInduced = multiColtransformedData.GetColumn<float>(ml, "LogInduced");
@@ -81,6 +95,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0
             // 0
             // 0.1586974
+            
+            // Inspect the weights of normalizing the columns
+            var multiColModelParams = multiColtransformer.Columns
+                .First(x=> x.Output == "LogInduced")
+                .ModelParameters as NormalizingTransformer.CdfNormalizerModelParameters<float>;
+
+            Console.WriteLine($"The normalization parameters are: Mean = {multiColModelParams.Mean} and Stddev = {multiColModelParams.Stddev}");
         }
     }
 }

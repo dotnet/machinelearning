@@ -303,14 +303,11 @@ namespace Microsoft.ML.Runtime.Data
                 public void GetTreeValues(ref VBuffer<float> dst)
                 {
                     EnsureCachedPosition();
-                    var vals = dst.Values;
-                    if (Utils.Size(vals) < _numTrees)
-                        vals = new float[_numTrees];
-
+                    var editor = VBufferEditor.Create(ref dst, _numTrees);
                     for (int i = 0; i < _numTrees; i++)
-                        vals[i] = _ensemble.GetLeafValue(i, _leafIds[i]);
+                        editor.Values[i] = _ensemble.GetLeafValue(i, _leafIds[i]);
 
-                    dst = new VBuffer<float>(_numTrees, vals, dst.Indices);
+                    dst = editor.Commit();
                 }
 
                 public void GetLeafIds(ref VBuffer<float> dst)
@@ -484,34 +481,28 @@ namespace Microsoft.ML.Runtime.Data
         {
             var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
-            var names = dst.Values;
-            if (Utils.Size(names) < numTrees)
-                names = new ReadOnlyMemory<char>[numTrees];
-
+            var editor = VBufferEditor.Create(ref dst, numTrees);
             for (int t = 0; t < numTrees; t++)
-                names[t] = string.Format("Tree{0:000}", t).AsMemory();
+                editor.Values[t] = string.Format("Tree{0:000}", t).AsMemory();
 
-            dst = new VBuffer<ReadOnlyMemory<char>>(numTrees, names, dst.Indices);
+            dst = editor.Commit();
         }
 
         private void GetLeafSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
-            var names = dst.Values;
-            if (Utils.Size(names) < _totalLeafCount)
-                names = new ReadOnlyMemory<char>[_totalLeafCount];
-
+            var editor = VBufferEditor.Create(ref dst, _totalLeafCount);
             int i = 0;
             int t = 0;
             foreach (var tree in ((ITreeEnsemble)_ensemble).GetTrees())
             {
                 for (int l = 0; l < tree.NumLeaves; l++)
-                    names[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
+                    editor.Values[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == _totalLeafCount);
-            dst = new VBuffer<ReadOnlyMemory<char>>(_totalLeafCount, names, dst.Indices);
+            dst = editor.Commit();
         }
 
         private void GetPathSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
@@ -519,9 +510,7 @@ namespace Microsoft.ML.Runtime.Data
             var numTrees = _ensemble.TrainedEnsemble.NumTrees;
 
             var totalNodeCount = _totalLeafCount - numTrees;
-            var names = dst.Values;
-            if (Utils.Size(names) < totalNodeCount)
-                names = new ReadOnlyMemory<char>[totalNodeCount];
+            var editor = VBufferEditor.Create(ref dst, totalNodeCount);
 
             int i = 0;
             int t = 0;
@@ -529,11 +518,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var numLeaves = tree.NumLeaves;
                 for (int l = 0; l < tree.NumLeaves - 1; l++)
-                    names[i++] = string.Format("Tree{0:000}Node{1:000}", t, l).AsMemory();
+                    editor.Values[i++] = string.Format("Tree{0:000}Node{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == totalNodeCount);
-            dst = new VBuffer<ReadOnlyMemory<char>>(totalNodeCount, names, dst.Indices);
+            dst = editor.Commit();
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)

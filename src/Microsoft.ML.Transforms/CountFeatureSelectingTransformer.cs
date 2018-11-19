@@ -371,7 +371,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     () =>
                     {
                         getter(ref t);
-                        _buffer.Values[0] = t;
+                        VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = t;
                     };
                 _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
                 if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))

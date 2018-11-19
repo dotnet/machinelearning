@@ -3,9 +3,6 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.StaticPipe;
 using System;
 
-// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
-// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
-// line by line. 
 namespace Microsoft.ML.Samples.Static
 {
     public class LightGbmRegressionExample
@@ -54,8 +51,9 @@ namespace Microsoft.ML.Samples.Static
             VBuffer<float> weights = default;
             pred.GetFeatureWeights(ref weights);
 
-            Console.WriteLine($"weight 0 - {weights.Values[0]}");
-            Console.WriteLine($"weight 1 - {weights.Values[1]}");
+            var weightsValues = weights.GetValues();
+            Console.WriteLine($"weight 0 - {weightsValues[0]}");
+            Console.WriteLine($"weight 1 - {weightsValues[1]}");
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);

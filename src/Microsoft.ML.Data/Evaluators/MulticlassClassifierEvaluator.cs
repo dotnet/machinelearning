@@ -488,13 +488,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var values = slotNames.Values;
-                if (Utils.Size(values) < ClassNames.Length)
-                    values = new ReadOnlyMemory<char>[ClassNames.Length];
-
+                var editor = VBufferEditor.Create(ref slotNames, ClassNames.Length);
                 for (int i = 0; i < ClassNames.Length; i++)
-                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
+                    editor.Values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = editor.Commit();
             }
         }
 
@@ -805,12 +802,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClasses)
-                            values = new float[_numClasses];
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<float>(_numClasses, values);
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -821,12 +816,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClasses)
-                            values = new uint[_numClasses];
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            values[i] = (uint)sortedIndices[i] + 1;
-                        dst = new VBuffer<uint>(_numClasses, values);
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClassesCol] = topKClassesFn;
             }
@@ -886,12 +879,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < numTopClasses)
-                        values = new ReadOnlyMemory<char>[numTopClasses];
+                    var editor = VBufferEditor.Create(ref dst, numTopClasses);
                     for (int i = 1; i <= numTopClasses; i++)
-                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
+                        editor.Values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -900,12 +891,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _numClasses)
-                        values = new ReadOnlyMemory<char>[_numClasses];
+                    var editor = VBufferEditor.Create(ref dst, _numClasses);
                     for (int i = 0; i < _numClasses; i++)
-                        values[i] = _classNames[i];
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
+                        editor.Values[i] = _classNames[i];
+                    dst = editor.Commit();
                 };
         }
 
@@ -1102,7 +1091,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType.IsKey && (!perInst.Schema.HasKeyValues(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
