@@ -690,6 +690,102 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeCustomStopwordsRemover()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-dataFile.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "When does Fred McGriff of the Padres become a free agent?",
+                "Is erythromycin effective in treating pneumonia?"
+            });
+
+            var stopwordsList = new[]
+                {
+                    "When",
+                    "does",
+                    "of",
+                    "the",
+                    "Padres",
+                    "become",
+                    "a",
+                    "Is",
+                    "effective",
+                    "in"
+                };
+            string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
+            File.WriteAllLines(stopwordsFile, stopwordsList);
+
+            Action<IDataLoader> action
+                = pipe =>
+                {
+                    VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];
+                    ReadOnlyMemory<char>[] values = { "Fred".AsMemory(), "McGriff".AsMemory(), "free".AsMemory(), "agent".AsMemory() };
+                    expected[0] = new VBuffer<ReadOnlyMemory<char>>(values.Length, values);
+                    ReadOnlyMemory<char>[] values1 = { "erythromycin".AsMemory(), "treating".AsMemory(), "pneumonia".AsMemory() };
+                    expected[1] = new VBuffer<ReadOnlyMemory<char>>(values1.Length, values1);
+
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        int col;
+                        bool res = c.Schema.TryGetColumnIndex("T", out col);
+                        if (!Check(res, "Column T not found!"))
+                            return;
+                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col);
+                        var buffer = default(VBuffer<ReadOnlyMemory<char>>);
+                        int index = 0;
+                        while (c.MoveNext())
+                        {
+                            getter(ref buffer);
+                            CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
+                        }
+                    }
+                };
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{data={0} col=T}}", stopwordsFile),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{stopwords={0} col=T}}", string.Join(",", stopwordsList)),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeTokenizerAndStopWords()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "Multi-Languages.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "1 \"Oh, no,\" she's saying, \"our $400 blender can't handle something this hard!\"	English",
+                "2 Vous êtes au volant d'une voiture et vous roulez à grande vitesse	French",
+                "3 Lange nichts voneinander gehört! Es freut mich, dich kennen zu lernen	German",
+                "4 Goedemorgen, Waar kom je vandaan? Ik kom uit Nederlands	Dutch",
+                "5 Ciao, Come va? Bene grazie. E tu? Quanto tempo!	Italian",
+                "六 初めまして 良い一日を ごきげんよう！ さようなら	Japanese",
+                "6 ¡Hola! ¿Cómo te llamas? Mi nombre es ABELE	Spanish"
+            });
+
+            TestCore(dataFile, true,
+                new[] {
+                    "Loader=Text{col=Source:TXT:0 col=Lang:TXT:1 sep=tab}",
+                    "xf=Token{col=SourceTokens:Source}",
+                    "xf=StopWords{langscol=Lang col=Output:SourceTokens}"
+                }, roundTripText: false);
+
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
