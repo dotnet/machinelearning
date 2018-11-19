@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -10,7 +11,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
     internal abstract class EntryPointGeneratorBase : GeneratorBase
     {
-        protected override void GenerateContent(IndentingTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
+        protected override void GenerateContent(IndentedTextWriter writer, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             GenerateSummaryComment(writer, component);
             GenerateReturnComment(writer);
@@ -21,9 +22,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             GenerateImplCall(writer, prefix, component);
         }
 
-        protected abstract void GenerateSummaryComment(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component);
+        protected abstract void GenerateSummaryComment(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component);
 
-        protected void GenerateSummaryComment(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
+        protected void GenerateSummaryComment(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -31,18 +32,18 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             GenerateParameterComment(w, arg.LongName + argSuffix, arg.HelpText);
         }
 
-        protected void GenerateParameterComment(IndentingTextWriter w, string name, string description)
+        protected void GenerateParameterComment(IndentedTextWriter w, string name, string description)
         {
             w.WriteLine("/// <param name=\"{0}\">{1}</param>", name, description);
         }
 
-        protected abstract void GenerateReturnComment(IndentingTextWriter w);
+        protected abstract void GenerateReturnComment(IndentedTextWriter w);
 
-        protected abstract void GenerateModuleAttribute(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId);
+        protected abstract void GenerateModuleAttribute(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId);
 
-        protected abstract void GenerateOutputPort(IndentingTextWriter w);
+        protected abstract void GenerateOutputPort(IndentedTextWriter w);
 
-        protected void GenerateModuleType(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
+        protected void GenerateModuleType(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component)
         {
             string cat;
             if (component.IsOfType(typeof(SignatureBinaryClassifierTrainer)))
@@ -58,9 +59,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("[DataLabModuleType(Type = ModuleType.{0})]", cat);
         }
 
-        protected abstract void GenerateMethodSignature(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component);
+        protected abstract void GenerateMethodSignature(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component);
 
-        protected void GenerateMethodSignature(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, ref string linePrefix, string argSuffix)
+        protected void GenerateMethodSignature(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, ref string linePrefix, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected void GenerateDataLabParameterAttribute(IndentingTextWriter w, string friendlyName,
+        protected void GenerateDataLabParameterAttribute(IndentedTextWriter w, string friendlyName,
             bool isOptional, string displayName, object defaultValue, string description, string parent = null,
             string parentType = null, string parentValue = null)
         {
@@ -93,9 +94,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 friendlyName, isOptional ? "true" : "false", displayName, p, pv, dv, description);
         }
 
-        protected abstract void GenerateImplCall(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component);
+        protected abstract void GenerateImplCall(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component);
 
-        protected void GenerateImplCall(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
+        protected void GenerateImplCall(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -119,7 +120,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             return base.GetCSharpTypeName(type);
         }
 
-        protected override void GenerateUsings(IndentingTextWriter w)
+        protected override void GenerateUsings(IndentedTextWriter w)
         {
             w.WriteLine("using System;");
             w.WriteLine("using System.Diagnostics.CodeAnalysis;");

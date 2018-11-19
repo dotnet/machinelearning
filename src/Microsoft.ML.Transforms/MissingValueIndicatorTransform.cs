@@ -183,17 +183,15 @@ namespace Microsoft.ML.Transforms
             if (size == 0)
                 throw MetadataUtils.ExceptGetMetadata();
 
-            var values = dst.Values;
-            if (Utils.Size(values) < size)
-                values = new ReadOnlyMemory<char>[size];
+            var editor = VBufferEditor.Create(ref dst, size);
 
             var type = Infos[iinfo].TypeSrc;
             if (!type.IsVector)
             {
                 Host.Assert(_types[iinfo].VectorSize == 2);
                 var columnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
-                values[0] = columnName.AsMemory();
-                values[1] = (columnName + IndicatorSuffix).AsMemory();
+                editor.Values[0] = columnName.AsMemory();
+                editor.Values[1] = (columnName + IndicatorSuffix).AsMemory();
             }
             else
             {
@@ -230,13 +228,13 @@ namespace Microsoft.ML.Transforms
                     sb.Append(IndicatorSuffix);
                     var str = sb.ToString();
 
-                    values[slot++] = str.AsMemory().Slice(0, len);
-                    values[slot++] = str.AsMemory();
+                    editor.Values[slot++] = str.AsMemory().Slice(0, len);
+                    editor.Values[slot++] = str.AsMemory();
                 }
                 Host.Assert(slot == size);
             }
 
-            dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
+            dst = editor.Commit();
         }
 
         protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)

@@ -496,7 +496,11 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(type is VectorType vecType && vecType.ItemType is TextType && vecType.Size == 10);
             var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countCol, ref slotNames);
-            Assert.True(slotNames.Values.Select((s, i) => ReadOnlyMemoryUtils.EqualsStr(i.ToString(), s)).All(x => x));
+            var slotNameValues = slotNames.GetValues();
+            for (int i = 0; i < slotNameValues.Length; i++)
+            {
+                Assert.True(ReadOnlyMemoryUtils.EqualsStr(i.ToString(), slotNameValues[i]));
+            }
             using (var curs = confusion.GetRowCursor(col => true))
             {
                 var countGetter = curs.GetGetter<VBuffer<double>>(countCol);
@@ -783,9 +787,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 getter(ref stdev);
                 foldGetter(ref fold);
                 Assert.True(ReadOnlyMemoryUtils.EqualsStr("Standard Deviation", fold));
-                Assert.Equal(2.462, stdev.Values[0], 3);
-                Assert.Equal(2.763, stdev.Values[1], 3);
-                Assert.Equal(3.273, stdev.Values[2], 3);
+                var stdevValues = stdev.GetValues();
+                Assert.Equal(2.462, stdevValues[0], 3);
+                Assert.Equal(2.763, stdevValues[1], 3);
+                Assert.Equal(3.273, stdevValues[2], 3);
 
                 var sumBldr = new BufferBuilder<double>(R8Adder.Instance);
                 sumBldr.Reset(avg.Length, true);
@@ -801,8 +806,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
                 var sum = default(VBuffer<double>);
                 sumBldr.GetResult(ref sum);
-                for (int i = 0; i < avg.Length; i++)
-                    Assert.Equal(avg.Values[i], sum.Values[i] / 2);
+
+                var avgValues = avg.GetValues();
+                var sumValues = sum.GetValues();
+                for (int i = 0; i < avgValues.Length; i++)
+                    Assert.Equal(avgValues[i], sumValues[i] / 2);
                 b = cursor.MoveNext();
                 Assert.False(b);
             }

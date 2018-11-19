@@ -57,19 +57,21 @@ namespace Microsoft.ML.Scenarios
                 VBuffer<float> c = default;
                 cgetter(ref c);
 
-                Assert.Equal(1.0 * 1.0 + 2.0 * 3.0, c.Values[0]);
-                Assert.Equal(1.0 * 2.0 + 2.0 * 4.0, c.Values[1]);
-                Assert.Equal(3.0 * 1.0 + 4.0 * 3.0, c.Values[2]);
-                Assert.Equal(3.0 * 2.0 + 4.0 * 4.0, c.Values[3]);
+                var cValues = c.GetValues();
+                Assert.Equal(1.0 * 1.0 + 2.0 * 3.0, cValues[0]);
+                Assert.Equal(1.0 * 2.0 + 2.0 * 4.0, cValues[1]);
+                Assert.Equal(3.0 * 1.0 + 4.0 * 3.0, cValues[2]);
+                Assert.Equal(3.0 * 2.0 + 4.0 * 4.0, cValues[3]);
 
                 Assert.True(cursor.MoveNext());
                 c = default;
                 cgetter(ref c);
 
-                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, c.Values[0]);
-                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, c.Values[1]);
-                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, c.Values[2]);
-                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, c.Values[3]);
+                cValues = c.GetValues();
+                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, cValues[0]);
+                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, cValues[1]);
+                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, cValues[2]);
+                Assert.Equal(2.0 * 3.0 + 2.0 * 3.0, cValues[3]);
 
                 Assert.False(cursor.MoveNext());
             }
@@ -214,7 +216,7 @@ namespace Microsoft.ML.Scenarios
             VBuffer<ReadOnlyMemory<char>> inputOps = default;
             schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
             Assert.Equal(1, inputOps.Length);
-            Assert.Equal("conv2d/kernel", inputOps.Values[0].ToString());
+            Assert.Equal("conv2d/kernel", inputOps.GetValues()[0].ToString());
 
             Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
             type = (VectorType)schema.GetColumnType(col);
@@ -228,8 +230,8 @@ namespace Microsoft.ML.Scenarios
             Assert.NotNull(metadataType);
             schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
             Assert.Equal(2, inputOps.Length);
-            Assert.Equal("reshape/Reshape", inputOps.Values[0].ToString());
-            Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.Values[1].ToString());
+            Assert.Equal("reshape/Reshape", inputOps.GetValues()[0].ToString());
+            Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.GetValues()[1].ToString());
 
             Assert.True(schema.TryGetColumnIndex("Softmax", out col));
             type = (VectorType)schema.GetColumnType(col);
@@ -243,7 +245,7 @@ namespace Microsoft.ML.Scenarios
             Assert.NotNull(metadataType);
             schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
             Assert.Equal(1, inputOps.Length);
-            Assert.Equal("sequential/dense_1/BiasAdd", inputOps.Values[0].ToString());
+            Assert.Equal("sequential/dense_1/BiasAdd", inputOps.GetValues()[0].ToString());
 
             model_location = "model_matmul/frozen_saved_model.pb";
             schema = TensorFlowUtils.GetModelSchema(env, model_location);
@@ -364,7 +366,7 @@ namespace Microsoft.ML.Scenarios
                     {
                         var trainedBias = default(VBuffer<float>);
                         getter(ref trainedBias);
-                        Assert.NotEqual(trainedBias.Values, new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f });
+                        Assert.NotEqual(trainedBias.GetValues().ToArray(), new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f });
                     }
                 }
             }

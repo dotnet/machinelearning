@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
             private readonly IHost _host;
             private readonly BinFinderBase _binFinder;
             private int _numBins;
-            private int[] _labels;
+            private VBuffer<int> _labels; // always dense
             private int _numLabels;
             private int[][] _contingencyTable;
             private int[] _labelSums;
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Transforms
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
-                    _labels = (int[])methodInfo.Invoke(this, parameters);
+                    _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
                     _numLabels = labelType.KeyCount + 1;
 
                     // No need to densify or shift in this case.
@@ -448,29 +448,25 @@ namespace Microsoft.ML.Transforms
                 // Densify and shift labels.
                 VBufferUtils.Densify(ref labels);
                 Contracts.Assert(labels.IsDense);
-                _labels = labels.Values;
-                if (labels.Length < _labels.Length)
-                    Array.Resize(ref _labels, labels.Length);
-                for (int i = 0; i < _labels.Length; i++)
+                var labelsEditor = VBufferEditor.CreateFromBuffer(ref labels);
+                for (int i = 0; i < labels.Length; i++)
                 {
-                    _labels[i] -= min;
-                    Contracts.Assert(_labels[i] < _numLabels);
+                    labelsEditor.Values[i] -= min;
+                    Contracts.Assert(labelsEditor.Values[i] < _numLabels);
                 }
+                _labels = labelsEditor.Commit();
             }
 
-            private delegate int[] KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);
+            private delegate VBuffer<int> KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);
 
-            private int[] GetKeyLabels<T>(Transposer trans, int labelCol, ColumnType labeColumnType)
+            private VBuffer<int> GetKeyLabels<T>(Transposer trans, int labelCol, ColumnType labelColumnType)
             {
                 var tmp = default(VBuffer<T>);
                 var labels = default(VBuffer<int>);
                 trans.GetSingleSlotValue(labelCol, ref tmp);
-                BinKeys<T>(labeColumnType)(in tmp, ref labels);
+                BinKeys<T>(labelColumnType)(in tmp, ref labels);
                 VBufferUtils.Densify(ref labels);
-                var values = labels.Values;
-                if (labels.Length < values.Length)
-                    Array.Resize(ref values, labels.Length);
-                return values;
+                return labels;
             }
 
             /// <summary>
@@ -609,13 +605,15 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private void FillTable(in VBuffer<int> features, int offset, int numFeatures)
             {
+                Contracts.Assert(_labels.IsDense);
                 Contracts.Assert(_labels.Length == features.Length);
                 var featureValues = features.GetValues();
+                var labelsValues = _labels.GetValues();
                 if (features.IsDense)
                 {
-                    for (int i = 0; i < _labels.Length; i++)
+                    for (int i = 0; i < labelsValues.Length; i++)
                     {
-                        var label = _labels[i];
+                        var label = labelsValues[i];
                         var feature = featureValues[i] - offset;
                         Contracts.Assert(0 <= label && label < _numLabels);
                         Contracts.Assert(0 <= feature && feature < numFeatures);
@@ -626,9 +624,9 @@ namespace Microsoft.ML.Transforms
 
                 var featureIndices = features.GetIndices();
                 int ii = 0;
-                for (int i = 0; i < _labels.Length; i++)
+                for (int i = 0; i < labelsValues.Length; i++)
                 {
-                    var label = _labels[i];
+                    var label = labelsValues[i];
                     int feature;
                     if (ii == featureIndices.Length || i < featureIndices[ii])
                         feature = -offset;

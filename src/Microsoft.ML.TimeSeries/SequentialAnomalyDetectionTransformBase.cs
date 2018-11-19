@@ -363,15 +363,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private protected override void SetNaOutput(ref VBuffer<Double> dst)
             {
-                var values = dst.Values;
                 var outputLength = Parent._outputLength;
-                if (Utils.Size(values) < outputLength)
-                    values = new Double[outputLength];
+                var editor = VBufferEditor.Create(ref dst, outputLength);
 
                 for (int i = 0; i < outputLength; ++i)
-                    values[i] = Double.NaN;
+                    editor.Values[i] = Double.NaN;
 
-                dst = new VBuffer<Double>(Utils.Size(values), values, dst.Indices);
+                dst = editor.Commit();
             }
 
             private protected override sealed void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
@@ -379,65 +377,62 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var outputLength = Parent._outputLength;
                 Host.Assert(outputLength >= 2);
 
-                var result = dst.Values;
-                if (Utils.Size(result) < outputLength)
-                    result = new Double[outputLength];
-
+                var result = VBufferEditor.Create(ref dst, outputLength);
                 float rawScore = 0;
 
                 for (int i = 0; i < outputLength; ++i)
-                    result[i] = Double.NaN;
+                    result.Values[i] = Double.NaN;
 
                 // Step 1: Computing the raw anomaly score
-                result[1] = ComputeRawAnomalyScore(ref input, windowedBuffer, iteration);
+                result.Values[1] = ComputeRawAnomalyScore(ref input, windowedBuffer, iteration);
 
-                if (Double.IsNaN(result[1]))
-                    result[0] = 0;
+                if (Double.IsNaN(result.Values[1]))
+                    result.Values[0] = 0;
                 else
                 {
                     if (WindowSize > 0)
                     {
                         // Step 2: Computing the p-value score
-                        rawScore = (float)result[1];
+                        rawScore = (float)result.Values[1];
                         if (Parent.ThresholdScore == AlertingScore.RawScore)
                         {
                             switch (Parent.Side)
                             {
                                 case AnomalySide.Negative:
-                                    rawScore = (float)(-result[1]);
+                                    rawScore = (float)(-result.Values[1]);
                                     break;
 
                                 case AnomalySide.Positive:
                                     break;
 
                                 default:
-                                    rawScore = (float)Math.Abs(result[1]);
+                                    rawScore = (float)Math.Abs(result.Values[1]);
                                     break;
                             }
                         }
                         else
                         {
-                            result[2] = ComputeKernelPValue(rawScore);
+                            result.Values[2] = ComputeKernelPValue(rawScore);
 
                             switch (Parent.Side)
                             {
                                 case AnomalySide.Negative:
-                                    result[2] = 1 - result[2];
+                                    result.Values[2] = 1 - result.Values[2];
                                     break;
 
                                 case AnomalySide.Positive:
                                     break;
 
                                 default:
-                                    result[2] = Math.Min(result[2], 1 - result[2]);
+                                    result.Values[2] = Math.Min(result.Values[2], 1 - result.Values[2]);
                                     break;
                             }
 
                             // Keeping the p-value in the safe range
-                            if (result[2] < MinPValue)
-                                result[2] = MinPValue;
-                            else if (result[2] > MaxPValue)
-                                result[2] = MaxPValue;
+                            if (result.Values[2] < MinPValue)
+                                result.Values[2] = MinPValue;
+                            else if (result.Values[2] > MaxPValue)
+                                result.Values[2] = MaxPValue;
 
                             _rawScoreBuffer.AddLast(rawScore);
 
@@ -448,11 +443,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                 switch (Parent.Martingale)
                                 {
                                     case MartingaleType.Power:
-                                        martingaleUpdate = Parent.LogPowerMartigaleBettingFunc(result[2], Parent.PowerMartingaleEpsilon);
+                                        martingaleUpdate = Parent.LogPowerMartigaleBettingFunc(result.Values[2], Parent.PowerMartingaleEpsilon);
                                         break;
 
                                     case MartingaleType.Mixture:
-                                        martingaleUpdate = Parent.LogMixtureMartigaleBettingFunc(result[2]);
+                                        martingaleUpdate = Parent.LogMixtureMartigaleBettingFunc(result.Values[2]);
                                         break;
                                 }
 
@@ -469,7 +464,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                     _logMartingaleUpdateBuffer.AddLast(martingaleUpdate);
                                 }
 
-                                result[3] = Math.Exp(_logMartingaleValue);
+                                result.Values[3] = Math.Exp(_logMartingaleValue);
                             }
                         }
                     }
@@ -485,10 +480,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                 alert = rawScore >= Parent.AlertThreshold;
                                 break;
                             case AlertingScore.PValueScore:
-                                alert = result[2] <= Parent.AlertThreshold;
+                                alert = result.Values[2] <= Parent.AlertThreshold;
                                 break;
                             case AlertingScore.MartingaleScore:
-                                alert = (Parent.Martingale != MartingaleType.None) && (result[3] >= Parent.AlertThreshold);
+                                alert = (Parent.Martingale != MartingaleType.None) && (result.Values[3] >= Parent.AlertThreshold);
 
                                 if (alert)
                                 {
@@ -504,10 +499,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                         }
                     }
 
-                    result[0] = Convert.ToDouble(alert);
+                    result.Values[0] = Convert.ToDouble(alert);
                 }
 
-                dst = new VBuffer<Double>(outputLength, result, dst.Indices);
+                dst = result.Commit();
             }
 
             private protected override sealed void InitializeStateCore()

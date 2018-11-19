@@ -179,12 +179,13 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Compute deviance: start with loss function.
             float deviance = (float)(2 * loss * WeightSum);
+            var currentWeightsValues = CurrentWeights.GetValues();
 
             if (L2Weight > 0)
             {
                 // Need to subtract L2 regularization loss.
                 // The bias term is not regularized.
-                var regLoss = VectorUtils.NormSquared(CurrentWeights.Values, 1, CurrentWeights.Length - 1) * L2Weight;
+                var regLoss = VectorUtils.NormSquared(currentWeightsValues.Slice(1)) * L2Weight;
                 deviance -= regLoss;
             }
 
@@ -236,9 +237,9 @@ namespace Microsoft.ML.Runtime.Learners
                 weightIndices[0] = 0;
                 weightIndicesInvMap[0] = 0;
                 int j = 1;
-                for (int i = 1; i < CurrentWeights.Length; i++)
+                for (int i = 1; i < currentWeightsValues.Length; i++)
                 {
-                    if (CurrentWeights.Values[i] != 0)
+                    if (currentWeightsValues[i] != 0)
                     {
                         weightIndices[j] = i;
                         weightIndicesInvMap[i] = j++;
@@ -285,7 +286,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             // Initialize the remaining entries.
-            var bias = CurrentWeights.Values[0];
+            var bias = currentWeightsValues[0];
             using (var cursor = cursorFactory.Create())
             {
                 while (cursor.MoveNext())
