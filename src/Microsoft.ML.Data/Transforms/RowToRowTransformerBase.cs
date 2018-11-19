@@ -53,7 +53,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             protected readonly IHost Host;
             protected readonly Schema InputSchema;
-            protected readonly Schema.Column[] OutputColumns;
 
             protected MapperBase(IHost host, Schema inputSchema)
             {
@@ -61,24 +60,24 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckValue(inputSchema, nameof(inputSchema));
                 Host = host;
                 InputSchema = inputSchema;
-                OutputColumns = GetOutputColumnsCore();
             }
 
             protected abstract Schema.Column[] GetOutputColumnsCore();
 
-            public Schema.Column[] GetOutputColumns() => OutputColumns;
+            public Schema.Column[] GetOutputColumns() => GetOutputColumnsCore();
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
+                var outputColumns = GetOutputColumnsCore();
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
                 // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
                 // is no longer always possible. So, we relax the assert as below.
                 if (input.Schema is Schema s)
                     Contracts.Assert(s == InputSchema);
-                var result = new Delegate[OutputColumns.Length];
-                var disposers = new Action[OutputColumns.Length];
-                for (int i = 0; i < OutputColumns.Length; i++)
+                var result = new Delegate[outputColumns.Length];
+                var disposers = new Action[outputColumns.Length];
+                for (int i = 0; i < outputColumns.Length; i++)
                 {
                     if (!activeOutput(i))
                         continue;
