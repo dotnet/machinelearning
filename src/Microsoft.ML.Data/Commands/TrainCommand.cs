@@ -32,7 +32,8 @@ namespace Microsoft.ML.Runtime.Data
         Yes
     }
 
-    public sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
+    [BestFriend]
+    internal sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -202,7 +203,8 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static class TrainUtils
+    [BestFriend]
+    internal static class TrainUtils
     {
         public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {

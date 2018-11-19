@@ -1132,7 +1132,7 @@ var learningPipeline = reader.MakeNewEstimator()
         BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
         // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramTokenizingTransformer.WeightingCriteria.TfIdf),
+        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf),
 
         // NLP pipeline 4: word embeddings.
         Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractorTransformer.PretrainedModelKind.GloVeTwitter25D)
@@ -1186,7 +1186,7 @@ var dynamicPipeline =
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
     .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-    .Append(new NgramEstimator(mlContext, "MessageChars", "BagOfTrichar",
+    .Append(new NgramCountingEstimator(mlContext, "MessageChars", "BagOfTrichar",
                 ngramLength: 3, weighting: NgramTokenizingTransformer.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.

@@ -836,7 +836,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
+                            if (dv.Schema.HasKeyValues(i, type.ItemType.KeyCount))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema.HasSlotNames(i, type.VectorSize))
@@ -865,9 +865,9 @@ namespace Microsoft.ML.Runtime.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema.HasKeyValues(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyValues(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))

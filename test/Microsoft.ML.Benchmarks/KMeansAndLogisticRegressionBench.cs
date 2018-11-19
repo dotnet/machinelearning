@@ -3,14 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.KMeans;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -21,15 +15,10 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            using (var env = new ConsoleEnvironment(seed: 1, verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                // Pipeline
-                var loader = TextLoader.ReadFile(env,
-                    new TextLoader.Arguments()
-                    {
-                        HasHeader = true,
-                        Separator = ",",
-                        Column = new[] {
+            var ml = new MLContext(seed: 1);
+            // Pipeline
+
+            var input = ml.Data.ReadFromTextFile(new[] {
                             new TextLoader.Column("Label", DataKind.R4, 14),
                             new TextLoader.Column("CatFeatures", DataKind.TX,
                                 new [] {
@@ -44,30 +33,23 @@ namespace Microsoft.ML.Benchmarks
                                     new TextLoader.Range() { Min = 2, Max = 2 },
                                     new TextLoader.Range() { Min = 4, Max = 4 },
                                     new TextLoader.Range() { Min = 10, Max = 12 }
-                                })
-                        }
-                    }, new MultiFileSource(_dataPath));
+                                }),
+            }, _dataPath, s =>
+            {
+                s.HasHeader = true;
+                s.Separator = ",";
+            });
 
-                IDataView trans = new OneHotEncodingEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
+            var estimatorPipeline = ml.Transforms.Categorical.OneHotEncoding("CatFeatures")
+                .Append(ml.Transforms.Normalize("NumFeatures"))
+                .Append(ml.Transforms.Concatenate("Features", "NumFeatures", "CatFeatures"))
+                .Append(ml.Clustering.Trainers.KMeans("Features"))
+                .Append(ml.Transforms.Concatenate("Features", "Features", "Score"))
+                .Append(ml.BinaryClassification.Trainers.LogisticRegression(advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; }));
 
-                trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
-                trans = new ColumnConcatenatingTransformer(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
-                trans = TrainAndScoreTransformer.Create(env, new TrainAndScoreTransformer.Arguments
-                {
-                    Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
-                        new KMeansPlusPlusTrainer(host, "Features", advancedSettings: s=> 
-                        {
-                            s.K = 100;
-                        })),
-                    FeatureColumn = "Features"
-                }, trans);
-                trans = new ColumnConcatenatingTransformer(env, "Features", "Features", "Score").Transform(trans);
-
-                // Train
-                var trainer = new LogisticRegression(env, "Label", "Features", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
-                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-                return trainer.Train(trainRoles);
-            }
+            var model = estimatorPipeline.Fit(input);
+            // Return the last model in the chain.
+            return model.LastTransformer.Model;
         }
     }
 }

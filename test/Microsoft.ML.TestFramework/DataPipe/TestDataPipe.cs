@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string name = TestName + "4-out.txt";
             string pathOut = DeleteOutputPath("SavePipe", name);
             using (var writer = OpenWriter(pathOut))
-            using (Env.RedirectChannelOutput(writer, writer))
+            using (_env.RedirectChannelOutput(writer, writer))
             {
                 TestCore(pathData, true,
                     new[] {
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
-                Env.PrintProgress();
+                _env.PrintProgress();
             }
             CheckEqualityNormalized("SavePipe", name);
 

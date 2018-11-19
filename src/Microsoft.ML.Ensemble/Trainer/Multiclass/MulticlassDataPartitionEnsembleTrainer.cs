@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// <summary>
     /// A generic ensemble classifier for multi-class classification
     /// </summary>
-    public sealed class MulticlassDataPartitionEnsembleTrainer :
+    internal sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
         IMulticlassSubModelSelector, IMultiClassOutputCombiner>,
         IModelCombiner
@@ -49,6 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportMulticlassOutputCombinerFactory OutputCombiner = new MultiMedian.Arguments();
 
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             public IComponentFactory<ITrainer<TVectorPredictor>>[] BasePredictors;
 
