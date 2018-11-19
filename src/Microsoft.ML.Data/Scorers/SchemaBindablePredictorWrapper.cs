@@ -754,12 +754,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(Utils.Size(_slotNames) > 0);
 
                 int size = Utils.Size(_slotNames);
-                var values = dst.Values;
-                if (Utils.Size(values) < size)
-                    values = new ReadOnlyMemory<char>[size];
+                var editor = VBufferEditor.Create(ref dst, size);
                 for (int i = 0; i < _slotNames.Length; i++)
-                    values[i] = _slotNames[i].AsMemory();
-                dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
+                    editor.Values[i] = _slotNames[i].AsMemory();
+                dst = editor.Commit();
             }
         }
     }

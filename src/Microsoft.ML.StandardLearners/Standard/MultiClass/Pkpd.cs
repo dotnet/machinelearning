@@ -356,7 +356,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void ComputeProbabilities(Double[] buffer, ref float[] output)
+        private void ComputeProbabilities(Double[] buffer, Span<float> output)
         {
             // Compute the probabilities and store them in the beginning of buffer. Note that this is safe to do since
             // once we've computed the ith probability, we are totally done with the ith row and all previous rows
@@ -369,8 +369,7 @@ namespace Microsoft.ML.Runtime.Learners
                 sum += value;
             }
 
-            if (Utils.Size(output) < _numClasses)
-                output = new float[_numClasses];
+            Contracts.Assert(output.Length >= _numClasses);
 
             // Normalize.
             if (sum <= 0)
@@ -459,7 +458,6 @@ namespace Microsoft.ML.Runtime.Learners
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);
 
-                    var values = dst.Values;
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
                     {
@@ -470,9 +468,10 @@ namespace Microsoft.ML.Runtime.Learners
                     });
 
                     ReconcilePredictions(buffer);
-                    ComputeProbabilities(buffer, ref values);
 
-                    dst = new VBuffer<float>(_numClasses, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, _numClasses);
+                    ComputeProbabilities(buffer, editor.Values);
+                    dst = editor.Commit();
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }

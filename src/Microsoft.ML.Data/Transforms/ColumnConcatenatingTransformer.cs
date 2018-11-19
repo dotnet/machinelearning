@@ -731,15 +731,10 @@ namespace Microsoft.ML.Runtime.Data
                             }
                         }
 
-                        var values = dst.Values;
-                        var indices = dst.Indices;
                         if (dstCount <= dstLength / 2)
                         {
                             // Concatenate into a sparse representation.
-                            if (Utils.Size(values) < dstCount)
-                                values = new T[dstCount];
-                            if (Utils.Size(indices) < dstCount)
-                                indices = new int[dstCount];
+                            var editor = VBufferEditor.Create(ref dst, dstLength, dstCount);
 
                             int offset = 0;
                             int count = 0;
@@ -756,8 +751,8 @@ namespace Microsoft.ML.Runtime.Data
                                     {
                                         for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            values[count] = bufferValues[i];
-                                            indices[count++] = offset + i;
+                                            editor.Values[count] = bufferValues[i];
+                                            editor.Indices[count++] = offset + i;
                                         }
                                     }
                                     else
@@ -765,8 +760,8 @@ namespace Microsoft.ML.Runtime.Data
                                         var bufferIndices = buffer.GetIndices();
                                         for (int i = 0; i < bufferValues.Length; i++)
                                         {
-                                            values[count] = bufferValues[i];
-                                            indices[count++] = offset + bufferIndices[i];
+                                            editor.Values[count] = bufferValues[i];
+                                            editor.Indices[count++] = offset + bufferIndices[i];
                                         }
                                     }
                                     offset += buffer.Length;
@@ -775,20 +770,19 @@ namespace Microsoft.ML.Runtime.Data
                                 {
                                     Contracts.Assert(count < dstCount);
                                     srcGetterOnes[j](ref tmp);
-                                    values[count] = tmp;
-                                    indices[count++] = offset;
+                                    editor.Values[count] = tmp;
+                                    editor.Indices[count++] = offset;
                                     offset++;
                                 }
                             }
                             Contracts.Assert(count <= dstCount);
                             Contracts.Assert(offset == dstLength);
-                            dst = new VBuffer<T>(dstLength, count, values, indices);
+                            dst = editor.CommitTruncated(count);
                         }
                         else
                         {
                             // Concatenate into a dense representation.
-                            if (Utils.Size(values) < dstLength)
-                                values = new T[dstLength];
+                            var editor = VBufferEditor.Create(ref dst, dstLength);
 
                             int offset = 0;
                             for (int j = 0; j < SrcIndices.Length; j++)
@@ -796,17 +790,17 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
                                 if (_srcTypes[j].IsVector)
                                 {
-                                    tmpBufs[j].CopyTo(values, offset);
+                                    tmpBufs[j].CopyTo(editor.Values, offset);
                                     offset += tmpBufs[j].Length;
                                 }
                                 else
                                 {
                                     srcGetterOnes[j](ref tmp);
-                                    values[offset++] = tmp;
+                                    editor.Values[offset++] = tmp;
                                 }
                             }
                             Contracts.Assert(offset == dstLength);
-                            dst = new VBuffer<T>(dstLength, values, indices);
+                            dst = editor.Commit();
                         }
                     };
                     return result;

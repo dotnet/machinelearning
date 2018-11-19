@@ -258,12 +258,10 @@ namespace Microsoft.ML.Transforms.Text
                 var keyValuesBoundaries = _keyValuesBoundaries;
                 Host.AssertValue(keyValuesBoundaries);
 
-                var values = dst.Values;
-                if (Utils.Size(values) < CharsCount)
-                    values = new ReadOnlyMemory<char>[CharsCount];
+                var editor = VBufferEditor.Create(ref dst, CharsCount);
                 for (int i = 0; i < CharsCount; i++)
-                    values[i] = keyValuesStr.AsMemory().Slice(keyValuesBoundaries[i], keyValuesBoundaries[i + 1] - keyValuesBoundaries[i]);
-                dst = new VBuffer<ReadOnlyMemory<char>>(CharsCount, values, dst.Indices);
+                    editor.Values[i] = keyValuesStr.AsMemory().Slice(keyValuesBoundaries[i], keyValuesBoundaries[i + 1] - keyValuesBoundaries[i]);
+                dst = editor.Commit();
             }
 
             private void AppendCharRepr(char c, StringBuilder bldr)
@@ -421,24 +419,21 @@ namespace Microsoft.ML.Transforms.Text
                         getSrc(ref src);
 
                         var len = !src.IsEmpty ? (_parent._useMarkerChars ? src.Length + TextMarkersCount : src.Length) : 0;
-                        var values = dst.Values;
+                        var editor = VBufferEditor.Create(ref dst, len);
                         if (len > 0)
                         {
-                            if (Utils.Size(values) < len)
-                                values = new ushort[len];
-
                             int index = 0;
                             if (_parent._useMarkerChars)
-                                values[index++] = TextStartMarker;
+                                editor.Values[index++] = TextStartMarker;
                             var span = src.Span;
                             for (int ich = 0; ich < src.Length; ich++)
-                                values[index++] = span[ich];
+                                editor.Values[index++] = span[ich];
                             if (_parent._useMarkerChars)
-                                values[index++] = TextEndMarker;
+                                editor.Values[index++] = TextEndMarker;
                             Contracts.Assert(index == len);
                         }
 
-                        dst = new VBuffer<ushort>(len, values, dst.Indices);
+                        dst = editor.Commit();
                     };
             }
 

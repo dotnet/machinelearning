@@ -31,17 +31,6 @@ namespace Microsoft.ML.Runtime.Data
         public readonly int Length;
 
         /// <summary>
-        /// The values. Only the first Count of these are valid.
-        /// </summary>
-        public T[] Values => _values;
-
-        /// <summary>
-        /// The indices. For a dense representation, this array is not used. For a sparse representation
-        /// it is parallel to values and specifies the logical indices for the corresponding values.
-        /// </summary>
-        public int[] Indices => _indices;
-
-        /// <summary>
         /// The explicitly represented values.
         /// </summary>
         public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, _count);

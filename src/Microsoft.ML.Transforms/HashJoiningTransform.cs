@@ -411,9 +411,7 @@ namespace Microsoft.ML.Transforms.Conversions
             Host.AssertValue(_exes[iinfo].SlotMap);
 
             int n = _exes[iinfo].OutputValueCount;
-            var output = dst.Values;
-            if (Utils.Size(output) < n)
-                output = new ReadOnlyMemory<char>[n];
+            var dstEditor = VBufferEditor.Create(ref dst, n);
 
             var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
             bool useDefaultSlotNames = !Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
@@ -427,6 +425,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
 
             var outputSlotName = new StringBuilder();
+            var srcSlotNameValues = srcSlotNames.GetValues();
             for (int slot = 0; slot < n; slot++)
             {
                 var slotList = _exes[iinfo].SlotMap[slot];
@@ -441,13 +440,13 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (useDefaultSlotNames)
                         outputSlotName.AppendFormat("{0}[{1}]", srcColumnName, inputSlotIndex);
                     else
-                        outputSlotName.Append(srcSlotNames.Values[inputSlotIndex]);
+                        outputSlotName.Append(srcSlotNameValues[inputSlotIndex]);
                 }
 
-                output[slot] = outputSlotName.ToString().AsMemory();
+                dstEditor.Values[slot] = outputSlotName.ToString().AsMemory();
             }
 
-            dst = new VBuffer<ReadOnlyMemory<char>>(n, output, dst.Indices);
+            dst = dstEditor.Commit();
         }
 
         private delegate uint HashDelegate<TSrc>(in TSrc value, uint seed);
@@ -548,25 +547,23 @@ namespace Microsoft.ML.Transforms.Conversions
                 {
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
-                    TSrc[] values;
+                    ReadOnlySpan<TSrc> values;
 
                     // force-densify the input
                     // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
                     // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
                     // needs to be consistent across equivalent representations - sparse vs dense.
                     if (src.IsDense)
-                        values = src.Values;
+                        values = src.GetValues();
                     else
                     {
                         if (denseValues == null)
                             denseValues = new TSrc[expectedSrcLength];
+                        src.CopyTo(denseValues);
                         values = denseValues;
-                        src.CopyTo(values);
                     }
 
-                    var hashes = dst.Values;
-                    if (Utils.Size(hashes) < n)
-                        hashes = new uint[n];
+                    var hashes = VBufferEditor.Create(ref dst, n);
 
                     for (int i = 0; i < n; i++)
                     {
@@ -580,10 +577,10 @@ namespace Microsoft.ML.Transforms.Conversions
                             hash = hashFunction(in values[srcSlot], hash);
                         }
 
-                        hashes[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
+                        hashes.Values[i] = (Hashing.MixHash(hash) & mask) + 1; // +1 to offset from zero, which has special meaning for KeyType
                     }
 
-                    dst = new VBuffer<uint>(n, hashes, dst.Indices);
+                    dst = hashes.Commit();
                 };
         }
 
@@ -615,19 +612,19 @@ namespace Microsoft.ML.Transforms.Conversions
                     getSrc(ref src);
                     Host.Check(src.Length == expectedSrcLength);
 
-                    TSrc[] values;
+                    ReadOnlySpan<TSrc> values;
                     // force-densify the input
                     // REVIEW: this performs poorly if only a fraction of sparse vector is used for hashing.
                     // This scenario was unlikely at the time of writing. Regardless of performance, the hash value
                     // needs to be consistent across equivalent representations - sparse vs dense.
                     if (src.IsDense)
-                        values = src.Values;
+                        values = src.GetValues();
                     else
                     {
                         if (denseValues == null)
                             denseValues = new TSrc[expectedSrcLength];
+                        src.CopyTo(denseValues);
                         values = denseValues;
-                        src.CopyTo(values);
                     }
 
                     uint hash = hashSeed;

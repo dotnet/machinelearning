@@ -287,15 +287,13 @@ namespace Microsoft.ML.Transforms.Text
 
                         AddTerms(src, separators, terms);
 
-                        var values = dst.Values;
+                        var editor = VBufferEditor.Create(ref dst, terms.Count);
                         if (terms.Count > 0)
                         {
-                            if (Utils.Size(values) < terms.Count)
-                                values = new ReadOnlyMemory<char>[terms.Count];
-                            terms.CopyTo(values);
+                            terms.CopyTo(editor.Values);
                         }
 
-                        dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
+                        dst = editor.Commit();
                     };
             }
 
