@@ -64,8 +64,8 @@ namespace Microsoft.ML.Transforms
         private readonly ModelManager _modelManager;
         private readonly string _modelFile;
         private readonly string _modelName;
-        private readonly List<string> _inputNames;
-        private readonly List<string> _outputNames;
+        public readonly List<string> InputNames;
+        public readonly List<string> OutputNames;
 
         public OnnxModel(string modelFile)
         {
@@ -78,8 +78,8 @@ namespace Microsoft.ML.Transforms
             _modelManager.InitOnnxModel(_modelName, _ignoredVersion);
 
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
-            _inputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
-            _outputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
+            InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
+            OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
         }
 
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Transforms
         public List<Tensor> Run(List<Tensor> inputTensors)
         {
             var outputTensors = _modelManager.RunModel(
-                _modelName, _ignoredVersion, _inputNames, inputTensors, _outputNames);
+                _modelName, _ignoredVersion, InputNames, inputTensors, OutputNames);
 
             return outputTensors;
         }
@@ -122,16 +122,6 @@ namespace Microsoft.ML.Transforms
             return DictToNodesInfo(
                     _modelManager.GetOutputTypeDict(_modelName, _ignoredVersion),
                     _modelManager.GetOutputShapesDict(_modelName, _ignoredVersion));
-        }
-
-        public string[] GetInputNames()
-        {
-            return _inputNames.ToArray();
-        }
-
-        public string[] GetOutputNames()
-        {
-            return _outputNames.ToArray();
         }
 
         private static OnnxNodeInfo[] DictToNodesInfo(

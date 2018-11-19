@@ -261,13 +261,13 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact(Skip = "Model files are not available yet")]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void OnnxModelMultiInput()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
-            var modelFile = @"D:\models\pythoncreatemodel\twoinput\twoinput.onnx";
+            var modelFile = @"twoinput\twoinput.onnx";
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var samplevector = GetSampleArrayData();

@@ -155,7 +155,7 @@ namespace Microsoft.ML.Transforms
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
             for (int i=0; i < args.OutputColumns.Length; i++)
             {
-                var idx = Array.IndexOf(Model.GetOutputNames(), args.OutputColumns[i]);
+                var idx = Model.OutputNames.IndexOf(args.OutputColumns[i]);
                 if (idx < 0)
                     throw _host.Except($"Column {args.OutputColumns[i]} doesn't match output node names of model");
 
@@ -228,6 +228,9 @@ namespace Microsoft.ML.Transforms
 
         private static int[] AdjustDimensions(OnnxShape shape)
         {
+            // if the model output is of type Map or Sequence, the shape property
+            // will not be filled (so count=0). Don't throw an exception here
+            // it will be runtime exception, util Maps and Sequences become supported.
             if (shape.Count > 0)
             {
                 // some models may have -1 in first position.
@@ -269,7 +272,7 @@ namespace Microsoft.ML.Transforms
                 var model = _parent.Model;
                 for (int i = 0; i <  _parent.Inputs.Length; i++)
                 {
-                    var idx = Array.IndexOf(model.GetInputNames(), _parent.Inputs[i]);
+                    var idx = model.InputNames.IndexOf(_parent.Inputs[i]);
                     if (idx < 0)
                         throw _host.Except($"Column {_parent.Inputs[i]} doesn't match input node names of model");
 
@@ -495,7 +498,7 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
 
                 var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
-                var idx = Array.IndexOf(Transformer.Model.GetInputNames(), input);
+                var idx = Transformer.Model.InputNames.IndexOf(input);
                 if (idx < 0)
                     throw Host.Except($"Column {input} doesn't match input node names of model.");
 
