@@ -176,12 +176,12 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             /// <summary>
             /// Left factor matrix. Its shape is M-by-K stored in row-major format.
             /// </summary>
-            [FieldOffset(20)] // pointer is 8-byte on 64-bit machine.
+            [FieldOffset(24)] // pointer is 8-byte on 64-bit machine.
             public float* P;
             /// <summary>
             /// Right factor matrix. Its shape is N-by-K stored in row-major format.
             /// </summary>
-            [FieldOffset(28)] // pointer is 8-byte on 64-bit machine.
+            [FieldOffset(32)] // pointer is 8-byte on 64-bit machine.
             public float* Q;
         }
 
