@@ -254,5 +254,18 @@ namespace Microsoft.ML.Runtime.Data
 
             return sb;
         }
+
+        public sealed class ReadonlyMemoryCharComparer : IEqualityComparer<ReadOnlyMemory<char>>
+        {
+            public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
+            {
+                return x.Span.SequenceEqual(y.Span);
+            }
+
+            public int GetHashCode(ReadOnlyMemory<char> obj)
+            {
+                return (int)Hashing.HashString(obj.Span);
+            }
+        }
     }
 }
