@@ -199,18 +199,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// computes the "softmax" function: log sum_i exp x_i
         /// </summary>
-        /// <param name="inputs">Array of numbers to softmax</param>
-        /// <param name="count">the number of input array elements to process</param>
+        /// <param name="inputs">Span of numbers to softmax</param>
         /// <returns>the softmax of the numbers</returns>
         /// <remarks>may have slightly lower roundoff error if inputs are sorted, smallest first</remarks>
-        public static Float SoftMax(Float[] inputs, int count)
+        public static Float SoftMax(ReadOnlySpan<float> inputs)
         {
-            Contracts.AssertValue(inputs);
-            Contracts.Assert(0 < count & count <= inputs.Length);
-
             int maxIdx = 0;
             Float max = Float.NegativeInfinity;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < inputs.Length; i++)
             {
                 if (inputs[i] > max)
                 {
@@ -222,13 +218,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (Float.IsNegativeInfinity(max))
                 return Float.NegativeInfinity;
 
-            if (count == 1)
+            if (inputs.Length == 1)
                 return max;
 
             double intermediate = 0.0;
             Float cutoff = max - LogTolerance;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < inputs.Length; i++)
             {
                 if (i == maxIdx)
                     continue;

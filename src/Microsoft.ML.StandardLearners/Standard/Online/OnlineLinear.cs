@@ -130,16 +130,18 @@ namespace Microsoft.ML.Trainers.Online
                             numFeatures + 1, numFeatures);
                     }
 
-                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
+                    var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        Weights.Values[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                        weightValues[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                    Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = Float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
                 else if (parent.Args.InitWtsDiameter > 0)
                 {
-                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
+                    var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        Weights.Values[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                    Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
                 }
                 else if (numFeatures <= 1000)

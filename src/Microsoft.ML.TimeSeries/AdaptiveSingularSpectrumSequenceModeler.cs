@@ -1436,41 +1436,36 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             var output = result as SsaForecastResult;
 
-            var res = result.PointForecast.Values;
-            if (Utils.Size(res) < horizon)
-                res = new Single[horizon];
+            var resEditor = VBufferEditor.Create(ref result.PointForecast, horizon);
 
             int i;
             int j;
             int k;
 
             // Computing the point forecasts
-            res[0] = _nextPrediction;
+            resEditor.Values[0] = _nextPrediction;
             for (i = 1; i < horizon; ++i)
             {
                 k = 0;
-                res[i] = _autoregressionNoiseMean + _observationNoiseMean;
+                resEditor.Values[i] = _autoregressionNoiseMean + _observationNoiseMean;
                 for (j = i; j < _windowSize - 1; ++j, ++k)
-                    res[i] += _state[j] * _alpha[k];
+                    resEditor.Values[i] += _state[j] * _alpha[k];
 
                 for (j = Math.Max(0, i - _windowSize + 1); j < i; ++j, ++k)
-                    res[i] += res[j] * _alpha[k];
+                    resEditor.Values[i] += resEditor.Values[j] * _alpha[k];
             }
 
             // Computing the forecast variances
             if (ShouldComputeForecastIntervals)
             {
-                var sd = output.ForecastStandardDeviation.Values;
-                if (Utils.Size(sd) < horizon)
-                    sd = new Single[horizon];
-
+                var sdEditor = VBufferEditor.Create(ref output.ForecastStandardDeviation, horizon);
                 var lastCol = new FixedSizeQueue<Single>(_windowSize - 1);
 
                 for (i = 0; i < _windowSize - 3; ++i)
                     lastCol.AddLast(0);
                 lastCol.AddLast(1);
                 lastCol.AddLast(_alpha[_windowSize - 2]);
-                sd[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
+                sdEditor.Values[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
 
                 for (i = 1; i < horizon; ++i)
                 {
@@ -1479,16 +1474,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                         temp += _alpha[j] * lastCol[j];
                     lastCol.AddLast(temp);
 
-                    sd[i] = sd[i - 1] + _autoregressionNoiseVariance * temp * temp;
+                    sdEditor.Values[i] = sdEditor.Values[i - 1] + _autoregressionNoiseVariance * temp * temp;
                 }
 
                 for (i = 0; i < horizon; ++i)
-                    sd[i] = (float)Math.Sqrt(sd[i]);
+                    sdEditor.Values[i] = (float)Math.Sqrt(sdEditor.Values[i]);
 
-                output.ForecastStandardDeviation = new VBuffer<Single>(horizon, sd, output.ForecastStandardDeviation.Indices);
+                output.ForecastStandardDeviation = sdEditor.Commit();
             }
 
-            result.PointForecast = new VBuffer<Single>(horizon, res, result.PointForecast.Indices);
+            result.PointForecast = resEditor.Commit();
             output.CanComputeForecastIntervals = ShouldComputeForecastIntervals;
             output.BoundOffset = 0;
         }
@@ -1518,35 +1513,30 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Contracts.CheckValue(forecast, nameof(forecast));
             Contracts.Check(forecast.CanComputeForecastIntervals, "The forecast intervals cannot be computed for this forecast object.");
 
-            var horizon = Utils.Size(forecast.PointForecast.Values);
-            Contracts.Check(Utils.Size(forecast.ForecastStandardDeviation.Values) >= horizon, "The forecast standard deviation values are not available.");
+            var meanForecast = forecast.PointForecast.GetValues();
+            var horizon = meanForecast.Length;
+            var sdForecast = forecast.ForecastStandardDeviation.GetValues();
+            Contracts.Check(sdForecast.Length >= horizon, "The forecast standard deviation values are not available.");
 
             forecast.ConfidenceLevel = confidenceLevel;
             if (horizon == 0)
                 return;
 
-            var upper = forecast.UpperBound.Values;
-            if (Utils.Size(upper) < horizon)
-                upper = new Single[horizon];
-
-            var lower = forecast.LowerBound.Values;
-            if (Utils.Size(lower) < horizon)
-                lower = new Single[horizon];
+            var upper = VBufferEditor.Create(ref forecast.UpperBound, horizon);
+            var lower = VBufferEditor.Create(ref forecast.LowerBound, horizon);
 
             var z = ProbabilityFunctions.Probit(0.5 + confidenceLevel / 2.0);
-            var meanForecast = forecast.PointForecast.Values;
-            var sdForecast = forecast.ForecastStandardDeviation.Values;
             double temp;
 
             for (int i = 0; i < horizon; ++i)
             {
                 temp = z * sdForecast[i];
-                upper[i] = (Single)(meanForecast[i] + forecast.BoundOffset + temp);
-                lower[i] = (Single)(meanForecast[i] + forecast.BoundOffset - temp);
+                upper.Values[i] = (Single)(meanForecast[i] + forecast.BoundOffset + temp);
+                lower.Values[i] = (Single)(meanForecast[i] + forecast.BoundOffset - temp);
             }
 
-            forecast.UpperBound = new VBuffer<Single>(horizon, upper, forecast.UpperBound.Indices);
-            forecast.LowerBound = new VBuffer<Single>(horizon, lower, forecast.LowerBound.Indices);
+            forecast.UpperBound = upper.Commit();
+            forecast.LowerBound = lower.Commit();
         }
     }
 }

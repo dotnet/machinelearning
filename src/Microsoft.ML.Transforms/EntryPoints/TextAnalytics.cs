@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Text;
 

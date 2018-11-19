@@ -46,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             foreach (var featureRow in featuresColumn)
             {
-                foreach (var value in featureRow.Features.Values)
+                foreach (var value in featureRow.Features.GetValues())
                     Console.Write($"{value} ");
                 Console.WriteLine("");
             }
