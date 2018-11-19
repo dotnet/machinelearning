@@ -144,9 +144,9 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract BindingsBase GetBindings();
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
-            return Source.GetRowCount(lazy);
+            return Source.GetRowCount();
         }
 
         public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)

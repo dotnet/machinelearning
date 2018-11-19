@@ -235,7 +235,7 @@ namespace Microsoft.ML.Transforms
         private const string RegistrationName = "OptionalColumn";
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="OptionalColumnTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -398,7 +398,8 @@ namespace Microsoft.ML.Transforms
 
         private Delegate MakeGetterVec<T>(int length)
         {
-            return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) => value = new VBuffer<T>(length, 0, value.Values, value.Indices));
+            return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) =>
+                VBufferUtils.Resize(ref value, length, 0));
         }
 
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
@@ -467,7 +468,8 @@ namespace Microsoft.ML.Transforms
 
             private Delegate MakeGetterVec<T>(int length)
             {
-                return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) => value = new VBuffer<T>(length, 0, value.Values, value.Indices));
+                return (ValueGetter<VBuffer<T>>)((ref VBuffer<T> value) =>
+                    VBufferUtils.Resize(ref value, length, 0));
             }
         }
 

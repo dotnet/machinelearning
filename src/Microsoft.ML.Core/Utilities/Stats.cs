@@ -11,7 +11,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// A class containing common statistical functions
     /// </summary>
-    public static class Stats
+    [BestFriend]
+    internal static class Stats
     {
         /// <summary>
         /// Returns a number uniformly sampled from 0...(rangeSize-1)

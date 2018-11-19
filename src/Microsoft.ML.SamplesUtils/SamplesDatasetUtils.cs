@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Api;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -105,7 +106,7 @@ namespace Microsoft.ML.SamplesUtils
             var data = new List<SampleTopicsData>();
             data.Add(new SampleTopicsData { Review = "animals birds cats dogs fish horse", ReviewReverse = "radiation galaxy universe duck", Label = true });
             data.Add(new SampleTopicsData { Review = "horse birds house fish duck cats", ReviewReverse = "space galaxy universe radiation", Label = false });
-            data.Add(new SampleTopicsData { Review = "car truck driver bus pickup", ReviewReverse = "bus pickup", Label = true});
+            data.Add(new SampleTopicsData { Review = "car truck driver bus pickup", ReviewReverse = "bus pickup", Label = true });
             data.Add(new SampleTopicsData { Review = "car truck driver bus pickup horse", ReviewReverse = "car truck", Label = false });
 
             return data;
@@ -134,16 +135,100 @@ namespace Microsoft.ML.SamplesUtils
         public static IEnumerable<SampleInfertData> GetInfertData()
         {
             var data = new List<SampleInfertData>();
-            data.Add(new SampleInfertData {
-                RowNum = 0, Education = "0-5yrs", Age = 26, Parity = 6, Induced = 1, Case = 1, Spontaneous = 2, Stratum = 1, PooledStratum = 3 });
-            data.Add(new SampleInfertData {
-                RowNum = 1, Education = "0-5yrs", Age = 42, Parity = 1, Induced = 1, Case = 1, Spontaneous = 0, Stratum = 2, PooledStratum = 1 });
-            data.Add(new SampleInfertData {
-                RowNum = 2, Education = "0-5yrs", Age = 39, Parity = 6, Induced = 2, Case = 1, Spontaneous = 0, Stratum = 3, PooledStratum = 4 });
-            data.Add(new SampleInfertData {
-                RowNum = 3, Education = "0-5yrs", Age = 34, Parity = 4, Induced = 2, Case = 1, Spontaneous = 0, Stratum = 4, PooledStratum = 2 });
-            data.Add(new SampleInfertData {
-                RowNum = 4, Education = "6-11yrs", Age = 35, Parity = 3, Induced = 1,  Case = 1, Spontaneous = 1, Stratum = 5, PooledStratum = 32 });
+            data.Add(new SampleInfertData
+            {
+                RowNum = 0,
+                Education = "0-5yrs",
+                Age = 26,
+                Parity = 6,
+                Induced = 1,
+                Case = 1,
+                Spontaneous = 2,
+                Stratum = 1,
+                PooledStratum = 3
+            });
+            data.Add(new SampleInfertData
+            {
+                RowNum = 1,
+                Education = "0-5yrs",
+                Age = 42,
+                Parity = 1,
+                Induced = 1,
+                Case = 1,
+                Spontaneous = 0,
+                Stratum = 2,
+                PooledStratum = 1
+            });
+            data.Add(new SampleInfertData
+            {
+                RowNum = 2,
+                Education = "0-5yrs",
+                Age = 39,
+                Parity = 6,
+                Induced = 2,
+                Case = 1,
+                Spontaneous = 0,
+                Stratum = 3,
+                PooledStratum = 4
+            });
+            data.Add(new SampleInfertData
+            {
+                RowNum = 3,
+                Education = "0-5yrs",
+                Age = 34,
+                Parity = 4,
+                Induced = 2,
+                Case = 1,
+                Spontaneous = 0,
+                Stratum = 4,
+                PooledStratum = 2
+            });
+            data.Add(new SampleInfertData
+            {
+                RowNum = 4,
+                Education = "6-11yrs",
+                Age = 35,
+                Parity = 3,
+                Induced = 1,
+                Case = 1,
+                Spontaneous = 1,
+                Stratum = 5,
+                PooledStratum = 32
+            });
+            return data;
+        }
+
+        public class SampleVectorOfNumbersData
+        {
+            [VectorType(10)]
+
+            public float[] Features { get; set; }
+        }
+
+        /// <summary>
+        /// Returns a few rows of the infertility dataset.
+        /// </summary>
+        public static IEnumerable<SampleVectorOfNumbersData> GetVectorOfNumbersData()
+        {
+            var data = new List<SampleVectorOfNumbersData>();
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } });
+            data.Add(new SampleVectorOfNumbersData { Features = new float[10] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 } });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 2, 3, 4, 5, 6, 7, 8, 9, 0, 1 }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 5, 6, 7, 8, 9, 0, 1, 2, 3, 4 }
+            });
+            data.Add(new SampleVectorOfNumbersData
+            {
+                Features = new float[10] { 6, 7, 8, 9, 0, 1, 2, 3, 4, 5 }
+            });
             return data;
         }
     }

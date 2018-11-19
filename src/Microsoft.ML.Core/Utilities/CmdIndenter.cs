@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,8 @@ using Microsoft.ML.Runtime.CommandLine;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class CmdIndenter
+    [BestFriend]
+    internal static class CmdIndenter
     {
         /// <summary>
         /// Get indented version of command line or same string if we unable to produce it.
@@ -22,7 +24,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             using (var sw = new System.IO.StringWriter())
             {
-                var itw = IndentingTextWriter.Wrap(sw);
+                var itw = new IndentedTextWriter(sw, "  ");
                 if (TryProduceIndentString(commandLine, itw))
                     return sw.ToString().Trim();
                 return commandLine;
@@ -35,7 +37,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="text">command line</param>
         /// <param name="itw">indenting text writer</param>
         /// <returns>true if we was able to produce indented string without any problem</returns>
-        private static bool TryProduceIndentString(string text, IndentingTextWriter itw)
+        private static bool TryProduceIndentString(string text, IndentedTextWriter itw)
         {
             string[] tokens;
             if (!CmdParser.LexString(text, out tokens))

@@ -14,8 +14,12 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // This command is essentially chaining together Score and Evaluate, without the need to save the intermediary scored data.
-    public sealed class TestCommand : DataCommand.ImplBase<TestCommand.Arguments>
+    /// <summary>
+    /// This command is essentially chaining together <see cref="ScoreCommand"/> and
+    /// <see cref="EvaluateCommand"/>, without the need to save the intermediary scored data.
+    /// </summary>
+    [BestFriend]
+    internal sealed class TestCommand : DataCommand.ImplBase<TestCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {

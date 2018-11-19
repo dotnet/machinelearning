@@ -1,20 +1,15 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
-        using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.StaticPipe;
-        using Microsoft.ML.Transforms;
-        using Microsoft.ML.Transforms.Categorical;
-        using System;
+﻿using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
 // If you change the existing content, check that the files referencing it in the XML documentation are still correct, as they reference
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public partial class TrainersSamples
+    public class SdcaBinaryClassificationExample
     {
         public static void SdcaBinaryClassification()
         {

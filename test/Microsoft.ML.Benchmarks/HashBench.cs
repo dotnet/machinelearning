@@ -41,8 +41,8 @@ namespace Microsoft.ML.Benchmarks
             _counted = new Counted();
             var inRow = RowColumnUtils.GetRow(_counted, col);
             // One million features is a nice, typical number.
-            var info = new HashTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
-            var xf = new HashTransformer(_env, new[] { info });
+            var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
+            var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.Schema.TryGetColumnIndex("Bar", out int outCol);
             var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);

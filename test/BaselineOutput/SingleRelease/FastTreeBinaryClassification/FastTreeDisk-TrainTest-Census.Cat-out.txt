@@ -4,7 +4,8 @@ Making per-feature arrays
 Changing data from row-wise to column-wise on disk
 Processed 32561 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 38484 bytes
+Changing data from row-wise to column-wise on disk
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Not training a calibrator because it is not needed.
 TEST POSITIVE RATIO:	0.2362 (3846.0/(3846.0+12435.0))
@@ -46,7 +47,9 @@ Virtual memory usage(MB): %Number%
 [1] 'Building term dictionary' finished in %Time%.
 [2] 'FastTree disk-based bins initialization' started.
 [2] 'FastTree disk-based bins initialization' finished in %Time%.
-[3] 'FastTree training' started.
-[3] 'FastTree training' finished in %Time%.
-[4] 'Saving model' started.
-[4] 'Saving model' finished in %Time%.
+[3] 'FastTree disk-based bins initialization #2' started.
+[3] 'FastTree disk-based bins initialization #2' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'Saving model' started.
+[5] 'Saving model' finished in %Time%.

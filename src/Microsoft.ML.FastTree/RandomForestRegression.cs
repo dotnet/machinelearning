@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
+        public FastForestRegressionPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;
@@ -120,12 +120,10 @@ namespace Microsoft.ML.Trainers.FastTree
                     var distribution = TrainedEnsemble.GetDistribution(in src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < quantiles.Length)
-                        values = new float[quantiles.Length];
+                    var editor = VBufferEditor.Create(ref dst, quantiles.Length);
                     for (int i = 0; i < quantiles.Length; i++)
-                        values[i] = qdist.GetQuantile((float)quantiles[i]);
-                    dst = new VBuffer<float>(quantiles.Length, values, dst.Indices);
+                        editor.Values[i] = qdist.GetQuantile((float)quantiles[i]);
+                    dst = editor.Commit();
                 };
         }
 
@@ -160,22 +158,22 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="learningRate">The learning rate.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="weightColumn">The optional name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastForestRegression(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -189,11 +187,12 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
             ValidData = context.ValidationSet;
+            TestData = context.TestSet;
 
             using (var ch = Host.Start("Training"))
             {

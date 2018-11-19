@@ -12,6 +12,7 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime;
     using Microsoft.ML.Runtime.Data;
     using Microsoft.ML.Runtime.EntryPoints;
+    using Microsoft.ML.Runtime.Ensemble;
     using Microsoft.ML.Runtime.Internal.Utilities;
     using Microsoft.ML.Runtime.Learners;
     using Microsoft.ML.Runtime.LightGBM;
@@ -754,6 +755,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NormalizeFeatures = NormalizeOption.No
                 }).PredictorModel
             };
+
             CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
         }
 
