@@ -16,3 +16,5 @@ using Microsoft.ML;
 [assembly: InternalsVisibleTo("Microsoft.ML.TimeSeries" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Transforms" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Benchmarks.Tests" + PublicKey.TestValue)]
+
+[assembly: WantsToBeBestFriends]
