@@ -4,10 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML;
 using Microsoft.ML.Runtime.Internal.CpuMath;
-
-[assembly: WantsToBeBestFriends]
 
 namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 {
