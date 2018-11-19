@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Transformers
                         (input: "VectorFloat", output: "out1"),
                         (input: "VectorDouble", output: "out2")
                     }));
-            //TestEstimatorCore(est, data);
+            TestEstimatorCore(est, data);
 
             var outputPath = GetOutputPath("FeatureSelection", "mutualFeatureSelect.tsv");
             using (var ch = Env.Start("save"))
@@ -187,6 +187,5 @@ namespace Microsoft.ML.Tests.Transformers
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=MutualInformationFeatureSelection​{col=B:A} in=f:\2.txt" }), (int)0);
         }
-
     }
 }

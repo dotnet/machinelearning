@@ -46,23 +46,31 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         internal static string RegistrationName = "CountFeatureSelectionTransform";
 
-        // TODO commenting
         public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
             public readonly long Count;
 
-            public ColumnInfo(string input, string output, long count = Defaults.Count)
+            /// <summary>
+            /// Describes the parameters of the feature selection process for a column pair.
+            /// </summary>
+            /// <param name="input">Name of the input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+            public ColumnInfo(string input, string output = null, long count = Defaults.Count)
             {
-                // TODO check values
                 Input = input;
-                Output = output;
+                Contracts.CheckValue(Input, nameof(Input));
+                Output = output ?? input;
+                Contracts.CheckValue(Output, nameof(Output));
                 Count = count;
             }
         }
 
-        // TODO commenting
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Describes the parameters of the feature selection process for each column pair.</param>
         public CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -70,9 +78,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             _columns = columns;
         }
 
-        // TODO commenting
-        public CountFeatureSelectingEstimator(IHostEnvironment env, string input, string output = null, long count = Defaults.Count)
-            : this(env, new ColumnInfo(input, output ?? input, count))
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+        public CountFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = Defaults.Count)
+            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, count))
         {
         }
 
@@ -106,6 +118,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             using (var ch = _host.Start("Dropping Slots"))
             {
+                // If no slots should be dropped from a column, use copy column to generate the corresponding output column.
                 DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
                 (string input, string output)[] copyColumnsPairs;
                 CreateDropAndCopyColumns(_columns, size, scores, out int[] selectedCount, out dropSlotsColumns, out copyColumnsPairs);
@@ -226,25 +239,25 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<float>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<double>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
+        /// <param name="input">Name of the input column.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
             long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<string>(input, count);
     }
 
-    public static class CountFeatureSelectionUtils
+    internal static class CountFeatureSelectionUtils
     {
         /// <summary>
         /// Returns the feature selection scores for each slot of each column.

@@ -61,33 +61,18 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             public int NumBins = Defaults.NumBins;
         }
 
-        //// TODO commenting
-        //public sealed class ColumnInfo
-        //{
-        //    public readonly string Input;
-        //    public readonly string Output;
-        //    public readonly string LabelColumn;
-        //    public readonly int SlotsInOutput;
-        //    public readonly int NumBins;
-
-        //    public ColumnInfo(string input, string output = null, string labelColumn = Defaults.LabelColumn,
-        //        int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
-        //    {
-        //        // TODO check values
-        //        Input = input;
-        //        Output = output ?? input;
-        //        LabelColumn = labelColumn;
-        //        SlotsInOutput = slotsInOutput;
-        //        NumBins = numBins;
-        //    }
-        //}
-
         private IHost _host;
         private readonly (string input, string output)[] _columns;
         private readonly string _labelColumn;
         private readonly int _slotsInOutput;
         private readonly int _numBins;
 
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
         public MutualInformationFeatureSelectionEstimator(IHostEnvironment env,
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
@@ -96,26 +81,34 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
+
+            _host.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+            _host.CheckUserArg(slotsInOutput > 0, nameof(slotsInOutput));
+            _host.CheckNonWhiteSpace(labelColumn, nameof(labelColumn));
+            _host.Check(numBins > 1, "numBins must be greater than 1.");
+
             _columns = columns;
             _labelColumn = labelColumn;
             _slotsInOutput = slotsInOutput;
             _numBins = numBins;
         }
 
-        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env, string input, string output = null,
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
-            : this(env, labelColumn, slotsInOutput, numBins, (input, output ?? input))
+            : this(env, labelColumn, slotsInOutput, numBins, (inputColumn, outputColumn ?? inputColumn))
         {
         }
 
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            //host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            //host.CheckUserArg(args.SlotsInOutput > 0, nameof(args.SlotsInOutput));
-            //host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
-            //host.Check(args.NumBins > 1, "numBins must be greater than 1.");
-
             using (var ch = _host.Start("Selecting Slots"))
             {
                 ch.Info("Computing mutual information");
@@ -136,6 +129,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 ch.Info("Selecting features to drop");
                 var threshold = ComputeThreshold(scores, _slotsInOutput, out int tiedScoresToKeep);
 
+                // If no slots should be dropped in a column, use CopyColumn to generate the corresponding output column.
                 DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
                 (string input, string output)[] copyColumnPairs;
                 CreateDropAndCopyColumns(colArr.Length, scores, threshold, tiedScoresToKeep, _columns.Where(col => colSet.Contains(col.input)).ToArray(), out int[] selectedCount, out dropSlotsColumns, out copyColumnPairs);
@@ -177,32 +171,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
             return new SchemaShape(result.Values);
         }
-
-        ///// <summary>
-        ///// A helper method to create <see cref="IDataTransform"/> for selecting the top k slots ordered by their mutual information.
-        ///// </summary>
-        ///// <param name="env">Host Environment.</param>
-        ///// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        ///// <param name="labelColumn">Column to use for labels.</param>
-        ///// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        ///// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
-        ///// <param name="columns">Columns to use for feature selection.</param>
-        //internal static IDataTransform Create(IHostEnvironment env,
-        //    IDataView input,
-        //    string labelColumn = Defaults.LabelColumn,
-        //    int slotsInOutput = Defaults.SlotsInOutput,
-        //    int numBins = Defaults.NumBins,
-        //    params string[] columns)
-        //{
-        //    var args = new Arguments()
-        //    {
-        //        Column = columns,
-        //        LabelColumn = labelColumn,
-        //        SlotsInOutput = slotsInOutput,
-        //        NumBins = numBins
-        //    };
-        //    return Create(env, args, input);
-        //}
 
         /// <summary>
         /// Create method corresponding to SignatureDataTransform.
@@ -332,7 +300,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
     }
 
-    // TODO commenting
+    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
     public static class MutualInformationFeatureSelectorExtensions
     {
         private sealed class OutPipelineColumn<T> : Vector<T>
@@ -385,10 +353,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<float> SelectFeaturesBasedOnMutualInformation(
             this Vector<float> input,
             Scalar<bool> labelColumn,
@@ -396,10 +364,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<float> SelectFeaturesBasedOnMutualInformation(
             this Vector<float> input,
             Scalar<float> labelColumn,
@@ -407,10 +375,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<double> SelectFeaturesBasedOnMutualInformation(
             this Vector<double> input,
             Scalar<bool> labelColumn,
@@ -418,10 +386,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<double> SelectFeaturesBasedOnMutualInformation(
             this Vector<double> input,
             Scalar<float> labelColumn,
@@ -429,10 +397,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
             this Vector<bool> input,
             Scalar<bool> labelColumn,
@@ -440,10 +408,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
             this Vector<bool> input,
             Scalar<float> labelColumn,
@@ -451,7 +419,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
     }
 
-    public static class MutualInformationFeatureSelectionUtils
+    internal static class MutualInformationFeatureSelectionUtils
     {
         /// <summary>
         /// Returns the feature selection scores for each slot of each column.
