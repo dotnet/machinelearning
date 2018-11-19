@@ -91,6 +91,13 @@ namespace Microsoft.ML.Trainers
     {
         public sealed class Arguments
         {
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Loss function minimized for finding factor matrices. " +
+                "Two values are allowed, 0 or 12. The values \"0\" means traditional collaborative filtering problem with squared loss. " +
+                "The value \"12\" triggers one-class matrix factorization for implicit-feedback recommendation problem.")]
+            [TGUI(SuggestedSweeps = "0,12")]
+            [TlcModule.SweepableDiscreteParam("Fun", new object[] { 0, 12 })]
+            public int Fun = 0;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter. " +
                 "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. " +
                 "A small value could cause over-fitting.")]
@@ -116,6 +123,18 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
             public double Eta = 0.1;
 
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Coefficient of negative entries' loss in one-class matrix factorization.")]
+            [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
+            [TlcModule.SweepableDiscreteParam("Eta", new object[] { 1f, 0.01f, 0.0001f, 0.000001f})]
+            public double Alpha = 0.1;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Desired negative entries' value in one-class matrix factorization. In one-class matrix factorization, " +
+                "all matrix values observed are one (which can be viewed as positive cases in binary classification) while unobserved values " +
+                "(which can be viewed as negative cases in binary classification) need to be specified manually using this option.")]
+            [TGUI(SuggestedSweeps = "0.000001,0,0001,0.01")]
+            [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.000001f, 0.0001f, 0.01f })]
+            public double C = 0.000001f;
+
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of threads can be used in the training procedure.", ShortName = "t")]
             public int? NumThreads;
 
@@ -131,10 +150,13 @@ namespace Microsoft.ML.Trainers
             + "and the values of the matrix are ratings. ";
 
         // LIBMF's parameter
+        private readonly int _fun;
         private readonly double _lambda;
         private readonly int _k;
         private readonly int _iter;
         private readonly double _eta;
+        private readonly double _alpha;
+        private readonly double _c;
         private readonly int _threads;
         private readonly bool _quiet;
         private readonly bool _doNmf;
@@ -193,10 +215,13 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
             Host.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
 
+            _fun = args.Fun;
             _lambda = args.Lambda;
             _k = args.K;
             _iter = args.NumIterations;
             _eta = args.Eta;
+            _alpha = args.Eta;
+            _c = args.C;
             _threads = args.NumThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
@@ -224,10 +249,13 @@ namespace Microsoft.ML.Trainers
             var args = new Arguments();
             advancedSettings?.Invoke(args);
 
+            _fun = args.Fun;
             _lambda = args.Lambda;
             _k = args.K;
             _iter = args.NumIterations;
             _eta = args.Eta;
+            _alpha = args.Alpha;
+            _c = args.C;
             _threads = args.NumThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
@@ -338,8 +366,8 @@ namespace Microsoft.ML.Trainers
 
         private SafeTrainingAndModelBuffer PrepareBuffer()
         {
-            return new SafeTrainingAndModelBuffer(Host, _k, Math.Max(20, 2 * _threads),
-                _threads, _iter, _lambda, _eta, _doNmf, _quiet, copyData: false);
+            return new SafeTrainingAndModelBuffer(Host, _fun, _k, _threads, Math.Max(20, 2 * _threads),
+                _iter, _lambda, _eta, _alpha, _c, _doNmf, _quiet, copyData: false);
         }
 
         /// <summary>
