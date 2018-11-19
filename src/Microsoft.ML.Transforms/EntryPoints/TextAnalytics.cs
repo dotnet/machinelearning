@@ -67,13 +67,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer",
-            Desc = Categorical.ValueToKeyMappingTransformer.Summary,
-            UserName = Categorical.ValueToKeyMappingTransformer.UserName,
-            ShortName = Categorical.ValueToKeyMappingTransformer.LoaderSignature)]
+            Desc = ValueToKeyMappingTransformer.Summary,
+            UserName = ValueToKeyMappingTransformer.UserName,
+            ShortName = ValueToKeyMappingTransformer.LoaderSignature)]
         public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, ValueToKeyMappingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
-            var xf = Categorical.ValueToKeyMappingTransformer.Create(h, input, input.Data);
+            var xf = ValueToKeyMappingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

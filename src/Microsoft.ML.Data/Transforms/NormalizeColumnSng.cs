@@ -1038,13 +1038,11 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             private static class Sng
             {
-                public sealed class ImplOne : BinColumnFunction, NormalizingTransformer.IBinData<TFloat>
+                public sealed class ImplOne : BinColumnFunction
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
-
-                    ImmutableArray<TFloat> NormalizingTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1108,16 +1106,16 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         value = BinUtils.GetValue(input, _binUpperBounds, _den, _offset);
                     }
+
+                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                        => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den, _offset);
                 }
 
-                public sealed class ImplVec : BinColumnFunction, NormalizingTransformer.IBinData<ImmutableArray<TFloat>>
+                public sealed class ImplVec : BinColumnFunction
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
-
-                    ImmutableArray<ImmutableArray<TFloat>> NormalizingTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
-                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1259,7 +1257,13 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                         bldr.GetResult(ref value);
                     }
-                }
+
+                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                        => new NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>(
+                            _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
+                            ImmutableArray.Create(_den),
+                            ImmutableArray.Create(_offset));
+            }
             }
         }
 
