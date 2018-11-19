@@ -101,7 +101,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(dataPath).AsDynamic;
 
-            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
+            var est = new WordTokenizingEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ',' });
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
             var savedData = ColumnSelectingTransformer.CreateKeep(Env, outdata, new[] { "words" });
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new TextNormalizingEstimator(Env,"text")
+            var est = new TextNormalizingEstimator(Env, "text")
                 .Append(new WordTokenizingEstimator(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
                 Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash"));
-            
+
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
             // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -215,12 +215,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordTokenizingEstimator(Env, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
-                .Append(new NgramEstimator(Env, "terms", "ngrams"))
+                .Append(new NgramCountingEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
-            
-            // The following call fails because of the following issue
-            // https://github.com/dotnet/machinelearning/issues/969
-            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ngrams.tsv");
             using (var ch = Env.Start("save"))
@@ -253,7 +251,8 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, advancedSettings: s => {
+                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, advancedSettings: s =>
+                {
                     s.NumIterations = 10;
                     s.ResetRandomGenerator = true;
                 }));
@@ -265,7 +264,7 @@ namespace Microsoft.ML.Tests.Transformers
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = env.Start("save"))
             {
-                var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
+                var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false, Dense = true });
                 IDataView savedData = TakeFilter.Create(env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = ColumnSelectingTransformer.CreateKeep(env, savedData, new[] { "topics" });
 

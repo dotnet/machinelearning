@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class ProjectionTransformsExample
     {
         public static void ProjectionTransforms()
         {
