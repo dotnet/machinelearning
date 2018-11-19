@@ -222,16 +222,6 @@ namespace Microsoft.ML.Runtime.Data
                 LossFn = lossfn;
                 RSquared = rsquared;
             }
-
-            public static Result operator -(Result a, Result b)
-            {
-                return new Result(
-                    l1: a.L1 - b.L1,
-                    l2: a.L2 - b.L2,
-                    rms: a.Rms - b.Rms,
-                    lossfn: a.LossFn - b.LossFn,
-                    rsquared: a.RSquared - b.RSquared);
-            }
         }
 
         /// <summary>

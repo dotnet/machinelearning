@@ -17,36 +17,38 @@ namespace Microsoft.ML.Transforms
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class PermutationFeatureImportanceRegression
+    internal sealed class PermutationFeatureImportance<TResult>
     {
         private readonly IHostEnvironment _host;
         private VBuffer<ReadOnlyMemory<char>> _slotNames;
-        private readonly List<RegressionEvaluator.Result> _metricsDelta;
+        private readonly List<TResult> _metricsDelta;
 
-        public PermutationFeatureImportanceRegression(IHostEnvironment host)
+        public PermutationFeatureImportance(IHostEnvironment host)
         {
             Contracts.CheckValue(host, nameof(host));
             _host = host;
-            _metricsDelta = new List<RegressionEvaluator.Result>();
+            _metricsDelta = new List<TResult>();
         }
 
-        public ImmutableArray<RegressionEvaluator.Result>
-            GetImportanceMetricsMatrix(ITransformer model, IDataView data,
-            string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
-            int topExamples = 0, int progressIterations = 10)
+        public ImmutableArray<TResult>
+            GetImportanceMetricsMatrix(
+                ITransformer model,
+                IDataView data,
+                Func<IDataView, TResult> evaluationFunc,
+                Func<TResult, TResult, TResult> deltaFunc,
+                string features,
+                int topExamples,
+                int progressIterations)
         {
-            var host = ((IHostEnvironment)_host).Register(nameof(GetImportanceMetricsMatrix));
+            var host = _host.Register(nameof(GetImportanceMetricsMatrix));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
             host.CheckValue(features, nameof(features));
-            host.CheckValue(label, nameof(label));
-
-            var ml = new MLContext();
 
             using (var ch = host.Start("GetImportanceMetrics"))
             {
                 ch.Trace("Scoring and evaluating baseline.");
-                var baselineMetrics = ml.Regression.Evaluate(model.Transform(data), label: label);
+                var baselineMetrics = evaluationFunc(model.Transform(data));
 
                 // Get slot names.
                 var featuresColumn = data.Schema[features];
@@ -150,9 +152,10 @@ namespace Microsoft.ML.Transforms
                     if (topExamples > 0 && valuesRowCount == topExamples)
                         viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
 
-                    var metrics = ml.Regression.Evaluate(model.Transform(viewPermuted), label: label);
+                    var metrics = evaluationFunc(model.Transform(viewPermuted));
 
-                    UpdateFeatureMetricStats(baselineMetrics, metrics, ch, workingIndx);
+                    var delta = deltaFunc(metrics, baselineMetrics);
+                    _metricsDelta.Add(delta);
 
                     // Swap values for next iteration of permutation.
                     Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
@@ -180,12 +183,6 @@ namespace Microsoft.ML.Transforms
             }
 
             return _metricsDelta.ToImmutableArray();
-        }
-
-        private void UpdateFeatureMetricStats(RegressionEvaluator.Result baselineMetrics, RegressionEvaluator.Result featureMetrics, IChannel ch, int slotIndex)
-        {
-            var delta = featureMetrics - baselineMetrics;
-            _metricsDelta.Add(delta);
         }
 
         /// <summary>
