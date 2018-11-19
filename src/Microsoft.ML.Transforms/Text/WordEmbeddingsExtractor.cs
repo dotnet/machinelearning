@@ -324,7 +324,7 @@ namespace Microsoft.ML.Transforms.Text
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        private sealed class Mapper : MapperBase, ISaveAsOnnx
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx
         {
             private readonly WordEmbeddingsExtractingTransformer _parent;
             private readonly VectorType _outputType;
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
                 => _parent.ColumnPairs.Select(x => new Schema.Column(x.output, _outputType, null)).ToArray();
 
             public void SaveAsOnnx(OnnxContext ctx)
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Transforms.Text
                 nodeP.AddAttribute("axis", 1);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
