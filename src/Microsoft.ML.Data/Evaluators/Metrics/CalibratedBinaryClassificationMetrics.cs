@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Evaluation results for binary classifiers, including probabilistic metrics.

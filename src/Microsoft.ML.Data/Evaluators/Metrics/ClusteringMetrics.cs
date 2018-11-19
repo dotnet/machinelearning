@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The metrics generated after evaluating the clustering predictions.

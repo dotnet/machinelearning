@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     public sealed class RegressionMetrics
     {
