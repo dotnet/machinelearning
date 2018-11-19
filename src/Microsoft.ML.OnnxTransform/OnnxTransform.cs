@@ -159,22 +159,18 @@ namespace Microsoft.ML.Transforms
         }
         protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        private sealed class Mapper : IRowMapper
+        private sealed class Mapper : MapperBase
         {
-            private readonly IHost _host;
             private readonly OnnxTransform _parent;
-
             private readonly Type _outputItemRawType;
             private readonly ColumnType _outputColType;
             private readonly string _outputColName;
 
             private readonly IdvToTensorAdapter _idvToTensorAdapter;
 
-            public Mapper(OnnxTransform parent, Schema inputSchema)
+            public Mapper(OnnxTransform parent, Schema inputSchema) :
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
-                Contracts.AssertValue(parent);
-                _host = parent.Host.Register(nameof(Mapper));
-                _host.CheckValue(inputSchema, nameof(inputSchema));
 
                 _parent = parent;
                 var model = _parent.Model;
@@ -194,55 +190,49 @@ namespace Microsoft.ML.Transforms
 
                 int inColIndex;
                 if (!inputSchema.TryGetColumnIndex(_parent.Input, out inColIndex))
-                    throw _host.Except($"Column {_parent.Input} doesn't exist");
+                    throw Host.Except($"Column {_parent.Input} doesn't exist");
 
                 var type = inputSchema.GetColumnType(inColIndex);
                 if (type.IsVector && type.VectorSize == 0)
-                    throw _host.Except($"Variable length input columns not supported");
+                    throw Host.Except($"Variable length input columns not supported");
 
                 if (type.ItemType != outputItemType)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
 
                 // If the column is one dimension we make sure that the total size of the TF shape matches.
                 // Compute the total size of the known dimensions of the shape.
                 int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
                 // The column length should be divisible by this, so that the other dimensions can be integral.
                 if (type.ValueCount % valCount != 0)
-                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {String.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
+                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {string.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
 
-                _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
+                Host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
-            public Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var info = new Schema.Column[1];
                 info[0] = new Schema.Column(_outputColName, _outputColType, null);
                 return info;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 return col => activeOutput(0) && (_idvToTensorAdapter.IdvColumnIndex == col);
             }
 
-            public void Save(ModelSaveContext ctx)
-            {
-                _parent.Save(ctx);
-            }
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                var getters = new Delegate[1];
-                if (activeOutput(0))
-                    getters[0] = Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
-                return getters;
+                return Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
             }
 
             private Delegate MakeGetter<T>(IRow input)
             {
-                _host.AssertValue(input);
-                _host.Assert(typeof(T) == _outputItemRawType);
+                Host.AssertValue(input);
+                Host.Assert(typeof(T) == _outputItemRawType);
 
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {

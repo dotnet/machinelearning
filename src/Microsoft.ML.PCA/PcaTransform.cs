@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             public sealed class ColumnSchemaInfo
             {
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);

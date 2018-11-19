@@ -154,7 +154,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        private sealed class Mapper : MapperBase, ISaveAsPfa
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
             private readonly KeyToValueMappingTransformer _parent;
             private readonly ColumnType[] _types;
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             public bool CanSavePfa => true;
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ctx.DeclareVar(toDeclare.ToArray());
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _types.Length);

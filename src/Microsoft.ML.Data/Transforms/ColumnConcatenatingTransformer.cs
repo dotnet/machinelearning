@@ -405,23 +405,18 @@ namespace Microsoft.ML.Runtime.Data
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => new ColumnConcatenatingTransformer(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
+        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private readonly IHost _host;
-            private readonly Schema _inputSchema;
             private readonly ColumnConcatenatingTransformer _parent;
             private readonly BoundColumn[] _columns;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema)
+            public Mapper(ColumnConcatenatingTransformer parent, Schema inputSchema) :
+                base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
-                Contracts.AssertValue(parent);
-                _host = parent.Host.Register(nameof(Mapper));
-                _host.CheckValue(inputSchema, nameof(inputSchema));
                 _parent = parent;
-                _inputSchema = inputSchema;
 
                 _columns = new BoundColumn[_parent._columns.Length];
                 for (int i = 0; i < _parent._columns.Length; i++)
@@ -457,7 +452,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var (srcName, srcAlias) = _parent._columns[iinfo].Inputs[i];
                     if (!inputSchema.TryGetColumnIndex(srcName, out int srcCol))
-                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
                     sources[i] = srcCol;
 
                     var curType = inputSchema.GetColumnType(srcCol);
@@ -475,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data
                             totalSize += curType.ValueCount;
                     }
                     else
-                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
 
                     if (isNormalized && !inputSchema.IsNormalized(srcCol))
                         isNormalized = false;
@@ -499,7 +494,7 @@ namespace Microsoft.ML.Runtime.Data
                     hasSlotNames = false;
                 }
 
-                return new BoundColumn(_inputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
+                return new BoundColumn(InputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
                     isNormalized, hasSlotNames, hasCategoricals, totalSize, catCount);
             }
 
@@ -838,9 +833,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                var active = new bool[_inputSchema.ColumnCount];
+                var active = new bool[InputSchema.ColumnCount];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     if (activeOutput(i))
@@ -852,32 +847,19 @@ namespace Microsoft.ML.Runtime.Data
                 return col => active[col];
             }
 
-            public Schema.Column[] GetOutputColumns() => _columns.Select(x => x.MakeColumnInfo()).ToArray();
+            protected override Schema.Column[] GetOutputColumnsCore() => _columns.Select(x => x.MakeColumnInfo()).ToArray();
 
-            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
-                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
-                // of the input row.
-                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
-                // is no longer always possible. So, we relax the assert as below.
-                if (input.Schema is Schema s)
-                    Contracts.Assert(s == _inputSchema);
-                var result = new Delegate[_columns.Length];
-                for (int i = 0; i < _columns.Length; i++)
-                {
-                    if (!activeOutput(i))
-                        continue;
-                    result[i] = _columns[i].MakeGetter(input);
-                }
                 disposer = null;
-                return result;
+                return _columns[iinfo].MakeGetter(input);
             }
 
             public void SaveAsPfa(BoundPfaContext ctx)
             {
-                _host.CheckValue(ctx, nameof(ctx));
+                Host.CheckValue(ctx, nameof(ctx));
 
                 var toHide = new List<string>();
                 var toDeclare = new List<KeyValuePair<string, JToken>>();
@@ -896,7 +878,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                _host.CheckValue(ctx, nameof(ctx));
+                Host.CheckValue(ctx, nameof(ctx));
                 Contracts.Assert(CanSaveOnnx(ctx));
 
                 string opType = "FeatureVectorizer";
@@ -925,7 +907,7 @@ namespace Microsoft.ML.Runtime.Data
 
                         var srcIndex = boundCol.SrcIndices[i];
                         inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
-                            _inputSchema[srcIndex].Type.ValueCount));
+                            InputSchema[srcIndex].Type.ValueCount));
                     }
 
                     var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),

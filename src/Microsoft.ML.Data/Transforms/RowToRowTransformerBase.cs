@@ -4,13 +4,15 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Base class for transformer which produce new columns, but doesn't affect existing ones.
     /// </summary>
-    public abstract class RowToRowTransformerBase: ITransformer, ICanSaveModel
+    public abstract class RowToRowTransformerBase : ITransformer, ICanSaveModel
     {
         protected readonly IHost Host;
 
@@ -47,5 +49,59 @@ namespace Microsoft.ML.Runtime.Data
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
         }
 
+        protected abstract class MapperBase : IRowMapper
+        {
+            protected readonly IHost Host;
+            protected readonly Schema InputSchema;
+            protected readonly Schema.Column[] OutputColumns;
+
+            protected MapperBase(IHost host, Schema inputSchema)
+            {
+                Contracts.CheckValue(host, nameof(host));
+                Contracts.CheckValue(inputSchema, nameof(inputSchema));
+                Host = host;
+                InputSchema = inputSchema;
+                OutputColumns = GetOutputColumnsCore();
+            }
+
+            protected abstract Schema.Column[] GetOutputColumnsCore();
+
+            public Schema.Column[] GetOutputColumns() => OutputColumns;
+
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
+                // of the input row.
+                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
+                // is no longer always possible. So, we relax the assert as below.
+                if (input.Schema is Schema s)
+                    Contracts.Assert(s == InputSchema);
+                var result = new Delegate[OutputColumns.Length];
+                var disposers = new Action[OutputColumns.Length];
+                for (int i = 0; i < OutputColumns.Length; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = MakeGetter(input, i, activeOutput, out disposers[i]);
+                }
+                if (disposers.Any(x => x != null))
+                {
+                    disposer = () =>
+                    {
+                        foreach (var act in disposers)
+                            act();
+                    };
+                }
+                else
+                    disposer = null;
+                return result;
+            }
+
+            protected abstract Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
+
+            public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
+
+            public abstract void Save(ModelSaveContext ctx);
+        }
     }
 }

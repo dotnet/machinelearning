@@ -774,42 +774,37 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Mapper : IRowMapper
+        private sealed class Mapper : MapperBase
         {
-            private readonly IHost _host;
-            private readonly ISchema _schema;
             private readonly TensorFlowTransform _parent;
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
             private readonly TFShape[] _fullySpecifiedShapes;
 
-            public Mapper(TensorFlowTransform parent, ISchema inputSchema)
+            public Mapper(TensorFlowTransform parent, Schema inputSchema) :
+                   base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
-                Contracts.AssertValue(parent);
-                _host = parent.Host.Register(nameof(Mapper));
-                _host.CheckValue(inputSchema, nameof(inputSchema));
-                _host.CheckValue(parent, nameof(parent));
+                Host.CheckValue(parent, nameof(parent));
                 _parent = parent;
-                _schema = inputSchema;
                 _inputColIndices = new int[_parent.Inputs.Length];
                 _isInputVector = new bool[_parent.Inputs.Length];
                 _fullySpecifiedShapes = new TFShape[_parent.Inputs.Length];
                 for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
-                        throw _host.Except($"Column {_parent.Inputs[i]} doesn't exist");
+                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
                     var type = inputSchema.GetColumnType(_inputColIndices[i]);
                     if (type is VectorType vecType && vecType.Size == 0)
-                        throw _host.Except("Variable length input columns not supported");
+                        throw Host.Except("Variable length input columns not supported");
 
                     _isInputVector[i] = type is VectorType;
                     if (!_isInputVector[i]) // Temporary pending fix of issue #1542. In its current state, the below code would fail anyway with a naked exception if this check was not here.
-                        throw _host.Except("Non-vector columns not supported");
+                        throw Host.Except("Non-vector columns not supported");
                     vecType = (VectorType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.ItemType != expectedType)
-                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
 
@@ -852,10 +847,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public void Save(ModelSaveContext ctx)
-            {
-                _parent.Save(ctx);
-            }
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
             private class OutputCache
             {
@@ -868,30 +860,23 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private Delegate[] MakeGetters(IRow input, Func<int, bool> activeOutput)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
-                _host.AssertValue(input);
+                disposer = null;
+                Host.AssertValue(input);
 
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var valueGetters = new Delegate[_parent.Outputs.Length];
-                for (int i = 0; i < _parent.Outputs.Length; i++)
-                {
-                    if (activeOutput(i))
-                    {
-                        var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[i]);
-                        _host.Assert(type == _parent.OutputTypes[i].ItemType.RawType);
-                        var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                        valueGetters[i] = Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache);
-                    }
-                }
-                return valueGetters;
+                var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[iinfo]);
+                Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
+                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
             private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
-                _host.AssertValue(input);
+                Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
@@ -927,18 +912,12 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                disposer = null;
-                return MakeGetters(input, activeOutput);
-            }
-
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            public Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var info = new Schema.Column[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)

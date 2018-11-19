@@ -83,20 +83,14 @@ namespace Microsoft.ML.Runtime.Data
             // By default, there are no extra checks.
         }
 
-        protected abstract class MapperBase : IRowMapper
+        protected abstract class OneToOneMapperBase : MapperBase
         {
-            protected readonly IHost Host;
             protected readonly Dictionary<int, int> ColMapNewToOld;
-            protected readonly Schema InputSchema;
             private readonly OneToOneTransformerBase _parent;
 
-            protected MapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema)
+            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema)
             {
-                Contracts.AssertValue(host);
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(inputSchema);
-
-                Host = host;
                 _parent = parent;
 
                 ColMapNewToOld = new Dictionary<int, int>();
@@ -105,9 +99,9 @@ namespace Microsoft.ML.Runtime.Data
                     _parent.CheckInput(inputSchema, i, out int srcCol);
                     ColMapNewToOld.Add(i, srcCol);
                 }
-                InputSchema = inputSchema;
             }
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 foreach (var pair in ColMapNewToOld)
@@ -116,41 +110,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col => active[col];
             }
 
-            public abstract Schema.Column[] GetOutputColumns();
-
-            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
-
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
-                // of the input row.
-                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
-                // is no longer always possible. So, we relax the assert as below.
-                if (input.Schema is Schema s)
-                    Contracts.Assert(s == InputSchema);
-                var result = new Delegate[_parent.ColumnPairs.Length];
-                var disposers = new Action[_parent.ColumnPairs.Length];
-                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                {
-                    if (!activeOutput(i))
-                        continue;
-                    int srcCol = ColMapNewToOld[i];
-                    result[i] = MakeGetter(input, i, out disposers[i]);
-                }
-                if (disposers.Any(x => x != null))
-                {
-                    disposer = () =>
-                    {
-                        foreach (var act in disposers)
-                            act();
-                    };
-                }
-                else
-                    disposer = null;
-                return result;
-            }
-
-            protected abstract Delegate MakeGetter(IRow input, int iinfo, out Action disposer);
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
         }
     }
 }
