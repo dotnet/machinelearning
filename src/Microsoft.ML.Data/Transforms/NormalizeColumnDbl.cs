@@ -1103,12 +1103,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
 
                     public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                         => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>()
-                         {
-                             UpperBounds = ImmutableArray.Create(_binUpperBounds),
-                             Density = _den,
-                             Offset = _offset
-                         };
+                         => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den,_offset);
                 }
 
                 public sealed class ImplVec : BinColumnFunction
@@ -1258,11 +1253,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                     }
 
                     public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                          => new NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>() {
-                              UpperBounds = _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
-                              Density = ImmutableArray.Create(_den),
-                              Offset = ImmutableArray.Create(_offset)
-                          };
+                          => new NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>(_binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
+                              ImmutableArray.Create(_den),
+                              ImmutableArray.Create(_offset));
                 }
             }
         }
