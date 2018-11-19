@@ -413,7 +413,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 throw Host.Except("Image dimensions are too large");
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImagePixelExtractorTransform _parent;
             private readonly VectorType[] _types;
@@ -425,10 +425,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _types = ConstructTypes();
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
                 => _parent._columns.Select((x, idx) => new Schema.Column(x.Output, _types[idx], null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);

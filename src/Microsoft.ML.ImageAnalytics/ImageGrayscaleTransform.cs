@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private ImageGrayscaleTransform _parent;
 
@@ -169,10 +169,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _parent = parent;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
                 => _parent.ColumnPairs.Select((x, idx) => new Schema.Column(x.output, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);

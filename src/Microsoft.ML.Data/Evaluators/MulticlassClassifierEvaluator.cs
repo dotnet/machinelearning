@@ -1040,7 +1040,7 @@ namespace Microsoft.ML.Runtime.Data
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
             input = new ColumnsCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
-            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy );
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
         }
 
         private IDataView DropPerClassColumn(IDataView input)
