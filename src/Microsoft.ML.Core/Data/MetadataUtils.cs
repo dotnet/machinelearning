@@ -64,11 +64,6 @@ namespace Microsoft.ML.Runtime.Data
             public const string IsUserVisible = "IsUserVisible";
 
             /// <summary>
-            /// Metadata kind that indicates if a column has missing values. The value is typically a Bool to allow for unknown status.
-            /// </summary>
-            public const string HasMissingValues = "HasMissingValues";
-
-            /// <summary>
             /// Metadata kind for the label values used in training to be used for the predicted label.
             /// The value is typically a fixed-sized vector of Text.
             /// </summary>

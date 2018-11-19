@@ -228,16 +228,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Copies all items to the passed in array. Requires the passed in array to be at least the
+        /// Copies all items to the passed in span. Requires the passed in span to be at least the
         /// same length as Count.
         /// </summary>
-        public void CopyTo(TItem[] array)
+        public void CopyTo(Span<TItem> destination)
         {
-            Contracts.Check(array != null);
-            Contracts.Check(array.Length >= _ct);
+            Contracts.Check(destination.Length >= _ct);
 
             for (int i = 0; i < _ct; i++)
-                array[i] = _entries[i].Value;
+                destination[i] = _entries[i].Value;
         }
 
         private static class HashHelpers

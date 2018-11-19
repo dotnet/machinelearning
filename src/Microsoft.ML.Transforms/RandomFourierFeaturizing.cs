@@ -580,7 +580,7 @@ namespace Microsoft.ML.Transforms.Projections
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        oneDimensionalVector.Values[0] = src;
+                        VBufferEditor.CreateFromBuffer(ref oneDimensionalVector).Values[0] = src;
                         TransformFeatures(in oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
@@ -590,24 +590,22 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
 
-                var values = dst.Values;
                 float scale;
+                int newDstLength;
                 if (transformInfo.RotationTerms != null)
                 {
-                    if (Utils.Size(values) < transformInfo.NewDim)
-                        values = new float[transformInfo.NewDim];
+                    newDstLength = transformInfo.NewDim;
                     scale = MathUtils.Sqrt(2.0f / transformInfo.NewDim);
                 }
                 else
                 {
-                    if (Utils.Size(values) < 2 * transformInfo.NewDim)
-                        values = new float[2 * transformInfo.NewDim];
+                    newDstLength = 2 * transformInfo.NewDim;
                     scale = MathUtils.Sqrt(1.0f / transformInfo.NewDim);
                 }
 
                 if (src.IsDense)
                 {
-                    featuresAligned.CopyFrom(src.Values, 0, src.Length);
+                    featuresAligned.CopyFrom(src.GetValues());
                     CpuMathUtils.MatrixTimesSource(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                         transformInfo.NewDim);
                 }
@@ -622,20 +620,20 @@ namespace Microsoft.ML.Transforms.Projections
                         srcValues.Length, productAligned, transformInfo.NewDim);
                 }
 
+                var dstEditor = VBufferEditor.Create(ref dst, newDstLength);
                 for (int i = 0; i < transformInfo.NewDim; i++)
                 {
                     var dotProduct = productAligned[i];
                     if (transformInfo.RotationTerms != null)
-                        values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
+                        dstEditor.Values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
                     else
                     {
-                        values[2 * i] = (float)MathUtils.Cos(dotProduct) * scale;
-                        values[2 * i + 1] = (float)MathUtils.Sin(dotProduct) * scale;
+                        dstEditor.Values[2 * i] = (float)MathUtils.Cos(dotProduct) * scale;
+                        dstEditor.Values[2 * i + 1] = (float)MathUtils.Sin(dotProduct) * scale;
                     }
                 }
 
-                dst = new VBuffer<float>(transformInfo.RotationTerms == null ? 2 * transformInfo.NewDim : transformInfo.NewDim,
-                    values, dst.Indices);
+                dst = dstEditor.Commit();
             }
         }
     }

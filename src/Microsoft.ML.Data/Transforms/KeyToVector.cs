@@ -388,9 +388,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 var keys = new ReadOnlyMemory<char>[keyCount];
                 namesKeySrc.CopyTo(keys);
 
-                var values = dst.Values;
-                if (Utils.Size(values) < slotLim)
-                    values = new ReadOnlyMemory<char>[slotLim];
+                var editor = VBufferEditor.Create(ref dst, slotLim);
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -409,12 +407,12 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         sb.Length = len;
                         sb.AppendMemory(key);
-                        values[slot++] = sb.ToString().AsMemory();
+                        editor.Values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = new VBuffer<ReadOnlyMemory<char>>(slotLim, values, dst.Indices);
+                dst = editor.Commit();
             }
 
             private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
@@ -475,20 +473,15 @@ namespace Microsoft.ML.Transforms.Conversions
                         getSrc(ref src);
                         if (src == 0 || src > size)
                         {
-                            dst = new VBuffer<float>(size, 0, dst.Values, dst.Indices);
+                            VBufferUtils.Resize(ref dst, size, 0);
                             return;
                         }
 
-                        var values = dst.Values;
-                        var indices = dst.Indices;
-                        if (Utils.Size(values) < 1)
-                            values = new float[1];
-                        if (Utils.Size(indices) < 1)
-                            indices = new int[1];
-                        values[0] = 1;
-                        indices[0] = (int)src - 1;
+                        var editor = VBufferEditor.Create(ref dst, size, 1);
+                        editor.Values[0] = 1;
+                        editor.Indices[0] = (int)src - 1;
 
-                        dst = new VBuffer<float>(size, 1, values, indices);
+                        dst = editor.Commit();
                     };
             }
 

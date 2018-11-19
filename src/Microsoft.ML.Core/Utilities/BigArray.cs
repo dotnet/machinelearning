@@ -380,12 +380,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Concurrent calls to this method is valid even with one single concurrent call
         /// to <see cref="M:AddRange"/>.
         /// </summary>
-        public void CopyTo(long idx, T[] dst, int length)
+        public void CopyTo(long idx, Span<T> dst, int length)
         {
             // Accesses on the internal arrays of this class should be valid even if
             // some other thread is utilizing AddRange, since Utils.EnsureSize(...) will
             // not replace the array until any allocation or copying has already happened.
-            Contracts.Assert(0 <= length && length <= Utils.Size(dst));
+            Contracts.Assert(0 <= length && length <= dst.Length);
             Contracts.Assert(idx <= Length && length <= Length - idx);
             if (length == 0)
                 return;
@@ -404,15 +404,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // Spans only one subarray, most common case and simplest implementation.
                 Contracts.Assert(miLim - miMin == length);
                 Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], miMin, dst, 0, length);
+                _entries[maMax].AsSpan(miMin, length).CopyTo(dst);
                 break;
             case 1:
                 // Spans two subarrays.
                 Contracts.Assert((BlockSize - miMin) + miLim == length);
                 Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
-                Array.Copy(_entries[maMin], miMin, dst, 0, BlockSize - miMin);
+                _entries[maMin].AsSpan(miMin, BlockSize - miMin).CopyTo(dst);
                 Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], 0, dst, BlockSize - miMin, miLim);
+                _entries[maMax].AsSpan(0, miLim).CopyTo(dst.Slice(BlockSize - miMin));
                 break;
             default:
                 // Spans three or more subarrays. Very rare.
@@ -421,19 +421,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // Copy the first segment.
                 Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
                 int dstSoFar = BlockSize - miMin;
-                Array.Copy(_entries[maMin], miMin, dst, 0, dstSoFar);
+                _entries[maMin].AsSpan(miMin, dstSoFar).CopyTo(dst);
                 // Copy the internal segments.
                 for (int major = maMin + 1; major < maMax; ++major)
                 {
                     Contracts.Assert(BlockSize <= Utils.Size(_entries[major]));
-                    Array.Copy(_entries[major], 0, dst, dstSoFar, BlockSize);
+                    _entries[major].AsSpan(0, BlockSize).CopyTo(dst.Slice(dstSoFar));
                     dstSoFar += BlockSize;
                     Contracts.Assert(dstSoFar < length);
                 }
                 // Copy the last segment.
                 Contracts.Assert(length - dstSoFar == miLim);
                 Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], 0, dst, dstSoFar, miLim);
+                _entries[maMax].AsSpan(0, miLim).CopyTo(dst.Slice(dstSoFar));
                 break;
             }
         }

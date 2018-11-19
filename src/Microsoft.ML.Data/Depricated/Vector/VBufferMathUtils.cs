@@ -29,9 +29,9 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// Returns the L2 norm squared of the vector (sum of squares of the components).
         /// </summary>
-        public static Float NormSquared(Float[] a, int offset, int count)
+        public static Float NormSquared(ReadOnlySpan<Float> a)
         {
-            return CpuMathUtils.SumSq(a.AsSpan(offset, count));
+            return CpuMathUtils.SumSq(a);
         }
 
         /// <summary>
