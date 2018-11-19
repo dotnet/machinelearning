@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Api
                     return replacement;
                 }, RegexOptions.Singleline);
 
-            Contracts.Assert(seenTags == replacementMap.Count);
+            Contracts.Assert(0 < seenTags && seenTags <= replacementMap.Count);
             return result;
         }
 
