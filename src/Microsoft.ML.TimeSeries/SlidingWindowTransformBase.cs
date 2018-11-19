@@ -135,9 +135,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
 
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = output.Values;
-                if (Utils.Size(result) < size)
-                    result = new TInput[size];
+                var result = VBufferEditor.Create(ref output, size);
 
                 TInput value = _parentSliding._nanValue;
                 switch (_parentSliding._begin)
@@ -152,29 +150,27 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 }
 
                 for (int i = 0; i < size; ++i)
-                    result[i] = value;
-                output = new VBuffer<TInput>(size, result, output.Indices);
+                    result.Values[i] = value;
+                output = result.Commit();
             }
 
             private protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
             {
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = output.Values;
-                if (Utils.Size(result) < size)
-                    result = new TInput[size];
+                var result = VBufferEditor.Create(ref output, size);
 
                 if (_parentSliding._lag == 0)
                 {
                     for (int i = 0; i < _parentSliding.WindowSize; ++i)
-                        result[i] = windowedBuffer[i];
-                    result[_parentSliding.WindowSize] = input;
+                        result.Values[i] = windowedBuffer[i];
+                    result.Values[_parentSliding.WindowSize] = input;
                 }
                 else
                 {
                     for (int i = 0; i < size; ++i)
-                        result[i] = windowedBuffer[i];
+                        result.Values[i] = windowedBuffer[i];
                 }
-                output = new VBuffer<TInput>(size, result, output.Indices);
+                output = result.Commit();
             }
 
             private protected override void InitializeStateCore()

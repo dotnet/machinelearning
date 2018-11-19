@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 Host.Check(keyMetadata.Length == typeKey.ItemType.KeyCount);
 
                 VBufferUtils.Densify(ref keyMetadata);
-                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, typeVal.ItemType.AsPrimitive, keyMetadata.Values, iinfo);
+                return new KeyToValueMap<TKey, TValue>(this, typeKey.ItemType.AsKey, typeVal.ItemType.AsPrimitive, keyMetadata, iinfo);
             }
             /// <summary>
             /// A map is an object capable of creating the association from an input type, to an output
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
             private class KeyToValueMap<TKey, TValue> : KeyToValueMap
             {
-                private readonly TValue[] _values;
+                private readonly VBuffer<TValue> _values;
                 private readonly TValue _na;
 
                 private readonly bool _naMapsToDefault;
@@ -308,10 +308,10 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
-                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveType typeVal, TValue[] values, int iinfo)
+                public KeyToValueMap(Mapper parent, KeyType typeKey, PrimitiveType typeVal, VBuffer<TValue> values, int iinfo)
                     : base(parent, typeVal, iinfo)
                 {
-                    Parent.Host.AssertValue(values);
+                    Parent.Host.Assert(values.IsDense);
                     Parent.Host.Assert(typeKey.RawType == typeof(TKey));
                     Parent.Host.Assert(TypeOutput.RawType == typeof(TValue));
                     _values = values;
@@ -331,11 +331,16 @@ namespace Microsoft.ML.Transforms.Conversions
 
                 private void MapKey(in TKey src, ref TValue dst)
                 {
+                    MapKey(in src, _values.GetValues(), ref dst);
+                }
+
+                private void MapKey(in TKey src, ReadOnlySpan<TValue> values, ref TValue dst)
+                {
                     uint uintSrc = 0;
                     _convertToUInt(in src, ref uintSrc);
                     // Assign to NA if key value is not in valid range.
-                    if (0 < uintSrc && uintSrc <= _values.Length)
-                        dst = _values[uintSrc - 1];
+                    if (0 < uintSrc && uintSrc <= values.Length)
+                        dst = values[(int)(uintSrc - 1)];
                     else
                         dst = _na;
                 }
@@ -369,7 +374,6 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         var src = default(VBuffer<TKey>);
                         var dstItem = default(TValue);
-                        int maxSize = TypeOutput.IsKnownSizeVector ? TypeOutput.VectorSize : Utils.ArrayMaxSize;
                         ValueGetter<VBuffer<TKey>> getSrc = input.GetGetter<VBuffer<TKey>>(Parent.ColMapNewToOld[InfoIndex]);
                         ValueGetter<VBuffer<TValue>> retVal =
                             (ref VBuffer<TValue> dst) =>
@@ -378,18 +382,14 @@ namespace Microsoft.ML.Transforms.Conversions
                                 int srcSize = src.Length;
                                 var srcValues = src.GetValues();
                                 int srcCount = srcValues.Length;
-                                var dstValues = dst.Values;
-                                var dstIndices = dst.Indices;
 
-                                int islotDst = 0;
-
+                                var keyValues = _values.GetValues();
                                 if (src.IsDense)
                                 {
-                                    Utils.EnsureSize(ref dstValues, srcSize, maxSize, keepOld: false);
-
+                                    var editor = VBufferEditor.Create(ref dst, srcSize);
                                     for (int slot = 0; slot < srcSize; ++slot)
                                     {
-                                        MapKey(in srcValues[slot], ref dstValues[slot]);
+                                        MapKey(in srcValues[slot], keyValues, ref editor.Values[slot]);
 
                                         // REVIEW:
                                         // The current implementation always maps dense to dense, even if the resulting columns could benefit from
@@ -400,13 +400,13 @@ namespace Microsoft.ML.Transforms.Conversions
                                         // defaults is hit. We assume that if the user was willing to densify the data into key values that they will
                                         // be fine with this output being dense.
                                     }
-                                    islotDst = srcSize;
+                                    dst = editor.Commit();
                                 }
                                 else if (!_naMapsToDefault)
                                 {
                                     // Sparse input will always result in dense output unless the key metadata maps back to key types.
                                     // Currently this always maps sparse to dense, as long as the output type's NA does not equal its default value.
-                                    Utils.EnsureSize(ref dstValues, srcSize, maxSize, keepOld: false);
+                                    var editor = VBufferEditor.Create(ref dst, srcSize);
 
                                     var srcIndices = src.GetIndices();
                                     int nextExplicitSlot = srcCount == 0 ? srcSize : srcIndices[0];
@@ -417,37 +417,37 @@ namespace Microsoft.ML.Transforms.Conversions
                                         {
                                             // Current slot has an explicitly defined value.
                                             Parent.Host.Assert(islot < srcCount);
-                                            MapKey(in srcValues[islot], ref dstValues[slot]);
+                                            MapKey(in srcValues[islot], keyValues, ref editor.Values[slot]);
                                             nextExplicitSlot = ++islot == srcCount ? srcSize : srcIndices[islot];
                                             Parent.Host.Assert(slot < nextExplicitSlot);
                                         }
                                         else
                                         {
                                             Parent.Host.Assert(slot < nextExplicitSlot);
-                                            dstValues[slot] = _na;
+                                            editor.Values[slot] = _na;
                                         }
                                     }
-                                    islotDst = srcSize;
+                                    dst = editor.Commit();
                                 }
                                 else
                                 {
                                     // As the default value equals the NA value for the output type, we produce sparse output.
-                                    Utils.EnsureSize(ref dstValues, srcCount, maxSize, keepOld: false);
-                                    Utils.EnsureSize(ref dstIndices, srcCount, maxSize, keepOld: false);
+                                    var editor = VBufferEditor.Create(ref dst, srcSize, srcCount);
                                     var srcIndices = src.GetIndices();
+                                    var islotDst = 0;
                                     for (int islotSrc = 0; islotSrc < srcCount; ++islotSrc)
                                     {
                                         // Current slot has an explicitly defined value.
                                         Parent.Host.Assert(islotSrc < srcCount);
-                                        MapKey(in srcValues[islotSrc], ref dstItem);
+                                        MapKey(in srcValues[islotSrc], keyValues, ref dstItem);
                                         if (!_isDefault(in dstItem))
                                         {
-                                            dstValues[islotDst] = dstItem;
-                                            dstIndices[islotDst++] = srcIndices[islotSrc];
+                                            editor.Values[islotDst] = dstItem;
+                                            editor.Indices[islotDst++] = srcIndices[islotSrc];
                                         }
                                     }
+                                    dst = editor.CommitTruncated(islotDst);
                                 }
-                                dst = new VBuffer<TValue>(srcSize, islotDst, dstValues, dstIndices);
                             };
                         return retVal;
                     }
@@ -469,8 +469,9 @@ namespace Microsoft.ML.Transforms.Conversions
                     if (TypeOutput.IsText)
                     {
                         jsonValues = new JArray();
-                        for (int i = 0; i < _values.Length; ++i)
-                            jsonValues.Add(_values[i].ToString());
+                        var keyValues = _values.GetValues();
+                        for (int i = 0; i < keyValues.Length; ++i)
+                            jsonValues.Add(keyValues[i].ToString());
                     }
                     else
                         jsonValues = new JArray(_values);
