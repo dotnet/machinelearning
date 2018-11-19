@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public int GetHashCode(ReadOnlyMemory<char> obj)
             {
-                return obj.ToString().GetHashCode();
+                return (int)Hashing.HashString(obj.Span);
             }
         }
     }
