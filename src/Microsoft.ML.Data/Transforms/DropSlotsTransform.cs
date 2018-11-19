@@ -475,7 +475,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
                     // TODO check that the types are ok if needed
-                    ValidateSrcTypes(Host, _srcTypes);
                     _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
                     ComputeType(inputSchema, i, _slotDropper[i], out _suppressed[i], out _dstTypes[i], out _categoricalRanges[i]);
                 }
