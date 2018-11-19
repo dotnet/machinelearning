@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// <summary>
     /// A generic ensemble trainer for binary classification.
     /// </summary>
-    public sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
+    internal sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
         IBinarySubModelSelector, IBinaryOutputCombiner>,
         IModelCombiner
     {
@@ -48,6 +48,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             [TGUI(Label = "Output combiner", Description = "Output combiner type")]
             public ISupportBinaryOutputCombinerFactory OutputCombiner = new MedianFactory();
 
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor type", ShortName = "bp,basePredictorTypes", SortOrder = 1, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureBinaryClassifierTrainer))]
             public IComponentFactory<ITrainer<TScalarPredictor>>[] BasePredictors;
 

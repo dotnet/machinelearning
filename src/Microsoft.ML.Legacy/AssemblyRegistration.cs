@@ -28,7 +28,9 @@ namespace Microsoft.ML.Runtime
                 Contracts.Assert(_assemblyInitializer.Value);
             }
 
+#pragma warning disable CS0618 // The legacy API that internally uses dependency injection for all calls will be deleted anyway.
             AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(environment);
+#pragma warning restore CS0618
         }
 
         /// <summary>

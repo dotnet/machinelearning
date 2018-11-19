@@ -10,6 +10,9 @@ using System.Reflection;
 
 namespace Microsoft.ML.Runtime
 {
+    [Obsolete("The usage for this is intended for the internal command line utilities and is not intended for anything related to the API. " +
+        "Please consider another way of doing whatever it is you're attempting to accomplish.")]
+    [BestFriend]
     internal static class AssemblyLoadingUtils
     {
         /// <summary>

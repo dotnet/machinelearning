@@ -189,7 +189,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;

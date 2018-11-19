@@ -17,7 +17,7 @@ using System;
 namespace Microsoft.ML.Trainers.FastTree
 {
     [TlcModule.ComponentKind("FastTreeTrainer")]
-    public interface IFastTreeTrainerFactory : IComponentFactory<ITrainer>
+    internal interface IFastTreeTrainerFactory : IComponentFactory<ITrainer>
     {
     }
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers.FastTree
             [TGUI(Label = "Optimize for unbalanced")]
             public bool UnbalancedSets = false;
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeBinaryClassificationTrainer(env, this);
         }
     }
 
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 EarlyStoppingMetrics = 1; // Use L1 by default.
             }
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRegressionTrainer(env, this);
         }
     }
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 "and intermediate values are compound Poisson loss.")]
             public Double Index = 1.5;
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeTweedieTrainer(env, this);
         }
     }
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 EarlyStoppingMetrics = 1;
             }
 
-            public ITrainer CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
+            ITrainer IComponentFactory<ITrainer>.CreateComponent(IHostEnvironment env) => new FastTreeRankingTrainer(env, this);
 
             internal override void Check(IExceptionContext ectx)
             {

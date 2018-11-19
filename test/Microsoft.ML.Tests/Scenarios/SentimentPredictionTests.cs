@@ -420,8 +420,7 @@ namespace Microsoft.ML.Scenarios
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
             });
 
-
-            pipeline.Add(new SymSgdBinaryClassifier() { NumberOfThreads = 1});
+            pipeline.Add(new SymSgdBinaryClassifier() { NumberOfThreads = 1 });
 
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
             return pipeline;
