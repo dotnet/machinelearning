@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -18,32 +19,34 @@ namespace Microsoft.ML.Transforms
 
     public sealed class PermutationFeatureImportanceRegression
     {
-        private readonly MLContext _mlContext;
+        private readonly IHostEnvironment _host;
         private VBuffer<ReadOnlyMemory<char>> _slotNames;
-        private readonly List<(string featureName, RegressionEvaluator.Result metricsDelta)> _metricsStats;
+        private readonly List<RegressionEvaluator.Result> _metricsDelta;
 
-        public PermutationFeatureImportanceRegression(MLContext mlContext)
+        public PermutationFeatureImportanceRegression(IHostEnvironment host)
         {
-            Contracts.CheckValue(mlContext, nameof(mlContext));
-            _mlContext = mlContext;
-            _metricsStats = new List<(string featureName, RegressionEvaluator.Result metricsDelta)>();
+            Contracts.CheckValue(host, nameof(host));
+            _host = host;
+            _metricsDelta = new List<RegressionEvaluator.Result>();
         }
 
-        public List<(string featureName, RegressionEvaluator.Result metricsDelta)>
+        public ImmutableArray<RegressionEvaluator.Result>
             GetImportanceMetricsMatrix(ITransformer model, IDataView data,
             string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
             int topExamples = 0, int progressIterations = 10)
         {
-            var host = ((IHostEnvironment)_mlContext).Register(nameof(GetImportanceMetricsMatrix));
+            var host = ((IHostEnvironment)_host).Register(nameof(GetImportanceMetricsMatrix));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
             host.CheckValue(features, nameof(features));
             host.CheckValue(label, nameof(label));
 
+            var ml = new MLContext();
+
             using (var ch = host.Start("GetImportanceMetrics"))
             {
                 ch.Trace("Scoring and evaluating baseline.");
-                var baselineMetrics = _mlContext.Regression.Evaluate(model.Transform(data), label: label);
+                var baselineMetrics = ml.Regression.Evaluate(model.Transform(data), label: label);
 
                 // Get slot names.
                 var featuresColumn = data.Schema[features];
@@ -93,7 +96,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     ch.Warning("Detected no examples for evaluation.");
-                    return null;
+                    return _metricsDelta.ToImmutableArray();
                 }
 
                 Float[] featureValuesBuffer = initialfeatureValuesList.ToArray();
@@ -147,7 +150,7 @@ namespace Microsoft.ML.Transforms
                     if (topExamples > 0 && valuesRowCount == topExamples)
                         viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
 
-                    var metrics = _mlContext.Regression.Evaluate(model.Transform(viewPermuted), label: label);
+                    var metrics = ml.Regression.Evaluate(model.Transform(viewPermuted), label: label);
 
                     UpdateFeatureMetricStats(baselineMetrics, metrics, ch, workingIndx);
 
@@ -176,22 +179,13 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            return _metricsStats;
+            return _metricsDelta.ToImmutableArray();
         }
 
         private void UpdateFeatureMetricStats(RegressionEvaluator.Result baselineMetrics, RegressionEvaluator.Result featureMetrics, IChannel ch, int slotIndex)
         {
             var delta = featureMetrics - baselineMetrics;
-            var featureName = GetSlotName(slotIndex);
-            _metricsStats.Add((featureName, delta));
-        }
-
-        private string GetSlotName(int index)
-        {
-            var slotName = _slotNames.GetItemOrDefault(index);
-            return !slotName.IsEmpty
-                ? slotName.ToString()
-                : string.Format("f{0}", index);
+            _metricsDelta.Add(delta);
         }
 
         /// <summary>

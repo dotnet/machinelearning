@@ -21,6 +21,8 @@ namespace Microsoft.ML
     public abstract class TrainContextBase
     {
         protected readonly IHost Host;
+
+        [BestFriend]
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
@@ -494,27 +496,6 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
-        }
-
-        public List<(string featureName, RegressionEvaluator.Result metricsDelta)>
-            PermutationFeatureImportance(ITransformer model, IDataView data,
-            string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
-            int topExamples = 0, int progressIterations = 10)
-        {
-            Host.CheckValue(model, nameof(model));
-            Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
-            Host.CheckNonEmpty(features, nameof(features));
-
-            // Cannot access PermutationFeatureImportanceRegression,
-            // b/c ML.Transforms project is not refrenced here.
-            // PermutationFeatureImportanceRegression needs ML.Api
-            // so I can't move it to this project.
-            // Not sure how to resolve this circular dependency
-
-            //var pfi = new PermutationFeatureImportanceRegression(Host);
-            //return pfi.GetImportanceMetricsMatrix(model, data, label, features);
-            throw new NotImplementedException();
         }
     }
 

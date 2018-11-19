@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.ML.Transforms;
+using System.Collections.Immutable;
 
 namespace Microsoft.ML.Tests
 {
@@ -68,23 +69,27 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
+            var pfi = ML.Regression.PermutationFeatureImportance(model, data);
 
-            var pfi = new PermutationFeatureImportanceRegression(ML);
-            var results = pfi.GetImportanceMetricsMatrix(model, data);
+            // Pfi Indices:
+            // X1: 0
+            // X2Important: 1
+            // X3: 2
+            // X4Rand: 3
 
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.True(MinDeltaFeature(results, m => m.L1) == "X4Rand");
-            Assert.True(MaxDeltaFeature(results, m => m.L1) == "X2Important");
+            Assert.True(MinDeltaIndex(pfi, m => m.L1) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L1) == 1);
 
-            Assert.True(MinDeltaFeature(results, m => m.L2) == "X4Rand");
-            Assert.True(MaxDeltaFeature(results, m => m.L2) == "X2Important");
+            Assert.True(MinDeltaIndex(pfi, m => m.L2) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.L2) == 1);
 
-            Assert.True(MinDeltaFeature(results, m => m.Rms) == "X4Rand");
-            Assert.True(MaxDeltaFeature(results, m => m.Rms) == "X2Important");
+            Assert.True(MinDeltaIndex(pfi, m => m.Rms) == 3);
+            Assert.True(MaxDeltaIndex(pfi, m => m.Rms) == 1);
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.True(MaxDeltaFeature(results, m => m.RSquared) == "X4Rand");
-            Assert.True(MinDeltaFeature(results, m => m.RSquared) == "X2Important");
+            Assert.True(MaxDeltaIndex(pfi, m => m.RSquared) == 3);
+            Assert.True(MinDeltaIndex(pfi, m => m.RSquared) == 1);
 
             Done();
         }
@@ -150,40 +155,46 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
+            var results = ML.Regression.PermutationFeatureImportance(model, data);
 
-            var pfi = new PermutationFeatureImportanceRegression(ML);
-            var results = pfi.GetImportanceMetricsMatrix(model, data);
+            // Pfi Indices:
+            // X1: 0
+            // X2VBuffer-Slot-0: 1
+            // X2VBuffer-Slot-1: 2
+            // X2VBuffer-Slot-2: 3
+            // X2VBuffer-Slot-3: 4
+            // X3Important: 5
 
-            // Permuted 2nd slot (f2) should have min impact on SGD metrics, X3 -- max impact.
+            // Permuted X2VBuffer-Slot-1 lot (f2) should have min impact on SGD metrics, X3Important -- max impact.
             // For the following metrics lower is better, so maximum delta means more important feature, and vice versa
-            Assert.True(MinDeltaFeature(results, m => m.L1) == "f2");
-            Assert.True(MaxDeltaFeature(results, m => m.L1) == "X3Important");
+            Assert.True(MinDeltaIndex(results, m => m.L1) == 2);
+            Assert.True(MaxDeltaIndex(results, m => m.L1) == 5);
 
-            Assert.True(MinDeltaFeature(results, m => m.L2) == "f2");
-            Assert.True(MaxDeltaFeature(results, m => m.L2) == "X3Important");
+            Assert.True(MinDeltaIndex(results, m => m.L2) == 2);
+            Assert.True(MaxDeltaIndex(results, m => m.L2) == 5);
 
-            Assert.True(MinDeltaFeature(results, m => m.Rms) == "f2");
-            Assert.True(MaxDeltaFeature(results, m => m.Rms) == "X3Important");
+            Assert.True(MinDeltaIndex(results, m => m.Rms) == 2);
+            Assert.True(MaxDeltaIndex(results, m => m.Rms) == 5);
 
             // For the following metrics higher is better, so minimum delta means more important feature, and vice versa
-            Assert.True(MaxDeltaFeature(results, m => m.RSquared) == "f2");
-            Assert.True(MinDeltaFeature(results, m => m.RSquared) == "X3Important");
+            Assert.True(MaxDeltaIndex(results, m => m.RSquared) == 2);
+            Assert.True(MinDeltaIndex(results, m => m.RSquared) == 5);
         }
 
-        private string MinDeltaFeature(
-            List<(string featureName, RegressionEvaluator.Result metricsDelta)> results,
+        private int MinDeltaIndex(
+            ImmutableArray<RegressionEvaluator.Result> metricsDelta,
             Func<RegressionEvaluator.Result, double> metricSelector)
         {
-            return results.OrderBy(r => metricSelector(r.metricsDelta))
-                    .First().featureName;
+            var min = metricsDelta.OrderBy(m => metricSelector(m)).First();
+            return metricsDelta.IndexOf(min);
         }
 
-        private string MaxDeltaFeature(
-            List<(string featureName, RegressionEvaluator.Result metricsDelta)> results,
+        private int MaxDeltaIndex(
+            ImmutableArray<RegressionEvaluator.Result> metricsDelta,
             Func<RegressionEvaluator.Result, double> metricSelector)
         {
-            return results.OrderByDescending(r => metricSelector(r.metricsDelta))
-                    .First().featureName;
+            var max = metricsDelta.OrderByDescending(m => metricSelector(m)).First();
+            return metricsDelta.IndexOf(max);
         }
     }
 }

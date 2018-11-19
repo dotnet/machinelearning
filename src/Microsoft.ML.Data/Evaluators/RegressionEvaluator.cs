@@ -213,7 +213,8 @@ namespace Microsoft.ML.Runtime.Data
                 RSquared = Fetch(RegressionEvaluator.RSquared);
             }
 
-            private Result(double l1, double l2, double rms, double lossfn, double rsquared)
+            [BestFriend]
+            internal Result(double l1, double l2, double rms, double lossfn, double rsquared)
             {
                 L1 = l1;
                 L2 = l2;
