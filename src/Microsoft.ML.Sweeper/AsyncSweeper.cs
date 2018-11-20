@@ -10,7 +10,6 @@ using System.Threading.Tasks.Dataflow;
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
 
