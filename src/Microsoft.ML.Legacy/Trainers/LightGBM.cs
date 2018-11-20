@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.ML.Legacy.Trainers
 {
     /// <summary>
@@ -12,6 +14,7 @@ namespace Microsoft.ML.Legacy.Trainers
     /// pipeline.Add(new LightGbmBinaryClassifier() { NumLeaves = 5, NumBoostRound = 5, MinDataPerLeaf = 2 })
     /// </code>
     /// </example>
+    [Obsolete]
     public sealed partial class LightGbmBinaryClassifier
     {
 
@@ -25,6 +28,7 @@ namespace Microsoft.ML.Legacy.Trainers
     /// pipeline.Add(new LightGbmClassifier() { NumLeaves = 5, NumBoostRound = 5, MinDataPerLeaf = 2 })
     /// </code>
     /// </example>
+    [Obsolete]
     public sealed partial class LightGbmClassifier
     {
 
@@ -51,6 +55,7 @@ namespace Microsoft.ML.Legacy.Trainers
     /// pipeline.Add(new LightGbmRegressor() { NumLeaves = 5, NumBoostRound = 5, MinDataPerLeaf = 2 })
     /// </code>
     /// </example>
+    [Obsolete]
     public sealed partial class LightGbmRegressor
     {
 

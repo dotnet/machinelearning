@@ -21,6 +21,7 @@ using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
 [assembly: LoadableClass(typeof(CSharpApiGenerator), typeof(CSharpApiGenerator.Arguments), typeof(SignatureModuleGenerator),
     "CSharp API generator", "CSGenerator", "CS")]
 
+#pragma warning disable 612
 namespace Microsoft.ML.Runtime.Internal.Tools
 {
     internal sealed class CSharpApiGenerator : IGenerator

@@ -5,9 +5,11 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Legacy.Transforms;
+using System;
 
 namespace Microsoft.ML.Legacy.Models
 {
+    [Obsolete]
     public sealed partial class ClassificationEvaluator
     {
         /// <summary>

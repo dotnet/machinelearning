@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// Performs Train-Test on a pipeline.
     /// </summary>
+    [Obsolete]
     public sealed partial class TrainTestEvaluator
     {
         /// <summary>
@@ -174,6 +176,7 @@ namespace Microsoft.ML.Legacy.Models
         }
     }
 
+    [Obsolete]
     public class TrainTestEvaluatorOutput<TInput, TOutput>
             where TInput : class
             where TOutput : class, new()

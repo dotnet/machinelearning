@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
+using System;
 
 namespace Microsoft.ML.Legacy.Models
 {
+    [Obsolete]
     public sealed partial class OnnxConverter
     {
         /// <summary>

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CSharp;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -14,6 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Legacy.Data
 {
+    [Obsolete]
     public sealed partial class TextLoaderRange
     {
         public TextLoaderRange()
@@ -52,6 +52,7 @@ namespace Microsoft.ML.Legacy.Data
         }
     }
 
+    [Obsolete]
     public sealed partial class TextLoader
     {
         /// <summary>

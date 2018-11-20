@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Legacy;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Data;
 
@@ -15,6 +14,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
     /// A runnable pipeline. Contains a learner and set of transforms,
     /// along with a RunSummary if it has already been exectued.
     /// </summary>
+    [Obsolete]
     public sealed class PipelinePattern : IEquatable<PipelinePattern>
     {
         /// <summary>

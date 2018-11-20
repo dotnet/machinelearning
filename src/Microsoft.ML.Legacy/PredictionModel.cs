@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Legacy
 {
+    [Obsolete]
     public class PredictionModel
     {
         private readonly IHostEnvironment _env;
@@ -167,6 +168,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     public class PredictionModel<TInput, TOutput> : PredictionModel
         where TInput : class
         where TOutput : class, new()

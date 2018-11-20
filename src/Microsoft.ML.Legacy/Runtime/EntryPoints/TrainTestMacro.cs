@@ -9,10 +9,13 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Newtonsoft.Json.Linq;
 using System;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(TrainTestMacro), null, typeof(SignatureEntryPointModule), "TrainTestMacro")]
+#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
+    [Obsolete]
     public static class TrainTestMacro
     {
         public sealed class SubGraphInput

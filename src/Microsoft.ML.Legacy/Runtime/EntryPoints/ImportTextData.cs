@@ -28,6 +28,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public string CustomSchema = null;
         }
 
+        [Obsolete]
         [TlcModule.EntryPointKind(typeof(ILearningPipelineLoader))]
         public sealed class LoaderInput
         {
@@ -58,6 +59,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 #pragma warning restore 0618
 
+        [Obsolete]
         [TlcModule.EntryPoint(Name = "Data.TextLoader", Desc = "Import a dataset from a text file")]
         public static Output TextLoader(IHostEnvironment env, LoaderInput input)
         {

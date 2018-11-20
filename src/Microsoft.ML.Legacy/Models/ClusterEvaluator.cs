@@ -5,9 +5,11 @@
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using System;
 
 namespace Microsoft.ML.Legacy.Models
 {
+    [Obsolete]
     public sealed partial class ClusterEvaluator
     {
         /// <summary>

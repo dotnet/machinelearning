@@ -7,16 +7,20 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationBinaryMacro), null, typeof(SignatureEntryPointModule), "CrossValidationBinaryMacro")]
+#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
     /// This macro entry point implements cross validation for binary classification.
     /// </summary>
+    [Obsolete]
     public static class CrossValidationBinaryMacro
     {
         public sealed class SubGraphInput

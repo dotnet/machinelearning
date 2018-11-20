@@ -12,7 +12,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationMacro), null, typeof(SignatureEntryPointModule), "CrossValidationMacro")]
+#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
@@ -20,6 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// <summary>
     /// This macro entry point implements cross validation.
     /// </summary>
+    [Obsolete]
     public static class CrossValidationMacro
     {
         public sealed class SubGraphInput
