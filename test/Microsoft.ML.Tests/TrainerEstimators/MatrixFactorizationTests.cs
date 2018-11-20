@@ -418,7 +418,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            double tolerance = Math.Pow(10, -6);
+            double tolerance = Math.Pow(10, -5);
             var testResults = new List<OneClassMatrixElementZeroBasedForScore>(testPrediction.AsEnumerable<OneClassMatrixElementZeroBasedForScore>(mlContext, false));
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
             Assert.InRange(testResults[0].Score, 0.982391 - tolerance, 0.982391 + tolerance);
