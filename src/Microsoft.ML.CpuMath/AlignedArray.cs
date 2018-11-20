@@ -16,13 +16,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     ///
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    public sealed class AlignedArray
+    [BestFriend]
+    internal sealed class AlignedArray
     {
         // Items includes "head" items filled with NaN, followed by _size entries, followed by "tail"
         // items, also filled with NaN. Note that _size * sizeof(Float) is divisible by _cbAlign.
         // It is illegal to access any slot outsize [_base, _base + _size). This is internal so clients
         // can easily pin it.
-        internal Float[] Items;
+        public Float[] Items;
 
         private readonly int _size; // Must be divisible by (_cbAlign / sizeof(Float)).
         private readonly int _cbAlign; // The alignment in bytes, a power of two, divisible by sizeof(Float).
@@ -49,7 +50,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             _lock = new object();
         }
 
-        internal unsafe int GetBase(long addr)
+        public unsafe int GetBase(long addr)
         {
 #if DEBUG
             fixed (Float* pv = Items)

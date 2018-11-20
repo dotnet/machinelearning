@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers.Online;
 using Xunit;
 

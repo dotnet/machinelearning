@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 using System.Security;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
+    [BestFriend]
     internal static unsafe class Thunk
     {
         internal const string NativePath = "CpuMathNative";
