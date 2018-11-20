@@ -21,9 +21,9 @@ namespace Microsoft.ML.Data
         public double Nmi { get; }
 
         /// <summary>
-        /// Average Score. For the K-Means algorithm, the 'score' is the distance from the centroid to the example.
+        /// Average Score. For the K-Means algorithm, the &apos;score&apos; is the distance from the centroid to the example.
         /// The average score is, therefore, a measure of proximity of the examples to cluster centroids.
-        /// In other words, it's the 'cluster tightness' measure.
+        /// In other words, it&apos;s the &apos;cluster tightness&apos; measure.
         /// Note however, that this metric will only decrease if the number of clusters is increased,
         /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
         /// </summary>
