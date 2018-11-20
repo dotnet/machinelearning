@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
-        public enum LibMFLossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
+        public enum LossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
 
         public sealed class Arguments
         {
@@ -99,8 +99,8 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Loss function minimized for finding factor matrices.")]
             [TGUI(SuggestedSweeps = "0,12")]
-            [TlcModule.SweepableDiscreteParam("Fun", new object[] { LibMFLossFunctionType.SquareLossRegression, LibMFLossFunctionType.SquareLossOneClass })]
-            public LibMFLossFunctionType Fun = LibMFLossFunctionType.SquareLossRegression;
+            [TlcModule.SweepableDiscreteParam("LossFunction", new object[] { LossFunctionType.SquareLossRegression, LossFunctionType.SquareLossOneClass })]
+            public LossFunctionType LossFunction = LossFunctionType.SquareLossRegression;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularization parameter. " +
                 "It's the weight of factor matrices' norms in the objective function minimized by matrix factorization's algorithm. " +
@@ -129,6 +129,10 @@ namespace Microsoft.ML.Trainers
 
             /// <summary>
             /// Importance of unobserved (i.e., negative) entries' loss in one-class matrix factorization.
+            /// In general, only a few of matrix entries (e.g., less than 1%) in the training are observed (i.e., positive).
+            /// To balance the contributions from unobserved and obverved in the overall loss function, this parameter is
+            /// usually a small value so that the solver is able to find a factorization equally good to unobserved and observed
+            /// entries. If only 10000 observed entries present in a 200000-by-300000 training matrix, one can try Alpha = 10000 / (200000*300000).
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
             [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
@@ -224,8 +228,9 @@ namespace Microsoft.ML.Trainers
             Host.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
             Host.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
             Host.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
+            Host.CheckUserArg(args.Alpha > 0, nameof(args.Alpha), posError);
 
-            _fun = (int)args.Fun;
+            _fun = (int)args.LossFunction;
             _lambda = args.Lambda;
             _k = args.K;
             _iter = args.NumIterations;
@@ -259,7 +264,7 @@ namespace Microsoft.ML.Trainers
             var args = new Arguments();
             advancedSettings?.Invoke(args);
 
-            _fun = (int)args.Fun;
+            _fun = (int)args.LossFunction;
             _lambda = args.Lambda;
             _k = args.K;
             _iter = args.NumIterations;

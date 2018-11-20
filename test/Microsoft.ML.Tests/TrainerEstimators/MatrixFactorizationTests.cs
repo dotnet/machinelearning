@@ -394,7 +394,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 nameof(OneClassMatrixElementZeroBased.Value),
                 advancedSettings: s =>
                 {
-                    s.Fun = MatrixFactorizationTrainer.LibMFLossFunctionType.SquareLossOneClass;
+                    s.LossFunction = MatrixFactorizationTrainer.LossFunctionType.SquareLossOneClass;
                     s.NumIterations = 100;
                     s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
                     // Let's test non-default regularization coefficient.
