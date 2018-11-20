@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// <param name="label">Label column name.</param>
         /// <param name="features">Feature column names.</param>
         /// <param name="topExamples">Number of top (highest positive) contributions to output.</param>
-        /// <returns></returns>
+        /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionEvaluator.Result>
             CalculateFeatureImportance(
                 this RegressionContext ctx,
