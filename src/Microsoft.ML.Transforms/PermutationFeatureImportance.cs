@@ -11,7 +11,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Float = System.Single;
 
 namespace Microsoft.ML.Transforms
 {
@@ -19,14 +18,14 @@ namespace Microsoft.ML.Transforms
 
     internal sealed class PermutationFeatureImportance<TResult>
     {
-        private readonly IHostEnvironment _host;
+        private readonly IHost _host;
         private VBuffer<ReadOnlyMemory<char>> _slotNames;
         private readonly List<TResult> _metricsDelta;
 
         public PermutationFeatureImportance(IHostEnvironment host)
         {
             Contracts.CheckValue(host, nameof(host));
-            _host = host;
+            _host = host.Register(nameof(PermutationFeatureImportance<TResult>));
             _metricsDelta = new List<TResult>();
         }
 
@@ -37,15 +36,15 @@ namespace Microsoft.ML.Transforms
                 Func<IDataView, TResult> evaluationFunc,
                 Func<TResult, TResult, TResult> deltaFunc,
                 string features,
-                int topExamples,
-                int progressIterations)
+                int topExamples)
         {
-            var host = _host.Register(nameof(GetImportanceMetricsMatrix));
-            host.CheckValue(model, nameof(model));
-            host.CheckValue(data, nameof(data));
-            host.CheckValue(features, nameof(features));
+            _host.CheckValue(model, nameof(model));
+            _host.CheckValue(data, nameof(data));
+            _host.CheckValue(features, nameof(features));
 
-            using (var ch = host.Start("GetImportanceMetrics"))
+            var progressIterations = 10;
+
+            using (var ch = _host.Start("GetImportanceMetrics"))
             {
                 ch.Trace("Scoring and evaluating baseline.");
                 var baselineMetrics = evaluationFunc(model.Transform(data));
@@ -54,9 +53,6 @@ namespace Microsoft.ML.Transforms
                 var featuresColumn = data.Schema[features];
                 int numSlots = featuresColumn.Type.VectorSize;
                 data.Schema.TryGetColumnIndex(features, out int featuresColumnIndex);
-
-                // Todo: check this
-                //TrainerUtils.CheckFeatureFloatVector(roleMapped);
 
                 ch.Info("Number of slots: " + numSlots);
                 if (data.Schema.HasSlotNames(featuresColumnIndex, numSlots))
@@ -69,7 +65,7 @@ namespace Microsoft.ML.Transforms
 
                 // Note: this will not work on the huge dataset.
                 var maxSize = topExamples > 0 ? topExamples : Utils.ArrayMaxSize;
-                List<Float> initialfeatureValuesList = new List<Float>();
+                List<float> initialfeatureValuesList = new List<float>();
 
                 // Cursor through the data to cache slot 0 values for the upcoming permutation.
                 var valuesRowCount = 0;
@@ -87,8 +83,6 @@ namespace Microsoft.ML.Transforms
                     }
 
                     valuesRowCount = initialfeatureValuesList.Count;
-                    // Todo: KeptRowCount does not exist, do I need it?
-                    //ch.Assert(valuesRowCount == cursor.KeptRowCount);
                 }
 
                 if (valuesRowCount > 0)
@@ -101,14 +95,14 @@ namespace Microsoft.ML.Transforms
                     return _metricsDelta.ToImmutableArray();
                 }
 
-                Float[] featureValuesBuffer = initialfeatureValuesList.ToArray();
-                Float[] nextValues = new float[valuesRowCount];
+                float[] featureValuesBuffer = initialfeatureValuesList.ToArray();
+                float[] nextValues = new float[valuesRowCount];
 
                 // Now iterate through all the working slots, do permutation and calc the delta of metrics.
                 int processedCnt = 0;
                 int j = 0;
                 int nextFeatureIndex = 0;
-                int shuffleSeed = host.Rand.Next();
+                int shuffleSeed = _host.Rand.Next();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Restart();
                 foreach (var workingIndx in workingFeatureIndices)
@@ -126,7 +120,7 @@ namespace Microsoft.ML.Transforms
                         {
                             src.Features.CopyTo(ref dst.Features);
                             VBufferUtils.ApplyAt(ref dst.Features, workingIndx,
-                                (int ii, ref Float d) =>
+                                (int ii, ref float d) =>
                                     d = featureValuesBuffer[state.SampleIndex++]);
 
                             if (j < workingFeatureIndices.Count - 1)
@@ -148,9 +142,9 @@ namespace Microsoft.ML.Transforms
                     output[0].ColumnType = featuresColumn.Type;
 
                     IDataView viewPermuted = LambdaTransform.CreateMap(
-                        host, data, permuter, null, input, output);
+                        _host, data, permuter, null, input, output);
                     if (topExamples > 0 && valuesRowCount == topExamples)
-                        viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+                        viewPermuted = SkipTakeFilter.Create(_host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
 
                     var metrics = evaluationFunc(model.Transform(viewPermuted));
 
@@ -198,7 +192,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         private sealed class FeaturesBuffer
         {
-            public VBuffer<Float> Features;
+            public VBuffer<float> Features;
         }
 
         /// <summary>

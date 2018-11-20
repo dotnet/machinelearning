@@ -22,7 +22,6 @@ namespace Microsoft.ML
     {
         protected readonly IHost Host;
 
-        [BestFriend]
         internal IHostEnvironment Environment => Host;
 
         /// <summary>

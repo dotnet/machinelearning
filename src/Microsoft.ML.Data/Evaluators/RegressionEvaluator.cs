@@ -214,13 +214,13 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             [BestFriend]
-            internal Result(double l1, double l2, double rms, double lossfn, double rsquared)
+            internal Result(double l1, double l2, double rms, double lossFunction, double rSquared)
             {
                 L1 = l1;
                 L2 = l2;
                 Rms = rms;
-                LossFn = lossfn;
-                RSquared = rsquared;
+                LossFn = lossFunction;
+                RSquared = rSquared;
             }
         }
 

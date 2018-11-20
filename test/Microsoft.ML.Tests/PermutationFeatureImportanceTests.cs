@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var pfi = ML.Regression.PermutationFeatureImportance(model, data);
+            var pfi = ML.Regression.CalculateFeatureImportance(model, data);
 
             // Pfi Indices:
             // X1: 0
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var results = ML.Regression.PermutationFeatureImportance(model, data);
+            var results = ML.Regression.CalculateFeatureImportance(model, data);
 
             // Pfi Indices:
             // X1: 0
