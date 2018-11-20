@@ -183,7 +183,7 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
-        public MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
+        private MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
         {
             const string posError = "Parameter must be positive";
             Host.CheckValue(args, nameof(args));

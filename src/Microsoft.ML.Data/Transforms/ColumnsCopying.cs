@@ -16,31 +16,31 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(ColumnsCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnsCopyingTransformer),
-    typeof(ColumnsCopyingTransformer.Arguments), typeof(SignatureDataTransform),
-    ColumnsCopyingTransformer.UserName, "CopyColumns", "CopyColumnsTransform", ColumnsCopyingTransformer.ShortName,
+[assembly: LoadableClass(ColumnCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnCopyingTransformer),
+    typeof(ColumnCopyingTransformer.Arguments), typeof(SignatureDataTransform),
+    ColumnCopyingTransformer.UserName, "CopyColumns", "CopyColumnsTransform", ColumnCopyingTransformer.ShortName,
     DocName = "transform/CopyColumnsTransformer.md")]
 
-[assembly: LoadableClass(ColumnsCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnsCopyingTransformer), null, typeof(SignatureLoadDataTransform),
-    ColumnsCopyingTransformer.UserName, ColumnsCopyingTransformer.LoaderSignature)]
+[assembly: LoadableClass(ColumnCopyingTransformer.Summary, typeof(IDataTransform), typeof(ColumnCopyingTransformer), null, typeof(SignatureLoadDataTransform),
+    ColumnCopyingTransformer.UserName, ColumnCopyingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(ColumnsCopyingTransformer.Summary, typeof(ColumnsCopyingTransformer), null, typeof(SignatureLoadModel),
-    ColumnsCopyingTransformer.UserName, ColumnsCopyingTransformer.LoaderSignature)]
+[assembly: LoadableClass(ColumnCopyingTransformer.Summary, typeof(ColumnCopyingTransformer), null, typeof(SignatureLoadModel),
+    ColumnCopyingTransformer.UserName, ColumnCopyingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(ColumnsCopyingTransformer), null, typeof(SignatureLoadRowMapper),
-    ColumnsCopyingTransformer.UserName, ColumnsCopyingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ColumnCopyingTransformer), null, typeof(SignatureLoadRowMapper),
+    ColumnCopyingTransformer.UserName, ColumnCopyingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class ColumnsCopyingEstimator : TrivialEstimator<ColumnsCopyingTransformer>
+    public sealed class ColumnCopyingEstimator : TrivialEstimator<ColumnCopyingTransformer>
     {
-        public ColumnsCopyingEstimator(IHostEnvironment env, string input, string output) :
+        public ColumnCopyingEstimator(IHostEnvironment env, string input, string output) :
             this(env, (input, output))
         {
         }
 
-        public ColumnsCopyingEstimator(IHostEnvironment env, params (string source, string name)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnsCopyingEstimator)), new ColumnsCopyingTransformer(env, columns))
+        public ColumnCopyingEstimator(IHostEnvironment env, params (string source, string name)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingEstimator)), new ColumnCopyingTransformer(env, columns))
         {
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class ColumnsCopyingTransformer : OneToOneTransformerBase
+    public sealed class ColumnCopyingTransformer : OneToOneTransformerBase
     {
         public const string LoaderSignature = "CopyTransform";
         internal const string Summary = "Copy a source column to a new column.";
@@ -77,11 +77,11 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(ColumnsCopyingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(ColumnCopyingTransformer).Assembly.FullName);
         }
 
-        public ColumnsCopyingTransformer(IHostEnvironment env, params (string source, string name)[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnsCopyingTransformer)), columns)
+        public ColumnCopyingTransformer(IHostEnvironment env, params (string source, string name)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ColumnCopyingTransformer)), columns)
         {
         }
 
@@ -116,12 +116,12 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
 
-            var transformer = new ColumnsCopyingTransformer(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
+            var transformer = new ColumnCopyingTransformer(env, args.Column.Select(x => (x.Source, x.Name)).ToArray());
             return transformer.MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static ColumnsCopyingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static ColumnCopyingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Transforms
                 columns[i].Name = ctx.LoadNonEmptyString();
                 columns[i].Source = ctx.LoadNonEmptyString();
             }
-            return new ColumnsCopyingTransformer(env, columns);
+            return new ColumnCopyingTransformer(env, columns);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Transforms
 
             public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
-            internal Mapper(ColumnsCopyingTransformer parent, Schema inputSchema, (string Source, string Name)[] columns)
+            internal Mapper(ColumnCopyingTransformer parent, Schema inputSchema, (string Source, string Name)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _schema = inputSchema;

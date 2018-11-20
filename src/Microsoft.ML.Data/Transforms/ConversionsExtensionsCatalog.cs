@@ -14,7 +14,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Extensions for the HashEstimator.
     /// </summary>
-    public static class HashingEstimatorCatalog
+    public static class ConversionsExtensionsCatalog
     {
         /// <summary>
         /// Hashes the values in the input column.
@@ -54,10 +54,7 @@ namespace Microsoft.ML
         /// <param name="columns">Description of dataset columns and how to process them.</param>
         public static TypeConvertingEstimator ConvertType(this TransformsCatalog.ConversionTransforms catalog, params TypeConvertingTransformer.ColumnInfo[] columns)
             => new TypeConvertingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
-    }
 
-    public static class ToValueCatalog
-    {
         /// <summary>
         /// Convert the key types back to their original values.
         /// </summary>
@@ -74,13 +71,7 @@ namespace Microsoft.ML
         /// <param name="columns">The pairs of input and output columns.</param>
         public static KeyToValueMappingEstimator MapKeyToValue(this TransformsCatalog.ConversionTransforms catalog, params (string input, string output)[] columns)
              => new KeyToValueMappingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
-    }
 
-    /// <summary>
-    /// Extensions for KeyToVectorMappingEstimator.
-    /// </summary>
-    public static class ToVectorCatalog
-    {
         /// <summary>
         /// Convert the key types back to their original vectors.
         /// </summary>

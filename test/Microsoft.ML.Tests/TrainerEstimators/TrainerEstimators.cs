@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMultiClassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Label", "Features"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }

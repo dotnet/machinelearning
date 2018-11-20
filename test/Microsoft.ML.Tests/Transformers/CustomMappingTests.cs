@@ -117,7 +117,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
             catch (Exception) { }
 
-            var badData2 = ML.Transforms.KeepColumns(new[] { "Float1" }).Fit(data).Transform(data);
+            var badData2 = ML.Transforms.SelectColumns(new[] { "Float1" }).Fit(data).Transform(data);
             try
             {
                 est.GetOutputSchema(SchemaShape.Create(badData2.Schema));

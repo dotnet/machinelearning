@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var col in GetPerInstanceColumnsToSave(perInst.Schema))
                 colsToKeep.Add(col);
 
-            idv = new ColumnsCopyingTransformer(Host, cols.ToArray()).Transform(idv);
+            idv = new ColumnCopyingTransformer(Host, cols.ToArray()).Transform(idv);
             idv = ColumnSelectingTransformer.CreateKeep(Host, idv, colsToKeep.ToArray());
             return GetPerInstanceMetricsCore(idv, perInst.Schema);
         }

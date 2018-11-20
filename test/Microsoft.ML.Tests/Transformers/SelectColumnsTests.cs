@@ -113,16 +113,12 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
 
             // Workout on keep columns
-            var est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, false);
+            var est = ML.Transforms.SelectColumns(new[] {"A", "B"});
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
             // Workout on drop columns
-            est = ML.Transforms.SelectColumns(null, new[] {"A", "B"}, true, false);
+            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, true);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
-
-            // Workout on keep columns with ignore mismatch -- using invalid data set
-            est = ML.Transforms.SelectColumns(new[] {"A", "B"}, null, true, true);
-            TestEstimatorCore(est, validFitInput: invalidDataView);
         }
 
         [Fact]
@@ -139,7 +135,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
             var chain = est.Append(ColumnSelectingEstimator.KeepColumns(Env, "C", "A"));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -163,8 +159,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, null, true));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var chain = est.Append(ML.Transforms.SelectColumns(new[] {"B", "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -187,8 +183,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(null, new[] { "A" }, true));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
+            var chain = est.Append(ML.Transforms.SelectColumns(new[] { "A" }, true));
             var transformer = chain.Fit(dataView);
             var result = transformer.Transform(dataView);
 
@@ -204,21 +200,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(2, cIdx);
-        }
-
-        [Fact]
-        void TestSelectWithKeepAndDropSet()
-        {
-            // Setting both keep and drop is not allowed.
-            var test = new string[]{ "D", "G"};
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(test, test));
-        }
-
-        [Fact]
-        void TestSelectNoKeepAndDropSet()
-        {
-            // Passing null to both keep and drop is not allowed.
-            Assert.Throws<InvalidOperationException>(() => ML.Transforms.SelectColumns(null, null));
         }
 
         [Fact]
@@ -245,8 +226,8 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnsCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
-                      ML.Transforms.SelectColumns(new[] { "A", "B" }, null, false));
+            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")}).Append(
+                      ML.Transforms.SelectColumns(new[] { "A", "B" }, false));
             var transformer = est.Fit(dataView);
             using (var ms = new MemoryStream())
             {

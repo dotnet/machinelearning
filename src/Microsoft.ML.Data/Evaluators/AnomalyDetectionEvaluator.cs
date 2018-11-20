@@ -724,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
             colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
-            overall = new ColumnsCopyingTransformer(Host, cols).Transform(overall);
+            overall = new ColumnCopyingTransformer(Host, cols).Transform(overall);
             IDataView fold = ColumnSelectingTransformer.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;
