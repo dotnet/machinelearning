@@ -522,25 +522,19 @@ namespace Microsoft.ML.Runtime.Data
                 return
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
-                        var values = dst.Values;
-                        if (Utils.Size(values) < UnweightedCounters.TruncationLevel)
-                            values = new ReadOnlyMemory<char>[UnweightedCounters.TruncationLevel];
-
+                        var editor = VBufferEditor.Create(ref dst, UnweightedCounters.TruncationLevel);
                         for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                            values[i] = string.Format("{0}@{1}", prefix, i + 1).AsMemory();
-                        dst = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
+                            editor.Values[i] = string.Format("{0}@{1}", prefix, i + 1).AsMemory();
+                        dst = editor.Commit();
                     };
             }
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var values = slotNames.Values;
-                if (Utils.Size(values) < UnweightedCounters.TruncationLevel)
-                    values = new ReadOnlyMemory<char>[UnweightedCounters.TruncationLevel];
-
+                var editor = VBufferEditor.Create(ref slotNames, UnweightedCounters.TruncationLevel);
                 for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                    values[i] = string.Format("@{0}", i + 1).AsMemory();
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
+                    editor.Values[i] = string.Format("@{0}", i + 1).AsMemory();
+                slotNames = editor.Commit();
             }
         }
 
@@ -705,14 +699,12 @@ namespace Microsoft.ML.Runtime.Data
                 private void SlotNamesGetter(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _truncationLevel)
-                        values = new ReadOnlyMemory<char>[_truncationLevel];
+                    var editor = VBufferEditor.Create(ref dst, _truncationLevel);
                     for (int i = 0; i < _truncationLevel; i++)
-                        values[i] =
+                        editor.Values[i] =
                             string.Format("{0}@{1}", iinfo == NdcgCol ? Ndcg : iinfo == DcgCol ? Dcg : MaxDcg,
                                 i + 1).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_truncationLevel, values);
+                    dst = editor.Commit();
                 }
             }
 
@@ -802,11 +794,9 @@ namespace Microsoft.ML.Runtime.Data
             private void Copy(Double[] src, ref VBuffer<Double> dst)
             {
                 Host.AssertValue(src);
-                var values = dst.Values;
-                if (Utils.Size(values) < src.Length)
-                    values = new Double[src.Length];
-                src.CopyTo(values, 0);
-                dst = new VBuffer<Double>(src.Length, values);
+                var editor = VBufferEditor.Create(ref dst, src.Length);
+                src.CopyTo(editor.Values);
+                dst = editor.Commit();
             }
 
             protected override ValueGetter<short> GetLabelGetter(IRow row)

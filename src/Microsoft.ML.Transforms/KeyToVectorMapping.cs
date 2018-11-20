@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private sealed class ColInfo
             {
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return infos;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -322,9 +322,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 int slotLim = _types[iinfo].VectorSize;
                 Host.Assert(slotLim == (long)typeSrc.VectorSize * _bitsPerKey[iinfo]);
 
-                var values = dst.Values;
-                if (Utils.Size(values) < slotLim)
-                    values = new ReadOnlyMemory<char>[slotLim];
+                var editor = VBufferEditor.Create(ref dst, slotLim);
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -345,15 +343,15 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         sb.Length = len;
                         sb.AppendMemory(key);
-                        values[slot++] = sb.ToString().AsMemory();
+                        editor.Values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = new VBuffer<ReadOnlyMemory<char>>(slotLim, values, dst.Indices);
+                dst = editor.Commit();
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);

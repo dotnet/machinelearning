@@ -222,7 +222,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase, ISaveAsPfa
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsPfa
         {
             private readonly ColumnType _type;
             private readonly WordTokenizingTransformer _parent;
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Transforms.Text
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -287,15 +287,13 @@ namespace Microsoft.ML.Transforms.Text
 
                         AddTerms(src, separators, terms);
 
-                        var values = dst.Values;
+                        var editor = VBufferEditor.Create(ref dst, terms.Count);
                         if (terms.Count > 0)
                         {
-                            if (Utils.Size(values) < terms.Count)
-                                values = new ReadOnlyMemory<char>[terms.Count];
-                            terms.CopyTo(values);
+                            terms.CopyTo(editor.Values);
                         }
 
-                        dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
+                        dst = editor.Commit();
                     };
             }
 

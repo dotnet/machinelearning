@@ -245,10 +245,13 @@ namespace Microsoft.ML.Tests
                     aGetter(ref avalue);
                     bGetter(ref bvalue);
                     cGetter(ref cvalue);
-                    Assert.Equal(avalue.Values[0] * bvalue.Values[0] + avalue.Values[1] * bvalue.Values[2], cvalue.Values[0]);
-                    Assert.Equal(avalue.Values[0] * bvalue.Values[1] + avalue.Values[1] * bvalue.Values[3], cvalue.Values[1]);
-                    Assert.Equal(avalue.Values[2] * bvalue.Values[0] + avalue.Values[3] * bvalue.Values[2], cvalue.Values[2]);
-                    Assert.Equal(avalue.Values[2] * bvalue.Values[1] + avalue.Values[3] * bvalue.Values[3], cvalue.Values[3]);
+                    var aValues = avalue.GetValues();
+                    var bValues = bvalue.GetValues();
+                    var cValues = cvalue.GetValues();
+                    Assert.Equal(aValues[0] * bValues[0] + aValues[1] * bValues[2], cValues[0]);
+                    Assert.Equal(aValues[0] * bValues[1] + aValues[1] * bValues[3], cValues[1]);
+                    Assert.Equal(aValues[2] * bValues[0] + aValues[3] * bValues[2], cValues[2]);
+                    Assert.Equal(aValues[2] * bValues[1] + aValues[3] * bValues[3], cValues[3]);
                 }
             }
         }

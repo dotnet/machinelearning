@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 
 namespace Microsoft.ML.Runtime.Sweeper.Algorithms
@@ -160,11 +156,11 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             return Normalize(weights);
         }
 
-        public static Float[] ParameterSetAsFloatArray(IHost host, IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
+        public static float[] ParameterSetAsFloatArray(IHost host, IValueGenerator[] sweepParams, ParameterSet ps, bool expandCategoricals = true)
         {
             host.Assert(ps.Count == sweepParams.Length);
 
-            var result = new List<Float>();
+            var result = new List<float>();
 
             for (int i = 0; i < sweepParams.Length; i++)
             {
@@ -212,7 +208,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             return result.ToArray();
         }
 
-        public static ParameterSet FloatArrayAsParameterSet(IHost host, IValueGenerator[] sweepParams, Float[] array, bool expandedCategoricals = true)
+        public static ParameterSet FloatArrayAsParameterSet(IHost host, IValueGenerator[] sweepParams, float[] array, bool expandedCategoricals = true)
         {
             Contracts.Assert(array.Length == sweepParams.Length);
 

@@ -1003,22 +1003,6 @@ namespace Microsoft.ML.Trainers.FastTree
             return conv;
         }
 
-        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> names)
-        {
-            // The existing implementations will have verified this by the time this utility
-            // function is called.
-            Host.AssertValue(data);
-            var feat = data.Schema.Feature;
-            Host.AssertValue(feat);
-            Host.Assert(feat.Type.ValueCount > 0);
-
-            var sch = data.Schema.Schema;
-            if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
-                sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref names);
-            else
-                names = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, names.Values, names.Indices);
-        }
-
 #if !CORECLR
         protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
         {
@@ -2550,8 +2534,7 @@ namespace Microsoft.ML.Trainers.FastTree
             public void CopyTo(int length, ref VBuffer<Double> dst)
             {
                 Contracts.Assert(0 <= length);
-                int[] indices = dst.Indices;
-                Double[] values = dst.Values;
+                VBufferEditor<double> editor;
                 if (!_isSparse)
                 {
                     Contracts.Assert(_dense.Count <= length);
@@ -2559,29 +2542,28 @@ namespace Microsoft.ML.Trainers.FastTree
                         Sparsify();
                     else
                     {
-                        Utils.EnsureSize(ref values, length, keepOld: false);
+                        editor = VBufferEditor.Create(ref dst, length);
                         if (_dense.Count < length)
                         {
-                            _dense.CopyTo(values, 0);
-                            Array.Clear(values, _dense.Count, length - _dense.Count);
+                            _dense.CopyTo(editor.Values);
+                            editor.Values.Slice(_dense.Count, length - _dense.Count).Clear();
                         }
                         else
-                            _dense.CopyTo(0, values, 0, length);
-                        dst = new VBuffer<Double>(length, values, indices);
+                            _dense.CopyTo(editor.Values, length);
+                        dst = editor.Commit();
                         return;
                     }
                 }
                 int count = _sparse.Count;
                 Contracts.Assert(count <= length);
-                Utils.EnsureSize(ref indices, count);
-                Utils.EnsureSize(ref values, count);
+                editor = VBufferEditor.Create(ref dst, length, count);
                 for (int i = 0; i < _sparse.Count; ++i)
                 {
-                    indices[i] = _sparse[i].Key;
-                    values[i] = _sparse[i].Value;
+                    editor.Indices[i] = _sparse[i].Key;
+                    editor.Values[i] = _sparse[i].Value;
                 }
-                Contracts.Assert(Utils.IsIncreasing(0, indices, count, length));
-                dst = new VBuffer<Double>(length, count, values, indices);
+                Contracts.Assert(Utils.IsIncreasing(0, editor.Indices, count, length));
+                dst = editor.Commit();
             }
 
             /// <summary>
@@ -3270,7 +3252,7 @@ namespace Microsoft.ML.Trainers.FastTree
             // If there are no trees or no splits, there are no gains.
             if (gainMap.Count == 0)
             {
-                weights = new VBuffer<Float>(numFeatures, 0, weights.Values, weights.Indices);
+                VBufferUtils.Resize(ref weights, numFeatures, 0);
                 return;
             }
 

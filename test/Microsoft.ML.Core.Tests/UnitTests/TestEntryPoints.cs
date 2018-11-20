@@ -1483,9 +1483,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 return false;
             v1.CopyToDense(ref dense1);
             v2.CopyToDense(ref dense2);
+            var dense1Values = dense1.GetValues();
+            var dense2Values = dense2.GetValues();
             for (int i = 0; i < dense1.Length; i++)
             {
-                if (!Single.IsNaN(dense1.Values[i]) && !Single.IsNaN(dense2.Values[i]) && dense1.Values[i] != dense2.Values[i])
+                if (!Single.IsNaN(dense1Values[i]) && !Single.IsNaN(dense2Values[i]) && dense1Values[i] != dense2Values[i])
                     return false;
             }
             return true;
