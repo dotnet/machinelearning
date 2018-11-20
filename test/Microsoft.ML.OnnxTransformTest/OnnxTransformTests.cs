@@ -298,7 +298,7 @@ namespace Microsoft.ML.Tests
                     {
                         getScoresa(ref buffera);
                         getScoresb(ref bufferb);
-                        Console.WriteLine(buffera.Values);
+                        Console.WriteLine(buffera.GetValues().ToArray());
                         Assert.Equal(5, buffera.Length);
                     }
                 }

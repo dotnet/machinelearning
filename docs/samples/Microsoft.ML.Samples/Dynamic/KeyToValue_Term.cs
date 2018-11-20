@@ -56,7 +56,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
                 foreach (var row in column)
                 {
-                    foreach (var value in row.Values)
+                    foreach (var value in row.GetValues())
                         Console.Write($"{value} ");
                     Console.WriteLine("");
                 }
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             foreach (var row in originalColumnBack)
             {
-                foreach (var value in row.Values)
+                foreach (var value in row.GetValues())
                     Console.Write($"{value} ");
                 Console.WriteLine("");
             }

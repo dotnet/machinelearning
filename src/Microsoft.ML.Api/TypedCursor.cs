@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -381,21 +381,21 @@ namespace Microsoft.ML.Runtime.Api
                 return row =>
                 {
                     typedPeek(row, Position, ref buf);
-                    value = new VBuffer<TDst>(0, buf, value.Indices);
                     getter(ref value);
                     if (value.Length == Utils.Size(buf) && value.IsDense)
                     {
-                        // In this case, value.Values alone is enough to represent the vector.
-                        // Otherwise, we are either sparse (and need densifying), or value.Values is too large,
-                        // and we need to truncate.
-                        buf = value.Values;
+                        // In this case, buf (which came from the input object) is the
+                        // right size to represent the vector.
+                        // Otherwise, we are either sparse (and need densifying), or value.GetValues()
+                        // is a different length than buf.
+                        value.CopyTo(buf);
                     }
                     else
                     {
                         buf = new TDst[value.Length];
 
                         if (value.IsDense)
-                            Array.Copy(value.Values, buf, value.Length);
+                            value.GetValues().CopyTo(buf);
                         else
                         {
                             foreach (var pair in value.Items(true))

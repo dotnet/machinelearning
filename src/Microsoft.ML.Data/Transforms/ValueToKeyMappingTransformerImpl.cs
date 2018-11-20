@@ -650,19 +650,17 @@ namespace Microsoft.ML.Transforms.Categorical
 
                 public override void GetTerms(ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
-                    ReadOnlyMemory<char>[] values = dst.Values;
-                    if (Utils.Size(values) < _pool.Count)
-                        values = new ReadOnlyMemory<char>[_pool.Count];
+                    var editor = VBufferEditor.Create(ref dst, _pool.Count);
                     int slot = 0;
                     foreach (var nstr in _pool)
                     {
-                        Contracts.Assert(0 <= nstr.Id & nstr.Id < values.Length);
+                        Contracts.Assert(0 <= nstr.Id & nstr.Id < editor.Values.Length);
                         Contracts.Assert(nstr.Id == slot);
-                        values[nstr.Id] = nstr.Value;
+                        editor.Values[nstr.Id] = nstr.Value;
                         slot++;
                     }
 
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_pool.Count, values, dst.Indices);
+                    dst = editor.Commit();
                 }
 
                 internal override void WriteTextTerms(TextWriter writer)
@@ -733,16 +731,14 @@ namespace Microsoft.ML.Transforms.Categorical
                 {
                     if (Count == 0)
                     {
-                        dst = new VBuffer<T>(0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, 0);
                         return;
                     }
-                    T[] values = dst.Values;
-                    if (Utils.Size(values) < Count)
-                        values = new T[Count];
+                    var editor = VBufferEditor.Create(ref dst, Count);
                     Contracts.AssertValue(_values);
                     Contracts.Assert(_values.Count == Count);
-                    _values.CopyTo(values);
-                    dst = new VBuffer<T>(Count, values, dst.Indices);
+                    _values.CopyTo(editor.Values);
+                    dst = editor.Commit();
                 }
 
                 internal override void WriteTextTerms(TextWriter writer)
@@ -784,20 +780,19 @@ namespace Microsoft.ML.Transforms.Categorical
             Contracts.Assert(typeof(T) != typeof(ReadOnlyMemory<char>));
 
             StringBuilder sb = null;
-            ReadOnlyMemory<char>[] values = dst.Values;
 
             // We'd obviously have to adjust this a bit, if we ever had sparse metadata vectors.
             // The way the term map metadata getters are structured right now, this is impossible.
             Contracts.Assert(src.IsDense);
 
-            if (Utils.Size(values) < src.Length)
-                values = new ReadOnlyMemory<char>[src.Length];
-            for (int i = 0; i < src.Length; ++i)
+            var editor = VBufferEditor.Create(ref dst, src.Length);
+            var srcValues = src.GetValues();
+            for (int i = 0; i < srcValues.Length; ++i)
             {
-                stringMapper(in src.Values[i], ref sb);
-                values[i] = sb.ToString().AsMemory();
+                stringMapper(in srcValues[i], ref sb);
+                editor.Values[i] = sb.ToString().AsMemory();
             }
-            dst = new VBuffer<ReadOnlyMemory<char>>(src.Length, values, dst.Indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -956,7 +951,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can
                                         // build vectors of length zero?
-                                        dst = new VBuffer<uint>(cval, dst.Values, dst.Indices);
+                                        VBufferUtils.Resize(ref dst, cval);
                                         return;
                                     }
 
@@ -991,7 +986,7 @@ namespace Microsoft.ML.Transforms.Categorical
                                     {
                                         // REVIEW: Should the VBufferBuilder be changed so that it can
                                         // build vectors of length zero?
-                                        dst = new VBuffer<uint>(cval, dst.Values, dst.Indices);
+                                        VBufferUtils.Resize(ref dst, cval);
                                         return;
                                     }
 
@@ -1125,9 +1120,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
                             VBuffer<T> keyVals = default(VBuffer<T>);
                             TypedMap.GetTerms(ref keyVals);
-                            TMeta[] values = dst.Values;
-                            if (Utils.Size(values) < TypedMap.OutputType.KeyCount)
-                                values = new TMeta[TypedMap.OutputType.KeyCount];
+                            var editor = VBufferEditor.Create(ref dst, TypedMap.OutputType.KeyCount);
                             uint convKeyVal = 0;
                             foreach (var pair in keyVals.Items(all: true))
                             {
@@ -1135,9 +1128,9 @@ namespace Microsoft.ML.Transforms.Categorical
                                 conv(in keyVal, ref convKeyVal);
                                 // The builder for the key values should not have any missings.
                                 _host.Assert(0 < convKeyVal && convKeyVal <= srcMeta.Length);
-                                srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref values[pair.Key]);
+                                srcMeta.GetItemOrDefault((int)(convKeyVal - 1), ref editor.Values[pair.Key]);
                             }
-                            dst = new VBuffer<TMeta>(TypedMap.OutputType.KeyCount, values, dst.Indices);
+                            dst = editor.Commit();
                         };
 
                     if (IsTextMetadata && !srcMetaType.IsText)
