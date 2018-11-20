@@ -232,32 +232,11 @@ namespace Microsoft.ML.Transforms.Text
                 ResetRandomGenerator = resetRandomGenerator;
             }
 
-            internal ColumnInfo(Column item, Arguments args)
+            internal ColumnInfo(Column item, Arguments args) :
+                this(item.Source, item.Name,
+                    args.NumTopic, args.AlphaSum, args.Beta, args.Mhstep, args.NumIterations,
+                    args.LikelihoodInterval, args.NumThreads, args.NumMaxDocToken, args.NumSummaryTermPerTopic, args.NumBurninIterations, args.ResetRandomGenerator)
             {
-                Contracts.CheckValue(item.Source, nameof(item.Source));
-                Contracts.CheckValueOrNull(item.Name);
-                Contracts.CheckParam(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
-                Contracts.CheckParam(args.Mhstep > 0, nameof(args.Mhstep), "Must be positive.");
-                Contracts.CheckParam(args.NumIterations > 0, nameof(args.NumIterations), "Must be positive.");
-                Contracts.CheckParam(args.LikelihoodInterval > 0, nameof(args.LikelihoodInterval), "Must be positive.");
-                Contracts.CheckParam(args.NumThreads >= 0, nameof(args.NumThreads), "Must be positive or zero.");
-                Contracts.CheckParam(args.NumMaxDocToken > 0, nameof(args.NumMaxDocToken), "Must be positive.");
-                Contracts.CheckParam(args.NumSummaryTermPerTopic > 0, nameof(args.NumSummaryTermPerTopic), "Must be positive");
-                Contracts.CheckParam(args.NumBurninIterations >= 0, nameof(args.NumBurninIterations), "Must be non-negative.");
-
-                Input = item.Source;
-                Output = item.Name ?? item.Source;
-                NumTopic = args.NumTopic;
-                AlphaSum = args.AlphaSum;
-                Beta = args.Beta;
-                MHStep = args.Mhstep;
-                NumIter = args.NumIterations;
-                LikelihoodInterval = args.LikelihoodInterval;
-                NumThread = args.NumThreads;
-                NumMaxDocToken = args.NumMaxDocToken;
-                NumSummaryTermPerTopic = args.NumSummaryTermPerTopic;
-                NumBurninIter = args.NumBurninIterations;
-                ResetRandomGenerator = args.ResetRandomGenerator;
             }
 
             internal ColumnInfo(IExceptionContext ectx, ModelLoadContext ctx)
@@ -767,7 +746,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public const string LoaderSignature = "LdaTransform";
+        internal const string LoaderSignature = "LdaTransform";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(

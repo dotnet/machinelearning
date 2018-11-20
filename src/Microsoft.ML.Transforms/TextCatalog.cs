@@ -266,7 +266,8 @@ namespace Microsoft.ML
                 numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LatentDirichletAllocationEstimator"/>.
+        /// Uses <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> to transform a document (represented as a vector of floats)
+        /// into a vector of floats over a set of topics.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns"> Describes the parameters of LDA for each column pair.</param>
