@@ -20,6 +20,7 @@ using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(PlattCalibratorTrainer.Summary, typeof(PlattCalibratorTrainer), null, typeof(SignatureCalibrator),
     PlattCalibratorTrainer.UserName,

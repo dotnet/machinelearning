@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {

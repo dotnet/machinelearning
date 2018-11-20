@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Returns information about the output columns, including their name, type and any metadata information.
         /// </summary>
-        Schema.Column[] GetOutputColumns();
+        Schema.DetachedColumn[] GetOutputColumns();
     }
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, ISchema schema);

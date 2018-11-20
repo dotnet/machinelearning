@@ -18,6 +18,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),
     "Bindable Mapper", SchemaBindablePredictorWrapper.LoaderSignature)]

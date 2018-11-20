@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Training;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },

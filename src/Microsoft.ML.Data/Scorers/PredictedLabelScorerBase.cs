@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {

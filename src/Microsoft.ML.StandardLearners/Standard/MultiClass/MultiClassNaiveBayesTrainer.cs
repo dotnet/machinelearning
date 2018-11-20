@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(MultiClassNaiveBayesTrainer.Summary, typeof(MultiClassNaiveBayesTrainer), typeof(MultiClassNaiveBayesTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },

@@ -16,6 +16,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(TreeEnsembleFeaturizerTransform), typeof(TreeEnsembleFeaturizerBindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Tree Ensemble Featurizer Mapper", TreeEnsembleFeaturizerBindableMapper.LoadNameShort)]

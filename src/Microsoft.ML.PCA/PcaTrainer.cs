@@ -17,6 +17,7 @@ using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },

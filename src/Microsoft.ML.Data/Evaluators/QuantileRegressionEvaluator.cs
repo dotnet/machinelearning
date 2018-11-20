@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator), typeof(QuantileRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Quantile Regression Evaluator", QuantileRegressionEvaluator.LoadName, "QuantileRegression")]
@@ -351,19 +352,19 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[2];
+            var infos = new Schema.DetachedColumn[2];
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
-            var l1Metadata = new Schema.Metadata.Builder();
+            var l1Metadata = new MetadataBuilder();
             l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            var l2Metadata = new Schema.Metadata.Builder();
+            var l2Metadata = new MetadataBuilder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new Schema.Column(L1, _outputType, l1Metadata.GetMetadata());
-            infos[L2Col] = new Schema.Column(L2, _outputType, l2Metadata.GetMetadata());
+            infos[L1Col] = new Schema.DetachedColumn(L1, _outputType, l1Metadata.GetMetadata());
+            infos[L2Col] = new Schema.DetachedColumn(L2, _outputType, l2Metadata.GetMetadata());
             return infos;
         }
 

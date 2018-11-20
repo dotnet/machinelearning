@@ -17,6 +17,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
     typeof(OnnxTransform.Arguments), typeof(SignatureDataTransform), OnnxTransform.UserName, OnnxTransform.ShortName, "OnnxTransform", "OnnxScorer")]
@@ -209,10 +210,10 @@ namespace Microsoft.ML.Transforms
                 Host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.Column[1];
-                info[0] = new Schema.Column(_outputColName, _outputColType, null);
+                var info = new Schema.DetachedColumn[1];
+                info[0] = new Schema.DetachedColumn(_outputColName, _outputColType, null);
                 return info;
             }
 

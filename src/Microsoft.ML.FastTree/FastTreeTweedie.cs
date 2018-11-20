@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Training;
 using System;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(FastTreeTweedieTrainer.Summary, typeof(FastTreeTweedieTrainer), typeof(FastTreeTweedieTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },

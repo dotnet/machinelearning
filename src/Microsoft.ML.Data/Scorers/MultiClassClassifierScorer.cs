@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer),
     typeof(MultiClassClassifierScorer.Arguments), typeof(SignatureDataScorer),
@@ -343,7 +344,7 @@ namespace Microsoft.ML.Runtime.Data
                         _labelNameGetter = (int c, ref VBuffer<T> val) => getter(ref val);
                         _metadataKind = metadataKind;
 
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public bool TryGetColumnIndex(string name, out int col)

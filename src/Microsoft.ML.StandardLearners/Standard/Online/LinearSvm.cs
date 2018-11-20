@@ -28,6 +28,7 @@ using Microsoft.ML.Trainers.Online;
 namespace Microsoft.ML.Trainers.Online
 {
     using Microsoft.ML.Core.Data;
+    using Microsoft.ML.Data;
     using TPredictor = LinearBinaryPredictor;
 
     /// <summary>

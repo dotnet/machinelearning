@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(PoissonRegression.Summary, typeof(PoissonRegression), typeof(PoissonRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },

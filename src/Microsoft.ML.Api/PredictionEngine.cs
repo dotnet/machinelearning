@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Core.Data;
 using System;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Api
 {

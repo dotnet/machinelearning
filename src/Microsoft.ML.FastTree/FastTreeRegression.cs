@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Training;
 using System;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(FastTreeRegressionTrainer.Summary, typeof(FastTreeRegressionTrainer), typeof(FastTreeRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },

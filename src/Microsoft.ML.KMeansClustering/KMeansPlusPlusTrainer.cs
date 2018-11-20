@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.Training;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Arguments),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },

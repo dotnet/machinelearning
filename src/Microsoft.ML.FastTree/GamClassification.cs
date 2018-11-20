@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using System;
 using System.Threading.Tasks;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(BinaryClassificationGamTrainer.Summary,
     typeof(BinaryClassificationGamTrainer), typeof(BinaryClassificationGamTrainer.Arguments),
