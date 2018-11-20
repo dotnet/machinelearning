@@ -118,9 +118,9 @@ namespace Microsoft.ML.Runtime.Data
 
         // This is adapted from reference Murmur3 128-bit implementation at
         // https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
-        // The transformation operations do not mix the result, since it only necessary
-        // that the result be unique, not that its bits have any sort of independence
-        // or other distributional characteristics.
+        // The transformation operations do not mix the result, since it is only
+        // necessary that the result be unique, not that its bits have any sort of
+        // independence or other distributional characteristics.
 
         private const ulong _c1 = 0x87c37b91114253d5;
         private const ulong _c2 = 0x4cf5ad432745937f;
