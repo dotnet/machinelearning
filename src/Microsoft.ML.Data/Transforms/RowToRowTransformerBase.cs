@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             protected readonly IHost Host;
             protected readonly Schema InputSchema;
-            private readonly Schema.DetachedColumn[] _outputColumns;
+            private readonly Lazy<Schema.DetachedColumn[]> _outputColumns;
 
             protected MapperBase(IHost host, Schema inputSchema)
             {
@@ -62,12 +62,12 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckValue(inputSchema, nameof(inputSchema));
                 Host = host;
                 InputSchema = inputSchema;
-                _outputColumns = GetOutputColumnsCore();
+                _outputColumns = new Lazy<Schema.DetachedColumn[]>(GetOutputColumnsCore);
             }
 
             protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
 
-            public Schema.DetachedColumn[] GetOutputColumns() => _outputColumns;
+            public Schema.DetachedColumn[] GetOutputColumns() => _outputColumns.Value;
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
@@ -76,9 +76,10 @@ namespace Microsoft.ML.Runtime.Data
                 // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
                 // is no longer always possible. So, we relax the assert as below.
                 Contracts.Assert(input.Schema == InputSchema);
-                var result = new Delegate[_outputColumns.Length];
-                var disposers = new Action[_outputColumns.Length];
-                for (int i = 0; i < _outputColumns.Length; i++)
+                int n = _outputColumns.Value.Length;
+                var result = new Delegate[n];
+                var disposers = new Action[n];
+                for (int i = 0; i < n; i++)
                 {
                     if (!activeOutput(i))
                         continue;

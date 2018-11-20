@@ -58,7 +58,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(0, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(1, cIdx);
         }
@@ -80,7 +79,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(1, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(0, cIdx);
         }
@@ -98,11 +96,9 @@ namespace Microsoft.ML.Tests.Transformers
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
 
             Assert.False(foundColumnA);
-            Assert.Equal(0, aIdx);
             Assert.True(foundColumnB);
             Assert.Equal(0, bIdx);
             Assert.False(foundColumnC);
-            Assert.Equal(0, cIdx);
         }
         
         [Fact]
@@ -154,7 +150,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnA);
             Assert.Equal(1, aIdx);
             Assert.False(foundColumnB);
-            Assert.Equal(0, bIdx);
             Assert.True(foundColumnC);
             Assert.Equal(0, cIdx);
         }
@@ -180,7 +175,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(foundColumnB);
             Assert.Equal(1, bIdx);
             Assert.False(foundColumnC);
-            Assert.Equal(0, cIdx);
         }
 
         [Fact]
@@ -200,7 +194,6 @@ namespace Microsoft.ML.Tests.Transformers
             var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
             var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
             Assert.False(foundColumnA);
-            Assert.Equal(0, aIdx);
             Assert.True(foundColumnB);
             Assert.Equal(1, bIdx);
             Assert.True(foundColumnC);
@@ -282,7 +275,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnFeature);
                 Assert.Equal(1, featureIdx);
                 Assert.False(foundColumnA);
-                Assert.Equal(0, aIdx);
                 Assert.True(foundColumnB);
                 Assert.Equal(2, bIdx);
                 Assert.True(foundColumnC);
@@ -315,7 +307,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
         
@@ -344,7 +335,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
 
@@ -374,7 +364,6 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(foundColumnB);
                 Assert.Equal(5, bIdx);
                 Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
             }
         }
 

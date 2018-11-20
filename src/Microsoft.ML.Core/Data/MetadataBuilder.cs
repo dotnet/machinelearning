@@ -11,7 +11,6 @@ using System.Linq;
 
 namespace Microsoft.ML.Data
 {
-
     /// <summary>
     /// The class that incrementally builds a <see cref="Schema.Metadata"/>.
     /// </summary>

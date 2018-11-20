@@ -32,6 +32,9 @@ namespace Microsoft.ML.Data
         /// </summary>
         public int ColumnCount => _columns.Length;
 
+        /// <summary>
+        /// Number of columns in the schema.
+        /// </summary>
         public int Count => _columns.Length;
 
         /// <summary>
@@ -239,12 +242,21 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Get the value of the metadata, by metadata kind (aka column name).
             /// </summary>
-            public void GetValue<TValue>(string kind, ref TValue value) => GetGetter<TValue>(Schema[kind].Index)(ref value);
+            public void GetValue<TValue>(string kind, ref TValue value)
+            {
+                var column = Schema.GetColumnOrNull(kind);
+                if (column == null)
+                    throw MetadataUtils.ExceptGetMetadata();
+                GetGetter<TValue>(column.Index)(ref value);
+            }
 
             public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
 
         }
 
+        /// <summary>
+        /// This constructor should only be called by <see cref="SchemaBuilder"/>.
+        /// </summary>
         internal Schema(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
