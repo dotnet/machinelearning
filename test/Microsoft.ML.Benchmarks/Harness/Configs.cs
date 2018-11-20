@@ -29,10 +29,10 @@ namespace Microsoft.ML.Benchmarks
         /// <summary>
         /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
         /// </summary>
-        protected IToolchain CreateToolchain()
+        private IToolchain CreateToolchain()
         {
-            var tfm = GetTargetFrameworkMoniker();
-            var csProj = CsProjCoreToolchain.From(new NetCoreAppSettings(targetFrameworkMoniker: tfm, runtimeFrameworkVersion: null, name: tfm));
+            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
+            var csProj = CsProjCoreToolchain.Current.Value;
 
             return new Toolchain(
                 tfm,
@@ -41,16 +41,7 @@ namespace Microsoft.ML.Benchmarks
                 csProj.Executor);
         }
 
-        private static string GetTargetFrameworkMoniker()
-        {
-#if NETCOREAPP3_0 // todo: remove the #IF DEFINES when BDN 0.11.2 gets released (BDN gains the 3.0 support)
-            return "netcoreapp3.0";
-#else
-            return NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
-#endif
-        }
-
-        protected static string GetBuildConfigurationName()
+        private static string GetBuildConfigurationName()
         {
 #if NETCOREAPP3_0
             return "Release-Intrinsics";

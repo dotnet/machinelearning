@@ -17,9 +17,7 @@ namespace Microsoft.ML.Benchmarks.Tests
 {
     public class TestConfig : RecommendedConfig
     {
-        protected override Job GetJobDefinition() 
-            => Job.Dry // Job.Dry runs the benchmark just once
-                  .WithIterationCount(2); // a workaround for https://github.com/dotnet/BenchmarkDotNet/issues/943 remove when 0.11.3 gets released to nuget.org
+        protected override Job GetJobDefinition() => Job.Dry; // Job.Dry runs the benchmark just once
     }
 
     public class BenchmarkTouchingNativeDependency
