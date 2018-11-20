@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(WhatTheFeatureScorerTransform), typeof(WhatTheFeatureScorerTransform.Arguments),
     typeof(SignatureDataScorer), "WhatTheFeature Scorer", "wtf", "WhatTheFeatureScorer", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
@@ -31,9 +32,9 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class WhatTheFeatureScorerTransform
     {
         // Apparently, loader signature is limited in length to 24 characters.
-        public const string MapperLoaderSignature = "WTFBindable";
-        public const string LoaderSignature = "WTFScorer";
-        public const int MaxTopBottom = 1000;
+        internal const string MapperLoaderSignature = "WTFBindable";
+        private const string LoaderSignature = "WTFScorer";
+        private const int MaxTopBottom = 1000;
 
         public sealed class Arguments : ScorerArgumentsBase
         {
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
 
             var scorer = ScoreUtils.GetScorerComponent(env, wtfMapper);
-            var scoredPipe = scorer.CreateInstance(env, data, wtfMapper, trainSchema);
+            var scoredPipe = scorer.CreateComponent(env, data, wtfMapper, trainSchema);
             return scoredPipe;
         }
 
@@ -210,7 +211,8 @@ namespace Microsoft.ML.Runtime.Data
 
             private ReadOnlyMemory<char> GetSlotName(int index, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                _env.Assert(slotNames.Count > index || slotNames.Count == 0 && slotNames.Length > index);
+                var count = slotNames.GetValues().Length;
+                _env.Assert(count > index || count == 0 && slotNames.Length > index);
                 var slotName = slotNames.GetItemOrDefault(index);
                 return slotName.IsEmpty
                     ? new ReadOnlyMemory<char>($"f{index}".ToCharArray())
@@ -232,12 +234,16 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         featureGetter(ref features);
                         map(in features, ref contributions);
-                        int[] indices = contributions.IsDense ? Utils.GetIdentityPermutation(contributions.Length) : contributions.Indices;
+                        var indices = new Span<int>();
+                        var values = new Span<float>();
+                        (contributions.IsDense ? Utils.GetIdentityPermutation(contributions.Length).AsSpan() : contributions.GetIndices()).CopyTo(indices);
+                        contributions.GetValues().CopyTo(values);
+                        var count = values.Length;
                         var sb = new StringBuilder();
-                        Array.Sort(contributions.Values, indices, 0, contributions.Count);
-                        for (var i = 0; i < contributions.Count; i++)
+                        GenericSpanSortHelper<int, float>.Sort(indices, values, 0, count);
+                        for (var i = 0; i < count; i++)
                         {
-                            var val = contributions.Values[i];
+                            var val = values[i];
                             var ind = indices[i];
                             var name = GetSlotName(ind, slotNames);
                             sb.AppendFormat("{0}: {1}, ", name, val);
@@ -292,9 +298,11 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ISchema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
-            public RoleMappedSchema InputSchema { get; }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema OutputSchema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
+
+            public Schema Schema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 
@@ -306,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                 _env.AssertValue(parent);
                 _env.AssertValue(schema.Feature);
                 _parent = parent;
-                InputSchema = schema;
+                InputRoleMappedSchema = schema;
                 var genericMapper = parent.GenericMapper.Bind(_env, schema);
                 _genericRowMapper = genericMapper as ISchemaBoundRowMapper;
 
@@ -314,21 +322,21 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     _outputSchema = new SimpleSchema(_env,
                         new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
-                    if (InputSchema.Schema.HasSlotNames(InputSchema.Feature.Index, InputSchema.Feature.Type.VectorSize))
-                        InputSchema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputSchema.Feature.Index,
+                    if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
+                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
                             ref _slotNames);
                     else
-                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputSchema.Feature.Type.VectorSize);
+                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
                 }
                 else
                 {
                     _outputSchema = new WtfSchema(_env, DefaultColumnNames.FeatureContributions,
                         new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-                        InputSchema.Schema, InputSchema.Feature.Index);
+                        InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
 
                 _outputGenericSchema = _genericRowMapper.Schema;
-                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, });
+                Schema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 
             /// <summary>
@@ -336,10 +344,10 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => col == InputSchema.Feature.Index;
+                        return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;
             }
@@ -354,8 +362,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (predicate(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
-                        ? _parent.GetTextWtfGetter(input, InputSchema.Feature.Index, _slotNames)
-                        : _parent.GetWtfGetter(input, InputSchema.Feature.Index);
+                        ? _parent.GetTextWtfGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
+                        : _parent.GetWtfGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
@@ -365,7 +373,7 @@ namespace Microsoft.ML.Runtime.Data
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
-                return new SimpleRow(OutputSchema, input, getters);
+                return new SimpleRow(Schema, input, getters);
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
@@ -375,13 +383,18 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
+            }
+
+            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            {
+                throw new NotImplementedException();
             }
         }
 
         private sealed class WtfSchema : ISchema
         {
-            private readonly ISchema _parentSchema;
+            private readonly Schema _parentSchema;
             private readonly IExceptionContext _ectx;
             private readonly string[] _names;
             private readonly ColumnType[] _types;
@@ -392,7 +405,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public int ColumnCount => _types.Length;
 
-            public WtfSchema(IExceptionContext ectx, string columnName, ColumnType columnType, ISchema parentSchema, int featureCol)
+            public WtfSchema(IExceptionContext ectx, string columnName, ColumnType columnType, Schema parentSchema, int featureCol)
             {
                 Contracts.CheckValueOrNull(ectx);
                 Contracts.CheckValue(parentSchema, nameof(parentSchema));
