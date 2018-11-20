@@ -333,19 +333,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         // The following ingredients are used to define a 3-by-2 one-class
-        // matrix used in a test for one-class matrix factorization. One-class
-        // matrix means that all the available elements in the training matrix
-        // are 1. Such a matrix is common. Let's use Game store as an example.
-        // Assume that user IDs are row indexes and game IDs are column
-        // indexes. By encoding all users' purchase history as a matrix (i.e.,
-        // if the value at u-th row and v-th column is 1, then u-th user owns
-        // the v-th game), a one-class matrix gets created because, from the
-        // purchase history, users didn't explicitly tell us which games they
-        // will not buy. If you train a simple model from those a one-class
-        // matrix using standard collaborative filtering, all your predictions
-        // would be 1! One-class matrix factorization assumes unspecified
-        // matrix entries are all 0 (or a small constant value selected by the
-        // user) so that the trainined model becomes non-trivial.
+        // matrix used in a test, OneClassMatrixFactorizationInMemoryDataZeroBaseIndex,
+        // for one-class matrix factorization. One-class matrix means that all
+        // the available elements in the training matrix are 1. Such a matrix
+        // is common. Let's use online game store as an example. Assume that
+        // user IDs are row indexes and game IDs are column indexes. By
+        // encoding all users' purchase history as a matrix (i.e., if the value
+        // at the u-th row and the v-th column is 1, then the u-th user owns
+        // the v-th game), a one-class matrix gets created because all matrix
+        // elements are 1. If you train a prediction model from that matrix
+        // using standard collaborative filtering, all your predictions would
+        // be 1! One-class matrix factorization assumes unspecified matrix
+        // entries are all 0 (or a small constant value selected by the user)
+        // so that the trainined model can assign purchased itemas higher
+        // scores than those not purchased.
         private const int _oneClassMatrixColumnCount = 2;
         private const int _oneClassMatrixRowCount = 3;
 
@@ -371,10 +372,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void OneClassMatrixFactorizationInMemoryDataZeroBaseIndex()
         {
-            // Create an in-memory matrix as a list of tuples (column index, row index, value).
-            // Iterators i and j are column and row indexes, respectively. For one-class matrix factorization problem,
-            // unspecified matrix elements are all a constant provided by user. If that constant is 0.15, the following
-            // list means a 3-by-2 training matrix with elements:
+            // Create an in-memory matrix as a list of tuples (column index, row index, value). For one-class matrix
+            // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
+            // the following list means a 3-by-2 training matrix with elements:
             //   (0, 0, 1), (1, 1, 1), (0, 2, 1), (0, 1, 0.15), (1, 0, 0.15), (1, 2, 0.15).
             // because matrix elements at (0, 1), (1, 0), and (1, 2) are not specified.
             var dataMatrix = new List<OneClassMatrixElementZeroBased>();
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create data for testing. Note that the 2nd element is not specified in the training data so it should
             // be close to the constant specified by s.C = 0.15. Comparing with the data structure used in training phase,
             // one extra float is added into OneClassMatrixElementZeroBasedForScore for storing the prediction result. Note
-            // that the prediction engine may ignore the Value and assign the predicted value to Score.
+            // that the prediction engine may ignore Value and assign the predicted value to Score.
             var testDataMatrix = new List<OneClassMatrixElementZeroBasedForScore>();
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 0, Score = 0 });
             testDataMatrix.Add(new OneClassMatrixElementZeroBasedForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 2, Value = 0, Score = 0 });

@@ -93,9 +93,11 @@ namespace Microsoft.ML.Trainers
 
         public sealed class Arguments
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Loss function minimized for finding factor matrices. " +
-                "Two values are allowed, 0 or 12. The values \"0\" means traditional collaborative filtering problem with squared loss. " +
-                "The value \"12\" triggers one-class matrix factorization for implicit-feedback recommendation problem.")]
+            /// <summary>
+            /// Loss function minimized for finding factor matrices.  Two values are allowed, 0 or 12. The values 0 means traditional collaborative filtering
+            /// problem with squared loss. The value 12 triggers one-class matrix factorization for implicit-feedback recommendation problem.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Loss function minimized for finding factor matrices.")]
             [TGUI(SuggestedSweeps = "0,12")]
             [TlcModule.SweepableDiscreteParam("Fun", new object[] { LibMFLossFunctionType.SquareLossRegression, LibMFLossFunctionType.SquareLossOneClass })]
             public LibMFLossFunctionType Fun = LibMFLossFunctionType.SquareLossRegression;
@@ -125,14 +127,20 @@ namespace Microsoft.ML.Trainers
             [TlcModule.SweepableDiscreteParam("Eta", new object[] { 0.001f, 0.01f, 0.1f })]
             public double Eta = 0.1;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of negative entries' loss in one-class matrix factorization.")]
+            /// <summary>
+            /// Importance of unobserved (i.e., negative) entries' loss in one-class matrix factorization.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
             [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
             [TlcModule.SweepableDiscreteParam("Alpha", new object[] { 1f, 0.01f, 0.0001f, 0.000001f})]
             public double Alpha = 0.1;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Desired negative entries' value in one-class matrix factorization. In one-class matrix factorization, " +
-                "all matrix values observed are one (which can be viewed as positive cases in binary classification) while unobserved values " +
-                "(which can be viewed as negative cases in binary classification) need to be specified manually using this option.")]
+            /// <summary>
+            /// Desired negative entries' value in one-class matrix factorization. In one-class matrix factorization, all matrix values observed are one
+            /// (which can be viewed as positive cases in binary classification) while unobserved values (which can be viewed as negative cases in binary
+            /// classification) need to be specified manually using this option.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Desired negative entries' value in one-class matrix factorization")]
             [TGUI(SuggestedSweeps = "0.000001,0,0001,0.01")]
             [TlcModule.SweepableDiscreteParam("C", new object[] { 0.000001f, 0.0001f, 0.01f })]
             public double C = 0.000001f;
