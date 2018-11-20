@@ -16,21 +16,11 @@ namespace Microsoft.ML.Transforms
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    internal sealed class PermutationFeatureImportance<TResult>
+    internal static class PermutationFeatureImportance<TResult>
     {
-        private readonly IHost _host;
-        private VBuffer<ReadOnlyMemory<char>> _slotNames;
-        private readonly List<TResult> _metricsDelta;
-
-        public PermutationFeatureImportance(IHostEnvironment host)
-        {
-            Contracts.CheckValue(host, nameof(host));
-            _host = host.Register(nameof(PermutationFeatureImportance<TResult>));
-            _metricsDelta = new List<TResult>();
-        }
-
-        public ImmutableArray<TResult>
+        public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
+                IHostEnvironment env,
                 ITransformer model,
                 IDataView data,
                 Func<IDataView, TResult> evaluationFunc,
@@ -38,13 +28,17 @@ namespace Microsoft.ML.Transforms
                 string features,
                 int topExamples)
         {
-            _host.CheckValue(model, nameof(model));
-            _host.CheckValue(data, nameof(data));
-            _host.CheckValue(features, nameof(features));
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(nameof(PermutationFeatureImportance<TResult>));
+            host.CheckValue(model, nameof(model));
+            host.CheckValue(data, nameof(data));
+            host.CheckValue(features, nameof(features));
 
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
+            var metricsDelta = new List<TResult>();
             var progressIterations = 10;
 
-            using (var ch = _host.Start("GetImportanceMetrics"))
+            using (var ch = host.Start("GetImportanceMetrics"))
             {
                 ch.Trace("Scoring and evaluating baseline.");
                 var baselineMetrics = evaluationFunc(model.Transform(data));
@@ -56,10 +50,10 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info("Number of slots: " + numSlots);
                 if (data.Schema.HasSlotNames(featuresColumnIndex, numSlots))
-                    data.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featuresColumnIndex, ref _slotNames);
+                    data.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featuresColumnIndex, ref slotNames);
 
-                if (_slotNames.Length != numSlots)
-                    _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);
+                if (slotNames.Length != numSlots)
+                    slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);
 
                 var workingFeatureIndices = Enumerable.Range(0, numSlots).ToList();
 
@@ -92,7 +86,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     ch.Warning("Detected no examples for evaluation.");
-                    return _metricsDelta.ToImmutableArray();
+                    return metricsDelta.ToImmutableArray();
                 }
 
                 float[] featureValuesBuffer = initialfeatureValuesList.ToArray();
@@ -102,7 +96,7 @@ namespace Microsoft.ML.Transforms
                 int processedCnt = 0;
                 int j = 0;
                 int nextFeatureIndex = 0;
-                int shuffleSeed = _host.Rand.Next();
+                int shuffleSeed = host.Rand.Next();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Restart();
                 foreach (var workingIndx in workingFeatureIndices)
@@ -142,14 +136,14 @@ namespace Microsoft.ML.Transforms
                     output[0].ColumnType = featuresColumn.Type;
 
                     IDataView viewPermuted = LambdaTransform.CreateMap(
-                        _host, data, permuter, null, input, output);
+                        host, data, permuter, null, input, output);
                     if (topExamples > 0 && valuesRowCount == topExamples)
-                        viewPermuted = SkipTakeFilter.Create(_host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+                        viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
 
                     var metrics = evaluationFunc(model.Transform(viewPermuted));
 
                     var delta = deltaFunc(metrics, baselineMetrics);
-                    _metricsDelta.Add(delta);
+                    metricsDelta.Add(delta);
 
                     // Swap values for next iteration of permutation.
                     Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
@@ -176,7 +170,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            return _metricsDelta.ToImmutableArray();
+            return metricsDelta.ToImmutableArray();
         }
 
         /// <summary>
