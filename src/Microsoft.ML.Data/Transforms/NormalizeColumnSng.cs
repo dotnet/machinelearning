@@ -356,14 +356,14 @@ namespace Microsoft.ML.Transforms.Normalizers
             var size = _min.Length;
             Contracts.Check(value.Length == size);
             _trainCount++;
-            var count = value.Count;
+            var values = value.GetValues();
+            var count = values.Length;
             Contracts.Assert(0 <= count & count <= size);
             if (count == 0)
                 return;
 
             if (count == size)
             {
-                var values = value.Values;
                 for (int j = 0; j < count; j++)
                 {
                     var val = values[j];
@@ -373,8 +373,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
             else
             {
-                var indices = value.Indices;
-                var values = value.Values;
+                var indices = value.GetIndices();
                 for (int k = 0; k < count; k++)
                 {
                     var val = values[k];
@@ -459,14 +458,14 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             _trainCount++;
             var size = _mean.Length;
-            var count = value.Count;
+            var values = value.GetValues();
+            var count = values.Length;
             Contracts.Assert(0 <= count & count <= size);
             if (count == 0)
                 return;
 
             if (count == size)
             {
-                var values = value.Values;
                 for (int j = 0; j < count; j++)
                 {
                     var origVal = values[j];
@@ -475,8 +474,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
             else
             {
-                var indices = value.Indices;
-                var values = value.Values;
+                var indices = value.GetIndices();
                 for (int k = 0; k < count; k++)
                 {
                     var origVal = values[k];
@@ -706,7 +704,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         Contracts.Assert(input.Length == scale.Length);
                         int size = scale.Length;
-                        int count = input.Count;
+                        var values = input.GetValues();
+                        int count = values.Length;
                         Contracts.Assert(0 <= count & count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
@@ -714,7 +713,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                         if (count == 0)
                             return;
 
-                        var values = input.Values;
                         if (count >= size)
                         {
                             for (int i = 0; i < size; i++)
@@ -723,7 +721,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
 
                         // The input is sparse.
-                        var indices = input.Indices;
+                        var indices = input.GetIndices();
                         for (int ii = 0; ii < count; ii++)
                         {
                             int i = indices[ii];
@@ -737,7 +735,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         Contracts.Assert(input.Length == scale.Length);
                         int size = scale.Length;
-                        int count = input.Count;
+                        var values = input.GetValues();
+                        int count = values.Length;
                         Contracts.Assert(0 <= count & count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
@@ -750,7 +749,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                             return;
                         }
 
-                        var values = input.Values;
                         if (count >= size)
                         {
                             for (int i = 0; i < size; i++)
@@ -759,7 +757,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
 
                         // The input is sparse.
-                        var indices = input.Indices;
+                        var indices = input.GetIndices();
                         int ii = 0;
                         int ivSrc = indices[ii];
                         Contracts.Assert(ivSrc < size);
@@ -783,7 +781,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                         Contracts.Assert(input.Length == scale.Length);
 
                         int size = scale.Length;
-                        int count = input.Count;
+                        var values = input.GetValues();
+                        int count = values.Length;
                         Contracts.Assert(0 <= count & count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
@@ -796,7 +795,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                             return;
                         }
 
-                        var values = input.Values;
                         if (count >= size)
                         {
                             for (int i = 0; i < size; i++)
@@ -805,7 +803,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
 
                         // The input is sparse.
-                        var indices = input.Indices;
+                        var indices = input.GetIndices();
                         int ii = 0;
                         int ivSrc = indices[ii];
                         int inz = 0;
@@ -983,7 +981,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         Contracts.Assert(input.Length == mean.Length);
                         int size = mean.Length;
-                        int count = input.Count;
+                        var values = input.GetValues();
+                        int count = values.Length;
                         Contracts.Assert(0 <= count & count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
@@ -992,7 +991,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                         if (count == 0)
                             return;
 
-                        var values = input.Values;
                         if (count >= size)
                         {
                             for (int i = 0; i < size; i++)
@@ -1009,7 +1007,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
 
                         // The input is sparse.
-                        var indices = input.Indices;
+                        var indices = input.GetIndices();
                         for (int ii = 0; ii < indices.Length; ii++)
                         {
                             var ivDst = indices[ii];
@@ -1040,13 +1038,11 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             private static class Sng
             {
-                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
+                public sealed class ImplOne : BinColumnFunction
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
-
-                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1101,25 +1097,25 @@ namespace Microsoft.ML.Transforms.Normalizers
                             (ref TFloat dst) =>
                             {
                                 getSrc(ref dst);
-                                GetResult(ref dst, ref dst);
+                                GetResult(dst, ref dst);
                             };
                         return del;
                     }
 
-                    private void GetResult(ref TFloat input, ref TFloat value)
+                    private void GetResult(TFloat input, ref TFloat value)
                     {
-                        value = BinUtils.GetValue(ref input, _binUpperBounds, _den, _offset);
+                        value = BinUtils.GetValue(input, _binUpperBounds, _den, _offset);
                     }
+
+                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                        => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den, _offset);
                 }
 
-                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
+                public sealed class ImplVec : BinColumnFunction
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
-
-                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
-                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1197,7 +1193,8 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         Contracts.Assert(input.Length == _binUpperBounds.Length);
                         int size = _binUpperBounds.Length;
-                        int count = input.Count;
+                        var values = input.GetValues();
+                        int count = values.Length;
                         Contracts.Assert(0 <= count & count <= size);
 
                         // We always start with sparse, since we may make things sparser than the source.
@@ -1208,18 +1205,17 @@ namespace Microsoft.ML.Transforms.Normalizers
                             return;
                         }
 
-                        var values = input.Values;
                         if (count >= size)
                         {
                             if (_offset != null)
                             {
                                 for (int i = 0; i < size; i++)
-                                    bldr.AddFeature(i, BinUtils.GetValue(ref values[i], _binUpperBounds[i], _den[i], _offset[i]));
+                                    bldr.AddFeature(i, BinUtils.GetValue(values[i], _binUpperBounds[i], _den[i], _offset[i]));
                             }
                             else
                             {
                                 for (int i = 0; i < size; i++)
-                                    bldr.AddFeature(i, BinUtils.GetValue(ref values[i], _binUpperBounds[i], _den[i]));
+                                    bldr.AddFeature(i, BinUtils.GetValue(values[i], _binUpperBounds[i], _den[i]));
                             }
                             bldr.GetResult(ref value);
                             return;
@@ -1228,7 +1224,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         // The input is sparse.
                         if (_offset != null)
                         {
-                            var indices = input.Indices;
+                            var indices = input.GetIndices();
                             int ii = 0;
                             int ivSrc = indices[ii];
                             Contracts.Assert(ivSrc < size);
@@ -1239,29 +1235,35 @@ namespace Microsoft.ML.Transforms.Normalizers
                                 if (ivDst == ivSrc)
                                 {
                                     bldr.AddFeature(ivDst,
-                                        BinUtils.GetValue(ref values[ii], _binUpperBounds[ivDst], _den[ivDst], _offset[ivDst]));
+                                        BinUtils.GetValue(values[ii], _binUpperBounds[ivDst], _den[ivDst], _offset[ivDst]));
                                     ivSrc = ++ii < count ? indices[ii] : size;
                                     Contracts.Assert(ii == count || ivSrc < size);
                                 }
                                 else
                                     bldr.AddFeature(ivDst,
-                                        BinUtils.GetValue(ref zero, _binUpperBounds[ivDst], _den[ivDst], _offset[ivDst]));
+                                        BinUtils.GetValue(zero, _binUpperBounds[ivDst], _den[ivDst], _offset[ivDst]));
                             }
                         }
                         else
                         {
-                            var indices = input.Indices;
+                            var indices = input.GetIndices();
                             for (int ii = 0; ii < count; ii++)
                             {
                                 int i = indices[ii];
                                 Contracts.Assert(0 <= i & i < size);
-                                bldr.AddFeature(i, BinUtils.GetValue(ref values[ii], _binUpperBounds[i], _den[i]));
+                                bldr.AddFeature(i, BinUtils.GetValue(values[ii], _binUpperBounds[i], _den[i]));
                             }
                         }
 
                         bldr.GetResult(ref value);
                     }
-                }
+
+                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
+                        => new NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>(
+                            _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
+                            ImmutableArray.Create(_den),
+                            ImmutableArray.Create(_offset));
+            }
             }
         }
 
@@ -1376,7 +1378,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         internal static partial class BinUtils
         {
-            public static TFloat GetValue(ref TFloat input, TFloat[] binUpperBounds, TFloat den, TFloat offset)
+            public static TFloat GetValue(TFloat input, TFloat[] binUpperBounds, TFloat den, TFloat offset)
             {
                 if (TFloat.IsNaN(input))
                     return input;
@@ -1387,7 +1389,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 return value;
             }
 
-            public static TFloat GetValue(ref TFloat input, TFloat[] binUpperBounds, TFloat den)
+            public static TFloat GetValue(TFloat input, TFloat[] binUpperBounds, TFloat den)
             {
                 if (TFloat.IsNaN(input))
                     return input;
@@ -1419,7 +1421,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in val))
                         return false;
-                    _buffer.Values[0] = val;
+                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = val;
                     Aggregator.ProcessValue(in _buffer);
                     return true;
                 }
@@ -1563,7 +1565,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in origVal))
                         return false;
-                    _buffer.Values[0] = origVal;
+                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = origVal;
                     _aggregator.ProcessValue(in _buffer);
                     return true;
                 }
@@ -1803,21 +1805,20 @@ namespace Microsoft.ML.Transforms.Normalizers
                     int size = _values.Length;
                     Host.Check(buffer.Length == size);
 
-                    int count = buffer.Count;
+                    var values = buffer.GetValues();
+                    int count = values.Length;
                     Host.Assert(0 <= count & count <= size);
                     if (count == 0)
                         return true;
 
                     if (count == size)
                     {
-                        var values = buffer.Values;
                         for (int j = 0; j < count; j++)
                             _values[j].Add(values[j]);
                     }
                     else
                     {
-                        var indices = buffer.Indices;
-                        var values = buffer.Values;
+                        var indices = buffer.GetIndices();
                         for (int k = 0; k < count; k++)
                         {
                             var val = values[k];
@@ -1897,7 +1898,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 protected override bool AcceptColumnValue(in VBuffer<TFloat> colValuesBuffer)
                 {
-                    return !colValuesBuffer.Values.Any(TFloat.IsNaN);
+                    return !VBufferUtils.HasNaNs(in colValuesBuffer);
                 }
 
                 public override IColumnFunction CreateColumnFunction()

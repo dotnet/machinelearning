@@ -81,7 +81,7 @@ namespace Microsoft.ML.Trainers
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs?range=5-9,16-114)]
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MatrixFactorization.cs)]
     /// ]]>
     /// </format>
     /// </example>
@@ -244,7 +244,7 @@ namespace Microsoft.ML.Trainers
         /// Train a matrix factorization model based on training data, validation data, and so on in the given context.
         /// </summary>
         /// <param name="context">The information collection needed for training. <see cref="TrainContext"/> for details.</param>
-        public override MatrixFactorizationPredictor Train(TrainContext context)
+        private protected override MatrixFactorizationPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 

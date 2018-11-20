@@ -429,7 +429,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        public override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
+        private protected override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;

@@ -292,10 +292,10 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (Env.RedirectChannelOutput(newWriter, newWriter))
+            using (_env.RedirectChannelOutput(newWriter, newWriter))
             {
-                Env.ResetProgressChannel();
-                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
+                _env.ResetProgressChannel();
+                int res = MainForTest(_env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
                 if (res != 0)
                     Log("*** Predictor returned {0}", res);
             }
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </param>
         /// <param name="args">The arguments for MAML.</param>
         /// <param name="printProgress">Whether to print the progress summary. If true, progress summary will appear in the end of baseline output file.</param>
-        protected static int MainForTest(ConsoleEnvironment env, TextWriter writer, string args, bool printProgress = false)
+        private protected static int MainForTest(ConsoleEnvironment env, TextWriter writer, string args, bool printProgress = false)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(writer);
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return TestCoreCore(ctx, cmdName, dataPath, situation, inModelPath, outModelPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
         }
 
-        private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation, 
+        private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation,
             OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
         {
             Contracts.AssertNonEmpty(cmdName);
@@ -503,24 +503,22 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected void TestPipeFromModel(string dataPath, OutputPath model)
         {
-            using (var env = new ConsoleEnvironment(42))
+            var env = new MLContext(seed: 42);
+            var files = new MultiFileSource(dataPath);
+
+            bool tmp;
+            IDataView pipe;
+            using (var file = Env.OpenInputFile(model.Path))
+            using (var strm = file.OpenReadStream())
+            using (var rep = RepositoryReader.Open(strm, env))
             {
-                var files = new MultiFileSource(dataPath);
-
-                bool tmp;
-                IDataView pipe;
-                using (var file = Env.OpenInputFile(model.Path))
-                using (var strm = file.OpenReadStream())
-                using (var rep = RepositoryReader.Open(strm, env))
-                {
-                    ModelLoadContext.LoadModel<IDataView, SignatureLoadDataLoader>(env,
-                        out pipe, rep, ModelFileUtils.DirDataLoaderModel, files);
-                }
-
-                using (var c = pipe.GetRowCursor(col => true))
-                    tmp = CheckSameValues(c, pipe, true, true, true);
-                Check(tmp, "Single value same failed");
+                ModelLoadContext.LoadModel<IDataView, SignatureLoadDataLoader>(env,
+                    out pipe, rep, ModelFileUtils.DirDataLoaderModel, files);
             }
+
+            using (var c = pipe.GetRowCursor(col => true))
+                tmp = CheckSameValues(c, pipe, true, true, true);
+            Check(tmp, "Single value same failed");
         }
     }
 
@@ -1969,7 +1967,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:5);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 5);
 
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
@@ -1988,17 +1986,17 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (Env.RedirectChannelOutput(newWriter, newWriter))
+            using (_env.RedirectChannelOutput(newWriter, newWriter))
             {
-                Env.ResetProgressChannel();
-                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                _env.ResetProgressChannel();
+                int res = MainForTest(_env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 
             // see https://github.com/dotnet/machinelearning/issues/404
             // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision:4));
+                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision: 4));
             else
                 Assert.True(outputPath.CheckEqualityNormalized());
 
@@ -2017,10 +2015,10 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (Env.RedirectChannelOutput(newWriter, newWriter))
+            using (_env.RedirectChannelOutput(newWriter, newWriter))
             {
-                Env.ResetProgressChannel();
-                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                _env.ResetProgressChannel();
+                int res = MainForTest(_env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.Equal(0, res);
             }
 
@@ -2044,15 +2042,15 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (Env.RedirectChannelOutput(newWriter, newWriter))
+            using (_env.RedirectChannelOutput(newWriter, newWriter))
             {
-                Env.ResetProgressChannel();
-                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                _env.ResetProgressChannel();
+                int res = MainForTest(_env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision:4));
+                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision: 4));
             else
                 Assert.True(outputPath.CheckEqualityNormalized());
 
@@ -2074,10 +2072,10 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (Env.RedirectChannelOutput(newWriter, newWriter))
+            using (_env.RedirectChannelOutput(newWriter, newWriter))
             {
-                Env.ResetProgressChannel();
-                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                _env.ResetProgressChannel();
+                int res = MainForTest(_env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 

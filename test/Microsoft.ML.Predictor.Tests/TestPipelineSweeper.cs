@@ -123,42 +123,40 @@ namespace Microsoft.ML.Runtime.RunTests
             const int batchSize = 5;
             const int numIterations = 20;
             const int numTransformLevels = 2;
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
+
+            // Using the simple, uniform random sampling (with replacement) engine
+            PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(Env);
+
+            // Create search object
+            var amls = new AutoInference.AutoMlMlState(Env, metric, autoMlEngine, new IterationTerminator(numIterations),
+                MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
+
+            // Infer search space
+            amls.InferSearchSpace(numTransformLevels);
+
+            // Create macro object
+            var pipelineSweepInput = new Microsoft.ML.Legacy.Models.PipelineSweeper()
             {
-                SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
+                BatchSize = batchSize,
+            };
 
-                // Using the simple, uniform random sampling (with replacement) engine
-                PipelineOptimizerBase autoMlEngine = new UniformRandomEngine(Env);
+            var exp = new Experiment(Env);
+            var output = exp.Add(pipelineSweepInput);
+            exp.Compile();
+            exp.SetInput(pipelineSweepInput.TrainingData, datasetTrain);
+            exp.SetInput(pipelineSweepInput.TestingData, datasetTest);
+            exp.SetInput(pipelineSweepInput.State, amls);
+            exp.SetInput(pipelineSweepInput.CandidateOutputs, new IDataView[0]);
+            exp.Run();
 
-                // Create search object
-                var amls = new AutoInference.AutoMlMlState(Env, metric, autoMlEngine, new IterationTerminator(numIterations),
-                    MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer, datasetTrain, datasetTest);
-
-                // Infer search space
-                amls.InferSearchSpace(numTransformLevels);
-
-                // Create macro object
-                var pipelineSweepInput = new Microsoft.ML.Legacy.Models.PipelineSweeper()
-                {
-                    BatchSize = batchSize,
-                };
-
-                var exp = new Experiment(Env);
-                var output = exp.Add(pipelineSweepInput);
-                exp.Compile();
-                exp.SetInput(pipelineSweepInput.TrainingData, datasetTrain);
-                exp.SetInput(pipelineSweepInput.TestingData, datasetTest);
-                exp.SetInput(pipelineSweepInput.State, amls);
-                exp.SetInput(pipelineSweepInput.CandidateOutputs, new IDataView[0]);
-                exp.Run();
-
-                // Make sure you get back an AutoMlState, and that it ran for correct number of iterations
-                // with at least minimal performance values (i.e., best should have AUC better than 0.1 on this dataset).
-                AutoInference.AutoMlMlState amlsOut = (AutoInference.AutoMlMlState)exp.GetOutput(output.State);
-                Assert.NotNull(amlsOut);
-                Assert.Equal(amlsOut.GetAllEvaluatedPipelines().Length, numIterations);
-                Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.8);
-            }
+            // Make sure you get back an AutoMlState, and that it ran for correct number of iterations
+            // with at least minimal performance values (i.e., best should have AUC better than 0.1 on this dataset).
+            AutoInference.AutoMlMlState amlsOut = (AutoInference.AutoMlMlState)exp.GetOutput(output.State);
+            Assert.NotNull(amlsOut);
+            Assert.Equal(amlsOut.GetAllEvaluatedPipelines().Length, numIterations);
+            Assert.True(amlsOut.GetBestPipeline().PerformanceSummary.MetricValue > 0.8);
         }
 
         [Fact]

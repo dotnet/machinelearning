@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact]
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
-                DeleteOutputPath("cook_model.zip"));
+                DeleteOutputPath("cook_model_static.zip"));
 
         private ITransformer TrainOnIris(string irisDataPath)
         {
@@ -442,10 +442,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
                     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf),
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
-                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D)
                 ));
 
             // Let's train our pipeline, and then apply it to the same data.
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = staticFinalPipe.Fit(data);
 
             // And here is how we could've stayed in the dynamic pipeline and train that way.
-            dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLabel"));
+            dynamicPipe = dynamicPipe.Append(new KeyToValueMappingEstimator(mlContext, "PredictedLabel"));
             var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
             // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.

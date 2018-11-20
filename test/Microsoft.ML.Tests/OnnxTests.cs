@@ -82,70 +82,68 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void InitializerCreationTest()
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                // Create the actual implementation
-                var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Runtime.Model.Onnx.OnnxVersion.Stable);
+            var env = new MLContext();
+            // Create the actual implementation
+            var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Runtime.Model.Onnx.OnnxVersion.Stable);
 
-                // Use implementation as in the actual conversion code
-                var ctx = ctxImpl as OnnxContext;
-                ctx.AddInitializer(9.4f, "float");
-                ctx.AddInitializer(17L, "int64");
-                ctx.AddInitializer("36", "string");
-                ctx.AddInitializer(new List<float> { 9.4f, 1.7f, 3.6f }, new List<long> { 1, 3 }, "floats");
-                ctx.AddInitializer(new List<long> { 94L, 17L, 36L }, new List<long> { 1, 3 }, "int64s");
-                ctx.AddInitializer(new List<string> { "94" , "17", "36" }, new List<long> { 1, 3 }, "strings");
+            // Use implementation as in the actual conversion code
+            var ctx = ctxImpl as OnnxContext;
+            ctx.AddInitializer(9.4f, "float");
+            ctx.AddInitializer(17L, "int64");
+            ctx.AddInitializer("36", "string");
+            ctx.AddInitializer(new List<float> { 9.4f, 1.7f, 3.6f }, new List<long> { 1, 3 }, "floats");
+            ctx.AddInitializer(new List<long> { 94L, 17L, 36L }, new List<long> { 1, 3 }, "int64s");
+            ctx.AddInitializer(new List<string> { "94", "17", "36" }, new List<long> { 1, 3 }, "strings");
 
-                var model = ctxImpl.MakeModel();
+            var model = ctxImpl.MakeModel();
 
-                var floatScalar = model.Graph.Initializer[0];
-                Assert.True(floatScalar.Name == "float");
-                Assert.True(floatScalar.Dims.Count == 0);
-                Assert.True(floatScalar.FloatData.Count == 1);
-                Assert.True(floatScalar.FloatData[0] == 9.4f);
+            var floatScalar = model.Graph.Initializer[0];
+            Assert.True(floatScalar.Name == "float");
+            Assert.True(floatScalar.Dims.Count == 0);
+            Assert.True(floatScalar.FloatData.Count == 1);
+            Assert.True(floatScalar.FloatData[0] == 9.4f);
 
-                var int64Scalar = model.Graph.Initializer[1];
-                Assert.True(int64Scalar.Name == "int64");
-                Assert.True(int64Scalar.Dims.Count == 0);
-                Assert.True(int64Scalar.Int64Data.Count == 1);
-                Assert.True(int64Scalar.Int64Data[0] == 17L);
+            var int64Scalar = model.Graph.Initializer[1];
+            Assert.True(int64Scalar.Name == "int64");
+            Assert.True(int64Scalar.Dims.Count == 0);
+            Assert.True(int64Scalar.Int64Data.Count == 1);
+            Assert.True(int64Scalar.Int64Data[0] == 17L);
 
-                var stringScalar = model.Graph.Initializer[2];
-                Assert.True(stringScalar.Name == "string");
-                Assert.True(stringScalar.Dims.Count == 0);
-                Assert.True(stringScalar.StringData.Count == 1);
-                Assert.True(stringScalar.StringData[0].ToStringUtf8() == "36");
+            var stringScalar = model.Graph.Initializer[2];
+            Assert.True(stringScalar.Name == "string");
+            Assert.True(stringScalar.Dims.Count == 0);
+            Assert.True(stringScalar.StringData.Count == 1);
+            Assert.True(stringScalar.StringData[0].ToStringUtf8() == "36");
 
-                var floatsTensor = model.Graph.Initializer[3];
-                Assert.True(floatsTensor.Name == "floats");
-                Assert.True(floatsTensor.Dims.Count == 2);
-                Assert.True(floatsTensor.Dims[0] == 1);
-                Assert.True(floatsTensor.Dims[1] == 3);
-                Assert.True(floatsTensor.FloatData.Count == 3);
-                Assert.True(floatsTensor.FloatData[0] == 9.4f);
-                Assert.True(floatsTensor.FloatData[1] == 1.7f);
-                Assert.True(floatsTensor.FloatData[2] == 3.6f);
+            var floatsTensor = model.Graph.Initializer[3];
+            Assert.True(floatsTensor.Name == "floats");
+            Assert.True(floatsTensor.Dims.Count == 2);
+            Assert.True(floatsTensor.Dims[0] == 1);
+            Assert.True(floatsTensor.Dims[1] == 3);
+            Assert.True(floatsTensor.FloatData.Count == 3);
+            Assert.True(floatsTensor.FloatData[0] == 9.4f);
+            Assert.True(floatsTensor.FloatData[1] == 1.7f);
+            Assert.True(floatsTensor.FloatData[2] == 3.6f);
 
-                var int64sTensor = model.Graph.Initializer[4];
-                Assert.True(int64sTensor.Name == "int64s");
-                Assert.True(int64sTensor.Dims.Count == 2);
-                Assert.True(int64sTensor.Dims[0] == 1);
-                Assert.True(int64sTensor.Dims[1] == 3);
-                Assert.True(int64sTensor.Int64Data.Count == 3);
-                Assert.True(int64sTensor.Int64Data[0] == 94L);
-                Assert.True(int64sTensor.Int64Data[1] == 17L);
-                Assert.True(int64sTensor.Int64Data[2] == 36L);
+            var int64sTensor = model.Graph.Initializer[4];
+            Assert.True(int64sTensor.Name == "int64s");
+            Assert.True(int64sTensor.Dims.Count == 2);
+            Assert.True(int64sTensor.Dims[0] == 1);
+            Assert.True(int64sTensor.Dims[1] == 3);
+            Assert.True(int64sTensor.Int64Data.Count == 3);
+            Assert.True(int64sTensor.Int64Data[0] == 94L);
+            Assert.True(int64sTensor.Int64Data[1] == 17L);
+            Assert.True(int64sTensor.Int64Data[2] == 36L);
 
-                var stringsTensor = model.Graph.Initializer[5];
-                Assert.True(stringsTensor.Name == "strings");
-                Assert.True(stringsTensor.Dims.Count == 2);
-                Assert.True(stringsTensor.Dims[0] == 1);
-                Assert.True(stringsTensor.Dims[1] == 3);
-                Assert.True(stringsTensor.StringData.Count == 3);
-                Assert.True(stringsTensor.StringData[0].ToStringUtf8() == "94");
-                Assert.True(stringsTensor.StringData[1].ToStringUtf8() == "17");
-                Assert.True(stringsTensor.StringData[2].ToStringUtf8() == "36");
-            }
+            var stringsTensor = model.Graph.Initializer[5];
+            Assert.True(stringsTensor.Name == "strings");
+            Assert.True(stringsTensor.Dims.Count == 2);
+            Assert.True(stringsTensor.Dims[0] == 1);
+            Assert.True(stringsTensor.Dims[1] == 3);
+            Assert.True(stringsTensor.StringData.Count == 3);
+            Assert.True(stringsTensor.StringData[0].ToStringUtf8() == "94");
+            Assert.True(stringsTensor.StringData[1].ToStringUtf8() == "17");
+            Assert.True(stringsTensor.StringData[2].ToStringUtf8() == "36");
         }
 
         [Fact]
@@ -259,8 +257,12 @@ namespace Microsoft.ML.Tests
             });
 
             var vectorizer = new CategoricalOneHotVectorizer();
-            var categoricalColumn = new OneHotEncodingTransformerColumn() {
-                OutputKind = OneHotEncodingTransformerOutputKind.Bag, Name = "F2", Source = "F2" };
+            var categoricalColumn = new OneHotEncodingTransformerColumn()
+            {
+                OutputKind = OneHotEncodingTransformerOutputKind.Bag,
+                Name = "F2",
+                Source = "F2"
+            };
             vectorizer.Column = new OneHotEncodingTransformerColumn[1] { categoricalColumn };
             pipeline.Add(vectorizer);
             pipeline.Add(new ColumnConcatenator("Features", "F1", "F2"));
@@ -306,7 +308,7 @@ namespace Microsoft.ML.Tests
                 {
                     Separator = new[] { '\t' },
                     HasHeader = false,
-                    Column = new []
+                    Column = new[]
                     {
                         new TextLoaderColumn()
                         {
@@ -317,7 +319,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             });
-            
+
             var modelPath = GetDataPath(@"shortsentiment.emd");
             var embed = new WordEmbeddings() { CustomLookupTable = modelPath };
             embed.AddColumn("Cat", "Cat");

@@ -62,17 +62,19 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="learningRate">The learning rate.</param>
-        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numIterations">The number of iterations to use in learning the features.</param>
+        /// <param name="learningRate">The learning rate. GAMs work best with a small learning rate.</param>
+        /// <param name="maxBins">The maximum number of bins to use to approximate features</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public BinaryClassificationGamTrainer(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
-            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
-            double learningRate = Defaults.LearningRates,
+            int numIterations = GamDefaults.NumIterations,
+            double learningRate = GamDefaults.LearningRates,
+            int maxBins = GamDefaults.MaxBins,
             Action<Arguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, minDatapointsInLeaves, learningRate, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, numIterations, learningRate, maxBins, advancedSettings)
         {
             _sigmoidParameter = 1;
         }
@@ -102,7 +104,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return boolArray;
         }
 
-        protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
+        private protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
             var predictor = new BinaryClassGamPredictor(Host, InputLength, TrainSet,

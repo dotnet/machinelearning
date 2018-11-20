@@ -18,7 +18,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// This class defines attributes to annotate module inputs, outputs, entry points etc. when defining
     /// the module interface.
     /// </summary>
-    public static class TlcModule
+    [BestFriend]
+    internal static class TlcModule
     {
         /// <summary>
         /// An attribute used to annotate the component.

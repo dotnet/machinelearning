@@ -40,7 +40,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/AveragedPerceptronBinaryClassification.cs?range=6-11,19-113 "The Averaged Perceptron binary classification example.")]
+        ///  [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/AveragedPerceptronBinaryClassification.cs)]
         /// ]]></format>
         /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(

@@ -762,7 +762,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         {
             // REVIEW: This really should validate feat.Length!
             if (feat.IsDense)
-                return GetLeafCore(feat.Values);
+                return GetLeafCore(feat.GetValues());
             return GetLeafCore(feat.GetIndices(), feat.GetValues());
         }
 
@@ -778,7 +778,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
 
             if (feat.IsDense)
-                return GetLeafCore(feat.Values, root: root);
+                return GetLeafCore(feat.GetValues(), root: root);
             return GetLeafCore(feat.GetIndices(), feat.GetValues(), root: root);
         }
 
@@ -796,7 +796,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 path.Clear();
 
             if (feat.IsDense)
-                return GetLeafCore(feat.Values, path);
+                return GetLeafCore(feat.GetValues(), path);
             return GetLeafCore(feat.GetIndices(), feat.GetValues(), path);
         }
 
@@ -816,9 +816,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        private int GetLeafCore(Float[] nonBinnedInstance, List<int> path = null, int root = 0)
+        private int GetLeafCore(ReadOnlySpan<Float> nonBinnedInstance, List<int> path = null, int root = 0)
         {
-            Contracts.AssertValue(nonBinnedInstance);
             Contracts.Assert(path == null || path.Count == 0);
             Contracts.Assert(root >= 0);
 

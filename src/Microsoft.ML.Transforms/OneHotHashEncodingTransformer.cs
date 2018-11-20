@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
+        /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and <see cref="KeyToVectorMappingTransformer.Arguments"/>
         /// with join option removed
         /// </summary>
         public sealed class Arguments : TransformInputBase
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Categorical
             int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
             OneHotEncodingTransformer.OutputKind outputKind = OneHotHashEncodingEstimator.Defaults.OutputKind)
         {
-            return new OneHotHashEncodingEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
+            return new OneHotHashEncodingEstimator(env, name, source, hashBits, invertHash, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public sealed class ColumnInfo
         {
-            public readonly HashTransformer.ColumnInfo HashInfo;
+            public readonly HashingTransformer.ColumnInfo HashInfo;
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
 
             /// <summary>
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
             {
-                HashInfo = new HashTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
+                HashInfo = new HashingTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -240,10 +240,16 @@ namespace Microsoft.ML.Transforms.Categorical
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public OneHotHashEncodingEstimator(IHostEnvironment env, string inputColumn,
-            string outputColumn = null, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
-            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
+        public OneHotHashEncodingEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn,
+            int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
+            int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
+            OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutputKind)
+            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind, hashBits, invertHash: invertHash))
         {
         }
 
@@ -282,9 +288,9 @@ namespace Microsoft.ML.Transforms.Categorical
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;
                 if (binaryCols.Count > 0)
-                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                    toBinVector = new KeyToBinaryVectorMappingEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorMappingTransformer.ColumnInfo(x.input, x.output)).ToArray());
                 if (cols.Count > 0)
-                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    toVector = new KeyToVectorMappingEstimator(_host, cols.Select(x => new KeyToVectorMappingTransformer.ColumnInfo(x.input, x.output, x.bag)).ToArray());
 
                 if (toBinVector != null && toVector != null)
                     _toSomething = toVector.Append(toBinVector);

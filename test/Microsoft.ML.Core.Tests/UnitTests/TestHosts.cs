@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestCancellation()
         {
-            var env = new ConsoleEnvironment(seed: 42);
+            IHostEnvironment env = new MLContext(seed: 42);
             for (int z = 0; z < 1000; z++)
             {
                 var mainHost = env.Register("Main");

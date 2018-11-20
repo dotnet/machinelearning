@@ -78,7 +78,7 @@ namespace Microsoft.ML.Transforms
         private readonly bool _includeMax;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="RangeFilter"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
