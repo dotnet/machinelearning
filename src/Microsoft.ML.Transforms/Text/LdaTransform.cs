@@ -346,19 +346,19 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class LdaSummary
         {
             // For each topic, provide information about the (item, score) pairs.
-            public readonly Dictionary<int, List<(int Item, float Score)>> ItemScoresPerTopic;
+            public readonly ImmutableArray<List<(int Item, float Score)>> ItemScoresPerTopic;
 
             // For each topic, provide information about the (item, word, score) tuple.
-            public readonly Dictionary<int, List<(int Item, string Word, float Score)>> WordScoresPerTopic;
+            public readonly ImmutableArray<List<(int Item, string Word, float Score)>> WordScoresPerTopic;
 
-            internal LdaSummary(Dictionary<int, List<(int Item, float Score)>> itemScoresPerTopic)
+            internal LdaSummary(ImmutableArray<List<(int Item, float Score)>> itemScoresPerTopic)
             {
                 ItemScoresPerTopic = itemScoresPerTopic;
             }
 
-            internal LdaSummary(Dictionary<int, List<(int Item, string Word, float Score)>> wordScoresExPerTopic)
+            internal LdaSummary(ImmutableArray<List<(int Item, string Word, float Score)>> wordScoresPerTopic)
             {
-                WordScoresPerTopic = wordScoresExPerTopic;
+                WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
@@ -485,8 +485,7 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (mapping.Length == 0)
                 {
-                    var itemScoresPerTopic = new Dictionary<int, List<(int Item, float Score)>>();
-
+                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, float Score)>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
@@ -495,15 +494,15 @@ namespace Microsoft.ML.Transforms.Text
                         {
                             itemScores.Add((p.Key, p.Value));
                         }
-                        itemScoresPerTopic.Add(i, itemScores);
+
+                        itemScoresPerTopicBuilder.Add(itemScores);
                     }
-                    return new LdaSummary(itemScoresPerTopic);
+                    return new LdaSummary(itemScoresPerTopicBuilder.ToImmutable());
                 }
                 else
                 {
                     ReadOnlyMemory<char> slotName = default;
-                    var wordScoresPerTopic = new Dictionary<int, List<(int Item, string Word, float Score)>>();
-
+                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, string Word, float Score)>>();
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
@@ -513,10 +512,9 @@ namespace Microsoft.ML.Transforms.Text
                             mapping.GetItemOrDefault(p.Key, ref slotName);
                             wordScores.Add((p.Key, slotName.ToString(), p.Value));
                         }
-                        wordScoresPerTopic.Add(i, wordScores);
+                        wordScoresPerTopicBuilder.Add(wordScores);
                     }
-
-                    return new LdaSummary(wordScoresPerTopic);
+                    return new LdaSummary(wordScoresPerTopicBuilder.ToImmutable());
                 }
             }
 
