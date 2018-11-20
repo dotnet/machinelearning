@@ -846,9 +846,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         }
                     }
 
-                    // Add isNormalize metada.
-                    ValueGetter<bool> getter = (ref bool dst) => { dst = true; };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
+                    // Add isNormalize and KeyValues metadata.
+                    builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
                     result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, _dstTypes[iinfo], builder.GetMetadata());
                 }

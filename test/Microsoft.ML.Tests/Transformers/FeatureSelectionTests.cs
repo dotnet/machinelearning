@@ -59,8 +59,6 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void DropSlotsTransform()
         {
-            var ML = new ConsoleEnvironment(seed: 0);
-
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoader.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
