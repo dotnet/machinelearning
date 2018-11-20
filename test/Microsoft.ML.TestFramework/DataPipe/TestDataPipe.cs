@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string name = TestName + "4-out.txt";
             string pathOut = DeleteOutputPath("SavePipe", name);
             using (var writer = OpenWriter(pathOut))
-            using (Env.RedirectChannelOutput(writer, writer))
+            using (_env.RedirectChannelOutput(writer, writer))
             {
                 TestCore(pathData, true,
                     new[] {
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
-                Env.PrintProgress();
+                _env.PrintProgress();
             }
             CheckEqualityNormalized("SavePipe", name);
 
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Check(tmp, "Parsing argsText failed!");
                     IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
 
-                    var argsConv = new ConvertingTransform.Arguments();
+                    var argsConv = new TypeConvertingTransformer.Arguments();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label:U1[0-1]:Label" +
                         " col=Features:U2:Features" +
@@ -651,19 +651,19 @@ namespace Microsoft.ML.Runtime.RunTests
                         " key={min=3}",
                         argsConv);
                     Check(tmp, "Parsing argsConv failed!");
-                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
-                    argsConv = new ConvertingTransform.Arguments();
+                    argsConv = new TypeConvertingTransformer.Arguments();
                     tmp = CmdParser.ParseArguments(Env,
                         " col=Label2:U2:Label col=Features2:Num:Features",
                         argsConv);
                     Check(tmp, "Parsing argsConv(2) failed!");
-                    view2 = ConvertingTransform.Create(Env, argsConv, view2);
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
 
                     var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
 
-                    IDataView view1 = SelectColumnsTransform.CreateKeep(Env, pipe, colsChoose);
-                    view2 = SelectColumnsTransform.CreateKeep(Env, view2, colsChoose);
+                    IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
+                    view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);
 
                     CheckSameValues(view1, view2);
                 },
@@ -685,6 +685,102 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=MinMax{col=NumSparse}",
                     "xf=SelectColumns{dropcol=NumSparse hidden=+}",
                 });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCustomStopwordsRemover()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-dataFile.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "When does Fred McGriff of the Padres become a free agent?",
+                "Is erythromycin effective in treating pneumonia?"
+            });
+
+            var stopwordsList = new[]
+                {
+                    "When",
+                    "does",
+                    "of",
+                    "the",
+                    "Padres",
+                    "become",
+                    "a",
+                    "Is",
+                    "effective",
+                    "in"
+                };
+            string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
+            File.WriteAllLines(stopwordsFile, stopwordsList);
+
+            Action<IDataLoader> action
+                = pipe =>
+                {
+                    VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];
+                    ReadOnlyMemory<char>[] values = { "Fred".AsMemory(), "McGriff".AsMemory(), "free".AsMemory(), "agent".AsMemory() };
+                    expected[0] = new VBuffer<ReadOnlyMemory<char>>(values.Length, values);
+                    ReadOnlyMemory<char>[] values1 = { "erythromycin".AsMemory(), "treating".AsMemory(), "pneumonia".AsMemory() };
+                    expected[1] = new VBuffer<ReadOnlyMemory<char>>(values1.Length, values1);
+
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        int col;
+                        bool res = c.Schema.TryGetColumnIndex("T", out col);
+                        if (!Check(res, "Column T not found!"))
+                            return;
+                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col);
+                        var buffer = default(VBuffer<ReadOnlyMemory<char>>);
+                        int index = 0;
+                        while (c.MoveNext())
+                        {
+                            getter(ref buffer);
+                            CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
+                        }
+                    }
+                };
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{data={0} col=T}}", stopwordsFile),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{stopwords={0} col=T}}", string.Join(",", stopwordsList)),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeTokenizerAndStopWords()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "Multi-Languages.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "1 \"Oh, no,\" she's saying, \"our $400 blender can't handle something this hard!\"	English",
+                "2 Vous êtes au volant d'une voiture et vous roulez à grande vitesse	French",
+                "3 Lange nichts voneinander gehört! Es freut mich, dich kennen zu lernen	German",
+                "4 Goedemorgen, Waar kom je vandaan? Ik kom uit Nederlands	Dutch",
+                "5 Ciao, Come va? Bene grazie. E tu? Quanto tempo!	Italian",
+                "六 初めまして 良い一日を ごきげんよう！ さようなら	Japanese",
+                "6 ¡Hola! ¿Cómo te llamas? Mi nombre es ABELE	Spanish"
+            });
+
+            TestCore(dataFile, true,
+                new[] {
+                    "Loader=Text{col=Source:TXT:0 col=Lang:TXT:1 sep=tab}",
+                    "xf=Token{col=SourceTokens:Source}",
+                    "xf=StopWords{langscol=Lang col=Output:SourceTokens}"
+                }, roundTripText: false);
 
             Done();
         }
@@ -738,14 +834,14 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -776,14 +872,14 @@ namespace Microsoft.ML.Runtime.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1V";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

@@ -1,18 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-        using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Runtime.Api;
-        using System;
-        using System.Linq;
-        using System.Collections.Generic;
-        using Microsoft.ML.Transforms;
+﻿using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Api;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TransformSamples
+    public class ConcatTransformExample
     {
         class SampleInfertDataWithFeatures
         {
@@ -51,7 +46,7 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
             foreach (var featureRow in featuresColumn)
             {
-                foreach (var value in featureRow.Features.Values)
+                foreach (var value in featureRow.Features.GetValues())
                     Console.Write($"{value} ");
                 Console.WriteLine("");
             }

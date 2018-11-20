@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Data
             schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
-            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name, scoreSize, quantiles.Values);
+            return new QuantileRegressionPerInstanceEvaluator(Host, schema.Schema, scoreInfo.Name, schema.Label.Name, scoreSize, quantiles);
         }
 
         protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -142,6 +142,9 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Check(score.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
+                    var totalL1LossEditor = VBufferEditor.CreateFromBuffer(ref TotalL1Loss);
+                    var totalL2LossEditor = VBufferEditor.CreateFromBuffer(ref TotalL2Loss);
+
                     var scoreValues = score.GetValues();
                     if (score.IsDense)
                     {
@@ -150,8 +153,8 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             var diff = Math.Abs((Double)label - scoreValues[i]);
                             var weightedDiff = diff * weight;
-                            TotalL1Loss.Values[i] += weightedDiff;
-                            TotalL2Loss.Values[i] += diff * weightedDiff;
+                            totalL1LossEditor.Values[i] += weightedDiff;
+                            totalL2LossEditor.Values[i] += diff * weightedDiff;
                         }
                         return;
                     }
@@ -162,8 +165,8 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var diff = Math.Abs((Double)label - scoreValues[i]);
                         var weightedDiff = diff * weight;
-                        TotalL1Loss.Values[scoreIndices[i]] += weightedDiff;
-                        TotalL2Loss.Values[scoreIndices[i]] += diff * weightedDiff;
+                        totalL1LossEditor.Values[scoreIndices[i]] += weightedDiff;
+                        totalL2LossEditor.Values[scoreIndices[i]] += diff * weightedDiff;
                     }
                 }
 
@@ -171,19 +174,21 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Check(loss.Length == TotalL1Loss.Length, "Vectors must have the same dimensionality.");
 
+                    var totalLossEditor = VBufferEditor.CreateFromBuffer(ref TotalLoss);
+
                     var lossValues = loss.GetValues();
                     if (loss.IsDense)
                     {
                         // Both are dense.
                         for (int i = 0; i < lossValues.Length; i++)
-                            TotalLoss.Values[i] += lossValues[i] * weight;
+                            totalLossEditor.Values[i] += lossValues[i] * weight;
                         return;
                     }
 
                     // loss is sparse, and _totalL1Loss is dense.
                     var lossIndices = loss.GetIndices();
                     for (int i = 0; i < lossValues.Length; i++)
-                        TotalLoss.Values[lossIndices[i]] += lossValues[i] * weight;
+                        totalLossEditor.Values[lossIndices[i]] += lossValues[i] * weight;
                 }
 
                 protected override void Normalize(in VBuffer<Double> src, ref VBuffer<Double> dst)
@@ -191,13 +196,12 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(SumWeights > 0);
                     Contracts.Assert(src.IsDense);
 
-                    var values = dst.Values;
-                    if (Utils.Size(values) < src.Length)
-                        values = new Double[src.Length];
+                    var editor = VBufferEditor.Create(ref dst, src.Length);
                     var inv = 1 / SumWeights;
-                    for (int i = 0; i < src.Length; i++)
-                        values[i] = src.Values[i] * inv;
-                    dst = new VBuffer<Double>(src.Length, values);
+                    var srcValues = src.GetValues();
+                    for (int i = 0; i < srcValues.Length; i++)
+                        editor.Values[i] = srcValues[i] * inv;
+                    dst = editor.Commit();
                 }
 
                 protected override VBuffer<Double> Zero()
@@ -277,15 +281,17 @@ namespace Microsoft.ML.Runtime.Data
         public const string L2 = "L2-loss";
 
         private readonly int _scoreSize;
-        private readonly ReadOnlyMemory<char>[] _quantiles;
+        private readonly VBuffer<ReadOnlyMemory<char>> _quantiles;
         private readonly ColumnType _outputType;
 
-        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol, int scoreSize, ReadOnlyMemory<char>[] quantiles)
+        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol, int scoreSize, VBuffer<ReadOnlyMemory<char>> quantiles)
             : base(env, schema, scoreCol, labelCol)
         {
             Host.CheckParam(scoreSize > 0, nameof(scoreSize), "must be greater than 0");
-            if (Utils.Size(quantiles) != scoreSize)
-                throw Host.ExceptParam(nameof(quantiles), "array must be of length '{0}'", scoreSize);
+            if (!quantiles.IsDense)
+                throw Host.ExceptParam(nameof(quantiles), "buffer must be dense");
+            if (quantiles.Length != scoreSize)
+                throw Host.ExceptParam(nameof(quantiles), "buffer must be of length '{0}'", scoreSize);
             CheckInputColumnTypes(schema);
             _scoreSize = scoreSize;
             _quantiles = quantiles;
@@ -304,9 +310,10 @@ namespace Microsoft.ML.Runtime.Data
 
             _scoreSize = ctx.Reader.ReadInt32();
             Host.CheckDecode(_scoreSize > 0);
-            _quantiles = new ReadOnlyMemory<char>[_scoreSize];
+            ReadOnlyMemory<char>[] quantiles = new ReadOnlyMemory<char>[_scoreSize];
             for (int i = 0; i < _scoreSize; i++)
-                _quantiles[i] = ctx.LoadNonEmptyString().AsMemory();
+                quantiles[i] = ctx.LoadNonEmptyString().AsMemory();
+            _quantiles = new VBuffer<ReadOnlyMemory<char>>(quantiles.Length, quantiles);
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
@@ -333,8 +340,9 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
             Host.Assert(_scoreSize > 0);
             ctx.Writer.Write(_scoreSize);
+            var quantiles = _quantiles.GetValues();
             for (int i = 0; i < _scoreSize; i++)
-                ctx.SaveNonEmptyString(_quantiles[i].ToString());
+                ctx.SaveNonEmptyString(quantiles[i].ToString());
         }
 
         public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
@@ -364,12 +372,11 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _scoreSize)
-                        values = new ReadOnlyMemory<char>[_scoreSize];
+                    var editor = VBufferEditor.Create(ref dst, _scoreSize);
+                    var quantiles = _quantiles.GetValues();
                     for (int i = 0; i < _scoreSize; i++)
-                        values[i] = string.Format("{0} ({1})", prefix, _quantiles[i]).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_scoreSize, values);
+                        editor.Values[i] = string.Format("{0} ({1})", prefix, quantiles[i]).AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -400,8 +407,9 @@ namespace Microsoft.ML.Runtime.Data
                         labelGetter(ref label);
                         scoreGetter(ref score);
                         var lab = (Double)label;
+                        var l1Editor = VBufferEditor.CreateFromBuffer(ref l1);
                         foreach (var s in score.Items(all: true))
-                            l1.Values[s.Key] = Math.Abs(lab - s.Value);
+                            l1Editor.Values[s.Key] = Math.Abs(lab - s.Value);
                         cachedPosition = input.Position;
                     }
                 };
@@ -426,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<Double> dst) =>
                     {
                         updateCacheIfNeeded();
-                        dst = new VBuffer<Double>(_scoreSize, 0, dst.Values, dst.Indices);
+                        VBufferUtils.Resize(ref dst, _scoreSize, 0);
                         VBufferUtils.ApplyWith(in l1, ref dst, sqr);
                     };
                 getters[L2Col] = l2Fn;

@@ -62,80 +62,78 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void CursorChannelExposedInMapTransform()
         {
-            using (var env = new ConsoleEnvironment(0))
+            var env = new MLContext(seed: 0);
+            // Correct use of CursorChannel attribute.
+            var data1 = Utils.CreateArray(10, new OneIChannelWithAttribute());
+            var idv1 = env.CreateDataView(data1);
+            Assert.Null(data1[0].Channel);
+
+            var filter1 = LambdaTransform.CreateFilter<OneIChannelWithAttribute, object>(env, idv1,
+                (input, state) =>
+                {
+                    Assert.NotNull(input.Channel);
+                    return false;
+                }, null);
+            filter1.GetRowCursor(col => true).MoveNext();
+
+            // Error case: non-IChannel field marked with attribute.
+            var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
+            var idv2 = env.CreateDataView(data2);
+            Assert.Null(data2[0].Channel);
+
+            var filter2 = LambdaTransform.CreateFilter<OneStringWithAttribute, object>(env, idv2,
+                (input, state) =>
+                {
+                    Assert.Null(input.Channel);
+                    return false;
+                }, null);
+            try
             {
-                // Correct use of CursorChannel attribute.
-                var data1 = Utils.CreateArray(10, new OneIChannelWithAttribute());
-                var idv1 = env.CreateDataView(data1);
-                Assert.Null(data1[0].Channel);
-
-                var filter1 = LambdaTransform.CreateFilter<OneIChannelWithAttribute, object>(env, idv1,
-                    (input, state) =>
-                    {
-                        Assert.NotNull(input.Channel);
-                        return false;
-                    }, null);
-                filter1.GetRowCursor(col => true).MoveNext();
-
-                // Error case: non-IChannel field marked with attribute.
-                var data2 = Utils.CreateArray(10, new OneStringWithAttribute());
-                var idv2 = env.CreateDataView(data2);
-                Assert.Null(data2[0].Channel);
-
-                var filter2 = LambdaTransform.CreateFilter<OneStringWithAttribute, object>(env, idv2,
-                    (input, state) =>
-                    {
-                        Assert.Null(input.Channel);
-                        return false;
-                    }, null);
-                try
-                {
-                    filter2.GetRowCursor(col => true).MoveNext();
-                    Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
-                }
-                catch (InvalidOperationException ex)
-                {
-                    Assert.True(ex.IsMarked());
-                }
-
-                // Error case: multiple fields marked with attributes.
-                var data3 = Utils.CreateArray(10, new TwoIChannelsWithAttributes());
-                var idv3 = env.CreateDataView(data3);
-                Assert.Null(data3[0].ChannelOne);
-                Assert.Null(data3[2].ChannelTwo);
-
-                var filter3 = LambdaTransform.CreateFilter<TwoIChannelsWithAttributes, object>(env, idv3,
-                    (input, state) =>
-                    {
-                        Assert.Null(input.ChannelOne);
-                        Assert.Null(input.ChannelTwo);
-                        return false;
-                    }, null);
-                try
-                {
-                    filter3.GetRowCursor(col => true).MoveNext();
-                    Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
-                }
-                catch (InvalidOperationException ex)
-                {
-                    Assert.True(ex.IsMarked());
-                }
-
-                // Correct case: non-marked IChannel field is not touched.
-                var example4 = new TwoIChannelsOnlyOneWithAttribute();
-                Assert.Null(example4.ChannelTwo);
-                Assert.Null(example4.ChannelOne);
-                var idv4 = env.CreateDataView(Utils.CreateArray(10, example4));
-
-                var filter4 = LambdaTransform.CreateFilter<TwoIChannelsOnlyOneWithAttribute, object>(env, idv4,
-                    (input, state) =>
-                    {
-                        Assert.Null(input.ChannelOne);
-                        Assert.NotNull(input.ChannelTwo);
-                        return false;
-                    }, null);
-                filter1.GetRowCursor(col => true).MoveNext();
+                filter2.GetRowCursor(col => true).MoveNext();
+                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
             }
+            catch (InvalidOperationException ex)
+            {
+                Assert.True(ex.IsMarked());
+            }
+
+            // Error case: multiple fields marked with attributes.
+            var data3 = Utils.CreateArray(10, new TwoIChannelsWithAttributes());
+            var idv3 = env.CreateDataView(data3);
+            Assert.Null(data3[0].ChannelOne);
+            Assert.Null(data3[2].ChannelTwo);
+
+            var filter3 = LambdaTransform.CreateFilter<TwoIChannelsWithAttributes, object>(env, idv3,
+                (input, state) =>
+                {
+                    Assert.Null(input.ChannelOne);
+                    Assert.Null(input.ChannelTwo);
+                    return false;
+                }, null);
+            try
+            {
+                filter3.GetRowCursor(col => true).MoveNext();
+                Assert.True(false, "Throw an error if attribute is applied to a field that is not an IChannel.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Assert.True(ex.IsMarked());
+            }
+
+            // Correct case: non-marked IChannel field is not touched.
+            var example4 = new TwoIChannelsOnlyOneWithAttribute();
+            Assert.Null(example4.ChannelTwo);
+            Assert.Null(example4.ChannelOne);
+            var idv4 = env.CreateDataView(Utils.CreateArray(10, example4));
+
+            var filter4 = LambdaTransform.CreateFilter<TwoIChannelsOnlyOneWithAttribute, object>(env, idv4,
+                (input, state) =>
+                {
+                    Assert.Null(input.ChannelOne);
+                    Assert.NotNull(input.ChannelTwo);
+                    return false;
+                }, null);
+            filter1.GetRowCursor(col => true).MoveNext();
         }
 
         public class BreastCancerExample
@@ -149,44 +147,40 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void LambdaTransformCreate()
         {
-            using (var env = new ConsoleEnvironment(42))
-            {
-                var data = ReadBreastCancerExamples();
-                var idv = env.CreateDataView(data);
+            var env = new MLContext(seed: 42);
+            var data = ReadBreastCancerExamples();
+            var idv = env.CreateDataView(data);
 
-                var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, idv,
-                    (input, state) => input.Label == 0, null);
+            var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, idv,
+                (input, state) => input.Label == 0, null);
 
-                Assert.Null(filter.GetRowCount());
+            Assert.Null(filter.GetRowCount());
 
-                // test re-apply
-                var applied = env.CreateDataView(data);
-                applied = ApplyTransformUtils.ApplyAllTransformsToData(env, filter, applied);
+            // test re-apply
+            var applied = env.CreateDataView(data);
+            applied = ApplyTransformUtils.ApplyAllTransformsToData(env, filter, applied);
 
-                var saver = new TextSaver(env, new TextSaver.Arguments());
-                Assert.True(applied.Schema.TryGetColumnIndex("Label", out int label));
-                using (var fs = File.Create(GetOutputPath(OutputRelativePath, "lambda-output.tsv")))
-                    saver.SaveData(fs, applied, label);
-            }
+            var saver = new TextSaver(env, new TextSaver.Arguments());
+            Assert.True(applied.Schema.TryGetColumnIndex("Label", out int label));
+            using (var fs = File.Create(GetOutputPath(OutputRelativePath, "lambda-output.tsv")))
+                saver.SaveData(fs, applied, label);
         }
 
         [Fact]
         public void TrainAveragedPerceptronWithCache()
         {
-            using (var env = new ConsoleEnvironment(0))
-            {
-                var dataFile = GetDataPath("breast-cancer.txt");
-                var loader = TextLoader.Create(env, new TextLoader.Arguments(), new MultiFileSource(dataFile));
-                var globalCounter = 0;
-                var xf = LambdaTransform.CreateFilter<object, object>(env, loader,
-                    (i, s) => true,
-                    s => { globalCounter++; });
+            var env = new MLContext(0);
+            var dataFile = GetDataPath("breast-cancer.txt");
+            var loader = TextLoader.Create(env, new TextLoader.Arguments(), new MultiFileSource(dataFile));
+            var globalCounter = 0;
+            var xf = LambdaTransform.CreateFilter<object, object>(env, loader,
+                (i, s) => true,
+                s => { globalCounter++; });
 
-                new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(xf).Transform(xf);
+            new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(xf).Transform(xf);
 
-                // Make sure there were 2 cursoring events.
-                Assert.Equal(1, globalCounter);
-            }
+            // Make sure there were 2 cursoring events.
+            Assert.Equal(1, globalCounter);
         }
 
         private List<BreastCancerExample> ReadBreastCancerExamples()

@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return mapping;
         }
 
-        public static TlcModule.SweepableParamAttribute[] GetSweepRanges(Type learnerInputType)
+        internal static TlcModule.SweepableParamAttribute[] GetSweepRanges(Type learnerInputType)
         {
             var paramSet = new List<TlcModule.SweepableParamAttribute>();
             foreach (var prop in learnerInputType.GetProperties(BindingFlags.Instance |
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return paramSet.ToArray();
         }
 
-        public static IValueGenerator ToIValueGenerator(TlcModule.SweepableParamAttribute attr)
+        internal static IValueGenerator ToIValueGenerator(TlcModule.SweepableParamAttribute attr)
         {
             if (attr is TlcModule.SweepableLongParamAttribute sweepableLongParamAttr)
             {
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// Updates properties of entryPointObj instance based on the values in sweepParams
         /// </summary>
-        public static bool UpdateProperties(object entryPointObj, TlcModule.SweepableParamAttribute[] sweepParams)
+        internal static bool UpdateProperties(object entryPointObj, TlcModule.SweepableParamAttribute[] sweepParams)
         {
             bool result = true;
             foreach (var param in sweepParams)
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        public static bool CheckEntryPointStateMatchesParamValues(object entryPointObj,
+        internal static bool CheckEntryPointStateMatchesParamValues(object entryPointObj,
             TlcModule.SweepableParamAttribute[] sweepParams)
         {
             foreach (var param in sweepParams)
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// Method to convert set of sweepable hyperparameters into <see cref="IComponentFactory"/> instances used
         /// by the current smart hyperparameter sweepers.
         /// </summary>
-        public static IComponentFactory<IValueGenerator>[] ConvertToComponentFactories(TlcModule.SweepableParamAttribute[] hps)
+        internal static IComponentFactory<IValueGenerator>[] ConvertToComponentFactories(TlcModule.SweepableParamAttribute[] hps)
         {
             var results = new IComponentFactory<IValueGenerator>[hps.Length];
 

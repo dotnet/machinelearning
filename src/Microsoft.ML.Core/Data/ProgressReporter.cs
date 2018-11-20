@@ -14,7 +14,8 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// The progress reporting classes used by <see cref="HostEnvironmentBase{THostEnvironmentBase}"/> descendants.
     /// </summary>
-    public static class ProgressReporting
+    [BestFriend]
+    internal static class ProgressReporting
     {
         /// <summary>
         /// The progress channel for <see cref="ConsoleEnvironment"/>.

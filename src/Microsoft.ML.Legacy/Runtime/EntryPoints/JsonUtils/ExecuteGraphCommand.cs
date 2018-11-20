@@ -21,7 +21,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 {
-    public sealed class ExecuteGraphCommand : ICommand
+    internal sealed class ExecuteGraphCommand : ICommand
     {
         public sealed class Arguments
         {

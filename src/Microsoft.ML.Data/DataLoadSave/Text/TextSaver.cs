@@ -166,20 +166,22 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
             {
                 _getSrc(ref _src);
+                var srcValues = _src.GetValues();
                 if (_src.IsDense)
                 {
-                    for (int i = 0; i < _src.Length; i++)
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        Conv(in _src.Values[i], ref Sb);
+                        Conv(in srcValues[i], ref Sb);
                         appendItem(Sb, i);
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < _src.Count; i++)
+                    var srcIndices = _src.GetIndices();
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        Conv(in _src.Values[i], ref Sb);
-                        appendItem(Sb, _src.Indices[i]);
+                        Conv(in srcValues[i], ref Sb);
+                        appendItem(Sb, srcIndices[i]);
                     }
                 }
                 length = _src.Length;
@@ -188,15 +190,18 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
                 length = _slotCount;
-                if (_slotNames.Count == 0)
+                var slotNamesValues = _slotNames.GetValues();
+                if (slotNamesValues.Length == 0)
                     return;
-                for (int i = 0; i < _slotNames.Count; i++)
+
+                var slotNamesIndices = _slotNames.GetIndices();
+                for (int i = 0; i < slotNamesValues.Length; i++)
                 {
-                    var name = _slotNames.Values[i];
+                    var name = slotNamesValues[i];
                     if (name.IsEmpty)
                         continue;
                     MapText(in name, ref Sb);
-                    int index = _slotNames.IsDense ? i : _slotNames.Indices[i];
+                    int index = _slotNames.IsDense ? i : slotNamesIndices[i];
                     appendItem(Sb, index);
                 }
             }

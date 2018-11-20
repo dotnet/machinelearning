@@ -22843,19 +22843,16 @@
           "Default": "English"
         },
         {
-          "Name": "StopWordsRemover",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "StopWordsRemover"
-          },
-          "Desc": "Stopwords remover.",
+          "Name": "UsePredefinedStopWordRemover",
+          "Type": "Bool",
+          "Desc": "Use stop remover or not.",
           "Aliases": [
             "remover"
           ],
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": null
+          "Default": false
         },
         {
           "Name": "TextCase",

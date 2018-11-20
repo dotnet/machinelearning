@@ -11,7 +11,8 @@ namespace Microsoft.ML.Runtime
     /// into <see cref="ITrainer{TPredictor}.Train(TrainContext)"/> or <see cref="ITrainer.Train(TrainContext)"/>.
     /// This holds at least a training set, as well as optioonally a predictor.
     /// </summary>
-    public sealed class TrainContext
+    [BestFriend]
+    internal sealed class TrainContext
     {
         /// <summary>
         /// The training set. Cannot be <c>null</c>.

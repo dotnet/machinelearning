@@ -157,8 +157,9 @@ namespace Microsoft.ML.Runtime.Learners
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
 
             return weight * datumLoss;
         }
@@ -178,12 +179,13 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Compute deviance: start with loss function.
             float deviance = (float)(2 * loss * WeightSum);
+            var currentWeightsValues = CurrentWeights.GetValues();
 
             if (L2Weight > 0)
             {
                 // Need to subtract L2 regularization loss.
                 // The bias term is not regularized.
-                var regLoss = VectorUtils.NormSquared(CurrentWeights.Values, 1, CurrentWeights.Length - 1) * L2Weight;
+                var regLoss = VectorUtils.NormSquared(currentWeightsValues.Slice(1)) * L2Weight;
                 deviance -= regLoss;
             }
 
@@ -235,9 +237,9 @@ namespace Microsoft.ML.Runtime.Learners
                 weightIndices[0] = 0;
                 weightIndicesInvMap[0] = 0;
                 int j = 1;
-                for (int i = 1; i < CurrentWeights.Length; i++)
+                for (int i = 1; i < currentWeightsValues.Length; i++)
                 {
-                    if (CurrentWeights.Values[i] != 0)
+                    if (currentWeightsValues[i] != 0)
                     {
                         weightIndices[j] = i;
                         weightIndicesInvMap[i] = j++;
@@ -284,7 +286,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             // Initialize the remaining entries.
-            var bias = CurrentWeights.Values[0];
+            var bias = currentWeightsValues[0];
             using (var cursor = cursorFactory.Create())
             {
                 while (cursor.MoveNext())
@@ -298,7 +300,7 @@ namespace Microsoft.ML.Runtime.Learners
                     // Increment the first entry of hessian.
                     hessian[0] += variance;
 
-                    var values = cursor.Features.Values;
+                    var values = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
                         int ioff = 1;
@@ -324,8 +326,8 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     else
                     {
-                        var indices = cursor.Features.Indices;
-                        for (int ii = 0; ii < cursor.Features.Count; ++ii)
+                        var indices = cursor.Features.GetIndices();
+                        for (int ii = 0; ii < values.Length; ++ii)
                         {
                             int i = indices[ii];
                             int wi = i + 1;
