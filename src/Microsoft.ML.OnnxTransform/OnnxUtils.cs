@@ -208,27 +208,27 @@ namespace Microsoft.ML.Transforms
         /// generic version. CreateTensor&lt;T&gt; is generic wrapper on top of
         /// overloaded Tensor(T[] data, OnnxShape shape) constructors.
         /// </summary>
-        public static Tensor CreateTensor<T>(T[] data, OnnxShape shape)
+        public static Tensor CreateTensor<T>(ReadOnlySpan<T> data, OnnxShape shape)
         {
             if (typeof(T) == typeof(System.Boolean))
             {
-                return new Tensor(((System.Boolean[])(object)data).ToList(), shape);
+                return new Tensor((System.Boolean[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Double))
             {
-                return new Tensor(((System.Double[])(object)data).ToList(), shape);
+                return new Tensor((System.Double[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Single))
             {
-                return new Tensor(((System.Single[])(object)data).ToList(), shape);
+                return new Tensor((System.Single[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Int32))
             {
-                return new Tensor(((System.Int32[])(object)data).ToList(), shape);
+                return new Tensor((System.Int32[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Int64))
             {
-                return new Tensor(((System.Int64[])(object)data).ToList(), shape);
+                return new Tensor((System.Int64[])(object)data.ToArray(), shape.ToArray());
             }
             throw new NotImplementedException($"Not implemented type {typeof(T)}");
         }

@@ -429,7 +429,7 @@ namespace Microsoft.ML.Transforms
                 {
                     _srcgetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
-                    return OnnxUtils.CreateTensor(_vBufferDense.GetValues().ToArray(), _tensorShape);
+                    return OnnxUtils.CreateTensor(_vBufferDense.GetValues(), _tensorShape);
                 }
             }
         }
