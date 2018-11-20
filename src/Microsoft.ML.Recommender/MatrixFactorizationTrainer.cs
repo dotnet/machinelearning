@@ -89,7 +89,7 @@ namespace Microsoft.ML.Trainers
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>
     {
-        public enum LibMFLossFunctionType { SquareLossRegression=0, SquareLossOneClass=12 };
+        public enum LibMFLossFunctionType { SquareLossRegression = 0, SquareLossOneClass = 12 };
 
         public sealed class Arguments
         {

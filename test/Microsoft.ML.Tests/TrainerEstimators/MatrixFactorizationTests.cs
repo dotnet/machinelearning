@@ -332,10 +332,24 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Assert.True(float.IsNaN(pred.Score));
         }
 
-        const int _oneClassMatrixColumnCount = 2;
-        const int _oneClassMatrixRowCount = 3;
+        // The following ingredients are used to define a 3-by-2 one-class
+        // matrix used in a test for one-class matrix factorization. One-class
+        // matrix means that all the available elements in the training matrix
+        // are 1. Such a matrix is common. Let's use Game store as an example.
+        // Assume that user IDs are row indexes and game IDs are column
+        // indexes. By encoding all users' purchase history as a matrix (i.e.,
+        // if the value at u-th row and v-th column is 1, then u-th user owns
+        // the v-th game), a one-class matrix gets created because, from the
+        // purchase history, users didn't explicitly tell us which games they
+        // will not buy. If you train a simple model from those a one-class
+        // matrix using standard collaborative filtering, all your predictions
+        // would be 1! One-class matrix factorization assumes unspecified
+        // matrix entries are all 0 (or a small constant value selected by the
+        // user) so that the trainined model becomes non-trivial.
+        private const int _oneClassMatrixColumnCount = 2;
+        private const int _oneClassMatrixRowCount = 3;
 
-        internal class OneClassMatrixElementZeroBased
+        private class OneClassMatrixElementZeroBased
         {
             [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
             public uint MatrixColumnIndex;
@@ -344,7 +358,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             public float Value;
         }
 
-        internal class OneClassMatrixElementZeroBasedForScore
+        private class OneClassMatrixElementZeroBasedForScore
         {
             [KeyType(Contiguous = true, Count = _oneClassMatrixColumnCount, Min = 0)]
             public uint MatrixColumnIndex;
@@ -418,12 +432,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Apply the trained model to the test data.
             var testPrediction = model.Transform(testDataView);
 
-            double tolerance = Math.Pow(10, -5);
             var testResults = new List<OneClassMatrixElementZeroBasedForScore>(testPrediction.AsEnumerable<OneClassMatrixElementZeroBasedForScore>(mlContext, false));
             // Positive example (i.e., examples can be found in dataMatrix) is close to 1.
-            Assert.InRange(testResults[0].Score, 0.982391 - tolerance, 0.982391 + tolerance);
+            CompareNumbersWithTolerance(0.982391, testResults[0].Score, digitsOfPrecision: 5);
             // Negative example (i.e., examples can not be found in dataMatrix) is close to 0.15 (specified by s.C = 0.15 in the trainer).
-            Assert.InRange(testResults[1].Score, 0.141411 - tolerance, 0.141411 + tolerance);
+            CompareNumbersWithTolerance(0.141411, testResults[1].Score, digitsOfPrecision: 5);
         }
     }
 }
