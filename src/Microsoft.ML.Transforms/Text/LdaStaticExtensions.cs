@@ -5,13 +5,12 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.ML.Transforms.Text
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Information on the result of fitting a LDA transform.

@@ -208,14 +208,14 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.CheckValueOrNull(output);
-                Contracts.CheckUserArg(numTopic > 0, nameof(numTopic), "Must be positive.");
-                Contracts.CheckUserArg(mhStep > 0, nameof(mhStep), "Must be positive.");
-                Contracts.CheckUserArg(numIter > 0, nameof(numIter), "Must be positive.");
-                Contracts.CheckUserArg(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
-                Contracts.CheckUserArg(numThread >= 0, nameof(numThread), "Must be positive or zero.");
-                Contracts.CheckUserArg(numMaxDocToken > 0, nameof(numMaxDocToken), "Must be positive.");
-                Contracts.CheckUserArg(numSummaryTermPerTopic > 0, nameof(numSummaryTermPerTopic), "Must be positive");
-                Contracts.CheckUserArg(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
+                Contracts.CheckParam(numTopic > 0, nameof(numTopic), "Must be positive.");
+                Contracts.CheckParam(mhStep > 0, nameof(mhStep), "Must be positive.");
+                Contracts.CheckParam(numIter > 0, nameof(numIter), "Must be positive.");
+                Contracts.CheckParam(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
+                Contracts.CheckParam(numThread >= 0, nameof(numThread), "Must be positive or zero.");
+                Contracts.CheckParam(numMaxDocToken > 0, nameof(numMaxDocToken), "Must be positive.");
+                Contracts.CheckParam(numSummaryTermPerTopic > 0, nameof(numSummaryTermPerTopic), "Must be positive");
+                Contracts.CheckParam(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
 
                 Input = input;
                 Output = output ?? input;
@@ -236,14 +236,14 @@ namespace Microsoft.ML.Transforms.Text
             {
                 Contracts.CheckValue(item.Source, nameof(item.Source));
                 Contracts.CheckValueOrNull(item.Name);
-                Contracts.CheckUserArg(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
-                Contracts.CheckUserArg(args.Mhstep > 0, nameof(args.Mhstep), "Must be positive.");
-                Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), "Must be positive.");
-                Contracts.CheckUserArg(args.LikelihoodInterval > 0, nameof(args.LikelihoodInterval), "Must be positive.");
-                Contracts.CheckUserArg(args.NumThreads >= 0, nameof(args.NumThreads), "Must be positive or zero.");
-                Contracts.CheckUserArg(args.NumMaxDocToken > 0, nameof(args.NumMaxDocToken), "Must be positive.");
-                Contracts.CheckUserArg(args.NumSummaryTermPerTopic > 0, nameof(args.NumSummaryTermPerTopic), "Must be positive");
-                Contracts.CheckUserArg(args.NumBurninIterations >= 0, nameof(args.NumBurninIterations), "Must be non-negative.");
+                Contracts.CheckParam(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
+                Contracts.CheckParam(args.Mhstep > 0, nameof(args.Mhstep), "Must be positive.");
+                Contracts.CheckParam(args.NumIterations > 0, nameof(args.NumIterations), "Must be positive.");
+                Contracts.CheckParam(args.LikelihoodInterval > 0, nameof(args.LikelihoodInterval), "Must be positive.");
+                Contracts.CheckParam(args.NumThreads >= 0, nameof(args.NumThreads), "Must be positive or zero.");
+                Contracts.CheckParam(args.NumMaxDocToken > 0, nameof(args.NumMaxDocToken), "Must be positive.");
+                Contracts.CheckParam(args.NumSummaryTermPerTopic > 0, nameof(args.NumSummaryTermPerTopic), "Must be positive");
+                Contracts.CheckParam(args.NumBurninIterations >= 0, nameof(args.NumBurninIterations), "Must be non-negative.");
 
                 Input = item.Source;
                 Output = item.Name ?? item.Source;
@@ -346,17 +346,17 @@ namespace Microsoft.ML.Transforms.Text
         public sealed class LdaSummary
         {
             // For each topic, provide information about the (item, score) pairs.
-            public readonly Dictionary<int, List<Tuple<int, float>>> ItemScoresPerTopic;
+            public readonly Dictionary<int, List<(int Item, float Score)>> ItemScoresPerTopic;
 
             // For each topic, provide information about the (item, word, score) tuple.
-            public readonly Dictionary<int, List<Tuple<int, string, float>>> WordScoresPerTopic;
+            public readonly Dictionary<int, List<(int Item, string Word, float Score)>> WordScoresPerTopic;
 
-            internal LdaSummary(Dictionary<int, List<Tuple<int, float>>> itemScoresPerTopic)
+            internal LdaSummary(Dictionary<int, List<(int Item, float Score)>> itemScoresPerTopic)
             {
                 ItemScoresPerTopic = itemScoresPerTopic;
             }
 
-            internal LdaSummary(Dictionary<int, List<Tuple<int, string, float>>> wordScoresExPerTopic)
+            internal LdaSummary(Dictionary<int, List<(int Item, string Word, float Score)>> wordScoresExPerTopic)
             {
                 WordScoresPerTopic = wordScoresExPerTopic;
             }
@@ -485,15 +485,15 @@ namespace Microsoft.ML.Transforms.Text
             {
                 if (mapping.Length == 0)
                 {
-                    var itemScoresPerTopic = new Dictionary<int, List<Tuple<int, float>>>();
+                    var itemScoresPerTopic = new Dictionary<int, List<(int Item, float Score)>>();
 
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var itemScores = new List<Tuple<int, float>>();
+                        var itemScores = new List<(int, float)>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
-                            itemScores.Add(new Tuple<int, float>(p.Key, p.Value));
+                            itemScores.Add((p.Key, p.Value));
                         }
                         itemScoresPerTopic.Add(i, itemScores);
                     }
@@ -502,16 +502,16 @@ namespace Microsoft.ML.Transforms.Text
                 else
                 {
                     ReadOnlyMemory<char> slotName = default;
-                    var wordScoresPerTopic = new Dictionary<int, List<Tuple<int, string, float>>>();
+                    var wordScoresPerTopic = new Dictionary<int, List<(int Item, string Word, float Score)>>();
 
                     for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                     {
                         var scores = _ldaTrainer.GetTopicSummary(i);
-                        var wordScores = new List<Tuple<int, string, float>>();
+                        var wordScores = new List<(int, string, float)>();
                         foreach (KeyValuePair<int, float> p in scores)
                         {
                             mapping.GetItemOrDefault(p.Key, ref slotName);
-                            wordScores.Add(new Tuple<int, string, float>(p.Key, slotName.ToString(), p.Value));
+                            wordScores.Add((p.Key, slotName.ToString(), p.Value));
                         }
                         wordScoresPerTopic.Add(i, wordScores);
                     }
