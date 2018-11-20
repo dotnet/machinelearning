@@ -21,7 +21,6 @@ namespace Microsoft.ML
     public abstract class TrainContextBase
     {
         protected readonly IHost Host;
-
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
