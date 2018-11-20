@@ -469,10 +469,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
             /// <summary>
             /// Both scalars and vectors are acceptable types, but the item type must have a default value which means it must be
-            /// a string, a float or a double.
+            /// a string, a key, a float or a double.
             /// </summary>
             private static bool IsValidColumnType(ColumnType type)
-                => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
+                => (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 
             /// <summary>
             /// Computes the types (column and slotnames), the length reduction, categorical feature indices
