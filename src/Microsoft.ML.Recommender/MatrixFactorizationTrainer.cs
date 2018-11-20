@@ -132,15 +132,20 @@ namespace Microsoft.ML.Trainers
             /// In general, only a few of matrix entries (e.g., less than 1%) in the training are observed (i.e., positive).
             /// To balance the contributions from unobserved and obverved in the overall loss function, this parameter is
             /// usually a small value so that the solver is able to find a factorization equally good to unobserved and observed
-            /// entries. If only 10000 observed entries present in a 200000-by-300000 training matrix, one can try Alpha = 10000 / (200000*300000).
+            /// entries. If only 10000 observed entries present in a 200000-by-300000 training matrix, one can try Alpha = 10000 / (200000*300000 - 10000).
+            /// When most entries in the training matrix are observed, one can use Alpha >> 1; for example, if only 10000 in previous
+            /// matrix is not observed, one can try Alpha = (200000 * 300000 - 10000) / 10000. Consequently,
+            /// Alpha = (# of observed entries) / (# of unobserved entries) can make observed and unobserved entries equally important
+            /// in the minimized loss function. However, the best setting in machine learning is alwasy data-depedent so user still need to
+            /// try multiple values.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
             [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
             [TlcModule.SweepableDiscreteParam("Alpha", new object[] { 1f, 0.01f, 0.0001f, 0.000001f})]
-            public double Alpha = 0.1;
+            public double Alpha = 0.0001;
 
             /// <summary>
-            /// Desired negative entries' value in one-class matrix factorization. In one-class matrix factorization, all matrix values observed are one
+            /// Desired negative entries value in one-class matrix factorization. In one-class matrix factorization, all matrix values observed are one
             /// (which can be viewed as positive cases in binary classification) while unobserved values (which can be viewed as negative cases in binary
             /// classification) need to be specified manually using this option.
             /// </summary>
