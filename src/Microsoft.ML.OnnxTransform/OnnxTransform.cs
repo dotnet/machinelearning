@@ -129,8 +129,6 @@ namespace Microsoft.ML.Transforms
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)))
         {
-            //Contracts.CheckValue(env, nameof(env));
-            //Host = env.Register(RegistrationName);
             Host.CheckValue(args, nameof(args));
 
             foreach (var col in args.InputColumns)
@@ -323,21 +321,6 @@ namespace Microsoft.ML.Transforms
                     outputCache.Position = position;
                 }
             }
-
-            //            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            //            {
-            //                disposer = null;
-            //                using (var ch = _host.Start("CreateGetters"))
-            //                {
-            //                    return MakeGetters(input, activeOutput);
-            //                }
-            ////=======
-            ////            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
-            ////            {
-            ////                disposer = null;
-            ////                return Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
-            ////>>>>>>> master
-            //            }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
