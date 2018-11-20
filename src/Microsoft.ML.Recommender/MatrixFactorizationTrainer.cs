@@ -136,7 +136,7 @@ namespace Microsoft.ML.Trainers
             /// When most entries in the training matrix are observed, one can use Alpha >> 1; for example, if only 10000 in previous
             /// matrix is not observed, one can try Alpha = (200000 * 300000 - 10000) / 10000. Consequently,
             /// Alpha = (# of observed entries) / (# of unobserved entries) can make observed and unobserved entries equally important
-            /// in the minimized loss function. However, the best setting in machine learning is alwasy data-depedent so user still need to
+            /// in the minimized loss function. However, the best setting in machine learning is alwasy data-depedent so user still needs to
             /// try multiple values.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
