@@ -71,7 +71,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory budget (in MBs) to use for KMeans acceleration", ShortName = "accelMemBudgetMb")]
             [TGUI(Label = "Memory Budget (in MBs) for KMeans Acceleration")]
-            public int AccelMemBudgetMb = 4 * 1024; // by default, use at most 4 GB
+            public int AccelMemBudgetMb = 4 * 1024; // By default, use at most 4 GB
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads")]
@@ -80,8 +80,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
         private readonly int _k;
 
-        private readonly int _maxIterations; // max number of iterations to train
-        private readonly float _convergenceThreshold; // convergence thresholds
+        private readonly int _maxIterations; // Max number of iterations to train
+        private readonly float _convergenceThreshold; // Convergence thresholds
 
         private readonly long _accelMemBudgetMb;
         private readonly InitAlgorithm _initAlgorithm;
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Trainers.KMeans
         {
             Host.CheckValue(args, nameof(args));
 
-            // override with the advanced settings.
+            // Override with the advanced settings.
             advancedSettings?.Invoke(args);
 
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
@@ -324,12 +324,12 @@ namespace Microsoft.ML.Trainers.KMeans
                         }
                     }
 
-                    // initializing i-th centroid
+                    // Initializing i-th centroid
 
-                    Double cumulativeWeight = 0; // sum of weights accumulated so far
+                    Double cumulativeWeight = 0; // Sum of weights accumulated so far
                     float? cachedCandidateL2 = null;
                     bool haveCandidate = false;
-                    // on all iterations except 0's, we calculate L2 norm of every instance and cache the current candidate's
+                    // On all iterations except 0's, we calculate L2 norm of every instance and cache the current candidate's
                     using (var cursor = cursorFactory.Create())
                     {
                         while (cursor.MoveNext())
@@ -367,13 +367,13 @@ namespace Microsoft.ML.Trainers.KMeans
                             {
                                 probabilityWeight *= cursor.Weight;
 
-                                // as a result of numerical error, we could get negative distance, do not decrease the sum
+                                // As a result of numerical error, we could get negative distance, do not decrease the sum
                                 cumulativeWeight += probabilityWeight;
 
                                 if (probabilityWeight > Epsilon &&
                                     host.Rand.NextSingle() < probabilityWeight / cumulativeWeight)
                                 {
-                                    // again, numerical error may cause selection of the same candidate twice, so ensure that the distance is non-trivially positive
+                                    // Again, numerical error may cause selection of the same candidate twice, so ensure that the distance is non-trivially positive
                                     Utils.Swap(ref cursor.Features, ref candidate);
                                     haveCandidate = true;
                                     if (i > 0)
@@ -389,7 +389,7 @@ namespace Microsoft.ML.Trainers.KMeans
                         }
                     }
 
-                    // persist the candidate as a new centroid
+                    // Persist the candidate as a new centroid
                     if (!haveCandidate)
                     {
                         throw ch.Except(
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             bestCluster = -1;
 
-            if (pointRowIndex != -1) // if the space was available for cur in initializationState.
+            if (pointRowIndex != -1) // If the space was available for cur in initializationState.
             {
                 // pointNorm is necessary for using triangle inequality.
                 float pointNorm = VectorUtils.NormSquared(in point);
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             public void KeepYinYangAssignment(int bestCluster)
             {
-                // this instance does not change clusters in this iteration
+                // This instance does not change clusters in this iteration
                 // also, this instance does not account for average score calculation
 
                 // REVIEW: This seems wrong. We're accumulating the globally-filtered rows into
@@ -1077,7 +1077,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 }
                 else if (previousCluster != cluster)
                 {
-                    // update the cachedSum as the instance moves from (previous) bestCluster[n] to cluster
+                    // Update the cachedSum as the instance moves from (previous) bestCluster[n] to cluster
                     VectorUtils.Add(in features, ref CachedSum[cluster]);
                     // There doesnt seem to be a Subtract function that does a -= b, so doing a += (-1 * b)
                     VectorUtils.AddMult(in features, -1, ref CachedSum[previousCluster]);
@@ -1163,7 +1163,7 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 bool isAccelerated = MaxInstancesToAccelerate > 0;
                 deltaMax = 0;
-                // calculate new centroids
+                // Calculate new centroids
                 for (int i = 0; i < K; i++)
                 {
                     if (isAccelerated)
@@ -1206,9 +1206,9 @@ namespace Microsoft.ML.Trainers.KMeans
 
             // YinYang  data.
 
-            // the distance between the old and the new center for each cluster
+            // The distance between the old and the new center for each cluster
             public readonly float[] Delta;
-            // max value of delta[i] for 0 <= i < _k
+            // Max value of delta[i] for 0 <= i < _k
             public float DeltaMax;
 
             // Per instance structures
@@ -1218,12 +1218,12 @@ namespace Microsoft.ML.Trainers.KMeans
                 return _bestCluster[idx];
             }
 
-            // closest cluster for an instance
+            // Closest cluster for an instance
             private readonly int[] _bestCluster;
 
-            // upper bound on the distance of an instance to its bestCluster
+            // Upper bound on the distance of an instance to its bestCluster
             private readonly float[] _upperBound;
-            // lower bound on the distance of an instance to every cluster other than its bestCluster
+            // Lower bound on the distance of an instance to every cluster other than its bestCluster
             private readonly float[] _lowerBound;
 
             public SharedState(FeatureFloatVectorCursor.Factory factory, IChannel ch, long baseMaxInstancesToAccelerate, int k,
@@ -1240,7 +1240,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
                 if (MaxInstancesToAccelerate > 0)
                 {
-                    // allocate data structures
+                    // Allocate data structures
                     Delta = new float[k];
 
                     _bestCluster = new int[MaxInstancesToAccelerate];
@@ -1251,7 +1251,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             /// <summary>
             /// When assigning an accelerated row to a cluster, we store away the distance
-            /// to its closer and second closed cluster, as well as the identity of the new
+            /// to its closest and second closest cluster, as well as the identity of the new
             /// closest cluster. This method returns the last known closest cluster.
             /// </summary>
             public int SetYinYangCluster(int n, in VBuffer<float> features, float minDistance, int minCluster, float secMinDistance)
@@ -1259,8 +1259,8 @@ namespace Microsoft.ML.Trainers.KMeans
                 if (n == -1)
                     return -1;
 
-                // update upper and lower bound
-                // updates have to be true distances to use triangular inequality
+                // Update upper and lower bound
+                // Updates have to be true distances to use triangular inequality
                 float instanceNormSquared = VectorUtils.NormSquared(in features);
                 _upperBound[n] = MathUtils.Sqrt(instanceNormSquared + minDistance);
                 _lowerBound[n] = MathUtils.Sqrt(instanceNormSquared + secMinDistance);
@@ -1332,7 +1332,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 bool isConverged = false;
                 while (!isConverged && state.Iteration < maxIterations)
                 {
-                    // assign instances to clusters and calculate total score
+                    // Assign instances to clusters and calculate total score
                     reducedState.Clear(keepCachedSums: true);
 
                     if (numThreads > 1)
@@ -1753,12 +1753,12 @@ namespace Microsoft.ML.Trainers.KMeans
 
             minDistance = float.PositiveInfinity;
             secMinDistance = float.PositiveInfinity;
-            cluster = 0; // currently assigned cluster to the instance
+            cluster = 0; // Currently assigned cluster to the instance
             secCluster = -1;
 
             for (int j = 0; j < centroidCount; j++)
             {
-                // this is not a real distance, since we don't add L2 norm of the instance
+                // This is not a real distance, since we don't add L2 norm of the instance
                 // This won't affect minimum calculations, and total score will just be lowered by sum(L2 norms)
                 float distance = -2 * VectorUtils.DotProduct(in features, in centroids[j]) + centroidL2s[j];
 

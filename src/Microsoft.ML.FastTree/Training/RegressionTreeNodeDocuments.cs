@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 }
         }
 
-        // Returns collection of leaves of a interior node (or itslef if it is a leaf)
+        // Returns collection of leaves of a interior node (or itself if it is a leaf)
         public IEnumerable<RegressionTreeNodeDocuments> GetLeaves()
         {
             if (IsLeaf)
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        // set document count outside instead of calculated from local partition
+        // Set document count outside instead of calculated from local partition
         public double GetWeightedOutput(int[] documentCount, out int nodeCount)
         {
             if (!double.IsNaN(_weightedOutput) && _nodeCount != int.MaxValue)

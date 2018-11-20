@@ -15,7 +15,7 @@ namespace Microsoft.ML.Legacy.Models
         /// </summary>
         /// <remarks>
         /// <para>It is used to make models portable such that you can
-        /// train a model using a toolkit and run it in another tookit's runtime, for example,
+        /// train a model using a toolkit and run it in another toolkit's runtime, for example,
         /// you can create a model using ML.NET, export it to an ONNX-ML model file,
         /// then load and run that ONNX-ML model in Windows ML, on an UWP Windows 10 app.</para>
         ///

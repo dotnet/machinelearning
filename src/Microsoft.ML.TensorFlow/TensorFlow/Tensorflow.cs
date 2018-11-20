@@ -1266,7 +1266,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// Instances of this class are created by calling the GetRunner method on the TFSession.
         /// </para>
         /// <para>
-        /// The various methods in this class return an instance to the Runner itsel, to allow
+        /// The various methods in this class return an instance to the Runner itself, to allow
         /// to easily construct chains of execution like this:
         /// </para>
         /// <code>

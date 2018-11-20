@@ -11,7 +11,7 @@ namespace Microsoft.ML
     public static class ProjectionCatalog
     {
         /// <summary>
-        /// Takes column filled with a vector of floats and maps its to a random low-dimensional feature space.
+        /// Takes column filled with a vector of floats and maps it to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
@@ -33,7 +33,7 @@ namespace Microsoft.ML
             => new RandomFourierFeaturizingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, newDim, useSin);
 
         /// <summary>
-        /// Takes columns filled with a vector of floats and maps its to a random low-dimensional feature space.
+        /// Takes columns filled with a vector of floats and maps it to a random low-dimensional feature space.
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The input columns to use for the transformation.</param>

@@ -568,7 +568,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Normalized Mutual Information
             /// NMI is a measure of the mutual dependence of the variables.
             /// <a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a> work on data that already has cluster labels.
-            /// Its value ranged from 0 to 1, where higher numbers are better.
+            /// Its value ranges from 0 to 1, where higher numbers are better.
             /// </summary>
             public double Nmi { get; }
 

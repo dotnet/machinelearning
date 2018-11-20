@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
-    //An interface that can be implemnted on
+    // An interface that can be implemented on
     public interface IFastTrainingScoresUpdate
     {
         ScoreTracker GetUpdatedTrainingScores();
@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
     public abstract class OptimizationAlgorithm
     {
-        //TODO: We should move Partitioning to OptimizationAlgorithm
+        // TODO: We should move Partitioning to OptimizationAlgorithm
         public TreeLearner TreeLearner;
 
         public ObjectiveFunctionBase ObjectiveFunction;
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
         public abstract RegressionTree TrainingIteration(IChannel ch, bool[] activeFeatures);
-        //Regularize a regression tree with smoothing paramter alpha
+        // Regularize a regression tree with smoothing parameter alpha
 
         public virtual void UpdateAllScores(IChannel ch, RegressionTree tree)
         {
@@ -84,12 +84,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         public ScoreTracker GetScoreTracker(string name, Dataset set, double[] initScores)
         {
-            //Fisrt check for duplicates maybe we already track scores for set dataset
+            // First check for duplicates maybe we already track scores for set dataset
             foreach (var st in TrackedScores) if (st.Dataset == set)
                     return st;
 
             ScoreTracker newTracker = ConstructScoreTracker(name, set, initScores);
-            //add the constructed tracker to the list of scores we need to update
+            // Add the constructed tracker to the list of scores we need to update
             TrackedScores.Add(newTracker);
             return newTracker;
         }
@@ -101,12 +101,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             if (smoothing == 0.0)
                 return;
 
-            //Create recursive structure of the tree starting from root node
+            // Create recursive structure of the tree starting from root node
             var regularizer = new RecursiveRegressionTree(tree, TreeLearner.Partitioning, 0);
 
-            //Perform bottom-up computation of weighted interior node output
+            // Perform bottom-up computation of weighted interior node output
             double rootNodeOutput = regularizer.GetWeightedOutput();
-            //followed by top-down propagation of parent's output value
+            // followed by top-down propagation of parent's output value
             regularizer.SmoothLeafOutputs(rootNodeOutput, smoothing);
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             if (bestIteration != Ensemble.NumTrees)
             {
                 Ensemble.RemoveAfter(Math.Max(bestIteration, 0));
-                TrackedScores.Clear();  //Invalidate all precomputed scores as they are not valid anymore //slow method of score computation will be used instead
+                TrackedScores.Clear();  // Invalidate all precomputed scores as they are not valid anymore // slow method of score computation will be used instead
             }
         }
     }

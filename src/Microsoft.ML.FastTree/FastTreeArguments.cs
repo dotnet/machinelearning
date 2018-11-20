@@ -155,17 +155,17 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The number of threads to use", ShortName = "t", NullName = "<Auto>")]
         public int? NumThreads = null;
 
-        // this random seed is used for:
+        // This random seed is used for:
         // 1. doc sampling for feature binning
         // 2. init Randomize Score
         // 3. grad Sampling Rate in Objective Function
         // 4. tree learner
         // 5. bagging provider
-        // 6. emsemble compressor
+        // 6. ensemble compressor
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the random number generator", ShortName = "r1")]
         public int RngSeed = 123;
 
-        // this random seed is only for active feature selection
+        // This random seed is only for active feature selection
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The seed of the active feature selection", ShortName = "r3", Hide = true)]
         [TGUI(NotGui = true)]
         public int FeatureSelectSeed = 123;
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each split", ShortName = "sf")]
         public Double SplitFraction = 1;
 
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing paramter for tree regularization", ShortName = "s")]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Smoothing parameter for tree regularization", ShortName = "s")]
         public Double Smoothing;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "When a root split is impossible, allow training to proceed", ShortName = "allowempty,dummies", Hide = true)]
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public bool CompressEnsemble;
 
         // REVIEW: Not used.
-        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum Number of trees after compression", ShortName = "cmpmax", Hide = true)]
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of trees after compression", ShortName = "cmpmax", Hide = true)]
         [TGUI(NotGui = true)]
         public int MaxTreesAfterCompression = -1;
 
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Trainers.FastTree
         [TGUI(NotGui = true)]
         public bool PrintTestGraph;
 
-        //It is only enabled if printTestGraph is also set
+        // It is only enabled if printTestGraph is also set
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Print Train and Validation metrics in graph", ShortName = "graphtv", Hide = true)]
         [TGUI(NotGui = true)]
         public bool PrintTrainValidGraph;
@@ -324,15 +324,15 @@ namespace Microsoft.ML.Trainers.FastTree
             ectx.CheckUserArg(0 <= MinDocsPercentageForCategoricalSplit, nameof(MinDocsPercentageForCategoricalSplit), "minDocsPercentageForCategoricalSplit must be non-negative.");
             ectx.CheckUserArg(0 <= MinDocsForCategoricalSplit, nameof(MinDocsForCategoricalSplit), "minDocsForCategoricalSplit must be non-negative.");
             ectx.CheckUserArg(Bundle.None <= Bundling && Bundling <= Bundle.Adjacent, nameof(Bundling), "bundling must be between 0 and 2.");
-            ectx.CheckUserArg(Bias >= 0, nameof(Bias), "Bias must be greater than equal to zero.");
+            ectx.CheckUserArg(Bias >= 0, nameof(Bias), "bias must be greater than equal to zero.");
         }
     }
 
     public abstract class BoostedTreeArgs : TreeArgs
     {
         // REVIEW: TLC FR likes to call it bestStepRegressionTrees which might be more appropriate.
-        //Use the second derivative for split gains (not just outputs). Use MaxTreeOutput to "clip" cases where the second derivative is too close to zero.
-        //Turning BSR on makes larger steps in initial stages and converges to better results with fewer trees (though in the end, it asymptotes to the same results).
+        // Use the second derivative for split gains (not just outputs). Use MaxTreeOutput to "clip" cases where the second derivative is too close to zero.
+        // Turning BSR on makes larger steps in initial stages and converges to better results with fewer trees (though in the end, it asymptotes to the same results).
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Use best regression step trees?", ShortName = "bsr")]
         public bool BestStepRankingRegressionTrees = false;
 
@@ -349,8 +349,8 @@ namespace Microsoft.ML.Trainers.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)", ShortName = "oa")]
         public OptimizationAlgorithmType OptimizationAlgorithm = OptimizationAlgorithmType.GradientDescent;
 
-        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set (/valid) is required.)", ShortName = "esr", NullName = "<Disable>")]
-        [TGUI(Label = "Early Stopping Rule", Description = "Early stopping rule. (Validation set (/valid) is required.)")]
+        [Argument(ArgumentType.Multiple, HelpText = "Early stopping rule. (Validation set is required.)", ShortName = "esr", NullName = "<Disable>")]
+        [TGUI(Label = "Early Stopping Rule", Description = "Early stopping rule. (Validation set is required.)")]
         public IEarlyStoppingCriterionFactory EarlyStoppingRule;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Early stopping metrics. (For regression, 1: L1, 2:L2; for ranking, 1:NDCG@1, 3:NDCG@3)", ShortName = "esmt")]
