@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
@@ -144,6 +145,30 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void TestCountSelectOldSavingAndLoading()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(ML, ctx => (
+                Label: ctx.LoadKey(0, 0, 2),
+                VectorFloat: ctx.LoadFloat(1, 4)
+            ));
+
+            var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+
+            var pipe = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", count: 1);
+
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
+            }
+            Done();
+        }
+
+        [Fact]
         public void MutualInformationSelectionWorkout()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
@@ -181,6 +206,30 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestMutualInformationFeatureSelectionCommandLine()
         {
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10 col=B:R4:11} xf=MutualInformationFeatureSelection{col=A lab=B} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestMutualInformationOldSavingAndLoading()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(ML, ctx => (
+                Label: ctx.LoadKey(0, 0, 2),
+                VectorFloat: ctx.LoadFloat(1, 4)
+            ));
+
+            var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+
+            var pipe = new MutualInformationFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label");
+
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(ML, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(ML, dataView, ms);
+            }
+            Done();
         }
     }
 }
