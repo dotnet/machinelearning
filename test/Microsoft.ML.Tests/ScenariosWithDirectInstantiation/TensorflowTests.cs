@@ -542,7 +542,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = new Legacy.LearningPipeline(seed: 1);
             pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnsCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
+            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
                 ModelLocation = model_location,

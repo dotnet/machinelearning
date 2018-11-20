@@ -11629,7 +11629,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class ColumnsCopyingTransformerColumn : OneToOneColumn<ColumnsCopyingTransformerColumn>, IOneToOneColumn
+        public sealed partial class ColumnCopyingTransformerColumn : OneToOneColumn<ColumnCopyingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11677,15 +11677,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11693,7 +11693,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public ColumnsCopyingTransformerColumn[] Column { get; set; }
+            public ColumnCopyingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -16580,6 +16580,7 @@ namespace Microsoft.ML
     {
 
         /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
+        /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name="TensorflowTransform"]/*' />
         public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
