@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -165,4 +166,5 @@ namespace Microsoft.ML.Scenarios
             return BinaryClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
         }
     }
+#pragma warning restore 612
 }

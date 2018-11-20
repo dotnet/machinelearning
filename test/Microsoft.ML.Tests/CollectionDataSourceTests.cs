@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612
     public class CollectionDataSourceTests : BaseTestClass
     {
         public CollectionDataSourceTests(ITestOutputHelper output)
@@ -748,4 +749,5 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
     }
+#pragma warning restore 612
 }
