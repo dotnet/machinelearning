@@ -141,7 +141,7 @@ namespace Microsoft.ML.Transforms
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly MissingValueDroppingTransformer _parent;
 
@@ -150,8 +150,8 @@ namespace Microsoft.ML.Transforms
             private readonly ColumnType[] _types;
             private readonly Delegate[] _isNAs;
 
-            public Mapper(MissingValueDroppingTransformer parent, Schema inputSchema)
-              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            public Mapper(MissingValueDroppingTransformer parent, Schema inputSchema) :
+                base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _types = new ColumnType[_parent.ColumnPairs.Length];
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Transforms
 
             private Delegate GetIsNADelegate<T>(ColumnType type) => Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -190,8 +190,7 @@ namespace Microsoft.ML.Transforms
                 }
                 return result;
             }
-
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -376,7 +375,7 @@ namespace Microsoft.ML.Transforms
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector ||col.Kind == SchemaShape.Column.VectorKind.VariableVector))
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector || col.Kind == SchemaShape.Column.VectorKind.VariableVector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input, "Vector", col.GetTypeString());
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))

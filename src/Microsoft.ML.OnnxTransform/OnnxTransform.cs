@@ -34,7 +34,7 @@ using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Transforms
 {
-    public sealed class OnnxTransform : ITransformer, ICanSaveModel
+    public sealed class OnnxTransform : RowToRowTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -48,10 +48,8 @@ namespace Microsoft.ML.Transforms
             public string OutputColumn;
         }
 
-        private readonly IHost _host;
         private readonly Arguments _args;
         internal readonly OnnxModel Model;
-        private const string RegistrationName = "OnnxTransform";
 
         internal const string Summary = "Transforms the data using the Onnx model.";
         internal const string UserName = "ONNX Scoring Transform";
@@ -70,7 +68,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-	        loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
+            loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string inputColumn, string outputColumn)
@@ -111,18 +109,17 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null)
+        private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)))
         {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(RegistrationName);
-            _host.CheckValue(args, nameof(args));
-            _host.CheckNonWhiteSpace(args.InputColumn, nameof(args.InputColumn));
-            _host.CheckNonWhiteSpace(args.OutputColumn, nameof(args.OutputColumn));
+            Host.CheckValue(args, nameof(args));
+            Host.CheckNonWhiteSpace(args.InputColumn, nameof(args.InputColumn));
+            Host.CheckNonWhiteSpace(args.OutputColumn, nameof(args.OutputColumn));
 
             if (modelBytes == null)
             {
-                _host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
-                _host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
+                Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
+                Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
                 Model = new OnnxModel(args.ModelFile);
             }
             else
@@ -140,7 +137,7 @@ namespace Microsoft.ML.Transforms
             var outputNodeInfo = Model.ModelInfo.OutputsInfo[0];
             var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
             var shape = outputNodeInfo.Shape;
-            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select( x => (int) x ).ToArray() : new[] { 0 };
+            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select(x => (int)x).ToArray() : new[] { 0 };
             OutputType = new VectorType(type, dims);
             _args = args;
         }
@@ -150,29 +147,9 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public override void Save(ModelSaveContext ctx)
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!inputSchema.TryGetColumnIndex(Input, out int srcCol))
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
-
-            var transform = Transform(new EmptyDataView(_host, inputSchema));
-            return transform.Schema;
-        }
-
-        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(_host, this, schema);
-
-        private RowToRowMapperTransform MakeDataTransform(IDataView input)
-        {
-            _host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
-        }
-
-        public IDataView Transform(IDataView input) => MakeDataTransform(input);
-
-        public void Save(ModelSaveContext ctx)
-        {
-            _host.AssertValue(ctx);
+            Host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -180,32 +157,20 @@ namespace Microsoft.ML.Transforms
             ctx.SaveNonEmptyString(_args.InputColumn);
             ctx.SaveNonEmptyString(_args.OutputColumn);
         }
+        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
-        public bool IsRowToRowMapper => true;
-
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        private sealed class Mapper : MapperBase
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
-            return MakeDataTransform(new EmptyDataView(_host, inputSchema));
-        }
-
-        private sealed class Mapper : IRowMapper
-        {
-            private readonly IHost _host;
             private readonly OnnxTransform _parent;
-
             private readonly Type _outputItemRawType;
             private readonly ColumnType _outputColType;
             private readonly string _outputColName;
 
             private readonly IdvToTensorAdapter _idvToTensorAdapter;
 
-            public Mapper(IHostEnvironment env, OnnxTransform parent, Schema inputSchema)
+            public Mapper(OnnxTransform parent, Schema inputSchema) :
+                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
-                Contracts.CheckValue(env, nameof(env));
-                _host = env.Register(nameof(Mapper));
-                _host.CheckValue(inputSchema, nameof(inputSchema));
-                _host.CheckValue(parent, nameof(parent));
 
                 _parent = parent;
                 var model = _parent.Model;
@@ -225,55 +190,49 @@ namespace Microsoft.ML.Transforms
 
                 int inColIndex;
                 if (!inputSchema.TryGetColumnIndex(_parent.Input, out inColIndex))
-                    throw _host.Except($"Column {_parent.Input} doesn't exist");
+                    throw Host.Except($"Column {_parent.Input} doesn't exist");
 
                 var type = inputSchema.GetColumnType(inColIndex);
                 if (type.IsVector && type.VectorSize == 0)
-                    throw _host.Except($"Variable length input columns not supported");
+                    throw Host.Except($"Variable length input columns not supported");
 
                 if (type.ItemType != outputItemType)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
 
                 // If the column is one dimension we make sure that the total size of the TF shape matches.
                 // Compute the total size of the known dimensions of the shape.
-                int valCount = inputShape.Select(x => (int) x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
                 // The column length should be divisible by this, so that the other dimensions can be integral.
                 if (type.ValueCount % valCount != 0)
-                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {String.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
+                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {string.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
 
-                _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
+                Host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
-            public Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var info = new Schema.Column[1];
                 info[0] = new Schema.Column(_outputColName, _outputColType, null);
                 return info;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 return col => activeOutput(0) && (_idvToTensorAdapter.IdvColumnIndex == col);
             }
 
-            public void Save(ModelSaveContext ctx)
-            {
-                _parent.Save(ctx);
-            }
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                var getters = new Delegate[1];
-                if (activeOutput(0))
-                    getters[0] = Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
-                return getters;
+                return Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
             }
 
             private Delegate MakeGetter<T>(IRow input)
             {
-                _host.AssertValue(input);
-                _host.Assert(typeof(T) == _outputItemRawType);
+                Host.AssertValue(input);
+                Host.Assert(typeof(T) == _outputItemRawType);
 
                 ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {

@@ -641,7 +641,7 @@ namespace Microsoft.ML.Transforms.Projections
         protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly VectorWhiteningTransformer _parent;
             private readonly int[] _cols;
@@ -674,7 +674,7 @@ namespace Microsoft.ML.Transforms.Projections
             /// to ensure unit variance, and finally we rotate the scaled result back to the original space using U (note that UU^T is identity matrix so U is
             /// the inverse rotation of U^T).
             /// </summary>
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; iinfo++)
@@ -688,7 +688,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
