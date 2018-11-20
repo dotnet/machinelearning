@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
             host.CheckUserArg(args.Count > 0, nameof(args.Count));
 
-            var columnInfos = args.Column.Select(column => new ColumnInfo(column, column, args.Count)).ToArray();
+            var columnInfos = args.Column.Select(inColName => new ColumnInfo(inColName, count: args.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }

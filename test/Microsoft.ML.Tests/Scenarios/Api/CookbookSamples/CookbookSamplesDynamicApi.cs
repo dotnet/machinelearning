@@ -382,7 +382,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", OneHotEncodingTransformer.OutputKind.Bag))
                 // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
-                .Append(new CountFeatureSelectingEstimator(mlContext, "WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+                .Append(mlContext.Transforms.FeatureSelection.CountFeatureSelectingEstimator("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
 
             // Let's train our pipeline, and then apply it to the same data.
             var transformedData = dynamicPipeline.Fit(data).Transform(data);
