@@ -6,8 +6,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     [BestFriend]
     internal static class LineParser
     {
-        [BestFriend] // required because the return type is a value tuple..
-        internal static (bool isSuccess, string key, float[] values) ParseKeyThenNumbers(string line)
+        public static (bool isSuccess, string key, float[] values) ParseKeyThenNumbers(string line)
         {
             if (string.IsNullOrWhiteSpace(line))
                 return (false, null, null);

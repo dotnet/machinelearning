@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Runtime.Internal.Utilities;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Collections.Generic;
 using Xunit;
 
@@ -8,14 +12,10 @@ namespace Microsoft.ML.Tests.Transformers
     {
         public static IEnumerable<object[]> ValidInputs()
         {
-            foreach (var line in new string[]
-            {
-                "key 0.1 0.2 0.3", "key 0.1 0.2 0.3 ",
-                "key\t0.1\t0.2\t0.3", "key\t0.1\t0.2\t0.3\t" // tab can also be a separator
-            })
-            {
-                yield return new object[] { line, "key", new float[] { 0.1f, 0.2f, 0.3f } };
-            }
+            yield return new object[] { "key 0.1 0.2 0.3", "key", new float[] { 0.1f, 0.2f, 0.3f } };
+            yield return new object[] { "key 0.1 0.2 0.3 ", "key", new float[] { 0.1f, 0.2f, 0.3f } };
+            yield return new object[] { "key\t0.1\t0.2\t0.3", "key", new float[] { 0.1f, 0.2f, 0.3f } }; // tab can also be a separator
+            yield return new object[] { "key\t0.1\t0.2\t0.3\t", "key", new float[] { 0.1f, 0.2f, 0.3f } };
         }
 
         [Theory]
