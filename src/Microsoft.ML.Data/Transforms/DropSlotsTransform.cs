@@ -15,17 +15,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(IDataTransform), typeof(DropSlotsTransform), typeof(DropSlotsTransform.Arguments), typeof(SignatureDataTransform),
-    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature, "DropSlots")]
+[assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), typeof(SlotsDroppingTransformer.Arguments), typeof(SignatureDataTransform),
+    SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature, "DropSlots")]
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(IDataTransform), typeof(DropSlotsTransform), null, typeof(SignatureLoadDataTransform),
-    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
+[assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(IDataTransform), typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadDataTransform),
+    SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(DropSlotsTransform.Summary, typeof(DropSlotsTransform), null, typeof(SignatureLoadModel),
-    DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
+[assembly: LoadableClass(SlotsDroppingTransformer.Summary, typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadModel),
+    SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(DropSlotsTransform), null, typeof(SignatureLoadRowMapper),
-   DropSlotsTransform.FriendlyName, DropSlotsTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(SlotsDroppingTransformer), null, typeof(SignatureLoadRowMapper),
+   SlotsDroppingTransformer.FriendlyName, SlotsDroppingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.FeatureSelection
 {
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
     /// If all the slots are to be dropped, a vector valued column will be changed to a vector of length 1 (a scalar column will retain its type) and
     /// the value will be the default value.
     /// </summary>
-    public sealed class DropSlotsTransform : OneToOneTransformerBase
+    public sealed class SlotsDroppingTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -184,7 +184,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 return Min >= 0 && (Max == null || Min <= Max);
             }
-
         }
 
         public sealed class ColumnInfo
@@ -228,6 +227,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         internal const string FriendlyName = "Drop Slots Transform";
         internal const string LoaderSignature = "DropSlotsTransform";
 
+        // Store the lower (SlotsMin) and upper (SlotsMax) bounds of ranges of slots to be dropped for each column pair.
+        // SlotsMin[i] and SlotsMax[i] are the bounds of the ranges for the i-th column pair.
         internal readonly int[][] SlotsMin;
         internal readonly int[][] SlotsMax;
 
@@ -239,28 +240,28 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DropSlotsTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(SlotsDroppingTransformer).Assembly.FullName);
         }
 
         /// <summary>
-        /// Initializes a new <see cref="DropSlotsTransform"/> object.
+        /// Initializes a new <see cref="SlotsDroppingTransformer"/> object.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="input">Name of the input column.</param>
         /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
         /// <param name="min">Specifies the lower bound of the range of slots to be dropped. The lower bound is inclusive. </param>
         /// <param name="max">Specifies the upper bound of the range of slots to be dropped. The upper bound is exclusive.</param>
-        public DropSlotsTransform(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
+        public SlotsDroppingTransformer(IHostEnvironment env, string input, string output = null, int min = default, int? max = null)
             : this(env, new ColumnInfo(input, output, (min, max)))
         {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="DropSlotsTransform"/> object.
+        /// Initializes a new <see cref="SlotsDroppingTransformer"/> object.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Specifies the ranges of slots to drop for each column pair.</param>
-        public DropSlotsTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        public SlotsDroppingTransformer(IHostEnvironment env, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
@@ -268,7 +269,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Host.CheckUserArg(AreRangesValid(SlotsMin, SlotsMax), nameof(columns), "The range min and max must be non-negative and min must be less than or equal to max.");
         }
 
-        internal DropSlotsTransform(IHostEnvironment env, ModelLoadContext ctx)
+        internal SlotsDroppingTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), ctx)
         {
             Host.AssertValue(ctx);
@@ -292,18 +293,18 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         // Factory method for SignatureLoadModel
-        internal static DropSlotsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static SlotsDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
-            return new DropSlotsTransform(env, ctx);
+            return new SlotsDroppingTransformer(env, ctx);
         }
 
         // Factory method for SignatureDataTransform.
         internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             var columns = args.Column.Select(column => new ColumnInfo(column)).ToArray();
-            return new DropSlotsTransform(env, columns).MakeDataTransform(input);
+            return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -434,7 +435,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         private sealed class Mapper : OneToOneMapperBase
         {
-            private readonly DropSlotsTransform _parent;
+            private readonly SlotsDroppingTransformer _parent;
             private readonly int[] _cols;
             private readonly ColumnType[] _srcTypes;
             private readonly ColumnType[] _dstTypes;
@@ -443,7 +444,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             private readonly bool[] _suppressed;
             private readonly int[][] _categoricalRanges;
 
-            public Mapper(DropSlotsTransform parent, Schema inputSchema)
+            public Mapper(SlotsDroppingTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -466,6 +467,10 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
             }
 
+            /// <summary>
+            /// Both scalars and vectors are acceptable types, but the item type must have a default value which means it must be
+            /// a string, a float or a double.
+            /// </summary>
             private static bool IsValidColumnType(ColumnType type)
                 => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 

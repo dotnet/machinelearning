@@ -1104,7 +1104,7 @@ namespace Microsoft.ML.Runtime.Data
                 var type = perInstSchema.GetColumnType(sortedClassesIndex);
                 // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
                 if (_numTopClasses < type.VectorSize)
-                    perInst = new DropSlotsTransform(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
+                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
@@ -1112,7 +1112,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var type = perInst.Schema.GetColumnType(sortedScoresIndex);
                 if (_numTopClasses < type.VectorSize)
-                   perInst = new DropSlotsTransform(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
+                   perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;
         }

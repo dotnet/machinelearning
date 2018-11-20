@@ -72,14 +72,14 @@ namespace Microsoft.ML.Tests.Transformers
 
             var columns = new[]
             {
-                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped1", (min: 0, max: 1)),
-                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped2"),
-                new DropSlotsTransform.ColumnInfo("ScalarFloat", "dropped3", (min:0, max: 3)),
-                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped4", (min: 1, max: 2)),
-                new DropSlotsTransform.ColumnInfo("VectorDouble", "dropped5", (min: 1, null)),
-                new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped6", (min: 100, null))
+                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped1", (min: 0, max: 1)),
+                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped2"),
+                new SlotsDroppingTransformer.ColumnInfo("ScalarFloat", "dropped3", (min:0, max: 3)),
+                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped4", (min: 1, max: 2)),
+                new SlotsDroppingTransformer.ColumnInfo("VectorDouble", "dropped5", (min: 1, null)),
+                new SlotsDroppingTransformer.ColumnInfo("VectorFloat", "dropped6", (min: 100, null))
             };
-            var trans = new DropSlotsTransform(ML, columns);
+            var trans = new SlotsDroppingTransformer(ML, columns);
 
             var outputPath = GetOutputPath("FeatureSelection", "dropslots.tsv");
             using (var ch = Env.Start("save"))
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCountFeatureSelectionCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=CountFeatureSelection​{col=B:A c=1} in=f:\2.txt" }), (int)0);
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=CountFeatureSelection{col=A c=1} in=f:\2.txt" }), (int)0);
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestMutualInformationFeatureSelectionCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=MutualInformationFeatureSelection​{col=B:A} in=f:\2.txt" }), (int)0);
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10 col=B:R4:11} xf=MutualInformationFeatureSelection{col=A lab=B} in=f:\2.txt" }), (int)0);
         }
     }
 }

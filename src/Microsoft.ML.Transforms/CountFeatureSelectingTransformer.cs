@@ -75,6 +75,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
+            _host.CheckUserArg(Utils.Size(columns) > 0, nameof(columns));
+
             _columns = columns;
         }
 
@@ -120,7 +122,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             using (var ch = _host.Start("Dropping Slots"))
             {
                 // If no slots should be dropped from a column, use copy column to generate the corresponding output column.
-                DropSlotsTransform.ColumnInfo[] dropSlotsColumns;
+                SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns;
                 (string input, string output)[] copyColumnsPairs;
                 CreateDropAndCopyColumns(_columns, size, scores, out int[] selectedCount, out dropSlotsColumns, out copyColumnsPairs);
 
@@ -131,12 +133,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (dropSlotsColumns.Length <= 0)
                     return new ColumnsCopyingTransformer(_host, copyColumnsPairs);
                 else if (copyColumnsPairs.Length <= 0)
-                    return new DropSlotsTransform(_host, dropSlotsColumns);
+                    return new SlotsDroppingTransformer(_host, dropSlotsColumns);
 
-                var transformerChain = new TransformerChain<DropSlotsTransform>(
+                var transformerChain = new TransformerChain<SlotsDroppingTransformer>(
                     new ITransformer[] {
                         new ColumnsCopyingTransformer(_host, copyColumnsPairs),
-                        new DropSlotsTransform(_host, dropSlotsColumns)
+                        new SlotsDroppingTransformer(_host, dropSlotsColumns)
                     });
                 return transformerChain;
             }
@@ -160,7 +162,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         private static void CreateDropAndCopyColumns(ColumnInfo[] columnInfos, int size, long[][] scores,
-            out int[] selectedCount, out DropSlotsTransform.ColumnInfo[] dropSlotsColumns, out (string input, string output)[] copyColumnsPairs)
+            out int[] selectedCount, out SlotsDroppingTransformer.ColumnInfo[] dropSlotsColumns, out (string input, string output)[] copyColumnsPairs)
         {
             Contracts.Assert(size > 0);
             Contracts.Assert(Utils.Size(scores) == size);
@@ -168,7 +170,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Contracts.Assert(Utils.Size(columnInfos) == size);
 
             selectedCount = new int[scores.Length];
-            var dropSlotsCols = new List<DropSlotsTransform.ColumnInfo>();
+            var dropSlotsCols = new List<SlotsDroppingTransformer.ColumnInfo>();
             var copyCols = new List<(string input, string output)>();
             for (int i = 0; i < size; i++)
             {
@@ -194,7 +196,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (slots.Count <= 0)
                     copyCols.Add((columnInfos[i].Input, columnInfos[i].Output));
                 else
-                    dropSlotsCols.Add(new DropSlotsTransform.ColumnInfo(columnInfos[i].Input, columnInfos[i].Output, slots.ToArray()));
+                    dropSlotsCols.Add(new SlotsDroppingTransformer.ColumnInfo(columnInfos[i].Input, columnInfos[i].Output, slots.ToArray()));
             }
             dropSlotsColumns = dropSlotsCols.ToArray();
             copyColumnsPairs = copyCols.ToArray();

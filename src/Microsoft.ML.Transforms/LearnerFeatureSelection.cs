@@ -109,25 +109,25 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);
 
-                return new DropSlotsTransform(host, column).Transform(input) as IDataTransform;
+                return new SlotsDroppingTransformer(host, column).Transform(input) as IDataTransform;
             }
         }
 
-        private static DropSlotsTransform.ColumnInfo CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
+        private static SlotsDroppingTransformer.ColumnInfo CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
             // 2. If it's less, we assume that the rest of the scores are zero and we drop the slots.
             // 3. If it's greater, the drop slots ignores the ranges that are outside the valid range of indices for the column.
             Contracts.Assert(args.Threshold.HasValue != args.NumSlotsToKeep.HasValue);
-            var col = new DropSlotsTransform.Column();
+            var col = new SlotsDroppingTransformer.Column();
             col.Source = args.FeatureColumn;
             selectedCount = 0;
             var scoresValues = scores.GetValues();
 
             // Degenerate case, dropping all slots.
             if (scoresValues.Length == 0)
-                return new DropSlotsTransform.ColumnInfo(args.FeatureColumn);
+                return new SlotsDroppingTransformer.ColumnInfo(args.FeatureColumn);
 
             int tiedScoresToKeep;
             float threshold;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
             }
 
             if (slots.Count > 0)
-                return new DropSlotsTransform.ColumnInfo(args.FeatureColumn, slots: slots.ToArray());
+                return new SlotsDroppingTransformer.ColumnInfo(args.FeatureColumn, slots: slots.ToArray());
 
             return null;
         }
