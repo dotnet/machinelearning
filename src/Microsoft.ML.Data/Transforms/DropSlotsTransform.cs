@@ -121,21 +121,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             [Argument(ArgumentType.AtMostOnce, HelpText = "Last index in the range")]
             public int? Max;
 
-            /// <summary>
-            /// Source slot index range of the column to drop.
-            /// </summary>
-            /// <param name="min">Start index.</param>
-            /// <param name="max">End index. If null it means int.MaxValue - 1.</param>
-            public Range(int min, int? max)
-            {
-                Min = min;
-                Max = max;
-            }
-
-            internal Range()
-            {
-            }
-
             public static Range Parse(string str)
             {
                 Contracts.CheckNonWhiteSpace(str, nameof(str));
