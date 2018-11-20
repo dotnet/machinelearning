@@ -16,7 +16,7 @@
 #@   col=TermText1:U4[0-3]:25
 #@   col=TermText2:U4[0-10]:26-27
 #@ }
-float1	age	fnlwgt	education-num	capital-gain	double1	age	fnlwgt	education-num	capital-gain	int1	text1	workclass	education	TermFloat1	age	fnlwgt	education-num	capital-gain	TermDouble1	age	fnlwgt	education-num	capital-gain	TermInt1	TermText1	workclass	education
+float1	age	fnlwgt	education-num	capital-gain	double1	age	fnlwgt	education-num	capital-gain	int1	text1	Workclass	education	TermFloat1	age	fnlwgt	education-num	capital-gain	TermDouble1	age	fnlwgt	education-num	capital-gain	TermInt1	TermText1	Workclass	education
 25	25	226802	7	0	25	25	226802	7	0	25	Private	Private	11th	0	0	1	2	3	0	0	1	2	3	0	0	0	1
 38	38	89814	9	0	38	38	89814	9	0	38	Private	Private	HS-grad	1	4	5	6	3	1	4	5	6	3	1	0	0	2
 28	28	336951	12	0	28	28	336951	12	0	28	Local-gov	Local-gov	Assoc-acdm	2	7	8	9	3	2	7	8	9	3	2	1	3	4
