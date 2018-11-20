@@ -68,7 +68,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// Get the column by name, or <c>null</c> if the column is not present.
         /// </summary>
-        public Column GetColumnOrNull(string name)
+        public Column? GetColumnOrNull(string name)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             if (_nameMap.TryGetValue(name, out int col))
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// This class describes one column in the particular schema.
         /// </summary>
-        public class Column
+        public struct Column
         {
             /// <summary>
             /// The name of the column.
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// This class represents the schema of one column of a data view, without an attachment to a particular <see cref="Schema"/>.
         /// </summary>
-        public sealed class DetachedColumn
+        public struct DetachedColumn
         {
             /// <summary>
             /// The name of the column.
@@ -173,7 +173,6 @@ namespace Microsoft.ML.Data
             /// </summary>
             public DetachedColumn(Column column)
             {
-                Contracts.CheckValue(column, nameof(column));
                 Name = column.Name;
                 Type = column.Type;
                 Metadata = column.Metadata;
@@ -247,7 +246,7 @@ namespace Microsoft.ML.Data
                 var column = Schema.GetColumnOrNull(kind);
                 if (column == null)
                     throw MetadataUtils.ExceptGetMetadata();
-                GetGetter<TValue>(column.Index)(ref value);
+                GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
             public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
