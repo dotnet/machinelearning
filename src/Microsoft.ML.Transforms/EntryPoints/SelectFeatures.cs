@@ -30,19 +30,19 @@ namespace Microsoft.ML.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.FeatureSelectorByMutualInformation",
-            Desc = MutualInformationFeatureSelectionEstimator.Summary,
-            UserName = MutualInformationFeatureSelectionEstimator.UserName,
-            ShortName = MutualInformationFeatureSelectionEstimator.ShortName,
+            Desc = MutualInformationFeatureSelectingEstimator.Summary,
+            UserName = MutualInformationFeatureSelectingEstimator.UserName,
+            ShortName = MutualInformationFeatureSelectingEstimator.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""MutualInformationFeatureSelection""]/*'/>",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""MutualInformationFeatureSelection""]/*'/>"})]
-        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectionEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput MutualInformationSelect(IHostEnvironment env, MutualInformationFeatureSelectingEstimator.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("MutualInformationSelect");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = MutualInformationFeatureSelectionEstimator.Create(host, input, input.Data);
+            var xf = MutualInformationFeatureSelectingEstimator.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

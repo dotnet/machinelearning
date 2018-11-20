@@ -96,7 +96,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
-                // TODO check types work (right input)
+                if (!CountFeatureSelectionUtils.IsValidColumnType(col.ItemType))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -200,63 +201,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
     }
 
-    public static class CountFeatureSelectorExtensions
-    {
-        private sealed class OutPipelineColumn<T> : Vector<T>
-        {
-            public readonly Vector<T> Input;
-
-            public OutPipelineColumn(Vector<T> input, long count)
-                : base(new Reconciler<T>(count), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler<T> : EstimatorReconciler
-        {
-            private readonly long _count;
-
-            public Reconciler(long count)
-            {
-                _count = count;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                env.Assert(toOutput.Length == 1);
-
-                var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
-                for (int i = 0; i < toOutput.Length; i++)
-                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], outputNames[toOutput[i]], _count);
-
-                return new CountFeatureSelectingEstimator(env, infos);
-            }
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
-            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<float>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
-            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<double>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
-            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<string>(input, count);
-    }
-
     internal static class CountFeatureSelectionUtils
     {
         /// <summary>
@@ -322,6 +266,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
             return aggregators.Select(a => a.Count).ToArray();
         }
+
+        public static bool IsValidColumnType(ColumnType type)
+            => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 
         private static CountAggregator GetOneAggregator(IRow row, ColumnType colType, int colSrc)
         {

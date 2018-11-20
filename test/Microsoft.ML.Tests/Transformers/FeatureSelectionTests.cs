@@ -26,26 +26,26 @@ namespace Microsoft.ML.Tests.Transformers
         public void FeatureSelectionWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var data = TextLoader.CreateReader(Env, ctx => (
+            var data = TextLoader.CreateReader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var invalidData = TextLoader.CreateReader(Env, ctx => (
+            var invalidData = TextLoader.CreateReader(ML, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(sentimentDataPath);
 
-            var est = new WordBagEstimator(Env, "text", "bag_of_words")
-                .Append(new CountFeatureSelectingEstimator(Env, "bag_of_words", "bag_of_words_count", 10)
-                .Append(new MutualInformationFeatureSelectionEstimator(Env, "bag_of_words", "bag_of_words_mi", labelColumn: "label")));
+            var est = new WordBagEstimator(ML, "text", "bag_of_words")
+                .Append(ML.Transforms.FeatureSelection.CountFeatureSelectingEstimator("bag_of_words", "bag_of_words_count", 10)
+                .Append(ML.Transforms.FeatureSelection.MutualInformationFeatureSelectingEstimator("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
             var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                    IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                    savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true });
+                    IDataView savedData = TakeFilter.Create(ML, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                    savedData = ColumnSelectingTransformer.CreateKeep(ML, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
@@ -58,10 +58,10 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void DropSlotsTransform()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var ML = new ConsoleEnvironment(seed: 0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoader.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -78,15 +78,14 @@ namespace Microsoft.ML.Tests.Transformers
                 new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped4", (min: 1, max: 2)),
                 new DropSlotsTransform.ColumnInfo("VectorDouble", "dropped5", (min: 1, null)),
                 new DropSlotsTransform.ColumnInfo("VectorFloat", "dropped6", (min: 100, null))
-
             };
-            var trans = new DropSlotsTransform(env, columns);
+            var trans = new DropSlotsTransform(ML, columns);
 
             var outputPath = GetOutputPath("FeatureSelection", "dropslots.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, trans.Transform(data), 4);
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, trans.Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -104,10 +103,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void CountFeatureSelectionWorkout()
         {
-            var env = new ConsoleEnvironment(seed: 0);
-
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoader.CreateReader(ML, ctx => (
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
                 VectorDouble: ctx.LoadDouble(4, 8)
@@ -122,16 +119,16 @@ namespace Microsoft.ML.Tests.Transformers
                 new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing690", count: 690),
                 new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing100", count: 100)
             };
-            var est = new CountFeatureSelectingEstimator(env, "VectorFloat", "FeatureSelect", count: 1)
-                .Append(new CountFeatureSelectingEstimator(env, columns));
+            var est = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", count: 1)
+                .Append(new CountFeatureSelectingEstimator(ML, columns));
 
             TestEstimatorCore(est, data);
 
             var outputPath = GetOutputPath("FeatureSelection", "countFeatureSelect.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
@@ -149,10 +146,8 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void MutualInformationSelectionWorkout()
         {
-            var env = new ConsoleEnvironment(seed: 0);
-
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoader.CreateReader(ML, ctx => (
                 Label: ctx.LoadKey(0, 0, 2),
                 ScalarFloat: ctx.LoadFloat(6),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -161,8 +156,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var est = new MutualInformationFeatureSelectionEstimator(env, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label")
-                .Append(new MutualInformationFeatureSelectionEstimator(env, labelColumn: "Label", slotsInOutput: 2, numBins: 100,
+            var est = new MutualInformationFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", slotsInOutput: 1, labelColumn: "Label")
+                .Append(new MutualInformationFeatureSelectingEstimator(ML, labelColumn: "Label", slotsInOutput: 2, numBins: 100,
                     columns: new[] {
                         (input: "VectorFloat", output: "out1"),
                         (input: "VectorDouble", output: "out2")
@@ -172,8 +167,8 @@ namespace Microsoft.ML.Tests.Transformers
             var outputPath = GetOutputPath("FeatureSelection", "mutualFeatureSelect.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                var saver = new TextSaver(ML, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(ML, est.Fit(data).Transform(data), 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }

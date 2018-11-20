@@ -474,19 +474,15 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     if (!InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _cols[i]))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _srcTypes[i] = inputSchema.GetColumnType(_cols[i]);
-                    // TODO check that the types are ok if needed
+                    if (!IsValidColumnType(_srcTypes[i].ItemType))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     _slotDropper[i] = new SlotDropper(_srcTypes[i].ValueCount, _parent.SlotsMin[i], _parent.SlotsMax[i]);
                     ComputeType(inputSchema, i, _slotDropper[i], out _suppressed[i], out _dstTypes[i], out _categoricalRanges[i]);
                 }
             }
 
-            ///// <summary>
-            ///// Checks that the source columns have valid types. Valid types are scalars or vectors of floats, doubles or ints.
-            ///// </summary>
-            //private static void ValidateSrcTypes(IHost host, ColumnType[] srcTypes)
-            //{
-
-            //}
+            private static bool IsValidColumnType(ColumnType type)
+                => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 
             /// <summary>
             /// Computes the types (column and slotnames), the length reduction, categorical feature indices

@@ -19,13 +19,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-[assembly: LoadableClass(MutualInformationFeatureSelectionEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectionEstimator), typeof(MutualInformationFeatureSelectionEstimator.Arguments), typeof(SignatureDataTransform),
-    MutualInformationFeatureSelectionEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectionEstimator.ShortName)]
+[assembly: LoadableClass(MutualInformationFeatureSelectingEstimator.Summary, typeof(IDataTransform), typeof(MutualInformationFeatureSelectingEstimator), typeof(MutualInformationFeatureSelectingEstimator.Arguments), typeof(SignatureDataTransform),
+    MutualInformationFeatureSelectingEstimator.UserName, "MutualInformationFeatureSelection", "MutualInformationFeatureSelectionTransform", MutualInformationFeatureSelectingEstimator.ShortName)]
 
 namespace Microsoft.ML.Transforms.FeatureSelection
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-    public sealed class MutualInformationFeatureSelectionEstimator : IEstimator<ITransformer>
+    public sealed class MutualInformationFeatureSelectingEstimator : IEstimator<ITransformer>
     {
         internal const string Summary =
             "Selects the top k slots across all specified columns ordered by their mutual information with the label column.";
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
-        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env,
+        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env,
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
             int numBins = Defaults.NumBins,
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public MutualInformationFeatureSelectionEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
             : this(env, labelColumn, slotsInOutput, numBins, (inputColumn, outputColumn ?? inputColumn))
         {
@@ -160,7 +160,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
-                // TODO check types work (right input)
+                if (!MutualInformationFeatureSelectionUtils.IsValidColumnType(col.ItemType))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.Check(args.NumBins > 1, "numBins must be greater than 1.");
 
             (string input, string output)[] cols = args.Column.Select(col => (col, col)).ToArray();
-            return new MutualInformationFeatureSelectionEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
+            return new MutualInformationFeatureSelectingEstimator(env, args.LabelColumn, args.SlotsInOutput, args.NumBins, cols).Fit(input).Transform(input) as IDataTransform;
         }
 
         /// <summary>
@@ -300,125 +301,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
     }
 
-    /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-    public static class MutualInformationFeatureSelectorExtensions
-    {
-        private sealed class OutPipelineColumn<T> : Vector<T>
-        {
-            public readonly Vector<T> Input;
-            public readonly PipelineColumn LabelColumn;
-
-            public OutPipelineColumn(Vector<T> input, Scalar<float> labelColumn, int slotsInOutput, int numBins)
-                : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
-            {
-                Input = input;
-                LabelColumn = labelColumn;
-            }
-
-            public OutPipelineColumn(Vector<T> input, Scalar<bool> labelColumn, int slotsInOutput, int numBins)
-               : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
-            {
-                Input = input;
-                LabelColumn = labelColumn;
-            }
-        }
-
-        private sealed class Reconciler<T> : EstimatorReconciler
-        {
-            private readonly PipelineColumn _labelColumn;
-            private readonly int _slotsInOutput;
-            private readonly int _numBins;
-
-            public Reconciler(PipelineColumn labelColumn, int slotsInOutput, int numBins)
-            {
-                _labelColumn = labelColumn;
-                _slotsInOutput = slotsInOutput;
-                _numBins = numBins;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-
-                var pairs = new List<(string input, string output)>();
-                foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn<T>)outCol).Input], outputNames[outCol]));
-
-                return new MutualInformationFeatureSelectionEstimator(env,inputNames[_labelColumn], _slotsInOutput, _numBins, pairs.ToArray());
-            }
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
-            this Vector<float> input,
-            Scalar<bool> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
-            this Vector<float> input,
-            Scalar<float> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
-            this Vector<double> input,
-            Scalar<bool> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
-            this Vector<double> input,
-            Scalar<float> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
-            this Vector<bool> input,
-            Scalar<bool> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="input">Name of the input column.</param>
-        /// <param name="labelColumn">Name of the column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
-        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
-        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
-            this Vector<bool> input,
-            Scalar<float> labelColumn,
-            int slotsInOutput = MutualInformationFeatureSelectionEstimator.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
-    }
-
     internal static class MutualInformationFeatureSelectionUtils
     {
         /// <summary>
@@ -456,6 +338,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             return impl.GetScores(input, labelColumnName, columns, numBins, colSizes);
         }
 
+        internal static bool IsValidColumnType(ColumnType type)
+        {
+            // REVIEW: Consider supporting all integer and unsigned types.
+            return
+                (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type.IsBool ||
+                type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
+        }
+
         private sealed class Impl
         {
             private readonly IHost _host;
@@ -487,14 +377,14 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                 if (!schema.TryGetColumnIndex(labelColumnName, out int labelCol))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.LabelColumn),
                         "Label column '{0}' not found", labelColumnName);
                 }
 
                 var labelType = schema.GetColumnType(labelCol);
                 if (!IsValidColumnType(labelType))
                 {
-                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.LabelColumn),
+                    throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.LabelColumn),
                         "Label column '{0}' does not have compatible type", labelColumnName);
                 }
 
@@ -505,20 +395,20 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     var colName = columns[i];
                     if (!schema.TryGetColumnIndex(colName, out int colSrc))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Source column '{0}' not found", colName);
                     }
 
                     var colType = schema.GetColumnType(colSrc);
                     if (colType.IsVector && !colType.IsKnownSizeVector)
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Variable length column '{0}' is not allowed", colName);
                     }
 
                     if (!IsValidColumnType(colType.ItemType))
                     {
-                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectionEstimator.Arguments.Column),
+                        throw _host.ExceptUserArg(nameof(MutualInformationFeatureSelectingEstimator.Arguments.Column),
                             "Column '{0}' of type '{1}' does not have compatible type.", colName, colType);
                     }
 
@@ -556,14 +446,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 }
 
                 return scores;
-            }
-
-            private static bool IsValidColumnType(ColumnType type)
-            {
-                // REVIEW: Consider supporting all integer and unsigned types.
-                return
-                    (0 < type.KeyCount && type.KeyCount < Utils.ArrayMaxSize) || type.IsBool ||
-                    type == NumberType.R4 || type == NumberType.R8 || type == NumberType.I4;
             }
 
             private void GetLabels(Transposer trans, ColumnType labelType, int labelCol)
