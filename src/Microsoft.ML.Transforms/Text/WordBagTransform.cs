@@ -235,7 +235,7 @@ namespace Microsoft.ML.Transforms.Text
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all")]
-            public bool AllLengths = NgramCountingEstimator.Defaults.AllLength;
+            public bool AllLengths = NgramCountingEstimator.Defaults.AllLengths;
 
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = new int[] { NgramCountingEstimator.Defaults.MaxNumTerms };
