@@ -15,21 +15,19 @@ namespace Microsoft.ML
         /// Read a data view from a binary file using <see cref="BinaryLoader"/>.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
-        /// <param name="args">The arguments to binary reader.</param>
-        /// <param name="path"></param>
-        public static IDataView ReadFromBinaryFile(this DataOperations catalog,
-            BinaryLoader.Arguments args, string path)
+        /// <param name="stream">The stream to read from.</param>
+        public static IDataView ReadFromBinaryFile(this DataOperations catalog, Stream stream)
         {
-            Contracts.CheckNonEmpty(path, nameof(path));
+            Contracts.CheckValue(stream, nameof(stream));
 
             var env = catalog.GetEnvironment();
 
-            var reader = new BinaryLoader(env, args, path);
+            var reader = new BinaryLoader(env, new BinaryLoader.Arguments(), stream);
             return reader;
         }
 
         /// <summary>
-        /// Save the data view as binary.
+        /// Save the data view into a binary stream.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="data">The data view to save.</param>
