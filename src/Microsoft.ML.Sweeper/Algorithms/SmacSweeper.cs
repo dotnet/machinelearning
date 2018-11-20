@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Sweeper;
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;

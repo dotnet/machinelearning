@@ -7,7 +7,8 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    public static partial class CpuMathUtils
+    [BestFriend]
+    internal static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
