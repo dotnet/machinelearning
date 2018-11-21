@@ -8,15 +8,11 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
-using System;
 
-#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(TrainTestSplit), null, typeof(SignatureEntryPointModule), "TrainTestSplit")]
-#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
-    [Obsolete]
     public static class TrainTestSplit
     {
         public sealed class Input

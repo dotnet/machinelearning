@@ -12,17 +12,17 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
-#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationMacro), null, typeof(SignatureEntryPointModule), "CrossValidationMacro")]
-#pragma warning restore 612
 
+// The warning #612 is disabled because the following code uses a lot of things in Legacy.Models and Legacy.Transforms while Legacy is marked as obsolete.
+// Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
+#pragma warning disable 612
 namespace Microsoft.ML.Runtime.EntryPoints
 {
 
     /// <summary>
     /// This macro entry point implements cross validation.
     /// </summary>
-    [Obsolete]
     public static class CrossValidationMacro
     {
         public sealed class SubGraphInput
@@ -518,3 +518,4 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
     }
 }
+#pragma warning restore 612

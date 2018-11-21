@@ -16,14 +16,11 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-#pragma warning disable 612
 [assembly: LoadableClass(typeof(ExecuteGraphCommand), typeof(ExecuteGraphCommand.Arguments), typeof(SignatureCommand),
     "", "ExecGraph")]
-#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
 {
-    [Obsolete]
     internal sealed class ExecuteGraphCommand : ICommand
     {
         public sealed class Arguments

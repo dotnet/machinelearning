@@ -15,7 +15,6 @@ namespace Microsoft.ML.Legacy.Models
     /// Each row of the matrix represents the instances in a predicted class
     /// while each column represents the instances in the actual class.
     /// </summary>
-    [Obsolete]
     public sealed class ConfusionMatrix
     {
         private readonly double[,] _elements;

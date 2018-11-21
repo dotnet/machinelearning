@@ -7,11 +7,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Transforms;
-using System;
 
-#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(CVSplit), null, typeof(SignatureEntryPointModule), "CVSplit")]
-#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
@@ -19,7 +16,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// The module that splits the input dataset into the specified number of cross-validation folds, and outputs the 'training'
     /// and 'testing' portion of the input for each fold.
     /// </summary>
-    [Obsolete]
     public static class CVSplit
     {
         public sealed class Input

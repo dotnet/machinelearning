@@ -16,7 +16,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
     /// <summary>
     /// Utilities to generate JSON manifests for entry points and other components.
     /// </summary>
-    [Obsolete]
     public static class JsonManifestUtils
     {
         /// <summary>

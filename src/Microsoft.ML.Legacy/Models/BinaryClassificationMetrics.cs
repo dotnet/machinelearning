@@ -14,7 +14,6 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// This class contains the overall metrics computed by binary classification evaluators.
     /// </summary>
-    [Obsolete]
     public sealed class BinaryClassificationMetrics
     {
         private BinaryClassificationMetrics()

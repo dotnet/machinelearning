@@ -6,7 +6,6 @@ using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-#pragma warning disable 612
 namespace Microsoft.ML.Legacy.Models
 {
     public sealed partial class ClusterEvaluator

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 
@@ -17,7 +16,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
     /// REVIEW: currently, the graph is executed synchronously, one node at a time. This is an implementation choice, we
     /// probably need to consider parallel asynchronous execution, once we agree on an acceptable syntax for it.
     /// </summary>
-    [Obsolete]
     public sealed class GraphRunner
     {
         private const string RegistrationName = "GraphRunner";
