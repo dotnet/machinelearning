@@ -41,7 +41,7 @@ namespace Microsoft.ML
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this RegressionContext.RegressionTrainers ctx,
+        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
             Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)

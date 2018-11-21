@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                     labels[i] = defaultLabel;
         }
 
-        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
+        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numLeaves = (int)Options["num_leaves"];
@@ -224,6 +224,8 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         protected override MulticlassPredictionTransformer<OvaPredictor> MakeTransformer(OvaPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<OvaPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        public MulticlassPredictionTransformer<OvaPredictor> Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
     }
 
     /// <summary>

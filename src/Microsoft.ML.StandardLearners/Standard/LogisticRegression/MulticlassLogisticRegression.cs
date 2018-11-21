@@ -333,12 +333,14 @@ namespace Microsoft.ML.Runtime.Learners
         protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
+        public MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+
         /// <summary>
         /// Normal metadata that we produce for score columns.
         /// </summary>
         private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
         {
-            var cols = new List<SchemaShape.Column>(){new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)};
+            var cols = new List<SchemaShape.Column>() { new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false) };
             cols.AddRange(MetadataUtils.GetTrainerOutputMetadata());
             return cols;
         }
@@ -556,7 +558,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            ctx.LoadModelOrNull< LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
+            ctx.LoadModelOrNull<LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)

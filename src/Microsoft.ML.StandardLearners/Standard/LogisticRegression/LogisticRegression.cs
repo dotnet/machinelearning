@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Learners
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
-                  l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
+                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -134,6 +134,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
