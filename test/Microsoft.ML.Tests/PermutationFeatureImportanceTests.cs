@@ -1,20 +1,14 @@
-﻿//------------------------------------------------------------------------------
-// <copyright company="Microsoft Corporation">
-//     Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using System;
+using System.Collections.Immutable;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms;
-using System.Collections.Immutable;
 
 namespace Microsoft.ML.Tests
 {
@@ -35,11 +29,11 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 1000;
             var rand = new Random(10);
-            Float[] yArray = new Float[numberOfInstances],
-                x1Array = new Float[numberOfInstances],
-                x2Array = new Float[numberOfInstances],
-                x3Array = new Float[numberOfInstances],
-                x4RandArray = new Float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances],
+                x1Array = new float[numberOfInstances],
+                x2Array = new float[numberOfInstances],
+                x3Array = new float[numberOfInstances],
+                x4RandArray = new float[numberOfInstances];
 
             for (var i = 0; i < numberOfInstances; i++)
             {
@@ -53,7 +47,7 @@ namespace Microsoft.ML.Tests
                 x4RandArray[i] = x4Rand;
 
                 var noise = rand.Next(50);
-                yArray[i] = (Float)(10 * x1 + 20 * x2Important + 5.5 * x3 + noise);
+                yArray[i] = (float)(10 * x1 + 20 * x2Important + 5.5 * x3 + noise);
             }
 
             // Create data view.
@@ -107,11 +101,11 @@ namespace Microsoft.ML.Tests
             // Setup synthetic dataset.
             const int numberOfInstances = 10000;
             var rand = new Random(10);
-            Float[] yArray = new Float[numberOfInstances],
-                x1Array = new Float[numberOfInstances],
-                x3Array = new Float[numberOfInstances];
+            float[] yArray = new float[numberOfInstances],
+                x1Array = new float[numberOfInstances],
+                x3Array = new float[numberOfInstances];
 
-            VBuffer<Float>[] vbArray = new VBuffer<Float>[numberOfInstances];
+            VBuffer<float>[] vbArray = new VBuffer<float>[numberOfInstances];
 
             for (var i = 0; i < numberOfInstances; i++)
             {
@@ -120,20 +114,20 @@ namespace Microsoft.ML.Tests
                 var x3Important = rand.Next(10000);
                 x3Array[i] = x3Important;
 
-                VBuffer<Float> vb;
+                VBuffer<float> vb;
 
                 if (i % 10 != 0)
                 {
-                    vb = new VBuffer<Float>(4, 3, new Float[] { rand.Next(1000), rand.Next(1000), rand.Next(1000) }, new int[] { 0, 2, 3 });
+                    vb = new VBuffer<float>(4, 3, new float[] { rand.Next(1000), rand.Next(1000), rand.Next(1000) }, new int[] { 0, 2, 3 });
                 }
                 else
                 {
-                    vb = new VBuffer<Float>(4, 4, new Float[] { rand.Next(1000), rand.Next(1000), rand.Next(1000), rand.Next(1000) }, new int[] { 0, 1, 2, 3 });
+                    vb = new VBuffer<float>(4, 4, new float[] { rand.Next(1000), rand.Next(1000), rand.Next(1000), rand.Next(1000) }, new int[] { 0, 1, 2, 3 });
                 }
 
                 vbArray[i] = vb;
 
-                Float vbSum = 0;
+                float vbSum = 0;
                 foreach (var vbValue in vb.DenseValues())
                 {
                     vbSum += vbValue * 10;
