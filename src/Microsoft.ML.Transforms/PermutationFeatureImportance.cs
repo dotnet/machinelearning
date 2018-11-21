@@ -97,8 +97,10 @@ namespace Microsoft.ML.Transforms
                             ch.Warning(
                                 "Predictor had fewer features than slots. All unknown features will get default 0 weight.");
                             zeroWeightsCount += numSlots - weights.Length;
-                            var count = weights.GetValues().Length;
-                            weights = new VBuffer<float>(numSlots, count, weights.Values, weights.Indices);
+                            var indexes = weights.GetIndices().ToArray();
+                            var values = weights.GetValues().ToArray();
+                            var count = values.Length;
+                            weights = new VBuffer<float>(numSlots, count, values, indexes);
                         }
 
                         evaluatedFeaturesCount = workingFeatureIndices.Count;
