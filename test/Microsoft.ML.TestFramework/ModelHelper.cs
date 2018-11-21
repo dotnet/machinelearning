@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Microsoft.ML.TestFramework
 {
-#pragma warning disable 612
+#pragma warning disable 612, 618
     public static class ModelHelper
     {
         private static IHostEnvironment s_environment = new MLContext(seed: 1);
@@ -263,5 +263,5 @@ namespace Microsoft.ML.TestFramework
             return experiment.GetOutput(scorerOutput.ScoringTransform);
         }
     }
-#pragma warning restore 612
+#pragma warning restore 612, 618
 }

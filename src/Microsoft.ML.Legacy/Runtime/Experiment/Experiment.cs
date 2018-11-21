@@ -18,6 +18,7 @@ namespace Microsoft.ML.Runtime
     /// The nodes in the graph represent entry point calls and
     /// the edges of the graph are variables that help connect the nodes.
     /// </summary>
+    [Obsolete]
     [JsonConverter(typeof(ExperimentSerializer))]
     public sealed partial class Experiment
     {
@@ -229,6 +230,7 @@ namespace Microsoft.ML.Runtime
         public string ToJsonString() => String.Join(",", _jsonNodes);
     }
 
+    [Obsolete]
     public sealed class ComponentSerializer : JsonConverter
     {
         private class Helper
@@ -258,6 +260,7 @@ namespace Microsoft.ML.Runtime
         public override bool CanRead => false;
     }
 
+    [Obsolete]
     public sealed class ExperimentSerializer : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -278,6 +281,7 @@ namespace Microsoft.ML.Runtime
         public override bool CanRead => false;
     }
 
+    [Obsolete]
     public abstract class ComponentKind
     {
         internal ComponentKind() { }
@@ -286,6 +290,7 @@ namespace Microsoft.ML.Runtime
         internal abstract string ComponentName { get; }
     }
 
+    [Obsolete]
     public static class ExperimentUtils
     {
         public static Experiment CreateExperiment(this IHostEnvironment env)
@@ -296,6 +301,7 @@ namespace Microsoft.ML.Runtime
         public static string GenerateOverallMetricVarName(Guid id) => $"Var_OM_{id:N}";
     }
 
+    [Obsolete]
     public sealed class EntryPointTransformOutput : CommonOutputs.ITransformOutput
     {
         /// <summary>
@@ -315,6 +321,7 @@ namespace Microsoft.ML.Runtime
         }
     }
 
+    [Obsolete]
     public sealed class EntryPointTrainerOutput : CommonOutputs.ITrainerOutput
     {
         /// <summary>

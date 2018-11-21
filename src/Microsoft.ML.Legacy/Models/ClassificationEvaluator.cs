@@ -9,7 +9,6 @@ using System;
 
 namespace Microsoft.ML.Legacy.Models
 {
-    [Obsolete]
     public sealed partial class ClassificationEvaluator
     {
         /// <summary>

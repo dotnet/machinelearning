@@ -14,9 +14,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
 namespace Microsoft.ML.Runtime.EntryPoints
+#pragma warning restore 612
 {
+    [Obsolete]
     public static class FeatureCombiner
     {
         public sealed class FeatureCombinerInput : TransformInputBase

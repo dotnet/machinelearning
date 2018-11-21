@@ -6,10 +6,14 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(DataViewReference), null, typeof(SignatureEntryPointModule), "DataViewReference")]
 namespace Microsoft.ML.Runtime.EntryPoints
+#pragma warning restore 612
 {
+    [Obsolete]
     public class DataViewReference
     {
         public sealed class Input

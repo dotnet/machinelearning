@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 {
-#pragma warning disable 612
+#pragma warning disable 612, 618
     public partial class PipelineApiScenarioTests
     {
         /// <summary>
@@ -39,5 +39,5 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var metrics = evaluator.Evaluate(model, testLearningPipelineItem);
         }
     }
-#pragma warning restore 612
+#pragma warning restore 612, 618
 }

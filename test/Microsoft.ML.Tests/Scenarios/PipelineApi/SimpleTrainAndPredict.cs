@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 {
     public partial class PipelineApiScenarioTests
     {
-#pragma warning disable 612
+#pragma warning disable 612, 618
         /// <summary>
         /// Start with a dataset in a text file. Run text featurization on text values. 
         /// Train a linear model over that. (I am thinking sentiment classification.) 
@@ -53,5 +53,5 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             };
         }
     }
-#pragma warning restore 612
+#pragma warning restore 612, 618
 }

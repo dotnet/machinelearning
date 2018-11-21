@@ -7,12 +7,16 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
+using System;
 using System.Linq;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(ModelOperations), null, typeof(SignatureEntryPointModule), "ModelOperations")]
+#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
+    [Obsolete]
     public static class ModelOperations
     {
         public sealed class CombineTransformModelsInput

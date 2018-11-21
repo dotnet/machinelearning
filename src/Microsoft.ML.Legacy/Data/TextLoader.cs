@@ -13,7 +13,6 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.ML.Legacy.Data
 {
-    [Obsolete]
     public sealed partial class TextLoaderRange
     {
         public TextLoaderRange()
@@ -52,7 +51,6 @@ namespace Microsoft.ML.Legacy.Data
         }
     }
 
-    [Obsolete]
     public sealed partial class TextLoader
     {
         /// <summary>

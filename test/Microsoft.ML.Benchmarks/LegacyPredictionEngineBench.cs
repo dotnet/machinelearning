@@ -10,7 +10,7 @@ using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
-#pragma warning disable 612
+#pragma warning disable 612, 618
     public class LegacyPredictionEngineBench
     {
         private IrisData _irisExample;
@@ -105,5 +105,5 @@ namespace Microsoft.ML.Benchmarks
             }
         }
     }
-#pragma warning restore 612
+#pragma warning restore 612, 618
 }

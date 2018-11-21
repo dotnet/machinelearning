@@ -10,13 +10,16 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 
+#pragma warning disable 612
 [assembly: LoadableClass(typeof(void), typeof(ImportTextData), null, typeof(SignatureEntryPointModule), "ImportTextData")]
+#pragma warning restore 612
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
     /// A component for importing text files as <see cref="IDataView"/>.
     /// </summary>
+    [Obsolete]
     public static class ImportTextData
     {
         public sealed class Input

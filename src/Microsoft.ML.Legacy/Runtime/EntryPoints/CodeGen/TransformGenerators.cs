@@ -24,6 +24,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("/// <param name=\"env\">The environment</param>");
             w.WriteLine("/// <param name=\"data\">The data set</param>");
             w.WriteLine("/// <returns>The transformed data.</returns>");
+            w.WriteLine("[Obsolete]");
             w.WriteLine("public IDataView Create{0}{1}Impl(", prefix, component.LoadNames[0]);
             using (w.Nest())
             {
@@ -129,6 +130,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix,
             ComponentCatalog.LoadableClassInfo component)
         {
+            w.WriteLine("[Obsolete]");
             w.WriteLine("public static Tuple<IDataView, DataTransform> Create{0}{1}(", prefix, component.LoadNames[0]);
             using (w.Nest())
             {
@@ -191,6 +193,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine();
             var className = prefix + component.LoadNames[0];
             w.WriteLine("/// <summary>Module: {0}</summary>", className);
+            w.WriteLine("[Obsolete]");
             w.WriteLine("public static class {0}EntryPoint", className);
             w.WriteLine("{");
         }
@@ -212,6 +215,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 writer.WriteLine("Determinism = Determinism.{0},", Determinism);
                 writer.WriteLine("Category = @\"{0}\")]", Category);
             }
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine("public static IModule Create{0}(", _compName);
             using (writer.Nest())
             {
@@ -254,6 +258,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
             writer.WriteLine("}");
             writer.WriteLine();
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine("public class {0}Module : ModuleBase", _compName);
             writer.WriteLine("{");
             using (writer.Nest())

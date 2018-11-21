@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 [assembly: LoadableClass(typeof(void), typeof(OneVersusAllMacro), null, typeof(SignatureEntryPointModule), "OneVersusAllMacro")]
 namespace Microsoft.ML.Runtime.EntryPoints
 {
+#pragma warning disable 612
     /// <summary>
     /// This macro entrypoint implements OVA.
     /// </summary>
@@ -193,4 +194,5 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return new CommonOutputs.MacroOutput<Output>() { Nodes = macroNodes };
         }
     }
+#pragma warning restore 612
 }

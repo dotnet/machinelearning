@@ -9,13 +9,13 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
+    [Obsolete]
     public static class MacroUtils
     {
         /// <summary>
         /// Lists the types of trainer signatures. Used by entry points and autoML system
         /// to know what types of evaluators to use for the train test / pipeline sweeper.
         /// </summary>
-        [Obsolete]
         public enum TrainerKinds
         {
             SignatureBinaryClassifierTrainer,
@@ -27,7 +27,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             SignatureClusteringTrainer,
         }
 
-        [Obsolete]
         public sealed class EvaluatorSettings
         {
             public string LabelColumn { get; set; }
@@ -42,7 +41,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        [Obsolete]
         private sealed class TaskInformationBundle
         {
             public string TrainerFunctionName { get; set; }
@@ -51,7 +49,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             public Func<CommonOutputs.IEvaluatorOutput> EvaluatorOutput { get; set; }
         }
 
-        [Obsolete]
         private static Dictionary<TrainerKinds, TaskInformationBundle>
             TrainerKindDict => new Dictionary<TrainerKinds, TaskInformationBundle>
             {
@@ -157,18 +154,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 },
             };
 
-        [Obsolete]
         public static Tuple<CommonInputs.IEvaluatorInput, CommonOutputs.IEvaluatorOutput> GetEvaluatorInputOutput(
             TrainerKinds kind, EvaluatorSettings settings = null) => new Tuple<CommonInputs.IEvaluatorInput, CommonOutputs.IEvaluatorOutput>
             (TrainerKindDict[kind].EvaluatorInput(settings), TrainerKindDict[kind].EvaluatorOutput());
 
-        [Obsolete]
         public static Type[] PredictorTypes = TrainerKindDict.Select(kvp => kvp.Value.TrainerSignatureType).ToArray();
 
-        [Obsolete]
         public static Type TrainerKindToType(TrainerKinds kind) => TrainerKindDict[kind].TrainerSignatureType;
 
-        [Obsolete]
         public static TrainerKinds SignatureTypeToTrainerKind(Type sigType)
         {
             foreach (var kvp in TrainerKindDict)
@@ -177,14 +170,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
             throw new NotSupportedException($"Signature type {sigType} unsupported.");
         }
 
-        [Obsolete]
         public static TrainerKinds[] SignatureTypesToTrainerKinds(IEnumerable<Type> sigTypes) =>
             sigTypes.Select(SignatureTypeToTrainerKind).ToArray();
 
-        [Obsolete]
         private static string GetTrainerName(TrainerKinds kind) => TrainerKindDict[kind].TrainerFunctionName;
 
-        [Obsolete]
         public static T TrainerKindApiValue<T>(TrainerKinds trainerKind)
         {
             if (Enum.GetName(typeof(TrainerKinds), trainerKind) is string name)
@@ -192,7 +182,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             throw new Exception($"Could not interpret enum value: {trainerKind}");
         }
 
-        [Obsolete]
         public static bool IsTrainerOfKind(Type type, TrainerKinds trainerKind)
         {
             if (trainerKind != TrainerKinds.SignatureMultiClassClassifierTrainer && trainerKind != TrainerKinds.SignatureMultiOutputRegressorTrainer)
