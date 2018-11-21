@@ -46,6 +46,15 @@ if exist "%DotNetBuildToolsDir%" (
 echo Running %0 > "%INIT_TOOLS_LOG%"
 
 set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.txt"
+
+:DotNetVersionLoop
+if [%1] == [] goto :DotNetVersionSet
+if /i [%1] == [-Debug-Intrinsics] ( set DOTNET_VERSION=3.0.100-alpha1-009622&&goto DotNetVersionSet)
+if /i [%1] == [-Release-Intrinsics] ( set DOTNET_VERSION=3.0.100-alpha1-009622&&goto DotNetVersionSet)
+shift
+goto :DotNetVersionLoop
+
+:DotNetVersionSet
 if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 :Arg_Loop
