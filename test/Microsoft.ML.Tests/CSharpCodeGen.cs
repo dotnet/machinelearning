@@ -15,7 +15,8 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
+        //[Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
+        [Fact]
         public void RegenerateCSharpApi()
         {
             var basePath = GetDataPath("../../src/Microsoft.ML.Legacy/CSharpApi.cs");

@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
+using System.Collections.Generic;
 
 namespace Microsoft.ML
 {
@@ -90,4 +91,17 @@ namespace Microsoft.ML
             => new ColumnSelectingEstimator(CatalogUtils.GetEnvironment(catalog),
                 keepColumns, dropColumns, keepHidden, ignoreMissing);
     }
+
+    /*
+
+    public static class ValueMappingCatalog
+    {
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
+            this TransformsCatalog catalog,
+            IEnumerable<TInputType> keys,
+            IEnumerable<TOutputType> values,
+            params (string source, string name)[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
+    }
+    */
 }
