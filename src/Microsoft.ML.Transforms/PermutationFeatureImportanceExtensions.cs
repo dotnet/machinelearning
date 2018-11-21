@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 
 namespace Microsoft.ML
 {
@@ -24,16 +21,18 @@ namespace Microsoft.ML
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
         /// <param name="features">Feature column names.</param>
-        /// <param name="topExamples">Number of top (highest positive) contributions to output.</param>
+        /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
+        /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionEvaluator.Result>
             CalculateFeatureImportance(
                 this RegressionContext ctx,
-                ITransformer model,
+                IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 string label = DefaultColumnNames.Label,
                 string features = DefaultColumnNames.Features,
-                int topExamples = 0)
+                bool useFeatureWeightFilter = false,
+                int? topExamples = null)
         {
             return PermutationFeatureImportance<RegressionEvaluator.Result>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
@@ -42,6 +41,7 @@ namespace Microsoft.ML
                             idv => ctx.Evaluate(idv, label),
                             RegressionDelta,
                             features,
+                            useFeatureWeightFilter,
                             topExamples);
         }
 

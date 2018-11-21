@@ -6,37 +6,39 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.ML.Core.Data;
+using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Transforms
 {
-    using Stopwatch = System.Diagnostics.Stopwatch;
-
     internal static class PermutationFeatureImportance<TResult>
     {
         public static ImmutableArray<TResult>
             GetImportanceMetricsMatrix(
                 IHostEnvironment env,
-                ITransformer model,
+                IPredictionTransformer<IPredictor> model,
                 IDataView data,
                 Func<IDataView, TResult> evaluationFunc,
                 Func<TResult, TResult, TResult> deltaFunc,
                 string features,
-                int topExamples)
+                bool useFeatureWeightFilter = false,
+                int? topExamples = null)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(nameof(PermutationFeatureImportance<TResult>));
             host.CheckValue(model, nameof(model));
             host.CheckValue(data, nameof(data));
-            host.CheckValue(features, nameof(features));
+            host.CheckNonEmpty(features, nameof(features));
+
+            topExamples = topExamples ?? Utils.ArrayMaxSize;
+            host.Check(topExamples > 0, "Provide how many examples to use (positive number) or set to null to use whole dataset.");
 
             VBuffer<ReadOnlyMemory<char>> slotNames = default;
             var metricsDelta = new List<TResult>();
-            var progressIterations = 10;
 
             using (var ch = host.Start("GetImportanceMetrics"))
             {
@@ -55,10 +57,79 @@ namespace Microsoft.ML.Transforms
                 if (slotNames.Length != numSlots)
                     slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(numSlots);
 
+                VBuffer<float> weights = default;
                 var workingFeatureIndices = Enumerable.Range(0, numSlots).ToList();
+                int zeroWeightsCount = 0;
+
+                // By default set to the number of all features available.
+                var evaluatedFeaturesCount = numSlots;
+                if (useFeatureWeightFilter)
+                {
+                    var predictorWithWeights = model.Model as IPredictorWithFeatureWeights<Single>;
+                    if (predictorWithWeights != null)
+                    {
+                        predictorWithWeights.GetFeatureWeights(ref weights);
+
+                        const int maxReportedZeroFeatures = 10;
+                        StringBuilder msgFilteredOutFeatures = new StringBuilder("The following features have zero weight and will not be evaluated: \n \t");
+                        var prefix = "";
+                        foreach (var k in weights.Items(all: true))
+                        {
+                            if (k.Value == 0)
+                            {
+                                zeroWeightsCount++;
+
+                                // Print info about first few features we're not going to evaluate.
+                                if (zeroWeightsCount <= maxReportedZeroFeatures)
+                                {
+                                    msgFilteredOutFeatures.Append(prefix);
+                                    msgFilteredOutFeatures.Append(GetSlotName(slotNames, k.Key));
+                                    prefix = ", ";
+                                }
+                            }
+                            else
+                                workingFeatureIndices.Add(k.Key);
+                        }
+
+                        // Old FastTree models has less weights than slots.
+                        if (weights.Length < numSlots)
+                        {
+                            ch.Warning(
+                                "Predictor had fewer features than slots. All unknown features will get default 0 weight.");
+                            zeroWeightsCount += numSlots - weights.Length;
+                            var count = weights.GetValues().Length;
+                            weights = new VBuffer<float>(numSlots, count, weights.Values, weights.Indices);
+                        }
+
+                        evaluatedFeaturesCount = workingFeatureIndices.Count;
+                        ch.Info("Number of zero weights: {0} out of {1}.", zeroWeightsCount, weights.Length);
+
+                        // Print what features have 0 weight
+                        if (zeroWeightsCount > 0)
+                        {
+                            if (zeroWeightsCount > maxReportedZeroFeatures)
+                            {
+                                msgFilteredOutFeatures.Append(string.Format("... (printing out  {0} features here).\n Use 'Index' column in the report for info on what features are not evaluated.", maxReportedZeroFeatures));
+                            }
+                            ch.Info(msgFilteredOutFeatures.ToString());
+                        }
+                    }
+                }
+
+                if (workingFeatureIndices.Count == 0 && zeroWeightsCount == 0)
+                {
+                    // Use all features otherwise.
+                    workingFeatureIndices.AddRange(Enumerable.Range(0, numSlots));
+                }
+
+                if (zeroWeightsCount == numSlots)
+                {
+                    ch.Warning("All features have 0 weight thus can not do thorough evaluation");
+                    return metricsDelta.ToImmutableArray();
+                }
 
                 // Note: this will not work on the huge dataset.
-                var maxSize = topExamples > 0 ? topExamples : Utils.ArrayMaxSize;
+                var maxSize = topExamples;
                 List<float> initialfeatureValuesList = new List<float>();
 
                 // Cursor through the data to cache slot 0 values for the upcoming permutation.
@@ -97,80 +168,76 @@ namespace Microsoft.ML.Transforms
                 int j = 0;
                 int nextFeatureIndex = 0;
                 int shuffleSeed = host.Rand.Next();
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Restart();
-                foreach (var workingIndx in workingFeatureIndices)
+                using (var pch = host.StartProgressChannel("SDCA preprocessing with lookup"))
                 {
-                    // Index for the feature we will permute next.  Needed to build in advance a buffer for the permutation.
-                    if (j < workingFeatureIndices.Count - 1)
-                        nextFeatureIndex = workingFeatureIndices[j + 1];
-
-                    int nextValuesIndex = 0;
-
-                    Utils.Shuffle(RandomUtils.Create(shuffleSeed), featureValuesBuffer);
-
-                    Action<FeaturesBuffer, FeaturesBuffer, PermuterState> permuter =
-                        (src, dst, state) =>
-                        {
-                            src.Features.CopyTo(ref dst.Features);
-                            VBufferUtils.ApplyAt(ref dst.Features, workingIndx,
-                                (int ii, ref float d) =>
-                                    d = featureValuesBuffer[state.SampleIndex++]);
-
-                            if (j < workingFeatureIndices.Count - 1)
-                            {
-                                // This is the reason I need PermuterState in LambdaTransform.CreateMap.
-                                nextValues[nextValuesIndex] = src.Features.GetItemOrDefault(nextFeatureIndex);
-                                if (nextValuesIndex < valuesRowCount - 1)
-                                    nextValuesIndex++;
-                            }
-                        };
-
-                    SchemaDefinition input = SchemaDefinition.Create(typeof(FeaturesBuffer));
-                    Contracts.Assert(input.Count == 1);
-                    input[0].ColumnName = features;
-
-                    SchemaDefinition output = SchemaDefinition.Create(typeof(FeaturesBuffer));
-                    Contracts.Assert(output.Count == 1);
-                    output[0].ColumnName = features;
-                    output[0].ColumnType = featuresColumn.Type;
-
-                    IDataView viewPermuted = LambdaTransform.CreateMap(
-                        host, data, permuter, null, input, output);
-                    if (topExamples > 0 && valuesRowCount == topExamples)
-                        viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
-
-                    var metrics = evaluationFunc(model.Transform(viewPermuted));
-
-                    var delta = deltaFunc(metrics, baselineMetrics);
-                    metricsDelta.Add(delta);
-
-                    // Swap values for next iteration of permutation.
-                    Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
-                    nextValues.CopyTo(featureValuesBuffer, 0);
-                    Array.Clear(nextValues, 0, nextValues.Length);
-
-                    // Print out timings.
-                    if (processedCnt > 0 && (processedCnt % progressIterations == 0))
+                    pch.SetHeader(new ProgressHeader("processed slots"), e => e.SetProgress(0, processedCnt));
+                    foreach (var workingIndx in workingFeatureIndices)
                     {
-                        stopwatch.Stop();
-                        ch.Info(string.Format("Processed slots {0} - {1} in {2}", processedCnt - progressIterations,
-                            processedCnt, stopwatch.Elapsed));
-                        stopwatch.Restart();
+                        // Index for the feature we will permute next.  Needed to build in advance a buffer for the permutation.
+                        if (j < workingFeatureIndices.Count - 1)
+                            nextFeatureIndex = workingFeatureIndices[j + 1];
+
+                        int nextValuesIndex = 0;
+
+                        Utils.Shuffle(RandomUtils.Create(shuffleSeed), featureValuesBuffer);
+
+                        Action<FeaturesBuffer, FeaturesBuffer, PermuterState> permuter =
+                            (src, dst, state) =>
+                            {
+                                src.Features.CopyTo(ref dst.Features);
+                                VBufferUtils.ApplyAt(ref dst.Features, workingIndx,
+                                    (int ii, ref float d) =>
+                                        d = featureValuesBuffer[state.SampleIndex++]);
+
+                                if (j < workingFeatureIndices.Count - 1)
+                                {
+                                    // This is the reason I need PermuterState in LambdaTransform.CreateMap.
+                                    nextValues[nextValuesIndex] = src.Features.GetItemOrDefault(nextFeatureIndex);
+                                    if (nextValuesIndex < valuesRowCount - 1)
+                                        nextValuesIndex++;
+                                }
+                            };
+
+                        SchemaDefinition input = SchemaDefinition.Create(typeof(FeaturesBuffer));
+                        Contracts.Assert(input.Count == 1);
+                        input[0].ColumnName = features;
+
+                        SchemaDefinition output = SchemaDefinition.Create(typeof(FeaturesBuffer));
+                        Contracts.Assert(output.Count == 1);
+                        output[0].ColumnName = features;
+                        output[0].ColumnType = featuresColumn.Type;
+
+                        IDataView viewPermuted = LambdaTransform.CreateMap(
+                            host, data, permuter, null, input, output);
+                        if (valuesRowCount == topExamples)
+                            viewPermuted = SkipTakeFilter.Create(host, new SkipTakeFilter.TakeArguments() { Count = valuesRowCount }, viewPermuted);
+
+                        var metrics = evaluationFunc(model.Transform(viewPermuted));
+
+                        var delta = deltaFunc(metrics, baselineMetrics);
+                        metricsDelta.Add(delta);
+
+                        // Swap values for next iteration of permutation.
+                        Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
+                        nextValues.CopyTo(featureValuesBuffer, 0);
+                        Array.Clear(nextValues, 0, nextValues.Length);
+
+                        pch.Checkpoint(processedCnt, processedCnt);
+                        processedCnt++;
+                        j++;
                     }
-
-                    processedCnt++;
-                    j++;
-                }
-
-                if ((processedCnt - 1) % progressIterations != 0)
-                {
-                    stopwatch.Stop();
-                    ch.Info(string.Format("Processed slots up to {0} in {1}", processedCnt - 1, stopwatch.Elapsed));
                 }
             }
 
             return metricsDelta.ToImmutableArray();
+        }
+
+        private static ReadOnlyMemory<char> GetSlotName(VBuffer<ReadOnlyMemory<char>> slotNames, int index)
+        {
+            var slotName = slotNames.GetItemOrDefault(index);
+            return slotName.IsEmpty
+                ? slotName
+                : string.Format("f{0}", index).AsMemory();
         }
 
         /// <summary>
