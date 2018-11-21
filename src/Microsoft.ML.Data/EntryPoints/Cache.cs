@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -67,9 +68,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                             cols.Add(i);
                     }
 
+#pragma warning disable CS0618 // This ought to be addressed. See #1287.
                     // We are not disposing the fileHandle because we want it to stay around for the execution of the graph.
                     // It will be disposed when the environment is disposed.
                     var fileHandle = host.CreateTempFile();
+#pragma warning restore CS0618
 
                     using (var stream = fileHandle.CreateWriteStream())
                         saver.SaveData(stream, input.Data, cols.ToArray());

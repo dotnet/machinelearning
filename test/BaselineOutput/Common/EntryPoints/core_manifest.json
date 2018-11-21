@@ -20054,7 +20054,7 @@
                 {
                   "Name": "NumTopic",
                   "Type": "Int",
-                  "Desc": "The number of topics in the LDA",
+                  "Desc": "The number of topics",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -20209,7 +20209,7 @@
         {
           "Name": "NumTopic",
           "Type": "Int",
-          "Desc": "The number of topics in the LDA",
+          "Desc": "The number of topics",
           "Required": false,
           "SortOrder": 50.0,
           "IsNullable": false,
@@ -20225,6 +20225,18 @@
           }
         },
         {
+          "Name": "NumThreads",
+          "Type": "Int",
+          "Desc": "The number of training threads. Default value depends on number of logical processors.",
+          "Aliases": [
+            "t"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
           "Name": "NumMaxDocToken",
           "Type": "Int",
           "Desc": "The threshold of maximum count of tokens per doc",
@@ -20235,18 +20247,6 @@
           "SortOrder": 50.0,
           "IsNullable": false,
           "Default": 512
-        },
-        {
-          "Name": "NumThreads",
-          "Type": "Int",
-          "Desc": "The number of training threads. Default value depends on number of logical processors.",
-          "Aliases": [
-            "t"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": true,
-          "Default": null
         },
         {
           "Name": "AlphaSum",

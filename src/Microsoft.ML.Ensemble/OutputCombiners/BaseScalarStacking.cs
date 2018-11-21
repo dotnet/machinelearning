@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
-    public abstract class BaseScalarStacking : BaseStacking<Single>
+    internal abstract class BaseScalarStacking : BaseStacking<Single>
     {
         internal BaseScalarStacking(IHostEnvironment env, string name, ArgumentsBase args)
             : base(env, name, args)
@@ -25,11 +25,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         {
             Contracts.AssertNonEmpty(src);
             int len = src.Length;
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
-            Array.Copy(src, values, len);
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+            var editor = VBufferEditor.Create(ref dst, len);
+            src.CopyTo(editor.Values);
+            dst = editor.Commit();
         }
     }
 }

@@ -17,7 +17,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Data.Commands
 {
-    public sealed class TypeInfoCommand : ICommand
+    internal sealed class TypeInfoCommand : ICommand
     {
         internal const string LoadName = "TypeInfo";
         internal const string Summary = "Displays information about the standard primitive " +

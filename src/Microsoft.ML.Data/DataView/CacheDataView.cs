@@ -4,16 +4,17 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This is a dataview that wraps another dataview, and does on-demand caching of the
@@ -192,18 +193,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema => _subsetInput.Schema;
 
-        public long? GetRowCount(bool lazy = true)
+        /// <summary>
+        /// Return the number of rows if available.
+        /// </summary>
+        public long? GetRowCount()
         {
             if (_rowCount < 0)
-            {
-                if (lazy)
-                    return null;
-                if (_cacheDefaultWaiter == null)
-                    KickoffFiller(new int[0]);
-                _host.Assert(_cacheDefaultWaiter != null);
-                _cacheDefaultWaiter.Wait(long.MaxValue);
-                _host.Assert(_rowCount >= 0);
-            }
+                return null;
             return _rowCount;
         }
 
@@ -316,7 +312,7 @@ namespace Microsoft.ML.Runtime.Data
             _host.CheckValue(predicate, nameof(predicate));
             // The seeker needs to know the row count when it validates the row index to move to.
             // Calling GetRowCount here to force a wait indirectly so that _rowCount will have a valid value.
-            GetRowCount(false);
+            GetRowCount();
             _host.Assert(_rowCount >= 0);
             var waiter = WaiterWaiter.Create(this, predicate);
             if (waiter.IsTrivial)
@@ -1475,19 +1471,13 @@ namespace Microsoft.ML.Runtime.Data
                     Ctx.Assert(valueCount <= len);
                     Ctx.Assert(valueCount == len || indexCount == valueCount);
 
-                    T[] values = value.Values;
-                    Utils.EnsureSize(ref values, valueCount);
-                    _values.CopyTo(_valueBoundaries[idx], values, valueCount);
-                    int[] indices = value.Indices;
+                    var editor = VBufferEditor.Create(ref value, len, valueCount);
+                    _values.CopyTo(_valueBoundaries[idx], editor.Values, valueCount);
 
                     if (valueCount < len)
-                    {
-                        Utils.EnsureSize(ref indices, indexCount);
-                        _indices.CopyTo(_indexBoundaries[idx], indices, indexCount);
-                        value = new VBuffer<T>(len, indexCount, values, indices);
-                    }
-                    else
-                        value = new VBuffer<T>(len, values, indices);
+                        _indices.CopyTo(_indexBoundaries[idx], editor.Indices, indexCount);
+
+                    value = editor.Commit();
                 }
 
                 public override void Freeze()

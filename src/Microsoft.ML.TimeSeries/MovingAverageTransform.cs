@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return nb == 0 ? Single.NaN : sumValues / nb;
         }
 
-        public static Single ComputeMovingAverageNonUniform(FixedSizeQueue<Single> others, Single input, Single[] weights, int lag)
+        internal static Single ComputeMovingAverageNonUniform(FixedSizeQueue<Single> others, Single input, Single[] weights, int lag)
         {
             Single sumWeights = 0;
             Single sumValues = 0;
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// NaN value: only NaN values in the sliding window or +/- Infinite
         /// Inifinite value: one infinite value in the sliding window (sign is no relevant)
         /// </summary>
-        public static Single ComputeMovingAverageUniform(FixedSizeQueue<Single> others, Single input, int lag,
+        internal static Single ComputeMovingAverageUniform(FixedSizeQueue<Single> others, Single input, int lag,
                                                          Single lastDropped, ref Single currentSum,
                                                          ref bool initUniformMovingAverage,
                                                          ref int nbNanValues)
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // take part of the computation.
             private int _nbNanValues;
 
-            protected override void SetNaOutput(ref Single output)
+            private protected override void SetNaOutput(ref Single output)
             {
                 output = Single.NaN;
             }
@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="windowedBuffer"></param>
             /// <param name="iteration"></param>
             /// <param name="output"></param>
-            protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref Single output)
+            private protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref Single output)
             {
                 if (_weights == null)
                     output = ComputeMovingAverageUniform(windowedBuffer, input, _lag, _lastDroppedValue, ref _currentSum, ref _initUniformMovingAverage, ref _nbNanValues);
@@ -283,14 +283,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _lastDroppedValue = windowedBuffer[0];
             }
 
-            protected override void InitializeStateCore()
+            private protected override void InitializeStateCore()
             {
                 _weights = ((MovingAverageTransform)ParentTransform)._weights;
                 _lag = ((MovingAverageTransform)ParentTransform)._lag;
                 _initUniformMovingAverage = true;
             }
 
-            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need for parameter learning from the initial windowed buffer for this transform.
             }

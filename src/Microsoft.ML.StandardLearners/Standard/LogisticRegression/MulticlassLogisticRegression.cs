@@ -76,22 +76,24 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="weights">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public MulticlassLogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null,
+        public MulticlassLogisticRegression(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weightColumn, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeU4ScalarColumn(labelColumn), weights, advancedSettings,
                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -148,7 +150,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             _labelNames = new string[_numClasses];
-            ReadOnlyMemory<char>[] values = labelNames.Values;
+            ReadOnlySpan<ReadOnlyMemory<char>> values = labelNames.GetValues();
 
             // This hashset is used to verify the uniqueness of label names.
             HashSet<string> labelNamesSet = new HashSet<string>();
@@ -202,7 +204,7 @@ namespace Microsoft.ML.Runtime.Learners
                 scores[c] = bias + VectorUtils.DotProductWithOffset(in x, start, in feat);
             }
 
-            float logZ = MathUtils.SoftMax(scores, _numClasses);
+            float logZ = MathUtils.SoftMax(scores.AsSpan(0, _numClasses));
             float datumLoss = logZ;
 
             int lab = (int)label;
@@ -216,8 +218,9 @@ namespace Microsoft.ML.Runtime.Learners
                 float mult = weight * (modelProb - probLabel);
                 VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
-                Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-                grad.Values[c] += mult;
+                var editor = VBufferEditor.CreateFromBuffer(ref grad);
+                Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+                editor.Values[c] += mult;
             }
 
             Contracts.Check(FloatUtils.IsFinite(datumLoss), "Data contain bad values.");
@@ -270,7 +273,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Need to subtract L2 regularization loss.
                 // The bias term is not regularized.
-                var regLoss = VectorUtils.NormSquared(CurrentWeights.Values, BiasCount, CurrentWeights.Length - BiasCount) * L2Weight;
+                var regLoss = VectorUtils.NormSquared(CurrentWeights.GetValues().Slice(BiasCount)) * L2Weight;
                 deviance -= regLoss;
             }
 
@@ -392,8 +395,8 @@ namespace Microsoft.ML.Runtime.Learners
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
-        public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSavePfa.CanSavePfa => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
@@ -552,17 +555,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (ctx.TryLoadBinaryStream(LabelNamesSubModelFilename, r => labelNames = LoadLabelNames(ctx, r)))
                 _labelNames = labelNames;
 
-            string statsDir = Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename);
-            using (var statsEntry = ctx.Repository.OpenEntryOrNull(statsDir, ModelLoadContext.ModelStreamName))
-            {
-                if (statsEntry == null)
-                    _stats = null;
-                else
-                {
-                    using (var statsCtx = new ModelLoadContext(ctx.Repository, statsEntry, statsDir))
-                        _stats = LinearModelStatistics.Create(Host, statsCtx);
-                }
-            }
+            ctx.LoadModelOrNull< LinearModelStatistics, SignatureLoadModel>(Host, out _stats, ModelStatsSubModelFilename);
         }
 
         public static MulticlassLogisticRegressionPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -644,11 +637,12 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
                                     ctx.Writer.Write(i);
                                     count++;
@@ -671,21 +665,22 @@ namespace Microsoft.ML.Runtime.Learners
                     int count = 0;
                     foreach (var fw in _weights)
                     {
+                        var fwValues = fw.GetValues();
                         if (fw.IsDense)
                         {
-                            for (int i = 0; i < fw.Length; i++)
+                            for (int i = 0; i < fwValues.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
-                                    ctx.Writer.Write(fw.Values[i]);
+                                    ctx.Writer.Write(fwValues[i]);
                                     count++;
                                 }
                             }
                         }
                         else
                         {
-                            ctx.Writer.WriteSinglesNoCount(fw.GetValues());
-                            count += fw.Count;
+                            ctx.Writer.WriteSinglesNoCount(fwValues);
+                            count += fwValues.Length;
                         }
                     }
                     Host.Assert(count == numIndices);
@@ -698,35 +693,18 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.AssertValueOrNull(_stats);
             if (_stats != null)
-            {
-                using (var statsCtx = new ModelSaveContext(ctx.Repository,
-                    Path.Combine(ctx.Directory ?? "", ModelStatsSubModelFilename), ModelLoadContext.ModelStreamName))
-                {
-                    _stats.Save(statsCtx);
-                    statsCtx.Done();
-                }
-            }
+                ctx.SaveModel(_stats, ModelStatsSubModelFilename);
         }
 
         // REVIEW: Destroy.
         private static int NonZeroCount(in VBuffer<float> vector)
         {
             int count = 0;
-            if (!vector.IsDense)
+            var values = vector.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                for (int i = 0; i < vector.Count; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < vector.Length; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
+                if (values[i] != 0)
+                    count++;
             }
             return count;
         }
@@ -741,27 +719,24 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     Host.Check(src.Length == _numFeatures);
 
-                    var values = dst.Values;
-                    PredictCore(in src, ref values);
-                    dst = new VBuffer<float>(_numClasses, values, dst.Indices);
+                    PredictCore(in src, ref dst);
                 };
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        private void PredictCore(in VBuffer<float> src, ref float[] dst)
+        private void PredictCore(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _numFeatures, "src length should equal the number of features");
             var weights = _weights;
             if (!src.IsDense)
                 weights = DensifyWeights();
 
-            if (Utils.Size(dst) < _numClasses)
-                dst = new float[_numClasses];
-
+            var editor = VBufferEditor.Create(ref dst, _numClasses);
             for (int i = 0; i < _biases.Length; i++)
-                dst[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
+                editor.Values[i] = _biases[i] + VectorUtils.DotProduct(in weights[i], in src);
 
-            Calibrate(dst);
+            Calibrate(editor.Values);
+            dst = editor.Commit();
         }
 
         private VBuffer<float>[] DensifyWeights()
@@ -791,13 +766,13 @@ namespace Microsoft.ML.Runtime.Learners
             return _weightsDense;
         }
 
-        private void Calibrate(float[] dst)
+        private void Calibrate(Span<float> dst)
         {
-            Host.Assert(Utils.Size(dst) >= _numClasses);
+            Host.Assert(dst.Length >= _numClasses);
 
             // scores are in log-space; convert and fix underflow/overflow
             // TODO:   re-normalize probabilities to account for underflow/overflow?
-            float softmax = MathUtils.SoftMax(dst, _numClasses);
+            float softmax = MathUtils.SoftMax(dst.Slice(0, _numClasses));
             for (int i = 0; i < _numClasses; ++i)
                 dst[i] = MathUtils.ExpSlow(dst[i] - softmax);
         }
@@ -874,7 +849,7 @@ namespace Microsoft.ML.Runtime.Learners
                     "score[" + i.ToString() + "]");
             }
 
-            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores, {0});", _numClasses));
+            writer.WriteLine(string.Format("var softmax = MathUtils.SoftMax(scores.AsSpan(0, {0}));", _numClasses));
             for (int c = 0; c < _biases.Length; c++)
                 writer.WriteLine("output[{0}] = Math.Exp(scores[{0}] - softmax);", c);
         }
@@ -884,7 +859,7 @@ namespace Microsoft.ML.Runtime.Learners
             SaveAsText(writer, schema);
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -911,7 +886,7 @@ namespace Microsoft.ML.Runtime.Learners
             return PfaUtils.Call("m.link.softmax", PfaUtils.Call("model.reg.linear", input, cellRef));
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputs, string featureColumn)
         {
             Host.CheckValue(ctx, nameof(ctx));
 
