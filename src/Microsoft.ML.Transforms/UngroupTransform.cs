@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms
         private readonly SchemaImpl _schemaImpl;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="UngroupTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -205,7 +205,6 @@ namespace Microsoft.ML.Transforms
                 case MetadataUtils.Kinds.ScoreColumnSetId:
                 case MetadataUtils.Kinds.ScoreColumnKind:
                 case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.HasMissingValues:
                 case MetadataUtils.Kinds.IsUserVisible:
                     return true;
                 default:

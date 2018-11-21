@@ -45,7 +45,7 @@
       [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
   Hash: Vec<Key<U4, 0-1023>>
   HashBig: Vec<Key<U4, Min:0>>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 8 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -61,7 +61,7 @@
   Hash: Vec<Key<U4, 0-1023>>
   HashBig: Vec<Key<U4, Min:0>>
   NgramHashOne: Vec<R4, 16>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 9 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -78,7 +78,7 @@
   HashBig: Vec<Key<U4, Min:0>>
   NgramHashOne: Vec<R4, 16>
   HashNgram1: Vec<R4, 1024>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 11 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -97,7 +97,7 @@
   HashNgram1: Vec<R4, 1024>
   HashNgram2: Vec<R4, 256>
   HashNgram3: Vec<R4, 256>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 12 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -117,7 +117,7 @@
   HashNgram2: Vec<R4, 256>
   HashNgram3: Vec<R4, 256>
   HashNgram4: Vec<R4, 64>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 14 columns:
   Label: Text
   Attrs: Vec<Text, 2>
@@ -139,7 +139,7 @@
   HashNgram4: Vec<R4, 64>
   HashNgram5: Vec<R4, 8>
   HashNgram6: Vec<R4, 8>
----- NgramHashTransform ----
+---- NgramHashingTransformer ----
 16 columns:
   Label: Text
   Attrs: Vec<Text, 2>

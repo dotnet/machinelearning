@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Learners
                     (in VBuffer<float> x, ref VBuffer<float> grad) =>
                     {
                         // Zero out the gradient by sparsifying.
-                        grad = new VBuffer<float>(grad.Length, 0, grad.Values, grad.Indices);
+                        VBufferUtils.Resize(ref grad, grad.Length, 0);
                         EnsureBiases(ref grad);
 
                         if (cursor == null || !cursor.MoveNext())
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));

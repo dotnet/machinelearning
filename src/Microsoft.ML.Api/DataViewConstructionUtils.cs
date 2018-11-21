@@ -238,11 +238,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n
-                        ? new TDst[n]
-                        : dst.Values, dst.Indices);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     for (int i = 0; i < n; i++)
-                        dst.Values[i] = convert(buf[i]);
+                        dstEditor.Values[i] = convert(buf[i]);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -267,10 +266,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values,
-                        dst.Indices);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     if (buf != null)
-                        Array.Copy(buf, dst.Values, n);
+                        buf.AsSpan(0, n).CopyTo(dstEditor.Values);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -955,11 +954,12 @@ namespace Microsoft.ML.Runtime.Api
         {
             var value = (string[])(object)Value;
             var n = Utils.Size(value);
-            dst = new VBuffer<ReadOnlyMemory<char>>(n, Utils.Size(dst.Values) < n ? new ReadOnlyMemory<char>[n] : dst.Values, dst.Indices);
+            var dstEditor = VBufferEditor.Create(ref dst, n);
 
             for (int i = 0; i < n; i++)
-                dst.Values[i] = value[i].AsMemory();
+                dstEditor.Values[i] = value[i].AsMemory();
 
+            dst = dstEditor.Commit();
         }
 
         private ValueGetter<VBuffer<TDst>> GetArrayGetter<TDst>()
@@ -968,9 +968,10 @@ namespace Microsoft.ML.Runtime.Api
             var n = Utils.Size(value);
             return (ref VBuffer<TDst> dst) =>
             {
-                dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values, dst.Indices);
+                var dstEditor = VBufferEditor.Create(ref dst, n);
                 if (value != null)
-                    Array.Copy(value, dst.Values, n);
+                    value.AsSpan(0, n).CopyTo(dstEditor.Values);
+                dst = dstEditor.Commit();
             };
         }
 

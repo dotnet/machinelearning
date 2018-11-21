@@ -18,37 +18,27 @@ namespace Microsoft.ML.Benchmarks
                 .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
-
-            UnionRule = ConfigUnionRule.AlwaysUseLocal; // global config can be overwritten with local (the one set via [ConfigAttribute])
         }
 
         protected virtual Job GetJobDefinition()
             => Job.Default
                 .WithWarmupCount(1) // ML.NET benchmarks are typically CPU-heavy benchmarks, 1 warmup is usually enough
-                .WithMaxIterationCount(20);
+                .WithMaxIterationCount(20)
+                .AsDefault(); // this way we tell BDN that it's a default config which can be overwritten
 
         /// <summary>
         /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
         /// </summary>
         private IToolchain CreateToolchain()
         {
-            var tfm = GetTargetFrameworkMoniker();
-            var csProj = CsProjCoreToolchain.From(new NetCoreAppSettings(targetFrameworkMoniker: tfm, runtimeFrameworkVersion: null, name: tfm));
+            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
+            var csProj = CsProjCoreToolchain.Current.Value;
 
             return new Toolchain(
                 tfm,
                 new ProjectGenerator(tfm), // custom generator that copies native dependencies
                 csProj.Builder,
                 csProj.Executor);
-        }
-
-        private static string GetTargetFrameworkMoniker()
-        {
-#if NETCOREAPP3_0 // todo: remove the #IF DEFINES when BDN 0.11.2 gets released (BDN gains the 3.0 support)
-            return "netcoreapp3.0";
-#else
-            return NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
-#endif
         }
 
         private static string GetBuildConfigurationName()

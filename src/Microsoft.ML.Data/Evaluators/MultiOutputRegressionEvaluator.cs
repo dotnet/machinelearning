@@ -246,11 +246,11 @@ namespace Microsoft.ML.Runtime.Data
                     _fnLoss = new double[size];
                 }
 
-                public void Update(Float[] score, Float[] label, int length, Float weight)
+                public void Update(ReadOnlySpan<float> score, ReadOnlySpan<float> label, int length, Float weight)
                 {
                     Contracts.Assert(length == _l1Loss.Length);
-                    Contracts.Assert(Utils.Size(score) >= length);
-                    Contracts.Assert(Utils.Size(label) >= length);
+                    Contracts.Assert(score.Length >= length);
+                    Contracts.Assert(label.Length >= length);
 
                     Double wht = weight;
                     Double l1 = 0;
@@ -340,22 +340,22 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                Float[] label;
+                ReadOnlySpan<float> label;
                 if (!_label.IsDense)
                 {
                     _label.CopyTo(_labelArr);
                     label = _labelArr;
                 }
                 else
-                    label = _label.Values;
-                Float[] score;
+                    label = _label.GetValues();
+                ReadOnlySpan<float> score;
                 if (!_score.IsDense)
                 {
                     _score.CopyTo(_scoreArr);
                     score = _scoreArr;
                 }
                 else
-                    score = _score.Values;
+                    score = _score.GetValues();
                 UnweightedCounters.Update(score, label, _size, 1);
                 if (WeightedCounters != null)
                     WeightedCounters.Update(score, label, _size, weight);
@@ -363,13 +363,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var values = slotNames.Values;
-                if (Utils.Size(values) < _size)
-                    values = new ReadOnlyMemory<char>[_size];
-
+                var editor = VBufferEditor.Create(ref slotNames, _size);
                 for (int i = 0; i < _size; i++)
-                    values[i] = string.Format("(Label_{0})", i).AsMemory();
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(_size, values);
+                    editor.Values[i] = string.Format("(Label_{0})", i).AsMemory();
+                slotNames = editor.Commit();
             }
         }
     }
@@ -605,12 +602,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < length)
-                        values = new ReadOnlyMemory<char>[length];
+                    var editor = VBufferEditor.Create(ref dst, length);
                     for (int i = 0; i < length; i++)
-                        values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(length, values);
+                        editor.Values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
+                    dst = editor.Commit();
                 };
         }
     }

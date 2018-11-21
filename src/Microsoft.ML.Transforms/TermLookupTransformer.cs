@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             protected override void GetMissing(ref VBuffer<TItem> dst)
             {
-                dst = new VBuffer<TItem>(Type.VectorSize, 0, dst.Values, dst.Indices);
+                VBufferUtils.Resize(ref dst, Type.VectorSize, 0);
             }
 
             protected override void CopyValue(in VBuffer<TItem> src, ref VBuffer<TItem> dst)
@@ -513,8 +513,8 @@ namespace Microsoft.ML.Transforms.Categorical
                 (valueColumn, "Value")
             };
 
-            var view = new CopyColumnsTransform(host, cols.ToArray()).Transform(lookup);
-            view = SelectColumnsTransform.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
+            var view = new ColumnsCopyingTransformer(host, cols.ToArray()).Transform(lookup);
+            view = ColumnSelectingTransformer.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())
