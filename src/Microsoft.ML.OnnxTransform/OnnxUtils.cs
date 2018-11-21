@@ -67,7 +67,7 @@ namespace Microsoft.ML.Transforms
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
 
-        public OnnxModel(string modelFile)
+        public OnnxModel(string modelFile, int gpuDeviceId)
         {
             _modelFile = modelFile;
 
@@ -75,21 +75,21 @@ namespace Microsoft.ML.Transforms
             var modelFileInfo = new FileInfo(modelFile);
             _modelName = Path.GetFileNameWithoutExtension(modelFileInfo.Name);
             _modelManager = new ModelManager(modelFileInfo.Directory.FullName, true);
-            _modelManager.InitOnnxModel(_modelName, _ignoredVersion);
+            _modelManager.InitOnnxModel(_modelName, _ignoredVersion, gpuDeviceId);
 
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
             InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
             OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
         }
 
-        public static OnnxModel CreateFromBytes(byte[] modelBytes)
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, int gpuDeviceId)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempModelDir);
 
             var tempModelFile = Path.Combine(tempModelDir, "model.onnx");
             File.WriteAllBytes(tempModelFile, modelBytes);
-            return new OnnxModel(tempModelFile);
+            return new OnnxModel(tempModelFile, gpuDeviceId);
 
             // TODO:
             // tempModelFile is needed in case the model needs to be saved

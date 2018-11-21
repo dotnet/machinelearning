@@ -47,6 +47,9 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string[] OutputColumns;
+
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on. Typically 0,1 etc. Default of -1 runs on CPU. Requires CUDA 9.2.", SortOrder = 3)]
+            public int GpuDeviceId;
         }
 
         private readonly Arguments _args;
@@ -74,9 +77,9 @@ namespace Microsoft.ML.Transforms
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1)
         {
-            var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns };
+            var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns, GpuDeviceId = gpuDeviceId };
             return Create(env, args, input);
         }
 
@@ -140,10 +143,10 @@ namespace Microsoft.ML.Transforms
             {
                 Host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
                 Host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-                Model = new OnnxModel(args.ModelFile);
+                Model = new OnnxModel(args.ModelFile, args.GpuDeviceId);
             }
             else
-                Model = OnnxModel.CreateFromBytes(modelBytes);
+                Model = OnnxModel.CreateFromBytes(modelBytes, args.GpuDeviceId);
 
             var modelInfo = Model.ModelInfo;
             Inputs = args.InputColumns;
@@ -164,13 +167,13 @@ namespace Microsoft.ML.Transforms
             _args = args;
         }
 
-        public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new[] { inputColumn }, OutputColumns = new[] { outputColumn } })
+        public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn, int gpuDeviceId = -1)
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new[] { inputColumn }, OutputColumns = new[] { outputColumn }, GpuDeviceId = gpuDeviceId })
         {
         }
 
-        public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns })
+        public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1)
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns, GpuDeviceId = gpuDeviceId })
         {
         }
 
@@ -419,8 +422,8 @@ namespace Microsoft.ML.Transforms
     }
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new OnnxTransform(env, modelFile, inputs, outputs))
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs, int gpuDeviceId = -1)
+           : this(env, new OnnxTransform(env, modelFile, inputs, outputs, gpuDeviceId))
         {
         }
 
