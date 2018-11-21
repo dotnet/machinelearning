@@ -44,17 +44,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // Read the data
             var data = reader.Read(dataFile);
 
-
-
-            // Step 2: Pipeline 
-            // Featurize the text column through the FeaturizeText API. 
-            // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
-            // the "Features" column produced by FeaturizeText as the features column.
-
+            // Step 2: Pipeline
+            // Concatenate the features to create a Feature vector.
+            // Then append a gam regressor, setting the "MedianHomeValue" column as the label of the dataset, and 
+            // the "Features" column produced by concatenation as the features column.
             var pipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental", "PercentNonRetail", 
                 "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s", "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
                     .Append(mlContext.Regression.Trainers.GeneralizedAdditiveModels(labelColumn: "MedianHomeValue", featureColumn: "Features", maxBins: 16));
-
             var fitPipeline = pipeline.Fit(data);
 
             // Extract the model from the pipeline
