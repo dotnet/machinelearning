@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -168,11 +169,11 @@ namespace Microsoft.ML.Transforms
                 return col => false;
             }
 
-            public Schema.Column[] GetOutputColumns()
+            public Schema.DetachedColumn[] GetOutputColumns()
             {
                 var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.
-                return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => dstRow.Schema[x]).ToArray();
+                return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => new Schema.DetachedColumn(dstRow.Schema[x])).ToArray();
             }
 
             public void Save(ModelSaveContext ctx)
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
-            var addedSchemaShape = SchemaShape.Create(new Schema(addedCols));
+            var addedSchemaShape = SchemaShape.Create(SchemaBuilder.MakeSchema(addedCols));
 
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
