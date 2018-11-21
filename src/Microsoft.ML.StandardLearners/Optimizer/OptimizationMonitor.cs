@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             Console.Error.Write(_checkingMessage);
             Console.Error.Flush();
-            VBuffer<float> x = state.X;
+            var x = state.X;
             var lastDir = state.LastDir;
             Float checkResult = GradientTester.Test(state.Function, in x, ref lastDir, true, ref _newGrad, ref _newX);
             for (int i = 0; i < _checkingMessage.Length; i++)

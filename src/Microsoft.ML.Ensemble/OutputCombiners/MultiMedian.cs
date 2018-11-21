@@ -81,7 +81,9 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                         return;
                     }
 
-                    var editor = VBufferEditor.Create(ref dst, len);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < len)
+                        values = new Single[len];
 
                     int count = src.Length;
                     if (Utils.Size(raw) < count)
@@ -90,11 +92,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     {
                         for (int j = 0; j < count; j++)
                             raw[j] = i < src[j].Length ? src[j].GetItemOrDefault(i) : 0;
-                        editor.Values[i] = MathUtils.GetMedianInPlace(raw, count);
+                        values[i] = MathUtils.GetMedianInPlace(raw, count);
                     }
 
                     // Set the output to values.
-                    dst = editor.Commit();
+                    dst = new VBuffer<Single>(len, values, dst.Indices);
                 };
         }
     }

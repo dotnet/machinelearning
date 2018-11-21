@@ -2,16 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(LinearModelStatistics), null, typeof(SignatureLoadModel),
@@ -83,13 +84,13 @@ namespace Microsoft.ML.Runtime.Learners
         // of the variance-covariance matrix.
         private readonly VBuffer<Single>? _coeffStdError;
 
-        public long TrainingExampleCount => _trainingExampleCount;
+        public long TrainingExampleCount { get { return _trainingExampleCount; } }
 
-        public Single Deviance => _deviance;
+        public Single Deviance { get { return _deviance; } }
 
-        public Single NullDeviance => _nullDeviance;
+        public Single NullDeviance { get { return _nullDeviance; } }
 
-        public int ParametersCount => _paramCount;
+        public int ParametersCount { get { return _paramCount; } }
 
         internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
         {
@@ -106,11 +107,11 @@ namespace Microsoft.ML.Runtime.Learners
         internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, in VBuffer<Single> coeffStdError)
             : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
-            _env.Assert(coeffStdError.GetValues().Length == _paramCount);
+            _env.Assert(coeffStdError.Count == _paramCount);
             _coeffStdError = coeffStdError;
         }
 
-        internal LinearModelStatistics(IHostEnvironment env, ModelLoadContext ctx)
+        public LinearModelStatistics(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _env = env;
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Runtime.Learners
             _coeffStdError = new VBuffer<Single>(length, _paramCount, stdErrorValues, stdErrorIndices);
         }
 
-        internal static LinearModelStatistics Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static LinearModelStatistics Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -208,9 +209,6 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.Writer.WriteIntsNoCount(_coeffStdError.Value.GetIndices());
         }
 
-        /// <summary>
-        /// Computes the standart deviation, Z-Score and p-Value.
-        /// </summary>
         public static bool TryGetBiasStatistics(LinearModelStatistics stats, Single bias, out Single stdError, out Single zScore, out Single pValue)
         {
             if (!stats._coeffStdError.HasValue)
@@ -222,10 +220,10 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
-            stdError = stats._coeffStdError.Value.GetValues()[0];
+            stdError = stats._coeffStdError.Value.Values[0];
             Contracts.Assert(stdError == stats._coeffStdError.Value.GetItemOrDefault(0));
             zScore = bias / stdError;
-            pValue = 1.0f - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
+            pValue = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
             return true;
         }
 
@@ -240,55 +238,61 @@ namespace Microsoft.ML.Runtime.Learners
 
             Contracts.Assert(stats._coeffStdError.Value.Length == weights.Length + 1);
 
-            var statisticsCount = stats.ParametersCount - 1;
-
-            var estimateEditor = VBufferEditor.Create(ref estimate, statisticsCount);
-            var stdErrorEditor = VBufferEditor.Create(ref stdErr, statisticsCount);
-            var zScoreEditor = VBufferEditor.Create(ref zScore, statisticsCount);
-            var pValueEditor = VBufferEditor.Create(ref pValue, statisticsCount);
+            var estimateValues = estimate.Values;
+            if (Utils.Size(estimateValues) < stats.ParametersCount - 1)
+                estimateValues = new Single[stats.ParametersCount - 1];
+            var stdErrorValues = stdErr.Values;
+            if (Utils.Size(stdErrorValues) < stats.ParametersCount - 1)
+                stdErrorValues = new Single[stats.ParametersCount - 1];
+            var zScoreValues = zScore.Values;
+            if (Utils.Size(zScoreValues) < stats.ParametersCount - 1)
+                zScoreValues = new Single[stats.ParametersCount - 1];
+            var pValueValues = pValue.Values;
+            if (Utils.Size(pValueValues) < stats.ParametersCount - 1)
+                pValueValues = new Single[stats.ParametersCount - 1];
 
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
             bool denseStdError = stats._coeffStdError.Value.IsDense;
-            ReadOnlySpan<int> stdErrorIndices = stats._coeffStdError.Value.GetIndices();
-            ReadOnlySpan<float> coeffStdErrorValues = stats._coeffStdError.Value.GetValues();
+            int[] stdErrorIndices = stats._coeffStdError.Value.Indices;
             for (int i = 1; i < stats.ParametersCount; i++)
             {
                 int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
                 Contracts.Assert(0 <= wi && wi < weights.Length);
-                var weight = estimateEditor.Values[i - 1] = weights.GetItemOrDefault(wi);
-                var stdError = stdErrorEditor.Values[wi] = coeffStdErrorValues[i];
-                zScoreEditor.Values[i - 1] = weight / stdError;
-                pValueEditor.Values[i - 1] = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScoreEditor.Values[i - 1] / sqrt2));
+                var weight = estimateValues[i - 1] = weights.GetItemOrDefault(wi);
+                var stdError = stdErrorValues[wi] = stats._coeffStdError.Value.Values[i];
+                zScoreValues[i - 1] = weight / stdError;
+                pValueValues[i - 1] = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScoreValues[i - 1] / sqrt2));
             }
 
-            estimate = estimateEditor.Commit();
-            stdErr = stdErrorEditor.Commit();
-            zScore = zScoreEditor.Commit();
-            pValue = pValueEditor.Commit();
+            estimate = new VBuffer<Single>(stats.ParametersCount - 1, estimateValues, estimate.Indices);
+            stdErr = new VBuffer<Single>(stats.ParametersCount - 1, stdErrorValues, stdErr.Indices);
+            zScore = new VBuffer<Single>(stats.ParametersCount - 1, zScoreValues, zScore.Indices);
+            pValue = new VBuffer<Single>(stats.ParametersCount - 1, pValueValues, pValue.Indices);
 
             var slotNames = names;
             getSlotNames =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var editor = VBufferEditor.Create(ref dst, statisticsCount);
-                    ReadOnlySpan<int> stdErrorIndices2 = stats._coeffStdError.Value.GetIndices();
-                    for (int i = 1; i <= statisticsCount; i++)
+                    var values = dst.Values;
+                    if (Utils.Size(values) < stats.ParametersCount - 1)
+                        values = new ReadOnlyMemory<char>[stats.ParametersCount - 1];
+                    for (int i = 1; i < stats.ParametersCount; i++)
                     {
-                        int wi = denseStdError ? i - 1 : stdErrorIndices2[i] - 1;
-                        editor.Values[i - 1] = slotNames.GetItemOrDefault(wi);
+                        int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
+                        values[i - 1] = slotNames.GetItemOrDefault(wi);
                     }
-                    dst = editor.Commit();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(stats.ParametersCount - 1, values, dst.Indices);
                 };
         }
 
-        private List<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema)
+        private IEnumerable<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema)
         {
             Contracts.AssertValue(_env);
             _env.CheckValue(parent, nameof(parent));
 
             if (!_coeffStdError.HasValue)
-                return new List<CoefficientStatistics>();
+                yield break;
 
             var weights = parent.Weights2 as IReadOnlyList<Single>;
             _env.Assert(_paramCount == 1 || weights != null);
@@ -297,12 +301,11 @@ namespace Microsoft.ML.Runtime.Learners
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Count, ref names);
 
-            ReadOnlySpan<float> stdErrorValues = _coeffStdError.Value.GetValues();
+            Single[] stdErrorValues = _coeffStdError.Value.Values;
             const Double sqrt2 = 1.41421356237; // Math.Sqrt(2);
 
-            List<CoefficientStatistics> result = new List<CoefficientStatistics>(_paramCount - 1);
             bool denseStdError = _coeffStdError.Value.IsDense;
-            ReadOnlySpan<int> stdErrorIndices = _coeffStdError.Value.GetIndices();
+            int[] stdErrorIndices = _coeffStdError.Value.Indices;
             Single[] zScores = new Single[_paramCount - 1];
             for (int i = 1; i < _paramCount; i++)
             {
@@ -315,9 +318,8 @@ namespace Microsoft.ML.Runtime.Learners
                 var stdError = stdErrorValues[i];
                 var zScore = zScores[i - 1] = weight / stdError;
                 var pValue = 1 - (Single)ProbabilityFunctions.Erf(Math.Abs(zScore / sqrt2));
-                result.Add(new CoefficientStatistics(name, weight, stdError, zScore, pValue));
+                yield return new CoefficientStatistics(name, weight, stdError, zScore, pValue);
             }
-            return result;
         }
 
         /// <summary>

@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Tools
 {
-    internal sealed class SavePredictorCommand : ICommand
+    public sealed class SavePredictorCommand : ICommand
     {
         public sealed class Arguments
         {

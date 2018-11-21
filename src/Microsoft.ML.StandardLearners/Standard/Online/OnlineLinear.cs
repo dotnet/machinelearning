@@ -130,18 +130,16 @@ namespace Microsoft.ML.Trainers.Online
                             numFeatures + 1, numFeatures);
                     }
 
-                    var weightValues = new float[numFeatures];
+                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
-                    Weights = new VBuffer<float>(numFeatures, weightValues);
+                        Weights.Values[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
                     Bias = Float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
                 else if (parent.Args.InitWtsDiameter > 0)
                 {
-                    var weightValues = new float[numFeatures];
+                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
                     for (int i = 0; i < numFeatures; i++)
-                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
-                    Weights = new VBuffer<float>(numFeatures, weightValues);
+                        Weights.Values[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
                     Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
                 }
                 else if (numFeatures <= 1000)
@@ -256,7 +254,7 @@ namespace Microsoft.ML.Trainers.Online
             return args;
         }
 
-        private protected sealed override TModel TrainModelCore(TrainContext context)
+        protected sealed override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;

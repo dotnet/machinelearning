@@ -594,7 +594,6 @@ namespace Microsoft.ML.Transforms.Normalizers
                             };
                         return del;
                     }
-
                 }
 
                 // REVIEW: Does it make sense to have 3 separate classes for the 3 cases in GetResult?
@@ -1033,11 +1032,13 @@ namespace Microsoft.ML.Transforms.Normalizers
 
             private static class Dbl
             {
-                public sealed class ImplOne : BinColumnFunction
+                public sealed class ImplOne : BinColumnFunction, NormalizerTransformer.IBinData<TFloat>
                 {
                     private readonly TFloat[] _binUpperBounds;
                     private readonly TFloat _den;
                     private readonly TFloat _offset;
+
+                    ImmutableArray<TFloat> NormalizerTransformer.IBinData<TFloat>.UpperBounds => ImmutableArray.Create(_binUpperBounds);
 
                     public ImplOne(IHost host, TFloat[] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1101,16 +1102,16 @@ namespace Microsoft.ML.Transforms.Normalizers
                     {
                         value = BinUtils.GetValue(in input, _binUpperBounds, _den, _offset);
                     }
-
-                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                         => new NormalizingTransformer.BinNormalizerModelParameters<TFloat>(ImmutableArray.Create(_binUpperBounds), _den,_offset);
                 }
 
-                public sealed class ImplVec : BinColumnFunction
+                public sealed class ImplVec : BinColumnFunction, NormalizerTransformer.IBinData<ImmutableArray<TFloat>>
                 {
                     private readonly TFloat[][] _binUpperBounds;
                     private readonly TFloat[] _den;
                     private readonly TFloat[] _offset;
+
+                    ImmutableArray<ImmutableArray<TFloat>> NormalizerTransformer.IBinData<ImmutableArray<TFloat>>.UpperBounds
+                        => _binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray();
 
                     public ImplVec(IHost host, TFloat[][] binUpperBounds, bool fixZero)
                         : base(host)
@@ -1240,7 +1241,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                         }
                         else
                         {
-                            var indices = input.GetIndices();
+                            var indices = input.Indices;
                             for (int ii = 0; ii < values.Length; ii++)
                             {
                                 int i = indices[ii];
@@ -1251,11 +1252,6 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                         bldr.GetResult(ref value);
                     }
-
-                    public override NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams()
-                          => new NormalizingTransformer.BinNormalizerModelParameters<ImmutableArray<TFloat>>(_binUpperBounds.Select(b => ImmutableArray.Create(b)).ToImmutableArray(),
-                              ImmutableArray.Create(_den),
-                              ImmutableArray.Create(_offset));
                 }
             }
         }
@@ -1414,7 +1410,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in val))
                         return false;
-                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = val;
+                    _buffer.Values[0] = val;
                     Aggregator.ProcessValue(in _buffer);
                     return true;
                 }
@@ -1558,7 +1554,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 {
                     if (!base.ProcessValue(in origVal))
                         return false;
-                    VBufferEditor.CreateFromBuffer(ref _buffer).Values[0] = origVal;
+                    _buffer.Values[0] = origVal;
                     _aggregator.ProcessValue(in _buffer);
                     return true;
                 }
@@ -1890,7 +1886,7 @@ namespace Microsoft.ML.Transforms.Normalizers
 
                 protected override bool AcceptColumnValue(in VBuffer<TFloat> colValuesBuffer)
                 {
-                    return !VBufferUtils.HasNaNs(in colValuesBuffer);
+                    return !colValuesBuffer.Values.Any(TFloat.IsNaN);
                 }
 
                 public override IColumnFunction CreateColumnFunction()

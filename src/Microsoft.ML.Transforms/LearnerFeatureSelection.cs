@@ -21,11 +21,10 @@ namespace Microsoft.ML.Transforms
     /// is greater than a threshold.
     /// Instantiates a DropSlots transform to actually drop the slots.
     /// </summary>
-    internal static class LearnerFeatureSelectionTransform
+    public static class LearnerFeatureSelectionTransform
     {
         internal const string Summary = "Selects the slots for which the absolute value of the corresponding weight in a linear learner is greater than a threshold.";
 
-#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "If the corresponding absolute value of the weight for a slot is greater than this threshold, the slot is preserved", ShortName = "ft", SortOrder = 2)]
@@ -34,8 +33,6 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of slots to preserve", ShortName = "topk", SortOrder = 1)]
             public int? NumSlotsToKeep;
 
-            // If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer, but the utility
-            // of this would be limited because estimators and transformers now act more or less like this transform used to.
             [Argument(ArgumentType.Multiple, HelpText = "Filter", ShortName = "f", SortOrder = 1, SignatureType = typeof(SignatureFeatureScorerTrainer))]
             public IComponentFactory<ITrainer<IPredictorWithFeatureWeights<Single>>> Filter =
                 ComponentFactoryUtils.CreateFromFunction(env =>
@@ -77,7 +74,6 @@ namespace Microsoft.ML.Transforms
                 ectx.CheckUserArg((NumSlotsToKeep ?? int.MaxValue) > 0, nameof(NumSlotsToKeep), "Must be positive");
             }
         }
-#pragma warning restore CS0649
 
         internal static string RegistrationName = "LearnerFeatureSelectionTransform";
 
@@ -124,10 +120,9 @@ namespace Microsoft.ML.Transforms
             var col = new DropSlotsTransform.Column();
             col.Source = args.FeatureColumn;
             selectedCount = 0;
-            var scoresValues = scores.GetValues();
 
             // Degenerate case, dropping all slots.
-            if (scoresValues.Length == 0)
+            if (scores.Count == 0)
             {
                 var range = new DropSlotsTransform.Range();
                 col.Slots = new DropSlotsTransform.Range[] { range };
@@ -144,13 +139,13 @@ namespace Microsoft.ML.Transforms
             else
             {
                 Contracts.Assert(args.NumSlotsToKeep.HasValue);
-                threshold = ComputeThreshold(scoresValues, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
+                threshold = ComputeThreshold(scores.Values, scores.Count, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
             }
 
             var slots = new List<DropSlotsTransform.Range>();
-            for (int i = 0; i < scoresValues.Length; i++)
+            for (int i = 0; i < scores.Count; i++)
             {
-                var score = Math.Abs(scoresValues[i]);
+                var score = Math.Abs(scores.Values[i]);
                 if (score > threshold)
                 {
                     selectedCount++;
@@ -165,9 +160,9 @@ namespace Microsoft.ML.Transforms
 
                 var range = new DropSlotsTransform.Range();
                 range.Min = i;
-                while (++i < scoresValues.Length)
+                while (++i < scores.Count)
                 {
-                    score = Math.Abs(scoresValues[i]);
+                    score = Math.Abs(scores.Values[i]);
                     if (score > threshold)
                     {
                         selectedCount++;
@@ -186,7 +181,6 @@ namespace Microsoft.ML.Transforms
 
             if (!scores.IsDense)
             {
-                var scoresIndices = scores.GetIndices();
                 int ii = 0;
                 var count = slots.Count;
                 for (int i = 0; i < count; i++)
@@ -196,16 +190,16 @@ namespace Microsoft.ML.Transforms
                     var min = range.Min;
                     var max = range.Max.Value;
                     Contracts.Assert(min <= max);
-                    Contracts.Assert(max < scoresValues.Length);
+                    Contracts.Assert(max < scores.Count);
 
-                    range.Min = min == 0 ? 0 : scoresIndices[min - 1] + 1;
-                    range.Max = max == scoresIndices.Length - 1 ? scores.Length - 1 : scoresIndices[max + 1] - 1;
+                    range.Min = min == 0 ? 0 : scores.Indices[min - 1] + 1;
+                    range.Max = max == scores.Count - 1 ? scores.Length - 1 : scores.Indices[max + 1] - 1;
 
                     // Add the gaps before this range.
                     for (; ii < min; ii++)
                     {
-                        var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
-                        var gapMax = scoresIndices[ii] - 1;
+                        var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
+                        var gapMax = scores.Indices[ii] - 1;
                         if (gapMin <= gapMax)
                         {
                             var gap = new DropSlotsTransform.Range();
@@ -218,10 +212,10 @@ namespace Microsoft.ML.Transforms
                 }
 
                 // Add the gaps after the last range.
-                for (; ii <= scoresIndices.Length; ii++)
+                for (; ii <= scores.Count; ii++)
                 {
-                    var gapMin = ii == 0 ? 0 : scoresIndices[ii - 1] + 1;
-                    var gapMax = ii == scoresIndices.Length ? scores.Length - 1 : scoresIndices[ii] - 1;
+                    var gapMin = ii == 0 ? 0 : scores.Indices[ii - 1] + 1;
+                    var gapMax = ii == scores.Count ? scores.Length - 1 : scores.Indices[ii] - 1;
                     if (gapMin <= gapMax)
                     {
                         var gap = new DropSlotsTransform.Range();
@@ -246,12 +240,12 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        private static float ComputeThreshold(ReadOnlySpan<float> scores, int topk, out int tiedScoresToKeep)
+        private static float ComputeThreshold(float[] scores, int count, int topk, out int tiedScoresToKeep)
         {
             // Use a min-heap for the topk elements
             var heap = new Heap<float>((f1, f2) => f1 > f2, topk);
 
-            for (int i = 0; i < scores.Length; i++)
+            for (int i = 0; i < count; i++)
             {
                 var score = Math.Abs(scores[i]);
                 if (float.IsNaN(score))

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Normalizers;
 using System;
@@ -23,43 +21,56 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TrainAndPredictIrisModelUsingDirectInstantiationTest()
         {
-            var mlContext = new MLContext(seed: 1, conc: 1);
-
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
-            {
-                HasHeader = false,
-                Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                    new TextLoader.Column("PetalWidth", DataKind.R4, 4)
-                }
-            });
-
-            var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                .Append(mlContext.Transforms.Normalize("Features"))
-                .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
-
-            // Read training and test data sets
-            string dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            string dataPath = GetDataPath("iris.txt");
             string testDataPath = dataPath;
-            var trainData = reader.Read(dataPath);
-            var testData = reader.Read(testDataPath);
 
-            // Train the pipeline
-            var trainedModel = pipe.Fit(trainData);
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+            {
+                // Pipeline
+                var loader = TextLoader.ReadFile(env,
+                    new TextLoader.Arguments()
+                    {
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
+                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
+                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
+                            new TextLoader.Column("PetalWidth", DataKind.R4, 4)
+                        }
+                    }, new MultiFileSource(dataPath));
 
-            // Make prediction and then evaluate the trained pipeline
-            var predicted = trainedModel.Transform(testData);
-            var metrics = mlContext.MulticlassClassification.Evaluate(predicted);
-            CompareMatrics(metrics);
-            var predictFunction = trainedModel.MakePredictionFunction<IrisData, IrisPrediction>(mlContext);
-            ComparePredictions(predictFunction);
+                IDataView pipeline = new ConcatTransform(env, "Features",
+                    "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
+
+                // NormalizingEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
+                pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
+
+                // Train
+                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
+
+                // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
+                var cached = new CacheDataView(env, pipeline, prefetch: null);
+                var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
+                var pred = trainer.Train(trainRoles);
+
+                // Get scorer and evaluate the predictions from test data
+                IDataScorerTransform testDataScorer = GetScorer(env, pipeline, pred, testDataPath);
+                var metrics = Evaluate(env, testDataScorer);
+                CompareMatrics(metrics);
+
+                // Create prediction engine and test predictions
+                var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(testDataScorer);
+                ComparePredictions(model);
+
+                // Get feature importance i.e. weight vector
+                var summary = ((MulticlassLogisticRegressionPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
+                Assert.Equal(7.757864, Convert.ToDouble(summary[0].Value), 5);
+            }
         }
 
-        private void ComparePredictions(PredictionFunction<IrisData, IrisPrediction> model)
+        private void ComparePredictions(PredictionEngine<IrisData, IrisPrediction> model)
         {
             IrisPrediction prediction = model.Predict(new IrisData()
             {
@@ -98,17 +109,46 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(0, prediction.PredictedLabels[2], 2);
         }
 
-        private void CompareMatrics(MultiClassClassifierEvaluator.Result metrics)
+        private void CompareMatrics(ClassificationMetrics metrics)
         {
             Assert.Equal(.98, metrics.AccuracyMacro);
             Assert.Equal(.98, metrics.AccuracyMicro, 2);
-            Assert.InRange(metrics.LogLoss, .05, .06);
+            Assert.Equal(.06, metrics.LogLoss, 2);
             Assert.InRange(metrics.LogLossReduction, 94, 96);
+            Assert.Equal(1, metrics.TopKAccuracy);
 
             Assert.Equal(3, metrics.PerClassLogLoss.Length);
             Assert.Equal(0, metrics.PerClassLogLoss[0], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[1], 1);
             Assert.Equal(.1, metrics.PerClassLogLoss[2], 1);
+
+            ConfusionMatrix matrix = metrics.ConfusionMatrix;
+            Assert.Equal(3, matrix.Order);
+            Assert.Equal(3, matrix.ClassNames.Count);
+            Assert.Equal("0", matrix.ClassNames[0]);
+            Assert.Equal("1", matrix.ClassNames[1]);
+            Assert.Equal("2", matrix.ClassNames[2]);
+
+            Assert.Equal(50, matrix[0, 0]);
+            Assert.Equal(50, matrix["0", "0"]);
+            Assert.Equal(0, matrix[0, 1]);
+            Assert.Equal(0, matrix["0", "1"]);
+            Assert.Equal(0, matrix[0, 2]);
+            Assert.Equal(0, matrix["0", "2"]);
+
+            Assert.Equal(0, matrix[1, 0]);
+            Assert.Equal(0, matrix["1", "0"]);
+            Assert.Equal(48, matrix[1, 1]);
+            Assert.Equal(48, matrix["1", "1"]);
+            Assert.Equal(2, matrix[1, 2]);
+            Assert.Equal(2, matrix["1", "2"]);
+
+            Assert.Equal(0, matrix[2, 0]);
+            Assert.Equal(0, matrix["2", "0"]);
+            Assert.Equal(1, matrix[2, 1]);
+            Assert.Equal(1, matrix["2", "1"]);
+            Assert.Equal(49, matrix[2, 2]);
+            Assert.Equal(49, matrix["2", "2"]);
         }
 
         private ClassificationMetrics Evaluate(IHostEnvironment env, IDataView scoredData)

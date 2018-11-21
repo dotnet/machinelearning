@@ -487,10 +487,13 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var editor = VBufferEditor.Create(ref slotNames, ClassNames.Length);
+                var values = slotNames.Values;
+                if (Utils.Size(values) < ClassNames.Length)
+                    values = new ReadOnlyMemory<char>[ClassNames.Length];
+
                 for (int i = 0; i < ClassNames.Length; i++)
-                    editor.Values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
-                slotNames = editor.Commit();
+                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
             }
         }
 
@@ -801,10 +804,12 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var editor = VBufferEditor.Create(ref dst, _numClasses);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < _numClasses)
+                            values = new float[_numClasses];
                         for (int i = 0; i < _numClasses; i++)
-                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = editor.Commit();
+                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = new VBuffer<float>(_numClasses, values);
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -815,10 +820,12 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var editor = VBufferEditor.Create(ref dst, _numClasses);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < _numClasses)
+                            values = new uint[_numClasses];
                         for (int i = 0; i < _numClasses; i++)
-                            editor.Values[i] = (uint)sortedIndices[i] + 1;
-                        dst = editor.Commit();
+                            values[i] = (uint)sortedIndices[i] + 1;
+                        dst = new VBuffer<uint>(_numClasses, values);
                     };
                 getters[SortedClassesCol] = topKClassesFn;
             }
@@ -878,10 +885,12 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var editor = VBufferEditor.Create(ref dst, numTopClasses);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < numTopClasses)
+                        values = new ReadOnlyMemory<char>[numTopClasses];
                     for (int i = 1; i <= numTopClasses; i++)
-                        editor.Values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
-                    dst = editor.Commit();
+                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
                 };
         }
 
@@ -890,10 +899,12 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var editor = VBufferEditor.Create(ref dst, _numClasses);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < _numClasses)
+                        values = new ReadOnlyMemory<char>[_numClasses];
                     for (int i = 0; i < _numClasses; i++)
-                        editor.Values[i] = _classNames[i];
-                    dst = editor.Commit();
+                        values[i] = _classNames[i];
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
                 };
         }
 
@@ -1039,15 +1050,15 @@ namespace Microsoft.ML.Runtime.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            input = new ColumnsCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
-            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
+            input = new CopyColumnsTransform(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
+            return SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy );
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
             if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
+                input = SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
             }
             return input;
         }
@@ -1090,7 +1101,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey && (!perInst.Schema.HasKeyValues(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,

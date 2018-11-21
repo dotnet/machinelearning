@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -24,15 +23,14 @@ using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Runtime.Tools
 {
-    [BestFriend]
-    internal interface IGenerator
+    public interface IGenerator
     {
         void Generate(IEnumerable<HelpCommand.Component> infos);
     }
 
     public delegate void SignatureModuleGenerator(string regenerate);
 
-    internal sealed class HelpCommand : ICommand
+    public sealed class HelpCommand : ICommand
     {
         public sealed class Arguments
         {
@@ -102,13 +100,11 @@ namespace Microsoft.ML.Runtime.Tools
 
         public void Run(int? columns)
         {
-#pragma warning disable CS0618 // The help command should be entirely within the command line anyway.
             AssemblyLoadingUtils.LoadAndRegister(_env, _extraAssemblies);
-#pragma warning restore CCS0618
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))
-            using (var writer = new IndentedTextWriter(sw, "  "))
+            using (var writer = IndentingTextWriter.Wrap(sw))
             {
                 if (_listKinds)
                 {
@@ -129,7 +125,7 @@ namespace Microsoft.ML.Runtime.Tools
             }
         }
 
-        private void ShowHelp(IndentedTextWriter writer, int? columns = null)
+        private void ShowHelp(IndentingTextWriter writer, int? columns = null)
         {
             _env.AssertValue(_component);
 
@@ -187,7 +183,7 @@ namespace Microsoft.ML.Runtime.Tools
                 Serialize(components);
         }
 
-        private void ShowAllHelp(IndentedTextWriter writer, int? columns = null)
+        private void ShowAllHelp(IndentingTextWriter writer, int? columns = null)
         {
             string sig = _kind?.ToLowerInvariant();
 
@@ -221,7 +217,7 @@ namespace Microsoft.ML.Runtime.Tools
                 Serialize(components);
         }
 
-        private void ShowUsage(IndentedTextWriter writer, string kind, string summary, string loadName,
+        private void ShowUsage(IndentingTextWriter writer, string kind, string summary, string loadName,
             IReadOnlyList<string> loadNames, object args, int? columns)
         {
             _env.Assert(loadName == loadNames[0]);
@@ -242,7 +238,7 @@ namespace Microsoft.ML.Runtime.Tools
                 writer.WriteLine(CmdParser.ArgumentsUsage(_env, args.GetType(), args, false, columns));
         }
 
-        private void ShowComponents(IndentedTextWriter writer)
+        private void ShowComponents(IndentingTextWriter writer)
         {
             Type typeSig;
             Type typeRes;
@@ -308,7 +304,7 @@ namespace Microsoft.ML.Runtime.Tools
                 GenerateModule(components);
         }
 
-        private void ShowAliases(IndentedTextWriter writer, IReadOnlyList<string> names)
+        private void ShowAliases(IndentingTextWriter writer, IReadOnlyList<string> names)
         {
             if (names.Count <= 1)
                 return;
@@ -323,7 +319,7 @@ namespace Microsoft.ML.Runtime.Tools
             writer.WriteLine();
         }
 
-        private void ListKinds(IndentedTextWriter writer)
+        private void ListKinds(IndentingTextWriter writer)
         {
             var sigs = _env.ComponentCatalog.GetAllSignatureTypes()
                 .Select(ComponentCatalog.SignatureToString)
@@ -337,7 +333,7 @@ namespace Microsoft.ML.Runtime.Tools
             }
         }
 
-        private void ShowFormattedSummary(IndentedTextWriter writer, string summary, int? columns)
+        private void ShowFormattedSummary(IndentingTextWriter writer, string summary, int? columns)
         {
             _env.AssertValue(writer);
 
@@ -427,7 +423,7 @@ namespace Microsoft.ML.Runtime.Tools
         }
     }
 
-    internal sealed class XmlGenerator : IGenerator
+    public sealed class XmlGenerator : IGenerator
     {
         public sealed class Arguments
         {

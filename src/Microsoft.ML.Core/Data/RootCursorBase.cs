@@ -17,8 +17,7 @@ namespace Microsoft.ML.Runtime.Data
     /// that has an input cursor and does NOT need notification on <see cref="MoveNext"/>/<see cref="MoveMany(long)"/>,
     /// use <see cref="SynchronizedCursorBase{TBase}"/> .
     /// </summary>
-    [BestFriend]
-    internal abstract class RootCursorBase : ICursor
+    public abstract class RootCursorBase : ICursor
     {
         protected readonly IChannel Ch;
 

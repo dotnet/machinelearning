@@ -11,11 +11,9 @@ namespace Microsoft.ML.Runtime.Command
     /// <summary>
     /// The signature for commands.
     /// </summary>
-    [BestFriend]
-    internal delegate void SignatureCommand();
+    public delegate void SignatureCommand();
 
-    [BestFriend]
-    internal interface ICommand
+    public interface ICommand
     {
         void Run();
     }

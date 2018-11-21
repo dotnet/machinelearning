@@ -201,10 +201,12 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var editor = VBufferEditor.Create(ref dst, dictionaries.Length);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < dictionaries.Length)
+                        values = new ReadOnlyMemory<char>[dictionaries.Length];
                     for (int i = 0; i < dictionaries.Length; i++)
-                        editor.Values[i] = dictionaries[i].ColName.AsMemory();
-                    dst = editor.Commit();
+                        values[i] = dictionaries[i].ColName.AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(dictionaries.Length, values, dst.Indices);
                 };
         }
 

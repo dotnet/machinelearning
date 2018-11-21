@@ -1,16 +1,21 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms.Categorical;
-using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
+        using Microsoft.ML.Data;
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Transforms.Categorical;
+        using Microsoft.ML.Transforms.Conversions;
+        using Microsoft.ML.Transforms.Text;
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class KeyToValue_TermExample
+    public partial class TransformSamples
     {
         public static void KeyToValue_Term()
         {
@@ -44,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizingEstimator(ml, "Review")
-                .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: ValueToKeyMappingTransformer.SortOrder.Value));
+                .Append(new ValueToKeyMappingEstimator(ml, "Review", customizedColumnName, maxNumTerms: 10, sort: TermTransform.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
@@ -56,7 +61,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
                 foreach (var row in column)
                 {
-                    foreach (var value in row.GetValues())
+                    foreach (var value in row.Values)
                         Console.Write($"{value} ");
                     Console.WriteLine("");
                 }
@@ -88,7 +93,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
             // to convert the keys back to the strings.
-            var pipeline = default_pipeline.Append(new KeyToValueMappingEstimator(ml, defaultColumnName));
+            var pipeline = default_pipeline.Append(new KeyToValueEstimator(ml, defaultColumnName));
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
             // Preview of the DefaultColumnName column obtained.
@@ -96,7 +101,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             foreach (var row in originalColumnBack)
             {
-                foreach (var value in row.GetValues())
+                foreach (var value in row.Values)
                     Console.Write($"{value} ");
                 Console.WriteLine("");
             }

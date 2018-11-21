@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo();
         public override TrainerInfo Info => _info;
 
-        private protected override TModel TrainModelCore(TrainContext context)
+        protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             using (var ch = Host.Start("Training"))
@@ -72,12 +72,12 @@ namespace Microsoft.ML.Runtime.Learners
                 idvToFeedTrain = idvToShuffle;
             else
             {
-                var shuffleArgs = new RowShufflingTransformer.Arguments
+                var shuffleArgs = new ShuffleTransform.Arguments
                 {
                     PoolOnly = false,
                     ForceShuffle = ShuffleData
                 };
-                idvToFeedTrain = new RowShufflingTransformer(Host, shuffleArgs, idvToShuffle);
+                idvToFeedTrain = new ShuffleTransform(Host, shuffleArgs, idvToShuffle);
             }
 
             ch.Assert(idvToFeedTrain.CanShuffle);

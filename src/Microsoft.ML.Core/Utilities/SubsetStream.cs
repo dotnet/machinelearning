@@ -22,8 +22,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// subset stream, the underlying stream will always remain open and
     /// undisposed.
     /// </summary>
-    [BestFriend]
-    internal sealed class SubsetStream : Stream
+    public sealed class SubsetStream : Stream
     {
         private readonly Stream _stream;
         // The position of the stream.

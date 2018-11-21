@@ -731,10 +731,12 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<Single> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var editor = VBufferEditor.Create(ref dst, _numClusters);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < _numClusters)
+                            values = new Single[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = editor.Commit();
+                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = new VBuffer<Single>(_numClusters, values);
                     };
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
@@ -745,10 +747,12 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var editor = VBufferEditor.Create(ref dst, _numClusters);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < _numClusters)
+                            values = new uint[_numClusters];
                         for (int i = 0; i < _numClusters; i++)
-                            editor.Values[i] = (uint)sortedIndices[i] + 1;
-                        dst = editor.Commit();
+                            values[i] = (uint)sortedIndices[i] + 1;
+                        dst = new VBuffer<uint>(_numClusters, values);
                     };
                 getters[SortedClusterCol] = topKClassesFn;
             }
@@ -779,10 +783,12 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var editor = VBufferEditor.Create(ref dst, numTopClusters);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < numTopClusters)
+                        values = new ReadOnlyMemory<char>[numTopClusters];
                     for (int i = 1; i <= numTopClusters; i++)
-                        editor.Values[i - 1] = $"#{i} {suffix}".AsMemory();
-                    dst = editor.Commit();
+                        values[i - 1] = $"#{i} {suffix}".AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
                 };
         }
 

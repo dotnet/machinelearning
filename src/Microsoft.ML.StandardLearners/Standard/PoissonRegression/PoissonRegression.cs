@@ -46,24 +46,22 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weights">The name for the example weight column.</param>
+        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
-        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public PoissonRegression(IHostEnvironment env,
-            string labelColumn = DefaultColumnNames.Label,
-            string featureColumn = DefaultColumnNames.Features,
-            string weights = null,
+        public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
+            string weightColumn = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weights, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weightColumn, advancedSettings,
                    l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -138,9 +136,8 @@ namespace Microsoft.ML.Trainers
             float mult = -(y - lambda) * weight;
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
-            var editor = VBufferEditor.CreateFromBuffer(ref grad);
-            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
-            editor.Values[0] += mult;
+            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
+            grad.Values[0] += mult;
             // From the computer's perspective exp(infinity)==infinity
             // so inf-inf=nan, but in reality, infinity is just a large
             // number we can't represent, and exp(X)-X for X=inf is just inf.

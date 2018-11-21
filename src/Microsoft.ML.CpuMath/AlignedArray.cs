@@ -16,14 +16,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     ///
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
-    internal sealed class AlignedArray
+    public sealed class AlignedArray
     {
         // Items includes "head" items filled with NaN, followed by _size entries, followed by "tail"
         // items, also filled with NaN. Note that _size * sizeof(Float) is divisible by _cbAlign.
         // It is illegal to access any slot outsize [_base, _base + _size). This is internal so clients
         // can easily pin it.
-        public Float[] Items;
+        internal Float[] Items;
 
         private readonly int _size; // Must be divisible by (_cbAlign / sizeof(Float)).
         private readonly int _cbAlign; // The alignment in bytes, a power of two, divisible by sizeof(Float).
@@ -50,7 +49,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             _lock = new object();
         }
 
-        public unsafe int GetBase(long addr)
+        internal unsafe int GetBase(long addr)
         {
 #if DEBUG
             fixed (Float* pv = Items)
@@ -126,23 +125,28 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Array.Copy(Items, start + _base, dst, index, count);
         }
 
-        public void CopyFrom(ReadOnlySpan<Float> src)
+        public void CopyFrom(Float[] src, int index, int count)
         {
-            Contracts.Assert(src.Length <= _size);
-            src.CopyTo(Items.AsSpan(_base));
+            Contracts.Assert(0 <= count && count <= _size);
+            Contracts.Assert(src != null);
+            Contracts.Assert(0 <= index && index <= src.Length - count);
+            Array.Copy(src, index, Items, _base, count);
         }
 
-        public void CopyFrom(int start, ReadOnlySpan<Float> src)
+        public void CopyFrom(int start, Float[] src, int index, int count)
         {
-            Contracts.Assert(0 <= start && start <= _size - src.Length);
-            src.CopyTo(Items.AsSpan(start + _base));
+            Contracts.Assert(0 <= count);
+            Contracts.Assert(0 <= start && start <= _size - count);
+            Contracts.Assert(src != null);
+            Contracts.Assert(0 <= index && index <= src.Length - count);
+            Array.Copy(src, index, Items, start + _base, count);
         }
 
         // Copies values from a sparse vector.
         // valuesSrc contains only the non-zero entries. Those are copied into their logical positions in the dense array.
         // rgposSrc contains the logical positions + offset of the non-zero entries in the dense array.
         // rgposSrc runs parallel to the valuesSrc array.
-        public void CopyFrom(ReadOnlySpan<int> rgposSrc, ReadOnlySpan<Float> valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
+        public void CopyFrom(int[] rgposSrc, Float[] valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
         {
             Contracts.Assert(rgposSrc != null);
             Contracts.Assert(valuesSrc != null);

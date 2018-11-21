@@ -15,8 +15,7 @@ namespace Microsoft.ML.Runtime.Tools
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    [BestFriend]
-    internal sealed class ChainCommand : ICommand
+    public sealed class ChainCommand : ICommand
     {
         public sealed class Arguments
         {

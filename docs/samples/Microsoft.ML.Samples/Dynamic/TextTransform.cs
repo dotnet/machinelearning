@@ -1,13 +1,18 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Text;
-using System;
-using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Data;
+        using Microsoft.ML.Transforms.Text;
+        using System;
+        using System.Collections.Generic;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class TextTransformExample
+    public partial class TransformSamples
     {
         public static void TextTransform()
         {
@@ -51,7 +56,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
                 foreach (var featureRow in column)
                 {
-                    foreach (var value in featureRow.GetValues())
+                    foreach (var value in featureRow.Values)
                         Console.Write($"{value} ");
                     Console.WriteLine("");
                 }

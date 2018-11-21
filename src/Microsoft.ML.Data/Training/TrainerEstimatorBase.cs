@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Training
@@ -51,8 +50,7 @@ namespace Microsoft.ML.Runtime.Training
 
         public abstract PredictionKind PredictionKind { get; }
 
-        [BestFriend]
-        private protected TrainerEstimatorBase(IHost host,
+        public TrainerEstimatorBase(IHost host,
             SchemaShape.Column feature,
             SchemaShape.Column label,
             SchemaShape.Column weight = null)
@@ -88,7 +86,7 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
-        TModel ITrainer<TModel>.Train(TrainContext context)
+        public TModel Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             return TrainModelCore(context);
@@ -146,19 +144,18 @@ namespace Microsoft.ML.Runtime.Training
                 validRoles = MakeRoles(cachedValid);
             }
 
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        [BestFriend]
-        private protected abstract TModel TrainModelCore(TrainContext trainContext);
+        protected abstract TModel TrainModelCore(TrainContext trainContext);
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
 
-        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => Train(context);
     }
 
     /// <summary>

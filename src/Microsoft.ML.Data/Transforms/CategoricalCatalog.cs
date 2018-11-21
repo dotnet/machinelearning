@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms.Categorical;
 namespace Microsoft.ML
 {
     /// <summary>
-    /// Extensions for the ValueToKey transformation's catalog
+    /// Extensions for the ValueToKeyMappingEstimator
     /// </summary>
    public static class ValueToKeyCatalog
     {
@@ -26,7 +26,7 @@ namespace Microsoft.ML
             string inputColumn,
             string outputColumn = null,
             int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms,
-            ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
+            TermTransform.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort)
            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, maxNumTerms, sort);
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.ML
         /// <param name="termsColumn"></param>
         /// <param name="loaderFactory"></param>
         public static ValueToKeyMappingEstimator MapValueToKey(this TransformsCatalog.CategoricalTransforms catalog,
-            ValueToKeyMappingTransformer.ColumnInfo[] columns,
+            TermTransform.ColumnInfo[] columns,
             string file = null,
             string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)

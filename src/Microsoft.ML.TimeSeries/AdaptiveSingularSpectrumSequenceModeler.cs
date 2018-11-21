@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 
-[assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(ISequenceModeler<Single, Single>), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",
     AdaptiveSingularSpectrumSequenceModeler.LoaderSignature)]
 
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// This class implements basic Singular Spectrum Analysis (SSA) model for modeling univariate time-series.
     /// For the details of the model, refer to http://arxiv.org/pdf/1206.6910.pdf.
     /// </summary>
-    public sealed class AdaptiveSingularSpectrumSequenceModeler : SequenceModelerBase<Single, Single>
+    public sealed class AdaptiveSingularSpectrumSequenceModeler : ISequenceModeler<Single, Single>
     {
         public const string LoaderSignature = "SSAModel";
 
@@ -239,6 +239,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="seriesLength">The length of series that is kept in buffer for modeling (parameter N).</param>
         /// <param name="windowSize">The length of the window on the series for building the trajectory matrix (parameter L).</param>
         /// <param name="discountFactor">The discount factor in [0,1] used for online updates (default = 1).</param>
+        /// <param name="buffer">The buffer used to keep the series in the memory. If null, an internal buffer is created (default = null).</param>
         /// <param name="rankSelectionMethod">The rank selection method (default = Exact).</param>
         /// <param name="rank">The desired rank of the subspace used for SSA projection (parameter r). This parameter should be in the range in [1, windowSize].
         /// If set to null, the rank is automatically determined based on prediction error minimization. (default = null)</param>
@@ -248,9 +249,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="shouldMaintainInfo">The flag determining whether the meta information for the model needs to be maintained.</param>
         /// <param name="maxGrowth">The maximum growth on the exponential trend</param>
         public AdaptiveSingularSpectrumSequenceModeler(IHostEnvironment env, int trainSize, int seriesLength, int windowSize, Single discountFactor = 1,
-            RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
+            FixedSizeQueue<Single> buffer = null, RankSelectionMethod rankSelectionMethod = RankSelectionMethod.Exact, int? rank = null, int? maxRank = null,
             bool shouldComputeForecastIntervals = true, bool shouldstablize = true, bool shouldMaintainInfo = false, GrowthRatio? maxGrowth = null)
-            : base()
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoaderSignature);
@@ -285,7 +285,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _trainSize = trainSize;
             _discountFactor = discountFactor;
 
-            _buffer = new FixedSizeQueue<Single>(seriesLength);
+            if (buffer == null)
+                _buffer = new FixedSizeQueue<Single>(seriesLength);
+            else
+                _buffer = buffer;
 
             _alpha = new Single[windowSize - 1];
             _state = new Single[windowSize - 1];
@@ -309,7 +312,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         /// <summary>
-        /// The copy constructor.
+        /// The copy constructor
         /// </summary>
         /// <param name="model">An object whose contents are copied to the current object.</param>
         private AdaptiveSingularSpectrumSequenceModeler(AdaptiveSingularSpectrumSequenceModeler model)
@@ -462,7 +465,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        public void Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
@@ -738,7 +741,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return minIndex + 1;
         }
 
-        internal override void InitState()
+        public void InitState()
         {
             for (int i = 0; i < _windowSize - 2; ++i)
                 _state[i] = 0;
@@ -1111,7 +1114,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="input">The next observation on the series.</param>
         /// <param name="updateModel">Determines whether the model parameters also need to be updated upon consuming the new observation (default = false).</param>
-        internal override void Consume(ref Single input, bool updateModel = false)
+        public void Consume(ref Single input, bool updateModel = false)
         {
             if (Single.IsNaN(input))
                 return;
@@ -1174,7 +1177,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Train the model parameters based on a training series.
         /// </summary>
         /// <param name="data">The training time-series.</param>
-        internal override void Train(FixedSizeQueue<Single> data)
+        public void Train(FixedSizeQueue<Single> data)
         {
             _host.CheckParam(data != null, nameof(data), "The input series for training cannot be null.");
             _host.CheckParam(data.Count >= _trainSize, nameof(data), "The input series for training does not have enough points for training.");
@@ -1215,7 +1218,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Train the model parameters based on a training series.
         /// </summary>
         /// <param name="data">The training time-series.</param>
-        internal override void Train(RoleMappedData data)
+        public void Train(RoleMappedData data)
         {
             _host.CheckParam(data != null, nameof(data), "The input series for training cannot be null.");
             if (data.Schema.Feature.Type != NumberType.Float)
@@ -1425,7 +1428,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="result">The forecast result.</param>
         /// <param name="horizon">The forecast horizon.</param>
-        internal override void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
+        public void Forecast(ref ForecastResultBase<Single> result, int horizon = 1)
         {
             _host.CheckParam(horizon >= 1, nameof(horizon), "The horizon parameter should be greater than 0.");
             if (result == null)
@@ -1436,36 +1439,41 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             var output = result as SsaForecastResult;
 
-            var resEditor = VBufferEditor.Create(ref result.PointForecast, horizon);
+            var res = result.PointForecast.Values;
+            if (Utils.Size(res) < horizon)
+                res = new Single[horizon];
 
             int i;
             int j;
             int k;
 
             // Computing the point forecasts
-            resEditor.Values[0] = _nextPrediction;
+            res[0] = _nextPrediction;
             for (i = 1; i < horizon; ++i)
             {
                 k = 0;
-                resEditor.Values[i] = _autoregressionNoiseMean + _observationNoiseMean;
+                res[i] = _autoregressionNoiseMean + _observationNoiseMean;
                 for (j = i; j < _windowSize - 1; ++j, ++k)
-                    resEditor.Values[i] += _state[j] * _alpha[k];
+                    res[i] += _state[j] * _alpha[k];
 
                 for (j = Math.Max(0, i - _windowSize + 1); j < i; ++j, ++k)
-                    resEditor.Values[i] += resEditor.Values[j] * _alpha[k];
+                    res[i] += res[j] * _alpha[k];
             }
 
             // Computing the forecast variances
             if (ShouldComputeForecastIntervals)
             {
-                var sdEditor = VBufferEditor.Create(ref output.ForecastStandardDeviation, horizon);
+                var sd = output.ForecastStandardDeviation.Values;
+                if (Utils.Size(sd) < horizon)
+                    sd = new Single[horizon];
+
                 var lastCol = new FixedSizeQueue<Single>(_windowSize - 1);
 
                 for (i = 0; i < _windowSize - 3; ++i)
                     lastCol.AddLast(0);
                 lastCol.AddLast(1);
                 lastCol.AddLast(_alpha[_windowSize - 2]);
-                sdEditor.Values[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
+                sd[0] = _autoregressionNoiseVariance + _observationNoiseVariance;
 
                 for (i = 1; i < horizon; ++i)
                 {
@@ -1474,16 +1482,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                         temp += _alpha[j] * lastCol[j];
                     lastCol.AddLast(temp);
 
-                    sdEditor.Values[i] = sdEditor.Values[i - 1] + _autoregressionNoiseVariance * temp * temp;
+                    sd[i] = sd[i - 1] + _autoregressionNoiseVariance * temp * temp;
                 }
 
                 for (i = 0; i < horizon; ++i)
-                    sdEditor.Values[i] = (float)Math.Sqrt(sdEditor.Values[i]);
+                    sd[i] = (float)Math.Sqrt(sd[i]);
 
-                output.ForecastStandardDeviation = sdEditor.Commit();
+                output.ForecastStandardDeviation = new VBuffer<Single>(horizon, sd, output.ForecastStandardDeviation.Indices);
             }
 
-            result.PointForecast = resEditor.Commit();
+            result.PointForecast = new VBuffer<Single>(horizon, res, result.PointForecast.Indices);
             output.CanComputeForecastIntervals = ShouldComputeForecastIntervals;
             output.BoundOffset = 0;
         }
@@ -1492,12 +1500,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// Predicts the next value on the series.
         /// </summary>
         /// <param name="output">The prediction result.</param>
-        internal override void PredictNext(ref Single output)
+        public void PredictNext(ref Single output)
         {
             output = _nextPrediction;
         }
 
-        internal override SequenceModelerBase<Single, Single> Clone()
+        public ISequenceModeler<Single, Single> Clone()
         {
             return new AdaptiveSingularSpectrumSequenceModeler(this);
         }
@@ -1513,30 +1521,35 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Contracts.CheckValue(forecast, nameof(forecast));
             Contracts.Check(forecast.CanComputeForecastIntervals, "The forecast intervals cannot be computed for this forecast object.");
 
-            var meanForecast = forecast.PointForecast.GetValues();
-            var horizon = meanForecast.Length;
-            var sdForecast = forecast.ForecastStandardDeviation.GetValues();
-            Contracts.Check(sdForecast.Length >= horizon, "The forecast standard deviation values are not available.");
+            var horizon = Utils.Size(forecast.PointForecast.Values);
+            Contracts.Check(Utils.Size(forecast.ForecastStandardDeviation.Values) >= horizon, "The forecast standard deviation values are not available.");
 
             forecast.ConfidenceLevel = confidenceLevel;
             if (horizon == 0)
                 return;
 
-            var upper = VBufferEditor.Create(ref forecast.UpperBound, horizon);
-            var lower = VBufferEditor.Create(ref forecast.LowerBound, horizon);
+            var upper = forecast.UpperBound.Values;
+            if (Utils.Size(upper) < horizon)
+                upper = new Single[horizon];
+
+            var lower = forecast.LowerBound.Values;
+            if (Utils.Size(lower) < horizon)
+                lower = new Single[horizon];
 
             var z = ProbabilityFunctions.Probit(0.5 + confidenceLevel / 2.0);
+            var meanForecast = forecast.PointForecast.Values;
+            var sdForecast = forecast.ForecastStandardDeviation.Values;
             double temp;
 
             for (int i = 0; i < horizon; ++i)
             {
                 temp = z * sdForecast[i];
-                upper.Values[i] = (Single)(meanForecast[i] + forecast.BoundOffset + temp);
-                lower.Values[i] = (Single)(meanForecast[i] + forecast.BoundOffset - temp);
+                upper[i] = (Single)(meanForecast[i] + forecast.BoundOffset + temp);
+                lower[i] = (Single)(meanForecast[i] + forecast.BoundOffset - temp);
             }
 
-            forecast.UpperBound = upper.Commit();
-            forecast.LowerBound = lower.Commit();
+            forecast.UpperBound = new VBuffer<Single>(horizon, upper, forecast.UpperBound.Indices);
+            forecast.LowerBound = new VBuffer<Single>(horizon, lower, forecast.LowerBound.Indices);
         }
     }
 }

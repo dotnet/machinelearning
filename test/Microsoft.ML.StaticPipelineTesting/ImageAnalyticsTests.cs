@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Xunit;
@@ -19,7 +20,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleImageSmokeTest()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             var reader = TextLoader.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage().AsGrayscale().Resize(10, 8).ExtractPixels());

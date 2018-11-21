@@ -66,7 +66,7 @@ namespace Microsoft.ML.Transforms
         private VectorType _slotType;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LabelConvertTransform"/>.
+        /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>

@@ -76,9 +76,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public override Schema Schema => _bindings.Schema;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+        public bool CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
-        bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
+        public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
         public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
             return cursors;
         }
 
-        void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
+        public void SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
+        public void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsPfa pfa)

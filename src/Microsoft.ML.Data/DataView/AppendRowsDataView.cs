@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Data
                     _counts = null;
                     break;
                 }
-                long? count = dv.GetRowCount();
+                long? count = dv.GetRowCount(true);
                 if (count == null || count < 0 || count > int.MaxValue)
                 {
                     _canShuffle = false;
@@ -127,12 +127,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public long? GetRowCount()
+        public long? GetRowCount(bool lazy = true)
         {
             long sum = 0;
             foreach (var source in _sources)
             {
-                var cur = source.GetRowCount();
+                var cur = source.GetRowCount(lazy);
                 if (cur == null)
                     return null;
                 _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");

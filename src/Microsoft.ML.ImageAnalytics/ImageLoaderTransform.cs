@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : MapperBase
         {
             private readonly ImageLoaderTransform _parent;
             private readonly ImageType _imageType;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _parent = parent;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 return del;
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            public override Schema.Column[] GetOutputColumns()
                 => _parent.ColumnPairs.Select(x => new Schema.Column(x.output, _imageType, null)).ToArray();
         }
     }

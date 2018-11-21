@@ -18,8 +18,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// the AlignedArray with a logical size, which does not include padding, while the AlignedArray
     /// size does include padding.
     /// </summary>
-    [BestFriend]
-    internal sealed class CpuAlignedVector : ICpuVector
+    public sealed class CpuAlignedVector : ICpuVector
     {
         private readonly AlignedArray _items;
         private readonly int _size; // The logical size.
@@ -181,7 +180,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(src);
             Contracts.Assert(0 <= index && index <= src.Length - _size);
-            _items.CopyFrom(src.AsSpan(index, _size));
+            _items.CopyFrom(src, index, _size);
             index += _size;
         }
 
@@ -199,7 +198,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= count && count <= src.Length);
             Contracts.Assert(0 <= ivDst && ivDst <= _size - count);
             Contracts.Assert(0 <= ivSrc && ivSrc <= src.Length - count);
-            _items.CopyFrom(ivDst, src.AsSpan(ivSrc, _size));
+            _items.CopyFrom(ivDst, src, ivSrc, _size);
         }
 
         /// <summary>
@@ -232,8 +231,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
-    internal abstract class CpuAlignedMatrixBase
+    public abstract class CpuAlignedMatrixBase
     {
         // _items includes "head" items filled with NaN, followed by RunLenPhy * RunCntPhy entries, followed by
         // "tail" items, also filled with NaN. Note that RunLenPhy and RunCntPhy are divisible by the alignment
@@ -395,8 +393,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical row-major matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
-    internal abstract class CpuAlignedMatrixRowBase : CpuAlignedMatrixBase, ICpuBuffer<Float>
+    public abstract class CpuAlignedMatrixRowBase : CpuAlignedMatrixBase, ICpuBuffer<Float>
     {
         protected CpuAlignedMatrixRowBase(int crow, int ccol, int cbAlign)
             : base(ccol, crow, cbAlign)
@@ -464,14 +461,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (ColCount == ColCountPhy)
             {
-                Items.CopyFrom(src.AsSpan(ivSrc, ValueCount));
+                Items.CopyFrom(src, ivSrc, ValueCount);
                 ivSrc += ValueCount;
             }
             else
             {
                 for (int row = 0; row < RowCount; row++)
                 {
-                    Items.CopyFrom(row * ColCountPhy, src.AsSpan(ivSrc, ColCount));
+                    Items.CopyFrom(row * ColCountPhy, src, ivSrc, ColCount);
                     ivSrc += ColCount;
                 }
             }
@@ -500,8 +497,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a row-major matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
-    internal sealed class CpuAlignedMatrixRow : CpuAlignedMatrixRowBase, ICpuFullMatrix
+    public sealed class CpuAlignedMatrixRow : CpuAlignedMatrixRowBase, ICpuFullMatrix
     {
         public CpuAlignedMatrixRow(int crow, int ccol, int cbAlign)
             : base(crow, ccol, cbAlign)
@@ -562,8 +558,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// This implements a logical matrix of Floats that is automatically aligned for SSE/AVX operations.
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
-    internal sealed class CpuAlignedMatrixCol : CpuAlignedMatrixBase, ICpuFullMatrix
+    public sealed class CpuAlignedMatrixCol : CpuAlignedMatrixBase, ICpuFullMatrix
     {
         /// <summary>
         /// Allocate an aligned matrix with the given alignment (in bytes).

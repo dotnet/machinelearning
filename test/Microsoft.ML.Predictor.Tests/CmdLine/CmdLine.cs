@@ -5,7 +5,6 @@
 #pragma warning disable 649 // field is never assigned
 
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -82,8 +81,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     new ArgsSingle<string>(), new ArgsSingle<string>() { value = "3" },
                 };
 
-            Action<IndentedTextWriter> init = null;
-            Action<IndentedTextWriter, string> action = null;
+            Action<IndentingTextWriter> init = null;
+            Action<IndentingTextWriter, string> action = null;
             foreach (var def in defaults)
             {
                 init += def.CallInit;
@@ -96,9 +95,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Called at the beginning of a test - it dumps the usage of the Arguments class(es).
         /// </summary>
-        private static void Init(IndentedTextWriter wrt, object defaults)
+        private static void Init(IndentingTextWriter wrt, object defaults)
         {
-            var env = new MLContext(seed: 42);
+            var env = new ConsoleEnvironment(seed: 42);
             wrt.WriteLine("Usage:");
             wrt.WriteLine(CmdParser.ArgumentsUsage(env, defaults.GetType(), defaults, false, 200));
         }
@@ -106,9 +105,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Process a script to be parsed (from the input resource).
         /// </summary>
-        private static void Process(IndentedTextWriter wrt, string text, ArgsBase defaults)
+        private static void Process(IndentingTextWriter wrt, string text, ArgsBase defaults)
         {
-            var env = new MLContext(seed: 42);
+            var env = new ConsoleEnvironment(seed: 42);
             using (wrt.Nest())
             {
                 var args1 = defaults.Clone();
@@ -139,7 +138,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private abstract class ArgsBase
         {
-            public void CallInit(IndentedTextWriter wrt)
+            public void CallInit(IndentingTextWriter wrt)
             {
                 Init(wrt, this);
             }
@@ -147,7 +146,7 @@ namespace Microsoft.ML.Runtime.RunTests
             /// <summary>
             /// Call the Process method passing "this" as the defaults.
             /// </summary>
-            public void CallProcess(IndentedTextWriter wrt, string text)
+            public void CallProcess(IndentingTextWriter wrt, string text)
             {
                 Process(wrt, text, this);
             }
@@ -337,8 +336,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // Run the test. The init delegate is called once at the beginning of the test.
         // The action delegate is called on script in the input resource.
-        private void Run(string dir, string name, Action<IndentedTextWriter> init,
-            Action<IndentedTextWriter, string> action)
+        private void Run(string dir, string name, Action<IndentingTextWriter> init,
+            Action<IndentingTextWriter, string> action)
         {
             string text = GetResText(InResName(name));
 
@@ -347,7 +346,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             using (var writer = File.CreateText(outPath))
             {
-                var wrt = new IndentedTextWriter(writer, "  ");
+                var wrt = IndentingTextWriter.Wrap(writer);
 
                 init(wrt);
 

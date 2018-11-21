@@ -401,22 +401,28 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     AssertValid();
 
+                    var values = dst.Values;
+                    var indices = dst.Indices;
+
                     if (_count == 0)
                     {
-                        VBufferUtils.Resize(ref dst, _size, 0);
+                        dst = new VBuffer<TItem>(_size, 0, values, indices);
                         return;
                     }
 
-                    var editor = VBufferEditor.Create(ref dst, _size, _count);
-                    _values.AsSpan(0, _count).CopyTo(editor.Values);
+                    if (Utils.Size(values) < _count)
+                        values = new TItem[_count];
+                    Array.Copy(_values, values, _count);
                     if (_count == _size)
                     {
-                        dst = editor.Commit();
+                        dst = new VBuffer<TItem>(_size, values, indices);
                         return;
                     }
 
-                    _indices.AsSpan(0, _count).CopyTo(editor.Indices);
-                    dst = editor.Commit();
+                    if (Utils.Size(indices) < _count)
+                        indices = new int[_count];
+                    Array.Copy(_indices, indices, _count);
+                    dst = new VBuffer<TItem>(_size, _count, values, indices);
                 }
             }
 

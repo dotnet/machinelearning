@@ -109,12 +109,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _firstIteration = true;
             }
 
-            private protected override void SetNaOutput(ref Single output)
+            protected override void SetNaOutput(ref Single output)
             {
                 output = Single.NaN;
             }
 
-            private protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref Single output)
+            protected override void TransformCore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration, ref Single output)
             {
                 if (_firstIteration)
                 {
@@ -127,13 +127,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _previousAverage = output;
             }
 
-            private protected override void InitializeStateCore()
+            protected override void InitializeStateCore()
             {
                 _firstIteration = true;
                 _decay = ((ExponentialAverageTransform)ParentTransform)._decay;
             }
 
-            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need for parameter learning from the initial windowed buffer for this transform.
             }

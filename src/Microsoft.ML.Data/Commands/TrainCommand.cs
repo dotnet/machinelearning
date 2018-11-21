@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -32,8 +31,7 @@ namespace Microsoft.ML.Runtime.Data
         Yes
     }
 
-    [BestFriend]
-    internal sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
+    public sealed class TrainCommand : DataCommand.ImplBase<TrainCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -65,9 +63,6 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
-
-            [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The test data file", ShortName = "test")]
-            public string TestFile;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
@@ -177,34 +172,15 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            // In addition to the training set, some trainers can accept two extra data sets, validation set and test set,
-            // in training phase. The major difference between validation set and test set is that training process may
-            // indirectly use validation set to improve the model but the learned model should totally independent of test set.
-            // Similar to validation set, the trainer can report the scores computed using test set.
-            RoleMappedData testDataUsedInTrainer = null;
-            if (!string.IsNullOrWhiteSpace(Args.TestFile))
-            {
-                // In contrast to the if-else block for validation above, we do not throw a warning if test file is provided
-                // because this is TrainTest command.
-                if (trainer.Info.SupportsTest)
-                {
-                    ch.Trace("Constructing the test pipeline");
-                    IDataView testPipeUsedInTrainer = CreateRawLoader(dataFile: Args.TestFile);
-                    testPipeUsedInTrainer = ApplyTransformUtils.ApplyAllTransformsToData(Host, view, testPipeUsedInTrainer);
-                    testDataUsedInTrainer = new RoleMappedData(testPipeUsedInTrainer, data.Schema.GetColumnRoleNames());
-                }
-            }
-
             var predictor = TrainUtils.Train(Host, ch, data, trainer, validData,
-                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor, testDataUsedInTrainer);
+                Args.Calibrator, Args.MaxCalibrationExamples, Args.CacheData, inputPredictor);
 
             using (var file = Host.CreateOutputFile(Args.OutputModelFile))
                 TrainUtils.SaveModel(Host, ch, file, predictor, data, cmd);
         }
     }
 
-    [BestFriend]
-    internal static class TrainUtils
+    public static class TrainUtils
     {
         public static void CheckTrainer(IExceptionContext ectx, IComponentFactory<ITrainer> trainer, string dataFile)
         {
@@ -248,13 +224,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
-            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
-            return TrainCore(env, ch, data, trainer, validData, calibrator, maxCalibrationExamples, cacheData, inputPredictor, testData);
+            return TrainCore(env, ch, data, trainer, validData, calibrator, maxCalibrationExamples, cacheData, inputPredictor);
         }
 
         private static IPredictor TrainCore(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer, RoleMappedData validData,
-            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null, RoleMappedData testData = null)
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples, bool? cacheData, IPredictor inputPredictor = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -275,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
                 inputPredictor = null;
             }
             ch.Assert(validData == null || trainer.Info.SupportsValidation);
-            var predictor = trainer.Train(new TrainContext(data, validData, testData, inputPredictor));
+            var predictor = trainer.Train(new TrainContext(data, validData, inputPredictor));
             var caliTrainer = calibrator?.CreateComponent(env);
             return CalibratorUtils.TrainCalibratorIfNeeded(env, ch, caliTrainer, maxCalibrationExamples, trainer, predictor, data);
         }

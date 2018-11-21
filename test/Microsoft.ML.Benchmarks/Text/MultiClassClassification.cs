@@ -25,13 +25,13 @@ namespace Microsoft.ML.Benchmarks
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));           
         }
 
         [Benchmark]
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+            string cmd = @"CV k=5 data=" + _dataPath_Wiki + 
                         " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                         " xf=Convert{col=logged_in type=R4}" +
                         " xf=CategoricalTransform{col=ns}" +
@@ -39,8 +39,10 @@ namespace Microsoft.ML.Benchmarks
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
 
         [Benchmark]
@@ -54,8 +56,10 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, LightGbmMulticlassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, LightGbmMulticlassTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
 
         [Benchmark]
@@ -70,8 +74,10 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
 
         [Benchmark]
@@ -86,8 +92,10 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, SdcaMultiClassTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, SdcaMultiClassTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
     }
 
@@ -114,8 +122,10 @@ namespace Microsoft.ML.Benchmarks
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
 
         [Benchmark]
@@ -125,8 +135,10 @@ namespace Microsoft.ML.Benchmarks
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
 
-            var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, OneHotEncodingTransformer, AveragedPerceptronTrainer>();
-            Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            using (var environment = EnvironmentFactory.CreateClassificationEnvironment<TextLoader, CategoricalTransform, AveragedPerceptronTrainer>())
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
         }
     }
 }

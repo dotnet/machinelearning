@@ -2,19 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.ML.CodeAnalyzer.Tests.Helpers;
-using System;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.InternalCodeAnalyzer.Tests
 {
     public sealed class ContractsCheckTest : DiagnosticVerifier<ContractsCheckAnalyzer>
     {
-        private readonly Lazy<string> Source = TestUtils.LazySource("ContractsCheckResource.cs");
-        private readonly Lazy<string> SourceContracts = TestUtils.LazySource("Contracts.cs");
-        private readonly Lazy<string> SourceFriend = TestUtils.LazySource("BestFriendAttribute.cs");
+        private static string _contractsSource;
+        internal static string Source => TestUtils.EnsureSourceLoaded(ref _contractsSource, "ContractsCheckResource.cs");
 
         [Fact]
         public void ContractsCheck()
@@ -41,7 +37,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer.Tests
                 diagDecode.CreateDiagnosticResult(basis + 39, 41, "CheckDecode", "\"This message is suspicious\""),
             };
 
-            VerifyCSharpDiagnostic(Source.Value + SourceContracts.Value + SourceFriend.Value, expected);
+            VerifyCSharpDiagnostic(Source, expected);
         }
 
         [Fact]
@@ -72,27 +68,16 @@ namespace TestNamespace
 
     public sealed class ContractsCheckFixTest : CodeFixVerifier<ContractsCheckAnalyzer, ContractsCheckNameofFixProvider>
     {
-        private readonly Lazy<string> SourcePreFix = TestUtils.LazySource("ContractsCheckBeforeFix.cs");
-        private readonly Lazy<string> SourcePostFix = TestUtils.LazySource("ContractsCheckAfterFix.cs");
-
-        private readonly Lazy<string> SourceArgAttr = TestUtils.LazySource("ArgumentAttribute.cs");
-        private readonly Lazy<string> SourceArgType = TestUtils.LazySource("ArgumentType.cs");
-        private readonly Lazy<string> SourceBestAttr = TestUtils.LazySource("BestFriendAttribute.cs");
-        private readonly Lazy<string> SourceDefArgAttr = TestUtils.LazySource("DefaultArgumentAttribute.cs");
+        private static string _preFix;
+        private static string _postFix;
 
         [Fact]
         public void ContractsCheckFix()
         {
-            //VerifyCSharpFix(SourcePreFix.Value, SourcePostFix.Value);
+            string test = TestUtils.EnsureSourceLoaded(ref _preFix, "ContractsCheckBeforeFix.cs");
+            string expected = TestUtils.EnsureSourceLoaded(ref _postFix, "ContractsCheckAfterFix.cs");
 
-            Solution solution = null;
-            var proj = CreateProject(TestProjectName, ref solution, SourcePostFix.Value, SourceArgAttr.Value,
-                SourceArgType.Value, SourceBestAttr.Value, SourceDefArgAttr.Value);
-            var document = proj.Documents.First();
-            var analyzer = GetCSharpDiagnosticAnalyzer();
-            var comp = proj.GetCompilationAsync().Result;
-
-            CycleAndVerifyFix(analyzer, GetCSharpCodeFixProvider(), SourcePostFix.Value, document);
+            VerifyCSharpFix(test, expected);
         }
     }
 }

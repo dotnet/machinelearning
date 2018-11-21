@@ -490,7 +490,12 @@ namespace Microsoft.ML.Runtime.Data
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter =
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    reconciledSlotNames.CopyTo(ref dst);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < reconciledSlotNames.Length)
+                        values = new ReadOnlyMemory<char>[reconciledSlotNames.Length];
+
+                    Array.Copy(reconciledSlotNames.Values, values, reconciledSlotNames.Length);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(reconciledSlotNames.Length, values, dst.Indices);
                 };
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
@@ -505,11 +510,13 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
-                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
 
+                            var values = dst.Values;
+                            if (Utils.Size(values) < slotNames.Count)
+                                values = new T[slotNames.Count];
                             foreach (var kvp in src.Items())
-                                editor.Values[map[kvp.Key]] = kvp.Value;
-                            dst = editor.Commit();
+                                values[map[kvp.Key]] = kvp.Value;
+                            dst = new VBuffer<T>(slotNames.Count, values, dst.Indices);
                         };
                 }
                 else
@@ -529,13 +536,15 @@ namespace Microsoft.ML.Runtime.Data
                         (in VBuffer<T> src, ref VBuffer<T> dst) =>
                         {
                             Contracts.Assert(src.Length == Utils.Size(map));
-                            var editor = VBufferEditor.Create(ref dst, slotNames.Count);
+                            var values = dst.Values;
+                            if (Utils.Size(values) < slotNames.Count)
+                                values = new T[slotNames.Count];
 
                             foreach (var kvp in src.Items(true))
-                                editor.Values[map[kvp.Key]] = kvp.Value;
+                                values[map[kvp.Key]] = kvp.Value;
                             foreach (var j in naIndices)
-                                editor.Values[j] = def;
-                            dst = editor.Commit();
+                                values[j] = def;
+                            dst = new VBuffer<T>(slotNames.Count, values, dst.Indices);
                         };
                 }
 
@@ -606,7 +615,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        keyNamesVBuffer.CopyTo(ref dst);
+                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
 
             // For each input data view, create the reconciled key column by wrapping it in a LambdaColumnMapper.
             for (int i = 0; i < dvCount; i++)
@@ -674,7 +683,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyNamesVBuffer = new VBuffer<ReadOnlyMemory<char>>(keyNames.Count, keyNames.Keys.ToArray());
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter =
                     (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                        keyNamesVBuffer.CopyTo(ref dst);
+                        dst = new VBuffer<ReadOnlyMemory<char>>(keyNamesVBuffer.Length, keyNamesVBuffer.Count, keyNamesVBuffer.Values, keyNamesVBuffer.Indices);
 
             for (int i = 0; i < dvCount; i++)
             {
@@ -682,34 +691,35 @@ namespace Microsoft.ML.Runtime.Data
                 ValueMapper<VBuffer<uint>, VBuffer<uint>> mapper =
                     (in VBuffer<uint> src, ref VBuffer<uint> dst) =>
                     {
-                        var srcValues = src.GetValues();
-                        var editor = VBufferEditor.Create(
-                            ref dst,
-                            src.Length,
-                            srcValues.Length);
+                        var values = dst.Values;
+                        if (Utils.Size(values) < src.Count)
+                            values = new uint[src.Count];
                         if (src.IsDense)
                         {
                             for (int j = 0; j < src.Length; j++)
                             {
-                                if (srcValues[j] == 0 || srcValues[j] > keyMapperCur.Length)
-                                    editor.Values[j] = 0;
+                                if (src.Values[j] == 0 || src.Values[j] > keyMapperCur.Length)
+                                    values[j] = 0;
                                 else
-                                    editor.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
+                                    values[j] = (uint)keyMapperCur[src.Values[j] - 1] + 1;
                             }
+                            dst = new VBuffer<uint>(src.Length, values, dst.Indices);
                         }
                         else
                         {
-                            var srcIndices = src.GetIndices();
-                            for (int j = 0; j < srcValues.Length; j++)
+                            var indices = dst.Indices;
+                            if (Utils.Size(indices) < src.Count)
+                                indices = new int[src.Count];
+                            for (int j = 0; j < src.Count; j++)
                             {
-                                if (srcValues[j] == 0 || srcValues[j] > keyMapperCur.Length)
-                                    editor.Values[j] = 0;
+                                if (src.Values[j] == 0 || src.Values[j] > keyMapperCur.Length)
+                                    values[j] = 0;
                                 else
-                                    editor.Values[j] = (uint)keyMapperCur[srcValues[j] - 1] + 1;
-                                editor.Indices[j] = srcIndices[j];
+                                    values[j] = (uint)keyMapperCur[src.Values[j] - 1] + 1;
+                                indices[j] = src.Indices[j];
                             }
+                            dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
                         }
-                        dst = editor.Commit();
                     };
 
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null;
@@ -827,7 +837,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (dvNumber == 0)
                         {
-                            if (dv.Schema.HasKeyValues(i, type.ItemType.KeyCount))
+                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
                                 firstDvVectorKeyColumns.Add(name);
                             // Store the slot names of the 1st idv and use them as baseline.
                             if (dv.Schema.HasSlotNames(i, type.VectorSize))
@@ -856,9 +866,9 @@ namespace Microsoft.ML.Runtime.Data
                         // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
                         labelColKeyValuesType = dv.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, i);
                     }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyValues(i, type.KeyCount))
+                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
                         firstDvKeyWithNamesColumns.Add(name);
-                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyValues(i, type.KeyCount))
+                    else if (type.KeyCount > 0 && name != labelColName && !dv.Schema.HasKeyNames(i, type.KeyCount))
                     {
                         // For any other key column (such as GroupId) we do not reconcile the key values, we only convert to U4.
                         if (!firstDvKeyNoNamesColumns.ContainsKey(name))
@@ -898,7 +908,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
 
-                        idv = new KeyToValueMappingTransformer(env, keyCol).Transform(idv);
+                        idv = new KeyToValueTransform(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
                         idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
                     }
@@ -923,7 +933,7 @@ namespace Microsoft.ML.Runtime.Data
                                  variableSizeVectorColumnName, type);
 
                         // Drop the old column that does not have variable length.
-                        idv = ColumnSelectingTransformer.CreateDrop(env, idv, variableSizeVectorColumnName);
+                        idv = SelectColumnsTransform.CreateDrop(env, idv, variableSizeVectorColumnName);
                     }
                     return idv;
                 };
@@ -1018,10 +1028,12 @@ namespace Microsoft.ML.Runtime.Data
                         schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref names);
                     else
                     {
-                        var editor = VBufferEditor.Create(ref names, type.VectorSize);
+                        var namesArray = names.Values;
+                        if (Utils.Size(namesArray) < type.VectorSize)
+                            namesArray = new ReadOnlyMemory<char>[type.VectorSize];
                         for (int j = 0; j < type.VectorSize; j++)
-                            editor.Values[j] = string.Format("Label_{0}", j).AsMemory();
-                        names = editor.Commit();
+                            namesArray[j] = string.Format("Label_{0}", j).AsMemory();
+                        names = new VBuffer<ReadOnlyMemory<char>>(type.VectorSize, namesArray);
                     }
                     foreach (var name in names.Items(all: true))
                         metricNames.Add(string.Format("{0}{1}", metricName, name.Value));
@@ -1047,7 +1059,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (Utils.Size(nonAveragedCols) > 0)
                 {
-                    data = ColumnSelectingTransformer.CreateDrop(env, data, nonAveragedCols.ToArray());
+                    data = SelectColumnsTransform.CreateDrop(env, data, nonAveragedCols.ToArray());
                 }
                 idvList.Add(data);
             }
@@ -1057,7 +1069,7 @@ namespace Microsoft.ML.Runtime.Data
             // If there are stratified results, apply a KeyToValue transform to get the stratification column
             // names from the key column.
             if (hasStrat)
-                overall = new KeyToValueMappingTransformer(env, MetricKinds.ColumnNames.StratCol).Transform(overall);
+                overall = new KeyToValueTransform(env, MetricKinds.ColumnNames.StratCol).Transform(overall);
             return overall;
         }
 
@@ -1376,10 +1388,9 @@ namespace Microsoft.ML.Runtime.Data
             var confusionTable = GetConfusionTableAsArray(confusionDataView, countCol, labelNames.Length,
                 labelIndexToConfIndexMap, numConfusionTableLabels, out precisionSums, out recallSums);
 
-            var predictedLabelNames = GetPredictedLabelNames(in labelNames, labelIndexToConfIndexMap);
             var confusionTableString = GetConfusionTableAsString(confusionTable, recallSums, precisionSums,
-               predictedLabelNames,
-               sampled: numConfusionTableLabels < labelNames.Length, binary: binary);
+               labelNames.Values.Where((t, i) => labelIndexToConfIndexMap[i] >= 0).ToArray(),
+               sampled: numConfusionTableLabels < labelNames.Count, binary: binary);
 
             int weightIndex;
             if (confusionDataView.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.Weight, out weightIndex))
@@ -1387,27 +1398,13 @@ namespace Microsoft.ML.Runtime.Data
                 confusionTable = GetConfusionTableAsArray(confusionDataView, weightIndex, labelNames.Length,
                    labelIndexToConfIndexMap, numConfusionTableLabels, out precisionSums, out recallSums);
                 weightedConfusionTable = GetConfusionTableAsString(confusionTable, recallSums, precisionSums,
-                    predictedLabelNames,
-                    sampled: numConfusionTableLabels < labelNames.Length, prefix: "Weighted ", binary: binary);
+                    labelNames.Values.Where((t, i) => labelIndexToConfIndexMap[i] >= 0).ToArray(),
+                    sampled: numConfusionTableLabels < labelNames.Count, prefix: "Weighted ", binary: binary);
             }
             else
                 weightedConfusionTable = null;
 
             return confusionTableString;
-        }
-
-        private static List<ReadOnlyMemory<char>> GetPredictedLabelNames(in VBuffer<ReadOnlyMemory<char>> labelNames, int[] labelIndexToConfIndexMap)
-        {
-            List<ReadOnlyMemory<char>> result = new List<ReadOnlyMemory<char>>();
-            var values = labelNames.GetValues();
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (labelIndexToConfIndexMap[i] >= 0)
-                {
-                    result.Add(values[i]);
-                }
-            }
-            return result;
         }
 
         // This methods is given a data view and a column index of the counts, and computes three arrays: the confusion table,
@@ -1540,7 +1537,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // Get a string representation of a confusion table.
         private static string GetConfusionTableAsString(double[][] confusionTable, double[] rowSums, double[] columnSums,
-            List<ReadOnlyMemory<char>> predictedLabelNames, string prefix = "", bool sampled = false, bool binary = true)
+            ReadOnlyMemory<char>[] predictedLabelNames, string prefix = "", bool sampled = false, bool binary = true)
         {
             int numLabels = Utils.Size(confusionTable);
 
@@ -1558,7 +1555,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // The row label will also include the index, so a user can easily match against the header.
                 // In such a case, a label like "Foo" would be presented as something like "5. Foo".
-                rowDigitLen = Math.Max(predictedLabelNames.Count - 1, 0).ToString().Length;
+                rowDigitLen = Math.Max(predictedLabelNames.Length - 1, 0).ToString().Length;
                 Contracts.Assert(rowDigitLen >= 1);
                 rowLabelLen += rowDigitLen + 2;
             }
@@ -1736,7 +1733,7 @@ namespace Microsoft.ML.Runtime.Data
             var found = data.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out stratVal);
             env.Check(found, "If stratification column exist, data view must also contain a StratVal column");
 
-            data = ColumnSelectingTransformer.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
+            data = SelectColumnsTransform.CreateDrop(env, data, data.Schema.GetColumnName(stratCol), data.Schema.GetColumnName(stratVal));
             return data;
         }
     }

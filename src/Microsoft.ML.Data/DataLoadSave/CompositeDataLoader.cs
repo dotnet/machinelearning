@@ -557,9 +557,9 @@ namespace Microsoft.ML.Runtime.Data
             return string.Format("xf{0:00}", index);
         }
 
-        public long? GetRowCount()
+        public long? GetRowCount(bool lazy = true)
         {
-            return View.GetRowCount();
+            return View.GetRowCount(lazy);
         }
 
         public bool CanShuffle => View.CanShuffle;

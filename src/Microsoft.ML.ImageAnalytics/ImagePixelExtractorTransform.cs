@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -413,7 +412,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 throw Host.Except("Image dimensions are too large");
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : MapperBase
         {
             private readonly ImagePixelExtractorTransform _parent;
             private readonly VectorType[] _types;
@@ -425,10 +424,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _types = ConstructTypes();
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            public override Schema.Column[] GetOutputColumns()
                 => _parent._columns.Select((x, idx) => new Schema.Column(x.Output, _types[idx], null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
@@ -440,7 +439,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
             //REVIEW Rewrite it to where TValue : IConvertible
             private ValueGetter<VBuffer<TValue>> GetGetterCore<TValue>(IRow input, int iinfo, out Action disposer)
-                where TValue : struct
             {
                 var type = _types[iinfo];
                 var dims = type.Dimensions;
@@ -478,26 +476,26 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
                         if (src == null)
                         {
-                            VBufferUtils.Resize(ref dst, size, 0);
+                            dst = new VBuffer<TValue>(size, 0, dst.Values, dst.Indices);
                             return;
                         }
 
                         Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                         Host.Check(src.Height == height && src.Width == width);
 
-                        var editor = VBufferEditor.Create(ref dst, size);
-                        var values = editor.Values;
+                        var values = dst.Values;
+                        if (Utils.Size(values) < size)
+                            values = new TValue[size];
 
                         float offset = ex.Offset;
                         float scale = ex.Scale;
                         Contracts.Assert(scale != 0);
 
-                        // REVIEW: split the getter into 2 specialized getters, one for float case and one for byte case.
-                        Span<float> vf = typeof(TValue) == typeof(float) ? MemoryMarshal.Cast<TValue, float>(editor.Values) : default;
-                        Span<byte> vb = typeof(TValue) == typeof(byte) ? MemoryMarshal.Cast<TValue, byte>(editor.Values) : default;
-                        Contracts.Assert(!vf.IsEmpty || !vb.IsEmpty);
+                        var vf = values as float[];
+                        var vb = values as byte[];
+                        Contracts.Assert(vf != null || vb != null);
                         bool needScale = offset != 0 || scale != 1;
-                        Contracts.Assert(!needScale || !vf.IsEmpty);
+                        Contracts.Assert(!needScale || vf != null);
 
                         bool a = ex.Alpha;
                         bool r = ex.Red;
@@ -514,7 +512,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                 for (int y = 0; y < h; ++y)
                                 {
                                     var pb = src.GetPixel(x, y);
-                                    if (!vb.IsEmpty)
+                                    if (vb != null)
                                     {
                                         if (a) { vb[idst++] = pb.A; }
                                         if (r) { vb[idst++] = pb.R; }
@@ -545,7 +543,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             {
                                 // The image only has rgb but we need to supply alpha as well, so fake it up,
                                 // assuming that it is 0xFF.
-                                if (!vf.IsEmpty)
+                                if (vf != null)
                                 {
                                     Single v = (0xFF - offset) * scale;
                                     for (int i = 0; i < cpix; i++)
@@ -568,7 +566,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                 int idstBase = idstMin + y * w;
 
                                 // Note that the bytes are in order BGR[A]. We arrange the layers in order ARGB.
-                                if (!vb.IsEmpty)
+                                if (vb != null)
                                 {
                                     for (int x = 0; x < w; x++, idstBase++)
                                     {
@@ -607,7 +605,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             }
                         }
 
-                        dst = editor.Commit();
+                        dst = new VBuffer<TValue>(size, values, dst.Indices);
                     };
             }
 

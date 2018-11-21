@@ -9,8 +9,7 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    [BestFriend]
-    internal static class Hashing
+    public static class Hashing
     {
         private const uint _defaultSeed = (5381 << 16) + 5381;
 

@@ -9,8 +9,7 @@ using System.Security;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    [BestFriend]
-    internal static class IntUtils
+    public static class IntUtils
     {
         /// <summary>
         /// Add src to the 128 bits contained in dst. Ignores overflow, that is, the addition is done modulo 2^128.

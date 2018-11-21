@@ -104,10 +104,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             }
 
             int newLength = DstLength == 0 ? ComputeLength(src.Length) : DstLength;
+            var values = dst.Values;
             if (newLength == 0)
             {
                 // All slots dropped.
-                VBufferUtils.Resize(ref dst, 1, 0);
+                dst = new VBuffer<TDst>(1, 0, dst.Values, dst.Indices);
                 return;
             }
 
@@ -115,11 +116,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // End of the trivial cases
             // At this point, we need to drop some slots and keep some slots.
-            VBufferEditor<TDst> editor;
-            var srcValues = src.GetValues();
             if (src.IsDense)
             {
-                editor = VBufferEditor.Create(ref dst, newLength);
+                Contracts.Assert(Utils.Size(values) == Utils.Size(src.Values) || src.Values != dst.Values);
+
+                if (Utils.Size(values) < newLength)
+                    values = new TDst[newLength];
 
                 int iDst = 0;
                 int iSrc = 0;
@@ -129,33 +131,33 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     while (iSrc < lim)
                     {
                         Contracts.Assert(iDst <= iSrc);
-                        editor.Values[iDst++] = srcValues[iSrc++];
+                        values[iDst++] = src.Values[iSrc++];
                     }
                     iSrc = SlotsMax[i] + 1;
                 }
                 while (iSrc < src.Length)
                 {
                     Contracts.Assert(iDst <= iSrc);
-                    editor.Values[iDst++] = srcValues[iSrc++];
+                    values[iDst++] = src.Values[iSrc++];
                 }
                 Contracts.Assert(iDst == newLength);
-                dst = editor.Commit();
+                dst = new VBuffer<TDst>(newLength, values, dst.Indices);
                 return;
             }
 
             // Sparse case.
             // Approximate new count is min(#indices, newLength).
-            var newCount = Math.Min(srcValues.Length, newLength);
-            var indices = dst.GetIndices();
-            var srcIndices = src.GetIndices();
+            var newCount = Math.Min(src.Count, newLength);
+            var indices = dst.Indices;
 
             Contracts.Assert(newCount <= src.Length);
+            Contracts.Assert(Utils.Size(values) == Utils.Size(src.Values) || src.Values != dst.Values);
+            Contracts.Assert(Utils.Size(indices) == Utils.Size(src.Indices) || src.Indices != dst.Indices);
 
-            editor = VBufferEditor.Create(
-                ref dst,
-                newLength,
-                newCount,
-                requireIndicesOnDense: true);
+            if (Utils.Size(indices) < newCount)
+                indices = new int[newCount];
+            if (Utils.Size(values) < newCount)
+                values = new TDst[newCount];
 
             int iiDst = 0;
             int iiSrc = 0;
@@ -165,15 +167,15 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             // REVIEW: Consider using a BitArray with the slots to keep instead of SlotsMax. It would
             // only make sense when the number of ranges is greater than the number of slots divided by 32.
             int max = SlotsMax[iRange];
-            while (iiSrc < srcValues.Length)
+            while (iiSrc < src.Count)
             {
                 // Copy (with offset) the elements before the current range.
-                var index = srcIndices[iiSrc];
+                var index = src.Indices[iiSrc];
                 if (index < min)
                 {
                     Contracts.Assert(iiDst <= iiSrc);
-                    editor.Indices[iiDst] = index - iOffset;
-                    editor.Values[iiDst++] = srcValues[iiSrc++];
+                    indices[iiDst] = index - iOffset;
+                    values[iiDst++] = src.Values[iiSrc++];
                     continue;
                 }
                 if (index <= max)
@@ -209,7 +211,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            dst = editor.CommitTruncated(iiDst);
+            dst = new VBuffer<TDst>(newLength, iiDst, values, indices);
         }
     }
 }

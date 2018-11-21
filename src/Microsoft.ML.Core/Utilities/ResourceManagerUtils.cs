@@ -16,8 +16,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// This class takes care of downloading resources needed by ML.NET components. Resources are located in
     /// a pre-defined location, that can be overridden by defining Environment variable <see cref="CustomResourcesUrlEnvVariable"/>.
     /// </summary>
-    [BestFriend]
-    internal sealed class ResourceManagerUtils
+    public sealed class ResourceManagerUtils
     {
         private static volatile ResourceManagerUtils _instance;
         public static ResourceManagerUtils Instance
@@ -302,9 +301,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return errorResult;
         }
 
-#pragma warning disable IDE1006
         [DllImport("libc", SetLastError = true)]
         private static extern int chmod(string pathname, int mode);
-#pragma warning restore IDE1006
     }
 }

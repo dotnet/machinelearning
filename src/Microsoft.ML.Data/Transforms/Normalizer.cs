@@ -16,15 +16,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-[assembly: LoadableClass(typeof(NormalizingTransformer), null, typeof(SignatureLoadModel),
-    "", NormalizingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(NormalizerTransformer), null, typeof(SignatureLoadModel),
+    "", NormalizerTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizingTransformer), null, typeof(SignatureLoadRowMapper),
-    "", NormalizingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NormalizerTransformer), null, typeof(SignatureLoadRowMapper),
+    "", NormalizerTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed class NormalizingEstimator : IEstimator<NormalizingTransformer>
+    public sealed class NormalizingEstimator : IEstimator<NormalizerTransformer>
     {
         internal static class Defaults
         {
@@ -203,10 +203,10 @@ namespace Microsoft.ML.Transforms.Normalizers
             _columns = columns.ToArray();
         }
 
-        public NormalizingTransformer Fit(IDataView input)
+        public NormalizerTransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return NormalizingTransformer.Train(_host, input, _columns);
+            return NormalizerTransformer.Train(_host, input, _columns);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
     }
 
-    public sealed partial class NormalizingTransformer : OneToOneTransformerBase
+    public sealed partial class NormalizerTransformer : OneToOneTransformerBase
     {
         public const string LoaderSignature = "Normalizer";
         private static VersionInfo GetVersionInfo()
@@ -248,24 +248,22 @@ namespace Microsoft.ML.Transforms.Normalizers
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NormalizingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(NormalizerTransformer).Assembly.FullName);
         }
 
-        public sealed class ColumnInfo
+        private class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
-            public readonly NormalizerModelParametersBase ModelParameters;
-            internal readonly ColumnType InputType;
-            internal readonly IColumnFunction ColumnFunction;
+            public readonly ColumnType InputType;
+            public readonly IColumnFunction ColumnFunction;
 
-            internal ColumnInfo(string input, string output, ColumnType inputType, IColumnFunction columnFunction)
+            public ColumnInfo(string input, string output, ColumnType inputType, IColumnFunction columnFunction)
             {
                 Input = input;
                 Output = output;
                 InputType = inputType;
                 ColumnFunction = columnFunction;
-                ModelParameters = columnFunction.GetNormalizerModelParams();
             }
 
             internal static ColumnType LoadType(ModelLoadContext ctx)
@@ -307,9 +305,9 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         private sealed class ColumnFunctionAccessor : IReadOnlyList<IColumnFunction>
         {
-            private readonly ImmutableArray<ColumnInfo> _infos;
+            private readonly ColumnInfo[] _infos;
 
-            public ColumnFunctionAccessor(ImmutableArray<ColumnInfo> infos)
+            public ColumnFunctionAccessor(ColumnInfo[] infos)
             {
                 _infos = infos;
             }
@@ -320,18 +318,21 @@ namespace Microsoft.ML.Transforms.Normalizers
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
 
-        /// <summary>An accessor of the column functions within <see cref="Columns"/>.</summary>
+        /// <summary>An accessor of the column functions within <see cref="_columns"/>.</summary>
         internal readonly IReadOnlyList<IColumnFunction> ColumnFunctions;
 
-        public readonly ImmutableArray<ColumnInfo> Columns;
-        private NormalizingTransformer(IHostEnvironment env, ColumnInfo[] columns)
-            : base(env.Register(nameof(NormalizingTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
+        private readonly ColumnInfo[] _columns;
+
+        public (string input, string output)[] Columns => ColumnPairs;
+
+        private NormalizerTransformer(IHostEnvironment env, ColumnInfo[] columns)
+            : base(env.Register(nameof(NormalizerTransformer)), columns.Select(x => (x.Input, x.Output)).ToArray())
         {
-            Columns = ImmutableArray.Create(columns);
-            ColumnFunctions = new ColumnFunctionAccessor(Columns);
+            _columns = columns;
+            ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
-        public static NormalizingTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
+        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -403,11 +404,11 @@ namespace Microsoft.ML.Transforms.Normalizers
                     result[i] = new ColumnInfo(columns[i].Input, columns[i].Output, srcTypes[i], func);
                 }
 
-                return new NormalizingTransformer(env, result);
+                return new NormalizerTransformer(env, result);
             }
         }
 
-        private NormalizingTransformer(IHost host, ModelLoadContext ctx)
+        private NormalizerTransformer(IHost host, ModelLoadContext ctx)
             : base(host, ctx)
         {
             // *** Binary format ***
@@ -415,25 +416,24 @@ namespace Microsoft.ML.Transforms.Normalizers
             // for each added column:
             //   - source type
             //   - separate model for column function
-            var cols = new ColumnInfo[ColumnPairs.Length];
-            ColumnFunctions = new ColumnFunctionAccessor(Columns);
+
+            _columns = new ColumnInfo[ColumnPairs.Length];
+            ColumnFunctions = new ColumnFunctionAccessor(_columns);
             for (int iinfo = 0; iinfo < ColumnPairs.Length; iinfo++)
             {
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
                 var typeSrc = ColumnInfo.LoadType(ctx);
                 ctx.LoadModel<IColumnFunction, SignatureLoadColumnFunction>(Host, out var function, dir, Host, typeSrc);
-                cols[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
+                _columns[iinfo] = new ColumnInfo(ColumnPairs[iinfo].input, ColumnPairs[iinfo].output, typeSrc, function);
             }
-
-            Columns = ImmutableArray.Create(cols);
         }
 
-        public static NormalizingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static NormalizerTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new NormalizingTransformer(env.Register(nameof(NormalizingTransformer)), ctx);
+            return new NormalizerTransformer(env.Register(nameof(NormalizerTransformer)), ctx);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -454,11 +454,11 @@ namespace Microsoft.ML.Transforms.Normalizers
             base.SaveColumns(ctx);
 
             // Individual normalization models.
-            for (int iinfo = 0; iinfo < Columns.Length; iinfo++)
+            for (int iinfo = 0; iinfo < _columns.Length; iinfo++)
             {
-                ColumnInfo.SaveType(ctx, Columns[iinfo].InputType);
+                ColumnInfo.SaveType(ctx, _columns[iinfo].InputType);
                 var dir = string.Format("Normalizer_{0:000}", iinfo);
-                ctx.SaveSubModel(dir, Columns[iinfo].ColumnFunction.Save);
+                ctx.SaveSubModel(dir, _columns[iinfo].ColumnFunction.Save);
             }
         }
 
@@ -479,30 +479,30 @@ namespace Microsoft.ML.Transforms.Normalizers
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
+        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            private NormalizingTransformer _parent;
+            private NormalizerTransformer _parent;
 
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(NormalizingTransformer parent, Schema schema)
+            public Mapper(NormalizerTransformer parent, Schema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new Schema.Column[_parent.Columns.Length];
+                var result = new Schema.Column[_parent._columns.Length];
                 for (int i = 0; i < _parent.Columns.Length; i++)
-                    result[i] = new Schema.Column(_parent.Columns[i].Output, _parent.Columns[i].InputType, MakeMetadata(i));
+                    result[i] = new Schema.Column(_parent._columns[i].Output, _parent._columns[i].InputType, MakeMetadata(i));
                 return result;
             }
 
             private Schema.Metadata MakeMetadata(int iinfo)
             {
-                var colInfo = _parent.Columns[iinfo];
+                var colInfo = _parent._columns[iinfo];
                 var builder = new Schema.Metadata.Builder();
 
                 builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)IsNormalizedGetter);
@@ -515,19 +515,19 @@ namespace Microsoft.ML.Transforms.Normalizers
                 dst = true;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 disposer = null;
-                return _parent.Columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);
+                return _parent._columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);
             }
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 Host.CheckValue(ctx, nameof(ctx));
 
-                for (int iinfo = 0; iinfo < _parent.Columns.Length; ++iinfo)
+                for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
-                    var info = _parent.Columns[iinfo];
+                    var info = _parent._columns[iinfo];
                     string sourceColumnName = info.Input;
                     if (!ctx.ContainsColumn(sourceColumnName))
                     {
@@ -550,9 +550,9 @@ namespace Microsoft.ML.Transforms.Normalizers
                 var toHide = new List<string>();
                 var toDeclare = new List<KeyValuePair<string, JToken>>();
 
-                for (int iinfo = 0; iinfo < _parent.Columns.Length; ++iinfo)
+                for (int iinfo = 0; iinfo < _parent._columns.Length; ++iinfo)
                 {
-                    var info = _parent.Columns[iinfo];
+                    var info = _parent._columns[iinfo];
                     var srcName = info.Input;
                     string srcToken = ctx.TokenOrNullForName(srcName);
                     if (srcToken == null)
@@ -575,8 +575,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColumnInfo info, JToken srcToken)
             {
                 Contracts.AssertValue(ctx);
-                Contracts.Assert(0 <= iinfo && iinfo < _parent.Columns.Length);
-                Contracts.Assert(_parent.Columns[iinfo] == info);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+                Contracts.Assert(_parent._columns[iinfo] == info);
                 Contracts.AssertValue(srcToken);
                 Contracts.Assert(CanSavePfa);
                 return info.ColumnFunction.PfaInfo(ctx, srcToken);
@@ -585,8 +585,8 @@ namespace Microsoft.ML.Transforms.Normalizers
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColumnInfo info, string srcVariableName, string dstVariableName)
             {
                 Contracts.AssertValue(ctx);
-                Contracts.Assert(0 <= iinfo && iinfo < _parent.Columns.Length);
-                Contracts.Assert(_parent.Columns[iinfo] == info);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+                Contracts.Assert(_parent._columns[iinfo] == info);
                 Contracts.Assert(CanSaveOnnx(ctx));
 
                 if (info.InputType.ValueCount == 0)
@@ -605,123 +605,61 @@ namespace Microsoft.ML.Transforms.Normalizers
         }
 
         /// <summary>
-        /// Base class for all the NormalizerData classes: <see cref="AffineNormalizerModelParameters{TData}"/>,
-        /// <see cref="BinNormalizerModelParameters{TData}"/>, <see cref="CdfNormalizerModelParameters{TData}"/>.
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.AffineColumnFunction"/> items.
         /// </summary>
-        public abstract class NormalizerModelParametersBase
-        {
-            private protected NormalizerModelParametersBase() { }
-        }
-
-        /// <summary>
-        /// The model parameters generated by affine normalization transformations.
-        /// </summary>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public sealed class AffineNormalizerModelParameters<TData> : NormalizerModelParametersBase
+        internal interface IAffineData<TData>
         {
             /// <summary>
             /// The scales. In the scalar case, this is a single value. In the vector case this is of length equal
             /// to the number of slots. Function is <c>(input - offset) * scale</c>.
             /// </summary>
-            public TData Scale { get; }
+            TData Scale { get; }
 
             /// <summary>
             /// The offsets. In the scalar case, this is a single value. In the vector case this is of length equal
             /// to the number of slots, or of length zero if all the offsets are zero.
             /// </summary>
-            public TData Offset { get; }
-
-            /// <summary>
-            /// Initializes a new instance of <see cref="AffineNormalizerModelParameters{TData}"/>
-            /// </summary>
-            internal AffineNormalizerModelParameters(TData scale, TData offset)
-            {
-                Scale = scale;
-                Offset = offset;
-            }
+            TData Offset { get; }
         }
 
         /// <summary>
-        /// The model parameters generated by cumulative distribution normalization transformations.
-        /// The cumulative density function is parameterized by <see cref="CdfNormalizerModelParameters{TData}.Mean"/> and
-        /// the <see cref="CdfNormalizerModelParameters{TData}.Stddev"/> as observed during fitting.
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.CdfColumnFunction"/> items. The function is the value of the
+        /// cumulative density function of the normal distribution parameterized with mean <see cref="Mean"/>
+        /// and standard deviation <see cref="Stddev"/>.
         /// </summary>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[Normalize](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Normalizer.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
-        public sealed class CdfNormalizerModelParameters<TData> : NormalizerModelParametersBase
+        internal interface ICdfData<TData>
         {
             /// <summary>
             /// The mean(s). In the scalar case, this is a single value. In the vector case this is of length equal
             /// to the number of slots.
             /// </summary>
-            public TData Mean { get; }
+            TData Mean { get; }
 
             /// <summary>
             /// The standard deviation(s). In the scalar case, this is a single value. In the vector case this is of
             /// length equal to the number of slots.
             /// </summary>
-            public TData Stddev { get; }
+            TData Stddev { get; }
 
             /// <summary>
             /// Whether the we ought to apply a logarithm to the input first.
             /// </summary>
-            public bool UseLog { get; }
-
-            /// <summary>
-            /// Initializes a new instance of <see cref="CdfNormalizerModelParameters{TData}"/>
-            /// </summary>
-            internal CdfNormalizerModelParameters(TData mean, TData stddev, bool useLog)
-            {
-                Mean = mean;
-                Stddev = stddev;
-                UseLog = useLog;
-            }
+            bool UseLog { get; }
         }
 
         /// <summary>
-        /// The model parameters generated by buckettizing the data into bins with monotonically
-        /// increasing <see cref="BinNormalizerModelParameters{TData}.UpperBounds"/>.
-        /// The <see cref="BinNormalizerModelParameters{TData}.Density"/> value is constant from bin to bin, for most cases.
-        /// /// </summary>
-        public sealed class BinNormalizerModelParameters<TData> : NormalizerModelParametersBase
+        /// An interface implemented by items of <see cref="ColumnFunctions"/> corresponding to the
+        /// <see cref="NormalizeTransform.BinColumnFunction"/> items.
+        /// </summary>
+        internal interface IBinData<TData>
         {
             /// <summary>
             /// The standard deviation(s). In the scalar case, these are the bin upper bounds for that single value.
             /// In the vector case it is a jagged array of the bin upper bounds for all slots.
             /// </summary>
-            public ImmutableArray<TData> UpperBounds { get; }
-
-            /// <summary>
-            /// The frequency of the datapoints per each bin.
-            /// </summary>
-            public TData Density { get; }
-
-            /// <summary>
-            /// If normalization is performed with <see cref="NormalizeTransform.FixZeroArgumentsBase.FixZero"/> set to <value>true</value>,
-            /// the offset indicates the displacement of zero, if any.
-            /// </summary>
-            public TData Offset { get; }
-
-            /// <summary>
-            /// Initializes a new instance of <see cref="BinNormalizerModelParameters{TData}"/>
-            /// </summary>
-            internal BinNormalizerModelParameters(ImmutableArray<TData> upperBounds, TData density, TData offset)
-            {
-                UpperBounds = upperBounds;
-                Density = density;
-                Offset = offset;
-            }
+            ImmutableArray<TData> UpperBounds { get; }
         }
     }
 }

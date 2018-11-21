@@ -6,8 +6,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
-    [BestFriend]
-    internal interface ICanSaveOnnx
+    public interface ICanSaveOnnx
     {
         /// <summary>
         /// Whether this object really is capable of saving itself as part of an ONNX
@@ -22,8 +21,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// This component know how to save himself in ONNX format.
     /// </summary>
-    [BestFriend]
-    internal interface ISaveAsOnnx : ICanSaveOnnx
+    public interface ISaveAsOnnx : ICanSaveOnnx
     {
         /// <summary>
         /// Save as ONNX.
@@ -35,8 +33,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// This data model component is savable as ONNX.
     /// </summary>
-    [BestFriend]
-    internal interface ITransformCanSaveOnnx : ISaveAsOnnx, IDataTransform
+    public interface ITransformCanSaveOnnx : ISaveAsOnnx, IDataTransform
     {
     }
 
@@ -45,8 +42,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// typically called within an <see cref="IDataScorerTransform"/> that is wrapping
     /// this mapper, and has already been bound to it.
     /// </summary>
-    [BestFriend]
-    internal interface IBindableCanSaveOnnx : ICanSaveOnnx, ISchemaBindableMapper
+    public interface IBindableCanSaveOnnx : ICanSaveOnnx, ISchemaBindableMapper
     {
         /// <summary>
         /// Save as ONNX. If <see cref="ICanSaveOnnx.CanSaveOnnx"/> is
@@ -70,8 +66,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// For simple mappers. Intended to be used for <see cref="IValueMapper"/> and
     /// <see cref="Microsoft.ML.Runtime.Internal.Calibration.ICalibrator"/> instances.
     /// </summary>
-    [BestFriend]
-    internal interface ISingleCanSaveOnnx : ICanSaveOnnx
+    public interface ISingleCanSaveOnnx : ICanSaveOnnx
     {
         bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
     }
@@ -80,8 +75,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// For simple mappers. Intended to be used for <see cref="IValueMapperDist"/>
     /// instances.
     /// </summary>
-    [BestFriend]
-    internal interface IDistCanSaveOnnx : ISingleCanSaveOnnx, IValueMapperDist
+    public interface IDistCanSaveOnnx : ISingleCanSaveOnnx, IValueMapperDist
     {
         new bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn);
     }

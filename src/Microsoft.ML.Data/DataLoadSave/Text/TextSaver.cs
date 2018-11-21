@@ -166,22 +166,20 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteData(Action<StringBuilder, int> appendItem, out int length)
             {
                 _getSrc(ref _src);
-                var srcValues = _src.GetValues();
                 if (_src.IsDense)
                 {
-                    for (int i = 0; i < srcValues.Length; i++)
+                    for (int i = 0; i < _src.Length; i++)
                     {
-                        Conv(in srcValues[i], ref Sb);
+                        Conv(in _src.Values[i], ref Sb);
                         appendItem(Sb, i);
                     }
                 }
                 else
                 {
-                    var srcIndices = _src.GetIndices();
-                    for (int i = 0; i < srcValues.Length; i++)
+                    for (int i = 0; i < _src.Count; i++)
                     {
-                        Conv(in srcValues[i], ref Sb);
-                        appendItem(Sb, srcIndices[i]);
+                        Conv(in _src.Values[i], ref Sb);
+                        appendItem(Sb, _src.Indices[i]);
                     }
                 }
                 length = _src.Length;
@@ -190,18 +188,15 @@ namespace Microsoft.ML.Runtime.Data.IO
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
                 length = _slotCount;
-                var slotNamesValues = _slotNames.GetValues();
-                if (slotNamesValues.Length == 0)
+                if (_slotNames.Count == 0)
                     return;
-
-                var slotNamesIndices = _slotNames.GetIndices();
-                for (int i = 0; i < slotNamesValues.Length; i++)
+                for (int i = 0; i < _slotNames.Count; i++)
                 {
-                    var name = slotNamesValues[i];
+                    var name = _slotNames.Values[i];
                     if (name.IsEmpty)
                         continue;
                     MapText(in name, ref Sb);
-                    int index = _slotNames.IsDense ? i : slotNamesIndices[i];
+                    int index = _slotNames.IsDense ? i : _slotNames.Indices[i];
                     appendItem(Sb, index);
                 }
             }
@@ -425,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 if (_outputSchema)
                     WriteSchemaAsComment(writer, header);
 
-                double rowCount = data.GetRowCount() ?? double.NaN;
+                double rowCount = data.GetRowCount(true) ?? double.NaN;
                 using (var pch = !_silent ? _host.StartProgressChannel("TextSaver: saving data") : null)
                 {
                     long stateCount = 0;

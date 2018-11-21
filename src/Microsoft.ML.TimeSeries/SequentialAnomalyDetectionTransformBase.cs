@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
+        protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
             AnomalySide anomalySide, MartingaleType martingale, AlertingScore alertingScore, Double powerMartingaleEpsilon,
             Double alertThreshold)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), windowSize, initialWindowSize, inputColumnName, outputColumnName, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
@@ -183,13 +183,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _outputLength = GetOutputLength(ThresholdScore, Host);
         }
 
-        private protected SequentialAnomalyDetectionTransformBase(ArgumentsBase args, string name, IHostEnvironment env)
+        protected SequentialAnomalyDetectionTransformBase(ArgumentsBase args, string name, IHostEnvironment env)
             : this(args.WindowSize, args.InitialWindowSize, args.Source, args.Name, name, env, args.Side, args.Martingale,
                 args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
         {
         }
 
-        private protected SequentialAnomalyDetectionTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+        protected SequentialAnomalyDetectionTransformBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), ctx)
         {
             // *** Binary format ***
@@ -319,10 +319,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private int _martingaleAlertCounter;
 
-            protected Double LatestMartingaleScore => Math.Exp(_logMartingaleValue);
-
-            private protected AnomalyDetectionStateBase() : base()
-            {
+            protected Double LatestMartingaleScore {
+                get { return Math.Exp(_logMartingaleValue); }
             }
 
             private Double ComputeKernelPValue(Double rawScore)
@@ -361,78 +359,83 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return pValue;
             }
 
-            private protected override void SetNaOutput(ref VBuffer<Double> dst)
+            protected override void SetNaOutput(ref VBuffer<Double> dst)
             {
+                var values = dst.Values;
                 var outputLength = Parent._outputLength;
-                var editor = VBufferEditor.Create(ref dst, outputLength);
+                if (Utils.Size(values) < outputLength)
+                    values = new Double[outputLength];
 
                 for (int i = 0; i < outputLength; ++i)
-                    editor.Values[i] = Double.NaN;
+                    values[i] = Double.NaN;
 
-                dst = editor.Commit();
+                dst = new VBuffer<Double>(Utils.Size(values), values, dst.Indices);
             }
 
-            private protected override sealed void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
+            protected override sealed void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<Double> dst)
             {
                 var outputLength = Parent._outputLength;
                 Host.Assert(outputLength >= 2);
 
-                var result = VBufferEditor.Create(ref dst, outputLength);
+                var result = dst.Values;
+                if (Utils.Size(result) < outputLength)
+                    result = new Double[outputLength];
+
                 float rawScore = 0;
 
                 for (int i = 0; i < outputLength; ++i)
-                    result.Values[i] = Double.NaN;
+                    result[i] = Double.NaN;
 
                 // Step 1: Computing the raw anomaly score
-                result.Values[1] = ComputeRawAnomalyScore(ref input, windowedBuffer, iteration);
+                result[1] = ComputeRawAnomalyScore(ref input, windowedBuffer, iteration);
 
-                if (Double.IsNaN(result.Values[1]))
-                    result.Values[0] = 0;
+                if (Double.IsNaN(result[1]))
+                    result[0] = 0;
                 else
                 {
                     if (WindowSize > 0)
                     {
                         // Step 2: Computing the p-value score
-                        rawScore = (float)result.Values[1];
+                        rawScore = (float)result[1];
                         if (Parent.ThresholdScore == AlertingScore.RawScore)
                         {
                             switch (Parent.Side)
                             {
                                 case AnomalySide.Negative:
-                                    rawScore = (float)(-result.Values[1]);
+                                    rawScore = (float)(-result[1]);
                                     break;
 
                                 case AnomalySide.Positive:
                                     break;
 
                                 default:
-                                    rawScore = (float)Math.Abs(result.Values[1]);
+                                    rawScore = (float)Math.Abs(result[1]);
                                     break;
                             }
                         }
                         else
                         {
-                            result.Values[2] = ComputeKernelPValue(rawScore);
+                            result[2] = ComputeKernelPValue(rawScore);
 
                             switch (Parent.Side)
                             {
                                 case AnomalySide.Negative:
-                                    result.Values[2] = 1 - result.Values[2];
+                                    result[2] = 1 - result[2];
                                     break;
 
                                 case AnomalySide.Positive:
                                     break;
 
                                 default:
-                                    result.Values[2] = Math.Min(result.Values[2], 1 - result.Values[2]);
+                                    result[2] = Math.Min(result[2], 1 - result[2]);
                                     break;
                             }
 
                             // Keeping the p-value in the safe range
-                            if (result.Values[2] < MinPValue)
-                                result.Values[2] = MinPValue;
-                            else if (result.Values[2] > MaxPValue)
-                                result.Values[2] = MaxPValue;
+                            if (result[2] < MinPValue)
+                                result[2] = MinPValue;
+                            else if (result[2] > MaxPValue)
+                                result[2] = MaxPValue;
 
                             _rawScoreBuffer.AddLast(rawScore);
 
@@ -443,11 +446,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                 switch (Parent.Martingale)
                                 {
                                     case MartingaleType.Power:
-                                        martingaleUpdate = Parent.LogPowerMartigaleBettingFunc(result.Values[2], Parent.PowerMartingaleEpsilon);
+                                        martingaleUpdate = Parent.LogPowerMartigaleBettingFunc(result[2], Parent.PowerMartingaleEpsilon);
                                         break;
 
                                     case MartingaleType.Mixture:
-                                        martingaleUpdate = Parent.LogMixtureMartigaleBettingFunc(result.Values[2]);
+                                        martingaleUpdate = Parent.LogMixtureMartigaleBettingFunc(result[2]);
                                         break;
                                 }
 
@@ -464,7 +467,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                     _logMartingaleUpdateBuffer.AddLast(martingaleUpdate);
                                 }
 
-                                result.Values[3] = Math.Exp(_logMartingaleValue);
+                                result[3] = Math.Exp(_logMartingaleValue);
                             }
                         }
                     }
@@ -480,10 +483,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                 alert = rawScore >= Parent.AlertThreshold;
                                 break;
                             case AlertingScore.PValueScore:
-                                alert = result.Values[2] <= Parent.AlertThreshold;
+                                alert = result[2] <= Parent.AlertThreshold;
                                 break;
                             case AlertingScore.MartingaleScore:
-                                alert = (Parent.Martingale != MartingaleType.None) && (result.Values[3] >= Parent.AlertThreshold);
+                                alert = (Parent.Martingale != MartingaleType.None) && (result[3] >= Parent.AlertThreshold);
 
                                 if (alert)
                                 {
@@ -499,13 +502,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                         }
                     }
 
-                    result.Values[0] = Convert.ToDouble(alert);
+                    result[0] = Convert.ToDouble(alert);
                 }
 
-                dst = result.Commit();
+                dst = new VBuffer<Double>(outputLength, result, dst.Indices);
             }
 
-            private protected override sealed void InitializeStateCore()
+            protected override sealed void InitializeStateCore()
             {
                 Parent = (SequentialAnomalyDetectionTransformBase<TInput, TState>)ParentTransform;
                 Host.Assert(WindowSize >= 0);
@@ -522,7 +525,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// The abstract method that realizes the initialization functionality for the anomaly detector.
             /// </summary>
-            private protected abstract void InitializeAnomalyDetector();
+            protected abstract void InitializeAnomalyDetector();
 
             /// <summary>
             /// The abstract method that realizes the main logic for calculating the raw anomaly score bfor the current input given a windowed buffer
@@ -532,7 +535,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="iteration">A long number that indicates the number of times ComputeRawAnomalyScore has been called so far (starting value = 0).</param>
             /// <returns>The raw anomaly score for the input. The Assumption is the higher absolute value of the raw score, the more anomalous the input is.
             /// The sign of the score determines whether it's a positive anomaly or a negative one.</returns>
-            private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
+            protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
@@ -606,13 +609,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
                 ProcessData processData = _parent.WindowSize > 0 ?
-                    (ProcessData)state.Process : state.ProcessWithoutBuffer;
-                ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
-               {
-                   TInput src = default;
-                   srcGetter(ref src);
-                   processData(ref src, ref dst);
-               };
+                    (ProcessData) state.Process : state.ProcessWithoutBuffer;
+                ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                {
+                    TInput src = default;
+                    srcGetter(ref src);
+                    processData(ref src, ref dst);
+                };
 
                 return valueGetter;
             }

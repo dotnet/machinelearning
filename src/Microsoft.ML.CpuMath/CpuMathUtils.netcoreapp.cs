@@ -8,7 +8,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    internal static partial class CpuMathUtils
+    public static partial class CpuMathUtils
     {
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
@@ -88,9 +88,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatrixTimesSource(AlignedArray matrix, ReadOnlySpan<int> rgposSrc, AlignedArray sourceValues,
+        public static void MatrixTimesSource(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
+            Contracts.AssertValue(rgposSrc);
             Contracts.Assert(iposMin >= 0);
             Contracts.Assert(iposMin <= iposLimit);
             Contracts.Assert(iposLimit <= rgposSrc.Length);

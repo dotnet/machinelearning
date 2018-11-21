@@ -84,20 +84,15 @@ namespace Microsoft.ML.Trainers.PCA
         /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
-        /// <param name="features">The name of the feature column.</param>
-        /// <param name="weights">The name of the weight column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation.</param>
-        public RandomizedPcaTrainer(IHostEnvironment env,
-            string features,
-            string weights = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
-            int? seed = null)
-            : this(env, null, features, weights, rank, oversampling, center, seed)
+        public RandomizedPcaTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null,
+            int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
+            : this(env, null, featureColumn, weightColumn, rank, oversampling, center, seed)
         {
 
         }
@@ -136,7 +131,7 @@ namespace Microsoft.ML.Trainers.PCA
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        private protected override PcaPredictor TrainModelCore(TrainContext context)
+        protected override PcaPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -190,11 +185,11 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 var v = y[i];
-                VectorUtils.ScaleBy(v, 1 / VectorUtils.Norm(y[i]));
+                VectorUtils.ScaleBy(ref v, 1 / VectorUtils.Norm(y[i]));
 
                 // Make the next vectors in the queue orthogonal to the orthonormalized vectors.
                 for (var j = i + 1; j < oversampledRank; ++j) //subtract the projection of y[j] on v.
-                    VectorUtils.AddMult(v, y[j], -VectorUtils.DotProduct(v, y[j]));
+                    VectorUtils.AddMult(in v, -VectorUtils.DotProduct(in v, in y[j]), ref y[j]);
             }
             var q = y; // q in QR decomposition.
 
@@ -206,7 +201,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 for (var j = i; j < oversampledRank; ++j)
-                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(b[i], b[j]);
+                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(in b[i], in b[j]);
             }
 
             float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
@@ -217,15 +212,15 @@ namespace Microsoft.ML.Trainers.PCA
             return new PcaPredictor(Host, _rank, b, in mean);
         }
 
-        private static float[][] Zeros(int k, int d)
+        private static VBuffer<float>[] Zeros(int k, int d)
         {
-            float[][] rv = new float[k][];
+            var rv = new VBuffer<float>[k];
             for (var i = 0; i < k; ++i)
-                rv[i] = new float[d];
+                rv[i] = VBufferUtils.CreateDense<float>(d);
             return rv;
         }
 
-        private static float[][] GaussianMatrix(int k, int d, int seed)
+        private static VBuffer<float>[] GaussianMatrix(int k, int d, int seed)
         {
             var rv = Zeros(k, d);
             var rng = new SysRandom(seed);
@@ -235,7 +230,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < k; ++i)
             {
                 for (var j = 0; j < d; ++j)
-                    rv[i][j] = (float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
+                    rv[i].Values[j] = (float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
             }
             return rv;
         }
@@ -243,7 +238,7 @@ namespace Microsoft.ML.Trainers.PCA
         //Project the covariance matrix A on to Omega: Y <- A * Omega
         //A = X' * X / n, where X = data - mean
         //Note that the covariance matrix is not computed explicitly
-        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<float> mean, float[][] omega, float[][] y, out long numBad)
+        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<float> mean, VBuffer<float>[] omega, VBuffer<float>[] y, out long numBad)
         {
             Contracts.AssertValue(host, "host");
             host.AssertNonEmpty(omega);
@@ -251,7 +246,7 @@ namespace Microsoft.ML.Trainers.PCA
             int numCols = omega.Length;
 
             for (int i = 0; i < y.Length; ++i)
-                Array.Clear(y[i], 0, y[i].Length);
+                VBufferUtils.Clear(ref y[i]);
 
             bool center = mean.IsDense;
             float n = 0;
@@ -268,8 +263,8 @@ namespace Microsoft.ML.Trainers.PCA
                     {
                         VectorUtils.AddMult(
                             in cursor.Features,
-                            y[i],
-                            cursor.Weight * VectorUtils.DotProduct(omega[i], in cursor.Features));
+                            cursor.Weight * VectorUtils.DotProduct(in omega[i], in cursor.Features),
+                            ref y[i]);
                     }
                     n += cursor.Weight;
                     count++;
@@ -282,13 +277,13 @@ namespace Microsoft.ML.Trainers.PCA
             float invn = 1 / n;
 
             for (var i = 0; i < numCols; ++i)
-                VectorUtils.ScaleBy(y[i], invn);
+                VectorUtils.ScaleBy(ref y[i], invn);
 
             if (center)
             {
                 VectorUtils.ScaleBy(ref mean, invn);
                 for (int i = 0; i < numCols; i++)
-                    VectorUtils.AddMult(in mean, y[i], -VectorUtils.DotProduct(omega[i], in mean));
+                    VectorUtils.AddMult(in mean, -VectorUtils.DotProduct(in omega[i], in mean), ref y[i]);
             }
         }
 
@@ -296,8 +291,9 @@ namespace Microsoft.ML.Trainers.PCA
         /// Modifies <paramref name="y"/> in place so it becomes <paramref name="y"/> * eigenvectors / eigenvalues.
         /// </summary>
         // REVIEW: improve
-        private static void PostProcess(float[][] y, float[] sigma, float[] z, int d, int k)
+        private static void PostProcess(VBuffer<float>[] y, float[] sigma, float[] z, int d, int k)
         {
+            Contracts.Assert(y.All(v => v.IsDense));
             var pinv = new float[k];
             var tmp = new float[k];
 
@@ -310,10 +306,10 @@ namespace Microsoft.ML.Trainers.PCA
                 {
                     tmp[j] = 0;
                     for (int l = 0; l < k; l++)
-                        tmp[j] += y[l][i] * z[j * k + l];
+                        tmp[j] += y[l].Values[i] * z[j * k + l];
                 }
                 for (int j = 0; j < k; j++)
-                    y[j][i] = pinv[j] * tmp[j];
+                    y[j].Values[i] = pinv[j] * tmp[j];
             }
         }
 
@@ -397,7 +393,7 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
+        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -407,8 +403,8 @@ namespace Microsoft.ML.Trainers.PCA
 
             for (var i = 0; i < rank; ++i) // Only want first k
             {
-                _eigenVectors[i] = new VBuffer<float>(eigenVectors[i].Length, eigenVectors[i]);
-                _meanProjected[i] = VectorUtils.DotProduct(in _eigenVectors[i], in mean);
+                _eigenVectors[i] = eigenVectors[i];
+                _meanProjected[i] = VectorUtils.DotProduct(in eigenVectors[i], in mean);
             }
 
             _mean = mean;

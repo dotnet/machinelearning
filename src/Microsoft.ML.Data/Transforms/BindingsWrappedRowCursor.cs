@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Data
     /// inconvenient or inefficient to handle the "no output selected" case in their
     /// own implementation.
     /// </summary>
-    internal sealed class BindingsWrappedRowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+    public sealed class BindingsWrappedRowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
     {
         private readonly ColumnBindingsBase _bindings;
 

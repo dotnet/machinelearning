@@ -54,17 +54,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class State : AnomalyDetectionStateBase
         {
-            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need for initial tuning for this transform.
             }
 
-            private protected override void InitializeAnomalyDetector()
+            protected override void InitializeAnomalyDetector()
             {
                 // This method is empty because there is no need for any extra initialization for this transform.
             }
 
-            private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
+            protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
             {
                 // This transform treats the input sequenence as the raw anomaly score.
                 return (double)input;

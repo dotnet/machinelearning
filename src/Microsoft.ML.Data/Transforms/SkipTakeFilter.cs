@@ -169,11 +169,11 @@ namespace Microsoft.ML.Transforms
         /// Returns the computed count of rows remaining after skip and take operation.
         /// Returns null if count is unknown.
         /// </summary>
-        public override long? GetRowCount()
+        public override long? GetRowCount(bool lazy = true)
         {
             if (_take == 0)
                 return 0;
-            long? count = Source.GetRowCount();
+            long? count = Source.GetRowCount(lazy);
             if (count == null)
                 return null;
 

@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    internal static partial class Utils
+    public static partial class Utils
     {
         /// <summary>
         /// Environment variable containing optional resources path.

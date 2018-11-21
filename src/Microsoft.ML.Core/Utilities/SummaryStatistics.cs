@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    internal abstract class SummaryStatisticsBase
+    public abstract class SummaryStatisticsBase
     {
         // Sum of squared difference from the current mean.
         protected double M2;
@@ -152,8 +152,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
     }
 
-    [BestFriend]
-    internal sealed class SummaryStatisticsUpToSecondOrderMoments : SummaryStatisticsBase
+    public sealed class SummaryStatisticsUpToSecondOrderMoments : SummaryStatisticsBase
     {
         /// <summary>
         /// A convenient way to combine the observations of two Stats objects
@@ -178,8 +177,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     /// All quantities are weighted, except for <c>RawCount</c>.
     /// </summary>
-    [BestFriend]
-    internal sealed class SummaryStatistics : SummaryStatisticsBase
+    public sealed class SummaryStatistics : SummaryStatisticsBase
     {
         // Sum of cubed difference from the current mean.
         private double _m3;

@@ -4,8 +4,7 @@
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    [BestFriend]
-    internal static class CpuAligenedMathUtils<TMatrix>
+    public static class CpuAligenedMathUtils<TMatrix>
         where TMatrix : CpuAlignedMatrixBase, ICpuFullMatrix
     {
         /// <summary>

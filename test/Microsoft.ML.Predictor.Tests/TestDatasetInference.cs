@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        [Fact(Skip = "Disabled")]
+        [Fact(Skip="Disabled")]
         public void DatasetInferenceTest()
         {
             var datasets = new[]
@@ -35,49 +35,51 @@ namespace Microsoft.ML.Runtime.RunTests
                 GetDataPath(@"..\UnitTest\breast-cancer.txt"),
             };
 
-            IHostEnvironment env = new MLContext();
-            var h = env.Register("InferDatasetFeatures", seed: 0, verbose: false);
-
-            using (var ch = h.Start("InferDatasetFeatures"))
+            using (var env = new ConsoleEnvironment())
             {
+                var h = env.Register("InferDatasetFeatures", seed: 0, verbose: false);
 
-                for (int i = 0; i < datasets.Length; i++)
+                using (var ch = h.Start("InferDatasetFeatures"))
                 {
-                    var sample = TextFileSample.CreateFromFullFile(h, datasets[i]);
-                    var splitResult = TextFileContents.TrySplitColumns(h, sample, TextFileContents.DefaultSeparators);
-                    if (!splitResult.IsSuccess)
-                        throw ch.ExceptDecode("Couldn't detect separator.");
 
-                    var typeInfResult = ColumnTypeInference.InferTextFileColumnTypes(Env, sample,
-                        new ColumnTypeInference.Arguments
-                        {
-                            Separator = splitResult.Separator,
-                            AllowSparse = splitResult.AllowSparse,
-                            AllowQuote = splitResult.AllowQuote,
-                            ColumnCount = splitResult.ColumnCount
-                        });
+                    for (int i = 0; i < datasets.Length; i++)
+                    {
+                        var sample = TextFileSample.CreateFromFullFile(h, datasets[i]);
+                        var splitResult = TextFileContents.TrySplitColumns(h, sample, TextFileContents.DefaultSeparators);
+                        if (!splitResult.IsSuccess)
+                            throw ch.ExceptDecode("Couldn't detect separator.");
 
-                    if (!typeInfResult.IsSuccess)
-                        return;
+                        var typeInfResult = ColumnTypeInference.InferTextFileColumnTypes(Env, sample,
+                            new ColumnTypeInference.Arguments
+                            {
+                                Separator = splitResult.Separator,
+                                AllowSparse = splitResult.AllowSparse,
+                                AllowQuote = splitResult.AllowQuote,
+                                ColumnCount = splitResult.ColumnCount
+                            });
 
-                    ColumnGroupingInference.GroupingColumn[] columns = null;
-                    bool hasHeader = false;
-                    columns = InferenceUtils.InferColumnPurposes(ch, h, sample, splitResult, out hasHeader);
-                    Guid id = new Guid("60C77F4E-DB62-4351-8311-9B392A12968E");
-                    var commandArgs = new DatasetFeatureInference.Arguments(typeInfResult.Data,
-                        columns.Select(
-                            col =>
-                                new DatasetFeatureInference.Column(col.SuggestedName, col.Purpose, col.ItemKind,
-                                    col.ColumnRangeSelector)).ToArray(), sample.FullFileSize, sample.ApproximateRowCount,
-                        false, id, true);
+                        if (!typeInfResult.IsSuccess)
+                            return;
 
-                    string jsonString = DatasetFeatureInference.InferDatasetFeatures(env, commandArgs);
-                    var outFile = string.Format("dataset-inference-result-{0:00}.txt", i);
-                    string dataPath = GetOutputPath(@"..\Common\Inference", outFile);
-                    using (var sw = new StreamWriter(File.Create(dataPath)))
-                        sw.WriteLine(jsonString);
+                        ColumnGroupingInference.GroupingColumn[] columns = null;
+                        bool hasHeader = false;
+                        columns = InferenceUtils.InferColumnPurposes(ch, h, sample, splitResult, out hasHeader);
+                        Guid id = new Guid("60C77F4E-DB62-4351-8311-9B392A12968E");
+                        var commandArgs = new DatasetFeatureInference.Arguments(typeInfResult.Data,
+                            columns.Select(
+                                col =>
+                                    new DatasetFeatureInference.Column(col.SuggestedName, col.Purpose, col.ItemKind,
+                                        col.ColumnRangeSelector)).ToArray(), sample.FullFileSize, sample.ApproximateRowCount,
+                            false, id, true);
 
-                    CheckEquality(@"..\Common\Inference", outFile);
+                        string jsonString = DatasetFeatureInference.InferDatasetFeatures(env, commandArgs);
+                        var outFile = string.Format("dataset-inference-result-{0:00}.txt", i);
+                        string dataPath = GetOutputPath(@"..\Common\Inference", outFile);
+                        using (var sw = new StreamWriter(File.Create(dataPath)))
+                            sw.WriteLine(jsonString);
+
+                        CheckEquality(@"..\Common\Inference", outFile);
+                    }
                 }
             }
             Done();
@@ -91,24 +93,26 @@ namespace Microsoft.ML.Runtime.RunTests
                 GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv"))
             };
 
-            IHostEnvironment env = new MLContext();
-            var h = env.Register("InferSchemaCommandTest", seed: 0, verbose: false);
-            using (var ch = h.Start("InferSchemaCommandTest"))
+            using (var env = new ConsoleEnvironment())
             {
-                for (int i = 0; i < datasets.Length; i++)
+                var h = env.Register("InferSchemaCommandTest", seed: 0, verbose: false);
+                using (var ch = h.Start("InferSchemaCommandTest"))
                 {
-                    var outFile = string.Format("dataset-infer-schema-result-{0:00}.txt", i);
-                    string dataPath = GetOutputPath(Path.Combine("..", "Common", "Inference"), outFile);
-                    var args = new InferSchemaCommand.Arguments()
+                    for (int i = 0; i < datasets.Length; i++)
                     {
-                        DataFile = datasets[i],
-                        OutputFile = dataPath,
-                    };
+                        var outFile = string.Format("dataset-infer-schema-result-{0:00}.txt", i);
+                        string dataPath = GetOutputPath(Path.Combine("..", "Common", "Inference"), outFile);
+                        var args = new InferSchemaCommand.Arguments()
+                        {
+                            DataFile = datasets[i],
+                            OutputFile = dataPath,
+                        };
 
-                    var cmd = new InferSchemaCommand(Env, args);
-                    cmd.Run();
+                        var cmd = new InferSchemaCommand(Env, args);
+                        cmd.Run();
 
-                    CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                        CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                    }
                 }
             }
             Done();
@@ -124,24 +128,26 @@ namespace Microsoft.ML.Runtime.RunTests
                     GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data-schema.txt")))
             };
 
-            IHostEnvironment env = new MLContext();
-            var h = env.Register("InferRecipesCommandTest", seed: 0, verbose: false);
-            using (var ch = h.Start("InferRecipesCommandTest"))
+            using (var env = new ConsoleEnvironment())
             {
-                for (int i = 0; i < datasets.Length; i++)
+                var h = env.Register("InferRecipesCommandTest", seed: 0, verbose: false);
+                using (var ch = h.Start("InferRecipesCommandTest"))
                 {
-                    var outFile = string.Format("dataset-infer-recipe-result-{0:00}.txt", i);
-                    string dataPath = GetOutputPath(Path.Combine("..", "Common", "Inference"), outFile);
-                    var args = new InferRecipesCommand.Arguments()
+                    for (int i = 0; i < datasets.Length; i++)
                     {
-                        DataFile = datasets[i].Item1,
-                        SchemaDefinitionFile = datasets[i].Item2,
-                        RspOutputFile = dataPath
-                    };
-                    var cmd = new InferRecipesCommand(Env, args);
-                    cmd.Run();
+                        var outFile = string.Format("dataset-infer-recipe-result-{0:00}.txt", i);
+                        string dataPath = GetOutputPath(Path.Combine("..", "Common", "Inference"), outFile);
+                        var args = new InferRecipesCommand.Arguments()
+                        {
+                            DataFile = datasets[i].Item1,
+                            SchemaDefinitionFile = datasets[i].Item2,
+                            RspOutputFile = dataPath
+                        };
+                        var cmd = new InferRecipesCommand(Env, args);
+                        cmd.Run();
 
-                    CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                        CheckEquality(Path.Combine("..", "Common", "Inference"), outFile);
+                    }
                 }
             }
             Done();

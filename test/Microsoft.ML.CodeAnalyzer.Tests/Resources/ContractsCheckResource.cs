@@ -57,15 +57,3 @@ namespace TestNamespace
         public const string CoolMessage = "This is super cool";
     }
 }
-
-// Dummy declarations so that the independent compilation of contracts works as expected.
-namespace Microsoft.ML.Runtime
-{
-    [Flags]
-    internal enum MessageSensitivity
-    {
-        None = 0,
-        Unknown = ~None
-    }
-    internal interface IHostEnvironment : IExceptionContext { }
-}

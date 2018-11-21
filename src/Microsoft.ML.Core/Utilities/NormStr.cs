@@ -17,8 +17,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Normalized string type. For string pooling.
     /// </summary>
-    [BestFriend]
-    internal sealed class NormStr
+    public sealed class NormStr
     {
         public readonly ReadOnlyMemory<char> Value;
         public readonly int Id;

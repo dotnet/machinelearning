@@ -662,7 +662,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        public long? GetRowCount()
+        public long? GetRowCount(bool lazy = true)
         {
             return _header.RowCount;
         }

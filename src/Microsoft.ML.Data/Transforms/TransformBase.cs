@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract void Save(ModelSaveContext ctx);
 
-        public abstract long? GetRowCount();
+        public abstract long? GetRowCount(bool lazy = true);
 
         public virtual bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public sealed override long? GetRowCount() { return Source.GetRowCount(); }
+        public sealed override long? GetRowCount(bool lazy = true) { return Source.GetRowCount(lazy); }
     }
 
     /// <summary>
@@ -112,25 +112,23 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public abstract class FilterBase : TransformBase, ITransformCanSavePfa
     {
-        [BestFriend]
-        private protected FilterBase(IHostEnvironment env, string name, IDataView input)
+        protected FilterBase(IHostEnvironment env, string name, IDataView input)
             : base(env, name, input)
         {
         }
 
-        [BestFriend]
-        private protected FilterBase(IHost host, IDataView input)
+        protected FilterBase(IHost host, IDataView input)
             : base(host, input)
         {
         }
 
-        public override long? GetRowCount() => null;
+        public override long? GetRowCount(bool lazy = true) { return null; }
 
-        public sealed override Schema Schema => Source.Schema;
+        public sealed override Schema Schema { get { return Source.Schema; } }
 
-        bool ICanSavePfa.CanSavePfa => true;
+        public virtual bool CanSavePfa => true;
 
-        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
+        public virtual void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             // Because filters do not modify the schema, this is a no-op.
@@ -470,16 +468,11 @@ namespace Microsoft.ML.Runtime.Data
         // The InputTranspose transpose schema, null iff InputTranspose is null.
         protected ITransposeSchema InputTransposeSchema => InputTranspose?.TransposeSchema;
 
-        bool ICanSavePfa.CanSavePfa => CanSavePfaCore;
+        public virtual bool CanSavePfa => false;
 
-        private protected virtual bool CanSavePfaCore => false;
+        public virtual bool CanSaveOnnx(OnnxContext ctx) => false;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => CanSaveOnnxCore;
-
-        private protected virtual bool CanSaveOnnxCore => false;
-
-        [BestFriend]
-        private protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
+        protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
             : base(env, name, input)
         {
@@ -492,8 +485,7 @@ namespace Microsoft.ML.Runtime.Data
             Metadata = new MetadataDispatcher(Infos.Length);
         }
 
-        [BestFriend]
-        private protected OneToOneTransformBase(IHost host, OneToOneColumn[] column,
+        protected OneToOneTransformBase(IHost host, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
             : base(host, input)
         {
@@ -506,8 +498,7 @@ namespace Microsoft.ML.Runtime.Data
             Metadata = new MetadataDispatcher(Infos.Length);
         }
 
-        [BestFriend]
-        private protected OneToOneTransformBase(IHost host, ModelLoadContext ctx,
+        protected OneToOneTransformBase(IHost host, ModelLoadContext ctx,
             IDataView input, Func<ColumnType, string> testType)
             : base(host, input)
         {
@@ -523,8 +514,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Re-applying constructor.
         /// </summary>
-        [BestFriend]
-        private protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneTransformBase transform,
+        protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneTransformBase transform,
             IDataView newInput, Func<ColumnType, string> checkType)
             : base(env, name, newInput)
         {
@@ -544,20 +534,18 @@ namespace Microsoft.ML.Runtime.Data
             Metadata = new MetadataDispatcher(Infos.Length);
         }
 
-        [BestFriend]
-        private protected MetadataDispatcher Metadata { get; }
+        protected MetadataDispatcher Metadata { get; }
 
-        [BestFriend]
-        private protected void SaveBase(ModelSaveContext ctx)
+        protected void SaveBase(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             _bindings.Save(ctx);
         }
 
-        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
+        public void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(((ICanSavePfa)this).CanSavePfa);
+            Host.Assert(CanSavePfa);
 
             var toHide = new List<string>();
             var toDeclare = new List<KeyValuePair<string, JToken>>();
@@ -584,10 +572,10 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(toDeclare.ToArray());
         }
 
-        void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx)
+        public void SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(((ICanSaveOnnx)this).CanSaveOnnx(ctx));
+            Host.Assert(CanSaveOnnx(ctx));
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
@@ -608,8 +596,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Called by <see cref="ISaveAsPfa.SaveAsPfa"/>. Should be implemented by subclasses that return
-        /// <c>true</c> from <see cref="ICanSavePfa.CanSavePfa"/>. Will be called
+        /// Called by <see cref="SaveAsPfa"/>. Should be implemented by subclasses that return
+        /// <c>true</c> from <see cref="CanSavePfa"/>. Will be called
         /// </summary>
         /// <param name="ctx">The context. Can be used to declare cells, access other information,
         /// and whatnot. This method should not actually, however, declare the variable corresponding
@@ -619,19 +607,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="srcToken">The token in the PFA corresponding to the source col</param>
         /// <returns>Shuold return the declaration corresponding to the value of this column. Will
         /// return <c>null</c> in the event that we do not know how to express this column as PFA</returns>
-        [BestFriend]
-        private protected virtual JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+        protected virtual JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
         {
             Host.AssertValue(ctx);
             Host.Assert(0 <= iinfo && iinfo < _bindings.InfoCount);
             Host.Assert(Infos[iinfo] == info);
             Host.AssertValue(srcToken);
-            Host.Assert(((ICanSavePfa)this).CanSavePfa);
+            Host.Assert(CanSavePfa);
             return null;
         }
 
-        [BestFriend]
-        private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
+        protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
         public sealed override Schema Schema => _bindings.AsSchema;

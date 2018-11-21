@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 Host.Assert(args.WindowSize == 1);
                 throw Host.ExceptUserArg(nameof(args.Lag),
-                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {ColumnsCopyingTransformer.LoaderSignature} transform instead.");
+                    $"If {args.Lag}=0 and {args.WindowSize}=1, the transform just copies the column. Use {CopyColumnsTransform.LoaderSignature} transform instead.");
             }
             Host.CheckUserArg(Enum.IsDefined(typeof(BeginOptions), args.Begin), nameof(args.Begin), "Undefined value.");
             _lag = args.Lag;
@@ -131,11 +131,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private SlidingWindowTransformBase<TInput> _parentSliding;
 
-            private protected override void SetNaOutput(ref VBuffer<TInput> output)
+            protected override void SetNaOutput(ref VBuffer<TInput> output)
             {
 
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = VBufferEditor.Create(ref output, size);
+                var result = output.Values;
+                if (Utils.Size(result) < size)
+                    result = new TInput[size];
 
                 TInput value = _parentSliding._nanValue;
                 switch (_parentSliding._begin)
@@ -150,35 +152,37 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 }
 
                 for (int i = 0; i < size; ++i)
-                    result.Values[i] = value;
-                output = result.Commit();
+                    result[i] = value;
+                output = new VBuffer<TInput>(size, result, output.Indices);
             }
 
-            private protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
+            protected override void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref VBuffer<TInput> output)
             {
                 int size = _parentSliding.WindowSize - _parentSliding._lag + 1;
-                var result = VBufferEditor.Create(ref output, size);
+                var result = output.Values;
+                if (Utils.Size(result) < size)
+                    result = new TInput[size];
 
                 if (_parentSliding._lag == 0)
                 {
                     for (int i = 0; i < _parentSliding.WindowSize; ++i)
-                        result.Values[i] = windowedBuffer[i];
-                    result.Values[_parentSliding.WindowSize] = input;
+                        result[i] = windowedBuffer[i];
+                    result[_parentSliding.WindowSize] = input;
                 }
                 else
                 {
                     for (int i = 0; i < size; ++i)
-                        result.Values[i] = windowedBuffer[i];
+                        result[i] = windowedBuffer[i];
                 }
-                output = result.Commit();
+                output = new VBuffer<TInput>(size, result, output.Indices);
             }
 
-            private protected override void InitializeStateCore()
+            protected override void InitializeStateCore()
             {
                 _parentSliding = (SlidingWindowTransformBase<TInput>)base.ParentTransform;
             }
 
-            private protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
+            protected override void LearnStateFromDataCore(FixedSizeQueue<TInput> data)
             {
                 // This method is empty because there is no need for parameter learning from the initial windowed buffer for this transform.
             }

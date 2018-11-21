@@ -52,24 +52,26 @@ namespace Microsoft.ML.Legacy.Models
 
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                var env = new MLContext();
-                var subgraph = env.CreateExperiment();
-                subgraph.Add(_trainer);
-                var ova = new OneVersusAll();
-                if (previousStep != null)
+                using (var env = new ConsoleEnvironment())
                 {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    var subgraph = env.CreateExperiment();
+                    subgraph.Add(_trainer);
+                    var ova = new OneVersusAll();
+                    if (previousStep != null)
                     {
-                        throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
+                        if (!(previousStep is ILearningPipelineDataStep dataStep))
+                        {
+                            throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                        }
 
-                    _data = dataStep.Data;
-                    ova.TrainingData = dataStep.Data;
-                    ova.UseProbabilities = _useProbabilities;
-                    ova.Nodes = subgraph;
+                        _data = dataStep.Data;
+                        ova.TrainingData = dataStep.Data;
+                        ova.UseProbabilities = _useProbabilities;
+                        ova.Nodes = subgraph;
+                    }
+                    Output output = experiment.Add(ova);
+                    return new OvaPipelineStep(output);
                 }
-                Output output = experiment.Add(ova);
-                return new OvaPipelineStep(output);
             }
 
             public Var<IDataView> GetInputData() => _data;

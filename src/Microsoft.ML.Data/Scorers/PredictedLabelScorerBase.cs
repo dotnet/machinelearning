@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Data
                     yield return TextType.Instance.GetPair(MetadataUtils.Kinds.ScoreValueKind);
                     if (_predColMetadata != null)
                     {
-                        var sch = _predColMetadata.Schema;
+                        ISchema sch = _predColMetadata.Schema;
                         for (int i = 0; i < sch.ColumnCount; ++i)
                             yield return new KeyValuePair<string, ColumnType>(sch.GetColumnName(i), sch.GetColumnType(i));
                     }
@@ -279,9 +279,9 @@ namespace Microsoft.ML.Runtime.Data
         protected override BindingsBase GetBindings() => Bindings;
         public override Schema Schema { get; }
 
-        bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
+        public bool CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema, string registrationName, string scoreColKind, string scoreColName,
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Runtime.Data
             Bindings.Save(ctx);
         }
 
-        void ISaveAsPfa.SaveAsPfa(BoundPfaContext ctx)
+        public void SaveAsPfa(BoundPfaContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSavePfa);
@@ -365,10 +365,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract JToken PredictedLabelPfa(string[] mapperOutputs);
 
-        void ISaveAsOnnx.SaveAsOnnx(OnnxContext ctx) => SaveAsOnnxCore(ctx);
-
-        [BestFriend]
-        private protected virtual void SaveAsOnnxCore(OnnxContext ctx)
+        public virtual void SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.Assert(Bindable is IBindableCanSaveOnnx);

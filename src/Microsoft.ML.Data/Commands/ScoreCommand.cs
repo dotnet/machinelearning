@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public delegate void SignatureBindableMapper(IPredictor predictor);
 
-    internal sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
+    public sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -232,8 +232,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    [BestFriend]
-    internal static class ScoreUtils
+    public static class ScoreUtils
     {
         public static IDataScorerTransform GetScorer(IPredictor predictor, RoleMappedData data, IHostEnvironment env, RoleMappedSchema trainSchema)
         {

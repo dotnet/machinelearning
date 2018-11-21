@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
-    internal sealed class SaveOnnxCommand : DataCommand.ImplBase<SaveOnnxCommand.Arguments>
+    public sealed class SaveOnnxCommand : DataCommand.ImplBase<SaveOnnxCommand.Arguments>
     {
         public const string Summary = "Given a data model, write out the corresponding ONNX.";
         public const string LoadName = "SaveOnnx";

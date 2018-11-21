@@ -1,11 +1,19 @@
-﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.StaticPipe;
-using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Runtime.LightGBM;
+        using Microsoft.ML.StaticPipe;
+        using System;
+
+// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
+// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
+// line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public class LightGbmRegressionExample
+    public partial class TrainersSamples
     {
         public static void LightGbmRegression()
         {
@@ -51,9 +59,8 @@ namespace Microsoft.ML.Samples.Static
             VBuffer<float> weights = default;
             pred.GetFeatureWeights(ref weights);
 
-            var weightsValues = weights.GetValues();
-            Console.WriteLine($"weight 0 - {weightsValues[0]}");
-            Console.WriteLine($"weight 1 - {weightsValues[1]}");
+            Console.WriteLine($"weight 0 - {weights.Values[0]}");
+            Console.WriteLine($"weight 1 - {weights.Values[1]}");
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);

@@ -63,17 +63,18 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            var env = new MLContext(seed: 1);
-            // Pipeline
-            var loader = TextLoader.ReadFile(env,
-                new TextLoader.Arguments()
-                {
-                    AllowQuoting = false,
-                    AllowSparse = false,
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+            using (var env = new ConsoleEnvironment(seed: 1))
+            {
+                // Pipeline
+                var loader = TextLoader.ReadFile(env,
+                    new TextLoader.Arguments()
                     {
+                        AllowQuoting = false,
+                        AllowSparse = false,
+                        Separator = "tab",
+                        HasHeader = true,
+                        Column = new[]
+                        {
                             new TextLoader.Column()
                             {
                                 Name = "Label",
@@ -87,14 +88,14 @@ namespace Microsoft.ML.Benchmarks
                                 Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
                                 Type = DataKind.Text
                             }
-                    }
-                }, new MultiFileSource(_sentimentDataPath));
+                        }
+                    }, new MultiFileSource(_sentimentDataPath));
 
-            var text = TextFeaturizingEstimator.Create(env,
-                new TextFeaturizingEstimator.Arguments()
-                {
-                    Column = new TextFeaturizingEstimator.Column
+                var text = TextFeaturizingEstimator.Create(env,
+                    new TextFeaturizingEstimator.Arguments()
                     {
+                        Column = new TextFeaturizingEstimator.Column
+                        {
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
                         },
@@ -106,24 +107,27 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = WordEmbeddingsExtractingTransformer.Create(env,
-                    new WordEmbeddingsExtractingTransformer.Arguments()
+                var trans = WordEmbeddingsTransform.Create(env,
+                    new WordEmbeddingsTransform.Arguments()
                     {
-                        Column = new WordEmbeddingsExtractingTransformer.Column[1]
+                        Column = new WordEmbeddingsTransform.Column[1]
                         {
-                            new WordEmbeddingsExtractingTransformer.Column
+                            new WordEmbeddingsTransform.Column
                             {
                                 Name = "Features",
                                 Source = "WordEmbeddings_TransformedText"
                             }
                         },
-                        ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
+                        ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                     }, text);
 
-            // Train
-            var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", maxIterations: 20);
-            var predicted = trainer.Fit(trans);
-            _consumer.Consume(predicted);
+                // Train
+                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", maxIterations: 20);
+                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
+
+                var predicted = trainer.Train(trainRoles);
+                _consumer.Consume(predicted);
+            }
         }
 
         [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]

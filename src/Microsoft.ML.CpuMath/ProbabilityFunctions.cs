@@ -9,8 +9,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// <summary>
     /// Probability Functions.
     /// </summary>
-    [BestFriend]
-    internal sealed class ProbabilityFunctions
+    public sealed class ProbabilityFunctions
     {
         /// <summary>
         /// The approximate complimentary error function (i.e., 1-erf).

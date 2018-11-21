@@ -46,7 +46,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                 Assert.True(cursor.MoveNext());
 
-                sbyte[] sByteTargets = new sbyte[] { sbyte.MinValue, sbyte.MaxValue, default };
+                sbyte[] sByteTargets = new sbyte[] { sbyte.MinValue, sbyte.MaxValue, default};
                 short[] shortTargets = new short[] { short.MinValue, short.MaxValue, default };
                 int[] intTargets = new int[] { int.MinValue, int.MaxValue, default };
                 long[] longTargets = new long[] { long.MinValue, long.MaxValue, default };
@@ -96,7 +96,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     "loader=Text{col=DvInt8:I8:0 sep=comma}",
                     }, logCurs: true);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 Assert.Equal("Could not parse value -9223372036854775809 in line 1, column DvInt8", ex.Message);
                 return;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void ConstructorDoesntThrow()
         {
             Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
-            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: true));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader:true));
             Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
             Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false));
             Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
@@ -158,13 +158,15 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var loader = new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+            using (var environment = new ConsoleEnvironment())
+            {
+                Experiment experiment = environment.CreateExperiment();
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
-            Assert.NotNull(output.Data);
-            Assert.NotNull(output.Data.VarName);
-            Assert.Null(output.Model);
+                Assert.NotNull(output.Data);
+                Assert.NotNull(output.Data.VarName);
+                Assert.Null(output.Model);
+            }
         }
 
         [Fact]
@@ -172,54 +174,56 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             string dataPath = GetDataPath("QuotingData.csv");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
-
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
-
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
-            Assert.NotNull(data);
-
-            using (var cursor = data.GetRowCursor((a => true)))
+            
+            using (var environment = new ConsoleEnvironment())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                Experiment experiment = environment.CreateExperiment();
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
-                Assert.True(cursor.MoveNext());
+                experiment.Compile();
+                loader.SetInput(environment, experiment);
+                experiment.Run();
 
-                float ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(1, ID);
+                IDataView data = experiment.GetOutput(output.Data);
+                Assert.NotNull(data);
 
-                ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text contains comma, within quotes.", Text.ToString());
+                using (var cursor = data.GetRowCursor((a => true)))
+                {
+                    var IDGetter = cursor.GetGetter<float>(0);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
-                Assert.True(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
 
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(2, ID);
+                    float ID = 0;
+                    IDGetter(ref ID);
+                    Assert.Equal(1, ID);
 
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text contains extra punctuations and special characters.;*<>?!@#$%^&*()_+=-{}|[]:;'", Text.ToString());
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
+                    TextGetter(ref Text);
+                    Assert.Equal("This text contains comma, within quotes.", Text.ToString());
 
-                Assert.True(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
 
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(3, ID);
+                    ID = 0;
+                    IDGetter(ref ID);
+                    Assert.Equal(2, ID);
 
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("This text has no quotes", Text.ToString());
+                    Text = new ReadOnlyMemory<char>();
+                    TextGetter(ref Text);
+                    Assert.Equal("This text contains extra punctuations and special characters.;*<>?!@#$%^&*()_+=-{}|[]:;'", Text.ToString());
 
-                Assert.False(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
+
+                    ID = 0;
+                    IDGetter(ref ID);
+                    Assert.Equal(3, ID);
+
+                    Text = new ReadOnlyMemory<char>();
+                    TextGetter(ref Text);
+                    Assert.Equal("This text has no quotes", Text.ToString());
+
+                    Assert.False(cursor.MoveNext());
+                }
             }
         }
 
@@ -229,20 +233,21 @@ namespace Microsoft.ML.EntryPoints.Tests
             string dataPath = GetDataPath("SparseData.txt");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
-
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
-            Assert.NotNull(data);
-
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var environment = new ConsoleEnvironment())
             {
-                var getters = new ValueGetter<float>[]{
+                Experiment experiment = environment.CreateExperiment();
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
+
+                experiment.Compile();
+                loader.SetInput(environment, experiment);
+                experiment.Run();
+
+                IDataView data = experiment.GetOutput(output.Data);
+                Assert.NotNull(data);
+
+                using (var cursor = data.GetRowCursor((a => true)))
+                {
+                    var getters = new ValueGetter<float>[]{
                         cursor.GetGetter<float>(0),
                         cursor.GetGetter<float>(1),
                         cursor.GetGetter<float>(2),
@@ -251,37 +256,38 @@ namespace Microsoft.ML.EntryPoints.Tests
                     };
 
 
-                Assert.True(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
 
-                float[] targets = new float[] { 1, 2, 3, 4, 5 };
-                for (int i = 0; i < getters.Length; i++)
-                {
-                    float value = 0;
-                    getters[i](ref value);
-                    Assert.Equal(targets[i], value);
+                    float[] targets = new float[] { 1, 2, 3, 4, 5 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.True(cursor.MoveNext());
+
+                    targets = new float[] { 0, 0, 0, 4, 5 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.True(cursor.MoveNext());
+
+                    targets = new float[] { 0, 2, 0, 0, 0 };
+                    for (int i = 0; i < getters.Length; i++)
+                    {
+                        float value = 0;
+                        getters[i](ref value);
+                        Assert.Equal(targets[i], value);
+                    }
+
+                    Assert.False(cursor.MoveNext());
                 }
-
-                Assert.True(cursor.MoveNext());
-
-                targets = new float[] { 0, 0, 0, 4, 5 };
-                for (int i = 0; i < getters.Length; i++)
-                {
-                    float value = 0;
-                    getters[i](ref value);
-                    Assert.Equal(targets[i], value);
-                }
-
-                Assert.True(cursor.MoveNext());
-
-                targets = new float[] { 0, 2, 0, 0, 0 };
-                for (int i = 0; i < getters.Length; i++)
-                {
-                    float value = 0;
-                    getters[i](ref value);
-                    Assert.Equal(targets[i], value);
-                }
-
-                Assert.False(cursor.MoveNext());
             }
 
         }
@@ -292,50 +298,52 @@ namespace Microsoft.ML.EntryPoints.Tests
             string dataPath = GetDataPath("TrimData.csv");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
 
-            var environment = new MLContext();
-            Experiment experiment = environment.CreateExperiment();
-            Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
-
-            experiment.Compile();
-            loader.SetInput(environment, experiment);
-            experiment.Run();
-
-            IDataView data = experiment.GetOutput(output.Data);
-            Assert.NotNull(data);
-
-            using (var cursor = data.GetRowCursor((a => true)))
+            using (var environment = new ConsoleEnvironment())
             {
-                var IDGetter = cursor.GetGetter<float>(0);
-                var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                Experiment experiment = environment.CreateExperiment();
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
-                Assert.True(cursor.MoveNext());
+                experiment.Compile();
+                loader.SetInput(environment, experiment);
+                experiment.Run();
 
-                float ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(1, ID);
+                IDataView data = experiment.GetOutput(output.Data);
+                Assert.NotNull(data);
 
-                ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("There is a space at the end", Text.ToString());
+                using (var cursor = data.GetRowCursor((a => true)))
+                {
+                    var IDGetter = cursor.GetGetter<float>(0);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
-                Assert.True(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
 
-                ID = 0;
-                IDGetter(ref ID);
-                Assert.Equal(2, ID);
+                    float ID = 0;
+                    IDGetter(ref ID);
+                    Assert.Equal(1, ID);
 
-                Text = new ReadOnlyMemory<char>();
-                TextGetter(ref Text);
-                Assert.Equal("There is no space at the end", Text.ToString());
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
+                    TextGetter(ref Text);
+                    Assert.Equal("There is a space at the end", Text.ToString());
 
-                Assert.False(cursor.MoveNext());
+                    Assert.True(cursor.MoveNext());
+
+                    ID = 0;
+                    IDGetter(ref ID);
+                    Assert.Equal(2, ID);
+
+                    Text = new ReadOnlyMemory<char>();
+                    TextGetter(ref Text);
+                    Assert.Equal("There is no space at the end", Text.ToString());
+                    
+                    Assert.False(cursor.MoveNext());
+                }
             }
         }
 
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            Exception ex = Assert.Throws<InvalidOperationException>(() => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>());
+            Exception ex = Assert.Throws<InvalidOperationException>( () => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>() );
             Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
         }
 
@@ -343,9 +351,9 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyColumnNameProperty()
         {
             var loader = new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithColumnNameAttribute>();
-            Assert.Equal("Col1", loader.Arguments.Column[0].Name);
-            Assert.Equal("Col2", loader.Arguments.Column[1].Name);
-            Assert.Equal("String_3", loader.Arguments.Column[2].Name);
+            Assert.Equal("Col1",loader.Arguments.Column[0].Name); 
+            Assert.Equal("Col2",loader.Arguments.Column[1].Name);
+            Assert.Equal("String_3",loader.Arguments.Column[2].Name);
         }
 
         public class QuoteInput
@@ -405,7 +413,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             [Column("1")]
             [ColumnName("Col2")]
             public string String_2;
-            [Column("3")]
+            [Column("3")]            
             public string String_3;
         }
     }

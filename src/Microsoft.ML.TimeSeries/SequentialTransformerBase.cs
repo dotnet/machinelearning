@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             // Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
             // access to the state class when inheriting from SequentialTransformerBase.
-            private protected IHost Host;
+            protected IHost Host;
 
             /// <summary>
             /// A reference to the parent transform that operates on the state object.
@@ -39,25 +39,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// The internal windowed buffer for buffering the values in the input sequence.
             /// </summary>
-            private protected FixedSizeQueue<TInput> WindowedBuffer;
+            protected FixedSizeQueue<TInput> WindowedBuffer;
 
             /// <summary>
             /// The buffer used to buffer the training data points.
             /// </summary>
-            private protected FixedSizeQueue<TInput> InitialWindowedBuffer;
+            protected FixedSizeQueue<TInput> InitialWindowedBuffer;
 
-            private protected int WindowSize { get; private set; }
+            protected int WindowSize { get; private set; }
 
-            private protected int InitialWindowSize { get; private set; }
+            protected int InitialWindowSize { get; private set; }
 
             /// <summary>
             /// Counts the number of rows observed by the transform so far.
             /// </summary>
             protected long RowCounter { get; private set; }
-
-            private protected StateBase()
-            {
-            }
 
             protected long IncrementRowCounter()
             {
@@ -151,7 +147,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// The abstract method that specifies the NA value for the dst type.
             /// </summary>
             /// <returns></returns>
-            private protected abstract void SetNaOutput(ref TOutput dst);
+            protected abstract void SetNaOutput(ref TOutput dst);
 
             /// <summary>
             /// The abstract method that realizes the main logic for the transform.
@@ -160,35 +156,35 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="dst">A reference to the dst object.</param>
             /// <param name="windowedBuffer">A reference to the windowed buffer.</param>
             /// <param name="iteration">A long number that indicates the number of times TransformCore has been called so far (starting value = 0).</param>
-            private protected abstract void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst);
+            protected abstract void TransformCore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration, ref TOutput dst);
 
             /// <summary>
             /// The abstract method that realizes the logic for initializing the state object.
             /// </summary>
-            private protected abstract void InitializeStateCore();
+            protected abstract void InitializeStateCore();
 
             /// <summary>
             /// The abstract method that realizes the logic for learning the parameters and the initial state object from data.
             /// </summary>
             /// <param name="data">A queue of data points used for training</param>
-            private protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
+            protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
         }
 
-        private protected readonly IHost Host;
+        protected readonly IHost Host;
 
         /// <summary>
         /// The window size for buffering.
         /// </summary>
-        private protected readonly int WindowSize;
+        protected readonly int WindowSize;
 
         /// <summary>
         /// The number of datapoints from the beginning of the sequence that are used for learning the initial state.
         /// </summary>
-        private protected int InitialWindowSize;
+        protected int InitialWindowSize;
 
-        internal readonly string InputColumnName;
-        internal readonly string OutputColumnName;
-        private protected ColumnType OutputColumnType;
+        public string InputColumnName;
+        public string OutputColumnName;
+        protected ColumnType OutputColumnType;
 
         public bool IsRowToRowMapper => false;
 
@@ -201,7 +197,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
         /// <param name="outputColType"></param>
-        private protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, ColumnType outputColType)
+        protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, ColumnType outputColType)
         {
             Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
@@ -218,7 +214,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             WindowSize = windowSize;
         }
 
-        private protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
+        protected SequentialTransformerBase(IHost host, ModelLoadContext ctx)
         {
             Host = host;
             Host.CheckValue(ctx, nameof(ctx));
@@ -356,9 +352,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema => _bindings.Schema;
 
-            public override long? GetRowCount()
+            public override long? GetRowCount(bool lazy = true)
             {
-                return _transform.GetRowCount();
+                return _transform.GetRowCount(lazy);
             }
 
             public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)

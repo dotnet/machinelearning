@@ -238,10 +238,11 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    var dstEditor = VBufferEditor.Create(ref dst, n);
+                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n
+                        ? new TDst[n]
+                        : dst.Values, dst.Indices);
                     for (int i = 0; i < n; i++)
-                        dstEditor.Values[i] = convert(buf[i]);
-                    dst = dstEditor.Commit();
+                        dst.Values[i] = convert(buf[i]);
                 });
             }
 
@@ -266,10 +267,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    var dstEditor = VBufferEditor.Create(ref dst, n);
+                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values,
+                        dst.Indices);
                     if (buf != null)
-                        buf.AsSpan(0, n).CopyTo(dstEditor.Values);
-                    dst = dstEditor.Commit();
+                        Array.Copy(buf, dst.Values, n);
                 });
             }
 
@@ -396,7 +397,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public abstract long? GetRowCount();
+            public abstract long? GetRowCount(bool lazy = true);
 
             public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null);
 
@@ -554,7 +555,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return true; }
             }
 
-            public override long? GetRowCount()
+            public override long? GetRowCount(bool lazy = true)
             {
                 return _data.Count;
             }
@@ -653,7 +654,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount()
+            public override long? GetRowCount(bool lazy = true)
             {
                 return (_data as ICollection<TRow>)?.Count;
             }
@@ -734,7 +735,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount()
+            public override long? GetRowCount(bool lazy = true)
             {
                 return null;
             }
@@ -954,12 +955,11 @@ namespace Microsoft.ML.Runtime.Api
         {
             var value = (string[])(object)Value;
             var n = Utils.Size(value);
-            var dstEditor = VBufferEditor.Create(ref dst, n);
+            dst = new VBuffer<ReadOnlyMemory<char>>(n, Utils.Size(dst.Values) < n ? new ReadOnlyMemory<char>[n] : dst.Values, dst.Indices);
 
             for (int i = 0; i < n; i++)
-                dstEditor.Values[i] = value[i].AsMemory();
+                dst.Values[i] = value[i].AsMemory();
 
-            dst = dstEditor.Commit();
         }
 
         private ValueGetter<VBuffer<TDst>> GetArrayGetter<TDst>()
@@ -968,10 +968,9 @@ namespace Microsoft.ML.Runtime.Api
             var n = Utils.Size(value);
             return (ref VBuffer<TDst> dst) =>
             {
-                var dstEditor = VBufferEditor.Create(ref dst, n);
+                dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values, dst.Indices);
                 if (value != null)
-                    value.AsSpan(0, n).CopyTo(dstEditor.Values);
-                dst = dstEditor.Commit();
+                    Array.Copy(value, dst.Values, n);
             };
         }
 

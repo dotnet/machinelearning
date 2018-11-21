@@ -9,8 +9,7 @@ using System.Linq;
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     // REVIEW: Implement properly on CoreCLR.
-    [BestFriend]
-    internal static class StreamUtils
+    public static class StreamUtils
     {
         public static Stream OpenInStream(string fileName)
         {

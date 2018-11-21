@@ -16,24 +16,32 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public readonly struct VBuffer<T>
     {
-        private readonly T[] _values;
-        private readonly int[] _indices;
-
-        /// <summary>
-        /// The number of items explicitly represented. This is == Length when the representation
-        /// is dense and &lt; Length when sparse.
-        /// </summary>
-        private readonly int _count;
-
         /// <summary>
         /// The logical length of the buffer.
         /// </summary>
         public readonly int Length;
 
         /// <summary>
+        /// The number of items explicitly represented. This is == Length when the representation
+        /// is dense and &lt; Length when sparse.
+        /// </summary>
+        public readonly int Count;
+
+        /// <summary>
+        /// The values. Only the first Count of these are valid.
+        /// </summary>
+        public readonly T[] Values;
+
+        /// <summary>
+        /// The indices. For a dense representation, this array is not used. For a sparse representation
+        /// it is parallel to values and specifies the logical indices for the corresponding values.
+        /// </summary>
+        public readonly int[] Indices;
+
+        /// <summary>
         /// The explicitly represented values.
         /// </summary>
-        public ReadOnlySpan<T> GetValues() => _values.AsSpan(0, _count);
+        public ReadOnlySpan<T> GetValues() => Values.AsSpan(0, Count);
 
         /// <summary>
         /// The indices. For a dense representation, this array is not used. For a sparse representation
@@ -45,18 +53,17 @@ namespace Microsoft.ML.Runtime.Data
         ///  - non-zeros values 98 and 76 respectively at the 4th and 6th coordinates
         ///  - zeros at all other coordinates
         /// </remarks>
-        public ReadOnlySpan<int> GetIndices() => IsDense ? default : _indices.AsSpan(0, _count);
+        public ReadOnlySpan<int> GetIndices() => IsDense ? default : Indices.AsSpan(0, Count);
 
         /// <summary>
-        /// Gets a value indicating whether every logical element is explicitly
-        /// represented in the buffer.
+        /// Equivalent to Count == Length.
         /// </summary>
         public bool IsDense
         {
             get
             {
-                Contracts.Assert(_count <= Length);
-                return _count == Length;
+                Contracts.Assert(Count <= Length);
+                return Count == Length;
             }
         }
 
@@ -70,9 +77,9 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(indices);
 
             Length = length;
-            _count = length;
-            _values = values;
-            _indices = indices;
+            Count = length;
+            Values = values;
+            Indices = indices;
         }
 
         /// <summary>
@@ -102,9 +109,9 @@ namespace Microsoft.ML.Runtime.Data
 #endif
 
             Length = length;
-            _count = count;
-            _values = values;
-            _indices = indices;
+            Count = count;
+            Values = values;
+            Indices = indices;
         }
 
         /// <summary>
@@ -112,14 +119,15 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyToDense(ref VBuffer<T> dst)
         {
-            // create a dense editor
-            var editor = VBufferEditor.Create(ref dst, Length);
+            var values = dst.Values;
+            if (Utils.Size(values) < Length)
+                values = new T[Length];
 
             if (!IsDense)
-                CopyTo(editor.Values);
+                CopyTo(values);
             else if (Length > 0)
-                _values.AsSpan(0, Length).CopyTo(editor.Values);
-            dst = editor.Commit();
+                Array.Copy(Values, values, Length);
+            dst = new VBuffer<T>(Length, values, dst.Indices);
         }
 
         /// <summary>
@@ -127,24 +135,31 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyTo(ref VBuffer<T> dst)
         {
-            var editor = VBufferEditor.Create(ref dst, Length, _count);
+            var values = dst.Values;
+            var indices = dst.Indices;
             if (IsDense)
             {
                 if (Length > 0)
                 {
-                    _values.AsSpan(0, Length).CopyTo(editor.Values);
+                    if (Utils.Size(values) < Length)
+                        values = new T[Length];
+                    Array.Copy(Values, values, Length);
                 }
-                dst = editor.Commit();
+                dst = new VBuffer<T>(Length, values, indices);
                 Contracts.Assert(dst.IsDense);
             }
             else
             {
-                if (_count > 0)
+                if (Count > 0)
                 {
-                    _values.AsSpan(0, _count).CopyTo(editor.Values);
-                    _indices.AsSpan(0, _count).CopyTo(editor.Indices);
+                    if (Utils.Size(values) < Count)
+                        values = new T[Count];
+                    if (Utils.Size(indices) < Count)
+                        indices = new int[Count];
+                    Array.Copy(Values, values, Count);
+                    Array.Copy(Indices, indices, Count);
                 }
-                dst = editor.Commit();
+                dst = new VBuffer<T>(Length, Count, values, indices);
             }
         }
 
@@ -155,81 +170,255 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Check(0 <= srcMin && srcMin <= Length, "srcMin");
             Contracts.Check(0 <= length && srcMin <= Length - length, "length");
-
+            var values = dst.Values;
+            var indices = dst.Indices;
             if (IsDense)
             {
-                var editor = VBufferEditor.Create(ref dst, length, length);
                 if (length > 0)
                 {
-                    _values.AsSpan(srcMin, length).CopyTo(editor.Values);
+                    if (Utils.Size(values) < length)
+                        values = new T[length];
+                    Array.Copy(Values, srcMin, values, 0, length);
                 }
-                dst = editor.Commit();
+                dst = new VBuffer<T>(length, values, indices);
                 Contracts.Assert(dst.IsDense);
             }
             else
             {
                 int copyCount = 0;
-                if (_count > 0)
+                if (Count > 0)
                 {
-                    int copyMin = _indices.FindIndexSorted(0, _count, srcMin);
-                    int copyLim = _indices.FindIndexSorted(copyMin, _count, srcMin + length);
+                    int copyMin = Indices.FindIndexSorted(0, Count, srcMin);
+                    int copyLim = Indices.FindIndexSorted(copyMin, Count, srcMin + length);
                     Contracts.Assert(copyMin <= copyLim);
                     copyCount = copyLim - copyMin;
-                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
                     if (copyCount > 0)
                     {
-                        _values.AsSpan(copyMin, copyCount).CopyTo(editor.Values);
+                        if (Utils.Size(values) < copyCount)
+                            values = new T[copyCount];
+                        Array.Copy(Values, copyMin, values, 0, copyCount);
                         if (copyCount < length)
                         {
+                            if (Utils.Size(indices) < copyCount)
+                                indices = new int[copyCount];
                             for (int i = 0; i < copyCount; ++i)
-                                editor.Indices[i] = _indices[i + copyMin] - srcMin;
+                                indices[i] = Indices[i + copyMin] - srcMin;
                         }
                     }
-                    dst = editor.Commit();
+                }
+                dst = new VBuffer<T>(length, copyCount, values, indices);
+            }
+        }
+
+        /// <summary>
+        /// Copy from this buffer to the given destination, making sure to explicitly include the
+        /// first count indices in indicesInclude. Note that indicesInclude should be sorted
+        /// with each index less than this.Length. Note that this can make the destination be
+        /// dense even if "this" is sparse.
+        /// </summary>
+        public void CopyTo(ref VBuffer<T> dst, int[] indicesInclude, int count)
+        {
+            Contracts.CheckParam(count >= 0, nameof(count));
+            Contracts.CheckParam(Utils.Size(indicesInclude) >= count, nameof(indicesInclude));
+            Contracts.CheckParam(Utils.Size(indicesInclude) <= Length, nameof(indicesInclude));
+
+            // REVIEW: Ideally we should Check that indicesInclude is sorted and in range. Would that
+            // check be too expensive?
+#if DEBUG
+            int prev = -1;
+            for (int i = 0; i < count; i++)
+            {
+                Contracts.Assert(prev < indicesInclude[i]);
+                prev = indicesInclude[i];
+            }
+            Contracts.Assert(prev < Length);
+#endif
+
+            if (IsDense || count == 0)
+            {
+                CopyTo(ref dst);
+                return;
+            }
+
+            if (count >= Length / 2 || Count >= Length / 2)
+            {
+                CopyToDense(ref dst);
+                return;
+            }
+
+            var indices = dst.Indices;
+            var values = dst.Values;
+            if (Count == 0)
+            {
+                // No values in "this".
+                if (Utils.Size(indices) < count)
+                    indices = new int[count];
+                Array.Copy(indicesInclude, indices, count);
+                if (Utils.Size(values) < count)
+                    values = new T[count];
+                else
+                    Array.Clear(values, 0, count);
+                dst = new VBuffer<T>(Length, count, values, indices);
+                return;
+            }
+
+            int size = 0;
+            int max = count + Count;
+            Contracts.Assert(max < Length);
+            int ii1;
+            int ii2;
+            if (max >= Length / 2 || Utils.Size(values) < max || Utils.Size(indices) < max)
+            {
+                // Compute the needed size.
+                ii1 = 0;
+                ii2 = 0;
+                for (; ; )
+                {
+                    Contracts.Assert(ii1 < Count);
+                    Contracts.Assert(ii2 < count);
+                    size++;
+                    int diff = Indices[ii1] - indicesInclude[ii2];
+                    if (diff == 0)
+                    {
+                        ii1++;
+                        ii2++;
+                        if (ii1 >= Count)
+                        {
+                            size += count - ii2;
+                            break;
+                        }
+                        if (ii2 >= count)
+                        {
+                            size += Count - ii1;
+                            break;
+                        }
+                    }
+                    else if (diff < 0)
+                    {
+                        if (++ii1 >= Count)
+                        {
+                            size += count - ii2;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (++ii2 >= count)
+                        {
+                            size += Count - ii1;
+                            break;
+                        }
+                    }
+                }
+                Contracts.Assert(size >= count && size >= Count);
+
+                if (size == Count)
+                {
+                    CopyTo(ref dst);
+                    return;
+                }
+
+                if (size >= Length / 2)
+                {
+                    CopyToDense(ref dst);
+                    return;
+                }
+
+                if (Utils.Size(values) < size)
+                    values = new T[size];
+                if (Utils.Size(indices) < size)
+                    indices = new int[size];
+                max = size;
+            }
+
+            int ii = 0;
+            ii1 = 0;
+            ii2 = 0;
+            for (; ; )
+            {
+                Contracts.Assert(ii < max);
+                Contracts.Assert(ii1 < Count);
+                Contracts.Assert(ii2 < count);
+                int i1 = Indices[ii1];
+                int i2 = indicesInclude[ii2];
+                if (i1 <= i2)
+                {
+                    indices[ii] = i1;
+                    values[ii] = Values[ii1];
+                    ii++;
+                    if (i1 == i2)
+                        ii2++;
+                    if (++ii1 >= Count)
+                    {
+                        if (ii2 >= count)
+                            break;
+                        Array.Clear(values, ii, count - ii2);
+                        Array.Copy(indicesInclude, ii2, indices, ii, count - ii2);
+                        ii += count - ii2;
+                        break;
+                    }
+                    if (ii2 >= count)
+                    {
+                        Array.Copy(Values, ii1, values, ii, Count - ii1);
+                        Array.Copy(Indices, ii1, indices, ii, Count - ii1);
+                        ii += Count - ii1;
+                        break;
+                    }
                 }
                 else
                 {
-                    var editor = VBufferEditor.Create(ref dst, length, copyCount);
-                    dst = editor.Commit();
+                    indices[ii] = i2;
+                    values[ii] = default(T);
+                    ii++;
+                    if (++ii2 >= count)
+                    {
+                        Array.Copy(Values, ii1, values, ii, Count - ii1);
+                        Array.Copy(Indices, ii1, indices, ii, Count - ii1);
+                        ii += Count - ii1;
+                        break;
+                    }
                 }
             }
+            Contracts.Assert(size == ii || size == 0);
+
+            dst = new VBuffer<T>(Length, ii, values, indices);
         }
 
         /// <summary>
         /// Copy from this buffer to the given destination array. This "densifies".
         /// </summary>
-        public void CopyTo(Span<T> dst)
+        public void CopyTo(T[] dst)
         {
             CopyTo(dst, 0);
         }
 
-        public void CopyTo(Span<T> dst, int ivDst, T defaultValue = default(T))
+        public void CopyTo(T[] dst, int ivDst, T defaultValue = default(T))
         {
-            Contracts.CheckParam(0 <= ivDst && ivDst <= dst.Length - Length, nameof(dst), "dst is not large enough");
+            Contracts.CheckParam(0 <= ivDst && ivDst <= Utils.Size(dst) - Length, nameof(dst), "dst is not large enough");
 
             if (Length == 0)
                 return;
             if (IsDense)
             {
-                _values.AsSpan(0, Length).CopyTo(dst.Slice(ivDst));
+                Array.Copy(Values, 0, dst, ivDst, Length);
                 return;
             }
 
-            if (_count == 0)
+            if (Count == 0)
             {
-                dst.Slice(ivDst, Length).Clear();
+                Array.Clear(dst, ivDst, Length);
                 return;
             }
 
             int iv = 0;
-            for (int islot = 0; islot < _count; islot++)
+            for (int islot = 0; islot < Count; islot++)
             {
-                int slot = _indices[islot];
+                int slot = Indices[islot];
                 Contracts.Assert(slot >= iv);
                 while (iv < slot)
                     dst[ivDst + iv++] = defaultValue;
                 Contracts.Assert(iv == slot);
-                dst[ivDst + iv++] = _values[islot];
+                dst[ivDst + iv++] = Values[islot];
             }
             while (iv < Length)
                 dst[ivDst + iv++] = defaultValue;
@@ -242,22 +431,24 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
             Contracts.CheckParam(0 <= srcIndex && srcIndex <= Utils.Size(src) - length, nameof(srcIndex));
-            var editor = VBufferEditor.Create(ref dst, length, length);
+            var values = dst.Values;
             if (length > 0)
             {
-                src.AsSpan(srcIndex, length).CopyTo(editor.Values);
+                if (Utils.Size(values) < length)
+                    values = new T[length];
+                Array.Copy(src, srcIndex, values, 0, length);
             }
-            dst = editor.Commit();
+            dst = new VBuffer<T>(length, values, dst.Indices);
         }
 
         public IEnumerable<KeyValuePair<int, T>> Items(bool all = false)
         {
-            return VBufferUtils.Items(_values, _indices, Length, _count, all);
+            return VBufferUtils.Items(Values, Indices, Length, Count, all);
         }
 
         public IEnumerable<T> DenseValues()
         {
-            return VBufferUtils.DenseValues(_values, _indices, Length, _count);
+            return VBufferUtils.DenseValues(Values, Indices, Length, Count);
         }
 
         public void GetItemOrDefault(int slot, ref T dst)
@@ -266,9 +457,9 @@ namespace Microsoft.ML.Runtime.Data
 
             int index;
             if (IsDense)
-                dst = _values[slot];
-            else if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
-                dst = _values[index];
+                dst = Values[slot];
+            else if (Count > 0 && Indices.TryFindIndexSorted(0, Count, slot, out index))
+                dst = Values[index];
             else
                 dst = default(T);
         }
@@ -279,56 +470,13 @@ namespace Microsoft.ML.Runtime.Data
 
             int index;
             if (IsDense)
-                return _values[slot];
-            if (_count > 0 && _indices.TryFindIndexSorted(0, _count, slot, out index))
-                return _values[index];
+                return Values[slot];
+            if (Count > 0 && Indices.TryFindIndexSorted(0, Count, slot, out index))
+                return Values[index];
             return default(T);
         }
 
         public override string ToString()
-            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {_count} explicit values";
-
-        internal VBufferEditor<T> GetEditor()
-        {
-            return GetEditor(Length, _count);
-        }
-
-        internal VBufferEditor<T> GetEditor(
-            int newLogicalLength,
-            int? valuesCount,
-            int maxCapacity = Utils.ArrayMaxSize,
-            bool keepOldOnResize = false,
-            bool requireIndicesOnDense = false)
-        {
-            Contracts.CheckParam(newLogicalLength >= 0, nameof(newLogicalLength));
-            Contracts.CheckParam(valuesCount == null || valuesCount.Value <= newLogicalLength, nameof(valuesCount));
-
-            valuesCount = valuesCount ?? newLogicalLength;
-
-            T[] values = _values;
-            bool createdNewValues;
-            Utils.EnsureSize(ref values, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewValues);
-
-            int[] indices = _indices;
-            bool isDense = newLogicalLength == valuesCount.Value;
-            bool createdNewIndices;
-            if (isDense && !requireIndicesOnDense)
-            {
-                createdNewIndices = false;
-            }
-            else
-            {
-                Utils.EnsureSize(ref indices, valuesCount.Value, maxCapacity, keepOldOnResize, out createdNewIndices);
-            }
-
-            return new VBufferEditor<T>(
-                newLogicalLength,
-                valuesCount.Value,
-                values,
-                indices,
-                requireIndicesOnDense,
-                createdNewValues,
-                createdNewIndices);
-        }
+            => IsDense ? $"Dense vector of size {Length}" : $"Sparse vector of size {Length}, {Count} explicit values";
     }
 }

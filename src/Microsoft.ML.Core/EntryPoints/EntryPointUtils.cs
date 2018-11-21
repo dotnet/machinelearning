@@ -12,8 +12,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
-    [BestFriend]
-    internal static class EntryPointUtils
+    public static class EntryPointUtils
     {
         private static bool IsValueWithinRange<T>(TlcModule.RangeAttribute range, object obj)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// This is separated from CmdParser.cs
+
 using System;
 using System.Linq;
 
@@ -13,8 +15,7 @@ namespace Microsoft.ML.Runtime.CommandLine
     /// as the destination of command line argument parsing.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
-    [BestFriend]
-    internal class ArgumentAttribute : Attribute
+    public class ArgumentAttribute : Attribute
     {
         public enum VisibilityType
         {
@@ -23,8 +24,17 @@ namespace Microsoft.ML.Runtime.CommandLine
             EntryPointsOnly
         }
 
+        private ArgumentType _type;
         private string _shortName;
+        private string _helpText;
+        private bool _hide;
+        private double _sortOrder;
+        private string _nullName;
+        private bool _isInputFileName;
+        private string _specialPurpose;
+        private VisibilityType _visibility;
         private string _name;
+        private Type _signatureType;
 
         /// <summary>
         /// Allows control of command line parsing.
@@ -32,14 +42,17 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// <param name="type"> Specifies the error checking to be done on the argument. </param>
         public ArgumentAttribute(ArgumentType type)
         {
-            Type = type;
-            SortOrder = 150;
+            _type = type;
+            _sortOrder = 150;
         }
 
         /// <summary>
         /// The error checking to be done on the argument.
         /// </summary>
-        public ArgumentType Type { get; }
+        public ArgumentType Type
+        {
+            get { return _type; }
+        }
 
         /// <summary>
         /// The short name(s) of the argument.
@@ -51,7 +64,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// </summary>
         public string ShortName
         {
-            get => _shortName;
+            get { return _shortName; }
             set
             {
                 Contracts.Check(value == null || !(this is DefaultArgumentAttribute));
@@ -62,26 +75,54 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// <summary>
         /// The help text for the argument.
         /// </summary>
-        public string HelpText { get; set; }
+        public string HelpText
+        {
+            get { return _helpText; }
+            set { _helpText = value; }
+        }
 
-        public bool Hide { get; set; }
+        public bool Hide
+        {
+            get { return _hide; }
+            set { _hide = value; }
+        }
 
-        public double SortOrder { get; set; }
+        public double SortOrder
+        {
+            get { return _sortOrder; }
+            set { _sortOrder = value; }
+        }
 
-        public string NullName { get; set; }
+        public string NullName
+        {
+            get { return _nullName; }
+            set { _nullName = value; }
+        }
 
-        public bool IsInputFileName { get; set; }
+        public bool IsInputFileName
+        {
+            get { return _isInputFileName; }
+            set { _isInputFileName = value; }
+        }
 
         /// <summary>
         /// Allows the GUI or other tools to inspect the intended purpose of the argument and pick a correct custom control.
         /// </summary>
-        public string Purpose { get; set; }
+        public string Purpose
+        {
+            get { return _specialPurpose; }
+            set { _specialPurpose = value; }
+        }
 
-        public VisibilityType Visibility { get; set; }
+        public VisibilityType Visibility
+        {
+            get { return _visibility; }
+            set { _visibility = value; }
+        }
 
         public string Name
         {
-            get => _name;
+            get { return _name; }
             set { _name = string.IsNullOrWhiteSpace(value) ? null : value; }
         }
 
@@ -95,8 +136,15 @@ namespace Microsoft.ML.Runtime.CommandLine
             }
         }
 
-        public bool IsRequired => ArgumentType.Required == (Type & ArgumentType.Required);
+        public bool IsRequired
+        {
+            get { return ArgumentType.Required == (_type & ArgumentType.Required); }
+        }
 
-        public Type SignatureType { get; set; }
+        public Type SignatureType
+        {
+            get { return _signatureType; }
+            set { _signatureType = value; }
+        }
     }
 }

@@ -5,45 +5,42 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
     internal static class EnvironmentFactory
     {
-        internal static MLContext CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
+        internal static ConsoleEnvironment CreateClassificationEnvironment<TLoader, TTransformer, TTrainer>()
            where TLoader : IDataReader<IMultiStreamSource>
            where TTransformer : ITransformer
-           where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
+           where TTrainer : ITrainer
         {
-            var ctx = new MLContext();
-            IHostEnvironment environment = ctx;
+            var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TLoader).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTransformer).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTrainer).Assembly);
 
-            return ctx;
+            return environment;
         }
 
-        internal static MLContext CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
+        internal static ConsoleEnvironment CreateRankingEnvironment<TEvaluator, TLoader, TTransformer, TTrainer>()
             where TEvaluator : IEvaluator
             where TLoader : IDataReader<IMultiStreamSource>
             where TTransformer : ITransformer
-            where TTrainer : ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictor>, IPredictor>
+            where TTrainer : ITrainer
         {
-            var ctx = new MLContext();
-            IHostEnvironment environment = ctx;
+            var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance);
 
             environment.ComponentCatalog.RegisterAssembly(typeof(TEvaluator).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TLoader).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTransformer).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(TTrainer).Assembly);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(MissingValueHandlingTransformer).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(NAHandleTransform).Assembly);
 
-            return ctx;
+            return environment;
         }
     }
 }

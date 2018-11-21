@@ -98,16 +98,20 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     indexList.Add(kvp.Key);
                 }
 
-                Contracts.Assert(nameList.Count == indexList.Count);
-
-                var editor = VBufferEditor.Create(ref dst, _collection.Count, nameList.Count);
-                nameList.CopyTo(editor.Values);
+                var vals = dst.Values;
+                if (Utils.Size(vals) < nameList.Count)
+                    vals = new ReadOnlyMemory<char>[nameList.Count];
+                Array.Copy(nameList.ToArray(), vals, nameList.Count);
                 if (nameList.Count < _collection.Count)
                 {
-                    indexList.CopyTo(editor.Indices);
+                    var indices = dst.Indices;
+                    if (Utils.Size(indices) < indexList.Count)
+                        indices = new int[indexList.Count];
+                    Array.Copy(indexList.ToArray(), indices, indexList.Count);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, nameList.Count, vals, indices);
                 }
-
-                dst = editor.Commit();
+                else
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, vals, dst.Indices);
             }
         }
 

@@ -21,9 +21,9 @@ namespace Microsoft.ML.Runtime.Data
             _source = source;
         }
 
-        public long? GetRowCount()
+        public long? GetRowCount(bool lazy = true)
         {
-            return _source.GetRowCount();
+            return _source.GetRowCount(lazy);
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)

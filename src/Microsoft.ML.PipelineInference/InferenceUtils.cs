@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
@@ -18,7 +17,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(data, nameof(data));
             // REVIEW: This should take an env as a parameter, not create one.
-            var env = new MLContext(seed: 0);
+            var env = new ConsoleEnvironment(0);
             var take = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = count }, data);
             return CacheCore(take, env);
         }
@@ -27,7 +26,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(data, nameof(data));
             // REVIEW: This should take an env as a parameter, not create one.
-            return CacheCore(data, new MLContext(0));
+            return CacheCore(data, new ConsoleEnvironment(0));
         }
 
         private static IDataView CacheCore(IDataView data, IHostEnvironment env)

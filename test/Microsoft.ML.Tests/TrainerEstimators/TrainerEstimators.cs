@@ -71,7 +71,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weights: weights,
+            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weightColumn: weights,
                             advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
 
             TestEstimatorCore(pipeline, data);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features"));
+            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -140,8 +140,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Workclass", "Group"),
-                                    new ValueToKeyMappingTransformer.ColumnInfo("Label", "Label0") });
+                                    new TermTransform.ColumnInfo("Workclass", "Group"),
+                                    new TermTransform.ColumnInfo("Label", "Label0") });
 
             return (pipeline, data);
         }

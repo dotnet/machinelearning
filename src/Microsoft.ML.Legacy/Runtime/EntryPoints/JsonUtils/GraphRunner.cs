@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// <summary>
         /// Get the data kind of a particular port.
         /// </summary>
-        internal TlcModule.DataKind GetPortDataKind(string name)
+        public TlcModule.DataKind GetPortDataKind(string name)
         {
             _host.CheckNonEmpty(name, nameof(name));
             EntryPointVariable variable;

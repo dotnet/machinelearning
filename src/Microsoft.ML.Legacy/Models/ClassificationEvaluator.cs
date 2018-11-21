@@ -25,52 +25,54 @@ namespace Microsoft.ML.Legacy.Models
         /// </returns>
         public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
-            var environment = new MLContext();
-            environment.CheckValue(model, nameof(model));
-            environment.CheckValue(testData, nameof(testData));
-
-            Experiment experiment = environment.CreateExperiment();
-
-            ILearningPipelineStep testDataStep = testData.ApplyStep(previousStep: null, experiment);
-            if (!(testDataStep is ILearningPipelineDataStep testDataOutput))
+            using (var environment = new ConsoleEnvironment())
             {
-                throw environment.Except($"The {nameof(ILearningPipelineLoader)} did not return a {nameof(ILearningPipelineDataStep)} from ApplyStep.");
+                environment.CheckValue(model, nameof(model));
+                environment.CheckValue(testData, nameof(testData));
+
+                Experiment experiment = environment.CreateExperiment();
+
+                ILearningPipelineStep testDataStep = testData.ApplyStep(previousStep: null, experiment);
+                if (!(testDataStep is ILearningPipelineDataStep testDataOutput))
+                {
+                    throw environment.Except($"The {nameof(ILearningPipelineLoader)} did not return a {nameof(ILearningPipelineDataStep)} from ApplyStep.");
+                }
+
+                var datasetScorer = new DatasetTransformScorer
+                {
+                    Data = testDataOutput.Data,
+                };
+                DatasetTransformScorer.Output scoreOutput = experiment.Add(datasetScorer);
+
+                Data = scoreOutput.ScoredData;
+                Output evaluteOutput = experiment.Add(this);
+
+                experiment.Compile();
+
+                experiment.SetInput(datasetScorer.TransformModel, model.PredictorModel);
+                testData.SetInput(environment, experiment);
+
+                experiment.Run();
+
+                IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
+                if (overallMetrics == null)
+                {
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
+                }
+
+                IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
+                if (confusionMatrix == null)
+                {
+                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
+                }
+
+                var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+
+                if (metric.Count != 1)
+                    throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
+
+                return metric[0];
             }
-
-            var datasetScorer = new DatasetTransformScorer
-            {
-                Data = testDataOutput.Data,
-            };
-            DatasetTransformScorer.Output scoreOutput = experiment.Add(datasetScorer);
-
-            Data = scoreOutput.ScoredData;
-            Output evaluteOutput = experiment.Add(this);
-
-            experiment.Compile();
-
-            experiment.SetInput(datasetScorer.TransformModel, model.PredictorModel);
-            testData.SetInput(environment, experiment);
-
-            experiment.Run();
-
-            IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
-            if (overallMetrics == null)
-            {
-                throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
-            }
-
-            IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
-            if (confusionMatrix == null)
-            {
-                throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
-            }
-
-            var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
-
-            if (metric.Count != 1)
-                throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
-
-            return metric[0];
         }
     }
 }

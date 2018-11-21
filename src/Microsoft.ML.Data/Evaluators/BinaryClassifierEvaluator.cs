@@ -535,7 +535,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly List<Double> WeightedRecall;
             public readonly List<Double> WeightedFalsePositiveRate;
 
-            internal readonly AuPrcAggregatorBase AuPrcAggregator;
+            public readonly AuPrcAggregatorBase AuPrcAggregator;
             public double WeightedAuPrc;
             public double UnweightedAuPrc;
 
@@ -1355,10 +1355,10 @@ namespace Microsoft.ML.Runtime.Data
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
                 colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            fold = new ColumnsCopyingTransformer(Host, cols).Transform(fold);
+            fold = new CopyColumnsTransform(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
-            fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
+            fold = SelectColumnsTransform.CreateKeep(Host, fold, colsToKeep.ToArray());
 
             string weightedConf;
             var unweightedConf = MetricWriter.GetConfusionTable(Host, conf, out weightedConf);
@@ -1376,7 +1376,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            return ColumnSelectingTransformer.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
+            return SelectColumnsTransform.CreateDrop(Host, overall, BinaryClassifierEvaluator.Entropy);
         }
 
         protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)

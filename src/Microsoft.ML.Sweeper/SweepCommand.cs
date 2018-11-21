@@ -5,10 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Command;
 
 [assembly: LoadableClass(SweepCommand.Summary, typeof(SweepCommand), typeof(SweepCommand.Arguments), typeof(SignatureCommand),
@@ -16,10 +19,8 @@ using Microsoft.ML.Runtime.Command;
 
 namespace Microsoft.ML.Runtime.Sweeper
 {
-    [BestFriend]
-    internal sealed class SweepCommand : ICommand
+    public sealed class SweepCommand : ICommand
     {
-#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "Config runner", ShortName = "run,ev,evaluator", SignatureType = typeof(SignatureConfigRunner))]
@@ -41,7 +42,6 @@ namespace Microsoft.ML.Runtime.Sweeper
             [Argument(ArgumentType.AtMostOnce, HelpText = "Random seed", ShortName = "seed")]
             public int? RandomSeed;
         }
-#pragma warning restore CS0649
 
         internal const string Summary = "Given a command line template and sweep ranges, creates and runs a sweep.";
 

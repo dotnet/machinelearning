@@ -37,7 +37,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
-    public sealed class TensorFlowTransform : RowToRowTransformerBase
+    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -140,8 +140,10 @@ namespace Microsoft.ML.Transforms
             public bool ReTrain = false;
         }
 
+        private readonly IHost _host;
         private readonly string _savedModelPath;
         private readonly bool _isTemporarySavedModel;
+        private const string RegistrationName = "TensorFlowTransform";
 
         internal readonly TFSession Session;
         internal readonly ColumnType[] OutputTypes;
@@ -235,7 +237,7 @@ namespace Microsoft.ML.Transforms
                 return new TensorFlowTransform(env, TensorFlowUtils.LoadTFSession(env, modelBytes), inputs, outputs, null, false);
             }
 
-            var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), nameof(TensorFlowTransform) + "_" + Guid.NewGuid()));
+            var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
             TensorFlowUtils.CreateFolderWithAclIfNotExists(env, tempDirPath);
             try
             {
@@ -283,7 +285,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation), input)
+            :this(env,args, TensorFlowUtils.LoadTensorFlowModel(env,args.ModelLocation), input)
         {
         }
 
@@ -308,49 +310,49 @@ namespace Microsoft.ML.Transforms
 
         private void CheckTrainingParameters(Arguments args)
         {
-            Host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
-            Host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
+            _host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
+            _host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
             if (Session.Graph[args.OptimizationOperation] == null)
-                throw Host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
+                throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(args.TensorFlowLabel, nameof(args.TensorFlowLabel));
+            _host.CheckNonWhiteSpace(args.TensorFlowLabel, nameof(args.TensorFlowLabel));
             if (Session.Graph[args.TensorFlowLabel] == null)
-                throw Host.ExceptParam(nameof(args.TensorFlowLabel), $"'{args.TensorFlowLabel}' does not exist in the model");
+                throw _host.ExceptParam(nameof(args.TensorFlowLabel), $"'{args.TensorFlowLabel}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(args.SaveLocationOperation, nameof(args.SaveLocationOperation));
+            _host.CheckNonWhiteSpace(args.SaveLocationOperation, nameof(args.SaveLocationOperation));
             if (Session.Graph[args.SaveLocationOperation] == null)
-                throw Host.ExceptParam(nameof(args.SaveLocationOperation), $"'{args.SaveLocationOperation}' does not exist in the model");
+                throw _host.ExceptParam(nameof(args.SaveLocationOperation), $"'{args.SaveLocationOperation}' does not exist in the model");
 
-            Host.CheckNonWhiteSpace(args.SaveOperation, nameof(args.SaveOperation));
+            _host.CheckNonWhiteSpace(args.SaveOperation, nameof(args.SaveOperation));
             if (Session.Graph[args.SaveOperation] == null)
-                throw Host.ExceptParam(nameof(args.SaveOperation), $"'{args.SaveOperation}' does not exist in the model");
+                throw _host.ExceptParam(nameof(args.SaveOperation), $"'{args.SaveOperation}' does not exist in the model");
 
             if (args.LossOperation != null)
             {
-                Host.CheckNonWhiteSpace(args.LossOperation, nameof(args.LossOperation));
+                _host.CheckNonWhiteSpace(args.LossOperation, nameof(args.LossOperation));
                 if (Session.Graph[args.LossOperation] == null)
-                    throw Host.ExceptParam(nameof(args.LossOperation), $"'{args.LossOperation}' does not exist in the model");
+                    throw _host.ExceptParam(nameof(args.LossOperation), $"'{args.LossOperation}' does not exist in the model");
             }
 
             if (args.MetricOperation != null)
             {
-                Host.CheckNonWhiteSpace(args.MetricOperation, nameof(args.MetricOperation));
+                _host.CheckNonWhiteSpace(args.MetricOperation, nameof(args.MetricOperation));
                 if (Session.Graph[args.MetricOperation] == null)
-                    throw Host.ExceptParam(nameof(args.MetricOperation), $"'{args.MetricOperation}' does not exist in the model");
+                    throw _host.ExceptParam(nameof(args.MetricOperation), $"'{args.MetricOperation}' does not exist in the model");
             }
 
             if (args.LearningRateOperation != null)
             {
-                Host.CheckNonWhiteSpace(args.LearningRateOperation, nameof(args.LearningRateOperation));
+                _host.CheckNonWhiteSpace(args.LearningRateOperation, nameof(args.LearningRateOperation));
                 if (Session.Graph[args.LearningRateOperation] == null)
-                    throw Host.ExceptParam(nameof(args.LearningRateOperation), $"'{args.LearningRateOperation}' does not exist in the model");
+                    throw _host.ExceptParam(nameof(args.LearningRateOperation), $"'{args.LearningRateOperation}' does not exist in the model");
             }
         }
 
         private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
-                throw Host.Except($"Column {columnName} doesn't exist");
+                throw _host.Except($"Column {columnName} doesn't exist");
 
             var type = inputSchema.GetColumnType(inputColIndex);
             var isInputVector = type.IsVector;
@@ -370,7 +372,7 @@ namespace Microsoft.ML.Transforms
 
             var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
             if (type.ItemType != expectedType)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
@@ -416,8 +418,8 @@ namespace Microsoft.ML.Transforms
                     float loss = 0;
                     float metric = 0;
                     bool isDataLeft = false;
-                    using (var ch = Host.Start("Training TensorFlow model..."))
-                    using (var pch = Host.StartProgressChannel("TensorFlow training progress..."))
+                    using (var ch = _host.Start("Training TensorFlow model..."))
+                    using (var pch = _host.StartProgressChannel("TensorFlow training progress..."))
                     {
                         pch.SetHeader(new ProgressHeader(new[] { "Loss", "Metric" }, new[] { "Epoch" }), (e) => e.SetProgress(0, epoch, args.Epoch));
 
@@ -531,11 +533,11 @@ namespace Microsoft.ML.Transforms
                 }
 
                 if (tmpParamDir != null && tmpParamDir.Length > 0)
-                    TensorFlowUtils.DeleteFolderWithRetries(Host, tmpParamDir[0]);
+                    TensorFlowUtils.DeleteFolderWithRetries(_host, tmpParamDir[0]);
             }
             catch (Exception e)
             {
-                throw Host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
+                throw _host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
             }
         }
 
@@ -600,13 +602,13 @@ namespace Microsoft.ML.Transforms
                 outputs[j] = ctx.LoadNonEmptyString();
         }
 
-        internal TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, string savedModelPath, bool isTemporarySavedModel) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransform)))
-
+        internal TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, string savedModelPath, bool isTemporarySavedModel)
         {
-            Host.CheckValue(session, nameof(session));
-            Host.CheckNonEmpty(inputs, nameof(inputs));
-            Host.CheckNonEmpty(outputs, nameof(outputs));
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(RegistrationName));
+            _host.CheckValue(session, nameof(session));
+            _host.CheckNonEmpty(inputs, nameof(inputs));
+            _host.CheckNonEmpty(outputs, nameof(outputs));
 
             Session = session;
             _savedModelPath = savedModelPath;
@@ -614,8 +616,8 @@ namespace Microsoft.ML.Transforms
             Inputs = inputs;
             Outputs = outputs;
 
-            (TFInputTypes, TFInputShapes) = GetInputInfo(Host, Session, Inputs);
-            (TFOutputTypes, OutputTypes) = GetOutputInfo(Host, Session, Outputs);
+            (TFInputTypes, TFInputShapes) = GetInputInfo(_host, Session, Inputs);
+            (TFOutputTypes, OutputTypes) = GetOutputInfo(_host, Session, Outputs);
         }
 
         internal static (TFDataType[] tfInputTypes, TFShape[] tfInputShapes) GetInputInfo(IHost host, TFSession session, string[] inputs)
@@ -678,11 +680,30 @@ namespace Microsoft.ML.Transforms
             return (tfOutputTypes, outputTypes);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
-
-        public override void Save(ModelSaveContext ctx)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
-            Host.AssertValue(ctx);
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            foreach (var input in Inputs)
+            {
+                if (!inputSchema.TryGetColumnIndex(input, out int srcCol))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+            }
+            return Transform(new EmptyDataView(_host, inputSchema)).Schema;
+        }
+
+        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(_host, this, schema);
+
+        private RowToRowMapperTransform MakeDataTransform(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema), MakeRowMapper);
+        }
+
+        public IDataView Transform(IDataView input) => MakeDataTransform(input);
+
+        public void Save(ModelSaveContext ctx)
+        {
+            _host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
@@ -730,17 +751,17 @@ namespace Microsoft.ML.Transforms
                             long fileLength = fs.Length;
                             w.Write(fileLength);
                             long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
-                            Host.Assert(actualWritten == fileLength);
+                            _host.Assert(actualWritten == fileLength);
                         }
                     }
                 });
             }
-            Host.AssertNonEmpty(Inputs);
+            _host.AssertNonEmpty(Inputs);
             ctx.Writer.Write(Inputs.Length);
             foreach (var colName in Inputs)
                 ctx.SaveNonEmptyString(colName);
 
-            Host.AssertNonEmpty(Outputs);
+            _host.AssertNonEmpty(Outputs);
             ctx.Writer.Write(Outputs.Length);
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
@@ -769,42 +790,54 @@ namespace Microsoft.ML.Transforms
             {
                 if (!string.IsNullOrEmpty(_savedModelPath) && _isTemporarySavedModel)
                 {
-                    TensorFlowUtils.DeleteFolderWithRetries(Host, _savedModelPath);
+                    TensorFlowUtils.DeleteFolderWithRetries(_host, _savedModelPath);
                 }
             }
         }
+        public bool IsRowToRowMapper => true;
 
-        private sealed class Mapper : MapperBase
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return MakeDataTransform(new EmptyDataView(_host, inputSchema));
+        }
+
+        private sealed class Mapper : IRowMapper
+        {
+            private readonly IHost _host;
+            private readonly ISchema _schema;
             private readonly TensorFlowTransform _parent;
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
             private readonly TFShape[] _fullySpecifiedShapes;
 
-            public Mapper(TensorFlowTransform parent, Schema inputSchema) :
-                   base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
+            public Mapper(IHostEnvironment env, TensorFlowTransform parent, ISchema inputSchema)
             {
-                Host.CheckValue(parent, nameof(parent));
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register(nameof(Mapper));
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                _host.CheckValue(parent, nameof(parent));
                 _parent = parent;
+                _schema = inputSchema;
                 _inputColIndices = new int[_parent.Inputs.Length];
                 _isInputVector = new bool[_parent.Inputs.Length];
                 _fullySpecifiedShapes = new TFShape[_parent.Inputs.Length];
                 for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
-                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
+                        throw _host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
                     var type = inputSchema.GetColumnType(_inputColIndices[i]);
                     if (type is VectorType vecType && vecType.Size == 0)
-                        throw Host.Except("Variable length input columns not supported");
+                        throw _host.Except("Variable length input columns not supported");
 
                     _isInputVector[i] = type is VectorType;
                     if (!_isInputVector[i]) // Temporary pending fix of issue #1542. In its current state, the below code would fail anyway with a naked exception if this check was not here.
-                        throw Host.Except("Non-vector columns not supported");
+                        throw _host.Except("Non-vector columns not supported");
                     vecType = (VectorType)type;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.ItemType != expectedType)
-                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
+                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
                     var originalShape = _parent.TFInputShapes[i];
                     var shape = originalShape.ToIntArray();
 
@@ -847,7 +880,10 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+            public void Save(ModelSaveContext ctx)
+            {
+                _parent.Save(ctx);
+            }
 
             private class OutputCache
             {
@@ -860,23 +896,30 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            private Delegate[] MakeGetters(IRow input, Func<int, bool> activeOutput)
             {
-                disposer = null;
-                Host.AssertValue(input);
+                _host.AssertValue(input);
 
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[iinfo]);
-                Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
-                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                var valueGetters = new Delegate[_parent.Outputs.Length];
+                for (int i = 0; i < _parent.Outputs.Length; i++)
+                {
+                    if (activeOutput(i))
+                    {
+                        var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[i]);
+                        _host.Assert(type == _parent.OutputTypes[i].ItemType.RawType);
+                        var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
+                        valueGetters[i] = Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache);
+                    }
+                }
+                return valueGetters;
             }
 
             private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
-                Host.AssertValue(input);
+                _host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
@@ -884,9 +927,12 @@ namespace Microsoft.ML.Transforms
                     var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
                     var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                    var editor = VBufferEditor.Create(ref dst, (int)tensorSize);
-                    TensorFlowUtils.FetchData<T>(tensor.Data, editor.Values);
-                    dst = editor.Commit();
+                    var values = dst.Values;
+                    if (Utils.Size(values) < tensorSize)
+                        values = new T[tensorSize];
+
+                    TensorFlowUtils.FetchData<T>(tensor.Data, values);
+                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
                 };
                 return valuegetter;
             }
@@ -912,12 +958,21 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                disposer = null;
+                using (var ch = _host.Start("CreateGetters"))
+                {
+                    return MakeGetters(input, activeOutput);
+                }
+            }
+
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            public Schema.Column[] GetOutputColumns()
             {
                 var info = new Schema.Column[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
@@ -1003,7 +1058,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<VBuffer<T>> _srcgetter;
             private readonly TFShape _tfShape;
             private VBuffer<T> _vBuffer;
-            private T[] _denseData;
+            private VBuffer<T> _vBufferDense;
             private readonly T[] _bufferedData;
             private int _position;
 
@@ -1012,7 +1067,7 @@ namespace Microsoft.ML.Transforms
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tfShape = tfShape;
                 _vBuffer = default;
-                _denseData = default;
+                _vBufferDense = default;
 
                 long size = 0;
                 _position = 0;
@@ -1028,11 +1083,8 @@ namespace Microsoft.ML.Transforms
             public TFTensor GetTensor()
             {
                 _srcgetter(ref _vBuffer);
-
-                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
-                _vBuffer.CopyTo(_denseData);
-
-                return TFTensor.Create(_denseData, _vBuffer.Length, _tfShape);
+                _vBuffer.CopyToDense(ref _vBufferDense);
+                return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
             }
 
             public void BufferTrainingData()
@@ -1061,17 +1113,17 @@ namespace Microsoft.ML.Transforms
         private TensorFlowTransform _transformer;
 
         public TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] inputs, string[] outputs)
-            : this(env, TensorFlowUtils.LoadTensorFlowModel(env, modelLocation), inputs, outputs)
+            :this(env, TensorFlowUtils.LoadTensorFlowModel(env,modelLocation), inputs, outputs)
         {
         }
 
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
-            : this(env, CreateArguments(tensorFlowModel, inputs, outputs), tensorFlowModel)
+            :this(env, CreateArguments(tensorFlowModel,inputs, outputs), tensorFlowModel)
         {
         }
 
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform.Arguments args)
-            : this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation))
+            :this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation))
         {
         }
 

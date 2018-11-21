@@ -7,16 +7,10 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.TreePredictor
 {
-    // The interfaces contained herein are meant to allow tree visualizer to run without an explicit dependency
-    // on FastTree, so as to allow it greater generality. These should probably be moved somewhere else, but where?
-    // FastTree itself is not a good candidate since their entire purpose was to avoid tying the tree visualizer
-    // to FastTree itself. They are semi-tolerable though as a set of internal types here.
-
     /// <summary>
     /// Predictor that has ensemble tree structures and returns collection of trees.
     /// </summary>
-    [BestFriend]
-    internal interface ITreeEnsemble
+    public interface ITreeEnsemble
     {
         /// <summary>
         /// Returns the number of trees in the ensemble.
@@ -33,8 +27,7 @@ namespace Microsoft.ML.Runtime.TreePredictor
     /// <summary>
     /// Type of tree used in ensemble of tree based predictors
     /// </summary>
-    [BestFriend]
-    internal interface ITree
+    public interface ITree
     {
         /// <summary>
         /// Returns the array of right(Greater than) child nodes of every interior nodes
@@ -70,8 +63,7 @@ namespace Microsoft.ML.Runtime.TreePredictor
     /// Type of tree used in ensemble of tree based predictors
     /// </summary>
     /// <typeparam name="TFeatures">Type of features container (instance) on which to make predictions</typeparam>
-    [BestFriend]
-    internal interface ITree<TFeatures> : ITree
+    public interface ITree<TFeatures> : ITree
     {
         /// <summary>
         /// Returns the leaf node for the given instance.
@@ -85,8 +77,7 @@ namespace Microsoft.ML.Runtime.TreePredictor
     /// <summary>
     /// Type to represent the structure of node
     /// </summary>
-    [BestFriend]
-    internal interface INode
+    public interface INode
     {
         /// <summary>
         /// Returns Key value pairs representing the properties of the node.
@@ -97,8 +88,7 @@ namespace Microsoft.ML.Runtime.TreePredictor
     /// <summary>
     /// Keys to represent the properties of node.
     /// </summary>
-    [BestFriend]
-    internal static class NodeKeys
+    public static class NodeKeys
     {
         /// <summary>
         /// Name of the the interior node. It is Feature name if it is fasttree. Type is string for default trees.

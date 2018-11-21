@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
             private readonly IHost _host;
             private readonly BinFinderBase _binFinder;
             private int _numBins;
-            private VBuffer<int> _labels; // always dense
+            private int[] _labels;
             private int _numLabels;
             private int[][] _contingencyTable;
             private int[] _labelSums;
@@ -406,28 +406,28 @@ namespace Microsoft.ML.Transforms
                 {
                     var tmp = default(VBuffer<int>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
-                    BinInts(in tmp, ref labels, _numBins, out min, out lim);
+                    BinInts(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
                 else if (labelType == NumberType.R4)
                 {
                     var tmp = default(VBuffer<Single>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
-                    BinSingles(in tmp, ref labels, _numBins, out min, out lim);
+                    BinSingles(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
                 else if (labelType == NumberType.R8)
                 {
                     var tmp = default(VBuffer<Double>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
-                    BinDoubles(in tmp, ref labels, _numBins, out min, out lim);
+                    BinDoubles(ref tmp, ref labels, _numBins, out min, out lim);
                     _numLabels = lim - min;
                 }
                 else if (labelType.IsBool)
                 {
                     var tmp = default(VBuffer<bool>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
-                    BinBools(in tmp, ref labels);
+                    BinBools(ref tmp, ref labels);
                     _numLabels = 3;
                     min = -1;
                     lim = 2;
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Transforms
                     KeyLabelGetter<int> del = GetKeyLabels<int>;
                     var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(labelType.RawType);
                     var parameters = new object[] { trans, labelCol, labelType };
-                    _labels = (VBuffer<int>)methodInfo.Invoke(this, parameters);
+                    _labels = (int[])methodInfo.Invoke(this, parameters);
                     _numLabels = labelType.KeyCount + 1;
 
                     // No need to densify or shift in this case.
@@ -448,25 +448,29 @@ namespace Microsoft.ML.Transforms
                 // Densify and shift labels.
                 VBufferUtils.Densify(ref labels);
                 Contracts.Assert(labels.IsDense);
-                var labelsEditor = VBufferEditor.CreateFromBuffer(ref labels);
-                for (int i = 0; i < labels.Length; i++)
+                _labels = labels.Values;
+                if (labels.Length < _labels.Length)
+                    Array.Resize(ref _labels, labels.Length);
+                for (int i = 0; i < _labels.Length; i++)
                 {
-                    labelsEditor.Values[i] -= min;
-                    Contracts.Assert(labelsEditor.Values[i] < _numLabels);
+                    _labels[i] -= min;
+                    Contracts.Assert(_labels[i] < _numLabels);
                 }
-                _labels = labelsEditor.Commit();
             }
 
-            private delegate VBuffer<int> KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);
+            private delegate int[] KeyLabelGetter<T>(Transposer trans, int labelCol, ColumnType labeColumnType);
 
-            private VBuffer<int> GetKeyLabels<T>(Transposer trans, int labelCol, ColumnType labelColumnType)
+            private int[] GetKeyLabels<T>(Transposer trans, int labelCol, ColumnType labeColumnType)
             {
                 var tmp = default(VBuffer<T>);
                 var labels = default(VBuffer<int>);
                 trans.GetSingleSlotValue(labelCol, ref tmp);
-                BinKeys<T>(labelColumnType)(in tmp, ref labels);
+                BinKeys<T>(labeColumnType)(in tmp, ref labels);
                 VBufferUtils.Densify(ref labels);
-                return labels;
+                var values = labels.Values;
+                if (labels.Length < values.Length)
+                    Array.Resize(ref values, labels.Length);
+                return values;
             }
 
             /// <summary>
@@ -481,7 +485,7 @@ namespace Microsoft.ML.Transforms
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<int> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
-                            BinInts(in src, ref dst, _numBins, out min, out lim);
+                            BinInts(ref src, ref dst, _numBins, out min, out lim);
                         });
                 }
                 if (type.ItemType == NumberType.R4)
@@ -489,7 +493,7 @@ namespace Microsoft.ML.Transforms
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Single> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
-                            BinSingles(in src, ref dst, _numBins, out min, out lim);
+                            BinSingles(ref src, ref dst, _numBins, out min, out lim);
                         });
                 }
                 if (type.ItemType == NumberType.R8)
@@ -497,7 +501,7 @@ namespace Microsoft.ML.Transforms
                     return ComputeMutualInformation(trans, col,
                         (ref VBuffer<Double> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
-                            BinDoubles(in src, ref dst, _numBins, out min, out lim);
+                            BinDoubles(ref src, ref dst, _numBins, out min, out lim);
                         });
                 }
                 if (type.ItemType.IsBool)
@@ -507,7 +511,7 @@ namespace Microsoft.ML.Transforms
                         {
                             min = -1;
                             lim = 2;
-                            BinBools(in src, ref dst);
+                            BinBools(ref src, ref dst);
                         });
                 }
                 Contracts.Assert(0 < type.ItemType.KeyCount && type.ItemType.KeyCount < Utils.ArrayMaxSize);
@@ -605,16 +609,13 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private void FillTable(in VBuffer<int> features, int offset, int numFeatures)
             {
-                Contracts.Assert(_labels.IsDense);
                 Contracts.Assert(_labels.Length == features.Length);
-                var featureValues = features.GetValues();
-                var labelsValues = _labels.GetValues();
                 if (features.IsDense)
                 {
-                    for (int i = 0; i < labelsValues.Length; i++)
+                    for (int i = 0; i < _labels.Length; i++)
                     {
-                        var label = labelsValues[i];
-                        var feature = featureValues[i] - offset;
+                        var label = _labels[i];
+                        var feature = features.Values[i] - offset;
                         Contracts.Assert(0 <= label && label < _numLabels);
                         Contracts.Assert(0 <= feature && feature < numFeatures);
                         _contingencyTable[label][feature]++;
@@ -622,24 +623,23 @@ namespace Microsoft.ML.Transforms
                     return;
                 }
 
-                var featureIndices = features.GetIndices();
                 int ii = 0;
-                for (int i = 0; i < labelsValues.Length; i++)
+                for (int i = 0; i < _labels.Length; i++)
                 {
-                    var label = labelsValues[i];
+                    var label = _labels[i];
                     int feature;
-                    if (ii == featureIndices.Length || i < featureIndices[ii])
+                    if (ii == features.Count || i < features.Indices[ii])
                         feature = -offset;
                     else
                     {
-                        feature = featureValues[ii] - offset;
+                        feature = features.Values[ii] - offset;
                         ii++;
                     }
                     Contracts.Assert(0 <= label && label < _numLabels);
                     Contracts.Assert(0 <= feature && feature < numFeatures);
                     _contingencyTable[label][feature]++;
                 }
-                Contracts.Assert(ii == featureIndices.Length);
+                Contracts.Assert(ii == features.Count);
             }
 
             /// <summary>
@@ -673,12 +673,12 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maps Ints.
             /// </summary>
-            private void BinInts(in VBuffer<int> input, ref VBuffer<int> output,
+            private void BinInts(ref VBuffer<int> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_singles.Count == 0);
 
-                var bounds = _binFinder.FindBins(numBins, _singles, input.Length - input.GetValues().Length);
+                var bounds = _binFinder.FindBins(numBins, _singles, input.Length - input.Count);
                 min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 int offset = min;
@@ -692,19 +692,21 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maps from Singles to ints. NaNs (and only NaNs) are mapped to the first bin.
             /// </summary>
-            private void BinSingles(in VBuffer<Single> input, ref VBuffer<int> output,
+            private void BinSingles(ref VBuffer<Single> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_singles.Count == 0);
-                var inputValues = input.GetValues();
-                for (int i = 0; i < inputValues.Length; i++)
+                if (input.Values != null)
                 {
-                    var val = inputValues[i];
-                    if (!Single.IsNaN(val))
-                        _singles.Add(val);
+                    for (int i = 0; i < input.Count; i++)
+                    {
+                        var val = input.Values[i];
+                        if (!Single.IsNaN(val))
+                            _singles.Add(val);
+                    }
                 }
 
-                var bounds = _binFinder.FindBins(numBins, _singles, input.Length - inputValues.Length);
+                var bounds = _binFinder.FindBins(numBins, _singles, input.Length - input.Count);
                 min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 int offset = min;
@@ -718,19 +720,21 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Maps from Doubles to ints. NaNs (and only NaNs) are mapped to the first bin.
             /// </summary>
-            private void BinDoubles(in VBuffer<Double> input, ref VBuffer<int> output,
+            private void BinDoubles(ref VBuffer<Double> input, ref VBuffer<int> output,
                 int numBins, out int min, out int lim)
             {
                 Contracts.Assert(_doubles.Count == 0);
-                var inputValues = input.GetValues();
-                for (int i = 0; i < inputValues.Length; i++)
+                if (input.Values != null)
                 {
-                    var val = inputValues[i];
-                    if (!Double.IsNaN(val))
-                        _doubles.Add(val);
+                    for (int i = 0; i < input.Count; i++)
+                    {
+                        var val = input.Values[i];
+                        if (!Double.IsNaN(val))
+                            _doubles.Add(val);
+                    }
                 }
 
-                var bounds = _binFinder.FindBins(numBins, _doubles, input.Length - inputValues.Length);
+                var bounds = _binFinder.FindBins(numBins, _doubles, input.Length - input.Count);
                 var offset = min = -1 - bounds.FindIndexSorted(0);
                 lim = min + bounds.Length + 1;
                 ValueMapper<Double, int> mapper =
@@ -740,7 +744,7 @@ namespace Microsoft.ML.Transforms
                 _doubles.Clear();
             }
 
-            private void BinBools(in VBuffer<bool> input, ref VBuffer<int> output)
+            private void BinBools(ref VBuffer<bool> input, ref VBuffer<int> output)
             {
                 if (_boolMapper == null)
                     _boolMapper = CreateVectorMapper<bool, int>(BinOneBool);
@@ -771,20 +775,24 @@ namespace Microsoft.ML.Transforms
 
         private static void MapVector<TSrc, TDst>(this ValueMapper<TSrc, TDst> map, in VBuffer<TSrc> input, ref VBuffer<TDst> output)
         {
-            var inputValues = input.GetValues();
-            var editor = VBufferEditor.Create(ref output, input.Length, inputValues.Length);
-            for (int i = 0; i < inputValues.Length; i++)
+            var values = output.Values;
+            if (Utils.Size(values) < input.Count)
+                values = new TDst[input.Count];
+            for (int i = 0; i < input.Count; i++)
             {
-                TSrc val = inputValues[i];
-                map(in val, ref editor.Values[i]);
+                TSrc val = input.Values[i];
+                map(in val, ref values[i]);
             }
 
-            if (!input.IsDense && inputValues.Length > 0)
+            var indices = output.Indices;
+            if (!input.IsDense && input.Count > 0)
             {
-                input.GetIndices().CopyTo(editor.Indices);
+                if (Utils.Size(indices) < input.Count)
+                    indices = new int[input.Count];
+                Array.Copy(input.Indices, indices, input.Count);
             }
 
-            output = editor.Commit();
+            output = new VBuffer<TDst>(input.Length, input.Count, values, indices);
         }
     }
 }

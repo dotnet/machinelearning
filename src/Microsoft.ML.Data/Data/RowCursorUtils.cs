@@ -267,23 +267,29 @@ namespace Microsoft.ML.Runtime.Data
                 if (size > 0)
                     Contracts.Check(src.Length == size);
 
+                var values = dst.Values;
+                var indices = dst.Indices;
                 var srcValues = src.GetValues();
                 int count = srcValues.Length;
-                var editor = VBufferEditor.Create(ref dst, src.Length, count);
                 if (count > 0)
                 {
+                    if (Utils.Size(values) < count)
+                        values = new TDst[count];
+
                     // REVIEW: This would be faster if there were loops for each std conversion.
                     // Consider adding those to the Conversions class.
                     for (int i = 0; i < count; i++)
-                        conv(in srcValues[i], ref editor.Values[i]);
+                        conv(in srcValues[i], ref values[i]);
 
                     if (!src.IsDense)
                     {
                         var srcIndices = src.GetIndices();
-                        srcIndices.CopyTo(editor.Indices);
+                        if (Utils.Size(indices) < count)
+                            indices = new int[count];
+                        srcIndices.CopyTo(indices);
                     }
                 }
-                dst = editor.Commit();
+                dst = new VBuffer<TDst>(src.Length, count, values, indices);
             };
         }
 
@@ -441,15 +447,16 @@ namespace Microsoft.ML.Runtime.Data
                     getSrc(ref src);
                     // Unfortunately defaults in one to not translate to defaults of the other,
                     // so this will not be sparsity preserving. Assume a dense output.
-                    var editor = VBufferEditor.Create(ref dst, src.Length);
+                    Single[] vals = dst.Values;
+                    Utils.EnsureSize(ref vals, src.Length);
                     foreach (var kv in src.Items(all: true))
                     {
                         if (0 < kv.Value && kv.Value <= keyMax)
-                            editor.Values[kv.Key] = kv.Value - 1;
+                            vals[kv.Key] = kv.Value - 1;
                         else
-                            editor.Values[kv.Key] = Single.NaN;
+                            vals[kv.Key] = Single.NaN;
                     }
-                    dst = editor.Commit();
+                    dst = new VBuffer<Single>(src.Length, vals, dst.Indices);
                 };
         }
 
@@ -534,7 +541,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new IRowCursor[] { GetRowCursor(needCol, rand) };
             }
 
-            public long? GetRowCount()
+            public long? GetRowCount(bool lazy = true)
             {
                 return 1;
             }

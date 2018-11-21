@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Api
     ///
     /// REVIEW: Consider adding support for generating VBuffers instead of arrays, maybe for high dimensionality vectors.
     /// </summary>
-    internal sealed class GenerateCodeCommand : ICommand
+    public sealed class GenerateCodeCommand : ICommand
     {
         public const string LoadName = "GenerateSamplePredictionCode";
         private const string CodeTemplatePath = "Microsoft.ML.Api.GeneratedCodeTemplate.csresource";

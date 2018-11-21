@@ -7,8 +7,6 @@ using Microsoft.ML.Runtime;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    public delegate void SignatureModelCombiner(PredictionKind kind);
-
     /// <summary>
     /// An interface that combines multiple predictors into a single predictor.
     /// </summary>

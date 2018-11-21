@@ -22,7 +22,6 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.ML.Transforms.Text.LatentDirichletAllocationTransformer;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
@@ -59,7 +58,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleTextLoaderCopyColumnsTest()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             const string data = "0 hello 3.14159 -0 2\n"
                 + "1 1 2 4 15";
@@ -160,7 +159,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleTextLoaderObnoxiousTypeTest()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             const string data = "0 hello 3.14159 -0 2\n"
                 + "1 1 2 4 15";
@@ -207,7 +206,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticSimple()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
@@ -231,7 +230,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticSimpleFailure()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
@@ -263,7 +262,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticKeys()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
@@ -370,7 +369,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void Normalizer()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -395,7 +394,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NormalizerWithOnFit()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -423,7 +422,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Just for fun, let's also write out some of the lines of the data to the console.
             using (var stream = new MemoryStream())
             {
-                IDataView v = ColumnSelectingTransformer.CreateKeep(env, tdata.AsDynamic, new[] { "r", "ncdf", "n", "b" });
+                IDataView v = SelectColumnsTransform.CreateKeep(env, tdata.AsDynamic, "r", "ncdf", "n", "b");
                 v = TakeFilter.Create(env, v, 10);
                 var saver = new TextSaver(env, new TextSaver.Arguments()
                 {
@@ -439,7 +438,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ToKey()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
@@ -477,7 +476,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ConcatWith()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
@@ -515,7 +514,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void Tokenize()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -544,7 +543,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NormalizeTextAndRemoveStopWords()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -573,7 +572,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ConvertToWordBag()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -602,7 +601,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void Ngrams()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -632,7 +631,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void LpGcNormAndWhitening()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -670,7 +669,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void LdaTopicModel()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -678,27 +677,26 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var data = reader.Read(dataSource);
 
-            // This will be populated once we call fit.
-            LdaSummary ldaSummary;
-
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s =>
+                    {
+                        s.AlphaSum = 10;
+                    })));
 
-            var transformer = est.Fit(data);
-            var tdata = transformer.Transform(data);
-
+            var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
+
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
-        }
+}
 
-        [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
+        [Fact]
         public void FeatureSelection()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -727,7 +725,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void TrainTestSplit()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -757,7 +755,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void PrincipalComponentAnalysis()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -780,10 +778,10 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NAIndicatorStatic()
         {
-            var env = new MLContext(0);
+            var Env = new ConsoleEnvironment(seed: 0);
 
             string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = TextLoader.CreateReader(Env, ctx => (
                 ScalarFloat: ctx.LoadFloat(1),
                 ScalarDouble: ctx.LoadDouble(1),
                 VectorFloat: ctx.LoadFloat(1, 4),
@@ -800,12 +798,12 @@ namespace Microsoft.ML.StaticPipelineTesting
                    D: row.VectorDoulbe.IsMissingValue()
                    ));
 
-            IDataView newData = TakeFilter.Create(env, est.Fit(data).Transform(data).AsDynamic, 4);
+            IDataView newData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
             Assert.NotNull(newData);
-            bool[] ScalarFloat = newData.GetColumn<bool>(env, "A").ToArray();
-            bool[] ScalarDouble = newData.GetColumn<bool>(env, "B").ToArray();
-            bool[][] VectorFloat = newData.GetColumn<bool[]>(env, "C").ToArray();
-            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(env, "D").ToArray();
+            bool[] ScalarFloat = newData.GetColumn<bool>(Env, "A").ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(Env, "B").ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(Env, "C").ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(Env, "D").ToArray();
 
             Assert.NotNull(ScalarFloat);
             Assert.NotNull(ScalarDouble);
@@ -824,7 +822,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void TextNormalizeStatic()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var reader = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
@@ -864,7 +862,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void TestPcaStatic()
         {
-            var env = new MLContext(0);
+            var env = new ConsoleEnvironment(seed: 1);
             var dataSource = GetDataPath("generated_regression_dataset.csv");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),

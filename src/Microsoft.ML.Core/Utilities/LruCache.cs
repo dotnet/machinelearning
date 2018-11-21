@@ -10,8 +10,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Implements a least recently used cache.
     /// </summary>
-    [BestFriend]
-    internal sealed class LruCache<TKey, TValue>
+    public sealed class LruCache<TKey, TValue>
     {
         private readonly int _size;
         private readonly Dictionary<TKey, LinkedListNode<KeyValuePair<TKey, TValue>>> _cache;

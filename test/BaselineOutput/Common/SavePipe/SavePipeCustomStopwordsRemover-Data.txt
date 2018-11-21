@@ -1,6 +1,0 @@
-#@ TextLoader{
-#@   sep=tab
-#@   col=T:TX:0-**
-#@ }
-Fred	McGriff	free	agent
-erythromycin	treating	pneumonia

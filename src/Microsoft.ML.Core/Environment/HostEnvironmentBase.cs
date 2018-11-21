@@ -15,8 +15,7 @@ namespace Microsoft.ML.Runtime.Data
     /// Base class for channel providers. This is a common base class for<see cref="HostEnvironmentBase{THostEnvironmentBase}"/>.
     /// The ParentFullName, ShortName, and FullName may be null or empty.
     /// </summary>
-    [BestFriend]
-    internal abstract class ChannelProviderBase : IExceptionContext
+    public abstract class ChannelProviderBase : IExceptionContext
     {
         /// <summary>
         /// Data keys that are attached to the exception thrown via the exception context.
@@ -80,12 +79,33 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Message source (a channel) that generated the message being dispatched.
     /// </summary>
-    [BestFriend]
-    internal interface IMessageSource
+    public interface IMessageSource
     {
         string ShortName { get; }
         string FullName { get; }
         bool Verbose { get; }
+    }
+
+    /// <summary>
+    /// A <see cref="IHostEnvironment"/> that is also a channel listener can attach
+    /// listeners for messages, as sent through <see cref="IChannelProvider.StartPipe{TMessage}"/>.
+    /// </summary>
+    public interface IMessageDispatcher : IHostEnvironment
+    {
+        /// <summary>
+        /// Listen on this environment to messages of a particular type.
+        /// </summary>
+        /// <typeparam name="TMessage">The message type</typeparam>
+        /// <param name="listenerFunc">The action to perform when a message of the
+        /// appropriate type is received.</param>
+        void AddListener<TMessage>(Action<IMessageSource, TMessage> listenerFunc);
+
+        /// <summary>
+        /// Removes a previously added listener.
+        /// </summary>
+        /// <typeparam name="TMessage">The message type</typeparam>
+        /// <param name="listenerFunc">The previous listener function that is now being removed.</param>
+        void RemoveListener<TMessage>(Action<IMessageSource, TMessage> listenerFunc);
     }
 
     /// <summary>
@@ -94,8 +114,7 @@ namespace Microsoft.ML.Runtime.Data
     /// AddListener/RemoveListener methods, and exposes the <see cref="ProgressReporting.ProgressTracker"/> to
     /// query progress.
     /// </summary>
-    [BestFriend]
-    internal abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider
+    public abstract class HostEnvironmentBase<TEnv> : ChannelProviderBase, IHostEnvironment, IDisposable, IChannelProvider, IMessageDispatcher
         where TEnv : HostEnvironmentBase<TEnv>
     {
         /// <summary>

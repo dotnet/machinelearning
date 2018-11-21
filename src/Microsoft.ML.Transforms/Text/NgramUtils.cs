@@ -73,13 +73,12 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(icol >= 0);
             Contracts.Assert(keyMax > 0);
 
-            var srcValues = src.GetValues();
             uint curKey = 0;
             if (src.IsDense)
             {
                 for (int i = 0; i < src.Length; i++)
                 {
-                    curKey = srcValues[i];
+                    curKey = src.Values[i];
                     if (curKey > keyMax)
                         curKey = 0;
 
@@ -93,14 +92,13 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var queueSize = _queue.Capacity;
-                var srcIndices = src.GetIndices();
 
                 int iindex = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (iindex < srcIndices.Length && i == srcIndices[iindex])
+                    if (iindex < src.Count && i == src.Indices[iindex])
                     {
-                        curKey = srcValues[iindex];
+                        curKey = src.Values[iindex];
                         if (curKey > keyMax)
                             curKey = 0;
                         iindex++;

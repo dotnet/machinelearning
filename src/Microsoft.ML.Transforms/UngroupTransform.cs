@@ -96,7 +96,7 @@ namespace Microsoft.ML.Transforms
         private readonly SchemaImpl _schemaImpl;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="UngroupTransform"/>.
+        /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -149,13 +149,13 @@ namespace Microsoft.ML.Transforms
             _schemaImpl.Save(ctx);
         }
 
-        public override long? GetRowCount()
+        public override long? GetRowCount(bool lazy = true)
         {
             // Row count is known if the input's row count is known, and pivot column sizes are fixed.
             var commonSize = _schemaImpl.GetCommonPivotColumnSize();
             if (commonSize > 0)
             {
-                long? srcRowCount = Source.GetRowCount();
+                long? srcRowCount = Source.GetRowCount(true);
                 if (srcRowCount.HasValue && srcRowCount.Value <= (long.MaxValue / commonSize))
                     return srcRowCount.Value * commonSize;
             }
@@ -205,6 +205,7 @@ namespace Microsoft.ML.Transforms
                 case MetadataUtils.Kinds.ScoreColumnSetId:
                 case MetadataUtils.Kinds.ScoreColumnKind:
                 case MetadataUtils.Kinds.ScoreValueKind:
+                case MetadataUtils.Kinds.HasMissingValues:
                 case MetadataUtils.Kinds.IsUserVisible:
                     return true;
                 default:
@@ -630,20 +631,18 @@ namespace Microsoft.ML.Transforms
                             cachedIndex = 0;
                         }
 
-                        var rowValues = row.GetValues();
                         if (_pivotColPosition >= row.Length)
                             value = naValue;
                         else if (row.IsDense)
-                            value = rowValues[_pivotColPosition];
+                            value = row.Values[_pivotColPosition];
                         else
                         {
                             // The row is sparse.
-                            var rowIndices = row.GetIndices();
-                            while (cachedIndex < rowIndices.Length && _pivotColPosition > rowIndices[cachedIndex])
+                            while (cachedIndex < row.Count && _pivotColPosition > row.Indices[cachedIndex])
                                 cachedIndex++;
 
-                            if (cachedIndex < rowIndices.Length && _pivotColPosition == rowIndices[cachedIndex])
-                                value = rowValues[cachedIndex];
+                            if (cachedIndex < row.Count && _pivotColPosition == row.Indices[cachedIndex])
+                                value = row.Values[cachedIndex];
                             else
                                 value = default(T);
                         }

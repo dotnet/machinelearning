@@ -17,8 +17,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// any order), the first thread to clear the wait will be 0, then 1 will
     /// be cleared once incremented, then 2 will be cleared once incremented.
     /// </summary>
-    [BestFriend]
-    internal sealed class OrderedWaiter
+    public sealed class OrderedWaiter
     {
         /// <summary>
         /// This is an event-line pair. The intended usage is, when the line

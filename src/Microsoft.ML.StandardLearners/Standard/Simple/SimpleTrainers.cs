@@ -70,12 +70,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<RandomPredictor> Fit(IDataView input)
         {
-            RoleMappedData trainRoles = new RoleMappedData(input);
+            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
+
+            RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, input.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
         }
 
-        private protected override RandomPredictor Train(TrainContext context)
+        public override RandomPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             return new RandomPredictor(Host, Host.Rand.Next());
@@ -268,12 +270,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<PriorPredictor> Fit(IDataView input)
         {
-            RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
+            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
+
+            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, feature: null, label: _labelColumnName, weight: _weightColumnName);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, input.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
         }
 
-        private protected override PriorPredictor Train(TrainContext context)
+        public override PriorPredictor Train(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             var data = context.TrainingSet;

@@ -5,6 +5,8 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,12 +15,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    /// <summary>
-    /// The console environment. As its name suggests, should be limited to those applications that deliberately want
-    /// console functionality.
-    /// </summary>
-    [BestFriend]
-    internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
+    public sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
     {
         public const string ComponentHistoryKey = "ComponentHistory";
 

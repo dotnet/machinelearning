@@ -21,8 +21,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    [BestFriend]
-    internal sealed class CrossValidationCommand : DataCommand.ImplBase<CrossValidationCommand.Arguments>
+    public sealed class CrossValidationCommand : DataCommand.ImplBase<CrossValidationCommand.Arguments>
     {
         // REVIEW: We need a way to specify different data sets, not just LabeledExamples.
         public sealed class Arguments : DataCommand.ArgumentsBase

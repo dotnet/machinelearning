@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Model
 {
     [StructLayout(LayoutKind.Explicit, Size = ModelHeader.Size)]
-    internal struct ModelHeader
+    public struct ModelHeader
     {
         /// <summary>
         /// This spells 'ML MODEL' with zero replacing space (assuming little endian).

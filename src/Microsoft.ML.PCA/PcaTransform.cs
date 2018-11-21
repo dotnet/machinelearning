@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
-        private sealed class Mapper : OneToOneMapperBase
+        private sealed class Mapper : MapperBase
         {
             public sealed class ColumnSchemaInfo
             {
@@ -600,7 +600,7 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            public override Schema.Column[] GetOutputColumns()
             {
                 var result = new Schema.Column[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
@@ -608,7 +608,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
@@ -630,14 +630,17 @@ namespace Microsoft.ML.Transforms.Projections
             {
                 ectx.Check(src.Length == transformInfo.Dimension);
 
-                var editor = VBufferEditor.Create(ref dst, transformInfo.Rank);
+                var values = dst.Values;
+                if (Utils.Size(values) < transformInfo.Rank)
+                    values = new float[transformInfo.Rank];
+
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    editor.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
+                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 
-                dst = editor.Commit();
+                dst = new VBuffer<float>(transformInfo.Rank, values, dst.Indices);
             }
         }
 

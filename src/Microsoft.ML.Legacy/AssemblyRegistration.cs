@@ -28,9 +28,7 @@ namespace Microsoft.ML.Runtime
                 Contracts.Assert(_assemblyInitializer.Value);
             }
 
-#pragma warning disable CS0618 // The legacy API that internally uses dependency injection for all calls will be deleted anyway.
             AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(environment);
-#pragma warning restore CS0618
         }
 
         /// <summary>
@@ -48,7 +46,7 @@ namespace Microsoft.ML.Runtime
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
-            _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
+            _ = typeof(CategoricalTransform).Assembly; // ML.Transforms
 
             // The following assemblies reference this assembly, so we can't directly reference them
 
