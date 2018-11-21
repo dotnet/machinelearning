@@ -49,7 +49,7 @@ namespace Microsoft.ML.Trainers.KMeans
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
 
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -148,21 +148,19 @@ namespace Microsoft.ML.Trainers.KMeans
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _k)
-                        values = new Float[_k];
-                    Map(in src, values);
-                    dst = new VBuffer<Float>(_k, values, dst.Indices);
+                    var editor = VBufferEditor.Create(ref dst, _k);
+                    Map(in src, editor.Values);
+                    dst = editor.Commit();
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(in VBuffer<Float> src, Float[] distances)
+        private void Map(in VBuffer<Float> src, Span<Float> distances)
         {
-            Host.Assert(Utils.Size(distances) >= _k);
+            Host.Assert(distances.Length >= _k);
 
-            Float instanceL2 = VectorUtils.NormSquared(src);
+            Float instanceL2 = VectorUtils.NormSquared(in src);
             for (int i = 0; i < _k; i++)
             {
                 Float distance = Math.Max(0,
@@ -282,7 +280,7 @@ namespace Microsoft.ML.Trainers.KMeans
             k = _k;
         }
 
-        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        bool ISingleCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
             // Computation graph of distances to all centriods for a batch of examples. Note that a centriod is just
             // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means

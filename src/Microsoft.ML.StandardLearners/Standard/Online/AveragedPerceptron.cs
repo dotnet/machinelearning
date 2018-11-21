@@ -96,8 +96,8 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/></param>
         /// <param name="lossFunction">The classification loss function. </param>
-        /// <param name="label">The name of the label column. </param>
-        /// <param name="features">The name of the feature column.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The optional name of the weights column.</param>
         /// <param name="learningRate">The learning rate. </param>
         /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
@@ -105,8 +105,8 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="numIterations">The number of training iteraitons.</param>
         /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public AveragedPerceptronTrainer(IHostEnvironment env,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IClassificationLoss lossFunction = null,
             float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
@@ -116,8 +116,8 @@ namespace Microsoft.ML.Trainers.Online
             Action<Arguments> advancedSettings = null)
             : this(env, InvokeAdvanced(advancedSettings, new Arguments
             {
-                LabelColumn = label,
-                FeatureColumn = features,
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
                 InitialWeights = weights,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,

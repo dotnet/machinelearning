@@ -54,12 +54,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema => _compositeSchema.AsSchema;
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             long min = -1;
             foreach (var source in _sources)
             {
-                var cur = source.GetRowCount(lazy);
+                var cur = source.GetRowCount();
                 if (cur == null)
                     return null;
                 _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");

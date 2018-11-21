@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.CommandLine
 {
-    public sealed class CharCursor
+    internal sealed class CharCursor
     {
         private readonly string _text;
         private readonly int _ichLim;

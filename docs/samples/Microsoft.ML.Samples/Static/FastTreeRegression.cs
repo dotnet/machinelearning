@@ -1,20 +1,12 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.StaticPipe;
+using System;
+using System.Linq;
 
-        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
-        using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Trainers.FastTree;
-        using Microsoft.ML.StaticPipe;
-        using System;
-        using System.Linq;
-
-// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
-// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
-// line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public partial class TrainersSamples
+    public class FastTreeRegressionExample
     {
         public static void FastTreeRegression()
         {
@@ -47,7 +39,7 @@ namespace Microsoft.ML.Samples.Static
                                             r.features,
                                             numTrees: 100, // try: (int) 20-2000
                                             numLeaves: 20, // try: (int) 2-128
-                                            minDatapointsInLeafs: 10, // try: (int) 1-100
+                                            minDatapointsInLeaves: 10, // try: (int) 1-100
                                             learningRate: 0.2, // try: (float) 0.025-0.4    
                                         onFit: p => pred = p)
                                 )

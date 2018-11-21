@@ -8,7 +8,8 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
-    public static class FloatUtils
+    [BestFriend]
+    internal static class FloatUtils
     {
         // This is used to read and write the bits of a Double.
         // Thanks to Vance Morrison for educating me about this excellent aliasing mechanism.

@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Learners
                     (in VBuffer<float> x, ref VBuffer<float> grad) =>
                     {
                         // Zero out the gradient by sparsifying.
-                        grad = new VBuffer<float>(grad.Length, 0, grad.Values, grad.Indices);
+                        VBufferUtils.Resize(ref grad, grad.Length, 0);
                         EnsureBiases(ref grad);
 
                         if (cursor == null || !cursor.MoveNext())
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // REVIEW: maybe it makes sense for the factory to capture the good row count after
                 // the first successful cursoring?
-                Double totalCount = data.Data.GetRowCount(true) ?? Double.NaN;
+                Double totalCount = data.Data.GetRowCount() ?? Double.NaN;
 
                 long exCount = 0;
                 pch.SetHeader(new ProgressHeader(null, new[] { "examples" }),
@@ -595,11 +595,15 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValueOrNull(progress);
 
             float scaleFactor = 1 / (float)WeightSum;
-            VBuffer<float> xDense = default(VBuffer<float>);
+            VBuffer<float> xDense = default;
             if (x.IsDense)
                 xDense = x;
             else
-                x.CopyToDense(ref xDense);
+            {
+                VBuffer<float> xDenseTemp = default;
+                x.CopyToDense(ref xDenseTemp);
+                xDense = xDenseTemp;
+            }
 
             IProgressChannel pch = progress != null ? progress.StartProgressChannel("Gradient") : null;
             float loss;
@@ -613,7 +617,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (L2Weight > 0)
             {
                 Contracts.Assert(xDense.IsDense);
-                var values = xDense.Values;
+                var values = xDense.GetValues();
                 Double r = 0;
                 for (int i = BiasCount; i < values.Length; i++)
                 {

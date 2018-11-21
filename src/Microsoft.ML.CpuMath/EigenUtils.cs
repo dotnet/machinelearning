@@ -7,8 +7,9 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
+    [BestFriend]
     // REVIEW: improve perf with SSE and Multithreading
-    public static class EigenUtils
+    internal static class EigenUtils
     {
         //Compute the Eigen-decomposition of a symmetric matrix
         // REVIEW: use matrix/vector operations, not Array Math
