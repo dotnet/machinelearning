@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms.Text
 
             [Argument(ArgumentType.AtMostOnce, HelpText =
                 "Whether to store all ngram lengths up to ngramLength, or only ngramLength", ShortName = "all")]
-            public bool AllLengths = NgramCountingEstimator.Defaults.AllLength;
+            public bool AllLengths = NgramCountingEstimator.Defaults.AllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms.Text
             public ColumnInfo(string input, string output,
                 int ngramLength = NgramCountingEstimator.Defaults.NgramLength,
                 int skipLength = NgramCountingEstimator.Defaults.SkipLength,
-                bool allLengths = NgramCountingEstimator.Defaults.AllLength,
+                bool allLengths = NgramCountingEstimator.Defaults.AllLengths,
                 NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.Defaults.Weighting,
                 int maxNumTerms = NgramCountingEstimator.Defaults.MaxNumTerms) : this(input, output, ngramLength, skipLength, allLengths, weighting, new int[] { maxNumTerms })
             {
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Transforms.Text
         internal static class Defaults
         {
             public const int NgramLength = 2;
-            public const bool AllLength = true;
+            public const bool AllLengths = true;
             public const int SkipLength = 0;
             public const int MaxNumTerms = 10000000;
             public const WeightingCriteria Weighting = WeightingCriteria.Tf;
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Transforms.Text
             string outputColumn = null,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
-            bool allLengths = Defaults.AllLength,
+            bool allLengths = Defaults.AllLengths,
             int maxNumTerms = Defaults.MaxNumTerms,
             WeightingCriteria weighting = Defaults.Weighting)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Transforms.Text
             (string input, string output)[] columns,
             int ngramLength = Defaults.NgramLength,
             int skipLength = Defaults.SkipLength,
-            bool allLengths = Defaults.AllLength,
+            bool allLengths = Defaults.AllLengths,
             int maxNumTerms = Defaults.MaxNumTerms,
             WeightingCriteria weighting = Defaults.Weighting)
             : this(env, columns.Select(x => new NgramCountingTransformer.ColumnInfo(x.input, x.output, ngramLength, skipLength, allLengths, weighting, maxNumTerms)).ToArray())

@@ -26,6 +26,7 @@ using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
@@ -249,7 +250,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate the core_manifest and core_ep_list files")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
