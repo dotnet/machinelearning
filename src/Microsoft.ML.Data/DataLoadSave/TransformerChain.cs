@@ -35,11 +35,18 @@ namespace Microsoft.ML.Runtime.Data
         Everything = Training | Testing | Scoring
     }
 
+    [BestFriend]
+    internal interface ITransformerAccessor
+    {
+        ITransformer[] Transformers { get; }
+        TransformerScope[] Scopes { get; }
+    }
+
     /// <summary>
     /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
     /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
     /// </summary>
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>, ITransformerAccessor
     where TLastTransformer : class, ITransformer
     {
         [BestFriend]
@@ -51,6 +58,10 @@ namespace Microsoft.ML.Runtime.Data
         private const string TransformDirTemplate = "Transform_{0:000}";
 
         public bool IsRowToRowMapper => Transformers.All(t => t.IsRowToRowMapper);
+
+        ITransformer[] ITransformerAccessor.Transformers => Transformers;
+
+        TransformerScope[] ITransformerAccessor.Scopes => Scopes;
 
         private static VersionInfo GetVersionInfo()
         {

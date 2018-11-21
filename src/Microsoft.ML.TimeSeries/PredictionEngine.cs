@@ -4,9 +4,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Microsoft.ML.TimeSeries
 {
@@ -46,22 +44,17 @@ namespace Microsoft.ML.TimeSeries
         private static ITransformer CloneTransformers(ITransformer transformer)
         {
             ITransformer[] transformersClone = null;
-            foreach (FieldInfo property in transformer.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
+            TransformerScope[] scopeClone = null;
+            if (transformer is ITransformerAccessor)
             {
-                if(property.Name == "Transformers")
-                {
-                    transformersClone = (ITransformer[])property.GetValue(transformer);
-                    break;
-                }
-            }
-
-            if (transformersClone != null)
-            {
+                ITransformerAccessor accessor = (ITransformerAccessor)transformer;
+                transformersClone = accessor.Transformers.Select(x => x).ToArray();
+                scopeClone = accessor.Scopes.Select(x => x).ToArray();
                 int index = 0;
                 foreach (var xf in transformersClone)
                     transformersClone[index++] = xf is IStatefulTransformer ? ((IStatefulTransformer)xf).Clone() : xf;
 
-                return new TransformerChain<ITransformer>(transformersClone);
+                return new TransformerChain<ITransformer>(transformersClone, scopeClone);
             }
             else
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
