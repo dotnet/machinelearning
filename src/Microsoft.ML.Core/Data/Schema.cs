@@ -158,7 +158,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Creates an instance of a <see cref="DetachedColumn"/>.
             /// </summary>
-            public DetachedColumn(string name, ColumnType type, Metadata metadata)
+            public DetachedColumn(string name, ColumnType type, Metadata metadata = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValue(type, nameof(type));
