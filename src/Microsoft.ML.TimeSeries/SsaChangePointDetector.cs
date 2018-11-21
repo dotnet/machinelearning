@@ -293,7 +293,7 @@ namespace Microsoft.ML.TimeSeriesProcessing
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    ///     public static class SsaChangePointStaticExtensions
+    public static class SsaChangePointStaticExtensions
     {
         private sealed class OutColumn : Vector<float>
     {
@@ -338,11 +338,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
             Contracts.Assert(toOutput.Length == 1);
             var outCol = (OutColumn)toOutput[0];
             return new SsaChangePointEstimator(env,
+                inputNames[outCol.Input],
+                outputNames[outCol],
                 _confidence,
                 _changeHistoryLength,
                 _trainingWindowSize,
-                _seasonalityWindowSize,
-                inputNames[outCol.Input], outputNames[outCol]);
+                _seasonalityWindowSize);
         }
     }
 }

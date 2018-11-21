@@ -274,9 +274,10 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new IidSpikeEstimator(env,
+                    inputNames[outCol.Input],
+                    outputNames[outCol],
                     _confidence,
-                    _pvalueHistoryLength,
-                    inputNames[outCol.Input], outputNames[outCol]);
+                    _pvalueHistoryLength);
             }
         }
     }

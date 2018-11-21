@@ -316,11 +316,12 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutColumn)toOutput[0];
                 return new SsaSpikeEstimator(env,
+                    inputNames[outCol.Input],
+                    outputNames[outCol],
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
-                    _seasonalityWindowSize,
-                    inputNames[outCol.Input], outputNames[outCol]);
+                    _seasonalityWindowSize);
             }
         }
     }
