@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             };
 
             // Create a valid instance of data.
-            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
+            var schema = SchemaBuilder.MakeSchema(columns.Select(x => new Schema.DetachedColumn(x.input, new VectorType(TextType.Instance), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new StopWordsRemovingTransformer(env, args, emptyData));

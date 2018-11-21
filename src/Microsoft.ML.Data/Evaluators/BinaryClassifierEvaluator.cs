@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -1213,16 +1214,16 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
             if (_probIndex >= 0)
             {
-                var infos = new Schema.Column[2];
-                infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
-                infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], null);
+                var infos = new Schema.DetachedColumn[2];
+                infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
+                infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], null);
                 return infos;
             }
-            return new[] { new Schema.Column(Assigned, _types[AssignedCol], null), };
+            return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
         private void CheckInputColumnTypes(ISchema schema)
