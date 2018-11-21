@@ -100,8 +100,8 @@ namespace Microsoft.ML.Tests.Transformers
             IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
-            //var est = ML.Transforms.ValueMap<ReadOnlyMemory<char>, int>(keys, values, new [] { ("A", "D"), ("B", "E"),("C", "F") });
-            //TestEstimatorCore(est, validFitInput: dataView);
+            var est = ML.Transforms.ValueMap<ReadOnlyMemory<char>, int>(keys, values, new [] { ("A", "D"), ("B", "E"),("C", "F") });
+            TestEstimatorCore(est, validFitInput: dataView);
         }
     }
 }

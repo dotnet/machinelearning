@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -467,7 +468,9 @@ namespace Microsoft.ML.Transforms
         }
 
         protected override IRowMapper MakeRowMapper(Schema schema)
-            => new Mapper(this, Schema.Create(schema), _valueMap, ColumnPairs);
+        {
+            return new Mapper(this, Schema.Create(schema), _valueMap, ColumnPairs);
+        }
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -497,13 +500,13 @@ namespace Microsoft.ML.Transforms
                 return _valueMap.GetGetter(input, ColMapNewToOld[iinfo]);
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_columns.Length];
+                var result = new Schema.DetachedColumn[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
                     var srcCol = _inputSchema[_columns[i].Source];
-                    result[i] = new Schema.Column(_columns[i].Name, _valueMap.ValueType, srcCol.Metadata);
+                    result[i] = new Schema.DetachedColumn(_columns[i].Name, _valueMap.ValueType, srcCol.Metadata);
                 }
                 return result;
             }
