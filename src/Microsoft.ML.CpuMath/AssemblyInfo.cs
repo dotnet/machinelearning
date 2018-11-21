@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.ML;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests.netstandard" + PublicKey.TestValue)]
+[assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests.netcoreapp" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.Data" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.FastTree" + PublicKey.Value)]
 [assembly: InternalsVisibleTo("Microsoft.ML.HalLearners" + PublicKey.Value)]
