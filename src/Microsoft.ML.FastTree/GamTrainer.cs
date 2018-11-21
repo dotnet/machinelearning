@@ -932,9 +932,9 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         /// <summary>
-        /// Get the intercept of the trained GAM model.
+        /// Get the intercept of the trained model.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The intercept of the trained model.</returns>
         public double GetIntercept() => _intercept;
 
         /// <summary>
