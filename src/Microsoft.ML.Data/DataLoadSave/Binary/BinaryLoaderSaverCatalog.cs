@@ -12,17 +12,32 @@ namespace Microsoft.ML
     public static class BinaryLoaderSaverCatalog
     {
         /// <summary>
-        /// Read a data view from a binary file using <see cref="BinaryLoader"/>.
+        /// Read a data view from a Stream on a binary file using <see cref="BinaryLoader"/>.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="stream">The stream to read from.</param>
-        public static IDataView ReadFromBinaryFile(this DataOperations catalog, Stream stream)
+        public static IDataView ReadFromBinary(this DataOperations catalog, Stream stream)
         {
             Contracts.CheckValue(stream, nameof(stream));
 
             var env = catalog.GetEnvironment();
 
             var reader = new BinaryLoader(env, new BinaryLoader.Arguments(), stream);
+            return reader;
+        }
+
+        /// <summary>
+        /// Read a data view from a binary file using <see cref="BinaryLoader"/>.
+        /// </summary>
+        /// <param name="catalog">The catalog.</param>
+        /// <param name="path">The path to the file to read from.</param>
+        public static IDataView ReadFromBinary(this DataOperations catalog, string path)
+        {
+            Contracts.CheckNonEmpty(path, nameof(path));
+
+            var env = catalog.GetEnvironment();
+
+            var reader = new BinaryLoader(env, new BinaryLoader.Arguments(), path);
             return reader;
         }
 
