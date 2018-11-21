@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {

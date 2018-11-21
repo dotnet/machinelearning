@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -755,21 +756,21 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[3];
-            infos[ClusterIdCol] = new Schema.Column(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.DetachedColumn[3];
+            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new Schema.Metadata.Builder();
+            var sortedClusters = new MetadataBuilder();
             sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            var sortedClusterScores = new Schema.Metadata.Builder();
-            sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+            var builder = new MetadataBuilder();
+            builder.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
-            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
+            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 

@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Core.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// The debugger proxy for <see cref="Schema"/>.
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Core.Data
 
         public SchemaDebuggerProxy(Schema schema)
         {
-            Columns = Enumerable.Range(0, schema.ColumnCount).Select(x => schema[x]).ToArray();
+            Columns = Enumerable.Range(0, schema.Count).Select(x => schema[x]).ToArray();
         }
     }
 

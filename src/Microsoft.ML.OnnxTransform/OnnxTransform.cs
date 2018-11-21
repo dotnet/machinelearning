@@ -17,6 +17,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using OnnxShape = System.Collections.Generic.List<long>;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
@@ -273,11 +274,11 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.Column[_parent.Outputs.Length];
+                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.Column(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
 

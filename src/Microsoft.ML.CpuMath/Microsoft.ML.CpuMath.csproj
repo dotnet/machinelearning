@@ -22,6 +22,9 @@
     <Compile Remove="AvxIntrinsics.cs" />
 
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
   </ItemGroup>
 

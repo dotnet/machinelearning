@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -190,21 +191,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
                         dst = true;
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
-                    result[iinfo] = new Schema.Column(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
+                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }

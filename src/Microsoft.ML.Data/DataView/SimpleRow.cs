@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -204,8 +205,9 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(columns, nameof(columns));
 
-            var cols = columns.Select(kvp => new Schema.Column(kvp.Key, kvp.Value, null));
-            return new Schema(cols);
+            var builder = new SchemaBuilder();
+            builder.AddColumns(columns.Select(kvp => new Schema.DetachedColumn(kvp.Key, kvp.Value)));
+            return builder.GetSchema();
         }
     }
 
