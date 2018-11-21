@@ -931,6 +931,56 @@ namespace Microsoft.ML.Trainers.FastTree
             return _binEffects[featureIndex][binIndex];
         }
 
+        /// <summary>
+        /// Get the intercept of the trained GAM model.
+        /// </summary>
+        /// <returns></returns>
+        public double GetIntercept() => _intercept;
+
+        /// <summary>
+        /// Get the bin upper bounds for each feature.
+        /// </summary>
+        /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
+        /// <returns>The bin upper bounds. May be null if this feature has no bins.</returns>
+        public double[] GetFeatureBinUpperBounds(int featureIndex)
+        {
+            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            double[] featureBins;
+            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            {
+                featureBins = new double[_binUpperBounds[j].Length];
+                _binUpperBounds[j].CopyTo(featureBins, 0);
+            }
+            else
+            {
+                featureBins = new double[0];
+            }
+
+            return featureBins;
+        }
+
+        /// <summary>
+        /// Get the binned weights for each feature.
+        /// </summary>
+        /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
+        /// <returns>The binned weights for each feature.</returns>
+        public double[] GetFeatureWeights(int featureIndex)
+        {
+            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            double[] featureWeights;
+            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            {
+                featureWeights = new double[_binUpperBounds[j].Length];
+                _binEffects[j].CopyTo(featureWeights, 0);
+            }
+            else
+            {
+                featureWeights = new double[0];
+            }
+
+            return featureWeights;
+        }
+
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
