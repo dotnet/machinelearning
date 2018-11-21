@@ -8,9 +8,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-    <ModelPlacementDir>$(RepoRoot)bin\obj\DnnImageModels</ModelPlacementDir>
-  </PropertyGroup>
-
+  
 </Project>

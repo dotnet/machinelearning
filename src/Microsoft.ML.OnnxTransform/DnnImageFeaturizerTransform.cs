@@ -30,10 +30,10 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class DnnImageFeaturizerInput
     {
-        public readonly IHostEnvironment Env;
-        public readonly string InputColumn;
-        public readonly DnnImageModelSelector ModelSelector;
-        public readonly string OutputColumn;
+        public IHostEnvironment Env { get; }
+        public string InputColumn { get; }
+        public DnnImageModelSelector ModelSelector { get; }
+        public string OutputColumn { get; }
 
         public DnnImageFeaturizerInput(IHostEnvironment env, string inputColumn, string outputColumn, DnnImageModelSelector modelSelector)
         {
