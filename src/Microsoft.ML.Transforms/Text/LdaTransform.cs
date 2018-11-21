@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -18,12 +12,23 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 
-[assembly: LoadableClass(typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
-    LdaTransform.UserName, LdaTransform.LoaderSignature, LdaTransform.ShortName, DocName = "transform/LdaTransform.md")]
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(IDataTransform), typeof(LatentDirichletAllocationTransformer), typeof(LatentDirichletAllocationTransformer.Arguments), typeof(SignatureDataTransform),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature, "Lda")]
 
-[assembly: LoadableClass(typeof(LdaTransform), null, typeof(SignatureLoadDataTransform),
-    LdaTransform.UserName, LdaTransform.LoaderSignature)]
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(IDataTransform), typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadDataTransform),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(LatentDirichletAllocationTransformer.Summary, typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadModel),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(LatentDirichletAllocationTransformer), null, typeof(SignatureLoadRowMapper),
+    "Latent Dirichlet Allocation Transform", LatentDirichletAllocationTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -41,60 +46,60 @@ namespace Microsoft.ML.Transforms.Text
     // https://github.com/Microsoft/LightLDA
     //
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
-    // for an example on how to use LdaTransform.
+    // for an example on how to use LatentDirichletAllocationTransformer.
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaTransform : OneToOneTransformBase
+    public sealed class LatentDirichletAllocationTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 49)]
             public Column[] Column;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA", SortOrder = 50)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
             [TlcModule.SweepableDiscreteParam("NumTopic", new object[] { 20, 40, 100, 200 })]
-            public int NumTopic = 100;
+            public int NumTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
             [TGUI(SuggestedSweeps = "1,10,100,200")]
             [TlcModule.SweepableDiscreteParam("AlphaSum", new object[] { 1, 10, 100, 200 })]
-            public Single AlphaSum = 100;
+            public float AlphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
             [TGUI(SuggestedSweeps = "0.01,0.015,0.07,0.02")]
             [TlcModule.SweepableDiscreteParam("Beta", new object[] { 0.01f, 0.015f, 0.07f, 0.02f })]
-            public Single Beta = 0.01f;
+            public float Beta = LatentDirichletAllocationEstimator.Defaults.Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             [TGUI(SuggestedSweeps = "2,4,8,16")]
             [TlcModule.SweepableDiscreteParam("Mhstep", new object[] { 2, 4, 8, 16 })]
-            public int Mhstep = 4;
+            public int Mhstep = LatentDirichletAllocationEstimator.Defaults.Mhstep;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter")]
             [TGUI(SuggestedSweeps = "100,200,300,400")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 100, 200, 300, 400 })]
-            public int NumIterations = 200;
+            public int NumIterations = LatentDirichletAllocationEstimator.Defaults.NumIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Compute log likelihood over local dataset on this iteration interval", ShortName = "llInterval")]
-            public int LikelihoodInterval = 5;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
-            public int NumMaxDocToken = 512;
+            public int LikelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval;
 
             // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
-            public int? NumThreads;
+            public int NumThreads = LatentDirichletAllocationEstimator.Defaults.NumThreads;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
+            public int NumMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of words to summarize the topic", ShortName = "ns")]
-            public int NumSummaryTermPerTopic = 10;
+            public int NumSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of burn-in iterations", ShortName = "burninIter")]
             [TGUI(SuggestedSweeps = "10,20,30,40")]
             [TlcModule.SweepableDiscreteParam("NumBurninIterations", new object[] { 10, 20, 30, 40 })]
-            public int NumBurninIterations = 10;
+            public int NumBurninIterations = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Reset the random number generator for each document", ShortName = "reset")]
-            public bool ResetRandomGenerator;
+            public bool ResetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the topic-word summary in text format", ShortName = "summary")]
             public bool OutputTopicWordSummary;
@@ -102,14 +107,14 @@ namespace Microsoft.ML.Transforms.Text
 
         public sealed class Column : OneToOneColumn
         {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics")]
             public int? NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
-            public Single? AlphaSum;
+            public float? AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
-            public Single? Beta;
+            public float? Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             public int? Mhstep;
@@ -155,11 +160,13 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private sealed class ColInfoEx
+        public sealed class ColumnInfo
         {
+            public readonly string Input;
+            public readonly string Output;
             public readonly int NumTopic;
-            public readonly Single AlphaSum;
-            public readonly Single Beta;
+            public readonly float AlphaSum;
+            public readonly float Beta;
             public readonly int MHStep;
             public readonly int NumIter;
             public readonly int LikelihoodInterval;
@@ -169,50 +176,78 @@ namespace Microsoft.ML.Transforms.Text
             public readonly int NumBurninIter;
             public readonly bool ResetRandomGenerator;
 
-            public ColInfoEx(IExceptionContext ectx, Column item, Arguments args)
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">The column representing the document as a vector of floats.</param>
+            /// <param name="output">The column containing the output scores over a set of topics, represented as a vector of floats. A null value for the column means <paramref name="input"/> is replaced. </param>
+            /// <param name="numTopic">The number of topics.</param>
+            /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+            /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+            /// <param name="mhStep">Number of Metropolis Hasting step.</param>
+            /// <param name="numIter">Number of iterations.</param>
+            /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+            /// <param name="numThread">The number of training threads. Default value depends on number of logical processors.</param>
+            /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+            /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+            /// <param name="numBurninIter">The number of burn-in iterations.</param>
+            /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+            public ColumnInfo(string input,
+                string output = null,
+                int numTopic = LatentDirichletAllocationEstimator.Defaults.NumTopic,
+                float alphaSum = LatentDirichletAllocationEstimator.Defaults.AlphaSum,
+                float beta = LatentDirichletAllocationEstimator.Defaults.Beta,
+                int mhStep = LatentDirichletAllocationEstimator.Defaults.Mhstep,
+                int numIter = LatentDirichletAllocationEstimator.Defaults.NumIterations,
+                int likelihoodInterval = LatentDirichletAllocationEstimator.Defaults.LikelihoodInterval,
+                int numThread = LatentDirichletAllocationEstimator.Defaults.NumThreads,
+                int numMaxDocToken = LatentDirichletAllocationEstimator.Defaults.NumMaxDocToken,
+                int numSummaryTermPerTopic = LatentDirichletAllocationEstimator.Defaults.NumSummaryTermPerTopic,
+                int numBurninIter = LatentDirichletAllocationEstimator.Defaults.NumBurninIterations,
+                bool resetRandomGenerator = LatentDirichletAllocationEstimator.Defaults.ResetRandomGenerator)
             {
-                Contracts.AssertValue(ectx);
+                Contracts.CheckValue(input, nameof(input));
+                Contracts.CheckValueOrNull(output);
+                Contracts.CheckParam(numTopic > 0, nameof(numTopic), "Must be positive.");
+                Contracts.CheckParam(mhStep > 0, nameof(mhStep), "Must be positive.");
+                Contracts.CheckParam(numIter > 0, nameof(numIter), "Must be positive.");
+                Contracts.CheckParam(likelihoodInterval > 0, nameof(likelihoodInterval), "Must be positive.");
+                Contracts.CheckParam(numThread >= 0, nameof(numThread), "Must be positive or zero.");
+                Contracts.CheckParam(numMaxDocToken > 0, nameof(numMaxDocToken), "Must be positive.");
+                Contracts.CheckParam(numSummaryTermPerTopic > 0, nameof(numSummaryTermPerTopic), "Must be positive");
+                Contracts.CheckParam(numBurninIter >= 0, nameof(numBurninIter), "Must be non-negative.");
 
-                NumTopic = item.NumTopic ?? args.NumTopic;
-                Contracts.CheckUserArg(NumTopic > 0, nameof(item.NumTopic), "Must be positive.");
-
-                AlphaSum = item.AlphaSum ?? args.AlphaSum;
-
-                Beta = item.Beta ?? args.Beta;
-
-                MHStep = item.Mhstep ?? args.Mhstep;
-                ectx.CheckUserArg(MHStep > 0, nameof(item.Mhstep), "Must be positive.");
-
-                NumIter = item.NumIterations ?? args.NumIterations;
-                ectx.CheckUserArg(NumIter > 0, nameof(item.NumIterations), "Must be positive.");
-
-                LikelihoodInterval = item.LikelihoodInterval ?? args.LikelihoodInterval;
-                ectx.CheckUserArg(LikelihoodInterval > 0, nameof(item.LikelihoodInterval), "Must be positive.");
-
-                NumThread = item.NumThreads ?? args.NumThreads ?? 0;
-                ectx.CheckUserArg(NumThread >= 0, nameof(item.NumThreads), "Must be positive or zero.");
-
-                NumMaxDocToken = item.NumMaxDocToken ?? args.NumMaxDocToken;
-                ectx.CheckUserArg(NumMaxDocToken > 0, nameof(item.NumMaxDocToken), "Must be positive.");
-
-                NumSummaryTermPerTopic = item.NumSummaryTermPerTopic ?? args.NumSummaryTermPerTopic;
-                ectx.CheckUserArg(NumSummaryTermPerTopic > 0, nameof(item.NumSummaryTermPerTopic), "Must be positive");
-
-                NumBurninIter = item.NumBurninIterations ?? args.NumBurninIterations;
-                ectx.CheckUserArg(NumBurninIter >= 0, nameof(item.NumBurninIterations), "Must be non-negative.");
-
-                ResetRandomGenerator = item.ResetRandomGenerator ?? args.ResetRandomGenerator;
+                Input = input;
+                Output = output ?? input;
+                NumTopic = numTopic;
+                AlphaSum = alphaSum;
+                Beta = beta;
+                MHStep = mhStep;
+                NumIter = numIter;
+                LikelihoodInterval = likelihoodInterval;
+                NumThread = numThread;
+                NumMaxDocToken = numMaxDocToken;
+                NumSummaryTermPerTopic = numSummaryTermPerTopic;
+                NumBurninIter = numBurninIter;
+                ResetRandomGenerator = resetRandomGenerator;
             }
 
-            public ColInfoEx(IExceptionContext ectx, ModelLoadContext ctx)
+            internal ColumnInfo(Column item, Arguments args) :
+                this(item.Source, item.Name,
+                    args.NumTopic, args.AlphaSum, args.Beta, args.Mhstep, args.NumIterations,
+                    args.LikelihoodInterval, args.NumThreads, args.NumMaxDocToken, args.NumSummaryTermPerTopic, args.NumBurninIterations, args.ResetRandomGenerator)
+            {
+            }
+
+            internal ColumnInfo(IExceptionContext ectx, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(ctx);
 
                 // *** Binary format ***
                 // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
+                // float AlphaSum;
+                // float Beta;
                 // int MHStep;
                 // int NumIter;
                 // int LikelihoodInterval;
@@ -253,14 +288,14 @@ namespace Microsoft.ML.Transforms.Text
                 ResetRandomGenerator = ctx.Reader.ReadBoolByte();
             }
 
-            public void Save(ModelSaveContext ctx)
+            internal void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
                 // *** Binary format ***
                 // int NumTopic;
-                // Single AlphaSum;
-                // Single Beta;
+                // float AlphaSum;
+                // float Beta;
                 // int MHStep;
                 // int NumIter;
                 // int LikelihoodInterval;
@@ -284,312 +319,41 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        public const string LoaderSignature = "LdaTransform";
-        private static VersionInfo GetVersionInfo()
+        /// <summary>
+        /// Provide details about the topics discovered by <a href="https://arxiv.org/abs/1412.1576">LightLDA.</a>
+        /// </summary>
+        public sealed class LdaSummary
         {
-            return new VersionInfo(
-                modelSignature: "LIGHTLDA",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(LdaTransform).Assembly.FullName);
-        }
+            // For each topic, provide information about the (item, score) pairs.
+            public readonly ImmutableArray<List<(int Item, float Score)>> ItemScoresPerTopic;
 
-        private readonly ColInfoEx[] _exes;
-        private readonly LdaState[] _ldas;
-        private readonly ColumnType[] _types;
-        private readonly bool _saveText;
+            // For each topic, provide information about the (item, word, score) tuple.
+            public readonly ImmutableArray<List<(int Item, string Word, float Score)>> WordScoresPerTopic;
 
-        private const string RegistrationName = "LightLda";
-        private const string WordTopicModelFilename = "word_topic_summary.txt";
-        internal const string Summary = "The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.";
-        internal const string UserName = "Latent Dirichlet Allocation Transform";
-        internal const string ShortName = "LightLda";
-
-        public LdaTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, args.Column, input, TestType)
-        {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
-            Host.CheckValue(input, nameof(input));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            _exes = new ColInfoEx[Infos.Length];
-            _types = new ColumnType[Infos.Length];
-            _ldas = new LdaState[Infos.Length];
-            _saveText = args.OutputTopicWordSummary;
-            for (int i = 0; i < Infos.Length; i++)
+            internal LdaSummary(ImmutableArray<List<(int Item, float Score)>> itemScoresPerTopic)
             {
-                var ex = new ColInfoEx(Host, args.Column[i], args);
-                _exes[i] = ex;
-                _types[i] = new VectorType(NumberType.Float, ex.NumTopic);
+                ItemScoresPerTopic = itemScoresPerTopic;
             }
-            using (var ch = Host.Start("Train"))
+
+            internal LdaSummary(ImmutableArray<List<(int Item, string Word, float Score)>> wordScoresPerTopic)
             {
-                Train(ch, input, _ldas);
-            }
-            Metadata.Seal();
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (_ldas != null)
-            {
-                foreach (var state in _ldas)
-                    state?.Dispose();
-            }
-            if (disposing)
-                GC.SuppressFinalize(this);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        ~LdaTransform()
-        {
-            Dispose(false);
-        }
-
-        private LdaTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestType)
-        {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
-            // ldaState[num infos]: The LDA parameters
-
-            // Note: infos.length would be just one in most cases.
-            _exes = new ColInfoEx[Infos.Length];
-            _ldas = new LdaState[Infos.Length];
-            _types = new ColumnType[Infos.Length];
-            for (int i = 0; i < _ldas.Length; i++)
-            {
-                _ldas[i] = new LdaState(Host, ctx);
-                _exes[i] = _ldas[i].InfoEx;
-                _types[i] = new VectorType(NumberType.Float, _ldas[i].InfoEx.NumTopic);
-            }
-            using (var ent = ctx.Repository.OpenEntryOrNull("model", WordTopicModelFilename))
-            {
-                _saveText = ent != null;
-            }
-            Metadata.Seal();
-        }
-
-        public static LdaTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-
-            h.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            h.CheckValue(input, nameof(input));
-
-            return h.Apply(
-                "Loading Model",
-                ch =>
-                {
-                    // *** Binary Format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    h.CheckDecode(cbFloat == sizeof(Float));
-                    return new LdaTransform(h, ctx, input);
-                });
-        }
-
-        public string GetTopicSummary()
-        {
-            StringWriter writer = new StringWriter();
-            VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            for (int i = 0; i < _ldas.Length; i++)
-            {
-                GetSlotNames(i, ref slotNames);
-                _ldas[i].GetTopicSummaryWriter(slotNames)(writer);
-                writer.WriteLine();
-            }
-            return writer.ToString();
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // <base>
-            // ldaState[num infos]: The LDA parameters
-
-            ctx.Writer.Write(sizeof(Float));
-            SaveBase(ctx);
-            Host.Assert(_ldas.Length == Infos.Length);
-            VBuffer<ReadOnlyMemory<char>> slotNames = default;
-            for (int i = 0; i < _ldas.Length; i++)
-            {
-                GetSlotNames(i, ref slotNames);
-                _ldas[i].Save(ctx, _saveText, slotNames);
+                WordScoresPerTopic = wordScoresPerTopic;
             }
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
+        internal LdaSummary GetLdaDetails(int iinfo)
         {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            if (Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.ValueCount))
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref dst);
-            else
-                dst = default(VBuffer<ReadOnlyMemory<char>>);
-        }
+            Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
 
-        private static string TestType(ColumnType t)
-        {
-            // LDA consumes term frequency vectors, so I am assuming VBuffer<Float> is an appropriate input type.
-            // It must also be of known size for the sake of the LDA trainer initialization.
-            if (t.IsKnownSizeVector && t.ItemType is NumberType)
-                return null;
-            return "Expected vector of number type of known size.";
-        }
+            var ldaState = _ldas[iinfo];
+            var mapping = _columnMappings[iinfo];
 
-        private static int GetFrequency(double value)
-        {
-            int result = (int)value;
-            if (!(result == value && result >= 0))
-                return -1;
-            return result;
-        }
-
-        private void Train(IChannel ch, IDataView trainingData, LdaState[] states)
-        {
-            Host.AssertValue(ch);
-            ch.AssertValue(trainingData);
-            ch.AssertValue(states);
-            ch.Assert(states.Length == Infos.Length);
-
-            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            int[] numVocabs = new int[Infos.Length];
-
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                activeColumns[Infos[i].Source] = true;
-                numVocabs[i] = 0;
-            }
-
-            //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
-            //one for the pre-calc memory, one for feedin data really
-            //another solution can be prepare these two value externally and put them in the beginning of the input file.
-            long[] corpusSize = new long[Infos.Length];
-            int[] numDocArray = new int[Infos.Length];
-
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
-            {
-                var getters = new ValueGetter<VBuffer<Double>>[Utils.Size(Infos)];
-                for (int i = 0; i < Infos.Length; i++)
-                {
-                    corpusSize[i] = 0;
-                    numDocArray[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, Infos[i].Source);
-                }
-                VBuffer<Double> src = default(VBuffer<Double>);
-                long rowCount = 0;
-
-                while (cursor.MoveNext())
-                {
-                    ++rowCount;
-                    for (int i = 0; i < Infos.Length; i++)
-                    {
-                        int docSize = 0;
-                        getters[i](ref src);
-
-                        // compute term, doc instance#.
-                        var srcValues = src.GetValues();
-                        for (int termID = 0; termID < srcValues.Length; termID++)
-                        {
-                            int termFreq = GetFrequency(srcValues[termID]);
-                            if (termFreq < 0)
-                            {
-                                // Ignore this row.
-                                docSize = 0;
-                                break;
-                            }
-
-                            if (docSize >= _exes[i].NumMaxDocToken - termFreq)
-                                break; //control the document length
-
-                            //if legal then add the term
-                            docSize += termFreq;
-                        }
-
-                        // Ignore empty doc
-                        if (docSize == 0)
-                            continue;
-
-                        numDocArray[i]++;
-                        corpusSize[i] += docSize * 2 + 1;   // in the beggining of each doc, there is a cursor variable
-
-                        // increase numVocab if needed.
-                        if (numVocabs[i] < src.Length)
-                            numVocabs[i] = src.Length;
-                    }
-                }
-
-                for (int i = 0; i < Infos.Length; ++i)
-                {
-                    if (numDocArray[i] != rowCount)
-                    {
-                        ch.Assert(numDocArray[i] < rowCount);
-                        ch.Warning($"Column '{Infos[i].Name}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
-                    }
-                }
-            }
-
-            // Initialize all LDA states
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                var state = new LdaState(Host, _exes[i], numVocabs[i]);
-                if (numDocArray[i] == 0 || corpusSize[i] == 0)
-                    throw ch.Except("The specified documents are all empty in column '{0}'.", Infos[i].Name);
-
-                state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
-                states[i] = state;
-            }
-
-            using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
-            {
-                int[] docSizeCheck = new int[Infos.Length];
-                // This could be optimized so that if multiple trainers consume the same column, it is
-                // fed into the train method once.
-                var getters = new ValueGetter<VBuffer<Double>>[Utils.Size(Infos)];
-                for (int i = 0; i < Infos.Length; i++)
-                {
-                    docSizeCheck[i] = 0;
-                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, Infos[i].Source);
-                }
-
-                VBuffer<Double> src = default(VBuffer<Double>);
-
-                while (cursor.MoveNext())
-                {
-                    for (int i = 0; i < Infos.Length; i++)
-                    {
-                        getters[i](ref src);
-                        docSizeCheck[i] += states[i].FeedTrain(Host, in src);
-                    }
-                }
-                for (int i = 0; i < Infos.Length; i++)
-                {
-                    Host.Assert(corpusSize[i] == docSizeCheck[i]);
-                    states[i].CompleteTrain();
-                }
-            }
+            return ldaState.GetLdaSummary(mapping);
         }
 
         private sealed class LdaState : IDisposable
         {
-            public readonly ColInfoEx InfoEx;
+            internal readonly ColumnInfo InfoEx;
             private readonly int _numVocab;
             private readonly object _preparationSyncRoot;
             private readonly object _testSyncRoot;
@@ -602,7 +366,7 @@ namespace Microsoft.ML.Transforms.Text
                 _testSyncRoot = new object();
             }
 
-            public LdaState(IExceptionContext ectx, ColInfoEx ex, int numVocab)
+            internal LdaState(IExceptionContext ectx, ColumnInfo ex, int numVocab)
                 : this()
             {
                 Contracts.AssertValue(ectx);
@@ -626,7 +390,7 @@ namespace Microsoft.ML.Transforms.Text
                     InfoEx.NumMaxDocToken);
             }
 
-            public LdaState(IExceptionContext ectx, ModelLoadContext ctx)
+            internal LdaState(IExceptionContext ectx, ModelLoadContext ctx)
                 : this()
             {
                 ectx.AssertValue(ctx);
@@ -639,7 +403,7 @@ namespace Microsoft.ML.Transforms.Text
                 // (serializing term by term, for one term)
                 // int: term_id, int: topic_num, KeyValuePair<int, int>[]: termTopicVector
 
-                InfoEx = new ColInfoEx(ectx, ctx);
+                InfoEx = new ColumnInfo(ectx, ctx);
 
                 _numVocab = ctx.Reader.ReadInt32();
                 ectx.CheckDecode(_numVocab > 0);
@@ -688,54 +452,52 @@ namespace Microsoft.ML.Transforms.Text
                 //do the preparation
                 if (!_predictionPreparationDone)
                 {
-                    _ldaTrainer.InitializeBeforeTest();
-                    _predictionPreparationDone = true;
+                    lock (_preparationSyncRoot)
+                    {
+                        _ldaTrainer.InitializeBeforeTest();
+                        _predictionPreparationDone = true;
+                    }
                 }
             }
 
-            public Action<TextWriter> GetTopicSummaryWriter(VBuffer<ReadOnlyMemory<char>> mapping)
+            internal LdaSummary GetLdaSummary(VBuffer<ReadOnlyMemory<char>> mapping)
             {
-                Action<TextWriter> writeAction;
-
                 if (mapping.Length == 0)
                 {
-                    writeAction =
-                        writer =>
+                    var itemScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, float Score)>>();
+                    for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                    {
+                        var scores = _ldaTrainer.GetTopicSummary(i);
+                        var itemScores = new List<(int, float)>();
+                        foreach (KeyValuePair<int, float> p in scores)
                         {
-                            for (int i = 0; i < _ldaTrainer.NumTopic; i++)
-                            {
-                                KeyValuePair<int, float>[] topicSummaryVector = _ldaTrainer.GetTopicSummary(i);
-                                writer.Write("{0}\t{1}\t", i, topicSummaryVector.Length);
-                                foreach (KeyValuePair<int, float> p in topicSummaryVector)
-                                    writer.Write("{0}:{1}\t", p.Key, p.Value);
-                                writer.WriteLine();
-                            }
-                        };
+                            itemScores.Add((p.Key, p.Value));
+                        }
+
+                        itemScoresPerTopicBuilder.Add(itemScores);
+                    }
+                    return new LdaSummary(itemScoresPerTopicBuilder.ToImmutable());
                 }
                 else
                 {
-                    writeAction =
-                        writer =>
+                    ReadOnlyMemory<char> slotName = default;
+                    var wordScoresPerTopicBuilder = ImmutableArray.CreateBuilder<List<(int Item, string Word, float Score)>>();
+                    for (int i = 0; i < _ldaTrainer.NumTopic; i++)
+                    {
+                        var scores = _ldaTrainer.GetTopicSummary(i);
+                        var wordScores = new List<(int, string, float)>();
+                        foreach (KeyValuePair<int, float> p in scores)
                         {
-                            ReadOnlyMemory<char> slotName = default;
-                            for (int i = 0; i < _ldaTrainer.NumTopic; i++)
-                            {
-                                KeyValuePair<int, float>[] topicSummaryVector = _ldaTrainer.GetTopicSummary(i);
-                                writer.Write("{0}\t{1}\t", i, topicSummaryVector.Length);
-                                foreach (KeyValuePair<int, float> p in topicSummaryVector)
-                                {
-                                    mapping.GetItemOrDefault(p.Key, ref slotName);
-                                    writer.Write("{0}[{1}]:{2}\t", p.Key, slotName, p.Value);
-                                }
-                                writer.WriteLine();
-                            }
-                        };
+                            mapping.GetItemOrDefault(p.Key, ref slotName);
+                            wordScores.Add((p.Key, slotName.ToString(), p.Value));
+                        }
+                        wordScoresPerTopicBuilder.Add(wordScores);
+                    }
+                    return new LdaSummary(wordScoresPerTopicBuilder.ToImmutable());
                 }
-
-                return writeAction;
             }
 
-            public void Save(ModelSaveContext ctx, bool saveText, VBuffer<ReadOnlyMemory<char>> mapping)
+            public void Save(ModelSaveContext ctx)
             {
                 Contracts.AssertValue(ctx);
                 long memBlockSize = 0;
@@ -770,12 +532,6 @@ namespace Microsoft.ML.Transforms.Text
                         ctx.Writer.Write(p.Value);
                     }
                 }
-
-                var writeAction = GetTopicSummaryWriter(mapping);
-
-                // save word-topic summary in text
-                if (saveText)
-                    ctx.SaveTextStream(WordTopicModelFilename, writeAction);
             }
 
             public void AllocateDataMemory(int docNum, long corpusSize)
@@ -833,7 +589,7 @@ namespace Microsoft.ML.Transforms.Text
                 _ldaTrainer.Train(""); /* Need to pass in an empty string */
             }
 
-            public void Output(in VBuffer<Double> src, ref VBuffer<Float> dst, int numBurninIter, bool reset)
+            public void Output(in VBuffer<Double> src, ref VBuffer<float> dst, int numBurninIter, bool reset)
             {
                 // Prediction for a single document.
                 // LdaSingleBox.InitializeBeforeTest() is NOT thread-safe.
@@ -871,8 +627,9 @@ namespace Microsoft.ML.Transforms.Text
                         // It currently produces a vbuffer of all NA values.
                         // REVIEW: Need a utility method to do this...
                         editor = VBufferEditor.Create(ref dst, len);
+
                         for (int k = 0; k < len; k++)
-                            editor.Values[k] = Float.NaN;
+                            editor.Values[k] = float.NaN;
                         dst = editor.Commit();
                         return;
                     }
@@ -899,7 +656,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int i = 0; i < count; i++)
                 {
                     int index = retTopics[i].Key;
-                    Float value = retTopics[i].Value;
+                    float value = retTopics[i].Value;
                     Contracts.Assert(value >= 0);
                     Contracts.Assert(0 <= index && index < len);
                     if (count < len)
@@ -917,8 +674,9 @@ namespace Microsoft.ML.Transforms.Text
                 if (normalizer > 0)
                 {
                     for (int i = 0; i < count; i++)
-                        editor.Values[i] = (Float)(editor.Values[i] / normalizer);
+                        editor.Values[i] = (float)(editor.Values[i] / normalizer);
                 }
+
                 dst = editor.Commit();
             }
 
@@ -928,46 +686,481 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private ColumnType[] InitColumnTypes(int numTopics)
+        private sealed class Mapper : OneToOneMapperBase
         {
-            Host.Assert(Utils.Size(Infos) > 0);
-            var types = new ColumnType[Infos.Length];
-            for (int c = 0; c < Infos.Length; c++)
-                types[c] = new VectorType(NumberType.Float, numTopics);
-            return types;
-        }
+            private readonly LatentDirichletAllocationTransformer _parent;
+            private readonly int[] _srcCols;
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Utils.Size(_types));
-            return _types[iinfo];
-        }
+            public Mapper(LatentDirichletAllocationTransformer parent, Schema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _srcCols = new int[_parent.ColumnPairs.Length];
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            return GetTopic(input, iinfo);
-        }
-
-        private ValueGetter<VBuffer<Float>> GetTopic(IRow input, int iinfo)
-        {
-            var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, input, Infos[iinfo].Source);
-            var src = default(VBuffer<Double>);
-            var lda = _ldas[iinfo];
-            int numBurninIter = lda.InfoEx.NumBurninIter;
-            bool reset = lda.InfoEx.ResetRandomGenerator;
-            return
-                (ref VBuffer<Float> dst) =>
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    // REVIEW: This will work, but there are opportunities for caching
-                    // based on input.Counter that are probably worthwhile given how long inference takes.
-                    getSrc(ref src);
-                    lda.Output(in src, ref dst, numBurninIter, reset);
-                };
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+
+                    var srcCol = inputSchema[_srcCols[i]];
+                    if (!srcCol.Type.IsKnownSizeVector || !(srcCol.Type.ItemType is NumberType))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input, "a fixed vector of floats", srcCol.Type.ToString());
+                }
+            }
+
+            protected override Schema.Column[] GetOutputColumnsCore()
+            {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var info = _parent._columns[i];
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, new VectorType(NumberType.Float, info.NumTopic), null);
+                }
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+
+                return GetTopic(input, iinfo);
+            }
+
+            private ValueGetter<VBuffer<float>> GetTopic(IRow input, int iinfo)
+            {
+                var getSrc = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, input, _srcCols[iinfo]);
+                var src = default(VBuffer<Double>);
+                var lda = _parent._ldas[iinfo];
+                int numBurninIter = lda.InfoEx.NumBurninIter;
+                bool reset = lda.InfoEx.ResetRandomGenerator;
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        // REVIEW: This will work, but there are opportunities for caching
+                        // based on input.Counter that are probably worthwhile given how long inference takes.
+                        getSrc(ref src);
+                        lda.Output(in src, ref dst, numBurninIter, reset);
+                    };
+            }
+        }
+
+        internal const string LoaderSignature = "LdaTransform";
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "LIGHTLDA",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LatentDirichletAllocationTransformer).Assembly.FullName);
+        }
+
+        private readonly ColumnInfo[] _columns;
+        private readonly LdaState[] _ldas;
+        private readonly List<VBuffer<ReadOnlyMemory<char>>> _columnMappings;
+
+        private const string RegistrationName = "LightLda";
+        private const string WordTopicModelFilename = "word_topic_summary.txt";
+        internal const string Summary = "The LDA transform implements LightLDA, a state-of-the-art implementation of Latent Dirichlet Allocation.";
+        internal const string UserName = "Latent Dirichlet Allocation Transform";
+        internal const string ShortName = "LightLda";
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="LatentDirichletAllocationTransformer"/> object.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="ldas">An array of LdaState objects, where ldas[i] is learnt from the i-th element of <paramref name="columns"/>.</param>
+        /// <param name="columnMappings">A list of mappings, where columnMapping[i] is a map of slot names for the i-th element of <paramref name="columns"/>.</param>
+        /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
+        private LatentDirichletAllocationTransformer(IHostEnvironment env,
+            LdaState[] ldas,
+            List<VBuffer<ReadOnlyMemory<char>>> columnMappings,
+            params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LatentDirichletAllocationTransformer)), GetColumnPairs(columns))
+        {
+            Host.AssertNonEmpty(ColumnPairs);
+            _ldas = ldas;
+            _columnMappings = columnMappings;
+            _columns = columns;
+        }
+
+        private LatentDirichletAllocationTransformer(IHost host, ModelLoadContext ctx) : base(host, ctx)
+        {
+            Host.AssertValue(ctx);
+
+            // *** Binary format ***
+            // <prefix handled in static Create method>
+            // <base>
+            // ldaState[num infos]: The LDA parameters
+
+            // Note: columnsLength would be just one in most cases.
+            var columnsLength = ColumnPairs.Length;
+            _columns = new ColumnInfo[columnsLength];
+            _ldas = new LdaState[columnsLength];
+            for (int i = 0; i < _ldas.Length; i++)
+            {
+                _ldas[i] = new LdaState(Host, ctx);
+                _columns[i] = _ldas[i].InfoEx;
+            }
+        }
+
+        internal static LatentDirichletAllocationTransformer TrainLdaTransformer(IHostEnvironment env, IDataView inputData, params ColumnInfo[] columns)
+        {
+            var ldas = new LdaState[columns.Length];
+
+            List<VBuffer<ReadOnlyMemory<char>>> columnMappings;
+            using (var ch = env.Start("Train"))
+            {
+                columnMappings = Train(env, ch, inputData, ldas, columns);
+            }
+
+            return new LatentDirichletAllocationTransformer(env, ldas, columnMappings, columns);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_ldas != null)
+            {
+                foreach (var state in _ldas)
+                    state?.Dispose();
+            }
+            if (disposing)
+                GC.SuppressFinalize(this);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        ~LatentDirichletAllocationTransformer()
+        {
+            Dispose(false);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+            env.CheckValue(args.Column, nameof(args.Column));
+
+            var cols = args.Column.Select(colPair => new ColumnInfo(colPair, args)).ToArray();
+            return TrainLdaTransformer(env, input, cols).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel
+        private static LatentDirichletAllocationTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var h = env.Register(RegistrationName);
+
+            h.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return h.Apply(
+                "Loading Model",
+                ch =>
+                {
+                    // *** Binary Format ***
+                    // int: sizeof(float)
+                    // <remainder handled in ctors>
+                    int cbFloat = ctx.Reader.ReadInt32();
+                    h.CheckDecode(cbFloat == sizeof(float));
+                    return new LatentDirichletAllocationTransformer(h, ctx);
+                });
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: sizeof(float)
+            // <base>
+            // ldaState[num infos]: The LDA parameters
+
+            ctx.Writer.Write(sizeof(float));
+            SaveColumns(ctx);
+            for (int i = 0; i < _ldas.Length; i++)
+            {
+                _ldas[i].Save(ctx);
+            }
+        }
+
+        private static int GetFrequency(double value)
+        {
+            int result = (int)value;
+            if (!(result == value && result >= 0))
+                return -1;
+            return result;
+        }
+
+        private static List<VBuffer<ReadOnlyMemory<char>>> Train(IHostEnvironment env, IChannel ch, IDataView inputData, LdaState[] states, params ColumnInfo[] columns)
+        {
+            env.AssertValue(ch);
+            ch.AssertValue(inputData);
+            ch.AssertValue(states);
+            ch.Assert(states.Length == columns.Length);
+
+            bool[] activeColumns = new bool[inputData.Schema.ColumnCount];
+            int[] numVocabs = new int[columns.Length];
+            int[] srcCols = new int[columns.Length];
+
+            var columnMappings = new List<VBuffer<ReadOnlyMemory<char>>>();
+
+            var inputSchema = inputData.Schema;
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (!inputData.Schema.TryGetColumnIndex(columns[i].Input, out int srcCol))
+                    throw env.ExceptSchemaMismatch(nameof(inputData), "input", columns[i].Input);
+
+                var srcColType = inputSchema.GetColumnType(srcCol);
+                if (!srcColType.IsKnownSizeVector || !(srcColType.ItemType is NumberType))
+                    throw env.ExceptSchemaMismatch(nameof(inputSchema), "input", columns[i].Input, "a fixed vector of floats", srcColType.ToString());
+
+                srcCols[i] = srcCol;
+                activeColumns[srcCol] = true;
+                numVocabs[i] = 0;
+
+                VBuffer<ReadOnlyMemory<char>> dst = default;
+                if (inputSchema.HasSlotNames(srcCol, srcColType.ValueCount))
+                    inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref dst);
+                else
+                    dst = default(VBuffer<ReadOnlyMemory<char>>);
+                columnMappings.Add(dst);
+            }
+
+            //the current lda needs the memory allocation before feedin data, so needs two sweeping of the data,
+            //one for the pre-calc memory, one for feedin data really
+            //another solution can be prepare these two value externally and put them in the beginning of the input file.
+            long[] corpusSize = new long[columns.Length];
+            int[] numDocArray = new int[columns.Length];
+
+            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            {
+                var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    corpusSize[i] = 0;
+                    numDocArray[i] = 0;
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
+                }
+                VBuffer<Double> src = default(VBuffer<Double>);
+                long rowCount = 0;
+                while (cursor.MoveNext())
+                {
+                    ++rowCount;
+                    for (int i = 0; i < columns.Length; i++)
+                    {
+                        int docSize = 0;
+                        getters[i](ref src);
+
+                        // compute term, doc instance#.
+                        var srcValues = src.GetValues();
+                        for (int termID = 0; termID < srcValues.Length; termID++)
+                        {
+                            int termFreq = GetFrequency(srcValues[termID]);
+                            if (termFreq < 0)
+                            {
+                                // Ignore this row.
+                                docSize = 0;
+                                break;
+                            }
+
+                            if (docSize >= columns[i].NumMaxDocToken - termFreq)
+                                break; //control the document length
+
+                            //if legal then add the term
+                            docSize += termFreq;
+                        }
+
+                        // Ignore empty doc
+                        if (docSize == 0)
+                            continue;
+
+                        numDocArray[i]++;
+                        corpusSize[i] += docSize * 2 + 1;   // in the beggining of each doc, there is a cursor variable
+
+                        // increase numVocab if needed.
+                        if (numVocabs[i] < src.Length)
+                            numVocabs[i] = src.Length;
+                    }
+                }
+
+                // No data to train on, just return
+                if (rowCount == 0)
+                    return columnMappings;
+
+                for (int i = 0; i < columns.Length; ++i)
+                {
+                    if (numDocArray[i] != rowCount)
+                    {
+                        ch.Assert(numDocArray[i] < rowCount);
+                        ch.Warning($"Column '{columns[i].Input}' has skipped {rowCount - numDocArray[i]} of {rowCount} rows either empty or with negative, non-finite, or fractional values.");
+                    }
+                }
+            }
+
+            // Initialize all LDA states
+            for (int i = 0; i < columns.Length; i++)
+            {
+                var state = new LdaState(env, columns[i], numVocabs[i]);
+
+                if (numDocArray[i] == 0 || corpusSize[i] == 0)
+                    throw ch.Except("The specified documents are all empty in column '{0}'.", columns[i].Input);
+
+                state.AllocateDataMemory(numDocArray[i], corpusSize[i]);
+                states[i] = state;
+            }
+
+            using (var cursor = inputData.GetRowCursor(col => activeColumns[col]))
+            {
+                int[] docSizeCheck = new int[columns.Length];
+                // This could be optimized so that if multiple trainers consume the same column, it is
+                // fed into the train method once.
+                var getters = new ValueGetter<VBuffer<Double>>[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    docSizeCheck[i] = 0;
+                    getters[i] = RowCursorUtils.GetVecGetterAs<Double>(NumberType.R8, cursor, srcCols[i]);
+                }
+
+                VBuffer<Double> src = default(VBuffer<Double>);
+
+                while (cursor.MoveNext())
+                {
+                    for (int i = 0; i < columns.Length; i++)
+                    {
+                        getters[i](ref src);
+                        docSizeCheck[i] += states[i].FeedTrain(env, in src);
+                    }
+                }
+
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    env.Assert(corpusSize[i] == docSizeCheck[i]);
+                    states[i].CompleteTrain();
+                }
+            }
+
+            return columnMappings;
+        }
+
+        protected override IRowMapper MakeRowMapper(Schema schema)
+        {
+            return new Mapper(this, schema);
+        }
+    }
+
+    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    public sealed class LatentDirichletAllocationEstimator : IEstimator<LatentDirichletAllocationTransformer>
+    {
+        internal static class Defaults
+        {
+            public const int NumTopic = 100;
+            public const float AlphaSum = 100;
+            public const float Beta = 0.01f;
+            public const int Mhstep = 4;
+            public const int NumIterations = 200;
+            public const int LikelihoodInterval = 5;
+            public const int NumThreads = 0;
+            public const int NumMaxDocToken = 512;
+            public const int NumSummaryTermPerTopic = 10;
+            public const int NumBurninIterations = 10;
+            public const bool ResetRandomGenerator = false;
+        }
+
+        private readonly IHost _host;
+        private readonly ImmutableArray<LatentDirichletAllocationTransformer.ColumnInfo> _columns;
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column representing the document as a vector of floats.</param>
+        /// <param name="outputColumn">The column containing the output scores over a set of topics, represented as a vector of floats. A null value for the column means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="numTopic">The number of topics.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
+        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+        public LatentDirichletAllocationEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn = null,
+            int numTopic = Defaults.NumTopic,
+            float alphaSum = Defaults.AlphaSum,
+            float beta = Defaults.Beta,
+            int mhstep = Defaults.Mhstep,
+            int numIterations = Defaults.NumIterations,
+            int likelihoodInterval = Defaults.LikelihoodInterval,
+            int numThreads = Defaults.NumThreads,
+            int numMaxDocToken = Defaults.NumMaxDocToken,
+            int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
+            int numBurninIterations = Defaults.NumBurninIterations,
+            bool resetRandomGenerator = Defaults.ResetRandomGenerator)
+            : this(env, new[] { new LatentDirichletAllocationTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
+                numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
+                numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
+        { }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Describes the parameters of the LDA process for each column pair.</param>
+        public LatentDirichletAllocationEstimator(IHostEnvironment env, params LatentDirichletAllocationTransformer.ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(LatentDirichletAllocationEstimator));
+            _columns = columns.ToImmutableArray();
+        }
+
+        /// <summary>
+        /// Returns the schema that would be produced by the transformation.
+        /// </summary>
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (col.ItemType.RawKind != DataKind.R4 || col.Kind == SchemaShape.Column.VectorKind.Scalar)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, "a vector of floats", col.GetTypeString());
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
+
+        public LatentDirichletAllocationTransformer Fit(IDataView input)
+        {
+            return LatentDirichletAllocationTransformer.TrainLdaTransformer(_host, input, _columns.ToArray());
         }
     }
 }

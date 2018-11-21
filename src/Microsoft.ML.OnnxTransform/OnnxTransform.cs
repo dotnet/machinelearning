@@ -17,6 +17,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
+using OnnxShape = System.Collections.Generic.List<long>;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
     typeof(OnnxTransform.Arguments), typeof(SignatureDataTransform), OnnxTransform.UserName, OnnxTransform.ShortName, "OnnxTransform", "OnnxScorer")]
@@ -42,10 +43,10 @@ namespace Microsoft.ML.Transforms
             public string ModelFile;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the input column.", SortOrder = 1)]
-            public string InputColumn;
+            public string[] InputColumns;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
-            public string OutputColumn;
+            public string[] OutputColumns;
         }
 
         private readonly Arguments _args;
@@ -56,24 +57,26 @@ namespace Microsoft.ML.Transforms
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        public readonly string Input;
-        public readonly string Output;
-        public readonly ColumnType OutputType;
+        public readonly string[] Inputs;
+        public readonly string[] Outputs;
+        public readonly ColumnType[] OutputTypes;
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "ONNXSCOR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                // version 10001 is single input & output.
+                // version 10002 = multiple inputs & outputs
+                verWrittenCur: 0x00010002,
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string inputColumn, string outputColumn)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
         {
-            var args = new Arguments { ModelFile = modelFile, InputColumn = inputColumn, OutputColumn = outputColumn };
+            var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns };
             return Create(env, args, input);
         }
 
@@ -98,9 +101,23 @@ namespace Microsoft.ML.Transforms
             if (!ctx.TryLoadBinaryStream("OnnxModel", r => modelBytes = r.ReadByteArray()))
                 throw env.ExceptDecode();
 
-            var inputColumn = ctx.LoadNonEmptyString();
-            var outputColumn = ctx.LoadNonEmptyString();
-            var args = new Arguments() { InputColumn = inputColumn, OutputColumn = outputColumn };
+            bool supportsMultiInputOutput = ctx.Header.ModelVerWritten > 0x00010001;
+
+            var numInputs = (supportsMultiInputOutput) ? ctx.Reader.ReadInt32() : 1;
+
+            env.CheckDecode(numInputs > 0);
+            var inputs = new string[numInputs];
+            for (int j = 0; j < inputs.Length; j++)
+                inputs[j] = ctx.LoadNonEmptyString();
+
+            var numOutputs = (supportsMultiInputOutput) ? ctx.Reader.ReadInt32() : 1;
+
+            env.CheckDecode(numOutputs > 0);
+            var outputs = new string[numOutputs];
+            for (int j = 0; j < outputs.Length; j++)
+                outputs[j] = ctx.LoadNonEmptyString();
+
+            var args = new Arguments() { InputColumns = inputs, OutputColumns = outputs };
 
             return new OnnxTransform(env, args, modelBytes);
         }
@@ -113,8 +130,11 @@ namespace Microsoft.ML.Transforms
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(OnnxTransform)))
         {
             Host.CheckValue(args, nameof(args));
-            Host.CheckNonWhiteSpace(args.InputColumn, nameof(args.InputColumn));
-            Host.CheckNonWhiteSpace(args.OutputColumn, nameof(args.OutputColumn));
+
+            foreach (var col in args.InputColumns)
+                Host.CheckNonWhiteSpace(col, nameof(args.InputColumns));
+            foreach (var col in args.OutputColumns)
+                Host.CheckNonWhiteSpace(col, nameof(args.OutputColumns));
 
             if (modelBytes == null)
             {
@@ -126,134 +146,281 @@ namespace Microsoft.ML.Transforms
                 Model = OnnxModel.CreateFromBytes(modelBytes);
 
             var modelInfo = Model.ModelInfo;
-            if (modelInfo.InputsInfo.Length != 1)
-                throw env.Except($"OnnxTransform supports Onnx models with one input. The provided model has ${modelInfo.InputsInfo.Length} input(s).");
-            if (modelInfo.OutputsInfo.Length != 1)
-                throw env.Except($"OnnxTransform supports Onnx models with one output. The provided model has ${modelInfo.OutputsInfo.Length} output(s).");
+            Inputs = args.InputColumns;
+            Outputs = args.OutputColumns;
+            OutputTypes = new ColumnType[args.OutputColumns.Length];
+            var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
+            for (int i=0; i < args.OutputColumns.Length; i++)
+            {
+                var idx = Model.OutputNames.IndexOf(args.OutputColumns[i]);
+                if (idx < 0)
+                    throw Host.Except($"Column {args.OutputColumns[i]} doesn't match output node names of model");
 
-            Input = args.InputColumn;
-            Output = args.OutputColumn;
-
-            var outputNodeInfo = Model.ModelInfo.OutputsInfo[0];
-            var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
-            var shape = outputNodeInfo.Shape;
-            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select(x => (int)x).ToArray() : new[] { 0 };
-            OutputType = new VectorType(type, dims);
+                var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
+                var shape = outputNodeInfo.Shape;
+                var dims = AdjustDimensions(shape);
+                OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims);
+            }
             _args = args;
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
-            : this(env, new Arguments() { ModelFile = modelFile, InputColumn = inputColumn, OutputColumn = outputColumn })
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new[] { inputColumn }, OutputColumns = new[] { outputColumn } })
+        {
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile, string[] inputColumns, string[] outputColumns)
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns })
         {
         }
 
         public override void Save(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
             ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(Model.ToByteArray()); });
-            ctx.SaveNonEmptyString(_args.InputColumn);
-            ctx.SaveNonEmptyString(_args.OutputColumn);
+
+            Host.CheckNonEmpty(Inputs, nameof(Inputs));
+            ctx.Writer.Write(Inputs.Length);
+            foreach (var colName in Inputs)
+                ctx.SaveNonEmptyString(colName);
+
+            Host.CheckNonEmpty(Outputs, nameof(Outputs));
+            ctx.Writer.Write(Outputs.Length);
+            foreach (var colName in Outputs)
+                ctx.SaveNonEmptyString(colName);
         }
         protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+
+        private static int[] AdjustDimensions(OnnxShape shape)
+        {
+            // if the model output is of type Map or Sequence, the shape property
+            // will not be filled (so count=0). Don't throw an exception here
+            // it will be runtime exception, util Maps and Sequences become supported.
+            if (shape.Count > 0)
+            {
+                // some models may have -1 in first position.
+                // skip this dimension when setting output column dimensions.
+                if (shape[0] < 0)
+                {
+                    return shape.Skip(1).Select(x => (int)x).ToArray();
+                }
+                else
+                {
+                    return shape.Select(x => (int)x).ToArray();
+                }
+            }
+            return new[] { 0 };
+        }
 
         private sealed class Mapper : MapperBase
         {
             private readonly OnnxTransform _parent;
-            private readonly Type _outputItemRawType;
-            private readonly ColumnType _outputColType;
-            private readonly string _outputColName;
-
-            private readonly IdvToTensorAdapter _idvToTensorAdapter;
+            private readonly int[] _inputColIndices;
+            private readonly bool[] _isInputVector;
+            private readonly OnnxShape[] _inputTensorShapes;
+            private readonly DataType[] _inputOnnxTypes;
 
             public Mapper(OnnxTransform parent, Schema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
 
                 _parent = parent;
+                _inputColIndices = new int[_parent.Inputs.Length];
+                _isInputVector = new bool[_parent.Inputs.Length];
+                _inputTensorShapes = new OnnxShape[_parent.Inputs.Length];
+                _inputOnnxTypes = new DataType[_parent.Inputs.Length];
+
                 var model = _parent.Model;
-                _idvToTensorAdapter = new IdvToTensorAdapter(inputSchema, parent._args.InputColumn,
-                                            model.ModelInfo.InputsInfo[0]);
+                for (int i = 0; i <  _parent.Inputs.Length; i++)
+                {
+                    var idx = model.InputNames.IndexOf(_parent.Inputs[i]);
+                    if (idx < 0)
+                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't match input node names of model");
 
-                // TODO: Remove assumption below
-                // Assume first output dimension is 1
-                var outputNodeInfo = model.ModelInfo.OutputsInfo[0];
-                var inputNodeInfo = model.ModelInfo.InputsInfo[0];
-                int[] dims = outputNodeInfo.Shape.Skip(1).Select(x => (int)x).ToArray();
-                var outputItemType = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
-                var inputShape = inputNodeInfo.Shape;
-                _outputColType = new VectorType(outputItemType, dims);
-                _outputColName = _parent.Output;
-                _outputItemRawType = outputItemType.RawType;
+                    var inputNodeInfo = model.ModelInfo.InputsInfo[idx];
 
-                int inColIndex;
-                if (!inputSchema.TryGetColumnIndex(_parent.Input, out inColIndex))
-                    throw Host.Except($"Column {_parent.Input} doesn't exist");
+                    var shape = inputNodeInfo.Shape;
+                    var inputType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
 
-                var type = inputSchema.GetColumnType(inColIndex);
-                if (type.IsVector && type.VectorSize == 0)
-                    throw Host.Except($"Variable length input columns not supported");
+                    var inputShape = inputNodeInfo.Shape;
+                    _inputTensorShapes[i] = inputShape;
+                    _inputOnnxTypes[i] = inputNodeInfo.Type;
 
-                if (type.ItemType != outputItemType)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
+                    if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
+                        throw Host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
-                // If the column is one dimension we make sure that the total size of the TF shape matches.
-                // Compute the total size of the known dimensions of the shape.
-                int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
-                // The column length should be divisible by this, so that the other dimensions can be integral.
-                if (type.ValueCount % valCount != 0)
-                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {string.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
+                    var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    _isInputVector[i] = type.IsVector;
 
-                Host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
+                    if (type.IsVector && type.VectorSize == 0)
+                        throw Host.Except($"Variable length input columns not supported");
+
+                    if (type.ItemType != inputType)
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], inputType.ToString(), type.ToString());
+
+                    // If the column is one dimension we make sure that the total size of the Onnx shape matches.
+                    // Compute the total size of the known dimensions of the shape.
+                    int valCount = inputShape.Select(x => (int)x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                    // The column length should be divisible by this, so that the other dimensions can be integral.
+                    if (type.ValueCount % valCount != 0)
+                        throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {String.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
+
+                    //Host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
+                }
             }
 
             protected override Schema.Column[] GetOutputColumnsCore()
             {
-                var info = new Schema.Column[1];
-                info[0] = new Schema.Column(_outputColName, _outputColType, null);
+                var info = new Schema.Column[_parent.Outputs.Length];
+                for (int i = 0; i < _parent.Outputs.Length; i++)
+                    info[i] = new Schema.Column(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
 
             public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                return col => activeOutput(0) && (_idvToTensorAdapter.IdvColumnIndex == col);
+                return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
+            private interface ITensorValueGetter
+            {
+                Tensor GetTensor();
+            }
+            private class OutputCache
+            {
+                public long Position;
+                public Dictionary<string, Tensor> Outputs;
+                public OutputCache()
+                {
+                    Position = -1;
+                    Outputs = new Dictionary<string, Tensor>();
+                }
+            }
+
+            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            {
+                if (outputCache.Position != position)
+                {
+                    var inputTensors = new List<Tensor>();
+
+                    for (int i = 0; i < _inputColIndices.Length; i++)
+                        inputTensors.Add(srcTensorGetters[i].GetTensor());
+
+                    var outputTensors = _parent.Model.Run(inputTensors);
+                    Contracts.Assert(outputTensors.Count > 0);
+
+                    for (int j = 0; j < outputTensors.Count; j++)
+                        outputCache.Outputs[activeOutputColNames[j]] = outputTensors[j];
+
+                    outputCache.Position = position;
+                }
+            }
+
             protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                return Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
+                Host.AssertValue(input);
+                //Host.Assert(typeof(T) == _outputItemRawType);
+
+                var outputCache = new OutputCache();
+                var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
+                var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
+                Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
+                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input)
+            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
-                Host.Assert(typeof(T) == _outputItemRawType);
-
-                ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
+                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
-                    _idvToTensorAdapter.InitializeValueGetters(input);
-                    var inputTensors = new List<Tensor> { _idvToTensorAdapter.GetTensor() };
-                    var outputTensors = _parent.Model.Run(inputTensors);
-                    Contracts.Assert(outputTensors.Count() > 0);
-
-                    var editor = VBufferEditor.Create(ref dst, _outputColType.VectorSize);
-                    OnnxUtils.CopyTo(outputTensors[0], editor.Values);
+                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
+                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var editor = VBufferEditor.Create(ref dst, tensor.GetSize());
+                    OnnxUtils.CopyTo(tensor, editor.Values);
                     dst = editor.Commit();
                 };
+                return valuegetter;
+            }
 
-                return valueGetter;
+            private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+                int[] inputColIndices,
+                bool[] isInputVector,
+                DataType[] onnxInputTypes,
+                OnnxShape[] onnxInputShapes)
+            {
+                var srcTensorGetters = new ITensorValueGetter[inputColIndices.Length];
+                for (int i = 0; i < inputColIndices.Length; i++)
+                {
+                    int colIndex = inputColIndices[i];
+                    srcTensorGetters[i] = CreateTensorValueGetter(input, onnxInputTypes[i], isInputVector[i], colIndex, onnxInputShapes[i]);
+                }
+                return srcTensorGetters;
+            }
+
+            private static ITensorValueGetter CreateTensorValueGetter(IRow input, DataType onnxType, bool isVector, int colIndex, OnnxShape onnxShape)
+            {
+                var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
+                Contracts.AssertValue(type);
+                return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, onnxShape);
+            }
+
+            private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, OnnxShape onnxShape)
+            {
+                if (isVector)
+                    return new TensorValueGetterVec<T>(input, colIndex, onnxShape);
+                return new TensorValueGetter<T>(input, colIndex);
+            }
+
+            private class TensorValueGetter<T> : ITensorValueGetter
+            {
+                private readonly ValueGetter<T> _srcgetter;
+
+                public TensorValueGetter(IRow input, int colIndex)
+                {
+                    _srcgetter = input.GetGetter<T>(colIndex);
+                }
+                public Tensor GetTensor()
+                {
+                    var scalar = default(T);
+                    _srcgetter(ref scalar);
+                    return OnnxUtils.CreateScalarTensor(scalar);
+                }
+            }
+
+            private class TensorValueGetterVec<T> : ITensorValueGetter
+            {
+                private readonly ValueGetter<VBuffer<T>> _srcgetter;
+                private readonly OnnxShape _tensorShape;
+                private VBuffer<T> _vBuffer;
+                private VBuffer<T> _vBufferDense;
+                public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
+                {
+                    _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
+                    _tensorShape = tensorShape;
+                    _vBuffer = default;
+                    _vBufferDense = default;
+                }
+                public Tensor GetTensor()
+                {
+                    _srcgetter(ref _vBuffer);
+                    _vBuffer.CopyToDense(ref _vBufferDense);
+                    return OnnxUtils.CreateTensor(_vBufferDense.GetValues(), _tensorShape);
+                }
             }
         }
     }
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string input, string output)
-           : this(env, new OnnxTransform(env, modelFile, input, output))
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
+           : this(env, new OnnxTransform(env, modelFile, inputs, outputs))
         {
         }
 
@@ -268,20 +435,31 @@ namespace Microsoft.ML.Transforms
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
 
-            var input = Transformer.Input;
-            if (!inputSchema.TryFindColumn(input, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-            if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-            var inputNodeInfo = Transformer.Model.ModelInfo.InputsInfo[0];
-            var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
-            if (col.ItemType != expectedType)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+            for (var i = 0; i < Transformer.Inputs.Length; i++)
+            {
+                var input = Transformer.Inputs[i];
+                if (!inputSchema.TryFindColumn(input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
 
-            resultDic[Transformer.Output] = new SchemaShape.Column(Transformer.Output,
-                Transformer.OutputType.IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                : SchemaShape.Column.VectorKind.VariableVector, NumberType.R4, false);
+                var inputsInfo = Transformer.Model.ModelInfo.InputsInfo;
+                var idx = Transformer.Model.InputNames.IndexOf(input);
+                if (idx < 0)
+                    throw Host.Except($"Column {input} doesn't match input node names of model.");
 
+                var inputNodeInfo = inputsInfo[idx];
+                var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
+                if (col.ItemType != expectedType)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+            }
+
+            for (var i = 0; i < Transformer.Outputs.Length; i++)
+            {
+                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
+                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, NumberType.R4, false);
+            }
             return new SchemaShape(resultDic.Values);
         }
     }
@@ -319,7 +497,7 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new OnnxScoringEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
+                return new OnnxScoringEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
             }
         }
 
@@ -335,3 +513,4 @@ namespace Microsoft.ML.Transforms
         }
     }
 }
+
