@@ -69,6 +69,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 // This transform treats the input sequenence as the raw anomaly score.
                 return (double)input;
             }
+
+            public override void Consume(float value)
+            {
+            }
         }
     }
 }

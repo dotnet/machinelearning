@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected readonly bool IsAdaptive;
         protected readonly ErrorFunctionUtils.ErrorFunction ErrorFunction;
         protected readonly Func<Double, Double, Double> ErrorFunc;
-        protected readonly SequenceModelerBase<Single, Single> Model;
+        protected SequenceModelerBase<Single, Single> Model;
 
         public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
             : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected override void InitializeAnomalyDetector()
             {
                 _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
-                _model = _parentAnomalyDetector.Model.Clone();
+                _model = _parentAnomalyDetector.Model;
             }
 
             private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
@@ -223,6 +223,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 // Return the error as the raw anomaly score
                 return _parentAnomalyDetector.ErrorFunc(input, expectedValue);
             }
+
+            public override void Consume(Single input) => _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
         }
     }
 }

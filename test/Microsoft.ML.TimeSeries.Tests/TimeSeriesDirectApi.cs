@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
@@ -224,7 +225,12 @@ namespace Microsoft.ML.Tests
 
             //Predict.
             var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
+
+            //Checkpoint.
             var prediction = engine.Predict(new Data(1));
+            using (var file = File.Create(@"e:\model"))
+                model.SaveTo(ml, file);
+
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(-2.3141059875488281, prediction.Change[1], precision: 7); // Raw score
             Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score

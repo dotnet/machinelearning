@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <typeparam name="TInput">The input type of the sequential processing.</typeparam>
     /// <typeparam name="TOutput">The dst type of the sequential processing.</typeparam>
     /// <typeparam name="TState">The state type of the sequential processing. Must be a class inherited from StateBase </typeparam>
-    public abstract class SequentialTransformerBase<TInput, TOutput, TState> : ITransformer, ICanSaveModel
+    public abstract class SequentialTransformerBase<TInput, TOutput, TState> : IStatefulTransformer, ICanSaveModel
        where TState : SequentialTransformerBase<TInput, TOutput, TState>.StateBase, new()
     {
         /// <summary>
@@ -209,6 +209,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// </summary>
             /// <param name="data">A queue of data points used for training</param>
             private protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
+
+            public abstract void Consume(TInput value);
         }
 
         private protected readonly IHost Host;
@@ -324,6 +326,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new TimeSeriesRowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema));
         }
+
+        public virtual IStatefulTransformer Clone() => (SequentialTransformerBase<TInput, TOutput, TState>)MemberwiseClone();
 
         public sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
         {

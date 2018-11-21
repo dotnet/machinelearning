@@ -10,6 +10,11 @@ using System.Reflection;
 
 namespace Microsoft.ML.TimeSeries
 {
+    public interface IStatefulTransformer : ITransformer
+    {
+        IStatefulTransformer Clone();
+    }
+
     public delegate void ValuePinger(ref bool value, int rowPosition);
 
     public interface IStatefulRow : IRow
@@ -36,6 +41,23 @@ namespace Microsoft.ML.TimeSeries
     {
         private ValuePinger[][] _pingers;
         private int _rowPosition;
+        public ITransformer Transformer { get; private set; }
+
+        private ITransformer CloneTransformers(ITransformer transformer)
+        {
+            if(transformer is TransformerChain<ITransformer>)
+            {
+                var transformers = ((TransformerChain<ITransformer>)transformer).Transformers;
+                ITransformer[] transformersClone = new ITransformer[transformers.Length];
+                int index = 0;
+                foreach(var xf in transformers)
+                    transformersClone[index++] = xf is IStatefulTransformer ? ((IStatefulTransformer)xf).Clone() : xf;
+
+                return new TransformerChain<ITransformer>(transformersClone);
+            }
+            else
+                return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
+        }
 
         internal TimeSeriesPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
@@ -49,11 +71,13 @@ namespace Microsoft.ML.TimeSeries
         {
         }
 
-        internal TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
+            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
+
+        internal override ITransformer ProcessTransformer(ITransformer transformer) => CloneTransformers(transformer);
 
         public void GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
             List<IStatefulRow> rows, out Action disposer, out IRow outRow)

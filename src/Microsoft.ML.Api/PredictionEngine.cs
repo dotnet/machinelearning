@@ -197,11 +197,13 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
+        internal virtual ITransformer ProcessTransformer(ITransformer transformer) => transformer;
+
         private static Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
-            return transformer.GetRowToRowMapper;
+            return ProcessTransformer(transformer).GetRowToRowMapper;
         }
 
         internal PredictionEngineBase(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,

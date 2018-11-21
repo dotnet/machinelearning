@@ -645,6 +645,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     TInput src = default;
                     srcGetter(ref src);
                     state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                    state.Consume(src);
                 };
                 return valuePinger;
             }
