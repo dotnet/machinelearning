@@ -5,9 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using System;
 using System.Collections.Generic;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
@@ -18,20 +16,12 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class IidChangePointStaticExtensions
     {
-        public class Prediction
-        {
-            public int Alert;
-            public float Score;
-            public float PValue;
-            public float MartingaleValue;
-        }
-
-        private sealed class OutColumn : Vector<Prediction>
+        private sealed class OutColumn : Vector<double>
         {
             public PipelineColumn Input { get; }
 
             public OutColumn(
-                Vector<float> input,
+                Scalar<float> input,
                 int confidence,
                 int changeHistoryLength,
                 MartingaleType martingale,
@@ -75,13 +65,12 @@ namespace Microsoft.ML.StaticPipe
                     _confidence,
                     _changeHistoryLength,
                     _martingale,
-                    _eps
-                    );
+                    _eps);
             }
         }
 
-        public static Vector<Prediction> IidChangePointDetect(
-            this Vector<float> input,
+        public static Vector<double> IidChangePointDetect(
+            this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
             MartingaleType martingale = MartingaleType.Power,
