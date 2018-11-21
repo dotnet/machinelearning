@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms.Text
         private readonly int _skipLength;
         private readonly bool _allLengths;
         private readonly int _maxNumTerms;
-        private readonly NgramCountingEstimator.WeightingCriteria _weighting;
+        private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             : this(env, new[] { (inputColumns, outputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordBagEstimator)))
         {
             foreach (var (input, output) in columns)

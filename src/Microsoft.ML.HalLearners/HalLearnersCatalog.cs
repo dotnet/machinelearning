@@ -71,11 +71,11 @@ namespace Microsoft.ML
         /// </format>
         /// </example>
         public static VectorWhiteningEstimator VectorWhiten(this TransformsCatalog.ProjectionTransforms catalog, string inputColumn, string outputColumn = null,
-        WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
-        float eps = VectorWhiteningTransformer.Defaults.Eps,
-        int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
-        int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
-        => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
+            WhiteningKind kind = VectorWhiteningTransformer.Defaults.Kind,
+            float eps = VectorWhiteningTransformer.Defaults.Eps,
+            int maxRows = VectorWhiteningTransformer.Defaults.MaxRows,
+            int pcaNum = VectorWhiteningTransformer.Defaults.PcaNum)
+                => new VectorWhiteningEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, kind, eps, maxRows, pcaNum);
 
         /// <summary>
         /// Takes columns filled with a vector of random variables with a known covariance matrix into a set of new variables whose covariance is the identity matrix,

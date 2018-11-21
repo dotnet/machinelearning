@@ -21,6 +21,8 @@ namespace Microsoft.ML
     public abstract class TrainContextBase
     {
         protected readonly IHost Host;
+
+        [BestFriend]
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
@@ -162,6 +164,7 @@ namespace Microsoft.ML
         /// </summary>
         public abstract class ContextInstantiatorBase
         {
+            [BestFriend]
             internal TrainContextBase Owner { get; }
 
             protected ContextInstantiatorBase(TrainContextBase ctx)
@@ -498,7 +501,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central context for ranking trainers.
     /// </summary>
     public sealed class RankingContext : TrainContextBase
     {

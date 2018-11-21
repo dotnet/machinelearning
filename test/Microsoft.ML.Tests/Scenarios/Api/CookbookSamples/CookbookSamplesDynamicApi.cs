@@ -318,8 +318,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-                .Append(new NgramCountingEstimator(mlContext, "MessageChars", "BagOfTrichar",
-                            ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf))
+                .Append(new NgramExtractingEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                            ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
                 .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
