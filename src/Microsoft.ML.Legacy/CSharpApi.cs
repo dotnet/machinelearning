@@ -11237,7 +11237,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum TermTransformSortOrder : byte
+        public enum ValueToKeyMappingTransformerSortOrder : byte
         {
             Occurrence = 0,
             Value = 1
@@ -11264,7 +11264,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder? Sort { get; set; }
+            public ValueToKeyMappingTransformerSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -11352,7 +11352,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -11412,7 +11412,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class TokenizingByCharactersTransformerColumn : OneToOneColumn<TokenizingByCharactersTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11458,15 +11458,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11474,7 +11474,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CharTokenizeTransformColumn[] Column { get; set; }
+            public TokenizingByCharactersTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether to mark the beginning/end of each row/slot with start of text character (0x02)/end of text character (0x03)
@@ -11534,7 +11534,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
+        public sealed partial class ColumnConcatenatingTransformerColumn : ManyToOneColumn<ColumnConcatenatingTransformerColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11565,8 +11565,8 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>(Column);
-                list.Add(ManyToOneColumn<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn>(Column);
+                list.Add(ManyToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn>.Create(name, source));
                 Column = list.ToArray();
             }
 
@@ -11574,7 +11574,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
-            public ConcatTransformColumn[] Column { get; set; }
+            public ColumnConcatenatingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11629,7 +11629,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
+        public sealed partial class ColumnsCopyingTransformerColumn : OneToOneColumn<ColumnsCopyingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -11677,15 +11677,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11693,7 +11693,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public CopyColumnsTransformColumn[] Column { get; set; }
+            public ColumnsCopyingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -11828,7 +11828,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class ConvertingTransformColumn : OneToOneColumn<ConvertingTransformColumn>, IOneToOneColumn
+        public sealed partial class TypeConvertingTransformerColumn : OneToOneColumn<TypeConvertingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// The result type
@@ -11886,15 +11886,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertingTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11902,7 +11902,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:type:src)
             /// </summary>
-            public ConvertingTransformColumn[] Column { get; set; }
+            public TypeConvertingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// The result type
@@ -12318,7 +12318,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
+        public sealed partial class ValueToKeyMappingTransformerColumn : OneToOneColumn<ValueToKeyMappingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum number of terms to keep when auto-training
@@ -12333,7 +12333,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder? Sort { get; set; }
+            public ValueToKeyMappingTransformerSortOrder? Sort { get; set; }
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -12386,15 +12386,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12402,7 +12402,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformColumn[] Column { get; set; }
+            public ValueToKeyMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -12417,7 +12417,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -12837,7 +12837,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
+        public sealed partial class HashJoiningTransformColumn : OneToOneColumn<HashJoiningTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -12909,15 +12909,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12925,7 +12925,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public HashJoinTransformColumn[] Column { get; set; }
+            public HashJoiningTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Whether the values need to be combined for a single hash
@@ -13616,7 +13616,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
+        public sealed partial class KeyToValueMappingTransformerColumn : OneToOneColumn<KeyToValueMappingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -13662,15 +13662,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13678,7 +13678,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public KeyToValueTransformColumn[] Column { get; set; }
+            public KeyToValueMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -13997,10 +13997,10 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
+        public sealed partial class LatentDirichletAllocationTransformerColumn : OneToOneColumn<LatentDirichletAllocationTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             public int? NumTopic { get; set; }
 
@@ -14099,15 +14099,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14115,10 +14115,10 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
-            public LdaTransformColumn[] Column { get; set; }
+            public LatentDirichletAllocationTransformerColumn[] Column { get; set; }
 
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
             public int NumTopic { get; set; } = 100;
@@ -14153,14 +14153,14 @@ namespace Microsoft.ML
             public int LikelihoodInterval { get; set; } = 5;
 
             /// <summary>
+            /// The number of training threads. Default value depends on number of logical processors.
+            /// </summary>
+            public int NumThreads { get; set; }
+
+            /// <summary>
             /// The threshold of maximum count of tokens per doc
             /// </summary>
             public int NumMaxDocToken { get; set; } = 512;
-
-            /// <summary>
-            /// The number of training threads. Default value depends on number of logical processors.
-            /// </summary>
-            public int? NumThreads { get; set; }
 
             /// <summary>
             /// The number of words to summarize the topic
@@ -15421,7 +15421,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum NgramTransformWeightingCriteria
+        public enum NgramCountingEstimatorWeightingCriteria
         {
             Tf = 0,
             Idf = 1,
@@ -15429,7 +15429,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class NgramTransformColumn : OneToOneColumn<NgramTransformColumn>, IOneToOneColumn
+        public sealed partial class NgramCountingTransformerColumn : OneToOneColumn<NgramCountingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum ngram length
@@ -15454,7 +15454,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Statistical measure used to evaluate how important a word is to a document in a corpus
             /// </summary>
-            public NgramTransformWeightingCriteria? Weighting { get; set; }
+            public NgramCountingEstimatorWeightingCriteria? Weighting { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -15500,15 +15500,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15516,7 +15516,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public NgramTransformColumn[] Column { get; set; }
+            public NgramCountingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum ngram length
@@ -15541,7 +15541,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public NgramTransformWeightingCriteria Weighting { get; set; } = NgramTransformWeightingCriteria.Tf;
+            public NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = NgramCountingEstimatorWeightingCriteria.Tf;
 
             /// <summary>
             /// Input dataset
@@ -16762,7 +16762,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Drop unknown terms instead of mapping them to NA term.
@@ -16940,15 +16940,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16956,7 +16956,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public TermTransformColumn[] Column { get; set; }
+            public ValueToKeyMappingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum number of terms to keep per column when auto-training
@@ -16971,7 +16971,7 @@ namespace Microsoft.ML
             /// <summary>
             /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
-            public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
+            public ValueToKeyMappingTransformerSortOrder Sort { get; set; } = ValueToKeyMappingTransformerSortOrder.Occurrence;
 
             /// <summary>
             /// Whether key value metadata should be text, regardless of the actual input type
@@ -17386,7 +17386,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum WordEmbeddingsTransformPretrainedModelKind
+        public enum WordEmbeddingsExtractingTransformerPretrainedModelKind
         {
             GloVe50D = 0,
             GloVe100D = 1,
@@ -17401,7 +17401,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class WordEmbeddingsTransformColumn : OneToOneColumn<WordEmbeddingsTransformColumn>, IOneToOneColumn
+        public sealed partial class WordEmbeddingsExtractingTransformerColumn : OneToOneColumn<WordEmbeddingsExtractingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -17448,15 +17448,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -17464,12 +17464,12 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s) (optional form: name:src)
             /// </summary>
-            public WordEmbeddingsTransformColumn[] Column { get; set; }
+            public WordEmbeddingsExtractingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Pre-trained model used to create the vocabulary
             /// </summary>
-            public WordEmbeddingsTransformPretrainedModelKind? ModelKind { get; set; } = WordEmbeddingsTransformPretrainedModelKind.Sswe;
+            public WordEmbeddingsExtractingTransformerPretrainedModelKind? ModelKind { get; set; } = WordEmbeddingsExtractingTransformerPretrainedModelKind.Sswe;
 
             /// <summary>
             /// Filename for custom word embedding model
@@ -17529,7 +17529,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class WordTokenizeTransformColumn : OneToOneColumn<WordTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class WordTokenizingTransformerColumn : OneToOneColumn<WordTokenizingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
@@ -17581,15 +17581,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -17597,7 +17597,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s)
             /// </summary>
-            public WordTokenizeTransformColumn[] Column { get; set; }
+            public WordTokenizingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Array of single character term separator(s). By default uses space character separator.
@@ -20137,7 +20137,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Legacy.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramTransformWeightingCriteria.Tf;
+            public Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }

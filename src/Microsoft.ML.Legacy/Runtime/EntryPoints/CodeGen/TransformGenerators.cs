@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
     internal sealed class TransformImplGenerator : ImplGeneratorBase
     {
-        protected override void GenerateMethodSignature(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("/// <summary>");
             w.WriteLine("/// Creates a {0}", component.LoadNames[0]);
@@ -31,7 +32,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected override void GenerateImplBody(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateImplBody(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("{");
             using (w.Nest())
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 
     internal sealed class TransformEntryPointGenerator : EntryPointGeneratorBase
     {
-        protected override void GenerateSummaryComment(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateSummaryComment(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("/// <summary>");
             var desc = component.Summary ?? component.LoadNames[0];
@@ -93,12 +94,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 GenerateSummaryComment(w, arg, "");
         }
 
-        protected override void GenerateReturnComment(IndentingTextWriter w)
+        protected override void GenerateReturnComment(IndentedTextWriter w)
         {
             w.WriteLine("/// <returns>A Tuple of transformed data and trained transform.</returns>");
         }
 
-        protected override void GenerateModuleAttribute(IndentingTextWriter w, string prefix,
+        protected override void GenerateModuleAttribute(IndentedTextWriter w, string prefix,
             ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             if (!string.IsNullOrEmpty(prefix))
@@ -117,7 +118,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected override void GenerateOutputPort(IndentingTextWriter w)
+        protected override void GenerateOutputPort(IndentedTextWriter w)
         {
             w.WriteLine(
                 "[DataLabOutputPort(FriendlyName = \"Transformed IDataView\", DisplayName = \"Transformed IDataView\", Position = 0, DataType = WellKnownDataTypeIds.IDataViewDotNet, Description = \"Transformed data (IDataView)\")]");
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 "[DataLabOutputPort(FriendlyName = \"Transformed data model\", DisplayName = \"Transformed data model\", Position = 1, DataType = WellKnownDataTypeIds.ITransformDotNet, Description = \"Transformed data model (ITransform)\")]");
         }
 
-        protected override void GenerateMethodSignature(IndentingTextWriter w, string prefix,
+        protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix,
             ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("public static Tuple<IDataView, DataTransform> Create{0}{1}(", prefix, component.LoadNames[0]);
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected override void GenerateImplCall(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateImplCall(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("{");
             using (w.Nest())
@@ -163,7 +164,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
     {
         private string _compName;
 
-        protected override void GenerateUsings(IndentingTextWriter w)
+        protected override void GenerateUsings(IndentedTextWriter w)
         {
             var allNamespaces = new HashSet<string>();
             foreach (var ns in Namespaces)
@@ -185,7 +186,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 w.WriteLine("using {0};", ns);
         }
 
-        protected override void GenerateClassName(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateClassName(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine();
             var className = prefix + component.LoadNames[0];
@@ -194,7 +195,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("{");
         }
 
-        protected override void GenerateContent(IndentingTextWriter writer, string prefix,
+        protected override void GenerateContent(IndentedTextWriter writer, string prefix,
             ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             writer.WriteLine("[Module(");
@@ -310,7 +311,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             return _compName + "." + base.EnumName(arg, sigType);
         }
 
-        private void GenerateMethodSignature(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, string argSuffix)
+        private void GenerateMethodSignature(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -327,7 +328,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        private void GenerateDictionaryEntry(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
+        private void GenerateDictionaryEntry(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -338,12 +339,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 GenerateDictionaryEntry(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
         }
 
-        private void GenerateDictionaryEntry(IndentingTextWriter w, string type, string name)
+        private void GenerateDictionaryEntry(IndentedTextWriter w, string type, string name)
         {
             w.WriteLine("{{ \"{0}\", {0} }},", name);
         }
 
-        private void GenerateImplCall(IndentingTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, string argSuffix)
+        private void GenerateImplCall(IndentedTextWriter w, CmdParser.ArgInfo.Arg arg, string parent, string parentType, string parentValue, string argSuffix)
         {
             if (Exclude.Contains(arg.LongName))
                 return;
@@ -360,17 +361,17 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 GenerateImplCall(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
         }
 
-        private void GenerateImplCall(IndentingTextWriter w, string type, string name)
+        private void GenerateImplCall(IndentedTextWriter w, string type, string name)
         {
             w.WriteLine("builder.{0} = ({1})parameters[\"{2}\"];", Capitalize(name), type, name);
         }
 
-        protected override void GenerateParameter(IndentingTextWriter w, string type, string name)
+        protected override void GenerateParameter(IndentedTextWriter w, string type, string name)
         {
             w.WriteLine("{0} {1},", type, name);
         }
 
-        private void GenerateParameterAttribute(IndentingTextWriter w, string displayName, object defaultValue, string description,
+        private void GenerateParameterAttribute(IndentedTextWriter w, string displayName, object defaultValue, string description,
             string parent = null, string parentType = null, string parentValue = null)
         {
             w.WriteLine("[Help(Display = @\"{0}\", ToolTip = \"{1}\")]", PrettyPrintDisplayName(displayName), description);

@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return epName;
         }
 
-        protected void PropagateParamSetValues(ParameterSet hyperParams,
+        private protected void PropagateParamSetValues(ParameterSet hyperParams,
             TlcModule.SweepableParamAttribute[] sweepParams)
         {
             var spMap = sweepParams.ToDictionary(sp => sp.Name);
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
         private readonly CommonInputs.ITransformInput _entryPointObj;
         private readonly CommonInputs.ITrainerInput _subTrainerObj;
 
-        public TlcModule.SweepableParamAttribute[] SweepParams { get; }
+        internal TlcModule.SweepableParamAttribute[] SweepParams { get; }
 
-        public TransformPipelineNode(CommonInputs.ITransformInput entryPointObj,
+        internal TransformPipelineNode(CommonInputs.ITransformInput entryPointObj,
             IEnumerable<TlcModule.SweepableParamAttribute> sweepParams = null,
             CommonInputs.ITrainerInput subTrainerObj = null)
         {
@@ -136,9 +136,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
     {
         private readonly CommonInputs.ITrainerInput _entryPointObj;
 
-        public TlcModule.SweepableParamAttribute[] SweepParams { get; }
+        [BestFriend]
+        internal TlcModule.SweepableParamAttribute[] SweepParams { get; }
 
-        public TrainerPipelineNode(CommonInputs.ITrainerInput entryPointObj,
+        internal TrainerPipelineNode(CommonInputs.ITrainerInput entryPointObj,
             IEnumerable<TlcModule.SweepableParamAttribute> sweepParams = null,
             ParameterSet hyperParameterSet = null)
         {

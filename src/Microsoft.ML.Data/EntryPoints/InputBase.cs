@@ -99,7 +99,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public Optional<string> GroupIdColumn = Optional<string>.Implicit(DefaultColumnNames.GroupId);
     }
 
-    public static class LearnerEntryPointsUtils
+    [BestFriend]
+    internal static class LearnerEntryPointsUtils
     {
         public static string FindColumn(IExceptionContext ectx, ISchema schema, Optional<string> value)
         {

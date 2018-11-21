@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(data, nameof(data));
             // REVIEW: This should take an env as a parameter, not create one.
-            var env = new ConsoleEnvironment(0);
+            var env = new MLContext(seed: 0);
             var take = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = count }, data);
             return CacheCore(take, env);
         }
@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(data, nameof(data));
             // REVIEW: This should take an env as a parameter, not create one.
-            return CacheCore(data, new ConsoleEnvironment(0));
+            return CacheCore(data, new MLContext(0));
         }
 
         private static IDataView CacheCore(IDataView data, IHostEnvironment env)

@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Initialize();
         }
 
-        protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)
+        private protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;

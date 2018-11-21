@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        public sealed override TPredictor Train(TrainContext context)
+        private protected sealed override TPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
