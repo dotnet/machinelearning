@@ -164,9 +164,8 @@ namespace Microsoft.ML.Runtime.Api
             };
         }
 
-
         [BestFriend]
-        internal (IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        internal PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -192,7 +191,9 @@ namespace Microsoft.ML.Runtime.Api
             return transformer.GetRowToRowMapper;
         }
 
-        ~PredictionEngine()
+        internal virtual ITransformer ProcessTransformer(ITransformer transformer) => transformer;
+
+        ~PredictionEngineBase()
         {
             _disposer?.Invoke();
         }

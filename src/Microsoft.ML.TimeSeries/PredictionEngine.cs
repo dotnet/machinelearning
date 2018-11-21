@@ -43,14 +43,22 @@ namespace Microsoft.ML.TimeSeries
         private int _rowPosition;
         public ITransformer Transformer { get; private set; }
 
-        private ITransformer CloneTransformers(ITransformer transformer)
+        private static ITransformer CloneTransformers(ITransformer transformer)
         {
-            if(transformer is TransformerChain<ITransformer>)
+            ITransformer[] transformersClone = null;
+            foreach (FieldInfo property in transformer.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
             {
-                var transformers = ((TransformerChain<ITransformer>)transformer).Transformers;
-                ITransformer[] transformersClone = new ITransformer[transformers.Length];
+                if(property.Name == "Transformers")
+                {
+                    transformersClone = (ITransformer[])property.GetValue(transformer);
+                    break;
+                }
+            }
+
+            if (transformersClone != null)
+            {
                 int index = 0;
-                foreach(var xf in transformers)
+                foreach (var xf in transformersClone)
                     transformersClone[index++] = xf is IStatefulTransformer ? ((IStatefulTransformer)xf).Clone() : xf;
 
                 return new TransformerChain<ITransformer>(transformersClone);
@@ -59,21 +67,9 @@ namespace Microsoft.ML.TimeSeries
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
         }
 
-        internal TimeSeriesPredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, modelStream, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
-        {
-        }
-
-        internal TimeSeriesPredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, dataPipe, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
-        {
-        }
-
         public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
-            base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+            base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
 
