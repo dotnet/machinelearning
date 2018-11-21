@@ -236,6 +236,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     [DebuggerDisplay("{Values}")]
     internal class PipelineItemDebugRow
     {

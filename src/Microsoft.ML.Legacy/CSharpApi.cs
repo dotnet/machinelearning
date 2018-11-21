@@ -2317,7 +2317,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        [Obsolete("")]
+        [Obsolete]
         public sealed partial class TextLoader : Microsoft.ML.Legacy.ILearningPipelineLoader
         {
 

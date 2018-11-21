@@ -5,8 +5,8 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Legacy.Transforms;
-using System;
 
+#pragma warning disable 612
 namespace Microsoft.ML.Legacy.Models
 {
     public sealed partial class BinaryClassificationEvaluator
