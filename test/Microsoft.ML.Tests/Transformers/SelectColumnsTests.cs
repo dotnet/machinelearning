@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = ML.Transforms.SelectColumns(new[] {"A", "B"});
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
-            // Workout on drop columns
+            // Workout on select columns with hidden: true
             est = ML.Transforms.SelectColumns(new[] {"A", "B"}, true);
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
         }
@@ -176,30 +176,6 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(1, bIdx);
             Assert.False(foundColumnC);
             Assert.Equal(0, cIdx);
-        }
-
-        [Fact]
-        void TestSelectColumnsDropWithKeepHidden()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ColumnCopyingEstimator(Env, new[] {("A", "A"), ("B", "B")});
-            var chain = est.Append(ML.Transforms.SelectColumns(new[] { "A" }, true));
-            var transformer = chain.Fit(dataView);
-            var result = transformer.Transform(dataView);
-
-            // Input for SelectColumns should be AABBC, we chose to drop A
-            // and keep hidden columns is true, therefore the output should be BBC
-            Assert.Equal(3, result.Schema.ColumnCount);
-            var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
-            var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
-            var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
-            Assert.False(foundColumnA);
-            Assert.Equal(0, aIdx);
-            Assert.True(foundColumnB);
-            Assert.Equal(1, bIdx);
-            Assert.True(foundColumnC);
-            Assert.Equal(2, cIdx);
         }
 
         [Fact]

@@ -236,7 +236,7 @@ namespace Microsoft.ML.Trainers.Online
         public LinearSvm(IHostEnvironment env,
             string labelColumn = DefaultColumnNames.Label,
             string featureColumn = DefaultColumnNames.Features,
-            string weightsColumn = DefaultColumnNames.Weight,
+            string weightsColumn = null,
             int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
             Action<Arguments> advancedSettings = null)
             :this(env, InvokeAdvanced(advancedSettings, new Arguments
