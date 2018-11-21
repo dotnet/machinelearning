@@ -230,7 +230,7 @@ namespace Microsoft.ML.Transforms.Conversions
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
+        private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx, ISaveAsPfa
         {
             private sealed class ColInfo
             {
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 return infos;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 dst = new VBuffer<int>(ranges.Length, ranges);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);

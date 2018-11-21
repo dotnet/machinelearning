@@ -16227,10 +16227,10 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
+        public sealed partial class LatentDirichletAllocationTransformerColumn : OneToOneColumn<LatentDirichletAllocationTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             [Obsolete]
             public int? NumTopic { get; set; }
@@ -16343,15 +16343,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16360,10 +16360,10 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:srcs)
             /// </summary>
             [Obsolete]
-            public LdaTransformColumn[] Column { get; set; }
+            public LatentDirichletAllocationTransformerColumn[] Column { get; set; }
 
             /// <summary>
-            /// The number of topics in the LDA
+            /// The number of topics
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
             [Obsolete]
@@ -16404,16 +16404,16 @@ namespace Microsoft.ML
             public int LikelihoodInterval { get; set; } = 5;
 
             /// <summary>
+            /// The number of training threads. Default value depends on number of logical processors.
+            /// </summary>
+            [Obsolete]
+            public int NumThreads { get; set; }
+
+            /// <summary>
             /// The threshold of maximum count of tokens per doc
             /// </summary>
             [Obsolete]
             public int NumMaxDocToken { get; set; } = 512;
-
-            /// <summary>
-            /// The number of training threads. Default value depends on number of logical processors.
-            /// </summary>
-            [Obsolete]
-            public int? NumThreads { get; set; }
 
             /// <summary>
             /// The number of words to summarize the topic

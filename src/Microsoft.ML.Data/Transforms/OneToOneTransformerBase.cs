@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public abstract class OneToOneTransformerBase : ITransformer, ICanSaveModel
+    /// <summary>
+    /// Base class for transformer which operates on pairs input and output columns.
+    /// </summary>
+    public abstract class OneToOneTransformerBase : RowToRowTransformerBase
     {
-        protected readonly IHost Host;
         protected readonly (string input, string output)[] ColumnPairs;
 
-        protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns)
+        protected OneToOneTransformerBase(IHost host, (string input, string output)[] columns) : base(host)
         {
-            Contracts.AssertValue(host);
             host.CheckValue(columns, nameof(columns));
-
             var newNames = new HashSet<string>();
             foreach (var column in columns)
             {
@@ -30,13 +29,11 @@ namespace Microsoft.ML.Runtime.Data
                     throw Contracts.ExceptParam(nameof(columns), $"Output column '{column.output}' specified multiple times");
             }
 
-            Host = host;
             ColumnPairs = columns;
         }
 
-        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx)
+        protected OneToOneTransformerBase(IHost host, ModelLoadContext ctx) : base(host)
         {
-            Host = host;
             // *** Binary format ***
             // int: number of added columns
             // for each added column
@@ -52,8 +49,6 @@ namespace Microsoft.ML.Runtime.Data
                 ColumnPairs[i] = (input, output);
             }
         }
-
-        public abstract void Save(ModelSaveContext ctx);
 
         protected void SaveColumns(ModelSaveContext ctx)
         {
@@ -88,46 +83,14 @@ namespace Microsoft.ML.Runtime.Data
             // By default, there are no extra checks.
         }
 
-        public bool IsRowToRowMapper => true;
-
-        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        protected abstract class OneToOneMapperBase : MapperBase
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var simplerMapper = MakeRowMapper(inputSchema);
-            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper, MakeRowMapper);
-        }
-
-        protected abstract IRowMapper MakeRowMapper(Schema schema);
-
-        public Schema GetOutputSchema(Schema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var mapper = MakeRowMapper(inputSchema);
-            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
-        }
-
-        public IDataView Transform(IDataView input) => MakeDataTransform(input);
-
-        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema), MakeRowMapper);
-        }
-
-        protected abstract class MapperBase : IRowMapper
-        {
-            protected readonly IHost Host;
             protected readonly Dictionary<int, int> ColMapNewToOld;
-            protected readonly Schema InputSchema;
             private readonly OneToOneTransformerBase _parent;
 
-            protected MapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema)
+            protected OneToOneMapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema) : base(host, inputSchema)
             {
-                Contracts.AssertValue(host);
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(inputSchema);
-
-                Host = host;
                 _parent = parent;
 
                 ColMapNewToOld = new Dictionary<int, int>();
@@ -136,9 +99,9 @@ namespace Microsoft.ML.Runtime.Data
                     _parent.CheckInput(inputSchema, i, out int srcCol);
                     ColMapNewToOld.Add(i, srcCol);
                 }
-                InputSchema = inputSchema;
             }
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 foreach (var pair in ColMapNewToOld)
@@ -147,41 +110,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col => active[col];
             }
 
-            public abstract Schema.Column[] GetOutputColumns();
-
-            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
-
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
-            {
-                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
-                // of the input row.
-                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
-                // is no longer always possible. So, we relax the assert as below.
-                if (input.Schema is Schema s)
-                    Contracts.Assert(s == InputSchema);
-                var result = new Delegate[_parent.ColumnPairs.Length];
-                var disposers = new Action[_parent.ColumnPairs.Length];
-                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                {
-                    if (!activeOutput(i))
-                        continue;
-                    int srcCol = ColMapNewToOld[i];
-                    result[i] = MakeGetter(input, i, out disposers[i]);
-                }
-                if (disposers.Any(x => x != null))
-                {
-                    disposer = () =>
-                    {
-                        foreach (var act in disposers)
-                            act();
-                    };
-                }
-                else
-                    disposer = null;
-                return result;
-            }
-
-            protected abstract Delegate MakeGetter(IRow input, int iinfo, out Action disposer);
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
         }
     }
 }

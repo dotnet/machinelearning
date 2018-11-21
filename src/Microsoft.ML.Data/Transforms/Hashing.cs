@@ -860,7 +860,7 @@ namespace Microsoft.ML.Transforms.Conversions
             };
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private sealed class ColInfo
             {
@@ -888,7 +888,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     _types[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.Column[] GetOutputColumnsCore()
             {
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 builder.AddKeyValues(_parent._kvTypes[i].VectorSize, _parent._kvTypes[i].ItemType.AsPrimitive, getter);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
         }
 
         private abstract class InvertHashHelper

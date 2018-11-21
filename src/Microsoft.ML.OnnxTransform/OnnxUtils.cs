@@ -17,107 +17,6 @@ using OnnxShape = System.Collections.Generic.List<long>;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// IdvToTensorAdapter adapts an Idv (row-iterator interface) to a tensor-iterator interface.
-    /// For an Idv, you'd need to create a cursor and iterate over it to get each rows of the Idv.
-    /// After adaptation, you'd call GetTensor() on the IdvToTensorAdapter object to get the Tensor equivalent of
-    /// each row.
-    /// </summary>
-    internal sealed class IdvToTensorAdapter
-    {
-        // Idv information
-        private readonly string _idvColumnName;
-        internal readonly int IdvColumnIndex;
-        private readonly bool _idvIsVectorColumn;
-        public readonly ColumnType IdvColumnType;
-
-        // Onnx tensor information
-        private readonly OnnxShape _onnxTensorShape;
-
-        private ITensorValueGetter _tensorValueGetter;
-
-        public IdvToTensorAdapter(Schema idvSchema, string idvColumnName,
-                                    OnnxModel.OnnxNodeInfo onnxInputNodeInfo)
-        {
-            _idvColumnName = idvColumnName;
-            if (!idvSchema.TryGetColumnIndex(_idvColumnName, out IdvColumnIndex))
-                throw Contracts.Except($"Column '{_idvColumnName}' does not exist");
-            IdvColumnType = idvSchema.GetColumnType(IdvColumnIndex);
-            _idvIsVectorColumn = IdvColumnType.IsVector;
-            _onnxTensorShape = onnxInputNodeInfo.Shape;
-
-            // TODO: Check that the idv and tensor sizes match
-            // TODO: Check type matches
-
-            // TODO: Add Yaels shape logic here
-            if (_onnxTensorShape[0] == -1)
-                _onnxTensorShape[0] = 1;
-        }
-
-        public void InitializeValueGetters(IRow idvRow)
-        {
-            var type = IdvColumnType.ItemType.RawType;
-            _tensorValueGetter = Utils.MarshalInvoke(
-                CreateTensorValueGetter<int>, type, idvRow, _idvIsVectorColumn, IdvColumnIndex, _onnxTensorShape);
-        }
-
-        public Tensor GetTensor()
-        {
-            return _tensorValueGetter.GetTensor();
-        }
-
-        private ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, OnnxShape tensorShape)
-        {
-            if (isVector)
-                return new TensorValueGetterVec<T>(input, colIndex, tensorShape);
-            else
-                return new TensorValueGetter<T>(input, colIndex);
-        }
-
-        private interface ITensorValueGetter
-        {
-            Tensor GetTensor();
-        }
-
-        private class TensorValueGetter<T> : ITensorValueGetter
-        {
-            private readonly ValueGetter<T> _srcgetter;
-
-            public TensorValueGetter(IRow input, int colIndex)
-            {
-                _srcgetter = input.GetGetter<T>(colIndex);
-            }
-            public Tensor GetTensor()
-            {
-                var scalar = default(T);
-                _srcgetter(ref scalar);
-                return OnnxUtils.CreateScalarTensor(scalar);
-            }
-        }
-
-        private class TensorValueGetterVec<T> : ITensorValueGetter
-        {
-            private readonly ValueGetter<VBuffer<T>> _srcgetter;
-            private readonly OnnxShape _tensorShape;
-            private VBuffer<T> _vBuffer;
-            private T[] _denseData;
-            public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
-            {
-                _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
-                _tensorShape = tensorShape;
-                _vBuffer = default;
-                _denseData = default;
-            }
-            public Tensor GetTensor()
-            {
-                _srcgetter(ref _vBuffer);
-                Utils.EnsureSize(ref _denseData, _vBuffer.Length, keepOld: false);
-                _vBuffer.CopyTo(_denseData);
-                return OnnxUtils.CreateTensor(_denseData, _tensorShape);
-            }
-        }
-    }
-
-    /// <summary>
     /// OnnxModel is a facad for ModelManager. ModelManager is provided by Sonoma API,
     /// and it has a lot of functionality (multiple models, multiple versions) that are not
     /// needed by Onnx transform, which only needs a single model. This facad simplifies the
@@ -165,8 +64,8 @@ namespace Microsoft.ML.Transforms
         private readonly ModelManager _modelManager;
         private readonly string _modelFile;
         private readonly string _modelName;
-        private readonly List<string> _inputNames;
-        private readonly List<string> _outputNames;
+        public readonly List<string> InputNames;
+        public readonly List<string> OutputNames;
 
         public OnnxModel(string modelFile)
         {
@@ -179,8 +78,8 @@ namespace Microsoft.ML.Transforms
             _modelManager.InitOnnxModel(_modelName, _ignoredVersion);
 
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
-            _inputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
-            _outputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
+            InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
+            OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
         }
 
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
@@ -201,7 +100,7 @@ namespace Microsoft.ML.Transforms
         public List<Tensor> Run(List<Tensor> inputTensors)
         {
             var outputTensors = _modelManager.RunModel(
-                _modelName, _ignoredVersion, _inputNames, inputTensors, _outputNames);
+                _modelName, _ignoredVersion, InputNames, inputTensors, OutputNames);
 
             return outputTensors;
         }
@@ -247,6 +146,9 @@ namespace Microsoft.ML.Transforms
         /// Sonoma API only provides Tensor() constructors with overloaded
         /// versions based on data type.
         /// </summary>
+
+        private static Dictionary<System.Type, DataType> _typeMap;
+
         public static Tensor CreateScalarTensor<T>(T data)
         {
             if (typeof(T) == typeof(System.Boolean))
@@ -306,27 +208,27 @@ namespace Microsoft.ML.Transforms
         /// generic version. CreateTensor&lt;T&gt; is generic wrapper on top of
         /// overloaded Tensor(T[] data, OnnxShape shape) constructors.
         /// </summary>
-        public static Tensor CreateTensor<T>(T[] data, OnnxShape shape)
+        public static Tensor CreateTensor<T>(ReadOnlySpan<T> data, OnnxShape shape)
         {
             if (typeof(T) == typeof(System.Boolean))
             {
-                return new Tensor(((System.Boolean[])(object)data).ToList(), shape);
+                return new Tensor((System.Boolean[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Double))
             {
-                return new Tensor(((System.Double[])(object)data).ToList(), shape);
+                return new Tensor((System.Double[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Single))
             {
-                return new Tensor(((System.Single[])(object)data).ToList(), shape);
+                return new Tensor((System.Single[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Int32))
             {
-                return new Tensor(((System.Int32[])(object)data).ToList(), shape);
+                return new Tensor((System.Int32[])(object)data.ToArray(), shape.ToArray());
             }
             else if (typeof(T) == typeof(System.Int64))
             {
-                return new Tensor(((System.Int64[])(object)data).ToList(), shape);
+                return new Tensor((System.Int64[])(object)data.ToArray(), shape.ToArray());
             }
             throw new NotImplementedException($"Not implemented type {typeof(T)}");
         }
@@ -341,23 +243,22 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public static unsafe void CopyTo<T>(Tensor tensor, Span<T> dst)
         {
-            if (typeof(T) == typeof(System.Single))
+            var typeMap = SystemTypeToOnnxType();
+            if (typeMap.ContainsKey(typeof(T)))
             {
-                DataType dataType = tensor.GetDataType();
-                if (dataType != DataType.Type_Float)
+                if (tensor.GetDataType() != typeMap[typeof(T)])
                 {
-                    throw new InvalidOperationException(string.Format("Cannot copy source tensor {0} to managed type System.Single (DataType.Type_Float).", dataType));
+                    throw new InvalidOperationException( string.Format("Cannot copy source tensor of type {0} to managed type {1}.", tensor.GetDataType(), typeof(T)));
                 }
-
                 Span<T> tensorSpan = new Span<T>(tensor.UnsafeGetData().ToPointer(), tensor.GetSize());
                 tensorSpan.CopyTo(dst);
                 // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
                 // during the method call. Use KeepAlive for now, and remove
                 // after permanent fix in CopyTo().
-                GC.KeepAlive(tensor);
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
+            GC.KeepAlive(tensor);
         }
 
         public static PrimitiveType OnnxToMlNetType(DataType type)
@@ -411,6 +312,24 @@ namespace Microsoft.ML.Transforms
             }
 
             return PrimitiveType.FromKind(kind);
+        }
+
+        internal static Dictionary<System.Type, DataType> SystemTypeToOnnxType()
+        {
+            if (_typeMap == null)
+            {
+                _typeMap = new Dictionary<System.Type, DataType>
+                {
+                    { typeof(Boolean) , DataType.Type_Bool },
+                    { typeof(Double) , DataType.Type_Double },
+                    { typeof(Single) , DataType.Type_Float },
+                    { typeof(Int16) , DataType.Type_Int16 },
+                    { typeof(Int32) , DataType.Type_Int32 },
+                    { typeof(Int64) , DataType.Type_Int64 },
+                    { typeof(UInt16) , DataType.Type_Uint16 }
+                };
+            }
+            return _typeMap;
         }
     }
 }

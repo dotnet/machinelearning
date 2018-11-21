@@ -6,10 +6,11 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.Text;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -235,7 +236,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact(Skip = "LDA transform cannot be trained on empty data, schema propagation fails")]
+        [Fact]
         public void LdaWorkout()
         {
             IHostEnvironment env = new MLContext(seed: 42, conc: 1);
@@ -251,21 +252,21 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, advancedSettings: s =>
-                {
-                    s.NumIterations = 10;
-                    s.ResetRandomGenerator = true;
-                }));
+                Append(new LatentDirichletAllocationEstimator(env, "bag_of_words", "topics", 10, numIterations: 10,
+                    resetRandomGenerator: true));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
+            // In this test it manifests because of the WordBagEstimator in the estimator chain
             // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = env.Start("save"))
             {
                 var saver = new TextSaver(env, new TextSaver.Arguments { Silent = true, OutputHeader = false, Dense = true });
-                IDataView savedData = TakeFilter.Create(env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                var transformer = est.Fit(data.AsDynamic);
+                var transformedData = transformer.Transform(data.AsDynamic);
+                IDataView savedData = TakeFilter.Create(env, transformedData, 4);
                 savedData = ColumnSelectingTransformer.CreateKeep(env, savedData, new[] { "topics" });
 
                 using (var fs = File.Create(outputPath))
@@ -280,6 +281,31 @@ namespace Microsoft.ML.Tests.Transformers
             // On single box, setting `s.ResetRandomGenerator = true` works but fails on build server
             // CheckEquality("Text", "ldatopics.tsv");
             Done();
+        }
+
+        [Fact]
+        public void LdaWorkoutEstimatorCore()
+        {
+            var ml = new MLContext();
+
+            var builder = new ArrayDataViewBuilder(Env);
+            var data = new[]
+            {
+                new[] {  (float)1.0,  (float)0.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)1.0,  (float)0.0 },
+                new[] {  (float)0.0,  (float)0.0,  (float)1.0 },
+            };
+            builder.AddColumn("F1V", NumberType.Float, data);
+            var srcView = builder.GetDataView();
+
+            var est = ml.Transforms.Text.LatentDirichletAllocation("F1V");
+            TestEstimatorCore(est, srcView);
+        }
+
+        [Fact]
+        public void TestLdaCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0-10} xf=lda{col=B:A} in=f:\2.txt" }), (int)0);
         }
     }
 }

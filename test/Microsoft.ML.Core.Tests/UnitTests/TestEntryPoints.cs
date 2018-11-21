@@ -2018,7 +2018,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointLightLdaTransform()
+        public void EntryPointLightLdaTransformer()
         {
             string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextLightLda-SampleText.txt");
             File.WriteAllLines(dataFile, new[] {
