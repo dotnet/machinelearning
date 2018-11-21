@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
@@ -22,14 +24,14 @@ namespace Microsoft.ML.Runtime.Data
             : base(provider, input)
         {
             Ch.CheckValue(schema, nameof(schema));
-            Ch.Check(active == null || active.Length == schema.ColumnCount);
+            Ch.Check(active == null || active.Length == schema.Count);
             _active = active;
             Schema = schema;
         }
 
         public bool IsColumnActive(int col)
         {
-            Ch.Check(0 <= col && col < Schema.ColumnCount);
+            Ch.Check(0 <= col && col < Schema.Count);
             return _active == null || _active[col];
         }
 

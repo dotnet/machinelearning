@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Regression Evaluator", RegressionEvaluator.LoadName, "Regression")]
@@ -308,11 +308,11 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[2];
-            infos[L1Col] = new Schema.Column(L1, NumberType.R8, null);
-            infos[L2Col] = new Schema.Column(L2, NumberType.R8, null);
+            var infos = new Schema.DetachedColumn[2];
+            infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Col] = new Schema.DetachedColumn(L2, NumberType.R8, null);
             return infos;
         }
 
