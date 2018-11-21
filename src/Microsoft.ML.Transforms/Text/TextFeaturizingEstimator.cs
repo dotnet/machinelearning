@@ -167,8 +167,8 @@ namespace Microsoft.ML.Transforms.Text
             public readonly bool OutputTextTokens;
             public readonly TermLoaderArguments Dictionary;
 
-            public StopWordsRemoverEstimator.Language StopwordsLanguage
-                =>(StopWordsRemoverEstimator.Language) Enum.Parse(typeof(StopWordsRemoverEstimator.Language), Language.ToString());
+            public StopWordsRemovingEstimator.Language StopwordsLanguage
+                =>(StopWordsRemovingEstimator.Language) Enum.Parse(typeof(StopWordsRemovingEstimator.Language), Language.ToString());
 
             public LpNormalizingEstimatorBase.NormalizerKind LpNormalizerKind
             {
@@ -341,18 +341,18 @@ namespace Microsoft.ML.Transforms.Text
             if (tparams.UsePredefinedStopWordRemover)
             {
                 Contracts.Assert(wordTokCols != null, "StopWords transform requires that word tokenization has been applied to the input text.");
-                var xfCols = new StopWordsRemoverTransform.ColumnInfo[wordTokCols.Length];
+                var xfCols = new StopWordsRemovingTransform.ColumnInfo[wordTokCols.Length];
                 var dstCols = new string[wordTokCols.Length];
                 for (int i = 0; i < wordTokCols.Length; i++)
                 {
                     var tempName = GenerateColumnName(view.Schema, wordTokCols[i], "StopWordsRemoverTransform");
-                    var col = new StopWordsRemoverTransform.ColumnInfo(wordTokCols[i], tempName, tparams.StopwordsLanguage);
+                    var col = new StopWordsRemovingTransform.ColumnInfo(wordTokCols[i], tempName, tparams.StopwordsLanguage);
                     dstCols[i] = tempName;
                     tempCols.Add(tempName);
 
                     xfCols[i] = col;
                 }
-                view = new StopWordsRemoverEstimator(h, xfCols).Fit(view).Transform(view);
+                view = new StopWordsRemovingEstimator(h, xfCols).Fit(view).Transform(view);
                 wordTokCols = dstCols;
             }
 

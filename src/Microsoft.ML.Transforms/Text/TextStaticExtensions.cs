@@ -123,7 +123,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly VarVector<string> Input;
 
-            public OutPipelineColumn(VarVector<string> input, StopWordsRemoverEstimator.Language language)
+            public OutPipelineColumn(VarVector<string> input, StopWordsRemovingEstimator.Language language)
                 : base(new Reconciler(language), input)
             {
                 Input = input;
@@ -132,9 +132,9 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly StopWordsRemoverEstimator.Language _language;
+            private readonly StopWordsRemovingEstimator.Language _language;
 
-            public Reconciler(StopWordsRemoverEstimator.Language language)
+            public Reconciler(StopWordsRemovingEstimator.Language language)
             {
                 _language = language;
             }
@@ -152,11 +152,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var columns = new List<StopWordsRemoverTransform.ColumnInfo>();
+                var columns = new List<StopWordsRemovingTransform.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new StopWordsRemoverTransform.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
+                    columns.Add(new StopWordsRemovingTransform.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
 
-                return new StopWordsRemoverEstimator(env, columns.ToArray());
+                return new StopWordsRemovingEstimator(env, columns.ToArray());
             }
         }
 
@@ -166,7 +166,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply to.</param>
         /// <param name="language">Langauge of the input text.</param>
         public static VarVector<string> RemoveStopwords(this VarVector<string> input,
-            StopWordsRemoverEstimator.Language language = StopWordsRemoverEstimator.Language.English) => new OutPipelineColumn(input, language);
+            StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English) => new OutPipelineColumn(input, language);
     }
 
     /// <summary>
