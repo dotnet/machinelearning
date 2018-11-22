@@ -152,11 +152,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMul(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
-        {
-            MatMul(mat.Items, src.Items, dst.Items, crow, ccol);
-        }
-
         public static unsafe void MatMul(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
@@ -170,12 +165,141 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 float* pMatCurrent = pmat;
 
+                if (crow % 4 == 0)
+                {
+                    while (pDstCurrent + 4 <= pDstEnd)
+                    {
+                        Vector256<float> res0 = Avx.SetZeroVector256<float>();
+                        Vector256<float> res1 = Avx.SetZeroVector256<float>();
+                        Vector256<float> res2 = Avx.SetZeroVector256<float>();
+                        Vector256<float> res3 = Avx.SetZeroVector256<float>();
+
+                        int length = ccol;
+                        float* pSrcCurrent = psrc;
+
+                        nuint address = (nuint)(pMatCurrent);
+                        int misalignment = (int)(address % 32);
+                        int remainder = 0;
+
+                        if ((misalignment & 3) != 0)
+                        {
+                            // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+                            while (pSrcCurrent < pSrcEnd)
+                            {
+                                Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
+
+                                float* pMatTemp = pMatCurrent;
+                                res0 = MultiplyAdd(pMatTemp, vector, res0);
+                                res1 = MultiplyAdd(pMatTemp += ccol, vector, res1);
+                                res2 = MultiplyAdd(pMatTemp += ccol, vector, res2);
+                                res3 = MultiplyAdd(pMatTemp += ccol, vector, res3);
+
+                                pSrcCurrent += 8;
+                                pMatCurrent += 8;
+                            }
+                        }
+                        else
+                        {
+                            if (misalignment != 0)
+                            {
+                                // Handle cases where the data is not 256-bit aligned by doing an unaligned read and then
+                                // masking any elements that will be included in the first aligned read
+                                misalignment >>= 2;
+                                misalignment = 8 - misalignment;
+
+                                Vector256<float> mask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
+
+                                // We only align pMat since it has significantly more reads.
+                                float* pMatTemp = pMatCurrent;
+                                Vector256<float> x01 = Avx.And(mask, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x11 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x21 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x31 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> vector = Avx.And(mask, Avx.LoadVector256(pSrcCurrent));
+
+                                res0 = Avx.Multiply(x01, vector);
+                                res1 = Avx.Multiply(x11, vector);
+                                res2 = Avx.Multiply(x21, vector);
+                                res3 = Avx.Multiply(x31, vector);
+
+                                pMatCurrent += misalignment;
+                                pSrcCurrent += misalignment;
+                                length -= misalignment;
+                            }
+
+                            if (length > 7)
+                            {
+                                // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
+                                remainder = length % 8;
+
+                                while (pSrcCurrent + 8 <= pSrcEnd)
+                                {
+                                    // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                                    // (due to semantics of the legacy encoding).
+                                    // We don't need an assert, since the instruction will throw for unaligned inputs.
+                                    Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
+
+                                    float* pMatTemp = pMatCurrent;
+                                    res0 = MultiplyAdd(pMatTemp, vector, res0);
+                                    res1 = MultiplyAdd(pMatTemp += ccol, vector, res1);
+                                    res2 = MultiplyAdd(pMatTemp += ccol, vector, res2);
+                                    res3 = MultiplyAdd(pMatTemp += ccol, vector, res3);
+
+                                    pSrcCurrent += 8;
+                                    pMatCurrent += 8;
+                                }
+                            }
+                            else
+                            {
+                                // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                                // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                                // unaligned loads where we mask the input each time.
+                                remainder = length;
+                            }
+
+                            if (remainder != 0)
+                            {
+                                // Handle any trailing elements that don't fit into a 256-bit block by moving back so that the next
+                                // unaligned load will read to the end of the array and then mask out any elements already processed
+
+                                pMatCurrent -= (8 - remainder);
+                                pSrcCurrent -= (8 - remainder);
+
+                                Vector256<float> mask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
+
+                                float* pMatTemp = pMatCurrent;
+                                Vector256<float> x01 = Avx.And(mask, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x11 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x21 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x31 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> vector = Avx.And(mask, Avx.LoadVector256(pSrcCurrent));
+
+                                res0 = MultiplyAdd(x01, vector, res0);
+                                res1 = MultiplyAdd(x11, vector, res1);
+                                res2 = MultiplyAdd(x21, vector, res2);
+                                res3 = MultiplyAdd(x31, vector, res3);
+
+                                pMatCurrent += 8;
+                                pSrcCurrent += 8;
+                            }
+                        }
+
+                        // Add up the entries of each, with the 4 results in res0
+                        res0 = Avx.HorizontalAdd(res0, res1);
+                        res2 = Avx.HorizontalAdd(res2, res3);
+                        res0 = Avx.HorizontalAdd(res0, res2);
+
+                        Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(res0), GetHigh(in res0));
+                        Sse.Store(pDstCurrent, sum);
+
+                        pDstCurrent += 4;
+                        pMatCurrent += 3 * ccol;
+                    }
+                }
+
                 while (pDstCurrent < pDstEnd)
                 {
                     Vector256<float> res0 = Avx.SetZeroVector256<float>();
-                    Vector256<float> res1 = Avx.SetZeroVector256<float>();
-                    Vector256<float> res2 = Avx.SetZeroVector256<float>();
-                    Vector256<float> res3 = Avx.SetZeroVector256<float>();
 
                     int length = ccol;
                     float* pSrcCurrent = psrc;
@@ -193,9 +317,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             float* pMatTemp = pMatCurrent;
                             res0 = MultiplyAdd(pMatTemp, vector, res0);
-                            res1 = MultiplyAdd(pMatTemp += ccol, vector, res1);
-                            res2 = MultiplyAdd(pMatTemp += ccol, vector, res2);
-                            res3 = MultiplyAdd(pMatTemp += ccol, vector, res3);
 
                             pSrcCurrent += 8;
                             pMatCurrent += 8;
@@ -215,15 +336,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             // We only align pMat since it has significantly more reads.
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x01 = Avx.And(mask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x11 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x21 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x31 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
                             Vector256<float> vector = Avx.And(mask, Avx.LoadVector256(pSrcCurrent));
 
                             res0 = Avx.Multiply(x01, vector);
-                            res1 = Avx.Multiply(x11, vector);
-                            res2 = Avx.Multiply(x21, vector);
-                            res3 = Avx.Multiply(x31, vector);
 
                             pMatCurrent += misalignment;
                             pSrcCurrent += misalignment;
@@ -244,9 +359,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                                 float* pMatTemp = pMatCurrent;
                                 res0 = MultiplyAdd(pMatTemp, vector, res0);
-                                res1 = MultiplyAdd(pMatTemp += ccol, vector, res1);
-                                res2 = MultiplyAdd(pMatTemp += ccol, vector, res2);
-                                res3 = MultiplyAdd(pMatTemp += ccol, vector, res3);
 
                                 pSrcCurrent += 8;
                                 pMatCurrent += 8;
@@ -272,42 +384,25 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x01 = Avx.And(mask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x11 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x21 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x31 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
                             Vector256<float> vector = Avx.And(mask, Avx.LoadVector256(pSrcCurrent));
 
                             res0 = MultiplyAdd(x01, vector, res0);
-                            res1 = MultiplyAdd(x11, vector, res1);
-                            res2 = MultiplyAdd(x21, vector, res2);
-                            res3 = MultiplyAdd(x31, vector, res3);
 
                             pMatCurrent += 8;
                             pSrcCurrent += 8;
                         }
                     }
 
-                    // Add up the entries of each, with the 4 results in res0
-                    res0 = Avx.HorizontalAdd(res0, res1);
-                    res2 = Avx.HorizontalAdd(res2, res3);
-                    res0 = Avx.HorizontalAdd(res0, res2);
+                    res0 = VectorSum256(in res0);
+                    float sum = Sse.ConvertToSingle(Sse.AddScalar(Avx.GetLowerHalf(res0), GetHigh(res0)));
+                    *pDstCurrent = sum;
 
-                    Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(res0), GetHigh(in res0));
-                    Sse.Store(pDstCurrent, sum);
-
-                    pDstCurrent += 4;
-                    pMatCurrent += 3 * ccol;
+                    pDstCurrent += 1;
                 }
             }
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulP(AlignedArray mat, ReadOnlySpan<int> rgposSrc, AlignedArray src,
-                                int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
-        {
-            MatMulP(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);
-        }
-
         public static unsafe void MatMulP(ReadOnlySpan<float> mat, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> src,
                                         int posMin, int iposMin, int iposEnd, Span<float> dst, int crow, int ccol)
         {
@@ -461,11 +556,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe void MatMulTran(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
-        {
-            MatMulTran(mat.Items, src.Items, dst.Items, crow, ccol);
-        }
-
         public static unsafe void MatMulTran(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
@@ -484,17 +574,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
-                    // Replicate each slot of h01 (ABCD) into its own register.
-                    Vector128<float> h11 = Avx.Permute(h01, 0x55); // B
-                    Vector128<float> h21 = Avx.Permute(h01, 0xAA); // C
-                    Vector128<float> h31 = Avx.Permute(h01, 0xFF); // D
                     h01 = Avx.Permute(h01, 0x00); // A
 
                     Vector256<float> x01 = Avx.SetHighLow(h01, h01);
-                    Vector256<float> x11 = Avx.SetHighLow(h11, h11);
-                    Vector256<float> x21 = Avx.SetHighLow(h21, h21);
-                    Vector256<float> x31 = Avx.SetHighLow(h31, h31);
-
                     int length = crow;
                     float* pDstCurrent = pdst;
 
@@ -508,13 +590,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         {
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
 
                             Avx.Store(pDstCurrent, x02);
                             pDstCurrent += 8;
@@ -536,22 +611,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             // We only align pMat since it has significantly more reads.
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-
                             x02 = Avx.Multiply(x01, x02);
-                            x12 = Avx.Multiply(x11, x12);
-                            x22 = Avx.Multiply(x21, x22);
-                            x32 = Avx.Multiply(x31, x32);
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
 
                             Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + ((8 - misalignment) * 8));
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
-                            x02 = Avx.Or(x02, Avx.And(x3, trailingMask));
+                            x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
 
                             Avx.Store(pDstCurrent, x02);
                             pMatCurrent += misalignment;
@@ -569,15 +633,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                                 // (due to semantics of the legacy encoding).
                                 // We don't need an assert, since the instruction will throw for unaligned inputs.
                                 float* pMatTemp = pMatCurrent;
-
                                 Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
-                                Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
-                                Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
-                                Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
-
-                                x02 = Avx.Add(x02, x12);
-                                x22 = Avx.Add(x22, x32);
-                                x02 = Avx.Add(x02, x22);
 
                                 Avx.Store(pDstCurrent, x02);
                                 pDstCurrent += 8;
@@ -603,22 +659,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-
                             x02 = Avx.Multiply(x01, x02);
-                            x12 = Avx.Multiply(x11, x12);
-                            x22 = Avx.Multiply(x21, x22);
-                            x32 = Avx.Multiply(x31, x32);
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
 
                             Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + ((8 - remainder) * 8));
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
-                            x02 = Avx.Or(x02, Avx.And(x3, leadingMask));
+                            x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
 
                             Avx.Store(pDstCurrent, x02);
                             pDstCurrent += 8;
@@ -626,25 +671,164 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                     }
 
-                    pMatCurrent += 3 * crow;
-                    pSrcCurrent += 4;
+                    pSrcCurrent += 1;
                 }
 
                 // We do 4-way unrolling
+                if (crow % 4 == 0)
+                {
+                    while (pSrcCurrent + 4 <= pSrcEnd)
+                    {
+                        Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
+                        // Replicate each slot of h01 (ABCD) into its own register.
+                        Vector128<float> h11 = Avx.Permute(h01, 0x55); // B
+                        Vector128<float> h21 = Avx.Permute(h01, 0xAA); // C
+                        Vector128<float> h31 = Avx.Permute(h01, 0xFF); // D
+                        h01 = Avx.Permute(h01, 0x00); // A
+
+                        Vector256<float> x01 = Avx.SetHighLow(h01, h01);
+                        Vector256<float> x11 = Avx.SetHighLow(h11, h11);
+                        Vector256<float> x21 = Avx.SetHighLow(h21, h21);
+                        Vector256<float> x31 = Avx.SetHighLow(h31, h31);
+
+                        int length = crow;
+                        float* pDstCurrent = pdst;
+
+                        nuint address = (nuint)(pMatCurrent);
+                        int misalignment = (int)(address % 32);
+
+                        if ((misalignment & 3) != 0)
+                        {
+                            while (pDstCurrent < pDstEnd)
+                            {
+                                float* pMatTemp = pMatCurrent;
+                                Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
+
+                                x02 = Avx.Add(x02, x12);
+                                x22 = Avx.Add(x22, x32);
+                                x02 = Avx.Add(x02, x22);
+
+                                x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
+
+                                Avx.Store(pDstCurrent, x02);
+                                pDstCurrent += 8;
+                                pMatCurrent += 8;
+                            }
+                        }
+                        else
+                        {
+                            int remainder = 0;
+                            if (misalignment != 0)
+                            {
+                                // Handle cases where the data is not 256-bit aligned by doing an unaligned read and then
+                                // masking any elements that will be included in the first aligned read
+                                misalignment >>= 2;
+                                misalignment = 8 - misalignment;
+
+                                Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
+
+                                // We only align pMat since it has significantly more reads.
+                                float* pMatTemp = pMatCurrent;
+                                Vector256<float> x02 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x12 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x22 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x32 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
+
+                                x02 = Avx.Multiply(x01, x02);
+                                x12 = Avx.Multiply(x11, x12);
+                                x22 = Avx.Multiply(x21, x22);
+                                x32 = Avx.Multiply(x31, x32);
+
+                                x02 = Avx.Add(x02, x12);
+                                x22 = Avx.Add(x22, x32);
+                                x02 = Avx.Add(x02, x22);
+
+                                Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + ((8 - misalignment) * 8));
+                                Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
+                                x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
+
+                                x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
+
+                                Avx.Store(pDstCurrent, x02);
+                                pMatCurrent += misalignment;
+                                pDstCurrent += misalignment;
+                                length -= misalignment;
+                            }
+                            if (length > 7)
+                            {
+                                remainder = length % 8;
+                                while (pDstCurrent + 8 <= pDstEnd)
+                                {
+                                    float* pMatTemp = pMatCurrent;
+
+                                    Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
+                                    Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
+                                    Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
+                                    Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
+
+                                    x02 = Avx.Add(x02, x12);
+                                    x22 = Avx.Add(x22, x32);
+                                    x02 = Avx.Add(x02, x22);
+
+                                    x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
+
+                                    Avx.Store(pDstCurrent, x02);
+                                    pDstCurrent += 8;
+                                    pMatCurrent += 8;
+                                }
+                            }
+                            else
+                            {
+                                remainder = length;
+                            }
+
+                            if (remainder != 0)
+                            {
+                                pMatCurrent -= (8 - remainder);
+                                pDstCurrent -= (8 - remainder);
+                                Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
+
+                                float* pMatTemp = pMatCurrent;
+                                Vector256<float> x02 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x12 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x22 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
+                                Vector256<float> x32 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
+
+                                x02 = Avx.Multiply(x01, x02);
+                                x12 = Avx.Multiply(x11, x12);
+                                x22 = Avx.Multiply(x21, x22);
+                                x32 = Avx.Multiply(x31, x32);
+
+                                x02 = Avx.Add(x02, x12);
+                                x22 = Avx.Add(x22, x32);
+                                x02 = Avx.Add(x02, x22);
+
+                                Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + ((8 - remainder) * 8));
+                                Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
+                                x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
+
+                                x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
+
+                                Avx.Store(pDstCurrent, x02);
+                                pDstCurrent += 8;
+                                pMatCurrent += 8;
+                            }
+                        }
+
+                        pMatCurrent += 3 * crow;
+                        pSrcCurrent += 4;
+                    }
+                }
+
                 while (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each slot of h01 (ABCD) into its own register.
-                    Vector128<float> h11 = Avx.Permute(h01, 0x55); // B
-                    Vector128<float> h21 = Avx.Permute(h01, 0xAA); // C
-                    Vector128<float> h31 = Avx.Permute(h01, 0xFF); // D
                     h01 = Avx.Permute(h01, 0x00); // A
-
                     Vector256<float> x01 = Avx.SetHighLow(h01, h01);
-                    Vector256<float> x11 = Avx.SetHighLow(h11, h11);
-                    Vector256<float> x21 = Avx.SetHighLow(h21, h21);
-                    Vector256<float> x31 = Avx.SetHighLow(h31, h31);
-
                     int length = crow;
                     float* pDstCurrent = pdst;
 
@@ -657,14 +841,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         {
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
-
                             x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
 
                             Avx.Store(pDstCurrent, x02);
@@ -687,22 +863,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             // We only align pMat since it has significantly more reads.
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.And(leadingMask, Avx.LoadVector256(pMatTemp += crow));
-
                             x02 = Avx.Multiply(x01, x02);
-                            x12 = Avx.Multiply(x11, x12);
-                            x22 = Avx.Multiply(x21, x22);
-                            x32 = Avx.Multiply(x31, x32);
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
 
                             Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + ((8 - misalignment) * 8));
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
-                            x02 = Avx.Or(x02, Avx.And(x3, trailingMask));
+                            x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
 
                             x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
 
@@ -716,17 +881,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             remainder = length % 8;
                             while (pDstCurrent + 8 <= pDstEnd)
                             {
+                                // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                                // (due to semantics of the legacy encoding).
+                                // We don't need an assert, since the instruction will throw for unaligned inputs.
                                 float* pMatTemp = pMatCurrent;
-
                                 Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
-                                Vector256<float> x12 = Avx.Multiply(x11, Avx.LoadVector256(pMatTemp += crow));
-                                Vector256<float> x22 = Avx.Multiply(x21, Avx.LoadVector256(pMatTemp += crow));
-                                Vector256<float> x32 = Avx.Multiply(x31, Avx.LoadVector256(pMatTemp += crow));
-
-                                x02 = Avx.Add(x02, x12);
-                                x22 = Avx.Add(x22, x32);
-                                x02 = Avx.Add(x02, x22);
-
                                 x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
 
                                 Avx.Store(pDstCurrent, x02);
@@ -739,7 +898,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             remainder = length;
                         }
 
-                        if (remainder != 0)
+                        if (remainder > 0)
                         {
                             pMatCurrent -= (8 - remainder);
                             pDstCurrent -= (8 - remainder);
@@ -747,22 +906,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x02 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x12 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x22 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-                            Vector256<float> x32 = Avx.And(trailingMask, Avx.LoadVector256(pMatTemp += crow));
-
                             x02 = Avx.Multiply(x01, x02);
-                            x12 = Avx.Multiply(x11, x12);
-                            x22 = Avx.Multiply(x21, x22);
-                            x32 = Avx.Multiply(x31, x32);
-
-                            x02 = Avx.Add(x02, x12);
-                            x22 = Avx.Add(x22, x32);
-                            x02 = Avx.Add(x02, x22);
 
                             Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + ((8 - remainder) * 8));
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
-                            x02 = Avx.Or(x02, Avx.And(x3, leadingMask));
+                            x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
 
                             x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
 
@@ -770,10 +918,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             pDstCurrent += 8;
                             pMatCurrent += 8;
                         }
-                    }
 
-                    pMatCurrent += 3 * crow;
-                    pSrcCurrent += 4;
+                        pSrcCurrent += 1;
+                    }
                 }
             }
         }

@@ -11,17 +11,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     [BestFriend]
     internal static partial class CpuMathUtils
     {
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        private const int Vector128Alignment = 16;
+        public static void MatrixTimesSource(bool transpose, ReadOnlySpan<float> matrix, ReadOnlySpan<float> source, Span<float> destination, int stride) => SseUtils.MatTimesSrc(transpose, matrix, source, destination, stride);
 
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public static int GetVectorAlignment()
-            => Vector128Alignment;
-
-        public static void MatrixTimesSource(bool transpose, AlignedArray matrix, AlignedArray source, AlignedArray destination, int stride) => SseUtils.MatTimesSrc(transpose, matrix, source, destination, stride);
-
-        public static void MatrixTimesSource(AlignedArray matrix, ReadOnlySpan<int> rgposSrc, AlignedArray sourceValues,
-            int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride) => SseUtils.MatTimesSrc(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride);
+        public static void MatrixTimesSource(ReadOnlySpan<float> matrix, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> sourceValues,
+            int posMin, int iposMin, int iposLimit, Span<float> destination, int stride) => SseUtils.MatTimesSrc(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride);
 
         public static void Add(float value, Span<float> destination) => SseUtils.Add(value, destination);
 
@@ -62,8 +55,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static float DotProductSparse(ReadOnlySpan<float> left, ReadOnlySpan<float> right, ReadOnlySpan<int> indices, int count) => SseUtils.DotProductSparse(left, right, indices, count);
 
         public static float L2DistSquared(ReadOnlySpan<float> left, ReadOnlySpan<float> right, int count) => SseUtils.L2DistSquared(left, right, count);
-
-        public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(destination, ccol, cfltRow, indices);
 
         public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> source, float threshold, Span<float> v, Span<float> w)
             => SseUtils.SdcaL1UpdateDense(primalUpdate, count, source, threshold, v, w);
