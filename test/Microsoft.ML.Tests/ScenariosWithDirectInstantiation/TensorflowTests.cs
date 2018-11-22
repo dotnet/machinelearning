@@ -2,23 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
-using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.RunTests;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -534,32 +528,6 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
-        public void TensorFlowTransformMNISTConvPipelineTest()
-        {
-            var model_location = "mnist_model/frozen_saved_model.pb";
-            var dataPath = GetDataPath(TestDatasets.mnistTiny28.trainFilename);
-
-            var pipeline = new Legacy.LearningPipeline(seed: 1);
-            pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnsCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
-            pipeline.Add(new TensorFlowScorer()
-            {
-                ModelLocation = model_location,
-                OutputColumns = new[] { "Softmax", "dense/Relu" },
-                InputColumns = new[] { "Placeholder", "reshape_input" }
-            });
-            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ColumnConcatenatingTransformerColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
-            pipeline.Add(new Legacy.Transforms.LabelToFloatConverter() { LabelColumn = "Label" });
-            pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
-
-            var model = pipeline.Train<MNISTData, MNISTPrediction>();
-
-            var sample1 = GetOneMNISTExample();;
-
-            MNISTPrediction prediction = model.Predict(sample1);
-        }
-
         private MNISTData GetOneMNISTExample()
         {
             return new MNISTData()
@@ -664,28 +632,33 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
+            //var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+            //{
+            //    Column = new ImageLoaderTransform.Column[1]
+            //    {
+            //            new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+            //    },
+            //    ImageFolder = imageFolder
+            //}, data);
+            //var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+            //{
+            //    Column = new ImageResizerTransform.Column[1]{
+            //            new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+            //        }
+            //}, images);
 
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
-                    }
-            }, cropped);
+            //var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+            //{
+            //    Column = new ImagePixelExtractorTransform.Column[1]{
+            //            new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
+            //        }
+            //}, cropped);
 
+            var pipeEstimator = new ImageLoadingEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
+                .Append(new ImageResizingEstimator(env, "ImageReal", "ImageCropped", imageWidth, imageHeight))
+                .Append(new ImagePixelExtractingEstimator(env, "ImageCropped", "Input", interleave: true));
+
+            var pixels = pipeEstimator.Fit(data).Transform(data);
 
             IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
