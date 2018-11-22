@@ -407,7 +407,7 @@ namespace Microsoft.ML.Trainers
         /// <summary>
         /// Train a matrix factorization model based on the input <see cref="IDataView"/>
         /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
-
+        /// </summary>
         /// <param name="input">The training data set.</param>
         public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
 
