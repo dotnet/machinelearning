@@ -25,7 +25,7 @@ namespace Microsoft.ML
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionEvaluator.Result>
-            CalculateFeatureImportance(
+            PermutationFeatureImportance(
                 this RegressionContext ctx,
                 IPredictionTransformer<IPredictor> model,
                 IDataView data,
