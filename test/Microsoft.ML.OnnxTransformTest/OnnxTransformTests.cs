@@ -220,7 +220,7 @@ namespace Microsoft.ML.Tests
                 return;
 
             var env = new MLContext();
-            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx}}" });
+            var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumns={data_0} OutputColumns={softmaxout_1} model={squeezenet/00000001/model.onnx} GpuDeviceId=-1}" });
             Assert.Equal(0, x);
         }
         
@@ -298,8 +298,16 @@ namespace Microsoft.ML.Tests
                     {
                         getScoresa(ref buffera);
                         getScoresb(ref bufferb);
-                        Console.WriteLine(buffera.GetValues().ToArray());
+                        var suma = 0f;
+                        var sumb = 0f;
+                        foreach (var x in buffera.DenseValues())
+                            suma += x;
+                        foreach (var x in bufferb.DenseValues())
+                            sumb += x;
                         Assert.Equal(5, buffera.Length);
+                        Assert.Equal(5, bufferb.Length);
+                        Assert.Equal(0, suma);
+                        Assert.Equal(30, sumb);
                     }
                 }
             }

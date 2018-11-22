@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
             public string[] OutputColumns;
 
             [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "GPU device id to run on. Typically 0,1 etc. Default of -1 runs on CPU. Requires CUDA 9.2.", SortOrder = 3)]
-            public int GpuDeviceId;
+            public int GpuDeviceId = -1;
         }
 
         private readonly Arguments _args;
