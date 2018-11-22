@@ -212,6 +212,16 @@ namespace Microsoft.ML.Runtime.Data
                 LossFn = Fetch(RegressionEvaluator.Loss);
                 RSquared = Fetch(RegressionEvaluator.RSquared);
             }
+
+            [BestFriend]
+            internal Result(double l1, double l2, double rms, double lossFunction, double rSquared)
+            {
+                L1 = l1;
+                L2 = l2;
+                Rms = rms;
+                LossFn = lossFunction;
+                RSquared = rSquared;
+            }
         }
 
         /// <summary>
