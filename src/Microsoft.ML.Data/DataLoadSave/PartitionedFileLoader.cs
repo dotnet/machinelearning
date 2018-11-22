@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
             var saver = new BinarySaver(_host, saverArgs);
             using (var strm = new MemoryStream())
             {
-                var allColumns = Enumerable.Range(0, Schema.ColumnCount).ToArray();
+                var allColumns = Enumerable.Range(0, Schema.Count).ToArray();
                 saver.SaveData(strm, noRows, allColumns);
                 ctx.SaveBinaryStream(SchemaCtxName, w => w.WriteByteArray(strm.ToArray()));
             }
@@ -316,11 +317,13 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
-            var colSchema = new Schema(cols.Select(c => new Schema.Column(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new Schema.DetachedColumn(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
+            var colSchema = builder.GetSchema();
 
             var subSchema = subLoader.Schema;
 
-            if (subSchema.ColumnCount == 0)
+            if (subSchema.Count == 0)
             {
                 return colSchema;
             }
@@ -382,9 +385,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
 
-                _active = Utils.BuildArray(Schema.ColumnCount, predicate);
+                _active = Utils.BuildArray(Schema.Count, predicate);
                 _subActive = _active.Take(SubColumnCount).ToArray();
-                _colValues = new ReadOnlyMemory<char>[Schema.ColumnCount - SubColumnCount];
+                _colValues = new ReadOnlyMemory<char>[Schema.Count - SubColumnCount];
 
                 _subGetters = new Delegate[SubColumnCount];
                 _getters = CreateGetters();
@@ -422,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public bool IsColumnActive(int col)
             {
-                Ch.Check(0 <= col && col < Schema.ColumnCount);
+                Ch.Check(0 <= col && col < Schema.Count);
                 return _active[col];
             }
 
@@ -550,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private Delegate[] CreateGetters()
             {
-                Delegate[] getters = new Delegate[Schema.ColumnCount];
+                Delegate[] getters = new Delegate[Schema.Count];
                 for (int i = 0; i < getters.Length; i++)
                 {
                     if (!_active[i])
@@ -619,7 +622,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col < SubColumnCount;
             }
 
-            private int SubColumnCount => Schema.ColumnCount - _parent._srcDirIndex.Length;
+            private int SubColumnCount => Schema.Count - _parent._srcDirIndex.Length;
 
             private IEnumerable<int> CreateFileOrder(IRandom rand)
             {

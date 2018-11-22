@@ -14,6 +14,7 @@ using Microsoft.ML.Transforms;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(OptionalColumnTransform.Summary, typeof(OptionalColumnTransform),
     typeof(OptionalColumnTransform.Arguments), typeof(SignatureDataTransform),

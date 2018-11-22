@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -310,12 +311,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private Schema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private ML.Data.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
-
-            return new Schema(cols.Select(c => new Schema.Column(c.Name, c.ColType, null)));
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new ML.Data.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            return builder.GetSchema();
         }
 
         /// <summary>
@@ -382,7 +384,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public Schema Schema { get; }
+        public ML.Data.Schema Schema { get; }
 
         public long? GetRowCount()
         {
@@ -584,7 +586,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public Schema Schema => _loader.Schema;
+            public ML.Data.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 

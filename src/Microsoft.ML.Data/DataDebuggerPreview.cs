@@ -61,7 +61,7 @@ namespace Microsoft.ML.Data
         }
 
         public override string ToString()
-            => $"{Schema.ColumnCount} columns, {RowView.Length} rows";
+            => $"{Schema.Count} columns, {RowView.Length} rows";
 
         private Action<RowInfo, List<object>> MakeSetter<T>(IRow row, int col)
         {

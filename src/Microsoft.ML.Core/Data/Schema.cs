@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class represents the schema of an <see cref="ISchematized"/> object (like an <see cref="IDataView"/> or an <see cref="IRow"/>).
@@ -19,7 +22,7 @@ namespace Microsoft.ML.Runtime.Data
     /// and values.
     /// </summary>
     [System.Diagnostics.DebuggerTypeProxy(typeof(SchemaDebuggerProxy))]
-    public sealed class Schema : ISchema
+    public sealed class Schema : ISchema, IReadOnlyList<Schema.Column>
     {
         private readonly Column[] _columns;
         private readonly Dictionary<string, int> _nameMap;
@@ -28,6 +31,11 @@ namespace Microsoft.ML.Runtime.Data
         /// Number of columns in the schema.
         /// </summary>
         public int ColumnCount => _columns.Length;
+
+        /// <summary>
+        /// Number of columns in the schema.
+        /// </summary>
+        public int Count => _columns.Length;
 
         /// <summary>
         /// Get the column by name. Throws an exception if such column does not exist.
@@ -48,25 +56,19 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Get the column by index.
         /// </summary>
-        public Column this[int col]
+        public Column this[int columnIndex]
         {
             get
             {
-                Contracts.CheckParam(0 <= col && col < _columns.Length, nameof(col));
-                return _columns[col];
+                Contracts.CheckParam(0 <= columnIndex && columnIndex < _columns.Length, nameof(columnIndex));
+                return _columns[columnIndex];
             }
         }
 
         /// <summary>
-        /// Retrieves an index of a column by name.
-        /// </summary>
-        /// <returns>True iff the column is present in the schema.</returns>
-        public bool TryGetColumnIndex(string name, out int col) => _nameMap.TryGetValue(name, out col);
-
-        /// <summary>
         /// Get the column by name, or <c>null</c> if the column is not present.
         /// </summary>
-        public Column GetColumnOrNull(string name)
+        public Column? GetColumnOrNull(string name)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             if (_nameMap.TryGetValue(name, out int col))
@@ -74,20 +76,34 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
+        public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)_columns).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public override string ToString()
         {
-            return $"{ColumnCount} columns";
+            return $"{Count} columns";
         }
 
         /// <summary>
-        /// This class describes one column in the schema.
+        /// This class describes one column in the particular schema.
         /// </summary>
-        public sealed class Column
+        public struct Column
         {
             /// <summary>
             /// The name of the column.
             /// </summary>
             public string Name { get; }
+
+            /// <summary>
+            /// The column's index in the schema.
+            /// </summary>
+            public int Index { get; }
+
+            /// <summary>
+            /// Whether this column is hidden (accessible only by index).
+            /// </summary>
+            public bool IsHidden { get; }
 
             /// <summary>
             /// The type of the column.
@@ -99,22 +115,67 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public Metadata Metadata { get; }
 
-            public Column(string name, ColumnType type, Metadata metadata)
+            internal Column(string name, int index, bool isHidden, ColumnType type, Metadata metadata)
             {
-                Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValue(type, nameof(type));
-                Contracts.CheckValueOrNull(metadata);
+                Contracts.AssertNonEmpty(name);
+                Contracts.Assert(index >= 0);
+                Contracts.AssertValue(type);
+                Contracts.AssertValueOrNull(metadata);
 
                 Name = name;
+                Index = index;
+                IsHidden = isHidden;
                 Type = type;
-                Metadata = metadata;
+                Metadata = metadata ?? Metadata.Empty;
             }
 
             public override string ToString()
             {
-                var metadataString = (Metadata == null || Metadata.Schema.ColumnCount == 0) ?
-                    null : $" {{{string.Join(", ", Metadata.Schema.GetColumns().Select(x => x.column.Name))}}}";
+                var metadataString = (Metadata == null || Metadata.Schema.Count == 0) ?
+                    null : $" {{{string.Join(", ", Metadata.Schema.Select(x => x.Name))}}}";
                 return $"{Name}: {Type}{metadataString}";
+            }
+        }
+
+        /// <summary>
+        /// This class represents the schema of one column of a data view, without an attachment to a particular <see cref="Schema"/>.
+        /// </summary>
+        public struct DetachedColumn
+        {
+            /// <summary>
+            /// The name of the column.
+            /// </summary>
+            public string Name { get; }
+            /// <summary>
+            /// The type of the column.
+            /// </summary>
+            public ColumnType Type { get; }
+            /// <summary>
+            /// The metadata associated with the column.
+            /// </summary>
+            public Metadata Metadata { get; }
+
+            /// <summary>
+            /// Creates an instance of a <see cref="DetachedColumn"/>.
+            /// </summary>
+            public DetachedColumn(string name, ColumnType type, Metadata metadata = null)
+            {
+                Contracts.CheckNonEmpty(name, nameof(name));
+                Contracts.CheckValue(type, nameof(type));
+                Contracts.CheckValueOrNull(metadata);
+                Name = name;
+                Type = type;
+                Metadata = metadata ?? Schema.Metadata.Empty;
+            }
+
+            /// <summary>
+            /// Create an instance of <see cref="DetachedColumn"/> from an existing schema's column.
+            /// </summary>
+            public DetachedColumn(Column column)
+            {
+                Name = column.Name;
+                Type = column.Type;
+                Metadata = column.Metadata;
             }
         }
 
@@ -124,28 +185,35 @@ namespace Microsoft.ML.Runtime.Data
         [System.Diagnostics.DebuggerTypeProxy(typeof(MetadataDebuggerProxy))]
         public sealed class Metadata
         {
-            private readonly (Column column, Delegate getter)[] _values;
-
+            /// <summary>
+            /// Metadata getter delegates. Useful to construct metadata out of other metadata.
+            /// </summary>
+            internal ImmutableArray<Delegate> Getters { get; }
             /// <summary>
             /// The schema of the metadata row. It is different from the schema that the column belongs to.
             /// </summary>
             public Schema Schema { get; }
 
+            public static Metadata Empty { get; } = new Metadata(new Schema(Enumerable.Empty<Column>()), new Delegate[0]);
+
             /// <summary>
             /// Create a metadata row by supplying the schema columns and the getter delegates for all the values.
             /// </summary>
-            public Metadata(IEnumerable<(Column column, Delegate getter)> values)
+            internal Metadata(Schema schema, Delegate[] getters)
             {
-                Contracts.CheckValue(values, nameof(values));
+                Contracts.AssertValue(schema);
+                Contracts.AssertValue(getters);
+
+                Contracts.Assert(schema.Count == getters.Length);
                 // Check all getters.
-                foreach (var (column, getter) in values)
+                for (int i = 0; i < schema.Count; i++)
                 {
-                    Contracts.CheckValue(column, nameof(column));
+                    var getter = getters[i];
                     Contracts.CheckValue(getter, nameof(getter));
-                    Utils.MarshalActionInvoke(CheckGetter<int>, column.Type.RawType, getter);
+                    Utils.MarshalActionInvoke(CheckGetter<int>, schema[i].Type.RawType, getter);
                 }
-                _values = values.ToArray();
-                Schema = new Schema(_values.Select(x => x.column));
+                Schema = schema;
+                Getters = getters.ToImmutableArray();
             }
 
             private void CheckGetter<TValue>(Delegate getter)
@@ -160,11 +228,11 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                Contracts.CheckParam(0 <= col && col < _values.Length, nameof(col));
-                var typedGetter = _values[col].getter as ValueGetter<TValue>;
+                Contracts.CheckParam(0 <= col && col < Schema.Count, nameof(col));
+                var typedGetter = Getters[col] as ValueGetter<TValue>;
                 if (typedGetter == null)
                 {
-                    Contracts.Assert(_values[col].getter != null);
+                    Contracts.Assert(Getters[col] != null);
                     throw MetadataUtils.ExceptGetMetadata();
                 }
                 return typedGetter;
@@ -175,115 +243,30 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public void GetValue<TValue>(string kind, ref TValue value)
             {
-                if (!Schema.TryGetColumnIndex(kind, out int col))
+                var column = Schema.GetColumnOrNull(kind);
+                if (column == null)
                     throw MetadataUtils.ExceptGetMetadata();
-                GetGetter<TValue>(col)(ref value);
+                GetGetter<TValue>(column.Value.Index)(ref value);
             }
 
             public override string ToString() => string.Join(", ", Schema.GetColumns().Select(x => x.column.Name));
 
-            /// <summary>
-            /// The class that incrementally builds a <see cref="Metadata"/>.
-            /// </summary>
-            public sealed class Builder
-            {
-                private readonly List<(Column column, Delegate getter)> _items;
-
-                public Builder()
-                {
-                    _items = new List<(Column column, Delegate getter)>();
-                }
-
-                /// <summary>
-                /// Add some columns from <paramref name="metadata"/> into our new metadata, by applying <paramref name="selector"/>
-                /// to all the names.
-                /// </summary>
-                /// <param name="metadata">The metadata row to take values from.</param>
-                /// <param name="selector">The predicate describing which metadata columns to keep.</param>
-                public void Add(Metadata metadata, Func<string, bool> selector)
-                {
-                    Contracts.CheckValueOrNull(metadata);
-                    Contracts.CheckValue(selector, nameof(selector));
-
-                    if (metadata == null)
-                        return;
-
-                    foreach (var pair in metadata._values)
-                    {
-                        if (selector(pair.column.Name))
-                            _items.Add(pair);
-                    }
-                }
-
-                /// <summary>
-                /// Add one metadata column, strongly-typed version.
-                /// </summary>
-                /// <typeparam name="TValue">The type of the value.</typeparam>
-                /// <param name="column">The column information for the schema.</param>
-                /// <param name="getter">The getter delegate that provides the value.</param>
-                public void Add<TValue>(Column column, ValueGetter<TValue> getter)
-                {
-                    Contracts.CheckValue(column, nameof(column));
-                    Contracts.CheckValue(getter, nameof(getter));
-                    Contracts.CheckParam(column.Type.RawType == typeof(TValue), nameof(getter));
-                    _items.Add((column, getter));
-                }
-
-                /// <summary>
-                /// Add one metadata column, weakly-typed version.
-                /// </summary>
-                /// <param name="column">The column information for the schema.</param>
-                /// <param name="getter">The getter delegate that provides the value. Note that the type of the getter is still checked
-                /// inside this method.</param>
-                public void Add(Column column, Delegate getter)
-                {
-                    Contracts.CheckValue(column, nameof(column));
-                    Utils.MarshalActionInvoke(AddDelegate<int>, column.Type.RawType, column, getter);
-                }
-
-                /// <summary>
-                /// Add slot names metadata.
-                /// </summary>
-                /// <param name="size">The size of the slot names vector.</param>
-                /// <param name="getter">The getter delegate for the slot names.</param>
-                public void AddSlotNames(int size, ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter)
-                    => Add(new Column(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, size), null), getter);
-
-                /// <summary>
-                /// Add key values metadata.
-                /// </summary>
-                /// <typeparam name="TValue">The value type of key values.</typeparam>
-                /// <param name="size">The size of key values vector.</param>
-                /// <param name="valueType">The value type of key values. Its raw type must match <typeparamref name="TValue"/>.</param>
-                /// <param name="getter">The getter delegate for the key values.</param>
-                public void AddKeyValues<TValue>(int size, PrimitiveType valueType, ValueGetter<VBuffer<TValue>> getter)
-                    => Add(new Column(MetadataUtils.Kinds.KeyValues, new VectorType(valueType, size), null), getter);
-
-                /// <summary>
-                /// Produce the metadata row that the builder has so far.
-                /// Can be called multiple times.
-                /// </summary>
-                public Metadata GetMetadata() => new Metadata(_items);
-
-                private void AddDelegate<TValue>(Schema.Column column, Delegate getter)
-                {
-                    Contracts.CheckValue(column, nameof(column));
-                    Contracts.CheckValue(getter, nameof(getter));
-                    var typedGetter = getter as ValueGetter<TValue>;
-                    Contracts.CheckParam(typedGetter != null, nameof(getter));
-                    _items.Add((column, typedGetter));
-                }
-            }
         }
 
-        public Schema(IEnumerable<Column> columns)
+        /// <summary>
+        /// This constructor should only be called by <see cref="SchemaBuilder"/>.
+        /// </summary>
+        internal Schema(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
 
             _columns = columns.ToArray();
             _nameMap = new Dictionary<string, int>();
             for (int i = 0; i < _columns.Length; i++)
+            {
+                Contracts.Assert(_columns[i].Index == i);
                 _nameMap[_columns[i].Name] = i;
+            }
         }
 
         /// <summary>
@@ -294,26 +277,27 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
         /// </summary>
-        public static Schema Create(ISchema inputSchema)
+        [BestFriend]
+        internal static Schema Create(ISchema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
             if (inputSchema is Schema s)
                 return s;
 
-            var columns = new Column[inputSchema.ColumnCount];
-            for (int i = 0; i < columns.Length; i++)
+            var builder = new SchemaBuilder();
+            for (int i = 0; i < inputSchema.ColumnCount; i++)
             {
-                var meta = new Metadata.Builder();
+                var meta = new MetadataBuilder();
                 foreach (var kvp in inputSchema.GetMetadataTypes(i))
                 {
                     var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputSchema, i, kvp.Key);
-                    meta.Add(new Column(kvp.Key, kvp.Value, null), getter);
+                    meta.Add(kvp.Key, kvp.Value, getter);
                 }
-                columns[i] = new Column(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadata());
+                builder.AddColumn(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadata());
             }
 
-            return new Schema(columns);
+            return builder.GetSchema();
         }
 
         private static Delegate GetMetadataGetterDelegate<TValue>(ISchema schema, int col, string kind)
@@ -343,7 +327,7 @@ namespace Microsoft.ML.Runtime.Data
             var meta = this[col].Metadata;
             if (meta == null)
                 return null;
-            if (meta.Schema.TryGetColumnIndex(kind, out int metaCol))
+            if (((ISchema)meta.Schema).TryGetColumnIndex(kind, out int metaCol))
                 return meta.Schema[metaCol].Type;
             return null;
         }
@@ -355,7 +339,12 @@ namespace Microsoft.ML.Runtime.Data
                 throw MetadataUtils.ExceptGetMetadata();
             meta.GetValue(kind, ref value);
         }
+
+        public bool TryGetColumnIndex(string name, out int col)
+        {
+            col = GetColumnOrNull(name)?.Index ?? -1;
+            return col >= 0;
+        }
         #endregion
     }
-
 }

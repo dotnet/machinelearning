@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                AsSchema = Runtime.Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
