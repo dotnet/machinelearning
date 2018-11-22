@@ -23,7 +23,7 @@ phases:
             _configuration: Release
             _config_short: R
         ${{ if ne(parameters.customMatrixes, '') }}:
-          ${{ insert }}: ${{ parameters.customMatrixes}}
+          ${{ insert }}: ${{ parameters.customMatrixes }}
       ${{ insert }}: ${{ parameters.queue }}
     steps:
     - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)

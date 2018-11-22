@@ -497,6 +497,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     count++;
                     var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
+                    line1 = Regex.Replace(line1, @"\s+", String.Empty);
+                    line2 = Regex.Replace(line2, @"\s+", String.Empty);
+
                     if (!inRange || line1 != line2)
                     {
                         if (line1 == null || line2 == null)

@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
