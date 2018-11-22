@@ -1462,7 +1462,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             _loss = loss ?? Args.LossFunction.CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain:true);
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
             if (Info.NeedCalibration)
@@ -1490,7 +1490,7 @@ namespace Microsoft.ML.Trainers
         {
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
             if (Info.NeedCalibration)
@@ -1579,8 +1579,6 @@ namespace Microsoft.ML.Trainers
 
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
@@ -1744,7 +1742,8 @@ namespace Microsoft.ML.Trainers
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         //For complexity analysis, we assume that
         // - The number of features is N

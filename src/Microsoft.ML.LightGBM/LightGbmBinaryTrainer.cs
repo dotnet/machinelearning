@@ -170,7 +170,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
          => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
     }
 
     /// <summary>

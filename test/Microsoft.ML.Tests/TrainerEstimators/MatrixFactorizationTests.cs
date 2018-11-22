@@ -115,6 +115,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
                 Assert.InRange(metrices.L2, expectedWindowsL2Error - tolerance, expectedWindowsL2Error + tolerance);
             }
+
+            var modelWithValidation = pipeline.Train(data, testData);
         }
 
         private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)

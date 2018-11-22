@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
             var pipe = new RandomTrainer(Env);
-
+            
             // Test only that the schema propagation works.
             // REVIEW: the save/load is not preserving the full state of the random predictor. This is unfortunate, but we don't care too much at this point.
             TestEstimatorCore(pipe, new EmptyDataView(Env, dataView.Schema));

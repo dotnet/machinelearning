@@ -275,7 +275,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, Schema trainSchema)
         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+        public BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

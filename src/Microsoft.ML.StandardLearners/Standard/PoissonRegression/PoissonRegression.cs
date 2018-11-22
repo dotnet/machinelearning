@@ -98,7 +98,8 @@ namespace Microsoft.ML.Trainers
         protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<PoissonRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public RegressionPredictionTransformer<PoissonRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
         {

@@ -135,7 +135,8 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
             in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)

@@ -183,7 +183,8 @@ namespace Microsoft.ML.Trainers.Online
         protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<LinearBinaryPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public BinaryPredictionTransformer<LinearBinaryPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
              Desc = Summary,

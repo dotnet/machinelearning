@@ -445,7 +445,8 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, Schema trainSchema)
         => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RankingPredictionTransformer<FastTreeRankingPredictor> Train(IDataView trainData, IDataView validationData = null) => TrainTransformer(trainData, validationData);
+        public RankingPredictionTransformer<FastTreeRankingPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

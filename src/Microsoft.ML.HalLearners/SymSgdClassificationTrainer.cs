@@ -173,7 +173,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
 
-            Info = new TrainerInfo();
+            Info = new TrainerInfo(supportIncrementalTrain:true);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Trainers.SymSgd
         {
             args.Check(Host);
             _args = args;
-            Info = new TrainerInfo();
+            Info = new TrainerInfo(supportIncrementalTrain: true);
         }
 
         private TPredictor CreatePredictor(VBuffer<float> weights, float bias)
@@ -202,8 +202,8 @@ namespace Microsoft.ML.Trainers.SymSgd
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, Schema trainSchema)
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, IDataView validationData = null, TPredictor initialPredictor = null)
-            => TrainTransformer(trainData, validationData, initialPredictor);
+        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, TPredictor initialPredictor = null)
+            => TrainTransformer(trainData,  initPredictor: initialPredictor);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

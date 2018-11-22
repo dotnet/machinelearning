@@ -380,7 +380,8 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/> using the roles specified by XColumn and YColumn in <see cref="MatrixFactorizationTrainer"/>.
+        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
+        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
         /// <param name="trainData">The training data set.</param>
         /// <param name="validationData">The validation data set.</param>
@@ -404,8 +405,9 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/> using the roles specified by XColumn and YColumn in <see cref="MatrixFactorizationTrainer"/>.
-        /// </summary>
+        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
+        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+
         /// <param name="input">The training data set.</param>
         public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
 

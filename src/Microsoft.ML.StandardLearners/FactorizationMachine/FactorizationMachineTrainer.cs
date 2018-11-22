@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(pred))
             {
-                var labelGetter = cursor.GetGetter<float>(data.Schema.Label.Index);
+                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index); ;
                 var weightGetter = data.Schema.Weight == null ? null : cursor.GetGetter<float>(data.Schema.Weight.Index);
                 for (int f = 0; f < featureColumns.Count; f++)
                     getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f].Index);

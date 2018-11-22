@@ -35,9 +35,9 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="SymSgdClassificationTrainer"/>.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="SymSgdClassificationTrainer"/>.
         /// </summary>
-        /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
+        /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
         /// <param name="featureColumn">The features column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>

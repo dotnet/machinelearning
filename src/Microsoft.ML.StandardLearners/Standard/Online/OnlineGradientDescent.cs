@@ -184,6 +184,7 @@ namespace Microsoft.ML.Trainers.Online
         protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
         => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public RegressionPredictionTransformer<LinearRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null) => TrainTransformer(trainData, initPredictor: initialPredictor);
+        public RegressionPredictionTransformer<LinearRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }
