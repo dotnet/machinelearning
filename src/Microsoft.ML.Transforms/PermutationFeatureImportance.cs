@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
@@ -167,7 +167,6 @@ namespace Microsoft.ML.Transforms
 
                 // Now iterate through all the working slots, do permutation and calc the delta of metrics.
                 int processedCnt = 0;
-                int j = 0;
                 int nextFeatureIndex = 0;
                 int shuffleSeed = host.Rand.Next();
                 using (var pch = host.StartProgressChannel("SDCA preprocessing with lookup"))
@@ -176,8 +175,8 @@ namespace Microsoft.ML.Transforms
                     foreach (var workingIndx in workingFeatureIndices)
                     {
                         // Index for the feature we will permute next.  Needed to build in advance a buffer for the permutation.
-                        if (j < workingFeatureIndices.Count - 1)
-                            nextFeatureIndex = workingFeatureIndices[j + 1];
+                        if (processedCnt < workingFeatureIndices.Count - 1)
+                            nextFeatureIndex = workingFeatureIndices[processedCnt + 1];
 
                         int nextValuesIndex = 0;
 
@@ -191,7 +190,7 @@ namespace Microsoft.ML.Transforms
                                     (int ii, ref float d) =>
                                         d = featureValuesBuffer[state.SampleIndex++]);
 
-                                if (j < workingFeatureIndices.Count - 1)
+                                if (processedCnt < workingFeatureIndices.Count - 1)
                                 {
                                     // This is the reason I need PermuterState in LambdaTransform.CreateMap.
                                     nextValues[nextValuesIndex] = src.Features.GetItemOrDefault(nextFeatureIndex);
@@ -223,11 +222,9 @@ namespace Microsoft.ML.Transforms
                         Array.Clear(featureValuesBuffer, 0, featureValuesBuffer.Length);
                         nextValues.CopyTo(featureValuesBuffer, 0);
                         Array.Clear(nextValues, 0, nextValues.Length);
-
-                        pch.Checkpoint(processedCnt, processedCnt);
                         processedCnt++;
-                        j++;
                     }
+                    pch.Checkpoint(processedCnt, processedCnt);
                 }
             }
 
