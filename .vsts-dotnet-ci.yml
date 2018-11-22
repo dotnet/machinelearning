@@ -25,7 +25,7 @@ phases:
 
 - template: /build/ci/phase-template.yml
   parameters:
-    name: Windows_Netcoreapp30
+    name: core30
     buildScript: build.cmd
     customMatrixes:
       Build_Debug_Intrinsics:

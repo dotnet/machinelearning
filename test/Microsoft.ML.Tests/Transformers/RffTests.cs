@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int A;
         }
 
-        [Fact]
+        [Fact(Skip = "Test is flaky for netcoreapp3.0")]
         public void RffWorkout()
         {
             Random rand = new Random();
