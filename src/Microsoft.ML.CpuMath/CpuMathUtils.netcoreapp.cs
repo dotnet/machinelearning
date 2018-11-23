@@ -11,8 +11,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     internal static partial class CpuMathUtils
     {
-        public static void MatrixTimesSource(bool transpose, float[] matrix, ReadOnlySpan<float> source, Span<float> destination, int stride)
+        public static void MatrixTimesSource(bool transpose, ReadOnlySpan<float> matrix, ReadOnlySpan<float> source, Span<float> destination, int stride)
         {
+            Contracts.AssertNonEmpty(matrix);
+            Contracts.AssertNonEmpty(source);
+            Contracts.AssertNonEmpty(destination);
             Contracts.Assert(matrix.Length == destination.Length * source.Length);
             Contracts.Assert(stride >= 0);
 
@@ -78,6 +81,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(iposMin >= 0);
             Contracts.Assert(iposMin <= iposLimit);
             Contracts.Assert(iposLimit <= rgposSrc.Length);
+            Contracts.AssertNonEmpty(matrix);
+            Contracts.AssertNonEmpty(sourceValues);
+            Contracts.AssertNonEmpty(destination);
+            Contracts.AssertNonEmpty(rgposSrc);
+            Contracts.Assert(stride > 0);
             Contracts.Assert(matrix.Length == destination.Length * sourceValues.Length);
 
             if (iposMin >= iposLimit)
