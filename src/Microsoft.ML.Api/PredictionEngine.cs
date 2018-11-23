@@ -148,6 +148,8 @@ namespace Microsoft.ML.Runtime.Api
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
+        [BestFriend]
+        private protected ITransformer Transformer { get; }
 
         [BestFriend]
         private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
@@ -163,11 +165,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         [BestFriend]
-        internal PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.AssertValue(transformer);
+            Transformer = transformer;
             var makeMapper = TransformerChecker(env, transformer);
             env.AssertValue(makeMapper);
             _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);

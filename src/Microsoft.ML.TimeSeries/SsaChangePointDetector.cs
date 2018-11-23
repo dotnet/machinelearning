@@ -125,6 +125,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             var clone = (SsaChangePointDetector)MemberwiseClone();
             clone.Model = clone.Model.Clone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
             return clone;
         }
 

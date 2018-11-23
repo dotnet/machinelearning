@@ -1,4 +1,5 @@
 ﻿using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -39,7 +40,7 @@ namespace Microsoft.ML.TimeSeries
     {
         private ValuePinger[][] _pingers;
         private int _rowPosition;
-        public ITransformer Transformer { get; private set; }
+        public ITransformer CheckPoint => Transformer;
 
         private static ITransformer CloneTransformers(ITransformer transformer)
         {
@@ -188,8 +189,10 @@ namespace Microsoft.ML.TimeSeries
          where TDst : class, new()
     {
         public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer) : base(env, transformer) { }
+        private TimeSeriesPredictionEngine<TSrc, TDst> _engine;
+        public ITransformer CheckPoint() => _engine.CheckPoint;
         internal override void CreatePredictionEngine(IHostEnvironment env, ITransformer transformer, out PredictionEngineBase<TSrc, TDst> engine) =>
-            engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
+            engine = _engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
     }
 
     public static class PredictionFunctionExtensions

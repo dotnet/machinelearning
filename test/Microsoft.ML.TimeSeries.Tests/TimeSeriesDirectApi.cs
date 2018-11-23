@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
@@ -217,16 +218,29 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
             //Predict.
             var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
-
-            //Checkpoint.
             var prediction = engine.Predict(new Data(1));
-            using (var file = File.Create(@"e:\model"))
-                model.SaveTo(ml, file);
-
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(-2.3141059875488281, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 7); // Raw score
             Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
             Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
+
+            //Checkpoint.
+            var modelPath = "temp.zip";
+            using (var file = File.Create(modelPath))
+                engine.CheckPoint().SaveTo(ml, file);
+
+            // Load model.
+            ITransformer model2 = null;
+            using (var file = File.OpenRead(modelPath))
+                model2 = TransformerChain.LoadFrom(ml, file);
+
+            //Predict and expect different result for the same input.
+            engine = model2.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            prediction = engine.Predict(new Data(1));
+            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
+            Assert.Equal(-0.12883400917053223, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(2.6214400000000113E-15, prediction.Change[3], precision: 7); // Martingale score
         }
     }
 }

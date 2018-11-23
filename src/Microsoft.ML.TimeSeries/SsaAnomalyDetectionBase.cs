@@ -122,6 +122,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // Creating the master SSA model
             Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
                 DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
+
+            StateRef = new State();
+            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
         }
 
         public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
@@ -150,9 +153,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
 
             IsAdaptive = ctx.Reader.ReadBoolean();
+            StateRef = new State(ctx);
 
             ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
             Host.CheckDecode(Model != null);
+            StateRef.InitState(this, Host);
         }
 
         public override Schema GetOutputSchema(Schema inputSchema)
@@ -186,6 +191,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // float: _discountFactor
             // byte: _errorFunction
             // bool: _isAdaptive
+            // bool: StateRef != null
+            // State: StateRef
             // AdaptiveSingularSpectrumSequenceModeler: _model
 
             base.Save(ctx);
@@ -193,6 +200,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(DiscountFactor);
             ctx.Writer.Write((byte)ErrorFunction);
             ctx.Writer.Write(IsAdaptive);
+            StateRef.Save(ctx);
+
             ctx.SaveModel(Model, "SSA");
         }
 
@@ -200,6 +209,42 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private SequenceModelerBase<Single, Single> _model;
             private SsaAnomalyDetectionBase _parentAnomalyDetector;
+
+            public State()
+            {
+
+            }
+
+            public State(ModelLoadContext ctx) : base(ctx)
+            {
+                WindowedBuffer = new FixedSizeQueue<float>(
+                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
+
+                InitialWindowedBuffer = new FixedSizeQueue<float>(
+                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
+            }
+
+            public override void Save(ModelSaveContext ctx)
+            {
+                base.Save(ctx);
+
+                ctx.Writer.Write(WindowedBuffer.Capacity);
+                ctx.Writer.Write(WindowedBuffer.StartIndex);
+                ctx.Writer.WriteSingleArray(WindowedBuffer.Buffer);
+
+                ctx.Writer.Write(InitialWindowedBuffer.Capacity);
+                ctx.Writer.Write(InitialWindowedBuffer.StartIndex);
+                ctx.Writer.WriteSingleArray(InitialWindowedBuffer.Buffer);
+            }
+
+            public override void CloneCore(StateBase state)
+            {
+                base.CloneCore(state);
+                Contracts.Assert(state is State);
+                var stateLocal = state as State;
+                stateLocal.WindowedBuffer = (FixedSizeQueue<Single>)WindowedBuffer.Clone();
+                stateLocal.InitialWindowedBuffer = (FixedSizeQueue<Single>)InitialWindowedBuffer.Clone();
+            }
 
             private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
@@ -218,8 +263,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 Single expectedValue = 0;
                 _model.PredictNext(ref expectedValue);
 
-                // Feed the current point to the model
-                _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
+                if (PreviousPosition == -1)
+                    // Feed the current point to the model
+                    _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
 
                 // Return the error as the raw anomaly score
                 return _parentAnomalyDetector.ErrorFunc(input, expectedValue);

@@ -138,6 +138,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             var clone = (SsaSpikeDetector)MemberwiseClone();
             clone.Model = clone.Model.Clone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
             return clone;
         }
 

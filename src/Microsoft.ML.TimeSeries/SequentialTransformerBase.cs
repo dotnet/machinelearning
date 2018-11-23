@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,12 +8,10 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.TimeSeries;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using System.Linq;
-using Microsoft.ML;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
@@ -31,7 +29,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// The base class for encapsulating the State object for sequential processing. This class implements a windowed buffer.
         /// </summary>
-        public abstract class StateBase
+        public abstract class StateBase : ICanSaveModel, ICloneable
         {
             // Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
             // access to the state class when inheriting from SequentialTransformerBase.
@@ -45,12 +43,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// The internal windowed buffer for buffering the values in the input sequence.
             /// </summary>
-            private protected FixedSizeQueue<TInput> WindowedBuffer;
+            private protected FixedSizeQueue<TInput> WindowedBuffer { get; set; }
 
             /// <summary>
             /// The buffer used to buffer the training data points.
             /// </summary>
-            private protected FixedSizeQueue<TInput> InitialWindowedBuffer;
+            private protected FixedSizeQueue<TInput> InitialWindowedBuffer { get; set; }
 
             private protected int WindowSize { get; private set; }
 
@@ -71,11 +69,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return RowCounter;
             }
 
-            private bool _isIniatilized;
+            protected long PreviousPosition;
 
-            private long _previousPosition;
+            public StateBase(ModelLoadContext ctx)
+            {
+                WindowSize = ctx.Reader.ReadInt32();
+                InitialWindowSize = ctx.Reader.ReadInt32();
+            }
 
-            private bool _updateState;
+            public virtual void Save(ModelSaveContext ctx)
+            {
+                ctx.Writer.Write(WindowSize);
+                ctx.Writer.Write(InitialWindowSize);
+            }
 
             /// <summary>
             /// This method sets the window size and initializes the buffer only once.
@@ -85,29 +91,36 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <param name="initialWindowSize">The size of the windowed initial buffer used for training</param>
             /// <param name="parentTransform">The parent transform of this state object</param>
             /// <param name="host">The host</param>
-            /// <param name="updateState"></param>
-            public void InitState(int windowSize, int initialWindowSize, SequentialTransformerBase<TInput, TOutput, TState> parentTransform, IHost host, bool updateState = true)
+            public void InitState(int windowSize, int initialWindowSize, SequentialTransformerBase<TInput, TOutput, TState> parentTransform,
+                IHost host)
             {
-                if (!_isIniatilized)
-                {
-                    Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
-                    host.CheckValue(parentTransform, nameof(parentTransform));
-                    host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
-                    host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
+                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
+                host.CheckValue(parentTransform, nameof(parentTransform));
+                host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
+                host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
 
-                    Host = host;
-                    WindowSize = windowSize;
-                    InitialWindowSize = initialWindowSize;
-                    ParentTransform = parentTransform;
-                    WindowedBuffer = (WindowSize > 0) ? new FixedSizeQueue<TInput>(WindowSize) : new FixedSizeQueue<TInput>(1);
-                    InitialWindowedBuffer = (InitialWindowSize > 0) ? new FixedSizeQueue<TInput>(InitialWindowSize) : new FixedSizeQueue<TInput>(1);
-                    RowCounter = 0;
+                Host = host;
+                WindowSize = windowSize;
+                InitialWindowSize = initialWindowSize;
+                ParentTransform = parentTransform;
+                WindowedBuffer = (WindowSize > 0) ? new FixedSizeQueue<TInput>(WindowSize) : new FixedSizeQueue<TInput>(1);
+                InitialWindowedBuffer = (InitialWindowSize > 0) ? new FixedSizeQueue<TInput>(InitialWindowSize) : new FixedSizeQueue<TInput>(1);
+                RowCounter = 0;
 
-                    InitializeStateCore();
-                    _isIniatilized = true;
-                    _previousPosition = -1;
-                    _updateState = updateState;
-                }
+                InitializeStateCore();
+                PreviousPosition = -1;
+            }
+
+            public void InitState(SequentialTransformerBase<TInput, TOutput, TState> parentTransform, IHost host)
+            {
+                Contracts.CheckValue(host, nameof(host), "The host cannot be null.");
+                host.CheckValue(parentTransform, nameof(parentTransform));
+
+                Host = host;
+                ParentTransform = parentTransform;
+                RowCounter = 0;
+                InitializeStateCore(true);
+                PreviousPosition = -1;
             }
 
             /// <summary>
@@ -115,22 +128,22 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// </summary>
             public virtual void Reset()
             {
-                Host.Assert(_isIniatilized);
                 Host.Assert(WindowedBuffer != null);
                 Host.Assert(InitialWindowedBuffer != null);
 
                 RowCounter = 0;
                 WindowedBuffer.Clear();
                 InitialWindowedBuffer.Clear();
-                _previousPosition = -1;
+                PreviousPosition = -1;
             }
 
             public void UpdateState(ref TInput input, int rowPosition, bool buffer = true)
             {
-                if (rowPosition > _previousPosition)
+                if (rowPosition > PreviousPosition)
                 {
-                    _previousPosition = rowPosition;
+                    PreviousPosition = rowPosition;
                     UpdateStateCore(ref input, buffer);
+                    Consume(input);
                 }
             }
 
@@ -153,7 +166,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void Process(ref TInput input, ref TOutput output)
             {
-                if (_previousPosition == -1)
+                if (PreviousPosition == -1)
                     UpdateStateCore(ref input);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
@@ -171,7 +184,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void ProcessWithoutBuffer(ref TInput input, ref TOutput output)
             {
-                if (_updateState)
+                if (PreviousPosition == -1)
                     UpdateStateCore(ref input, false);
 
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
@@ -203,7 +216,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// The abstract method that realizes the logic for initializing the state object.
             /// </summary>
-            private protected abstract void InitializeStateCore();
+            private protected abstract void InitializeStateCore(bool disk = false);
 
             /// <summary>
             /// The abstract method that realizes the logic for learning the parameters and the initial state object from data.
@@ -212,6 +225,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract void LearnStateFromDataCore(FixedSizeQueue<TInput> data);
 
             public abstract void Consume(TInput value);
+
+            public object Clone()
+            {
+                var clone = (StateBase)MemberwiseClone();
+                CloneCore(clone);
+                return clone;
+            }
+
+            public virtual void CloneCore(StateBase state)
+            {
+                state.WindowedBuffer = (FixedSizeQueue<TInput>)WindowedBuffer.Clone();
+                state.InitialWindowedBuffer = (FixedSizeQueue<TInput>)InitialWindowedBuffer.Clone();
+            }
         }
 
         private protected readonly IHost Host;
@@ -231,6 +257,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private protected ColumnType OutputColumnType;
 
         public bool IsRowToRowMapper => true;
+
+        public TState StateRef{ get; set; }
 
         /// <summary>
         /// The main constructor for the sequential transform

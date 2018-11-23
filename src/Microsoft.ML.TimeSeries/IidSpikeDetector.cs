@@ -110,6 +110,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public override IStatefulTransformer Clone()
         {
             var clone = (IidSpikeDetector)MemberwiseClone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
             return clone;
         }
 
