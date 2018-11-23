@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             Host.CheckDecode(InitialWindowSize == 0);
             StateRef = new State(ctx);
-            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
+            StateRef.InitState(this, Host);
         }
 
         public override Schema GetOutputSchema(Schema inputSchema)
