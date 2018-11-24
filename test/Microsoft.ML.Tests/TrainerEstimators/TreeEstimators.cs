@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeRankerEstimator()
         {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetRankingPipeline();
 
             var trainer = new FastTreeRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
                                 advancedSettings: s => { s.NumTrees = 10; });
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void LightGBMRankerEstimator()
         {
-            var (pipe, dataView) = GetBinaryClassificationPipeline();
+            var (pipe, dataView) = GetRankingPipeline();
 
             var trainer = new LightGbmRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
                                 advancedSettings: s => { s.LearningRate = 0.4; });
@@ -221,16 +221,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
         [Fact]
         public void LightGbmMultiClassEstimator()
         {
             var (pipeline, dataView) = GetMultiClassPipeline();
             var trainer = new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; });
-            pipeline.Append(trainer)
+            var pipe = pipeline.Append(trainer)
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
-            TestEstimatorCore(pipeline, dataView);
+            TestEstimatorCore(pipe, dataView);
             Done();
         }
     }

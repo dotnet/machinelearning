@@ -325,7 +325,7 @@ namespace Microsoft.ML.Runtime.Learners
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataForScoreColumn())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
             };
         }
@@ -335,16 +335,6 @@ namespace Microsoft.ML.Runtime.Learners
 
         public MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
             => TrainTransformer(trainData, initPredictor: initialPredictor);
-
-        /// <summary>
-        /// Normal metadata that we produce for score columns.
-        /// </summary>
-        private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
-        {
-            var cols = new List<SchemaShape.Column>() { new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false) };
-            cols.AddRange(MetadataUtils.GetTrainerOutputMetadata());
-            return cols;
-        }
     }
 
     public sealed class MulticlassLogisticRegressionPredictor :
