@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// Pkpd trainer
         /// </summary>
-        [Fact(Skip = "The test fails the check for valid input to fit")]
+        [Fact]
         public void Pkpd()
         {
             var (pipeline, data) = GetMultiClassPipeline();
