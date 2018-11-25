@@ -4,23 +4,19 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-//using Microsoft.ML.Scoring;
 using Microsoft.ML.OnnxRuntime;
 using System.Numerics.Tensors;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.StaticPipe;
 
 using OnnxShape = System.Collections.Generic.List<int>;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// OnnxModel is a utility class to load ONNX models, and retrieve metadata
+    /// OnnxModel is a utility class to load ONNX models and retrieve metadata
     /// for inputs and outputs. The metadata includes the names, shapes and types
     /// It provides API to open a session, score tensors (NamedOnnxValues) and return
     /// the results.
@@ -51,15 +47,15 @@ namespace Microsoft.ML.Transforms
         public class OnnxNodeInfo
         {
             /// <summary>
-            /// The Name of the input node
+            /// The Name of the node
             /// </summary>
             public readonly string Name;
             /// <summary>
-            /// The shape of the input node
+            /// The shape of the node
             /// </summary>
             public readonly OnnxShape Shape;
             /// <summary>
-            /// The type of the input node
+            /// The type of the node
             /// </summary>
             public readonly System.Type Type;
 
@@ -107,17 +103,17 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Uses an already open session to score a list of Tensors/NamedOnnxValues.
+        /// Uses an open session to score a list of NamedOnnxValues.
         /// </summary>
-        /// <param name="inputTensors">The NamedOnnxValues/Tensors to score</param>
-        /// <returns>A list of NamedOnnxValues/Tensors</returns>
-        public List<NamedOnnxValue> Run(List<NamedOnnxValue> inputTensors)
+        /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score</param>
+        /// <returns>Resulting output NamedOnnxValues list</returns>
+        public List<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
         {
-            var outputTensors = _session.Run(inputTensors);
+            var outputNameOnnxValues = _session.Run(inputNamedOnnxValues);
             var results = new List<NamedOnnxValue>();
-            foreach (var tensor in outputTensors)
+            foreach (var value in outputNameOnnxValues)
             {
-                results.Add(tensor);
+                results.Add(value);
             }
             return results;
         }
@@ -141,7 +137,7 @@ namespace Microsoft.ML.Transforms
             var inputMeta = _session.InputMetadata;
             foreach (var kv in inputMeta)
             {
-                nodeInfos.Add( new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.Type));
+                nodeInfos.Add( new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
             }
             return nodeInfos.ToArray();
         }
@@ -156,7 +152,7 @@ namespace Microsoft.ML.Transforms
             var outputMeta = _session.OutputMetadata;
             foreach (var kv in outputMeta)
             {
-                nodeInfos.Add(new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.Type));
+                nodeInfos.Add(new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
             }
             return nodeInfos.ToArray();
         }
@@ -168,48 +164,35 @@ namespace Microsoft.ML.Transforms
         private static Dictionary<System.Type, DataKind> _typeToKindMap;
 
         /// <summary>
-        /// Creates a Tensor from a scalar value.
+        /// Creates a NamedOnnxValue from a scalar value.
         /// </summary>
-        /// <typeparam name="T">The type of the Tensor.</typeparam>
+        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue</typeparam>
+        /// <param name="name">The name of the NamedOnnxValue</param>
         /// <param name="data">The data values of the Tensor</param>
-        /// <returns>An object which can be cast to an Tensor. The shape of the Tensor is not filled.</returns>
-        public static Object CreateScalarTensor<T>(T data)
+        /// <returns>NamedOnnxValue</returns>
+        public static NamedOnnxValue CreateScalarNamedOnnxValue<T>(string name, T data)
         {
             var typeMap = SystemTypeToOnnxType();
             if (!typeMap.ContainsKey(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return new DenseTensor<T>(new T[] { data }, new int[] { });
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { }));
         }
 
         /// <summary>
-        /// Create a Tensor from vbuffer span. Checks if the tensor type
+        /// Create a NamedOnnxValue from vbuffer span. Checks if the tensor type
         /// is supported by OnnxRuntime prior to execution.
         /// </summary>
-        /// <typeparam name="T">The type of Tensor to create.</typeparam>
-        /// <param name="data">A span containing the data.</param>
-        /// <param name="shape">The shape of the tensor being created</param>
-        /// <returns></returns>
-        public static Object CreateTensor<T>(ReadOnlySpan<T> data, OnnxShape shape)
+        /// <typeparam name="T">The type of the Tensor contained in the NamedOnnxValue</typeparam>
+        /// <param name="name">The name of the NamedOnnxValue</param>
+        /// <param name="data">A span containing the data</param>
+        /// <param name="shape">The shape of the Tensor being created</param>
+        /// <returns>NamedOnnxValue</returns>
+        public static NamedOnnxValue CreateNamedOnnxValue<T>(string name, ReadOnlySpan<T> data, OnnxShape shape)
         {
             var typeMap = SystemTypeToOnnxType();
             if (!typeMap.ContainsKey(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray());
-        }
-
-        /// <summary>
-        /// Copies a Tensor to a Span element by element.
-        /// </summary>
-        /// <typeparam name="T">The type of both Span and Tensor</typeparam>
-        /// <param name="tensor">The source tensor</param>
-        /// <param name="dst">The destination span</param>
-        public static unsafe void CopyTo<T>(Tensor<T> tensor, Span<T> dst)
-        {
-            for (int i = 0; i < tensor.Length; i++)
-            {
-                dst[i] = tensor.GetValue(i);
-            }
-            GC.KeepAlive(tensor);
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray()));
         }
 
         /// <summary>

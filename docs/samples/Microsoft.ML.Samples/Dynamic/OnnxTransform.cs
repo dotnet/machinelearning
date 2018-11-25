@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,9 +11,9 @@ using System.IO;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    class Program
+    class OnnxTransformExample
     {
-        static void Main(string[] args)
+        public static void OnnxTransformSample(string[] args)
         {
             // Download the squeeznet image model from ONNX model zoo, version 1.2
             // https://github.com/onnx/models/tree/master/squeezenet
@@ -29,18 +29,16 @@ namespace Microsoft.ML.Samples.Dynamic
             var inputSchema = onnxModel.ModelInfo.InputsInfo[0];
             var inputName = inputSchema.Name;
             var inputShape = inputSchema.Shape;
-            var inputType = inputSchema.Type;
 
             // Deduce image dimensions from inputShape
-            var numChannels = inputShape[1];
-            var imageHeight = inputShape[2];
-            var imageWidth = inputShape[3];
+            var numChannels = (int) inputShape[1];
+            var imageHeight = (int) inputShape[2];
+            var imageWidth =  (int) inputShape[3];
 
             // Similarly, get output node metadata
             var outputSchema = onnxModel.ModelInfo.OutputsInfo[0];
             var outputName = outputSchema.Name;
             var outputShape = outputSchema.Shape;
-            var outputType = outputSchema.Type;
 
             var dataFile = @"test\data\images\images.tsv";
             var imageFolder = Path.GetDirectoryName(dataFile);

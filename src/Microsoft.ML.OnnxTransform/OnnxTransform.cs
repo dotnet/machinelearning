@@ -305,9 +305,9 @@ namespace Microsoft.ML.Transforms
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            private interface ITensorValueGetter
+            private interface INamedOnnxValueGetter
             {
-                Object GetTensor();
+                NamedOnnxValue GetNamedOnnxValue();
             }
             private class OutputCache
             {
@@ -320,21 +320,23 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 if (outputCache.Position != position)
                 {
-                    var inputTensors = new List<NamedOnnxValue>();
+                    var inputNameOnnxValues = new List<NamedOnnxValue>();
 
                     for (int i = 0; i < _inputColIndices.Length; i++)
-                        inputTensors.Add(new NamedOnnxValue(_parent.Inputs[i], srcTensorGetters[i].GetTensor()));
-
-                    var outputTensors = _parent.Model.Run(inputTensors);
-                    Contracts.Assert(outputTensors.Count > 0);
-
-                    foreach (var outputTensor in outputTensors)
                     {
-                        outputCache.Outputs[outputTensor.Name] = outputTensor;
+                        inputNameOnnxValues.Add(srcNamedOnnxValueGetters[i].GetNamedOnnxValue());
+                    }
+
+                    var outputNamedOnnxValues = _parent.Model.Run(inputNameOnnxValues);
+                    Contracts.Assert(outputNamedOnnxValues.Count > 0);
+
+                    foreach (var outputNameOnnxValue in outputNamedOnnxValues)
+                    {
+                        outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
                     }
                     outputCache.Position = position;
                 }
@@ -350,87 +352,95 @@ namespace Microsoft.ML.Transforms
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
                 var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
                 Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
-                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(IRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                    var editor = VBufferEditor.Create(ref dst, tensor.AsTensor<T>().Count());
-                    OnnxUtils.CopyTo(tensor.AsTensor<T>(), editor.Values);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
+                    var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var editor = VBufferEditor.Create(ref dst, namedOnnxValue.AsTensor<T>().Count());
+                    var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
+                    if (denseTensor == null)
+                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
+                    denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
                 return valuegetter;
             }
 
-            private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(IRow input,
+                string[] inputColNames,
                 int[] inputColIndices,
                 bool[] isInputVector,
                 System.Type[] onnxInputTypes,
                 OnnxShape[] onnxInputShapes)
             {
-                var srcTensorGetters = new ITensorValueGetter[inputColIndices.Length];
+                var srcNamedOnnxValueGetters = new INamedOnnxValueGetter[inputColIndices.Length];
                 for (int i = 0; i < inputColIndices.Length; i++)
                 {
                     int colIndex = inputColIndices[i];
-                    srcTensorGetters[i] = CreateTensorValueGetter(input, onnxInputTypes[i], isInputVector[i], colIndex, onnxInputShapes[i]);
+                    srcNamedOnnxValueGetters[i] = CreateNamedOnnxValueGetter(input, onnxInputTypes[i], isInputVector[i], inputColNames[i], colIndex, onnxInputShapes[i]);
                 }
-                return srcTensorGetters;
+                return srcNamedOnnxValueGetters;
             }
 
-            private static ITensorValueGetter CreateTensorValueGetter(IRow input, System.Type onnxType, bool isVector, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(IRow input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
                 Contracts.AssertValue(type);
-                return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, onnxShape);
+                return Utils.MarshalInvoke(CreateNameOnnxValueGetter<int>, type, input, isVector, colName, colIndex, onnxShape);
             }
 
-            private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(IRow input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 if (isVector)
-                    return new TensorValueGetterVec<T>(input, colIndex, onnxShape);
-                return new TensorValueGetter<T>(input, colIndex);
+                    return new NamedOnnxValueGetterVec<T>(input, colName, colIndex, onnxShape);
+                return new NameOnnxValueGetter<T>(input, colName, colIndex);
             }
 
-            private class TensorValueGetter<T> : ITensorValueGetter
+            private class NameOnnxValueGetter<T> : INamedOnnxValueGetter
             {
                 private readonly ValueGetter<T> _srcgetter;
+                private readonly string _colName;
 
-                public TensorValueGetter(IRow input, int colIndex)
+                public NameOnnxValueGetter(IRow input, string colName, int colIndex)
                 {
+                    _colName = colName;
                     _srcgetter = input.GetGetter<T>(colIndex);
                 }
-                public Object GetTensor()
+                public NamedOnnxValue GetNamedOnnxValue()
                 {
                     var scalar = default(T);
                     _srcgetter(ref scalar);
-                    return OnnxUtils.CreateScalarTensor(scalar);
+                    return OnnxUtils.CreateScalarNamedOnnxValue(_colName, scalar);
                 }
             }
 
-            private class TensorValueGetterVec<T> : ITensorValueGetter
+            private class NamedOnnxValueGetterVec<T> : INamedOnnxValueGetter
             {
                 private readonly ValueGetter<VBuffer<T>> _srcgetter;
                 private readonly OnnxShape _tensorShape;
+                private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
+                public NamedOnnxValueGetterVec(IRow input, string colName, int colIndex, OnnxShape tensorShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                     _tensorShape = tensorShape;
+                    _colName = colName;
                     _vBuffer = default;
                     _vBufferDense = default;
                 }
-                public Object GetTensor()
+                public NamedOnnxValue GetNamedOnnxValue()
                 {
                     _srcgetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
-                    return OnnxUtils.CreateTensor(_vBufferDense.GetValues(), _tensorShape);
+                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
         }
