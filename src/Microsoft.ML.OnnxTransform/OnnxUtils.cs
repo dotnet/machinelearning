@@ -17,12 +17,12 @@ using OnnxShape = System.Collections.Generic.List<long>;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// OnnxModel is a facad for ModelManager. ModelManager is provided by Sonoma API,
-    /// and it has a lot of functionality (multiple models, multiple versions) that are not
-    /// needed by Onnx transform, which only needs a single model. This facad simplifies the
-    /// usage of onnx model.
+    /// OnnxModel is a utility class to load ONNX models, and retrieve metadata
+    /// for inputs and outputs. The metadata includes the names, shapes and types
+    /// It provides API to open a session, score tensors and return
+    /// the results.
     /// </summary>
-    internal sealed class OnnxModel
+    public sealed class OnnxModel
     {
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
@@ -46,8 +46,17 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public class OnnxNodeInfo
         {
+            /// <summary>
+            /// The Name of the input node
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// The shape of the input node
+            /// </summary>
             public readonly OnnxShape Shape;
+            /// <summary>
+            /// The type of the input node
+            /// </summary>
             public readonly DataType Type;
 
             public OnnxNodeInfo(string name, OnnxShape shape, DataType type)
@@ -82,7 +91,23 @@ namespace Microsoft.ML.Transforms
             OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
         }
 
-        public static OnnxModel CreateFromBytes(byte[] modelBytes, int gpuDeviceId)
+        /// <summary>
+        /// Create an OnnxModel from a byte[]
+        /// </summary>
+        /// <param name="modelBytes">A byte array containing the serialized model</param>
+        /// <returns></returns>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes)
+        {
+            return CreateFromBytes(modelBytes, -1);
+        }
+
+        /// <summary>
+        /// Create an OnnxModel from a byte[]
+        /// </summary>
+        /// <param name="modelBytes">A byte array containing the serialized model</param>
+        /// <param name="gpuDeviceId">Default =-1 for CPU execution. Specify non-negative device ID for GPU execution</param>
+        /// <returns>OnnxModel</returns>
+        public static OnnxModel CreateFromBytes(byte[] modelBytes, int gpuDeviceId=-1)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(tempModelDir);
@@ -97,6 +122,11 @@ namespace Microsoft.ML.Transforms
             // or keep the dir/file and write proper cleanup when application closes
         }
 
+        /// <summary>
+        /// Uses an already open session to score a list of Tensors/NamedOnnxValues.
+        /// </summary>
+        /// <param name="inputTensors">The NamedOnnxValues/Tensors to score</param>
+        /// <returns>A list of NamedOnnxValues/Tensors</returns>
         public List<Tensor> Run(List<Tensor> inputTensors)
         {
             var outputTensors = _modelManager.RunModel(
@@ -105,12 +135,20 @@ namespace Microsoft.ML.Transforms
             return outputTensors;
         }
 
+        /// <summary>
+        /// Convert the model to a byte array.
+        /// </summary>
+        /// <returns>byte[]</returns>
         public byte[] ToByteArray()
         {
             return File.ReadAllBytes(_modelFile);
         }
 
-        private OnnxNodeInfo[] GetInputsInfo()
+        /// <summary>
+        /// Returns input metadata of the ONNX model.
+        /// </summary>
+        /// <returns>OnnxNodeInfo[]</returns>
+        public OnnxNodeInfo[] GetInputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetInputTypeDict(_modelName, _ignoredVersion),

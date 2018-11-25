@@ -35,6 +35,29 @@ using OnnxShape = System.Collections.Generic.List<long>;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <p>A transform for scoring ONNX models in the ML.NET framework.</p>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/OnnxTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </summary>
+    /// <remarks>
+    /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.Scoring/'>Microsoft.ML.Scoring</a> library
+    /// </p>
+    /// <p>The inputs and outputs of the onnx models must of of Tensors. Sequence and Maps are not yet supported.</p>
+    /// <p>Supports optional GPU execution via the CUDA 9.2 libraries. The
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.Scoring/'>CUDA 9.2 Toolkit</a>
+    /// and
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.Scoring/'>cuDNN</a>
+    /// libraries need to be installed separately. By default models are run on CPU. To run on GPU if available,
+    /// set the parameter 'gpuDeviceID' to a valid non-negative number.
+    /// </p>
+    /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
+    /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
+    /// </remarks>
     public sealed class OnnxTransform : RowToRowTransformerBase
     {
         public sealed class Arguments : TransformInputBase
@@ -75,6 +98,12 @@ namespace Microsoft.ML.Transforms
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
+        {
+            var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns, GpuDeviceId = -1 };
+            return Create(env, args, input);
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns, int gpuDeviceId = -1)
@@ -420,6 +449,10 @@ namespace Microsoft.ML.Transforms
             }
         }
     }
+
+    /// <summary>
+    /// A class implementing the estimator interface of the OnnxTransform.
+    /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs, int gpuDeviceId = -1)
@@ -461,7 +494,7 @@ namespace Microsoft.ML.Transforms
             {
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
                     Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, NumberType.R4, false);
+                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
             }
             return new SchemaShape(resultDic.Values);
         }
