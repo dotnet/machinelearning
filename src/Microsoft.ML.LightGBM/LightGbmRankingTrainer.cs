@@ -113,7 +113,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
             Host.CheckNonEmpty(groupId, nameof(groupId));
         }
