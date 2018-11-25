@@ -77,6 +77,19 @@ namespace Microsoft.ML.Transforms
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
 
+        /// <summary>
+        /// Constructs OnnxModel object from file.
+        /// </summary>
+        /// <param name="modelFile">File path to onnx model</param>
+        public OnnxModel(string modelFile) : this(modelFile, -1)
+        {
+        }
+
+        /// <summary>
+        /// Constructs OnnxModel object from file.
+        /// </summary>
+        /// <param name="modelFile">File path to onnx model</param>
+        /// <param name="gpuDeviceId">-1 for CPU execution. A non-negative value runs execution on the specified GPU</param>
         public OnnxModel(string modelFile, int gpuDeviceId)
         {
             _modelFile = modelFile;
