@@ -298,8 +298,16 @@ namespace Microsoft.ML.Tests
                     {
                         getScoresa(ref buffera);
                         getScoresb(ref bufferb);
-                        Console.WriteLine(buffera.GetValues().ToArray());
+                        var suma = 0f;
+                        var sumb = 0f;
+                        foreach (var x in buffera.DenseValues())
+                            suma += x;
+                        foreach (var x in bufferb.DenseValues())
+                            sumb += x;
                         Assert.Equal(5, buffera.Length);
+                        Assert.Equal(5, bufferb.Length);
+                        Assert.Equal(0, suma);
+                        Assert.Equal(30, sumb);
                     }
                 }
             }

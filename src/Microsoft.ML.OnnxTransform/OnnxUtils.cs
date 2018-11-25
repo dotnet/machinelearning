@@ -5,26 +5,29 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Scoring;
+//using Microsoft.ML.Scoring;
+using Microsoft.ML.OnnxRuntime;
+using System.Numerics.Tensors;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.StaticPipe;
 
-using OnnxShape = System.Collections.Generic.List<long>;
+using OnnxShape = System.Collections.Generic.List<int>;
 using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// OnnxModel is a facad for ModelManager. ModelManager is provided by Sonoma API,
-    /// and it has a lot of functionality (multiple models, multiple versions) that are not
-    /// needed by Onnx transform, which only needs a single model. This facad simplifies the
-    /// usage of onnx model.
+    /// OnnxModel is a utility class to load ONNX models, and retrieve metadata
+    /// for inputs and outputs. The metadata includes the names, shapes and types
+    /// It provides API to open a session, score tensors (NamedOnnxValues) and return
+    /// the results.
     /// </summary>
-    internal sealed class OnnxModel
+    public sealed class OnnxModel
     {
+
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
         /// Sonoma API once that functionality is added.
@@ -47,11 +50,20 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         public class OnnxNodeInfo
         {
+            /// <summary>
+            /// The Name of the input node
+            /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// The shape of the input node
+            /// </summary>
             public readonly OnnxShape Shape;
-            public readonly DataType Type;
+            /// <summary>
+            /// The type of the input node
+            /// </summary>
+            public readonly System.Type Type;
 
-            public OnnxNodeInfo(string name, OnnxShape shape, DataType type)
+            public OnnxNodeInfo(string name, OnnxShape shape, System.Type type)
             {
                 Name = name;
                 Shape = shape;
@@ -60,29 +72,25 @@ namespace Microsoft.ML.Transforms
         }
 
         public readonly OnnxModelInfo ModelInfo;
-
-        private static readonly int _ignoredVersion = int.MaxValue;
-        private readonly ModelManager _modelManager;
+        private readonly InferenceSession _session;
         private readonly string _modelFile;
-        private readonly string _modelName;
         public readonly List<string> InputNames;
         public readonly List<string> OutputNames;
 
         public OnnxModel(string modelFile)
         {
             _modelFile = modelFile;
-
-            // Load the onnx model
-            var modelFileInfo = new FileInfo(modelFile);
-            _modelName = Path.GetFileNameWithoutExtension(modelFileInfo.Name);
-            _modelManager = new ModelManager(modelFileInfo.Directory.FullName, true);
-            _modelManager.InitOnnxModel(_modelName, _ignoredVersion);
-
+            _session = new InferenceSession(modelFile);
             ModelInfo = new OnnxModelInfo(GetInputsInfo(), GetOutputsInfo());
             InputNames = ModelInfo.InputsInfo.Select(i => i.Name).ToList();
             OutputNames = ModelInfo.OutputsInfo.Select(i => i.Name).ToList();
         }
 
+        /// <summary>
+        /// Create an OnnxModel from a byte[]
+        /// </summary>
+        /// <param name="modelBytes"></param>
+        /// <returns>OnnxModel</returns>
         public static OnnxModel CreateFromBytes(byte[] modelBytes)
         {
             var tempModelDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -98,239 +106,164 @@ namespace Microsoft.ML.Transforms
             // or keep the dir/file and write proper cleanup when application closes
         }
 
-        public List<Tensor> Run(List<Tensor> inputTensors)
+        /// <summary>
+        /// Uses an already open session to score a list of Tensors/NamedOnnxValues.
+        /// </summary>
+        /// <param name="inputTensors">The NamedOnnxValues/Tensors to score</param>
+        /// <returns>A list of NamedOnnxValues/Tensors</returns>
+        public List<NamedOnnxValue> Run(List<NamedOnnxValue> inputTensors)
         {
-            var outputTensors = _modelManager.RunModel(
-                _modelName, _ignoredVersion, InputNames, inputTensors, OutputNames);
-
-            return outputTensors;
+            var outputTensors = _session.Run(inputTensors);
+            var results = new List<NamedOnnxValue>();
+            foreach (var tensor in outputTensors)
+            {
+                results.Add(tensor);
+            }
+            return results;
         }
 
+        /// <summary>
+        /// Convert the model to a byte array.
+        /// </summary>
+        /// <returns>byte[]</returns>
         public byte[] ToByteArray()
         {
             return File.ReadAllBytes(_modelFile);
         }
 
-        private OnnxNodeInfo[] GetInputsInfo()
+        /// <summary>
+        /// Returns input metadata of the ONNX model.
+        /// </summary>
+        /// <returns>OnnxNodeInfo[]</returns>
+        public OnnxNodeInfo[] GetInputsInfo()
         {
-            return DictToNodesInfo(
-                    _modelManager.GetInputTypeDict(_modelName, _ignoredVersion),
-                    _modelManager.GetInputShapesDict(_modelName, _ignoredVersion));
+            var nodeInfos = new List<OnnxNodeInfo>();
+            var inputMeta = _session.InputMetadata;
+            foreach (var kv in inputMeta)
+            {
+                nodeInfos.Add( new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.Type));
+            }
+            return nodeInfos.ToArray();
         }
 
-        private OnnxNodeInfo[] GetOutputsInfo()
+        /// <summary>
+        /// Returns output metadata of the ONNX model.
+        /// </summary>
+        /// <returns></returns>
+        public OnnxNodeInfo[] GetOutputsInfo()
         {
-            return DictToNodesInfo(
-                    _modelManager.GetOutputTypeDict(_modelName, _ignoredVersion),
-                    _modelManager.GetOutputShapesDict(_modelName, _ignoredVersion));
-        }
-
-        private static OnnxNodeInfo[] DictToNodesInfo(
-            Dictionary<string, DataType> typeDict,
-            Dictionary<string, long[]> shapeDictArray)
-        {
-            var shapeDict = new Dictionary<string, List<long>>();
-            foreach (var key in shapeDictArray.Keys)
-                shapeDict.Add(key, shapeDictArray[key].ToList());
-
-            var sameKey = typeDict.Count == shapeDict.Count &&
-                          typeDict.Keys.SequenceEqual(shapeDict.Keys);
-            Contracts.Assert(sameKey, "Type and shape dictionaries should have the same keys");
-            return typeDict.Select(kv => new OnnxNodeInfo(
-                        name: kv.Key, type: kv.Value, shape: shapeDict[kv.Key])).OrderBy(x => x.Name).ToArray();
+            var nodeInfos = new List<OnnxNodeInfo>();
+            var outputMeta = _session.OutputMetadata;
+            foreach (var kv in outputMeta)
+            {
+                nodeInfos.Add(new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.Type));
+            }
+            return nodeInfos.ToArray();
         }
     }
 
     internal sealed class OnnxUtils
     {
-        /// <summary>
-        /// Sonoma API only provides Tensor() constructors with overloaded
-        /// versions based on data type.
-        /// </summary>
-
-        private static Dictionary<System.Type, DataType> _typeMap;
-
-        public static Tensor CreateScalarTensor<T>(T data)
-        {
-            if (typeof(T) == typeof(System.Boolean))
-            {
-                return new Tensor((System.Boolean)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Byte))
-            {
-                return new Tensor((System.Byte)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Char))
-            {
-                return new Tensor((System.Char)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Double))
-            {
-                return new Tensor((System.Double)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Single))
-            {
-                return new Tensor((System.Single)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Int32))
-            {
-                return new Tensor((System.Int32)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Int64))
-            {
-                return new Tensor((System.Int64)(object)data);
-            }
-            else if (typeof(T) == typeof(System.SByte))
-            {
-                return new Tensor((System.SByte)(object)data);
-            }
-            else if (typeof(T) == typeof(System.Int16))
-            {
-                return new Tensor((System.Int16)(object)data);
-            }
-            else if (typeof(T) == typeof(System.UInt32))
-            {
-                return new Tensor((System.UInt32)(object)data);
-            }
-            else if (typeof(T) == typeof(System.UInt64))
-            {
-                return new Tensor((System.UInt64)(object)data);
-            }
-            else if (typeof(T) == typeof(System.UInt16))
-            {
-                return new Tensor((System.UInt16)(object)data);
-            }
-            throw new NotSupportedException($"Unsupported type {typeof(T)}");
-        }
+        private static Dictionary<System.Type, System.Type> _onnxTypeMap;
+        private static Dictionary<System.Type, DataKind> _typeToKindMap;
 
         /// <summary>
-        /// Sonoma API only provides Tensor() constructors with overloaded versions
-        /// based on data type. ML.NET cannot use the overloaded version and requires
-        /// generic version. CreateTensor&lt;T&gt; is generic wrapper on top of
-        /// overloaded Tensor(T[] data, OnnxShape shape) constructors.
+        /// Creates a Tensor from a scalar value.
         /// </summary>
-        public static Tensor CreateTensor<T>(ReadOnlySpan<T> data, OnnxShape shape)
-        {
-            if (typeof(T) == typeof(System.Boolean))
-            {
-                return new Tensor((System.Boolean[])(object)data.ToArray(), shape.ToArray());
-            }
-            else if (typeof(T) == typeof(System.Double))
-            {
-                return new Tensor((System.Double[])(object)data.ToArray(), shape.ToArray());
-            }
-            else if (typeof(T) == typeof(System.Single))
-            {
-                return new Tensor((System.Single[])(object)data.ToArray(), shape.ToArray());
-            }
-            else if (typeof(T) == typeof(System.Int32))
-            {
-                return new Tensor((System.Int32[])(object)data.ToArray(), shape.ToArray());
-            }
-            else if (typeof(T) == typeof(System.Int64))
-            {
-                return new Tensor((System.Int64[])(object)data.ToArray(), shape.ToArray());
-            }
-            throw new NotImplementedException($"Not implemented type {typeof(T)}");
-        }
-
-        /// <summary>
-        /// Sonoma API only provides CopyTo() functions with overloaded versions
-        /// based on data type. ML.NET cannot use the overloaded version and requires
-        /// generic version. CopyTo&lt;T&gt; is generic wrapper on top of
-        /// overloaded Tensor.CopyTo(List&lt;T&gt; dst) methods.
-        /// Also Tensor.CopyTo(List&lt;T&gt; dst) requires a list input, whereas ML.NET
-        /// provides array buffers to copy values to. This mismatch causes an extra copy.
-        /// </summary>
-        public static unsafe void CopyTo<T>(Tensor tensor, Span<T> dst)
+        /// <typeparam name="T">The type of the Tensor.</typeparam>
+        /// <param name="data">The data values of the Tensor</param>
+        /// <returns>An object which can be cast to an Tensor. The shape of the Tensor is not filled.</returns>
+        public static Object CreateScalarTensor<T>(T data)
         {
             var typeMap = SystemTypeToOnnxType();
-            if (typeMap.ContainsKey(typeof(T)))
-            {
-                if (tensor.GetDataType() != typeMap[typeof(T)])
-                {
-                    throw new InvalidOperationException( string.Format("Cannot copy source tensor of type {0} to managed type {1}.", tensor.GetDataType(), typeof(T)));
-                }
-                Span<T> tensorSpan = new Span<T>(tensor.UnsafeGetData().ToPointer(), tensor.GetSize());
-                tensorSpan.CopyTo(dst);
-                // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
-                // during the method call. Use KeepAlive for now, and remove
-                // after permanent fix in CopyTo().
-            }
-            else
+            if (!typeMap.ContainsKey(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
+            return new DenseTensor<T>(new T[] { data }, new int[] { });
+        }
+
+        /// <summary>
+        /// Create a Tensor from vbuffer span. Checks if the tensor type
+        /// is supported by OnnxRuntime prior to execution.
+        /// </summary>
+        /// <typeparam name="T">The type of Tensor to create.</typeparam>
+        /// <param name="data">A span containing the data.</param>
+        /// <param name="shape">The shape of the tensor being created</param>
+        /// <returns></returns>
+        public static Object CreateTensor<T>(ReadOnlySpan<T> data, OnnxShape shape)
+        {
+            var typeMap = SystemTypeToOnnxType();
+            if (!typeMap.ContainsKey(typeof(T)))
+                throw new NotImplementedException($"Not implemented type {typeof(T)}");
+            return new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray());
+        }
+
+        /// <summary>
+        /// Copies a Tensor to a Span element by element.
+        /// </summary>
+        /// <typeparam name="T">The type of both Span and Tensor</typeparam>
+        /// <param name="tensor">The source tensor</param>
+        /// <param name="dst">The destination span</param>
+        public static unsafe void CopyTo<T>(Tensor<T> tensor, Span<T> dst)
+        {
+            for (int i = 0; i < tensor.Length; i++)
+            {
+                dst[i] = tensor.GetValue(i);
+            }
             GC.KeepAlive(tensor);
         }
 
-        public static PrimitiveType OnnxToMlNetType(DataType type)
+        /// <summary>
+        /// Converts a Onnx type, that follows the System.Type convention
+        /// to the type system ML.NET recognizes (e.g. I4, I8, R4 etc.)
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static PrimitiveType OnnxToMlNetType(System.Type type)
         {
-            DataKind kind;
-            switch (type)
-            {
-                case DataType.Type_Float:
-                    kind = DataKind.R4;
-                    break;
-
-                case DataType.Type_Double:
-                    kind = DataKind.R8;
-                    break;
-
-                case DataType.Type_Int8:
-                    kind = DataKind.I1;
-                    break;
-
-                case DataType.Type_Int16:
-                    kind = DataKind.I2;
-                    break;
-
-                case DataType.Type_Int32:
-                    kind = DataKind.I4;
-                    break;
-
-                case DataType.Type_Int64:
-                    kind = DataKind.I8;
-                    break;
-
-                case DataType.Type_Uint8:
-                    kind = DataKind.U1;
-                    break;
-
-                case DataType.Type_Uint16:
-                    kind = DataKind.U2;
-                    break;
-
-                case DataType.Type_String:
-                    kind = DataKind.TX;
-                    break;
-
-                case DataType.Type_Bool:
-                    kind = DataKind.BL;
-                    break;
-
-                case DataType.Type_Invalid:
-                default:
-                    throw Contracts.ExceptNotSupp("Onnx type not supported", type);
-            }
-
-            return PrimitiveType.FromKind(kind);
+            var map = OnnxToMlNetTypeMap();
+            if (!map.ContainsKey(type))
+               throw Contracts.ExceptNotSupp("Onnx type not supported", type);
+            return PrimitiveType.FromKind(map[type]);
         }
 
-        internal static Dictionary<System.Type, DataType> SystemTypeToOnnxType()
+        internal static Dictionary<System.Type, DataKind> OnnxToMlNetTypeMap()
         {
-            if (_typeMap == null)
+            if (_typeToKindMap == null)
             {
-                _typeMap = new Dictionary<System.Type, DataType>
+                _typeToKindMap = new Dictionary<System.Type, DataKind>
                 {
-                    { typeof(Boolean) , DataType.Type_Bool },
-                    { typeof(Double) , DataType.Type_Double },
-                    { typeof(Single) , DataType.Type_Float },
-                    { typeof(Int16) , DataType.Type_Int16 },
-                    { typeof(Int32) , DataType.Type_Int32 },
-                    { typeof(Int64) , DataType.Type_Int64 },
-                    { typeof(UInt16) , DataType.Type_Uint16 }
+                    { typeof(Single) , DataKind.R4},
+                    { typeof(Double) , DataKind.R8},
+                    { typeof(Int16) , DataKind.I2},
+                    { typeof(Int32) , DataKind.I4},
+                    { typeof(Int64) , DataKind.I8},
+                    { typeof(UInt16) , DataKind.U2},
+                    { typeof(UInt32) , DataKind.U4},
+                    { typeof(UInt64) , DataKind.U8},
+                    { typeof(String) , DataKind.TX},
+                    { typeof(Boolean) , DataKind.BL},
                 };
             }
-            return _typeMap;
+            return _typeToKindMap;
+        }
+
+        internal static Dictionary<System.Type, System.Type> SystemTypeToOnnxType()
+        {
+            if (_onnxTypeMap == null)
+            {
+                _onnxTypeMap = new Dictionary<System.Type, System.Type>
+                {
+                    { typeof(Double) , typeof(Double) },
+                    { typeof(Single) , typeof(Single) },
+                    { typeof(Int16) , typeof(Int16) },
+                    { typeof(Int32) , typeof(Int32) },
+                    { typeof(Int64) , typeof(Int64) },
+                    { typeof(UInt16) , typeof(UInt16) },
+                    { typeof(UInt32) , typeof(UInt32) },
+                    { typeof(UInt64) , typeof(UInt64) }
+                };
+            }
+            return _onnxTypeMap;
         }
     }
 }

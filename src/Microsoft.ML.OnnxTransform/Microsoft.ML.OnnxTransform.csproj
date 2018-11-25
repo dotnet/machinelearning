@@ -9,7 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <PackageReference Include="Microsoft.ML.Scoring" Version="$(MicrosoftMLScoring)" />
+    <!--PackageReference Include="Microsoft.ML.Scoring" Version="$(MicrosoftMLScoring)" /-->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="$(OnnxRuntime)" />
+    <PackageReference Include="System.Numerics.Tensors" Version="0.1.0" />
   </ItemGroup>
 
 </Project>
