@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMBinaryEstimator()
         {
             var (pipe, dataView) = GetBinaryClassificationPipeline();
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// FastTreeRankingTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void FastTreeRankerEstimator()
@@ -110,9 +110,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// LightGbmRankingTrainer TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRankerEstimator()
         {
             var (pipe, dataView) = GetRankingPipeline();
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// LightGbmRegressorTrainer TrainerEstimator test 
         /// </summary>
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRegressorEstimator()
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// RegressionGamTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void GAMRegressorEstimator()
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastTreeTweedieTrainer TrainerEstimator test 
         /// </summary>
         [Fact]
         public void TweedieRegressorEstimator()
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeRegressor TrainerEstimator test 
+        /// FastForestRegression TrainerEstimator test 
         /// </summary>
         [Fact]
         public void FastForestRegressorEstimator()
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// LightGbmMulticlass TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmMultiClassEstimator()
         {
             var (pipeline, dataView) = GetMultiClassPipeline();
