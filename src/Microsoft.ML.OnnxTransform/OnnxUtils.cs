@@ -13,6 +13,7 @@ using System.Linq;
 using Microsoft.ML.StaticPipe;
 
 using OnnxShape = System.Collections.Generic.List<long>;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Transforms
 {

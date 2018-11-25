@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -502,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
 
-        public abstract Schema.Column[] GetOutputColumns();
+        public abstract Schema.DetachedColumn[] GetOutputColumns();
 
         public abstract Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer);
     }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -854,7 +855,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(Schema.Metadata.Builder builder);
+            public abstract void AddMetadata(MetadataBuilder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -1037,7 +1038,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1080,7 +1081,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(Schema.Metadata.Builder builder)
+                public override void AddMetadata(MetadataBuilder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1095,7 +1096,7 @@ namespace Microsoft.ML.Transforms.Categorical
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.Metadata.Builder builder)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, MetadataBuilder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
