@@ -59,7 +59,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 3: Investigate the properties of the model
 
             // The intercept for the GAM models represent the average prediction for the training data
-            var intercept = gamModel.GetIntercept();
+            var intercept = gamModel.Intercept;
             Console.WriteLine($"Average predicted cost: {intercept}");
 
             // Each feature represents the deviation from the average prediction as a function of the feature value
