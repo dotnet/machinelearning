@@ -93,7 +93,7 @@ namespace Microsoft.ML
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, bag);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
+        /// Converts value types into <see cref="KeyType"/>.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
@@ -109,7 +109,7 @@ namespace Microsoft.ML
            => new ValueToKeyMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, maxNumTerms, sort);
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/> loading the terms to use from <paramref name="file"/>.
+        /// Converts value types into <see cref="KeyType"/> loading the keys to use from <paramref name="file"/>.
         /// </summary>
         /// <param name="catalog">The categorical transform's catalog.</param>
         /// <param name="columns">The data columns to map to keys.</param>

@@ -314,7 +314,8 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="MultiClassNaiveBayesTrainer"/>.
+        /// The <see cref="MultiClassNaiveBayesTrainer"/> trains a multiclass Naive Bayes predictor that supports binary feature values.
         /// </summary>
         /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
@@ -328,8 +329,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="Ova"/>.
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="Ova"/>.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In <see cref="Ova"/> In this strategy, a binary classification algorithm is used to train one classifier for each class,
+        /// which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers,
+        /// and choosing the prediction with the highest confidence score.
+        /// </para>
+        /// </remarks>
         /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
@@ -350,8 +358,15 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Pkpd"/>
+        /// Predicts a target using a linear multiclass classification model trained with the <see cref="Pkpd"/>.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// In the Pairwise coupling (PKPD) strategy, a binary classification algorithm is used to train one classifier for each pair of classes.
+        /// Prediction is then performed by running these binary classifiers, and computing a score for each class by counting how many of the binary
+        /// classifiers predicted it. The prediction is the class with the highest score.
+        /// </para>
+        /// </remarks>
         /// <param name="ctx">The <see cref="MulticlassClassificationContext.MulticlassClassificationTrainers"/>.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
         /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
@@ -370,8 +385,19 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LinearSvm"/>.
+        /// Predict a target using a linear binary classification model trained with the <see cref="LinearSvm"/> trainer.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The idea behind support vector machines, is to map instances into a high dimensional space
+        /// in which the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it,
+        /// and all the negative examples are on the other.
+        /// </para>
+        /// <para>
+        /// After this mapping, quadratic programming is used to find the separating hyperplane that maximizes the
+        /// margin, i.e., the minimal distance between it and the instances.
+        /// </para>
+        /// </remarks>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="labelColumn">The name of the label column. </param>
         /// <param name="featureColumn">The name of the feature column.</param>

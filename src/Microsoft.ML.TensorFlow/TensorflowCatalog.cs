@@ -22,7 +22,7 @@ namespace Microsoft.ML
             string modelLocation,
             string[] inputs,
             string[] outputs)
-           => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), modelLocation, inputs, outputs);
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), modelLocation, inputs, outputs);
 
         /// <summary>
         /// Scores a dataset using a pre-traiend TensorFlow model specified via <paramref name="tensorFlowModel"/>.
@@ -35,7 +35,7 @@ namespace Microsoft.ML
             TensorFlowModelInfo tensorFlowModel,
             string[] inputs,
             string[] outputs)
-           => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), tensorFlowModel, inputs, outputs);
+            => new TensorFlowEstimator(CatalogUtils.GetEnvironment(catalog), tensorFlowModel, inputs, outputs);
 
         /// <summary>
         /// Score or Retrain a tensorflow model (based on setting of the <see cref="TensorFlowTransform.Arguments.ReTrain"/>) setting.
@@ -52,7 +52,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="args">The <see cref="TensorFlowTransform.Arguments"/> specifying the inputs and the settings of the <see cref="TensorFlowEstimator"/>.</param>
-        /// <param name="tensorFlowModel"></param>
+        /// <param name="tensorFlowModel">The pre-trained TensorFlow model.</param>
         public static TensorFlowEstimator TensorFlow(this TransformsCatalog catalog,
             TensorFlowTransform.Arguments args,
             TensorFlowModelInfo tensorFlowModel)

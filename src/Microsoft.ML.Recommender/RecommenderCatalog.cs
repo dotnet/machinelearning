@@ -45,8 +45,14 @@ namespace Microsoft.ML
             }
 
             /// <summary>
-            /// Initializing a new instance of <see cref="MatrixFactorizationTrainer"/>.
+            /// Train a matrix factorization model. It factorizes the training matrix into the product of two low-rank matrices.
             /// </summary>
+            /// <remarks>
+            /// <para>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.</para>
+            /// <para>In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
+            /// and the value at the location specified by the two indexes.
+            /// </para>
+            /// </remarks>
             /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
@@ -62,7 +68,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Evaluates scored recommendation data.
+        /// Evaluates the scored recommendation data.
         /// </summary>
         /// <param name="data">The scored data.</param>
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>

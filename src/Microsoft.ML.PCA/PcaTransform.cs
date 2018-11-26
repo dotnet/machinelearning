@@ -674,7 +674,6 @@ namespace Microsoft.ML.Transforms.Projections
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
-        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="inputColumn">Input column to project to Principal Component.</param>
@@ -692,7 +691,6 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
-        /// <summary>Initializes a new instance of <see cref="PrincipalComponentAnalysisEstimator"/>.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The dataset columns to use, and their specific settings.</param>
