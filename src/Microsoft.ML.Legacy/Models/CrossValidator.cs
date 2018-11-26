@@ -15,6 +15,7 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// Performs cross-validation on a pipeline.
     /// </summary>
+    [Obsolete]
     public sealed partial class CrossValidator
     {
         /// <summary>

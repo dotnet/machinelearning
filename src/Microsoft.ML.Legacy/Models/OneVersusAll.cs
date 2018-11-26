@@ -10,6 +10,7 @@ using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
 
 namespace Microsoft.ML.Legacy.Models
 {
+    [Obsolete]
     public sealed partial class OneVersusAll
     {
         /// <summary>

@@ -50,6 +50,7 @@ namespace Microsoft.ML.Runtime
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper
             _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 
+            // The following assemblies reference this assembly, so we can't directly reference them
             //_ = typeof(Microsoft.ML.Runtime.Data.LinearPredictor).Assembly); // ML.StandardLearners
             _ = Assembly.Load(new AssemblyName()
             {

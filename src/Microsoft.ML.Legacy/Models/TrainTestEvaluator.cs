@@ -16,6 +16,7 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// Performs Train-Test on a pipeline.
     /// </summary>
+    [Obsolete]
     public sealed partial class TrainTestEvaluator
     {
         /// <summary>
