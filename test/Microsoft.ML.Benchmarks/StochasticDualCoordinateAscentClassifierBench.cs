@@ -99,7 +99,7 @@ namespace Microsoft.ML.Benchmarks
                         },
                         OutputTokens = true,
                         KeepPunctuations=false,
-                        StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                        UsePredefinedStopWordRemover = true,
                         VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
