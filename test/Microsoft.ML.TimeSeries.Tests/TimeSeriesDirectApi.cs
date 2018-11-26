@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))] // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(conc: 1);

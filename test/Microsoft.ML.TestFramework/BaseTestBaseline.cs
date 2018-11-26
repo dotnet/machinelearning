@@ -24,9 +24,9 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         public const int DigitsOfPrecision = 7;
 
-        public static bool NotNetCore30 { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
+        public static bool LessThanNetCore30OrNotNetCore { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
 
-        public static bool NetCore21And64BitProcess { get; } = NotNetCore30 && Environment.Is64BitProcess;
+        public static bool LessThanNetCore30OrNotNetCoreAnd64BitProcess { get; } = LessThanNetCore30OrNotNetCore && Environment.Is64BitProcess;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {

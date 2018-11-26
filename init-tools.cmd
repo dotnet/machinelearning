@@ -50,8 +50,8 @@ set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.txt"
 :Arg_Loop
 if [%1] == [] goto :ArchSet
 if /i [%1] == [x86]         ( set ARCH=x86)
-if /i [%1] == [-Debug-Intrinsics] ( set DOTNET_VERSION=3.0.100-alpha1-009622)
-if /i [%1] == [-Release-Intrinsics] ( set DOTNET_VERSION=3.0.100-alpha1-009622)
+if /i [%1] == [-Debug-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.txt")
+if /i [%1] == [-Release-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.txt")
 shift
 goto :Arg_Loop
 
