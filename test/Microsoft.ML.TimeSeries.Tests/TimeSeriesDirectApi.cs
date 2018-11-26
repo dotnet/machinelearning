@@ -173,7 +173,7 @@ namespace Microsoft.ML.Tests
             var model = pipeline.Fit(dataView);
 
             //Predict.
-            var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction1>(ml);
+            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction1>(ml);
             //Even though time series column is not requested it will pass the observation through time series transform.
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(-1, prediction.Random);
@@ -217,7 +217,7 @@ namespace Microsoft.ML.Tests
             // Train.
             var model = pipeline.Fit(dataView);
             //Predict.
-            var engine = model.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 7); // Raw score
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Tests
                 model2 = TransformerChain.LoadFrom(ml, file);
 
             //Predict and expect different result for the same input.
-            engine = model2.MakeTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
             Assert.Equal(-0.12883400917053223, prediction.Change[1], precision: 7); // Raw score

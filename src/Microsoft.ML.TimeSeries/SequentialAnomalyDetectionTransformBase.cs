@@ -665,27 +665,27 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return valueGetter;
             }
 
-            public Delegate[] CreatePingers(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
-                var getters = new Delegate[1];
+                Action<long> pinger = null;
                 if (activeOutput(0))
-                    getters[0] = MakePingers(input, State);
+                    pinger = MakePinger(input, State);
 
-                return getters;
+                return pinger;
             }
 
-            private Delegate MakePingers(IRow input, TState state)
+            private Action<long> MakePinger(IRow input, TState state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
-                ValuePinger valuePinger = (ref bool status, int rowPosition) =>
+                Action<long> pinger = (long rowPosition) =>
                 {
                     TInput src = default;
                     srcGetter(ref src);
                     state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
                 };
-                return valuePinger;
+                return pinger;
             }
 
             public void CloneState()

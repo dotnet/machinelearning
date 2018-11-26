@@ -131,6 +131,22 @@ namespace Microsoft.ML.Runtime.Api
             : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
         }
+
+        /// <summary>
+        /// Run prediction pipeline on one example.
+        /// </summary>
+        /// <param name="example">The example to run on.</param>
+        /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
+        /// is reused.</param>
+        public override void Predict(TSrc example, ref TDst prediction)
+        {
+            Contracts.CheckValue(example, nameof(example));
+            ExtractValues(example);
+            if (prediction == null)
+                prediction = new TDst();
+
+            FillValues(prediction);
+        }
     }
 
     /// <summary>
@@ -211,9 +227,9 @@ namespace Microsoft.ML.Runtime.Api
             return result;
         }
 
-        public void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
+        protected void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
 
-        public void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
+        protected void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
 
         /// <summary>
         /// Run prediction pipeline on one example.
@@ -221,14 +237,6 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        public virtual void Predict(TSrc example, ref TDst prediction)
-        {
-            Contracts.CheckValue(example, nameof(example));
-            ExtractValues(example);
-            if (prediction == null)
-                prediction = new TDst();
-
-            FillValues(prediction);
-        }
+        public abstract void Predict(TSrc example, ref TDst prediction);
     }
 }

@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 PreviousPosition = -1;
             }
 
-            public void UpdateState(ref TInput input, int rowPosition, bool buffer = true)
+            public void UpdateState(ref TInput input, long rowPosition, bool buffer = true)
             {
                 if (rowPosition > PreviousPosition)
                 {
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
                 new Row(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
-                    _mapper.CreatePingers(input, active, out disposer));
+                    _mapper.CreatePinger(input, active, out disposer));
 
         }
 
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly Schema _schema;
             private readonly IRow _input;
             private readonly Delegate[] _getters;
-            private readonly Delegate[] _pingers;
+            private readonly Action<long> _pinger;
 
             public Schema Schema { get { return _schema; } }
 
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public long Batch { get { return _input.Batch; } }
 
-            public Row(Schema schema, IRow input, Delegate[] getters, Delegate[] pingers)
+            public Row(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _schema = schema;
                 _input = input;
                 _getters = getters ?? new Delegate[0];
-                _pingers = pingers ?? new Delegate[0];
+                _pinger = pinger;
             }
 
             public ValueGetter<UInt128> GetIdGetter()
@@ -519,18 +519,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public ValuePinger[] GetPingers()
-            {
-                ValuePinger[] pingers = new ValuePinger[_pingers.Length];
-                int index = 0;
-                foreach (var pinger in _pingers)
-                {
-                    var fn = pinger as ValuePinger;
-                    pingers[index++] = fn ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(bool));
-                }
-
-                return pingers;
-            }
+            public Action<long> GetPinger() =>
+                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
             public bool IsColumnActive(int col)
             {
@@ -767,7 +757,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
                 return new StatefulRow(input, this, Schema, getters,
-                    _mapper.CreatePingers(input, pred, out disp));
+                    _mapper.CreatePinger(input, pred, out disp));
             }
         }
 
@@ -775,7 +765,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private readonly IRow _input;
             private readonly Delegate[] _getters;
-            private readonly Delegate[] _pingers;
+            private readonly Action<long> _pinger;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
 
@@ -786,13 +776,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Schema Schema { get; }
 
             public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent,
-                Schema schema, Delegate[] getters, Delegate[] pingers)
+                Schema schema, Delegate[] getters, Action<long> pinger)
             {
                 _input = input;
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
-                _pingers = pingers;
+                _pinger = pinger;
             }
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
@@ -809,18 +799,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public ValuePinger[] GetPingers()
-            {
-                ValuePinger[] pingers = new ValuePinger[_pingers.Length];
-                int index = 0;
-                foreach (var pinger in _pingers)
-                {
-                    var fn = pinger as ValuePinger;
-                    pingers[index++] = fn ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(bool));
-                }
-
-                return pingers;
-            }
+            public Action<long> GetPinger() =>
+                _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
             public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 

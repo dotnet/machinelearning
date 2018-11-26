@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Core.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
@@ -21,17 +25,16 @@ namespace Microsoft.ML.TimeSeries
         IStatefulTransformer Clone();
     }
 
-    public delegate void ValuePinger(ref bool value, int rowPosition);
-
     public interface IStatefulRow : IRow
     {
-        ValuePinger[] GetPingers();
+        Action<long> GetPinger();
     }
 
     public interface IStatefulRowMapper : IRowMapper
     {
         void CloneState();
-        Delegate[] CreatePingers(IRow input, Func<int, bool> activeOutput, out Action disposer);
+
+        Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer);
     }
 
     /// <summary>
@@ -42,12 +45,12 @@ namespace Microsoft.ML.TimeSeries
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class TimeSeriesPredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+    public sealed class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
-        private ValuePinger[][] _pingers;
-        private int _rowPosition;
+        private Action<long> _pinger;
+        private long _rowPosition;
         private ITransformer InputTransformer { get; set; }
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
@@ -81,7 +84,7 @@ namespace Microsoft.ML.TimeSeries
                 return transformer is IStatefulTransformer ? ((IStatefulTransformer)transformer).Clone() : transformer;
         }
 
-        public TimeSeriesPredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+        public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null) :
             base(env, CloneTransformers(transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
@@ -150,14 +153,18 @@ namespace Microsoft.ML.TimeSeries
             outRow = result;
         }
 
-        private ValuePinger[][] CreatePingers(List<IStatefulRow> rows)
+        private Action<long> CreatePinger(List<IStatefulRow> rows)
         {
-            ValuePinger[][] pingers = new ValuePinger[rows.Count][];
+            Action<long>[] pingers = new Action<long>[rows.Count];
             int index = 0;
             foreach (var row in rows)
-                pingers[index++] = row.GetPingers();
+                pingers[index++] = row.GetPinger();
 
-            return pingers;
+            return (long position) =>
+            {
+                foreach (var ping in pingers)
+                    ping(position);
+            };
         }
 
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
@@ -174,7 +181,7 @@ namespace Microsoft.ML.TimeSeries
             if (rows.Count == 0 && outputRowLocal is IStatefulRow)
                 rows.Add((IStatefulRow)outputRowLocal);
 
-            _pingers = CreatePingers(rows);
+            _pinger = CreatePinger(rows);
             outputRow = cursorable.GetRow(outputRowLocal);
         }
 
@@ -236,33 +243,19 @@ namespace Microsoft.ML.TimeSeries
             if (prediction == null)
                 prediction = new TDst();
 
-            //Update State.
-            bool status = false;
-            foreach (var row in _pingers)
-                foreach (var pinger in row)
-                    pinger(ref status, _rowPosition);
+            // Update state.
+            _pinger(_rowPosition);
 
-            //Predict.
+            // Predict.
             FillValues(prediction);
 
             _rowPosition++;
         }
     }
 
-    public sealed class TimeSeriesPredictionFunction<TSrc, TDst> : PredictionFunctionBase<TSrc, TDst>
-         where TSrc : class
-         where TDst : class, new()
-    {
-        public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer) : base(env, transformer) { }
-        private TimeSeriesPredictionEngine<TSrc, TDst> _engine;
-        public void CheckPoint(IHostEnvironment env, string modelPath) => _engine.CheckPoint(env, modelPath);
-        internal override void CreatePredictionEngine(IHostEnvironment env, ITransformer transformer, out PredictionEngineBase<TSrc, TDst> engine) =>
-            engine = _engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
-    }
-
     public static class PredictionFunctionExtensions
     {
-        public static TimeSeriesPredictionEngine<TSrc, TDst> CreateTimeSeriesPredictionEngine<TSrc, TDst>(this IHostEnvironment env, ITransformer transformer,
+        public static TimeSeriesPredictionFunction<TSrc, TDst> CreateTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env,
             bool ignoreMissingColumns = false, SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             where TSrc : class
             where TDst : class, new()
@@ -271,18 +264,7 @@ namespace Microsoft.ML.TimeSeries
             env.CheckValue(transformer, nameof(transformer));
             env.CheckValueOrNull(inputSchemaDefinition);
             env.CheckValueOrNull(outputSchemaDefinition);
-            return new TimeSeriesPredictionEngine<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
+            return new TimeSeriesPredictionFunction<TSrc, TDst>(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition);
         }
-
-        /// <summary>
-        /// Create an instance of the 'prediction function', or 'prediction machine', from a model
-        /// denoted by <paramref name="transformer"/>.
-        /// It will be accepting instances of <typeparamref name="TSrc"/> as input, and produce
-        /// instances of <typeparamref name="TDst"/> as output.
-        /// </summary>
-        public static TimeSeriesPredictionFunction<TSrc, TDst> MakeTimeSeriesPredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env)
-                where TSrc : class
-                where TDst : class, new()
-            => new TimeSeriesPredictionFunction<TSrc, TDst>(env, transformer);
     }
 }
