@@ -10,8 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(ObjDir)\DnnImageModels\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNet18Onnx;content\DnnImageModels\ResNet18Onnx" /> 
-    <Content Include="$(ObjDir)\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath="contentFiles\any\any\DnnImageModels\ResNetPrepOnnx;content\DnnImageModels\ResNetPrepOnnx" /> 
+        <Content Include="$(ObjDir)\DnnImageModels\ResNet18Onnx\ResNet18.onnx" Pack="true" PackagePath="tools\DnnImageFeat\ResNet18Onnx" /> 
+    <Content Include="$(ObjDir)\DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" Pack="true" PackagePath="tools\DnnImageFeat\ResNetPrepOnnx" /> 
+    <Content Include="..\common\DnnImageFeaturizer.targets" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).targets" /> 
   </ItemGroup>  
 
 </Project>
