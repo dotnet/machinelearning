@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests
             };
             var output = FeatureImportanceCalculationTransform.Create(Env, args, data, model.Model, model.FeatureColumn);
 
-            // Get predictions
+            // Get prediction scores and contributions
             var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
             ScoreAndContribution row = null;
             var expectedValues = new List<float[]>();
