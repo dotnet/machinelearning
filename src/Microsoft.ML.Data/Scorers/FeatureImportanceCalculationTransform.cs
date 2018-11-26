@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,14 +15,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureImportanceScorer), typeof(FeatureImportanceScorer.Arguments),
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureImportanceCalculationTransform), typeof(FeatureImportanceCalculationTransform.Arguments),
     typeof(SignatureDataScorer), "Feature Importance Scorer", "wtf", "FeatureImportanceCalculationScorer", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceScorer), typeof(FeatureImportanceScorer.Arguments),
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationTransform), typeof(FeatureImportanceCalculationTransform.Arguments),
     typeof(SignatureBindableMapper), "Feature Importance Mapper", "wtf", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceScorer), null, typeof(SignatureLoadModel),
-    "Feature Importance Mapper", FeatureImportanceScorer.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationTransform), null, typeof(SignatureLoadModel),
+    "Feature Importance Mapper", FeatureImportanceCalculationTransform.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
     /// The Feature Importance scorer is superset of a generic scorer.
     /// It outputs score columns from Generic Scorer plus for given features provides vector of corresponding feature contributions.
     /// </summary>
-    public sealed class FeatureImportanceScorer
+    public sealed class FeatureImportanceCalculationTransform
     {
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string MapperLoaderSignature = "WTFBindable";
@@ -86,6 +87,25 @@ namespace Microsoft.ML.Runtime.Data
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
 
+        public static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, IPredictor predictor, string features = DefaultColumnNames.Features)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(predictor, nameof(predictor));
+            if (args.Top <= 0 || args.Top > MaxTopBottom)
+                throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
+            if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
+                throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
+            var schema = new RoleMappedSchema(data.Schema, roles);
+
+            var mapper = Create(env, args, predictor);
+            var boundMapper = mapper.Bind(env, schema);
+            return Create(env, args, data, boundMapper, null);
+        }
+
         public static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             return new BindableMapper(env, ctx);
@@ -106,7 +126,7 @@ namespace Microsoft.ML.Runtime.Data
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: MapperLoaderSignature,
-                    loaderAssemblyName: typeof(FeatureImportanceScorer).Assembly.FullName);
+                    loaderAssemblyName: typeof(FeatureImportanceCalculationTransform).Assembly.FullName);
             }
 
             public readonly IWhatTheFeatureValueMapper Predictor;
@@ -388,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {
-                throw new NotImplementedException();
+                return GetOutputRow(input, active, out disposer);
             }
         }
 
