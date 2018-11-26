@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public sealed class FeatureImportanceTests : BaseTestPredictors
+    public sealed class FeatureContributionTests : BaseTestPredictors
     {
         private sealed class ScoreAndContribution
         {
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests
             public float[] FeatureContributions { get; set; }
         }
 
-        public FeatureImportanceTests(ITestOutputHelper output) : base(output)
+        public FeatureContributionTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -74,12 +74,12 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var args = new FeatureImportanceCalculationTransform.Arguments()
+            var args = new FeatureContributionCalculationTransform.Arguments()
             {
                 Bottom = 10,
                 Top = 10
             };
-            var output = FeatureImportanceCalculationTransform.Create(Env, args, data, model.Model, model.FeatureColumn);
+            var output = FeatureContributionCalculationTransform.Create(Env, args, data, model.Model, model.FeatureColumn);
 
             // Get prediction scores and contributions
             var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();

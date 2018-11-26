@@ -15,14 +15,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureImportanceCalculationTransform), typeof(FeatureImportanceCalculationTransform.Arguments),
-    typeof(SignatureDataScorer), "Feature Importance Scorer", "wtf", "FeatureImportanceCalculationScorer", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+    typeof(SignatureDataScorer), "Feature Importance Scorer", "wtf", "FeatureImportanceCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationTransform), typeof(FeatureImportanceCalculationTransform.Arguments),
-    typeof(SignatureBindableMapper), "Feature Importance Mapper", "wtf", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+    typeof(SignatureBindableMapper), "Feature Importance Mapper", "wtf", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationTransform), null, typeof(SignatureLoadModel),
-    "Feature Importance Mapper", FeatureImportanceCalculationTransform.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
+    "Feature Importance Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
     /// The Feature Importance scorer is superset of a generic scorer.
     /// It outputs score columns from Generic Scorer plus for given features provides vector of corresponding feature contributions.
     /// </summary>
-    public sealed class FeatureImportanceCalculationTransform
+    public sealed class FeatureContributionCalculationTransform
     {
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string MapperLoaderSignature = "WTFBindable";
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
             if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
                 throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
 
-            var pred = predictor as IWhatTheFeatureValueMapper;
+            var pred = predictor as IFeatureContributionMapper;
             env.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
@@ -126,16 +126,16 @@ namespace Microsoft.ML.Runtime.Data
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: MapperLoaderSignature,
-                    loaderAssemblyName: typeof(FeatureImportanceCalculationTransform).Assembly.FullName);
+                    loaderAssemblyName: typeof(FeatureContributionCalculationTransform).Assembly.FullName);
             }
 
-            public readonly IWhatTheFeatureValueMapper Predictor;
+            public readonly IFeatureContributionMapper Predictor;
             public readonly ISchemaBindableMapper GenericMapper;
             public readonly bool Stringify;
 
             public PredictionKind PredictionKind => Predictor.PredictionKind;
 
-            public BindableMapper(IHostEnvironment env, IWhatTheFeatureValueMapper predictor, int topContributionsCount, int bottomContributionsCount, bool normalize, bool stringify)
+            public BindableMapper(IHostEnvironment env, IFeatureContributionMapper predictor, int topContributionsCount, int bottomContributionsCount, bool normalize, bool stringify)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _env = env;
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
                 // int: bottomContributionsCount
                 // bool: normalize
                 // bool: stringify
-                ctx.LoadModel<IWhatTheFeatureValueMapper, SignatureLoadModel>(env, out Predictor, ModelFileUtils.DirPredictor);
+                ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out Predictor, ModelFileUtils.DirPredictor);
                 GenericMapper = ScoreUtils.GetSchemaBindableMapper(_env, Predictor, null);
                 _topContributionsCount = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(Predictor);
 
                 var featureGetter = input.GetGetter<TSrc>(colSrc);
-                var map = Predictor.GetWhatTheFeatureMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
+                var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
 
                 var features = default(TSrc);
                 var contributions = default(VBuffer<float>);
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // REVIEW: Scorer can do call to Sparicification\Norm routine.
 
-                var map = Predictor.GetWhatTheFeatureMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
+                var map = Predictor.GetFeatureContributionMapper<TSrc, VBuffer<float>>(_topContributionsCount, _bottomContributionsCount, _normalize);
                 var features = default(TSrc);
                 return
                     (ref VBuffer<float> dst) =>
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             private static void CheckSchemaValid(IExceptionContext ectx, RoleMappedSchema schema,
-                IWhatTheFeatureValueMapper predictor)
+                IFeatureContributionMapper predictor)
             {
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(schema);

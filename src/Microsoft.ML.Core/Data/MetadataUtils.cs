@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
                 public const string QuantileRegression = "QuantileRegression";
                 public const string Recommender = "Recommender";
                 public const string ItemSimilarity = "ItemSimilarity";
-                public const string WhatTheFeature = "WhatTheFeature";
+                public const string FeatureContribution = "FeatureContribution";
             }
 
             public static class ScoreValueKind

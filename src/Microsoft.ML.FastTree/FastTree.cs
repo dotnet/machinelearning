@@ -2804,7 +2804,7 @@ namespace Microsoft.ML.Trainers.FastTree
         ICanGetSummaryInKeyValuePairs,
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
-        IWhatTheFeatureValueMapper,
+        IFeatureContributionMapper,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
@@ -2925,7 +2925,7 @@ namespace Microsoft.ML.Trainers.FastTree
             dst = (Float)TrainedEnsemble.GetOutput(in src);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Host.Check(typeof(TDst) == typeof(VBuffer<Float>));
@@ -2936,13 +2936,13 @@ namespace Microsoft.ML.Trainers.FastTree
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
                 (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
-                    WhatTheFeatureMap(in src, ref dst, ref builder);
+                    FeatureContributionMap(in src, ref dst, ref builder);
                     Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
 
-        private void WhatTheFeatureMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
+        private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
