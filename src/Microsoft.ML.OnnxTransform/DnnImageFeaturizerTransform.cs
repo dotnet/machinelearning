@@ -31,14 +31,14 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class DnnImageFeaturizerInput
     {
-        public IHostEnvironment Env { get; }
+        public IHostEnvironment Environment { get; }
         public string InputColumn { get; }
         public DnnImageModelSelector ModelSelector { get; }
         public string OutputColumn { get; }
 
         public DnnImageFeaturizerInput(IHostEnvironment env, string inputColumn, string outputColumn, DnnImageModelSelector modelSelector)
         {
-            Env = env;
+            Environment = env;
             InputColumn = inputColumn;
             OutputColumn = outputColumn;
             ModelSelector = modelSelector;
