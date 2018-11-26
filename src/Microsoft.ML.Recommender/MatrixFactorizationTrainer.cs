@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.Prediction;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,6 +13,9 @@ using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
@@ -141,7 +140,7 @@ namespace Microsoft.ML.Trainers
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Importance of unobserved entries' loss in one-class matrix factorization.")]
             [TGUI(SuggestedSweeps = "1,0.01,0.0001,0.000001")]
-            [TlcModule.SweepableDiscreteParam("Alpha", new object[] { 1f, 0.01f, 0.0001f, 0.000001f})]
+            [TlcModule.SweepableDiscreteParam("Alpha", new object[] { 1f, 0.01f, 0.0001f, 0.000001f })]
             public double Alpha = 0.0001;
 
             /// <summary>
@@ -213,12 +212,6 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Extra information the trainer can use. For example, its validation set (if not null) can be use to evaluate the
-        /// training progress made at each training iteration.
-        /// </summary>
-        private readonly TrainerEstimatorContext _context;
-
-        /// <summary>
         /// Legacy constructor initializing a new instance of <see cref="MatrixFactorizationTrainer"/> through the legacy
         /// <see cref="Arguments"/> class.
         /// </summary>
@@ -257,12 +250,10 @@ namespace Microsoft.ML.Trainers
         /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
         public MatrixFactorizationTrainer(IHostEnvironment env,
             string matrixColumnIndexColumnName,
             string matrixRowIndexColumnName,
             string labelColumn = DefaultColumnNames.Label,
-            TrainerEstimatorContext context = null,
             Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue)
         {
@@ -281,7 +272,6 @@ namespace Microsoft.ML.Trainers
             _doNmf = args.NonNegative;
 
             Info = new TrainerInfo(normalization: false, caching: false);
-            _context = context;
 
             LabelName = labelColumn;
             MatrixColumnIndexName = matrixColumnIndexColumnName;
@@ -295,14 +285,13 @@ namespace Microsoft.ML.Trainers
         private protected override MatrixFactorizationPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-
             using (var ch = Host.Start("Training"))
             {
                 return TrainCore(ch, context.TrainingSet, context.ValidationSet);
             }
         }
 
-        private MatrixFactorizationPredictor TrainCore(IChannel ch, RoleMappedData data, RoleMappedData validData)
+        private MatrixFactorizationPredictor TrainCore(IChannel ch, RoleMappedData data, RoleMappedData validData = null)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -391,10 +380,12 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Train a matrix factorization model based on the input <see cref="IDataView"/> using the roles specified by XColumn and YColumn in <see cref="MatrixFactorizationTrainer"/>.
+        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
+        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
         /// </summary>
-        /// <param name="input">The training data set.</param>
-        public MatrixFactorizationPredictionTransformer Fit(IDataView input)
+        /// <param name="trainData">The training data set.</param>
+        /// <param name="validationData">The validation data set.</param>
+        public MatrixFactorizationPredictionTransformer Train(IDataView trainData, IDataView validationData = null)
         {
             MatrixFactorizationPredictor model = null;
 
@@ -403,17 +394,22 @@ namespace Microsoft.ML.Trainers
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexName));
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexName));
 
-            var trainingData = new RoleMappedData(input, roles);
-            var validData = _context == null ? null : new RoleMappedData(_context.ValidationSet, roles);
-
+            var trainingData = new RoleMappedData(trainData, roles);
+            var validData = validationData == null ? null : new RoleMappedData(validationData, roles);
             using (var ch = Host.Start("Training"))
-            using (var pch = Host.StartProgressChannel("Training"))
             {
                 model = TrainCore(ch, trainingData, validData);
             }
 
-            return new MatrixFactorizationPredictionTransformer(Host, model, input.Schema, MatrixColumnIndexName, MatrixRowIndexName);
+            return new MatrixFactorizationPredictionTransformer(Host, model, trainData.Schema, MatrixColumnIndexName, MatrixRowIndexName);
         }
+
+        /// <summary>
+        /// Train a matrix factorization model based on the input <see cref="IDataView"/>
+        /// using the roles specified by <see cref="RecommenderUtils.MatrixColumnIndexKind"/> and <see cref="RecommenderUtils.MatrixRowIndexKind"/> in <see cref="MatrixFactorizationTrainer"/>.
+        /// </summary>
+        /// <param name="input">The training data set.</param>
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input) => Train(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
