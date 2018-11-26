@@ -107,10 +107,10 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PipelineSweeperNoTransforms()
         {
             // Set up inputs for experiment
-            string pathData = GetDataPath("adult.train");
-            string pathDataTest = GetDataPath("adult.test");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
+            string pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 1000;
-            const string schema = "sep=, col=Features:R4:0,2,4,10-12 col=Label:R4:14 header=+";
+            const string schema = "col=Features:R4:9-14 col=Label:R4:0 header=+";
 
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
@@ -164,13 +164,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PipelineSweeperSerialization()
         {
             // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
+            var pathData = GetDataPath("adult.tiny.with-schema.txt");
+            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 1000;
             int numIterations = 10;
             const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
+                "col=Features:R4:9-14 col=workclass:TX:1 col=education:TX:2 col=marital_status:TX:3 col=occupation:TX:4 " +
+                "col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native_country:TX:8 col=label_IsOver50K_:R4:0 header=+";
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
@@ -236,13 +236,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PipelineSweeperRoles()
         {
             // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
+            var pathData = GetDataPath("adult.tiny.with-schema.txt");
+            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 100;
             int numIterations = 2;
             const string schema =
-                "sep=, col=age:R4:0 col=workclass:TX:1 col=fnlwgt:R4:2 col=education:TX:3 col=education_num:R4:4 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=Features:R4:10-12 col=native_country:TX:13 col=IsOver50K_:R4:14 header=+";
+                "col=age:R4:9 col=workclass:TX:1 col=fnlwgt:R4:10 col=education:TX:2 col=education_num:R4:11 col=marital_status:TX:3 col=occupation:TX:4 " +
+                "col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=Features:R4:12-14 col=native_country:TX:8 col=IsOver50K_:R4:0 header=+";
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
@@ -309,8 +309,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var trainAuc = bestPipeline.PerformanceSummary.TrainingMetricValue;
             var testAuc = bestPipeline.PerformanceSummary.MetricValue;
-            Assert.True((0.94 < trainAuc) && (trainAuc < 0.95));
-            Assert.True((0.815 < testAuc) && (testAuc < 0.825));
+            Assert.True(0.99 < trainAuc);
+            Assert.True(0.99 < testAuc);
 
             var results = runner.GetOutput<IDataView>("ResultsOut");
             Assert.NotNull(results);
@@ -407,13 +407,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PipelineSweeperRocketEngine()
         {
             // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
+            var pathData = GetDataPath("adult.tiny.with-schema.txt");
+            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 1000;
             int numIterations = 35;
             const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
+                "col=Features:R4:9-14 col=workclass:TX:1 col=education:TX:2 col=marital_status:TX:3 col=occupation:TX:4 " +
+                "col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native_country:TX:8 col=label_IsOver50K_:R4:0 header=+";
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
@@ -486,12 +486,12 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PipelineSweeperRequestedLearners()
         {
             // Get datasets
-            var pathData = GetDataPath("adult.train");
-            var pathDataTest = GetDataPath("adult.test");
+            var pathData = GetDataPath("adult.tiny.with-schema.txt");
+            var pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
             const int numOfSampleRows = 100;
             const string schema =
-                "sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 col=occupation:TX:6 " +
-                "col=relationship:TX:7 col=race:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+";
+                "col=Features:R4:9-14 col=workclass:TX:1 col=education:TX:2 col=marital_status:TX:3 col=occupation:TX:4 " +
+                "col=relationship:TX:5 col=race:TX:6 col=sex:TX:7 col=native_country:TX:8 col=label_IsOver50K_:R4:0 header=+";
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,

@@ -29,9 +29,9 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestLearn()
         {
             var env = new MLContext().AddStandardComponents(); // AutoInference uses ComponentCatalog to find all learners
-            string pathData = GetDataPath("adult.train");
-            string pathDataTest = GetDataPath("adult.test");
-            int numOfSampleRows = 1000;
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
+            string pathDataTest = GetDataPath("adult.tiny.with-schema.txt");
+            int numOfSampleRows = 100;
             int batchSize = 5;
             int numIterations = 10;
             int numTransformLevels = 3;
@@ -129,8 +129,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestHyperparameterFreezing()
         {
-            string pathData = GetDataPath("adult.train");
-            int numOfSampleRows = 1000;
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
+            int numOfSampleRows = 100;
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
@@ -148,10 +148,9 @@ namespace Microsoft.ML.Runtime.RunTests
             // Clear results
             amls.ClearEvaluatedPipelines();
 
-            // Get space, remove transforms and all but one learner, freeze hyperparameters on learner.
+            // Get space, remove and all but one learner, freeze hyperparameters on learner.
             var space = amls.GetSearchSpace();
-            var transforms = space.Item1.Where(t =>
-                t.ExpertType != typeof(TransformInference.Experts.Categorical)).ToArray();
+            var transforms = space.Item1;
             var learners = new[] { space.Item2.First() };
             var hyperParam = learners[0].PipelineNode.SweepParams.First();
             var frozenParamValue = hyperParam.RawValue;
@@ -206,8 +205,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestLearnerConstrainingByName()
         {
-            string pathData = GetDataPath("adult.train");
-            int numOfSampleRows = 1000;
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
+            int numOfSampleRows = 100;
             int batchSize = 1;
             int numIterations = 1;
             int numTransformLevels = 2;
