@@ -247,6 +247,9 @@ namespace Microsoft.ML.Data
         public static void SaveTo(this ITransformer transformer, IHostEnvironment env, Stream outputStream)
             => new TransformerChain<ITransformer>(transformer).SaveTo(env, outputStream);
 
+        public static void SaveTo(this TransformerChain<ITransformer> transformer, IHostEnvironment env, Stream outputStream)
+    => transformer.SaveTo(env, outputStream);
+
         public static TransformerChain<ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
         {
             using (var rep = RepositoryReader.Open(stream, env))

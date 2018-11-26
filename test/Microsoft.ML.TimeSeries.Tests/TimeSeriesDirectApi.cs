@@ -226,8 +226,7 @@ namespace Microsoft.ML.Tests
 
             //Checkpoint.
             var modelPath = "temp.zip";
-            using (var file = File.Create(modelPath))
-                engine.CheckPoint().SaveTo(ml, file);
+            engine.CheckPoint(ml, modelPath);
 
             // Load model.
             ITransformer model2 = null;

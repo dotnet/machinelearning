@@ -5,12 +5,19 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Microsoft.ML.TimeSeries
 {
+    public interface IStatefulRowToRowMapper : IRowToRowMapper
+    {
+    }
+
     public interface IStatefulTransformer : ITransformer
     {
+        IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
+
         IStatefulTransformer Clone();
     }
 
@@ -23,6 +30,7 @@ namespace Microsoft.ML.TimeSeries
 
     public interface IStatefulRowMapper : IRowMapper
     {
+        void CloneState();
         Delegate[] CreatePingers(IRow input, Func<int, bool> activeOutput, out Action disposer);
     }
 
@@ -40,8 +48,20 @@ namespace Microsoft.ML.TimeSeries
     {
         private ValuePinger[][] _pingers;
         private int _rowPosition;
-        public ITransformer CheckPoint => Transformer;
+        private ITransformer InputTransformer { get; set; }
+        public void CheckPoint(IHostEnvironment env, string modelPath)
+        {
+            using (var file = File.Create(modelPath))
+                if (Transformer is ITransformerAccessor)
+                {
 
+                    new TransformerChain<ITransformer>
+                    (((ITransformerAccessor)Transformer).Transformers,
+                    ((ITransformerAccessor)Transformer).Scopes).SaveTo(env, file);
+                }
+                else
+                    Transformer.SaveTo(env, file);
+        }
         private static ITransformer CloneTransformers(ITransformer transformer)
         {
             ITransformer[] transformersClone = null;
@@ -134,7 +154,7 @@ namespace Microsoft.ML.TimeSeries
         {
             ValuePinger[][] pingers = new ValuePinger[rows.Count][];
             int index = 0;
-            foreach(var row in rows)
+            foreach (var row in rows)
                 pingers[index++] = row.GetPingers();
 
             return pingers;
@@ -158,6 +178,51 @@ namespace Microsoft.ML.TimeSeries
             outputRow = cursorable.GetRow(outputRowLocal);
         }
 
+        private bool IsRowToRowMapper(ITransformer transformer)
+        {
+            if (transformer is ITransformerAccessor)
+                return ((ITransformerAccessor)transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
+            else
+                return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
+        }
+
+        private IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
+                " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
+
+            if (!(InputTransformer is ITransformerAccessor))
+                if (InputTransformer is IStatefulTransformer)
+                    return ((IStatefulTransformer)InputTransformer).GetStatefulRowToRowMapper(inputSchema);
+                else
+                    return InputTransformer.GetRowToRowMapper(inputSchema);
+
+            Contracts.Check(InputTransformer is ITransformerAccessor);
+
+            var transformers = ((ITransformerAccessor)InputTransformer).Transformers;
+            IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
+            Schema schema = inputSchema;
+            for (int i = 0; i < mappers.Length; ++i)
+            {
+                if (transformers[i] is IStatefulTransformer)
+                    mappers[i] = ((IStatefulTransformer)transformers[i]).GetStatefulRowToRowMapper(schema);
+                else
+                    mappers[i] = transformers[i].GetRowToRowMapper(schema);
+
+                schema = mappers[i].Schema;
+            }
+            return new CompositeRowToRowMapper(inputSchema, mappers);
+        }
+
+        protected override Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        {
+            ectx.CheckValue(transformer, nameof(transformer));
+            ectx.CheckParam(IsRowToRowMapper(transformer), nameof(transformer), "Must be a row to row mapper or " + nameof(IStatefulTransformer));
+            InputTransformer = transformer;
+            return GetRowToRowMapper;
+        }
+
         /// <summary>
         /// Run prediction pipeline on one example.
         /// </summary>
@@ -174,7 +239,7 @@ namespace Microsoft.ML.TimeSeries
             //Update State.
             bool status = false;
             foreach (var row in _pingers)
-                foreach(var pinger in row)
+                foreach (var pinger in row)
                     pinger(ref status, _rowPosition);
 
             //Predict.
@@ -190,7 +255,7 @@ namespace Microsoft.ML.TimeSeries
     {
         public TimeSeriesPredictionFunction(IHostEnvironment env, ITransformer transformer) : base(env, transformer) { }
         private TimeSeriesPredictionEngine<TSrc, TDst> _engine;
-        public ITransformer CheckPoint() => _engine.CheckPoint;
+        public void CheckPoint(IHostEnvironment env, string modelPath) => _engine.CheckPoint(env, modelPath);
         internal override void CreatePredictionEngine(IHostEnvironment env, ITransformer transformer, out PredictionEngineBase<TSrc, TDst> engine) =>
             engine = _engine = env.CreateTimeSeriesPredictionEngine<TSrc, TDst>(transformer);
     }

@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact(Skip = "Temp, will enable before check-in")]
+        [Fact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip ="Temp, will enable before check-in")]
+        [Fact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;

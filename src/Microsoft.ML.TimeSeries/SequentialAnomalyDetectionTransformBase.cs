@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -591,7 +592,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly ISchema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
-            private readonly TState _state;
+            private TState State { get; set; }
 
             public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
@@ -611,7 +612,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parentSchema = inputSchema;
                 _slotNames = new VBuffer<ReadOnlyMemory<char>>(4, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
                     "P-Value Score".AsMemory(), "Martingale Score".AsMemory() });
-                _state = _parent.StateRef;
+
+                State = _parent.StateRef;
             }
 
             public Schema.DetachedColumn[] GetOutputColumns()
@@ -640,7 +642,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 disposer = null;
                 var getters = new Delegate[1];
                 if (activeOutput(0))
-                    getters[0] = MakeGetter(input, _state);
+                    getters[0] = MakeGetter(input, State);
 
                 return getters;
             }
@@ -668,7 +670,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 disposer = null;
                 var getters = new Delegate[1];
                 if (activeOutput(0))
-                    getters[0] = MakePingers(input, _state);
+                    getters[0] = MakePingers(input, State);
 
                 return getters;
             }
@@ -684,6 +686,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
                 };
                 return valuePinger;
+            }
+
+            public void CloneState()
+            {
+                if (Interlocked.Increment(ref _parent.StateRefCount) > 1)
+                {
+                    State = (TState)_parent.StateRef.Clone();
+                }
             }
         }
     }

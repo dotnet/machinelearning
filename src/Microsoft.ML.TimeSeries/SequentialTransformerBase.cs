@@ -256,9 +256,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         internal readonly string OutputColumnName;
         private protected ColumnType OutputColumnType;
 
-        public bool IsRowToRowMapper => true;
+        public bool IsRowToRowMapper => false;
 
         public TState StateRef{ get; set; }
+
+        public int StateRefCount;
 
         /// <summary>
         /// The main constructor for the sequential transform
@@ -352,6 +354,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
+            throw new InvalidOperationException("Not a RowToRowMapper.");
+        }
+
+        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema)
+        {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new TimeSeriesRowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema));
         }
@@ -378,6 +385,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _mapper = mapper;
                 _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
             }
+
+            public void CloneStateInMapper() => _mapper.CloneState();
 
             private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
     Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
@@ -420,7 +429,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
             {
                 var srcCursor = _transform.GetRowCursor(predicate, rand);
-                return new Cursor(Host, this, srcCursor);
+                var clone = (SequentialDataTransform)MemberwiseClone();
+                clone.CloneStateInMapper();
+                return new Cursor(Host, clone, srcCursor);
             }
 
             protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
@@ -564,7 +575,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
 
-    public sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IRowToRowMapper,
+    public sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IStatefulRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private readonly IStatefulRowMapper _mapper;

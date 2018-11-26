@@ -244,6 +244,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var stateLocal = state as State;
                 stateLocal.WindowedBuffer = (FixedSizeQueue<Single>)WindowedBuffer.Clone();
                 stateLocal.InitialWindowedBuffer = (FixedSizeQueue<Single>)InitialWindowedBuffer.Clone();
+                if (_model != null)
+                {
+                    _parentAnomalyDetector.Model = _parentAnomalyDetector.Model.Clone();
+                    _model = _parentAnomalyDetector.Model;
+                }
             }
 
             private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
