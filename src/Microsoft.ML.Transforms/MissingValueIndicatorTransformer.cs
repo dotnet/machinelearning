@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Transforms
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
@@ -190,21 +191,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
                         dst = true;
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
-                    result[iinfo] = new Schema.Column(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
+                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);

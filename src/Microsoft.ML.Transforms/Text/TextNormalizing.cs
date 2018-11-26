@@ -5,6 +5,7 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -194,7 +195,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ColumnType[] _types;
             private readonly TextNormalizingTransformer _parent;
@@ -212,14 +213,14 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], null);
                 }
                 return result;
             }
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);

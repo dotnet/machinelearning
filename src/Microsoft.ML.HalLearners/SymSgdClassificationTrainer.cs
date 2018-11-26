@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -12,8 +13,8 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;

@@ -913,23 +913,13 @@ namespace Microsoft.ML.Runtime.RunTests
             };
 
             builder.AddColumn("F1V", NumberType.Float, data);
-
             var srcView = builder.GetDataView();
 
-            LdaTransform.Column col = new LdaTransform.Column();
-            col.Source = "F1V";
-            col.NumTopic = 20;
-            col.NumTopic = 3;
-            col.NumSummaryTermPerTopic = 3;
-            col.AlphaSum = 3;
-            col.NumThreads = 1;
-            col.ResetRandomGenerator = true;
-            LdaTransform.Arguments args = new LdaTransform.Arguments();
-            args.Column = new LdaTransform.Column[] { col };
+            var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var ldaTransformer = est.Fit(srcView);
+            var transformedData = ldaTransformer.Transform(srcView);
 
-            LdaTransform ldaTransform = new LdaTransform(Env, args, srcView);
-
-            using (var cursor = ldaTransform.GetRowCursor(c => true))
+            using (var cursor = transformedData.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<Float>>(1);
                 VBuffer<Float> resultFirstRow = new VBuffer<Float>();
@@ -960,7 +950,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TestLdaTransformEmptyDocumentException()
+        public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
@@ -973,18 +963,18 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("Zeros", NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LdaTransform.Column()
+            var col = new LatentDirichletAllocationTransformer.Column()
             {
-                Source = "Zeros"
+                Source = "Zeros",
             };
-            var args = new LdaTransform.Arguments()
+            var args = new LatentDirichletAllocationTransformer.Arguments()
             {
                 Column = new[] { col }
             };
 
             try
             {
-                var lda = new LdaTransform(Env, args, srcView);
+                var lda = new LatentDirichletAllocationEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {

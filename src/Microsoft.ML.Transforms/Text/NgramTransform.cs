@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -541,7 +542,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ColumnType[] _srcTypes;
             private readonly int[] _srcCols;
@@ -563,20 +564,20 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
+            private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
                 if (InputSchema.HasKeyValues(_srcCols[iinfo], _srcTypes[iinfo].ItemType.KeyCount))
                 {
@@ -664,7 +665,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);

@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -211,20 +209,20 @@ namespace Microsoft.ML.Runtime.Data
                 _host.Assert(builder._names.Count == builder._columns.Count);
                 _columns = builder._columns.ToArray();
 
-                var schemaCols = new Schema.Column[_columns.Length];
-                for(int i=0; i<schemaCols.Length; i++)
+                var schemaBuilder = new SchemaBuilder();
+                for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new Schema.Metadata.Builder();
+                    var meta = new MetadataBuilder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
-                    schemaCols[i] = new Schema.Column(builder._names[i], _columns[i].Type, meta.GetMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 
-                _schema = new Schema(schemaCols);
+                _schema = schemaBuilder.GetSchema();
                 _rowCount = rowCount;
             }
 

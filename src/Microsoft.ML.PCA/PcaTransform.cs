@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -554,7 +555,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             public sealed class ColumnSchemaInfo
             {
@@ -600,15 +601,15 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_numColumns];
+                var result = new Schema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);

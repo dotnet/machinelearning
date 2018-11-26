@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
 using System;
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Runtime.Api
 
             var outSchema = InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
             _addedSchema = outSchema;
-            _bindings = new ColumnBindings(Data.Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
+            _bindings = new ColumnBindings(Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
         }
 
         /// <summary>
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Runtime.Api
             _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
 
             _addedSchema = transform._addedSchema;
-            _bindings = new ColumnBindings(Data.Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
+            _bindings = new ColumnBindings(Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
         }
 
         public bool CanShuffle { get { return false; } }

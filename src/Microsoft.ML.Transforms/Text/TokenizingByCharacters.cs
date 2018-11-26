@@ -5,6 +5,7 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Transforms.Text
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ColumnType _type;
             private readonly TokenizingByCharactersTransformer _parent;
@@ -204,19 +205,19 @@ namespace Microsoft.ML.Transforms.Text
                     _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].input].Type.IsVector;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _type, builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _type, builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
+            private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
                 builder.Add(InputSchema[_parent.ColumnPairs[iinfo].input].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
@@ -397,7 +398,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
