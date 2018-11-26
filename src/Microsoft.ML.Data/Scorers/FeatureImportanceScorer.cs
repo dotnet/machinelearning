@@ -14,14 +14,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureImportanceCalculationScorer), typeof(FeatureImportanceCalculationScorer.Arguments),
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureImportanceScorer), typeof(FeatureImportanceScorer.Arguments),
     typeof(SignatureDataScorer), "Feature Importance Scorer", "wtf", "FeatureImportanceCalculationScorer", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationScorer), typeof(FeatureImportanceCalculationScorer.Arguments),
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceScorer), typeof(FeatureImportanceScorer.Arguments),
     typeof(SignatureBindableMapper), "Feature Importance Mapper", "wtf", MetadataUtils.Const.ScoreColumnKind.WhatTheFeature)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceCalculationScorer), null, typeof(SignatureLoadModel),
-    "Feature Importance Mapper", FeatureImportanceCalculationScorer.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureImportanceScorer), null, typeof(SignatureLoadModel),
+    "Feature Importance Mapper", FeatureImportanceScorer.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data
     /// The Feature Importance scorer is superset of a generic scorer.
     /// It outputs score columns from Generic Scorer plus for given features provides vector of corresponding feature contributions.
     /// </summary>
-    public sealed class FeatureImportanceCalculationScorer
+    public sealed class FeatureImportanceScorer
     {
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string MapperLoaderSignature = "WTFBindable";
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Data
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
                     loaderSignature: MapperLoaderSignature,
-                    loaderAssemblyName: typeof(FeatureImportanceCalculationScorer).Assembly.FullName);
+                    loaderAssemblyName: typeof(FeatureImportanceScorer).Assembly.FullName);
             }
 
             public readonly IWhatTheFeatureValueMapper Predictor;
