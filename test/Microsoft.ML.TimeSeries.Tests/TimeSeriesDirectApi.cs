@@ -1,11 +1,16 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using Xunit;
 
 namespace Microsoft.ML.Tests
@@ -16,16 +21,28 @@ namespace Microsoft.ML.Tests
         private sealed class Prediction
         {
 #pragma warning disable CS0649
-            [VectorType(4)]
+            [VectorType(4)] 
             public double[] Change;
-#pragma warning restore CS0649
+#pragma warning restore CS0649            
+        }
+
+        public class Prediction1
+        {
+            public float Random;
         }
 
         private sealed class Data
         {
+            public string Text;
+            public float Random;
             public float Value;
 
-            public Data(float value) => Value = value;
+            public Data(float value)
+            {
+                Text = "random123value";
+                Random = -1;
+                Value = value;
+            }
         }
 
         [Fact]
@@ -117,6 +134,112 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);  // P-Value score
                 Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);  // Martingale score
             }
+        }
+
+        [Fact]
+        public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
+        {
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1, conc: 1);
+            var dataView = ml.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                {
+                    Confidence = 95,
+                    Source = "Value",
+                    Name = "Change",
+                    ChangeHistoryLength = ChangeHistorySize,
+                    TrainingWindowSize = MaxTrainingSize,
+                    SeasonalWindowSize = SeasonalitySize
+                }));
+
+            // Train.
+            var model = pipeline.Fit(dataView);
+
+            //Predict.
+            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction1>(ml);
+            //Even though time series column is not requested it will pass the observation through time series transform.
+            var prediction = engine.Predict(new Data(1));
+            Assert.Equal(-1, prediction.Random);
+            prediction = engine.Predict(new Data(2));
+            Assert.Equal(-1, prediction.Random);
+        }
+
+        [Fact]
+        public void ChangePointDetectionWithSeasonalityPredictionEngine()
+        {
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+
+            List<Data> data = new List<Data>();
+
+            var ml = new MLContext(seed: 1, conc: 1);
+            var dataView = ml.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("Text", "Text_Featurized")
+                .Append(new SsaChangePointEstimator(ml, new SsaChangePointDetector.Arguments()
+                {
+                    Confidence = 95,
+                    Source = "Value",
+                    Name = "Change",
+                    ChangeHistoryLength = ChangeHistorySize,
+                    TrainingWindowSize = MaxTrainingSize,
+                    SeasonalWindowSize = SeasonalitySize
+                }));
+
+            // Train.
+            var model = pipeline.Fit(dataView);
+            //Predict.
+            var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var prediction = engine.Predict(new Data(1));
+            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
+            Assert.Equal(1.1661833524703979, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
+
+            //Checkpoint.
+            var modelPath = "temp.zip";
+            engine.CheckPoint(ml, modelPath);
+
+            // Load model.
+            ITransformer model2 = null;
+            using (var file = File.OpenRead(modelPath))
+                model2 = TransformerChain.LoadFrom(ml, file);
+
+            //Predict and expect different result for the same input.
+            engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            prediction = engine.Predict(new Data(1));
+            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
+            Assert.Equal(-0.12883400917053223, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(2.6214400000000113E-15, prediction.Change[3], precision: 7); // Martingale score
         }
     }
 }

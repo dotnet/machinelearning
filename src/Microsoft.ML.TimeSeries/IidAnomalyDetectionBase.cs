@@ -20,12 +20,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             : base(args, name, env)
         {
             InitialWindowSize = 0;
+            StateRef = new State();
+            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
         }
 
         public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(env, ctx, name)
         {
             Host.CheckDecode(InitialWindowSize == 0);
+            StateRef = new State(ctx);
+            StateRef.InitState(this, Host);
         }
 
         public override Schema GetOutputSchema(Schema inputSchema)
@@ -46,15 +50,52 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             ctx.CheckAtModel();
             Host.Assert(InitialWindowSize == 0);
+            base.Save(ctx);
 
             // *** Binary format ***
             // <base>
-
-            base.Save(ctx);
+            // State: StateRef
+            StateRef.Save(ctx);
         }
 
         public sealed class State : AnomalyDetectionStateBase
         {
+            public State()
+            {
+
+            }
+
+            public State(ModelLoadContext ctx) : base(ctx)
+            {
+                WindowedBuffer = new FixedSizeQueue<float>(
+                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
+
+                InitialWindowedBuffer = new FixedSizeQueue<float>(
+                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
+            }
+
+            public override void Save(ModelSaveContext ctx)
+            {
+                base.Save(ctx);
+
+                ctx.Writer.Write(WindowedBuffer.Capacity);
+                ctx.Writer.Write(WindowedBuffer.StartIndex);
+                ctx.Writer.WriteSingleArray(WindowedBuffer.Buffer);
+
+                ctx.Writer.Write(InitialWindowedBuffer.Capacity);
+                ctx.Writer.Write(InitialWindowedBuffer.StartIndex);
+                ctx.Writer.WriteSingleArray(InitialWindowedBuffer.Buffer);
+            }
+
+            public override void CloneCore(StateBase state)
+            {
+                base.CloneCore(state);
+                Contracts.Assert(state is State);
+                var stateLocal = state as State;
+                stateLocal.WindowedBuffer = (FixedSizeQueue<Single>)WindowedBuffer.Clone();
+                stateLocal.InitialWindowedBuffer = (FixedSizeQueue<Single>)InitialWindowedBuffer.Clone();
+            }
+
             private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need for initial tuning for this transform.
@@ -69,6 +110,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
                 // This transform treats the input sequenence as the raw anomaly score.
                 return (double)input;
+            }
+
+            public override void Consume(float value)
+            {
             }
         }
     }

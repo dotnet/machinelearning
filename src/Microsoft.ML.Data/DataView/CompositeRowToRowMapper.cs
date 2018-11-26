@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,6 +18,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema { get; }
         public Schema Schema { get; }
+
+        [BestFriend]
+        internal IRowToRowMapper[] InnerMappers => _innerMappers;
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
@@ -85,6 +88,7 @@ namespace Microsoft.ML.Runtime.Data
                     // We want the last disposer to be called first, so the order of the addition here is important.
                 }
             }
+
             return result;
         }
 

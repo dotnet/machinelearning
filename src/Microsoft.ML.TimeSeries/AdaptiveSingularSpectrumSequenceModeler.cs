@@ -454,6 +454,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
                 int i = 0;
                 _wTrans.CopyFrom(tempArray, ref i);
+                _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
             }
 
             _buffer = new FixedSizeQueue<Single>(_seriesLength);
