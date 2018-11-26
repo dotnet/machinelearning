@@ -218,16 +218,16 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
             : this(env, new SsaSpikeDetector.Arguments
-                {
-                    Name = outputColumn,
-                    Source = inputColumn,
-                    Confidence = confidence,
-                    PvalueHistoryLength = pvalueHistoryLength,
-                    TrainingWindowSize = trainingWindowSize,
-                    SeasonalWindowSize = seasonalityWindowSize,
-                    Side = side,
-                    ErrorFunction = errorFunction
-                })
+            {
+                Name = outputColumn,
+                Source = inputColumn,
+                Confidence = confidence,
+                PvalueHistoryLength = pvalueHistoryLength,
+                TrainingWindowSize = trainingWindowSize,
+                SeasonalWindowSize = seasonalityWindowSize,
+                Side = side,
+                ErrorFunction = errorFunction
+            })
         {
         }
 
@@ -265,64 +265,6 @@ namespace Microsoft.ML.TimeSeriesProcessing
                 _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
-    /// </summary>
-    public static class SsaSpikeStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input,
-                int confidence,
-                int pvalueHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly int _confidence;
-            private readonly int _pvalueHistoryLength;
-            private readonly int _trainingWindowSize;
-            private readonly int _seasonalityWindowSize;
-
-            public Reconciler(
-                int confidence,
-                int pvalueHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-            {
-                _confidence = confidence;
-                _pvalueHistoryLength = pvalueHistoryLength;
-                _trainingWindowSize = trainingWindowSize;
-                _seasonalityWindowSize = seasonalityWindowSize;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutColumn)toOutput[0];
-                return new SsaSpikeEstimator(env,
-                    inputNames[outCol.Input],
-                    outputNames[outCol],
-                    _confidence,
-                    _pvalueHistoryLength,
-                    _trainingWindowSize,
-                    _seasonalityWindowSize);
-            }
         }
     }
 }

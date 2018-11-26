@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
+using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -24,7 +25,7 @@ namespace Microsoft.ML.StaticPipe
                 Scalar<float> input,
                 int confidence,
                 int changeHistoryLength,
-                MartingaleType martingale,
+                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, martingale, eps), input)
             {
@@ -36,13 +37,13 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _confidence;
             private readonly int _changeHistoryLength;
-            private readonly MartingaleType _martingale;
+            private readonly SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType _martingale;
             private readonly double _eps;
 
             public Reconciler(
                 int confidence,
                 int changeHistoryLength,
-                MartingaleType martingale,
+                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale,
                 double eps)
             {
                 _confidence = confidence;
@@ -73,8 +74,196 @@ namespace Microsoft.ML.StaticPipe
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
-            MartingaleType martingale = MartingaleType.Power,
+            SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale = SequentialAnomalyDetectionTransformBase < System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, martingale, eps);
+    }
 
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class IidSpikeStaticExtensions
+    {
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input,
+                int confidence,
+                int pvalueHistoryLength)
+                : base(new Reconciler(confidence, pvalueHistoryLength), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _confidence;
+            private readonly int _pvalueHistoryLength;
+
+            public Reconciler(
+                int confidence,
+                int pvalueHistoryLength)
+            {
+                _confidence = confidence;
+                _pvalueHistoryLength = pvalueHistoryLength;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutColumn)toOutput[0];
+                return new IidSpikeEstimator(env,
+                    inputNames[outCol.Input],
+                    outputNames[outCol],
+                    _confidence,
+                    _pvalueHistoryLength);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class SsaChangePointStaticExtensions
+    {
+        private sealed class OutColumn : Vector<double>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Scalar<float> input,
+                int confidence,
+                int changeHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize,
+                ErrorFunctionUtils.ErrorFunction errorFunction,
+                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale,
+                double eps)
+                : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _confidence;
+            private readonly int _changeHistoryLength;
+            private readonly int _trainingWindowSize;
+            private readonly int _seasonalityWindowSize;
+            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+            private readonly SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType _martingale;
+            private readonly double _eps;
+
+            public Reconciler(
+                int confidence,
+                int changeHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize,
+                ErrorFunctionUtils.ErrorFunction errorFunction,
+                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale,
+                double eps)
+            {
+                _confidence = confidence;
+                _changeHistoryLength = changeHistoryLength;
+                _trainingWindowSize = trainingWindowSize;
+                _seasonalityWindowSize = seasonalityWindowSize;
+                _errorFunction = errorFunction;
+                _martingale = martingale;
+                _eps = eps;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutColumn)toOutput[0];
+                return new SsaChangePointEstimator(env,
+                    inputNames[outCol.Input],
+                    outputNames[outCol],
+                    _confidence,
+                    _changeHistoryLength,
+                    _trainingWindowSize,
+                    _seasonalityWindowSize,
+                    _errorFunction,
+                    _martingale,
+                    _eps);
+            }
+        }
+
+        public static Vector<double> SsaChangePointDetect(
+            this Scalar<float> input,
+            int confidence,
+            int changeHistoryLength,
+            int trainingWindowSize,
+            int seasonalityWindowSize,
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
+            SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale = SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType.Power,
+            double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps);
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class SsaSpikeStaticExtensions
+    {
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input,
+                int confidence,
+                int pvalueHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _confidence;
+            private readonly int _pvalueHistoryLength;
+            private readonly int _trainingWindowSize;
+            private readonly int _seasonalityWindowSize;
+
+            public Reconciler(
+                int confidence,
+                int pvalueHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+            {
+                _confidence = confidence;
+                _pvalueHistoryLength = pvalueHistoryLength;
+                _trainingWindowSize = trainingWindowSize;
+                _seasonalityWindowSize = seasonalityWindowSize;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutColumn)toOutput[0];
+                return new SsaSpikeEstimator(env,
+                    inputNames[outCol.Input],
+                    outputNames[outCol],
+                    _confidence,
+                    _pvalueHistoryLength,
+                    _trainingWindowSize,
+                    _seasonalityWindowSize);
+            }
+        }
     }
 }

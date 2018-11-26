@@ -36,25 +36,22 @@ namespace Microsoft.ML.Tests
         public void ChangeDetection()
         {
             var env = new MLContext(conc: 1);
-            const int size = 10;
-            List<Data> data = new List<Data>(size);
+            const int Size = 10;
+            List<Data> data = new List<Data>(Size);
             var dataView = env.CreateStreamingDataView(data);
-            for (int i = 0; i < size / 2; i++)
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
 
-            for (int i = 0; i < size / 2; i++)
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data((float)(5 + i * 1.1)));
 
-            // Transition to the statically-typed data view.
+            // Convert to statically-typed data view.
             var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
-
             // Build the pipeline
             var staticLearningPipeline = staticData.MakeNewEstimator()
-                .Append(r => r.Value.IidChangePointDetect(80, size));
-
+                .Append(r => r.Value.IidChangePointDetect(80, Size));
             // Train
             var detector = staticLearningPipeline.Fit(staticData);
-
             // Transform
             var output = detector.Transform(staticData);
 
@@ -72,6 +69,52 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(expectedValues[index++], row.Data[1]);
                 Assert.Equal(expectedValues[index++], row.Data[2]);
                 Assert.Equal(expectedValues[index++], row.Data[3]);
+            }
+        }
+
+        [Fact]
+        public void ChangePointDetectionWithSeasonality()
+        {
+            var env = new MLContext(conc: 1);
+            const int ChangeHistorySize = 10;
+            const int SeasonalitySize = 10;
+            const int NumberOfSeasonsInTraining = 5;
+            const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+
+            List<Data> data = new List<Data>();
+            var dataView = env.CreateStreamingDataView(data);
+
+            for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                for (int i = 0; i < SeasonalitySize; i++)
+                    data.Add(new Data(i));
+
+            for (int i = 0; i < ChangeHistorySize; i++)
+                data.Add(new Data(i * 100));
+
+            // Convert to statically-typed data view.
+            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
+            // Build the pipeline
+            var staticLearningPipeline = staticData.MakeNewEstimator()
+                .Append(r => r.Value.SsaChangePointDetect(95, ChangeHistorySize, MaxTrainingSize, SeasonalitySize));
+            // Train
+            var detector = staticLearningPipeline.Fit(staticData);
+            // Transform
+            var output = detector.Transform(staticData);
+
+            // Get predictions
+            var enumerator = output.AsDynamic.AsEnumerable<Prediction>(env, true).GetEnumerator();
+            Prediction row = null;
+            List<double> expectedValues = new List<double>() { 0, -3.31410598754883, 0.5, 5.12000000000001E-08, 0, 1.5700820684432983, 5.2001145245395008E-07,
+                    0.012414560443710681, 0, 1.2854313254356384, 0.28810801662678009, 0.02038940454467935, 0, -1.0950627326965332, 0.36663890634019225, 0.026956459625565483};
+
+            int index = 0;
+            while (enumerator.MoveNext() && index < expectedValues.Count)
+            {
+                row = enumerator.Current;
+                Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);  // Alert
+                Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);  // Raw score
+                Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);  // P-Value score
+                Assert.Equal(expectedValues[index++], row.Data[3], precision: 7);  // Martingale score
             }
         }
     }
