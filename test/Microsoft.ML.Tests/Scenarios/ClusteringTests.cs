@@ -20,7 +20,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new TextFeaturizer("Features", "AllText")
             {
                 KeepPunctuations = false,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 1, AllLengths = true }
