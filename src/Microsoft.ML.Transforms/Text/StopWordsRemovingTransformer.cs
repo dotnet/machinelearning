@@ -720,6 +720,8 @@ namespace Microsoft.ML.Transforms.Text
                 }
                 else
                 {
+                    if (stopwordsCol == null)
+                        stopwordsCol = "Stopwords";
                     dataLoader = TextLoader.Create(
                         Host,
                         new TextLoader.Arguments()
