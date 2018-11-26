@@ -96,9 +96,6 @@ namespace Microsoft.ML.Runtime.Learners
 
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
-
-            if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         /// <summary>
@@ -109,9 +106,6 @@ namespace Microsoft.ML.Runtime.Learners
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
-
-            if (ShowTrainingStats && Args.StdComputer == null)
-                Args.StdComputer = new ComputeLRTrainingStdImpl();
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -446,108 +440,5 @@ namespace Microsoft.ML.Runtime.Learners
         /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
         /// </summary>
         public abstract VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
-
-        /// <summary>
-        /// Adjust the variance for regularized cases.
-        /// </summary>
-        [BestFriend]
-        internal void AdjustVariance(float inverseEntry, int iRow, int iCol, float l2Weight, float[] stdErrorValues2)
-        {
-            var adjustment = l2Weight * inverseEntry * inverseEntry;
-            stdErrorValues2[iRow] -= adjustment;
-
-            if (0 < iCol && iCol < iRow)
-                stdErrorValues2[iCol] -= adjustment;
-        }
-    }
-
-    /// <summary>
-    /// Extends the <see cref="ComputeLRTrainingStd"/> implementing <see cref="ComputeLRTrainingStd.ComputeStd(double[], int[], int, int, IChannel, float)"/> making use of Math.Net numeric
-    /// If you need faster calculations(have non-sparse weight vectors of more than 300 features), use the instance of ComputeLRTrainingStd from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration
-    /// for those computations.
-    /// </summary>
-    public sealed class ComputeLRTrainingStdImpl : ComputeLRTrainingStd
-    {
-        /// <summary>
-        /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
-        /// p-value and z-Score.
-        /// If you need faster calculations, use the ComputeStd method from the Microsoft.ML.HALLearners package, which makes use of hardware acceleration.
-        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
-        /// </summary>
-        /// <param name="hessian"></param>
-        /// <param name="weightIndices"></param>
-        /// <param name="numSelectedParams"></param>
-        /// <param name="currentWeightsCount"></param>
-        /// <param name="ch">The <see cref="IChannel"/> used for messaging.</param>
-        /// <param name="l2Weight">The L2Weight used for training. (Supply the same one that got used during training.)</param>
-        public override VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int numSelectedParams, int currentWeightsCount, IChannel ch, float l2Weight)
-        {
-            Contracts.AssertValue(ch);
-            Contracts.AssertValue(hessian, nameof(hessian));
-            Contracts.Assert(numSelectedParams > 0);
-            Contracts.Assert(currentWeightsCount > 0);
-            Contracts.Assert(l2Weight > 0);
-
-            double[,] matrixHessian = new double[numSelectedParams, numSelectedParams];
-
-            int hessianLength = 0;
-            int dimension = numSelectedParams - 1;
-
-            for (int row = dimension; row >= 0; row--)
-            {
-                for (int col = 0; col <= dimension; col++)
-                {
-                    if ((row + col) <= dimension)
-                    {
-                        if ((row + col) == dimension)
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                        }
-                        else
-                        {
-                            matrixHessian[row, col] = hessian[hessianLength];
-                            matrixHessian[dimension - col, dimension - row] = hessian[hessianLength];
-                        }
-                        hessianLength++;
-                    }
-                    else
-                        continue;
-                }
-            }
-
-            var h = Matrix<double>.Build.DenseOfArray(matrixHessian);
-            var invers = h.Inverse();
-
-            float[] stdErrorValues = new float[numSelectedParams];
-            stdErrorValues[0] = (float)Math.Sqrt(invers[0, numSelectedParams - 1]);
-
-            for (int i = 1; i < numSelectedParams; i++)
-            {
-                // Initialize with inverse Hessian.
-                // The diagonal of the inverse Hessian.
-                stdErrorValues[i] = (float)invers[i, numSelectedParams - i - 1];
-            }
-
-            if (l2Weight > 0)
-            {
-                // Iterate through all entries of inverse Hessian to make adjustment to variance.
-                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
-                // http://www.aloki.hu/pdf/0402_171179.pdf (Equations 11 and 25)
-                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf (Section "Significance testing in ridge logistic regression")
-                for (int iRow = 1; iRow < numSelectedParams; iRow++)
-                {
-                    for (int iCol = 0; iCol <= iRow; iCol++)
-                    {
-                        float entry = (float)invers[iRow, numSelectedParams - iCol - 1];
-                        AdjustVariance(entry, iRow, iCol, l2Weight, stdErrorValues);
-                    }
-                }
-            }
-
-            for (int i = 1; i < numSelectedParams; i++)
-                stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
-
-            return new VBuffer<float>(currentWeightsCount, numSelectedParams, stdErrorValues, weightIndices);
-        }
     }
 }

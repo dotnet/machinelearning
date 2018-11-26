@@ -75,7 +75,11 @@ namespace Microsoft.ML.Runtime.Learners
                     for (int iCol = 0; iCol <= iRow; iCol++)
                     {
                         var entry = (float)invHessian[ioffset++];
-                        AdjustVariance(entry, iRow, iCol, l2Weight, stdErrorValues);
+                        var adjustment = l2Weight * entry * entry;
+                        stdErrorValues[iRow] -= adjustment;
+
+                        if (0 < iCol && iCol < iRow)
+                            stdErrorValues[iCol] -= adjustment;
                     }
                 }
 

@@ -53,8 +53,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var stats = linearModel.Statistics;
             LinearModelStatistics.TryGetBiasStatistics(stats, 2, out float stdError, out float zScore, out float pValue);
 
-            CompareNumbersWithTolerance(stdError, 0.250672936);
-            CompareNumbersWithTolerance(zScore, 7.97852373);
+            Assert.Equal(0f, stdError);
+            Assert.Equal(0f, zScore);
         }
 
         [Fact]
