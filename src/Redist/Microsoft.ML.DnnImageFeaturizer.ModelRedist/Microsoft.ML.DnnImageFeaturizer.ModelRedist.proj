@@ -53,7 +53,7 @@
     DestinationDir="$(ModelPlacementDir)\ResNet101Onnx" />
   </ItemGroup>
 
-  <Target Name="DownloadResNet101Models" 
+  <Target Name="DownloadDnnModelFiles" 
           Inputs="@(ModelFiles)" Outputs="@(ModelFiles->'%(DestinationFile)')">
     <Message Importance="High" Text="Downloading external model files... @(ModelFiles->'%(DestinationFile)')" />
     <MakeDir Directories="$(ModelPlacementDir)" />
@@ -62,6 +62,6 @@
   </Target>
 
   <Target Name="Build"
-          DependsOnTargets="DownloadResNet101Models" />
+          DependsOnTargets="DownloadDnnModelFiles" />
 
 </Project>
