@@ -51,14 +51,6 @@ namespace Microsoft.ML.Runtime
             _ = typeof(OneHotEncodingTransformer).Assembly; // ML.Transforms
 
             // The following assemblies reference this assembly, so we can't directly reference them
-
-            //_ = typeof(Microsoft.ML.Runtime.PipelineInference.AutoInference).Assembly); // ML.PipelineInference
-            _ = Assembly.Load(new AssemblyName()
-            {
-                Name = "Microsoft.ML.PipelineInference",
-                Version = apiAssemblyName.Version, //assume the same version as ML.Api
-            });
-
             //_ = typeof(Microsoft.ML.Runtime.Data.LinearPredictor).Assembly); // ML.StandardLearners
             _ = Assembly.Load(new AssemblyName()
             {

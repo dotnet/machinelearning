@@ -21,6 +21,7 @@ using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
 [assembly: LoadableClass(typeof(CSharpApiGenerator), typeof(CSharpApiGenerator.Arguments), typeof(SignatureModuleGenerator),
     "CSharp API generator", "CSGenerator", "CS")]
 
+#pragma warning disable 612
 namespace Microsoft.ML.Runtime.Internal.Tools
 {
     internal sealed class CSharpApiGenerator : IGenerator
@@ -140,6 +141,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
                 var enumType = Enum.GetUnderlyingType(type);
 
+                writer.WriteLine("[Obsolete]");
                 var apiName = _generatedClasses.GetApiName(type, currentNamespace);
                 if (enumType == typeof(int))
                     writer.WriteLine($"public enum {apiName}");
@@ -217,6 +219,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     classBase = $" : OneToOneColumn<{apiName}>, IOneToOneColumn";
                 else if (type.IsSubclassOf(typeof(ManyToOneColumn)))
                     classBase = $" : ManyToOneColumn<{apiName}>, IManyToOneColumn";
+                writer.WriteLine("[Obsolete]");
                 writer.WriteLine($"public sealed partial class {apiName}{classBase}");
                 writer.WriteLine("{");
                 writer.Indent();
@@ -389,6 +392,8 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             if (entryPointInfo.ObsoleteAttribute != null)
                 writer.WriteLine($"[Obsolete(\"{entryPointInfo.ObsoleteAttribute.Message}\")]");
+            else
+                writer.WriteLine("[Obsolete]");
 
             writer.WriteLine($"public sealed partial class {entryPointMetadata.ClassName}{classBase}");
             writer.WriteLine("{");
@@ -425,12 +430,14 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             if (inputKinds.Any(t => typeof(ICalibratorInput).IsAssignableFrom(t)))
                 isCalibrator = true;
 
+            writer.WriteLine("[Obsolete]");
             if (isTransform)
                 writer.WriteLine("public Var<IDataView> GetInputData() => Data;");
             else
                 writer.WriteLine("public Var<IDataView> GetInputData() => TrainingData;");
 
             writer.WriteLine("");
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine("public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
             writer.WriteLine("{");
 
@@ -464,6 +471,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             //Pipeline step.
             writer.WriteLineNoTabs();
+            writer.WriteLine("[Obsolete]");
             if (isTransform && !isCalibrator)
                 writer.WriteLine($"private class {pipelineStep} : ILearningPipelineDataStep");
             else
@@ -471,6 +479,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             writer.WriteLine("{");
             writer.Indent();
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public {pipelineStep}(Output output)");
             writer.WriteLine("{");
             writer.Indent();
@@ -490,11 +499,16 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             if (isTransform && !isCalibrator)
             {
+                writer.WriteLine("[Obsolete]");
                 writer.WriteLine("public Var<IDataView> Data { get; }");
+                writer.WriteLine("[Obsolete]");
                 writer.WriteLine("public Var<ITransformModel> Model { get; }");
             }
             else
+            {
+                writer.WriteLine("[Obsolete]");
                 writer.WriteLine("public Var<IPredictorModel> Model { get; }");
+            }
 
             writer.Outdent();
             writer.WriteLine("}");
@@ -515,6 +529,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 CSharpGeneratorUtils.GenerateSummary(writer, inputAttr.HelpText);
                 if (fieldInfo.FieldType == typeof(JArray))
                 {
+                    writer.WriteLine("[Obsolete]");
                     writer.WriteLine($"public Experiment {CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}");
                     writer.WriteLineNoTabs();
                     continue;
@@ -531,11 +546,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     is TlcModule.RangeAttribute ranAttr)
                     writer.WriteLine(ranAttr.ToString());
 
-                // For obsolete/deprecated attributes
-                if (fieldInfo.GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault()
-                    is ObsoleteAttribute obsAttr)
-                    writer.WriteLine($"[System.Obsolete(\"{obsAttr.Message}\")]");
-
                 // For sweepable ranges on properties
                 if (fieldInfo.GetCustomAttributes(typeof(TlcModule.SweepableParamAttribute), false).FirstOrDefault()
                     is TlcModule.SweepableParamAttribute sweepableParamAttr)
@@ -545,6 +555,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     writer.WriteLine(sweepableParamAttr.ToString());
                 }
 
+                writer.WriteLine("[Obsolete]");
                 var line = $"public {inputTypeString} {CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name)} {{ get; set; }}";
                 var defaultValue = CSharpGeneratorUtils.GetValue(catalog, fieldInfo.FieldType, fieldInfo.GetValue(defaults), _generatedClasses, rootNameSpace);
                 if (defaultValue != null)
@@ -560,6 +571,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             string classBase = "";
             if (entryPointInfo.OutputKinds != null)
                 classBase = $" : {string.Join(", ", entryPointInfo.OutputKinds.Select(CSharpGeneratorUtils.GetCSharpTypeName))}";
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public sealed class Output{classBase}");
             writer.WriteLine("{");
             writer.Indent();
@@ -587,6 +599,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
         private void GenerateComponentKind(IndentedTextWriter writer, string kind)
         {
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public abstract class {kind} : ComponentKind {{}}");
             writer.WriteLineNoTabs();
         }
@@ -598,10 +611,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             GenerateClasses(writer, component.ArgumentType, catalog, "Runtime");
             writer.WriteLineNoTabs();
             CSharpGeneratorUtils.GenerateSummary(writer, component.Description);
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public sealed class {CSharpGeneratorUtils.GetComponentName(component)} : {component.Kind}");
             writer.WriteLine("{");
             writer.Indent();
             GenerateInputFields(writer, component.ArgumentType, catalog, "Runtime");
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"internal override string ComponentName => \"{component.Name}\";");
             writer.Outdent();
             writer.WriteLine("}");

@@ -534,6 +534,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
+#pragma warning disable 612, 618
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvPipelineTest()
         {
@@ -559,6 +560,7 @@ namespace Microsoft.ML.Scenarios
 
             MNISTPrediction prediction = model.Predict(sample1);
         }
+#pragma warning restore 612, 618
 
         private MNISTData GetOneMNISTExample()
         {

@@ -53,7 +53,7 @@
 #if !INTERACTIVE
 namespace Microsoft.ML.FSharp.Tests
 #endif
-
+#nowarn "44"
 open System
 open Microsoft.ML
 open Microsoft.ML.Legacy.Data
