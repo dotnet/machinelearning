@@ -961,7 +961,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [Fact(Skip = "Difference in Baseline files for netcoreapp 3.0 and x86 bit process")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21And64BitProcess))] // netcore3.0 and x86 output differs from Baseline. This test is being fixed as part of issue #1441.
         public void MatrixFactorization()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,

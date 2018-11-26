@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))]  // netcore3.0 output differs from Baseline
         public void SavePipeSsaSpikeNoData()
         {
             string pathData = DeleteOutputPath("SavePipe", "SsaSpikeNoData.txt");

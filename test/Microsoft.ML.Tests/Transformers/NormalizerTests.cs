@@ -393,7 +393,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [Fact(Skip = "Differnce in Output for netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

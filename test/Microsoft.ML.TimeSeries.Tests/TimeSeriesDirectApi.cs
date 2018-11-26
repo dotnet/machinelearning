@@ -9,6 +9,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.TimeSeries;
 using Xunit;
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(conc: 1);

@@ -351,7 +351,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip = "Differnce in Baseline files for netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 differs from Baseline
         public void KmeansTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");

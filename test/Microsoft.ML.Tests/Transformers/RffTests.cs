@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int A;
         }
 
-        [Fact(Skip = "Test is flaky for netcoreapp3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
         public void RffWorkout()
         {
             Random rand = new Random();

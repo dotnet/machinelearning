@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip = "Aligned Matrix Asserts Failing For Netcoreapp 3.0")]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;

@@ -24,6 +24,10 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         public const int DigitsOfPrecision = 7;
 
+        public static bool NetCore21 { get; } = AppDomain.CurrentDomain.GetData("FX_PRODUCT_VERSION") == null ? true : false;
+
+        public static bool NetCore21And64BitProcess { get; } = NetCore21 && Environment.Is64BitProcess;
+
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
         }
