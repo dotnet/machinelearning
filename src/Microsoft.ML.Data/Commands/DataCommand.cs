@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         while (cursor.MoveNext())
                         {
-                            for (int currentIndex = 0; currentIndex < cursor.Schema.ColumnCount; currentIndex++)
+                            for (int currentIndex = 0; currentIndex < cursor.Schema.Count; currentIndex++)
                             {
                                 var nameOfMetric = "TLC_" + cursor.Schema.GetColumnName(currentIndex);
                                 var type = cursor.Schema.GetColumnType(currentIndex);
