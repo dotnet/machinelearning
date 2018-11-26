@@ -393,7 +393,7 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))] // netcore3.0 output differs from Baseline
         public void GcnWorkout()
         {
             string dataSource = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);

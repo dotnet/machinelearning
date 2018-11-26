@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))] // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))]  // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))]  // netcore3.0 output differs from Baseline
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -1561,7 +1561,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))]  // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1573,7 +1573,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NetCore21))]  // netcore3.0 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.NotNetCore30))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
