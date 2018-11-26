@@ -1026,7 +1026,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new TextFeaturizingEstimator.Arguments()
                         {
                             Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
-                            StopWordsRemover = new PredefinedStopWordsRemoverFactory()
+                            UsePredefinedStopWordRemover = true
                         }, data);
                 }
                 else

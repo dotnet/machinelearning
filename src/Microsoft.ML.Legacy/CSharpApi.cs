@@ -16802,10 +16802,9 @@ namespace Microsoft.ML
             public TextFeaturizingEstimatorLanguage Language { get; set; } = TextFeaturizingEstimatorLanguage.English;
 
             /// <summary>
-            /// Stopwords remover.
+            /// Use stop remover or not.
             /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public StopWordsRemover StopWordsRemover { get; set; }
+            public bool UsePredefinedStopWordRemover { get; set; } = false;
 
             /// <summary>
             /// Casing text using the rules of the invariant culture.

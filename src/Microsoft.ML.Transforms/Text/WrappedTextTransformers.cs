@@ -2,73 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using System;
 using System.Linq;
-using static Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
-    /// <summary>
-    /// Stopword remover removes language-specific lists of stop words (most common words)
-    /// This is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
-    /// </summary>
-    public sealed class StopwordRemover : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Removes stop words from incoming token streams in <paramref name="inputColumn"/>
-        /// and outputs the token streams without stopwords as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to remove stop words on.</param>
-        /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="language">Langauge of the input text column <paramref name="inputColumn"/>.</param>
-        public StopwordRemover(IHostEnvironment env, string inputColumn, string outputColumn = null, Language language = Language.English)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, language)
-        {
-        }
-
-        /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        public StopwordRemover(IHostEnvironment env, (string input, string output)[] columns, Language language = Language.English)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StopwordRemover)), MakeTransformer(env, columns, language))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, Language language)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new StopWordsRemovingTransformer.Arguments
-            {
-                Column = columns.Select(x => new StopWordsRemovingTransformer.Column { Source = x.input, Name = x.output }).ToArray(),
-                Language = language
-            };
-
-            // Create a valid instance of data.
-            var schema = SchemaBuilder.MakeSchema(columns.Select(x => new Schema.DetachedColumn(x.input, new VectorType(TextType.Instance), null)));
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new StopWordsRemovingTransformer(env, args, emptyData));
-        }
-    }
 
     /// <summary>
     /// Produces a bag of counts of ngrams (sequences of consecutive words) in a given text.
