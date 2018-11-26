@@ -3,9 +3,9 @@ using System;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public class GAM_BinaryClassificationExample
+    public class GAM_RegressionExample
     {
-        public static void GAM_BinaryClassification()
+        public static void GAM_Regression()
         {
             // Downloading the dataset from github.com/dotnet/machinelearning.
             // This will create a sentiment.tsv file in the filesystem.
