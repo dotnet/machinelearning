@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
@@ -34,7 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
             var pipe = new RandomTrainer(Env);
-            
+
             // Test only that the schema propagation works.
             // REVIEW: the save/load is not preserving the full state of the random predictor. This is unfortunate, but we don't care too much at this point.
             TestEstimatorCore(pipe, new EmptyDataView(Env, dataView.Schema));
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
-            
+
             var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), "Label");
             TestEstimatorCore(pipe, dataView);
             Done();

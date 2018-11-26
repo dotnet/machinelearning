@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Online;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -30,7 +27,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                  s.Calibrator = null;
              });
 
-            pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
+            pipeline = pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -46,7 +43,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipeline, data) = GetMultiClassPipeline();
             var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
 
-            pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
+            pipeline = pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);
@@ -62,7 +59,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var (pipeline, data) = GetMultiClassPipeline();
 
             var sdcaTrainer = new SdcaBinaryTrainer(Env, "Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
-            pipeline.Append(new Pkpd(Env, sdcaTrainer))
+            pipeline = pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueMappingEstimator(Env, "PredictedLabel"));
 
             TestEstimatorCore(pipeline, data);

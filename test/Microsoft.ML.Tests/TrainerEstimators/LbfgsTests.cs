@@ -75,7 +75,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
 
-            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features", advancedSettings: s => {
+            pipe = pipe.Append(new LogisticRegression(Env, "Label", "Features", advancedSettings: s =>
+            {
                 s.ShowTrainingStats = true;
                 s.StdComputer = new ComputeLRTrainingStdThroughHal();
             }));

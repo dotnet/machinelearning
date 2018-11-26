@@ -181,7 +181,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+            var pipeline = new MatrixFactorizationTrainer(mlContext,
                 nameof(MatrixElement.MatrixColumnIndex),
                 nameof(MatrixElement.MatrixRowIndex),
                 nameof(MatrixElement.Value),
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+            var pipeline = new MatrixFactorizationTrainer(mlContext,
                 nameof(MatrixElementZeroBased.MatrixColumnIndex),
                 nameof(MatrixElementZeroBased.MatrixRowIndex),
                 nameof(MatrixElementZeroBased.Value),
