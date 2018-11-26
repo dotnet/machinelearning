@@ -4,14 +4,13 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 
 namespace Microsoft.ML.StaticPipe
 {
-    using Language = Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer.Language;
     /// <summary>
     /// Extensions for statically typed word tokenizer.
     /// </summary>
@@ -124,7 +123,7 @@ namespace Microsoft.ML.StaticPipe
         {
             public readonly VarVector<string> Input;
 
-            public OutPipelineColumn(VarVector<string> input, Language language)
+            public OutPipelineColumn(VarVector<string> input, StopWordsRemovingEstimator.Language language)
                 : base(new Reconciler(language), input)
             {
                 Input = input;
@@ -133,9 +132,9 @@ namespace Microsoft.ML.StaticPipe
 
         private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
         {
-            private readonly Language _language;
+            private readonly StopWordsRemovingEstimator.Language _language;
 
-            public Reconciler(Language language)
+            public Reconciler(StopWordsRemovingEstimator.Language language)
             {
                 _language = language;
             }
@@ -153,11 +152,11 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var pairs = new List<(string input, string output)>();
+                var columns = new List<StopWordsRemovingTransform.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+                    columns.Add(new StopWordsRemovingTransform.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
 
-                return new StopwordRemover(env, pairs.ToArray(), _language);
+                return new StopWordsRemovingEstimator(env, columns.ToArray());
             }
         }
 
@@ -167,7 +166,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="input">The column to apply to.</param>
         /// <param name="language">Langauge of the input text.</param>
         public static VarVector<string> RemoveStopwords(this VarVector<string> input,
-            Language language = Language.English) => new OutPipelineColumn(input, language);
+            StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English) => new OutPipelineColumn(input, language);
     }
 
     /// <summary>
