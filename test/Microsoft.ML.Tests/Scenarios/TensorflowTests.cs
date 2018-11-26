@@ -40,7 +40,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(new ImagePixelExtractingEstimator(env, "ImageCropped", "Input", interleave: true))
                     .Append(new TensorFlowEstimator(env, model_location, new[] { "Input" }, new[] { "Output" }))
                     .Append(new ColumnConcatenatingEstimator(env, "Features", "Output"))
-                    .Append(new ValueToKeyMappingEstimator(env, "Label"), TransformerScope.TrainTest)
+                    .Append(new ValueToKeyMappingEstimator(env, "Label"))
                     .Append(new SdcaMultiClassTrainer(env));
 
 
