@@ -52,6 +52,7 @@ namespace Microsoft.ML.TimeSeries
         private Action<long> _pinger;
         private long _rowPosition;
         private ITransformer InputTransformer { get; set; }
+
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
@@ -65,6 +66,7 @@ namespace Microsoft.ML.TimeSeries
                 else
                     Transformer.SaveTo(env, file);
         }
+
         private static ITransformer CloneTransformers(ITransformer transformer)
         {
             ITransformer[] transformersClone = null;
@@ -92,8 +94,8 @@ namespace Microsoft.ML.TimeSeries
 
         internal override ITransformer ProcessTransformer(ITransformer transformer) => CloneTransformers(transformer);
 
-        public void GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
-            List<IStatefulRow> rows, out Action disposer, out IRow outRow)
+        public IRow GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
+            List<IStatefulRow> rows, out Action disposer)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
@@ -116,8 +118,11 @@ namespace Microsoft.ML.TimeSeries
                         throw Contracts.ExceptParam(nameof(input), $"Mapper required column '{input.Schema.GetColumnName(c)}' active but it was not.");
                 }
 
-                outRow = input;
-                return;
+                var row = mapper.GetRow(input, active, out disposer);
+                if (row is IStatefulRow)
+                    rows.Add((IStatefulRow)row);
+
+                return row;
             }
 
             // For each of the inner mappers, we will be calling their GetRow method, but to do so we need to know
@@ -132,11 +137,7 @@ namespace Microsoft.ML.TimeSeries
             for (int i = 0; i < innerMappers.Length; ++i)
             {
                 Action localDisp;
-                if (innerMappers[i] is CompositeRowToRowMapper)
-                    GetStatefulRows(result, innerMappers[i], deps[i], rows, out localDisp, out result);
-                else
-                    result = innerMappers[i].GetRow(result, deps[i], out localDisp);
-
+                result = GetStatefulRows(result, innerMappers[i], deps[i], rows, out localDisp);
                 if (result is IStatefulRow)
                     rows.Add((IStatefulRow)result);
 
@@ -150,7 +151,7 @@ namespace Microsoft.ML.TimeSeries
                 }
             }
 
-            outRow = result;
+            return result;
         }
 
         private Action<long> CreatePinger(List<IStatefulRow> rows)
@@ -170,17 +171,9 @@ namespace Microsoft.ML.TimeSeries
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
-            IRow outputRowLocal = null;
             List<IStatefulRow> rows = new List<IStatefulRow>();
-            if (mapper is CompositeRowToRowMapper)
-                GetStatefulRows(inputRow, mapper, col => true, rows, out disposer, out outputRowLocal);
-            else
-                outputRowLocal = mapper.GetRow(inputRow, col => true, out disposer);
-
+            IRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows, out disposer);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
-            if (rows.Count == 0 && outputRowLocal is IStatefulRow)
-                rows.Add((IStatefulRow)outputRowLocal);
-
             _pinger = CreatePinger(rows);
             outputRow = cursorable.GetRow(outputRowLocal);
         }
