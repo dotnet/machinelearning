@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Core.Data
             Contracts.CheckValue(schema, nameof(schema));
             var cols = new List<Column>();
 
-            for (int iCol = 0; iCol < schema.ColumnCount; iCol++)
+            for (int iCol = 0; iCol < schema.Count; iCol++)
             {
                 if (!schema.IsHidden(iCol))
                 {

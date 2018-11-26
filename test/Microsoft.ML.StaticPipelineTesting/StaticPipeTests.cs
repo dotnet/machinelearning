@@ -22,6 +22,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.Transforms.Text.LatentDirichletAllocationTransformer;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
@@ -666,7 +667,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType4 && vecType4.Size > 0 && vecType4.ItemType is NumberType);
         }
 
-        [Fact(Skip = "LDA transform cannot be trained on empty data, schema propagation fails")]
+        [Fact]
         public void LdaTopicModel()
         {
             var env = new MLContext(0);
@@ -677,21 +678,22 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var data = reader.Read(dataSource);
 
+            // This will be populated once we call fit.
+            LdaSummary ldaSummary;
+
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s =>
-                    {
-                        s.AlphaSum = 10;
-                    })));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 3, numSummaryTermPerTopic:5, alphaSum: 10, onFit: m => ldaSummary = m.LdaTopicSummary)));
 
-            var tdata = est.Fit(data).Transform(data);
+            var transformer = est.Fit(data);
+            var tdata = transformer.Transform(data);
+
             var schema = tdata.AsDynamic.Schema;
-
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
-}
+        }
 
         [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
         public void FeatureSelection()

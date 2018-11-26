@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
             };
 
             // Create a valid instance of data.
-            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
+            var schema = SchemaBuilder.MakeSchema(columns.Select(x => new Schema.DetachedColumn(x.input, new VectorType(TextType.Instance), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new StopWordsRemovingTransformer(env, args, emptyData));
@@ -450,52 +451,6 @@ namespace Microsoft.ML.Transforms.Text
             };
 
             return new TransformWrapper(Host, new NgramHashingTransformer(Host, args, input));
-        }
-    }
-
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaEstimator : TrainedWrapperEstimatorBase
-    {
-        private readonly LdaTransform.Arguments _args;
-
-        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LdaEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
-                    numTopic,
-                    advancedSettings)
-        {
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to compute LDA.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LdaEstimator(IHostEnvironment env,
-            (string input, string output)[] columns,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaEstimator)))
-        {
-            _args = new LdaTransform.Arguments();
-            _args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
-            _args.NumTopic = numTopic;
-
-            advancedSettings?.Invoke(_args);
-        }
-
-        public override TransformWrapper Fit(IDataView input)
-        {
-            return new TransformWrapper(Host, new LdaTransform(Host, _args, input));
         }
     }
 }

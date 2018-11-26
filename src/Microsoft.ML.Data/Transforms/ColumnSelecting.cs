@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -573,8 +574,8 @@ namespace Microsoft.ML.Transforms
             private static Schema GenerateOutputSchema(IEnumerable<int> map,
                                                         Schema inputSchema)
             {
-                var outputColumns = map.Select(x => inputSchema[x]);
-                return new Schema(outputColumns);
+                var outputColumns = map.Select(x => new Schema.DetachedColumn(inputSchema[x]));
+                return SchemaBuilder.MakeSchema(outputColumns);
             }
         }
 
