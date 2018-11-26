@@ -12,7 +12,7 @@
   <ItemGroup>  
     <Content Include="$(ObjDir)\DnnImageModels\AlexNetOnnx\AlexNet.onnx" Pack="true" PackagePath="tools\DnnImageFeat\AlexNetOnnx" /> 
     <Content Include="$(ObjDir)\DnnImageModels\AlexNetPrepOnnx\AlexNetPreprocess.onnx" Pack="true" PackagePath="tools\DnnImageFeat\AlexNetPrepOnnx" /> 
-    <Content Include="..\common\DnnImageFeaturizer.targets" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).targets" /> 
+    <Content Include="..\common\DnnImageFeaturizer.targets" Pack="true" PackagePath="build\$(MSBuildProjectName).targets" /> 
   </ItemGroup>  
 
 </Project>
