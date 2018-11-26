@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
-using Microsoft.ML;
+using Microsoft.ML.Runtime.Internal.CpuMath;
 
 [assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests.netstandard" + PublicKey.TestValue)]
 [assembly: InternalsVisibleTo("Microsoft.ML.CpuMath.UnitTests.netcoreapp" + PublicKey.TestValue)]
