@@ -191,7 +191,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // float: _discountFactor
             // byte: _errorFunction
             // bool: _isAdaptive
-            // bool: StateRef != null
             // State: StateRef
             // AdaptiveSingularSpectrumSequenceModeler: _model
 

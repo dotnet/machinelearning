@@ -54,10 +54,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             // *** Binary format ***
             // <base>
-            //bool: StateRef != null
             // State: StateRef
             StateRef.Save(ctx);
-            StateRef.InitState(this, Host);
         }
 
         public sealed class State : AnomalyDetectionStateBase
