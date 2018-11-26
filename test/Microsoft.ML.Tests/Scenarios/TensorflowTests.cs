@@ -25,39 +25,6 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            //var pipeline = new Legacy.LearningPipeline(seed: 1);
-            //pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataFile).CreateFrom<CifarData>(useHeader: false));
-
-            //pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
-            //{
-            //    ImageFolder = imageFolder
-            //});
-
-            //pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
-            //{
-            //    ImageHeight = imageHeight,
-            //    ImageWidth = imageWidth,
-            //    Resizing = ImageResizerTransformResizingKind.IsoCrop
-            //});
-
-            //pipeline.Add(new ImagePixelExtractor(("ImageCropped", "Input"))
-            //{
-            //    UseAlpha = false,
-            //    InterleaveArgb = true
-            //});
-
-            //pipeline.Add(new TensorFlowScorer()
-            //{
-            //    ModelLocation = model_location,
-            //    InputColumns = new[] { "Input" },
-            //    OutputColumns = new[] { "Output" }
-            //});
-
-            //pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "Output"));
-            //pipeline.Add(new TextToKeyConverter("Label"));
-            //pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            //var model = pipeline.Train<CifarData, CifarPrediction>();
-
             var env = new MLContext();
             var data = TextLoader.Create(env, new TextLoader.Arguments()
             {
@@ -73,98 +40,33 @@ namespace Microsoft.ML.Scenarios
                     .Append(new ImagePixelExtractingEstimator(env, "ImageCropped", "Input", interleave: true))
                     .Append(new TensorFlowEstimator(env, model_location, new[] { "Input" }, new[] { "Output" }))
                     .Append(new ColumnConcatenatingEstimator(env, "Features", "Output"))
-                    .Append(new ValueToKeyMappingEstimator(env, "Label"))
+                    .Append(new ValueToKeyMappingEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new SdcaMultiClassTrainer(env));
 
 
             var transformer = pipeEstimator.Fit(data);
             var predictions = transformer.Transform(data);
-            
-            //string[] scoreLabels;
-            //model.TryGetScoreLabelNames(out scoreLabels);
 
-            //Assert.NotNull(scoreLabels);
-            //Assert.Equal(3, scoreLabels.Length);
-            //Assert.Equal("banana", scoreLabels[0]);
-            //Assert.Equal("hotdog", scoreLabels[1]);
-            //Assert.Equal("tomato", scoreLabels[2]);
+            var metrics = env.MulticlassClassification.Evaluate(transformer.Transform(data));
+            Assert.Equal(1, metrics.AccuracyMicro, 2);
 
-            //CifarPrediction prediction = model.Predict(new CifarData()
-            //{
-            //    ImagePath = GetDataPath("images/banana.jpg")
-            //});
-            //Assert.Equal(1, prediction.PredictedLabels[0], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[1], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            var predictFunction = transformer.MakePredictionFunction<CifarData, CifarPrediction>(env);
+            var prediction = predictFunction.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/banana.jpg")
+            });
+            Assert.Equal(1, prediction.PredictedScores[0], 2);
+            Assert.Equal(0, prediction.PredictedScores[1], 2);
+            Assert.Equal(0, prediction.PredictedScores[2], 2);
 
-            //prediction = model.Predict(new CifarData()
-            //{
-            //    ImagePath = GetDataPath("images/hotdog.jpg")
-            //});
-            //Assert.Equal(0, prediction.PredictedLabels[0], 2);
-            //Assert.Equal(1, prediction.PredictedLabels[1], 2);
-            //Assert.Equal(0, prediction.PredictedLabels[2], 2);
+            prediction = predictFunction.Predict(new CifarData()
+            {
+                ImagePath = GetDataPath("images/hotdog.jpg")
+            });
+            Assert.Equal(0, prediction.PredictedScores[0], 2);
+            Assert.Equal(1, prediction.PredictedScores[1], 2);
+            Assert.Equal(0, prediction.PredictedScores[2], 2);
         }
-
-        //[Fact(Skip = "Model files are not available yet")]
-        //public void TensorFlowTransformInceptionPipelineTest()
-        //{
-        //    var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-        //    var dataFile = @"C:\Data\tags.tsv";
-        //    var imagesFolder = @"C:\Data\images";
-
-        //    const int imageHeight = 224;
-        //    const int imageWidth = 224;
-
-        //    const string inputTensorName = "input";
-        //    const string outputTensorName = "softmax2_pre_activation";
-
-        //    const float mean = 117;
-
-        //    var pipeline = new Legacy.LearningPipeline();
-        //    pipeline.Add(new Legacy.Data.TextLoader(dataFile).CreateFrom<ImageNetData>(useHeader: false));
-        //    pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
-        //    {
-        //        ImageFolder = imagesFolder
-        //    });
-
-        //    pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
-        //    {
-        //        ImageHeight = imageHeight,
-        //        ImageWidth = imageWidth,
-        //        Resizing = ImageResizerTransformResizingKind.IsoCrop
-        //    });
-
-        //    pipeline.Add(new ImagePixelExtractor(("ImageCropped", inputTensorName))
-        //    {
-        //        UseAlpha = false,
-        //        InterleaveArgb = true,
-        //        Convert = true,
-        //        Offset = mean,
-        //        Scale = 1
-        //    });
-
-        //    pipeline.Add(new TensorFlowScorer()
-        //    {
-        //        ModelLocation = model_location,
-        //        InputColumns = new[] { inputTensorName },
-        //        OutputColumns = new[] { outputTensorName }
-        //    });
-
-        //    pipeline.Add(new ColumnConcatenator(outputColumn: "Features", inputColumns: outputTensorName));
-        //    pipeline.Add(new TextToKeyConverter("Label"));
-        //    pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-        //    var model = pipeline.Train<ImageNetData, ImageNetPrediction>();
-        //    string[] scoreLabels;
-        //    model.TryGetScoreLabelNames(out scoreLabels);
-
-        //    //Test Scoring
-        //    ImageNetPrediction prediction = model.Predict(new ImageNetData()
-        //    {
-        //        ImagePath = @"C:\Data\images\violin.jpg"
-        //    });
-        //}
     }
 
     public class CifarData
@@ -179,7 +81,7 @@ namespace Microsoft.ML.Scenarios
     public class CifarPrediction
     {
         [ColumnName("Score")]
-        public float[] PredictedLabels;
+        public float[] PredictedScores;
     }
 
     public class ImageNetData

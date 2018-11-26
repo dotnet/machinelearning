@@ -632,27 +632,6 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            //var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
-            //{
-            //    Column = new ImageLoaderTransform.Column[1]
-            //    {
-            //            new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-            //    },
-            //    ImageFolder = imageFolder
-            //}, data);
-            //var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
-            //{
-            //    Column = new ImageResizerTransform.Column[1]{
-            //            new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-            //        }
-            //}, images);
-
-            //var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
-            //{
-            //    Column = new ImagePixelExtractorTransform.Column[1]{
-            //            new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
-            //        }
-            //}, cropped);
 
             var pipeEstimator = new ImageLoadingEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
                 .Append(new ImageResizingEstimator(env, "ImageReal", "ImageCropped", imageWidth, imageHeight))
