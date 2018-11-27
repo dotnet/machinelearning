@@ -21,7 +21,6 @@
     <ProjectReference Include="..\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj" />
     <ProjectReference Include="..\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.PipelineInference\Microsoft.ML.PipelineInference.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />

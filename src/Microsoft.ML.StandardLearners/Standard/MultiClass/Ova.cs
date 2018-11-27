@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="args">The legacy <see cref="Arguments"/></param>
-        public Ova(IHostEnvironment env, Arguments args)
+        internal Ova(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
             _args = args;
@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Learners
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
-                   calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);

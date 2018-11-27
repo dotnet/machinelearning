@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -806,7 +807,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _schema = Schema.Create(new SchemaImpl(this));
-                _host.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
+                _host.Assert(_schema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -895,7 +896,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _schema = Schema.Create(new SchemaImpl(this));
-                ch.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
+                ch.Assert(_schema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -1014,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             saverArgs.Silent = true;
             var saver = new BinarySaver(env, saverArgs);
 
-            var cols = Enumerable.Range(0, schema.ColumnCount)
+            var cols = Enumerable.Range(0, schema.Count)
                 .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema.GetColumnType(x)) });
             int[] toSave = cols.Where(x => x.isSavable).Select(x => x.col).ToArray();
             unsavableColIndices = cols.Where(x => !x.isSavable).Select(x => x.col).ToArray();

@@ -12,6 +12,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(void), typeof(ImportTextData), null, typeof(SignatureEntryPointModule), "ImportTextData")]
 
+// The warning #612 is disabled because the following code uses legacy TextLoader.
+// Because that dependency will be removed form ML.NET, one needs to rewrite all places where legacy APIs are used.
+#pragma warning disable 612
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     /// <summary>
@@ -70,3 +73,4 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
     }
 }
+#pragma warning restore 612

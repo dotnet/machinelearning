@@ -6,7 +6,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
 ---- RowToRowMapperTransform ----
 4 columns:
   One: Text
@@ -19,7 +19,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
 ---- RowToRowMapperTransform ----
 5 columns:
   One: Text
@@ -32,7 +32,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   temp_IsMissing_000: Vec<Bool, 6>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
@@ -49,7 +49,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   temp_IsMissing_000: Vec<Bool, 6>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
@@ -69,7 +69,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   temp_IsMissing_000: Vec<Bool, 6>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
@@ -93,7 +93,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   temp_IsMissing_000: Vec<Bool, 6>
     Metadata 'IsNormalized': Bool: '1'
     Metadata 'SlotNames': Vec<Text, 6>: Length=6, Count=6
@@ -121,7 +121,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   NumSparse: Vec<R4, 12>
     Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
@@ -138,7 +138,7 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'
   NumSparse: Vec<R4, 12>
     Metadata 'SlotNames': Vec<Text, 12>: Length=12, Count=12
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week', [6] 'IsMissing.age', [7] 'IsMissing.fnlwgt', [8] 'IsMissing.education-num', [9] 'IsMissing.capital-gain'
@@ -160,4 +160,4 @@
       [0] 'age', [1] 'fnlwgt', [2] 'education-num', [3] 'capital-gain', [4] 'capital-loss', [5] 'hours-per-week'
   Cat: Vec<Text, 9>
     Metadata 'SlotNames': Vec<Text, 9>: Length=9, Count=9
-      [0] 'workclass', [1] 'education', [2] 'marital-status', [3] 'occupation', [4] 'relationship', [5] 'ethnicity', [6] 'sex', [7] 'native-country', [8] 'label(IsOver50K)'
+      [0] 'Label', [1] 'Workclass', [2] 'education', [3] 'marital-status', [4] 'occupation', [5] 'relationship', [6] 'ethnicity', [7] 'sex', [8] 'native-country-region'

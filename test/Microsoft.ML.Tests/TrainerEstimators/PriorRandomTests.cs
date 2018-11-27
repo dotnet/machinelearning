@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
-            
+
             var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), "Label");
             TestEstimatorCore(pipe, dataView);
             Done();

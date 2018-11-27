@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;

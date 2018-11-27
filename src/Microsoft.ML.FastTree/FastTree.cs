@@ -210,8 +210,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected void ConvertData(RoleMappedData trainData)
         {
-            trainData.Schema.Schema.TryGetColumnIndex(DefaultColumnNames.Features, out int featureIndex);
-            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, featureIndex, out CategoricalFeatures);
+            MetadataUtils.TryGetCategoricalFeatureIndices(trainData.Schema.Schema, trainData.Schema.Feature.Index, out CategoricalFeatures);
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData) && (ValidData == null || UseTranspose(Args.DiskTranspose, ValidData));
             var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocumentsInLeafs, GetMaxLabel());
 
