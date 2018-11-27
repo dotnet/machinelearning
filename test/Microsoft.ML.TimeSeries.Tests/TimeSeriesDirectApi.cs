@@ -172,13 +172,15 @@ namespace Microsoft.ML.Tests
             // Train.
             var model = pipeline.Fit(dataView);
 
-            //Predict.
+            //Create prediction function.
             var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction1>(ml);
 
-            //Checkpoint.
+            //Checkpoint with no inputs passed at prediction.
             var modelPath = "temp.zip";
             engine.CheckPoint(ml, modelPath);
 
+            //Load time series model and we will use this to pass two inputs and compare the raw score 
+            //with "engine".
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
                 model2 = TransformerChain.LoadFrom(ml, file);
@@ -201,7 +203,7 @@ namespace Microsoft.ML.Tests
             using (var file = File.OpenRead(modelPath + 1))
                 model3 = TransformerChain.LoadFrom(ml, file);
 
-            //Load the model with state updated with just one put, then pass in the second input
+            //Load the model with state updated with just one input, then pass in the second input
             //and raw score should match the raw score obtained by passing the two input in the first model.
             var engine3 = model3.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction3 = engine3.Predict(new Data(1));
