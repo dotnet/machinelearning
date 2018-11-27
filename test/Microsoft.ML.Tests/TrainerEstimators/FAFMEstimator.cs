@@ -21,14 +21,16 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
             var est = new FieldAwareFactorizationMachineTrainer(Env, new[] { "Feature1", "Feature2", "Feature3", "Feature4" }, "Label",
-                advancedSettings:s=>
-                {
-                    s.Shuffle = false;
-                    s.Iters = 3;
-                    s.LatentDim = 7;
-                });
+                advancedSettings: s =>
+                 {
+                     s.Shuffle = false;
+                     s.Iters = 3;
+                     s.LatentDim = 7;
+                 });
 
             TestEstimatorCore(est, data);
+            var model = est.Fit(data);
+            var anotherModel = est.Train(data, data, model.Model);
 
             Done();
         }

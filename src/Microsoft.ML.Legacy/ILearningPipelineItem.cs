@@ -5,12 +5,14 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 
 namespace Microsoft.ML.Legacy
 {
     /// <summary>
     /// An item that can be added to the Learning Pipeline.
     /// </summary>
+    [Obsolete]
     public interface ILearningPipelineItem
     {
         ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment);
@@ -25,6 +27,7 @@ namespace Microsoft.ML.Legacy
     /// <summary>
     /// A data loader that can be added to the Learning Pipeline.
     /// </summary>
+    [Obsolete]
     public interface ILearningPipelineLoader : ILearningPipelineItem
     {
         void SetInput(IHostEnvironment environment, Experiment experiment);
@@ -35,16 +38,19 @@ namespace Microsoft.ML.Legacy
     /// This encapsulates an IDataView(input) and ITransformModel(output) object for a transform and
     /// for a learner it will encapsulate IDataView(input) and IPredictorModel(output).
     /// </summary>
+    [Obsolete]
     public interface ILearningPipelineStep
     {
     }
 
+    [Obsolete]
     public interface ILearningPipelineDataStep : ILearningPipelineStep
     {
         Var<IDataView> Data { get; }
         Var<ITransformModel> Model { get; }
     }
 
+    [Obsolete]
     public interface ILearningPipelinePredictorStep : ILearningPipelineStep
     {
         Var<IPredictorModel> Model { get; }

@@ -26,7 +26,9 @@ namespace Microsoft.ML.TestFramework
             env.ComponentCatalog.RegisterAssembly(typeof(EnsemblePredictor).Assembly); // ML.Ensemble
             env.ComponentCatalog.RegisterAssembly(typeof(KMeansPredictor).Assembly); // ML.KMeansClustering
             env.ComponentCatalog.RegisterAssembly(typeof(PcaPredictor).Assembly); // ML.PCA
+#pragma warning disable 612
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
+#pragma warning restore 612
             env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly); // ML.Api
             return env;
         }

@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612
     public class PredictionModelTests : BaseTestClass
     {
         public class HousePriceData
@@ -111,4 +112,5 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
         }
     }
+#pragma warning restore 612
 }

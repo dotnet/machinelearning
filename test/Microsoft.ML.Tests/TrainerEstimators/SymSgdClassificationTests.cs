@@ -18,8 +18,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new SymSgdClassificationTrainer(Env, "Label", "Features"));
-            TestEstimatorCore(pipe, dataView);
+            var trainer = new SymSgdClassificationTrainer(Env, "Label", "Features");
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView);
+            trainer.Train(transformedDataView, model.Model);
             Done();
         }
 

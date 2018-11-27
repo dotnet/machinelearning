@@ -14,6 +14,7 @@ namespace Microsoft.ML.Legacy.Models
     /// <summary>
     /// This class contains the overall metrics computed by cluster evaluators.
     /// </summary>
+    [Obsolete]
     public sealed class ClusterMetrics
     {
         private ClusterMetrics()

@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
                 CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
@@ -106,7 +107,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
@@ -165,4 +166,5 @@ namespace Microsoft.ML.Scenarios
             return BinaryClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
         }
     }
+#pragma warning restore 612
 }
