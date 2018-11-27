@@ -12,9 +12,21 @@ namespace Microsoft.ML
     public static class PermutationFeatureImportanceExtensions
     {
         /// <summary>
-        /// Permutation Feature Importance is a technique that calculates how much each feature 'matters' to the predictions.
-        /// Namely, how much the model's predictions will change if we randomly permute the values of one feature across the evaluation set.
-        /// If the quality doesn't change much, this feature is not very important. If the quality drops drastically, this was a really important feature.
+        /// Permutation feature importance (PFI) is a technique to determine the global importance features in a trained
+        /// machine learning model. PFI works by taking a labeled dataset, and then, going feature by feature, the values
+        /// for that feature are permuted, and the resulting change in the metric values for the task is computed. The
+        /// larger the change in the evaluation metric, the more important the feature is to the model. This is a simple
+        /// feature importance scheme motivated by Breiman in his Random Forest paper, in section 10
+        /// (Breiman. "Random Forests." Machine Learning, 2001.) The advantage of the PFI method is that it is model
+        /// agnostic -- it works with any model that can be evaluated -- and it can use any dataset, not just the training
+        /// set, to compute feature importance metrics.
+        /// /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[PFI](~/../docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         /// </summary>
         /// <param name="ctx">The regression context.</param>
         /// <param name="model">The model to evaluate.</param>
