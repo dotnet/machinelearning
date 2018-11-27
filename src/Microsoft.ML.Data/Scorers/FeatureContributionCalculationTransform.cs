@@ -16,13 +16,13 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureDataScorer), "Feature Importance Scorer", "wtf", "FeatureImportanceCalculationScorer", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureBindableMapper), "Feature Importance Mapper", "wtf", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
 [assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
-    "Feature Importance Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
+    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -34,7 +34,6 @@ namespace Microsoft.ML.Runtime.Data
     {
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string MapperLoaderSignature = "WTFBindable";
-        private const string LoaderSignature = "WTFScorer";
         private const int MaxTopBottom = 1000;
 
         public sealed class Arguments : ScorerArgumentsBase
