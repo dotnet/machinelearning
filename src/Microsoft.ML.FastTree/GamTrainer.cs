@@ -34,7 +34,24 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Learner.
+    /// Generalized Additive Model Trainer. Generalized Additive Models, or GAMs, model the data as an
+    /// independent set of feature responses similar to a linear model. For each feature, the GAM trainer
+    /// learns a nonparametric function, known as a shape function, that outputs a response as a function
+    /// of the feature value. (In contrast, a linear model fits a linear response (e.g. a line) to each feature).
+    /// To score an example, the output of each shape function is added up and the total value is the
+    /// output of the model (hence the name Generalized Additive Models).
+    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn the
+    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+    /// "Intelligible Models for Classification and Regression." KDD’12, Beijing, China. 2012.
+    /// After training, an intercept is added to represent the average prediction over the training set,
+    /// and the shape functions are normalized to represent the deviation from this average prediction.
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     /// </summary>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
