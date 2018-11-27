@@ -6,8 +6,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            //NormalizerExample.Normalizer();
-            GeneralizedAdditiveModels_RegressionExample.RunExample();
+            NormalizerExample.Normalizer();
         }
     }
 }
