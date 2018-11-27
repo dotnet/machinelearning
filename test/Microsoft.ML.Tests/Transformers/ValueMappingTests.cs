@@ -6,6 +6,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,12 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
             public string B;
             public string C;
+        }
+
+        class TestWrong
+        {
+            public string A;
+            public float B;
         }
 
         [Fact]
@@ -63,6 +70,8 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
+
+
             IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory()};
             List<int[]> values = new List<int[]>() { 
                 new int[] {2, 3, 4 },
@@ -78,7 +87,7 @@ namespace Microsoft.ML.Tests.Transformers
             var getterE = cursor.GetGetter<VBuffer<int>>(4);
             var getterF = cursor.GetGetter<VBuffer<int>>(5);
             cursor.MoveNext();
-
+            
             var valuesArray = values.ToArray();
             VBuffer<int> dValue = default;
             getterD(ref dValue);
@@ -96,12 +105,24 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory()};
+            var badData = new[] { new TestWrong() { A = "bar", B = 1.2f } };
+            var badDataView = ComponentCreation.CreateDataView(Env, badData);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
 
             // Workout on value mapping
-            var est = ML.Transforms.ValueMap<ReadOnlyMemory<char>, int>(keys, values, new [] { ("A", "D"), ("B", "E"),("C", "F") });
-            TestEstimatorCore(est, validFitInput: dataView);
+            var est = ML.Transforms.ValueMap(keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            TestEstimatorCore(est, validFitInput: dataView, invalidInput: badDataView);
+        }
+
+        [Fact]
+        void TestCommandLine()
+        {
+            var dataFile = GetDataPath("QuotingData.csv");
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data=" 
+                                    + dataFile 
+                                    + @" col=A:B loader=Text{col=ID:R4:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
         }
     }
 }

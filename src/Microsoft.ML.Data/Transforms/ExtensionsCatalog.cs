@@ -92,13 +92,4 @@ namespace Microsoft.ML
                 keepColumns, dropColumns, keepHidden, ignoreMissing);
     }
 
-    public static class ValueMappingCatalog
-    {
-        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
-            this TransformsCatalog catalog,
-            IEnumerable<TInputType> keys,
-            IEnumerable<TOutputType> values,
-            params (string source, string name)[] columns)
-            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
-    }
 }

@@ -4,12 +4,14 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
+using System.Collections.Generic;
 
 namespace Microsoft.ML
 {
-    using HashDefaults = HashingEstimator.Defaults;
     using ConvertDefaults = TypeConvertingEstimator.Defaults;
+    using HashDefaults = HashingEstimator.Defaults;
 
     /// <summary>
     /// Extensions for the HashEstimator.
@@ -100,5 +102,15 @@ namespace Microsoft.ML
         public static KeyToVectorMappingEstimator MapKeyToVector(this TransformsCatalog.ConversionTransforms catalog,
             string inputColumn, string outputColumn = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             => new KeyToVectorMappingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, bag);
+    }
+
+    public static class ToMappedValueCatalog
+    {
+        public static ValueMappingEstimator<TInputType, TOutputType> ValueMap<TInputType, TOutputType>(
+            this TransformsCatalog catalog,
+            IEnumerable<TInputType> keys,
+            IEnumerable<TOutputType> values,
+            params (string source, string name)[] columns)
+            => new ValueMappingEstimator<TInputType, TOutputType>(CatalogUtils.GetEnvironment(catalog), keys, values, columns);
     }
 }
