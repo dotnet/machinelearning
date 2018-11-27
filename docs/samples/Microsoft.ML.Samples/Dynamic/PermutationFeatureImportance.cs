@@ -51,8 +51,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // the "Features" column produced by concatenation as the features column.
             var labelName = "MedianHomeValue";
             var pipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
-                    "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
-                    "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
+                        "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
+                        "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio")
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
                         labelColumn: labelName, featureColumn: "Features"));
@@ -66,8 +66,6 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData = fitPipeline.Transform(data);
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(
                 linearPredictor, transformedData, label: labelName, features: "Features");
-
-            var booooo = transformedData.Preview();
 
             // Now let's look at which features are most important to the model overall
             // First, we have to prepare the data:
@@ -114,7 +112,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var rSquared = permutationMetrics.Select(x => x.RSquared).ToArray(); // Fetch r-squared as an array
             foreach (int i in sortedIndices)
             {
-                Console.WriteLine("{0}\t{1:0.00}\t{2:G4}", featureNames[i], weights[i], rSquared[i]);
+                Console.WriteLine($"{featureNames[i]}\t{weights[i]:0.00}\t{rSquared[i]:G4}");
             }
         }
 
