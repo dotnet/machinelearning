@@ -98,5 +98,4 @@ namespace Microsoft.ML.Scenarios
         [ColumnName("Score")]
         public float[] PredictedLabels;
     }
-#pragma warning restore 612, 618
 }
