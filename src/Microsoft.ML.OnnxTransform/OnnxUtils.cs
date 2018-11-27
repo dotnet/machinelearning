@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
     /// It provides API to open a session, score tensors (NamedOnnxValues) and return
     /// the results.
     /// </summary>
-    public sealed class OnnxModel
+    internal sealed class OnnxModel
     {
 
         /// <summary>
