@@ -88,7 +88,7 @@ namespace Microsoft.ML.Tests.Transformers
                       F: row.VarVectorString.OneHotHashEncoding()
                   ));
 
-            //TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
+            TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("CategoricalHash", "featurized.tsv");
             using (var ch = Env.Start("save"))
