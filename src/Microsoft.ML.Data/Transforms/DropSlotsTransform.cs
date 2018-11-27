@@ -805,9 +805,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     // Avoid closure when adding metadata.
@@ -815,7 +815,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
 
                     // Add SlotNames metadata.
                     if (_srcTypes[iinfo].IsVector && _srcTypes[iinfo].IsKnownSizeVector)
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                         {
                             // Add slot name metadata.
                             ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = (ref VBuffer<ReadOnlyMemory<char>> dst) => GetSlotNames(iinfo, ref dst);
-                            builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, dstLength), null), slotNamesGetter);
+                            builder.Add(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, dstLength), slotNamesGetter);
                         }
                     }
 
@@ -845,7 +845,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                                 Contracts.Assert(dst.Length % 2 == 0);
                                 // Add slot name metadata.
                                 ValueGetter<VBuffer<int>> categoricalSlotRangesGetter = (ref VBuffer<int> dest) => GetCategoricalSlotRanges(iinfo, ref dest);
-                                builder.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), null), categoricalSlotRangesGetter);
+                                builder.Add(MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.GetCategoricalType(dst.Length / 2), categoricalSlotRangesGetter);
                             }
                         }
                     }
@@ -853,7 +853,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     // Add isNormalize and KeyValues metadata.
                     builder.Add(InputSchema[_cols[iinfo]].Metadata, x => x == MetadataUtils.Kinds.KeyValues || x == MetadataUtils.Kinds.IsNormalized);
 
-                    result[iinfo] = new Schema.Column(_parent.ColumnPairs[iinfo].output, _dstTypes[iinfo], builder.GetMetadata());
+                    result[iinfo] = new Schema.DetachedColumn(_parent.ColumnPairs[iinfo].output, _dstTypes[iinfo], builder.GetMetadata());
                 }
                 return result;
             }
