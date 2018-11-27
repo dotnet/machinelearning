@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.Prediction;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -15,6 +11,9 @@ using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(FieldAwareFactorizationMachineTrainer.Summary, typeof(FieldAwareFactorizationMachineTrainer),
     typeof(FieldAwareFactorizationMachineTrainer.Arguments), new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) }
@@ -101,11 +100,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// </summary>
         public override TrainerInfo Info { get; }
 
-        /// <summary>
-        /// Additional data for training, through <see cref="TrainerEstimatorContext"/>
-        /// </summary>
-        public readonly TrainerEstimatorContext Context;
-
         private int _latentDim;
         private int _latentDimAligned;
         private float _lambdaLinear;
@@ -138,12 +132,10 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="weights">The name of the optional weights' column.</param>
-        /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
         public FieldAwareFactorizationMachineTrainer(IHostEnvironment env,
             string[] featureColumns,
             string labelColumn = DefaultColumnNames.Label,
             string weights = null,
-            TrainerEstimatorContext context = null,
             Action<Arguments> advancedSettings = null)
             : base(env, LoadName)
         {
@@ -152,8 +144,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             Initialize(env, args);
             Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
-
-            Context = context;
 
             FeatureColumns = new SchemaShape.Column[featureColumns.Length];
 
@@ -266,7 +256,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             int count = 0;
             using (var cursor = data.Data.GetRowCursor(pred))
             {
-                var labelGetter = cursor.GetGetter<float>(data.Schema.Label.Index);
+                var labelGetter = RowCursorUtils.GetLabelGetter(cursor, data.Schema.Label.Index); ;
                 var weightGetter = data.Schema.Weight == null ? null : cursor.GetGetter<float>(data.Schema.Weight.Index);
                 for (int f = 0; f < featureColumns.Count; f++)
                     getters[f] = cursor.GetGetter<VBuffer<float>>(featureColumns[f].Index);
@@ -295,7 +285,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return loss / exampleCount;
         }
 
-        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data, RoleMappedData validData, FieldAwareFactorizationMachinePredictor predictor)
+        private FieldAwareFactorizationMachinePredictor TrainCore(IChannel ch, IProgressChannel pch, RoleMappedData data,
+            RoleMappedData validData = null, FieldAwareFactorizationMachinePredictor predictor = null)
         {
             Host.AssertValue(ch);
             Host.AssertValue(pch);
@@ -459,7 +450,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input)
+        public FieldAwareFactorizationMachinePredictionTransformer Train(IDataView trainData,
+            IDataView validationData = null, FieldAwareFactorizationMachinePredictor initialPredictor = null)
         {
             FieldAwareFactorizationMachinePredictor model = null;
 
@@ -472,20 +464,19 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             if (WeightColumn != null)
                 roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, WeightColumn.Name));
 
-            var trainingData = new RoleMappedData(input, roles);
-
-            RoleMappedData validData = null;
-            if (Context != null)
-                validData = new RoleMappedData(Context.ValidationSet, roles);
+            var trainingData = new RoleMappedData(trainData, roles);
+            var validData = validationData == null ? null : new RoleMappedData(validationData, roles);
 
             using (var ch = Host.Start("Training"))
             using (var pch = Host.StartProgressChannel("Training"))
             {
-                model = TrainCore(ch, pch, trainingData, validData, Context?.InitialPredictor as FieldAwareFactorizationMachinePredictor);
+                model = TrainCore(ch, pch, trainingData, validData, initialPredictor as FieldAwareFactorizationMachinePredictor);
             }
 
-            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, input.Schema, FeatureColumns.Select(x => x.Name).ToArray());
+            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, trainData.Schema, FeatureColumns.Select(x => x.Name).ToArray());
         }
+
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input) => Train(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

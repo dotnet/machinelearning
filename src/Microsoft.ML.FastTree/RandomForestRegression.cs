@@ -225,6 +225,9 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override RegressionPredictionTransformer<FastForestRegressionPredictor> MakeTransformer(FastForestRegressionPredictor model, Schema trainSchema)
          => new RegressionPredictionTransformer<FastForestRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public RegressionPredictionTransformer<FastForestRegressionPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
+
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
