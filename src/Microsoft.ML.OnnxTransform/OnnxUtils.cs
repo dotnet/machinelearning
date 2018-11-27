@@ -33,10 +33,10 @@ namespace Microsoft.ML.Transforms
             public readonly OnnxNodeInfo[] InputsInfo;
             public readonly OnnxNodeInfo[] OutputsInfo;
 
-            public OnnxModelInfo(OnnxNodeInfo[] inputsInfo, OnnxNodeInfo[] outputsInfo)
+            public OnnxModelInfo(IEnumerable<OnnxNodeInfo> inputsInfo, IEnumerable<OnnxNodeInfo> outputsInfo)
             {
-                InputsInfo = inputsInfo;
-                OutputsInfo = outputsInfo;
+                InputsInfo = inputsInfo.ToArray();
+                OutputsInfo = outputsInfo.ToArray();
             }
         }
 
@@ -107,15 +107,9 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="inputNamedOnnxValues">The NamedOnnxValues to score</param>
         /// <returns>Resulting output NamedOnnxValues list</returns>
-        public List<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
+        public IReadOnlyCollection<NamedOnnxValue> Run(List<NamedOnnxValue> inputNamedOnnxValues)
         {
-            var outputNameOnnxValues = _session.Run(inputNamedOnnxValues);
-            var results = new List<NamedOnnxValue>();
-            foreach (var value in outputNameOnnxValues)
-            {
-                results.Add(value);
-            }
-            return results;
+            return _session.Run(inputNamedOnnxValues);
         }
 
         /// <summary>
@@ -131,37 +125,49 @@ namespace Microsoft.ML.Transforms
         /// Returns input metadata of the ONNX model.
         /// </summary>
         /// <returns>OnnxNodeInfo[]</returns>
-        public OnnxNodeInfo[] GetInputsInfo()
+        private IEnumerable<OnnxNodeInfo> GetInputsInfo()
         {
-            var nodeInfos = new List<OnnxNodeInfo>();
-            var inputMeta = _session.InputMetadata;
-            foreach (var kv in inputMeta)
-            {
-                nodeInfos.Add( new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
-            }
-            return nodeInfos.ToArray();
+            return _session.InputMetadata.Select(kv => new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
         }
 
         /// <summary>
         /// Returns output metadata of the ONNX model.
         /// </summary>
         /// <returns></returns>
-        public OnnxNodeInfo[] GetOutputsInfo()
+        private IEnumerable<OnnxNodeInfo> GetOutputsInfo()
         {
-            var nodeInfos = new List<OnnxNodeInfo>();
-            var outputMeta = _session.OutputMetadata;
-            foreach (var kv in outputMeta)
-            {
-                nodeInfos.Add(new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
-            }
-            return nodeInfos.ToArray();
+            return _session.OutputMetadata.Select(kv => new OnnxNodeInfo(kv.Key, kv.Value.Dimensions.ToList(), kv.Value.ElementType));
         }
     }
 
     internal sealed class OnnxUtils
     {
-        private static HashSet<System.Type> _onnxTypeMap;
-        private static Dictionary<System.Type, DataKind> _typeToKindMap;
+        private static HashSet<System.Type> _onnxTypeMap =
+            new HashSet<System.Type>
+                {
+                     typeof(Double),
+                     typeof(Single),
+                     typeof(Int16),
+                     typeof(Int32),
+                     typeof(Int64),
+                     typeof(UInt16),
+                     typeof(UInt32),
+                     typeof(UInt64)
+                };
+        private static Dictionary<System.Type, DataKind> _typeToKindMap=
+            new Dictionary<System.Type, DataKind>
+                {
+                    { typeof(Single) , DataKind.R4},
+                    { typeof(Double) , DataKind.R8},
+                    { typeof(Int16) , DataKind.I2},
+                    { typeof(Int32) , DataKind.I4},
+                    { typeof(Int64) , DataKind.I8},
+                    { typeof(UInt16) , DataKind.U2},
+                    { typeof(UInt32) , DataKind.U4},
+                    { typeof(UInt64) , DataKind.U8},
+                    { typeof(String) , DataKind.TX},
+                    { typeof(Boolean) , DataKind.BL},
+                };
 
         /// <summary>
         /// Creates a NamedOnnxValue from a scalar value.
@@ -172,10 +178,9 @@ namespace Microsoft.ML.Transforms
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateScalarNamedOnnxValue<T>(string name, T data)
         {
-            var typeMap = SupportedOnnxRuntimeTypes();
-            if (!typeMap.Contains(typeof(T)))
+            if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 0 }));
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 1 }));
         }
 
         /// <summary>
@@ -189,8 +194,7 @@ namespace Microsoft.ML.Transforms
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateNamedOnnxValue<T>(string name, ReadOnlySpan<T> data, OnnxShape shape)
         {
-            var typeMap = SupportedOnnxRuntimeTypes();
-            if (!typeMap.Contains(typeof(T)))
+            if (!_onnxTypeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray()));
         }
@@ -203,50 +207,9 @@ namespace Microsoft.ML.Transforms
         /// <returns></returns>
         public static PrimitiveType OnnxToMlNetType(System.Type type)
         {
-            var map = OnnxToMlNetTypeMap();
-            if (!map.ContainsKey(type))
+            if (!_typeToKindMap.ContainsKey(type))
                throw Contracts.ExceptNotSupp("Onnx type not supported", type);
-            return PrimitiveType.FromKind(map[type]);
-        }
-
-        internal static Dictionary<System.Type, DataKind> OnnxToMlNetTypeMap()
-        {
-            if (_typeToKindMap == null)
-            {
-                _typeToKindMap = new Dictionary<System.Type, DataKind>
-                {
-                    { typeof(Single) , DataKind.R4},
-                    { typeof(Double) , DataKind.R8},
-                    { typeof(Int16) , DataKind.I2},
-                    { typeof(Int32) , DataKind.I4},
-                    { typeof(Int64) , DataKind.I8},
-                    { typeof(UInt16) , DataKind.U2},
-                    { typeof(UInt32) , DataKind.U4},
-                    { typeof(UInt64) , DataKind.U8},
-                    { typeof(String) , DataKind.TX},
-                    { typeof(Boolean) , DataKind.BL},
-                };
-            }
-            return _typeToKindMap;
-        }
-
-        internal static HashSet<System.Type> SupportedOnnxRuntimeTypes()
-        {
-            if (_onnxTypeMap == null)
-            {
-                _onnxTypeMap = new HashSet<System.Type>
-                {
-                     typeof(Double),
-                     typeof(Single),
-                     typeof(Int16),
-                     typeof(Int32),
-                     typeof(Int64),
-                     typeof(UInt16),
-                     typeof(UInt32),
-                     typeof(UInt64)
-                };
-            }
-            return _onnxTypeMap;
+            return PrimitiveType.FromKind(_typeToKindMap[type]);
         }
     }
 }
