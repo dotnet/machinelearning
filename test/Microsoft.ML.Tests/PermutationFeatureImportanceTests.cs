@@ -293,12 +293,13 @@ namespace Microsoft.ML.Tests
 
         private void GetBinaryClassificationScores(float[] rawScores)
         {
+            // Compute the average so we can center the response
             float averageScore = 0.0f;
             for (int i = 0; i < rawScores.Length; i++)
                 averageScore += rawScores[i];
             averageScore /= rawScores.Length;
 
-            // Rescale
+            // Center the response and then take the sigmoid to generate the classes
             for (int i = 0; i < rawScores.Length; i++)
                 rawScores[i] = MathUtils.Sigmoid(rawScores[i] - averageScore) > 0.5 ? 1 : 0;
         }
