@@ -196,8 +196,10 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             var containingSymbolName = methodSymbol.ContainingSymbol.ToString();
             // The "internal" version is one used by some projects that want to benefit from Contracts,
             // but for some reason cannot reference MLCore.
+            // Contract functions defined Microsoft.ML.Runtime.Internal.CpuMath.Core are introduced for breaking the dependencies
+            // from CpuMath project to Microsoft.ML.Core.
             if (containingSymbolName != "Microsoft.ML.Runtime.Contracts" &&
-                containingSymbolName != "Microsoft.ML.Runtime.Internal.Contracts")
+                containingSymbolName != "Microsoft.ML.Runtime.Internal.CpuMath.Core.Contracts")
             {
                 return;
             }
