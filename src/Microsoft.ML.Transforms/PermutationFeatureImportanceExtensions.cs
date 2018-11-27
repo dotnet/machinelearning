@@ -32,7 +32,7 @@ namespace Microsoft.ML
         /// </para>
         /// <para>
         /// In this implementation, PFI computes the change in all possible regression evaluation metrics for each feature, and an
-        /// <code>ImmutableArray</code> of <code>RegressionEvaluator.Result</code> objects is returned. See the sample below for an 
+        /// <code>ImmutableArray</code> of <code>RegressionEvaluator.Result</code> objects is returned. See the sample below for an
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
