@@ -1,0 +1,67 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+
+  <PropertyGroup>
+    <ModelPlacementDir>$(ObjDir)DnnImageModels</ModelPlacementDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetPrepOnnx/AlexNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\AlexNetPrepOnnx\AlexNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetPrepOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNetPrepOnnx/ResNetPreprocess.onnx "
+    DestinationFile="$(ModelPlacementDir)\ResNetPrepOnnx\ResNetPreprocess.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNetPrepOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    Url="https://aka.ms/mlnet-resources/image/AlexNetOnnx/AlexNet.onnx"
+    DestinationFile="$(ModelPlacementDir)\AlexNetOnnx\AlexNet.onnx"
+    DestinationDir="$(ModelPlacementDir)\AlexNetOnnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet18Onnx/ResNet18.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet18Onnx\ResNet18.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet18Onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\ResNet50Onnx\ResNet50.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet50Onnx/ResNet50.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet50Onnx\ResNet50.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet50Onnx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ModelFiles Include="$(ModelPlacementDir)\ResNet101Onnx\ResNet101.onnx"
+    Url="https://aka.ms/mlnet-resources/image/ResNet101Onnx/ResNet101.onnx"
+    DestinationFile="$(ModelPlacementDir)\ResNet101Onnx\ResNet101.onnx"
+    DestinationDir="$(ModelPlacementDir)\ResNet101Onnx" />
+  </ItemGroup>
+
+  <Target Name="DownloadDnnModelFiles" 
+          Inputs="@(ModelFiles)" Outputs="@(ModelFiles->'%(DestinationFile)')">
+    <Message Importance="High" Text="Downloading external model files... @(ModelFiles->'%(DestinationFile)')" />
+    <MakeDir Directories="$(ModelPlacementDir)" />
+    <MakeDir Directories="@(ModelFiles->'%(DestinationDir)')" />
+    <DownloadFilesFromUrl Items="@(ModelFiles)"/>
+  </Target>
+
+  <Target Name="Build"
+          DependsOnTargets="DownloadDnnModelFiles" />
+
+</Project>
