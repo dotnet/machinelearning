@@ -187,9 +187,11 @@ namespace Microsoft.ML.Tests
 
             //Raw score after state gets updated with two inputs.
             var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
-            engine2.Predict(new Data(1));
             var prediction2 = engine2.Predict(new Data(1));
-            Assert.Equal(0, prediction2.Change[0], precision: 7); // Alert
+            //Raw score after first input.
+            Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 7); // Raw score
+            prediction2 = engine2.Predict(new Data(1));
+            //Raw score after second input.
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 7); // Raw score
 
             //Even though time series column is not requested it will 
@@ -207,7 +209,6 @@ namespace Microsoft.ML.Tests
             //and raw score should match the raw score obtained by passing the two input in the first model.
             var engine3 = model3.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction3 = engine3.Predict(new Data(1));
-            Assert.Equal(0, prediction2.Change[0], precision: 7); // Alert
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 7); // Raw score
         }
 
