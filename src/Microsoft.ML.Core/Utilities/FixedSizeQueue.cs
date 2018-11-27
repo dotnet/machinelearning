@@ -26,13 +26,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             AssertValid();
         }
 
-        public FixedSizeQueue(int capacity, int startIndex, T[] buffer) : this(capacity)
-        {
-            _startIndex = startIndex;
-            for (int index = 0; index < capacity; index++)
-                _array[index] = buffer[index];
-        }
-
         [Conditional("DEBUG")]
         private void AssertValid()
         {
