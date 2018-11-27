@@ -48,8 +48,8 @@ namespace Microsoft.ML.Scenarios
                 KeepPunctuations = false,
                 UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimator.TextNormKind.L2,
-                CharFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
-                WordFeatureExtractor = new NgramExtractingTransformer.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
+                CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
             },
             loader);
 

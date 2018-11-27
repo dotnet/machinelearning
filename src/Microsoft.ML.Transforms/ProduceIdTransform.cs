@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), typeof(ProduceIdTransform.Arguments), typeof(SignatureDataTransform),
     "", "ProduceIdTransform", "ProduceId")]
@@ -15,7 +16,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(ProduceIdTransform.Summary, typeof(ProduceIdTransform), null, typeof(SignatureLoadDataTransform),
     "Produce ID Transform", ProduceIdTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Produces a column with the cursor's ID as a column. This can be useful for diagnostic purposes.

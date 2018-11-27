@@ -4,9 +4,6 @@ using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 
-// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
-// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
-// line by line. 
 namespace Microsoft.ML.Samples.Dynamic
 {
     public class MatrixFactorizationExample
@@ -67,7 +64,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, 
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization( 
                 nameof(MatrixElement.MatrixColumnIndex),
                 nameof(MatrixElement.MatrixRowIndex),
                 nameof(MatrixElement.Value),
@@ -85,7 +82,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Regression.Evaluate(prediction,
+            var metrics = mlContext.Recommendation().Evaluate(prediction,
                 label: nameof(MatrixElement.Value), score: nameof(MatrixElementForScore.Score));
 
             // Print out some metrics for checking the model's quality.

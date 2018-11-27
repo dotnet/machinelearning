@@ -10,8 +10,8 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -442,7 +442,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
                     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf),
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
                     Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractingTransformer.PretrainedModelKind.GloVeTwitter25D)

@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 using System.Collections.Generic;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -31,7 +32,7 @@ using System.Collections.Generic;
     OvaPredictor.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(OvaPredictor))]
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;

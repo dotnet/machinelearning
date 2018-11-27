@@ -16,7 +16,11 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 
+#if CPUMATH_INFRASTRUCTURE
+namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
+#else
 namespace Microsoft.ML.Runtime
+#endif
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
     using Debug = System.Diagnostics.Debug;
@@ -27,7 +31,11 @@ namespace Microsoft.ML.Runtime
     /// totally replace the exception, etc. It is not legal to return null from
     /// Process (unless null was passed in, which really shouldn't happen).
     /// </summary>
+#if CPUMATH_INFRASTRUCTURE
+    internal interface IExceptionContext
+#else
     public interface IExceptionContext
+#endif
     {
         TException Process<TException>(TException ex)
             where TException : Exception;
@@ -37,6 +45,15 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         string ContextDescription { get; }
     }
+
+#if CPUMATH_INFRASTRUCTURE
+    [Flags]
+    internal enum MessageSensitivity
+    {
+        None = 0,
+        Unknown = ~None
+    }
+#endif
 
     [BestFriend]
     internal static partial class Contracts
@@ -137,6 +154,7 @@ namespace Microsoft.ML.Runtime
             return (ex.Data[SensitivityKey] as MessageSensitivity?) ?? MessageSensitivity.Unknown;
         }
 
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// This is an internal convenience implementation of an exception context to make marking
         /// exceptions with a specific sensitivity flag a bit less onorous. The alternative to a scheme
@@ -213,6 +231,7 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         public static IExceptionContext SchemaSensitive(this IExceptionContext ctx)
             => new SensitiveExceptionContext(ctx, MessageSensitivity.Schema);
+#endif
 
         /// <summary>
         /// Sets the assert handler to the given function, returning the previous handler.
@@ -721,6 +740,7 @@ namespace Microsoft.ML.Runtime
                 throw ExceptIO(ctx, msg);
         }
 
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// Check state of the host and throw exception if host marked to stop all exection.
         /// </summary>
@@ -729,6 +749,7 @@ namespace Microsoft.ML.Runtime
             if (env.IsCancelled)
                 throw Process(new OperationCanceledException("Operation was cancelled."), env);
         }
+#endif
 
         /// <summary>
         /// This documents that the parameter can legally be null.

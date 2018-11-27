@@ -163,7 +163,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             // If any renamings were necessary, create the CopyColumns estimator.
             if (toCopy.Count > 0)
-                estimator = new ColumnsCopyingEstimator(env, toCopy.ToArray());
+                estimator = new ColumnCopyingEstimator(env, toCopy.ToArray());
 
             // First clear the inputs from zero-dependencies yet to be resolved.
             foreach (var col in baseInputs)
@@ -282,7 +282,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             // If any final renamings were necessary, insert the appropriate CopyColumns transform.
             if (toCopy.Count > 0)
             {
-                var copyEstimator = new ColumnsCopyingEstimator(env, toCopy.ToArray());
+                var copyEstimator = new ColumnCopyingEstimator(env, toCopy.ToArray());
                 if (estimator == null)
                     estimator = copyEstimator;
                 else

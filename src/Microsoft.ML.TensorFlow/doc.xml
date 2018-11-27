@@ -55,13 +55,11 @@
           </item>
         </list>
 
-        The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowUtils.GetModelSchema(IExceptionContext, string)"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
+        The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowModelInfo.GetModelSchema()"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
           <code>summarize_graph</code> tools.
         </a>.
 
       </remarks>
-      
     </member>
-
   </members>
 </doc>
