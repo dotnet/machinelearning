@@ -25,10 +25,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Trainers
 {
-
+    using CR = RoleMappedSchema.ColumnRole;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-    using CR = RoleMappedSchema.ColumnRole;
     using TTransformer = MulticlassPredictionTransformer<PkpdPredictor>;
 
     /// <summary>
@@ -357,12 +356,12 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private void ComputeProbabilities(Double[] buffer, Span<float> output)
+        private void ComputeProbabilities(double[] buffer, Span<float> output)
         {
             // Compute the probabilities and store them in the beginning of buffer. Note that this is safe to do since
             // once we've computed the ith probability, we are totally done with the ith row and all previous rows
             // (in the lower triangular matrix of pairwise probabilities).
-            Double sum = 0;
+            double sum = 0;
             for (int i = 0; i < _numClasses; i++)
             {
                 var value = buffer[i] = Pi(i, buffer);
@@ -381,7 +380,7 @@ namespace Microsoft.ML.Trainers
         }
 
         // Reconcile the predictions - ensure that pij >= pii and pji >= pii (when pii > 0).
-        private void ReconcilePredictions(Double[] buffer)
+        private void ReconcilePredictions(double[] buffer)
         {
             for (int i = 0; i < _numClasses; i++)
             {
@@ -406,18 +405,18 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        private Double Pi(int i, Double[] values)
+        private double Pi(int i, double[] values)
         {
             // values is the lower triangular matrix of pairwise probabilities pij = P(y=i or y=j | x).
             // Get pii = P(y=i | x)
             int index = GetIndex(i, 0);
-            Double pii = values[index + i];
+            double pii = values[index + i];
 
             if (!(pii > 0))
                 return 0;
 
             // Compute sum { pij | j != i }
-            Double sum = 0;
+            double sum = 0;
             for (int j = 0; j < i; j++)
             {
                 Host.Assert(values[index + j] >= pii);
@@ -451,8 +450,8 @@ namespace Microsoft.ML.Trainers
             var maps = new ValueMapper<VBuffer<float>, float, float>[_mappers.Length];
             for (int i = 0; i < _mappers.Length; i++)
                 maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
-
-            var buffer = new Double[_numClasses];
+            var parallelOptions = Host.ConcurrencyFactor < 1 ? new ParallelOptions() : new ParallelOptions() { MaxDegreeOfParallelism = Host.ConcurrencyFactor };
+            var buffer = new double[_mappers.Length];
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
@@ -460,7 +459,7 @@ namespace Microsoft.ML.Trainers
                         Host.Check(src.Length == InputType.VectorSize);
 
                     var tmp = src;
-                    Parallel.For(0, maps.Length, i =>
+                    Parallel.For(0, maps.Length, parallelOptions, i =>
                     {
                         float score = 0;
                         float prob = 0;

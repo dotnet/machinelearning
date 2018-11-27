@@ -1383,8 +1383,9 @@ namespace Microsoft.ML.Runtime.RunTests
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
-                        ShowTrainingStats = true
-                    };
+                        ShowTrainingStats = true, 
+                        StdComputer = new ComputeLRTrainingStdThroughHal()
+                };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
 
@@ -3576,9 +3577,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
-                // REVIEW: this depends on MKL library which is not available. Only a subset of training stats are reported.
-                ShowTrainingStats = true
-            };
+                ShowTrainingStats = true,
+                StdComputer= new ComputeLRTrainingStdThroughHal()
+        };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new MulticlassLogisticRegression.Arguments

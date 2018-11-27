@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Core.Prediction;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
@@ -57,14 +56,12 @@ namespace Microsoft.ML
             /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
             /// <param name="labelColumn">The name of the label column.</param>
             /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-            /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
             public MatrixFactorizationTrainer MatrixFactorization(
                 string matrixColumnIndexColumnName,
                 string matrixRowIndexColumnName,
                 string labelColumn = DefaultColumnNames.Label,
-                TrainerEstimatorContext context = null,
                 Action<MatrixFactorizationTrainer.Arguments> advancedSettings = null)
-                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, context, advancedSettings);
+                    => new MatrixFactorizationTrainer(Owner.Environment, matrixColumnIndexColumnName, matrixRowIndexColumnName, labelColumn, advancedSettings);
         }
 
         /// <summary>

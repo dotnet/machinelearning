@@ -13,15 +13,3 @@ Count of training examples:	500
 Residual Deviance:         	458.9709
 Null Deviance:             	539.2764
 AIC:                       	472.9709
-
-Coefficients statistics:
-Coefficient    	Estimate	Std. Error	z value  	Pr(>|z|)
-(Bias)         	-4.426744 	0.5968595 	-7.416728 	0 ***
-education-num  	2.102877  	0.4148865 	5.068559  	4.172325E-07 ***
-age            	1.920366  	0.4261497 	4.506317  	6.616116E-06 ***
-hours-per-week 	1.882183  	0.4595276 	4.095909  	4.208088E-05 ***
-capital-gain   	1.671043  	0.4953039 	3.373774  	0.0007415414 ***
-capital-loss   	0.9767318 	0.4553182 	2.145163  	0.03193969 *
-fnlwgt         	0.3191842 	0.4430353 	0.7204487 	0.4712486
----
-Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
