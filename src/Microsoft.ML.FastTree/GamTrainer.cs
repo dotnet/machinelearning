@@ -47,7 +47,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <para>
     /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
     /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
-    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>"Intelligible Models for Classification and Regression."</a> KDD'12, Beijing, China. 2012.
+    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
     /// After training, an intercept is added to represent the average prediction over the training set,
     /// and the shape functions are normalized to represent the deviation from the average prediction. This results
     /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
