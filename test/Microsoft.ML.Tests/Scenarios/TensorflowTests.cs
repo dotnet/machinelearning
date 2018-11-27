@@ -17,7 +17,7 @@ namespace Microsoft.ML.Scenarios
     public partial class ScenariosTests
     {
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
-        public void TensorFlowTransformCifarLearningPipelineTest()
+        public void TensorFlowTransforCifarmEndToEndTest()
         {
             var imageHeight = 32;
             var imageWidth = 32;
@@ -25,8 +25,8 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var env = new MLContext();
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
             {
                 Column = new[]
                     {
@@ -35,22 +35,22 @@ namespace Microsoft.ML.Scenarios
                     }
             }, new MultiFileSource(dataFile));
 
-            var pipeEstimator = new ImageLoadingEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
-                    .Append(new ImageResizingEstimator(env, "ImageReal", "ImageCropped", imageHeight, imageWidth))
-                    .Append(new ImagePixelExtractingEstimator(env, "ImageCropped", "Input", interleave: true))
-                    .Append(new TensorFlowEstimator(env, model_location, new[] { "Input" }, new[] { "Output" }))
-                    .Append(new ColumnConcatenatingEstimator(env, "Features", "Output"))
-                    .Append(new ValueToKeyMappingEstimator(env, "Label"))
-                    .Append(new SdcaMultiClassTrainer(env));
+            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImagePath", "ImageReal"))
+                    .Append(new ImageResizingEstimator(mlContext, "ImageReal", "ImageCropped", imageHeight, imageWidth))
+                    .Append(new ImagePixelExtractingEstimator(mlContext, "ImageCropped", "Input", interleave: true))
+                    .Append(new TensorFlowEstimator(mlContext, model_location, new[] { "Input" }, new[] { "Output" }))
+                    .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
+                    .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
+                    .Append(new SdcaMultiClassTrainer(mlContext));
 
 
             var transformer = pipeEstimator.Fit(data);
             var predictions = transformer.Transform(data);
 
-            var metrics = env.MulticlassClassification.Evaluate(transformer.Transform(data));
+            var metrics = mlContext.MulticlassClassification.Evaluate(predictions);
             Assert.Equal(1, metrics.AccuracyMicro, 2);
 
-            var predictFunction = transformer.MakePredictionFunction<CifarData, CifarPrediction>(env);
+            var predictFunction = transformer.MakePredictionFunction<CifarData, CifarPrediction>(mlContext);
             var prediction = predictFunction.Predict(new CifarData()
             {
                 ImagePath = GetDataPath("images/banana.jpg")
