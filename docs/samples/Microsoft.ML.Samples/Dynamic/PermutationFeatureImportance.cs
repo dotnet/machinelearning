@@ -80,7 +80,6 @@ namespace Microsoft.ML.Samples.Dynamic
                 .OrderByDescending(feature => Math.Abs(feature.RSquared))
                 .Select(feature => feature.index);
 
-
             // Print out the permutation results, with the model weights, in order of their impact:
             // Expected console output:
             //    Feature            Model Weight    Change in R - Squared
