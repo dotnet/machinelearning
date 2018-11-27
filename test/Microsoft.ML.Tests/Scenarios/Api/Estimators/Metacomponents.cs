@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
@@ -32,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(ml, sdcaTrainer))
-                .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
+                .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data);
         }

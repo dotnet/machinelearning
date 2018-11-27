@@ -1,0 +1,15 @@
+---- BoundLoader ----
+2 columns:
+  Source: Text
+  Lang: Text
+---- RowToRowMapperTransform ----
+3 columns:
+  Source: Text
+  Lang: Text
+  SourceTokens: Vec<Text>
+---- RowToRowMapperTransform ----
+4 columns:
+  Source: Text
+  Lang: Text
+  SourceTokens: Vec<Text>
+  Output: Vec<Text>

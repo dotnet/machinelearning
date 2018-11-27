@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,15 +76,12 @@ namespace Microsoft.ML.Trainers
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var scoreMetadata = new List<SchemaShape.Column>() { new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false) };
-            scoreMetadata.AddRange(MetadataUtils.GetTrainerOutputMetadata());
-
             var predLabelMetadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(scoreMetadata)),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, predLabelMetadata)
             };
         }
@@ -91,7 +89,7 @@ namespace Microsoft.ML.Trainers
         protected override MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor> MakeTransformer(MultiClassNaiveBayesPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
-        protected override MultiClassNaiveBayesPredictor TrainModelCore(TrainContext context)
+        private protected override MultiClassNaiveBayesPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -133,20 +131,22 @@ namespace Microsoft.ML.Trainers
                     labelHistogram[cursor.Label] += 1;
                     labelCount = labelCount < size ? size : labelCount;
 
+                    var featureValues = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
-                        for (int i = 0; i < cursor.Features.Count; i += 1)
+                        for (int i = 0; i < featureValues.Length; i += 1)
                         {
-                            if (cursor.Features.Values[i] > 0)
+                            if (featureValues[i] > 0)
                                 featureHistogram[cursor.Label][i] += 1;
                         }
                     }
                     else
                     {
-                        for (int i = 0; i < cursor.Features.Count; i += 1)
+                        var featureIndices = cursor.Features.GetIndices();
+                        for (int i = 0; i < featureValues.Length; i += 1)
                         {
-                            if (cursor.Features.Values[i] > 0)
-                                featureHistogram[cursor.Label][cursor.Features.Indices[i]] += 1;
+                            if (featureValues[i] > 0)
+                                featureHistogram[cursor.Label][featureIndices[i]] += 1;
                         }
                     }
 
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Trainers
             labelCount = _labelCount;
             featureCount = _featureCount;
             Utils.EnsureSize(ref featureHistogram, _labelCount);
-            for(int i = 0; i < _labelCount; i++)
+            for (int i = 0; i < _labelCount; i++)
             {
                 Utils.EnsureSize(ref featureHistogram[i], _featureCount);
                 Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
@@ -374,7 +374,12 @@ namespace Microsoft.ML.Trainers
         private void Map(in VBuffer<float> src, ref VBuffer<float> dst)
         {
             Host.Check(src.Length == _featureCount, "Invalid number of features passed.");
-            float[] labelScores = (dst.Length >= _labelCount) ? dst.Values : new float[_labelCount];
+
+            var srcValues = src.GetValues();
+            var srcIndices = src.GetIndices();
+
+            var editor = VBufferEditor.Create(ref dst, _labelCount);
+            Span<float> labelScores = editor.Values;
             for (int iLabel = 0; iLabel < _labelCount; iLabel += 1)
             {
                 double labelOccurrenceCount = _labelHistogram[iLabel];
@@ -384,18 +389,18 @@ namespace Microsoft.ML.Trainers
                 {
                     if (src.IsDense)
                     {
-                        for (int iFeature = 0; iFeature < src.Count; iFeature += 1)
+                        for (int iFeature = 0; iFeature < srcValues.Length; iFeature += 1)
                         {
                             ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, iFeature,
-                                src.Values[iFeature], ref logProb, ref absentFeatureLogProb);
+                                srcValues[iFeature], ref logProb, ref absentFeatureLogProb);
                         }
                     }
                     else
                     {
-                        for (int iFeature = 0; iFeature < src.Count; iFeature += 1)
+                        for (int iFeature = 0; iFeature < srcValues.Length; iFeature += 1)
                         {
-                            ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, src.Indices[iFeature],
-                                src.Values[iFeature], ref logProb, ref absentFeatureLogProb);
+                            ComputeLabelProbabilityFromFeature(labelOccurrenceCount, iLabel, srcIndices[iFeature],
+                                srcValues[iFeature], ref logProb, ref absentFeatureLogProb);
                         }
                     }
                 }
@@ -404,7 +409,7 @@ namespace Microsoft.ML.Trainers
                     (float)(logProb + (_absentFeaturesLogProb[iLabel] - absentFeatureLogProb));
             }
 
-            dst = new VBuffer<float>(_labelCount, labelScores, dst.Indices);
+            dst = editor.Commit();
         }
     }
 }

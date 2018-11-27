@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -16,6 +15,8 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers.Online;
+using System;
+using Float = System.Single;
 
 [assembly: LoadableClass(LinearSvm.Summary, typeof(LinearSvm), typeof(LinearSvm.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -27,9 +28,6 @@ using Microsoft.ML.Trainers.Online;
 
 namespace Microsoft.ML.Trainers.Online
 {
-    using Microsoft.ML.Core.Data;
-    using TPredictor = LinearBinaryPredictor;
-
     /// <summary>
     /// Linear SVM that implements PEGASOS for training. See: http://ttic.uchicago.edu/~shai/papers/ShalevSiSr07.pdf
     /// </summary>
@@ -119,7 +117,7 @@ namespace Microsoft.ML.Trainers.Online
                 _batch++;
                 _numBatchExamples = 0;
                 _biasUpdate = 0;
-                _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
+                VBufferUtils.Resize(ref _weightsUpdate, _weightsUpdate.Length, 0);
             }
 
             private void FinishBatch(in VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
@@ -147,7 +145,7 @@ namespace Microsoft.ML.Trainers.Online
                     Float currentBiasUpdate = trueOutput * weight;
                     _biasUpdate += currentBiasUpdate;
                     // Only aggregate in the case where we're handling multiple instances.
-                    if (_weightsUpdate.Count == 0)
+                    if (_weightsUpdate.GetValues().Length == 0)
                     {
                         VectorUtils.ScaleInto(in feat, currentBiasUpdate, ref _weightsUpdate);
                         _weightsUpdateScale = 1;
@@ -160,7 +158,7 @@ namespace Microsoft.ML.Trainers.Online
                 {
                     if (_batchSize == 1 && loss < 0)
                     {
-                        Contracts.Assert(_weightsUpdate.Count == 0);
+                        Contracts.Assert(_weightsUpdate.GetValues().Length == 0);
                         // If we aren't aggregating multiple instances, just use the instance's
                         // vector directly.
                         Float currentBiasUpdate = trueOutput * weight;
@@ -214,7 +212,7 @@ namespace Microsoft.ML.Trainers.Online
             public override Float Margin(in VBuffer<Float> feat)
                 => Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
 
-            public override TPredictor CreatePredictor()
+            public override LinearBinaryPredictor CreatePredictor()
             {
                 Contracts.Assert(WeightsScale == 1);
                 // below should be `in Weights`, but can't because of https://github.com/dotnet/roslyn/issues/29371

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyNames(col, type.KeyCount))
+            if (schema.HasKeyValues(col, type.KeyCount))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
@@ -412,7 +413,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveTextStream("Terms.txt",
                 writer =>
                 {
-                    writer.WriteLine("# Number of terms = {0} of length {1}", v.Count, v.Length);
+                    writer.WriteLine("# Number of terms = {0} of length {1}", v.GetValues().Length, v.Length);
                     foreach (var pair in v.Items())
                     {
                         var text = pair.Value;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -24,18 +25,18 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         void TestConcat()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, 12) }),
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, 14) }),
                     new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f4");
             Assert.True(t is VectorType vt4 && vt4.ItemType == NumberType.R4 && vt4.Size == 0);
 
-            data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f1", "f2", "f3", "f4" });
+            data = ColumnSelectingTransformer.CreateKeep(Env, data, new[] { "f1", "f2", "f3", "f4" });
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat1.tsv");
@@ -81,17 +82,17 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void ConcatWithAliases()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var source = new MultiFileSource(dataPath);
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12, null) { AutoEnd = false, VariableEnd = true } })
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
             var data = loader.Read(source);
@@ -104,9 +105,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             data = TakeFilter.Create(Env, data, 10);
 
-            var concater = new ConcatTransform(Env,
-                new ConcatTransform.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
-                new ConcatTransform.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
+            var concater = new ColumnConcatenatingTransformer(Env,
+                new ColumnConcatenatingTransformer.ColumnInfo("f2", new[] { ("float1", "FLOAT1"), ("float1", "FLOAT2") }),
+                new ColumnConcatenatingTransformer.ColumnInfo("f3", new[] { ("float4", "FLOAT4"), ("float1", "FLOAT1") }));
             data = concater.Transform(data);
 
             ColumnType t;
@@ -115,7 +116,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f3");
             Assert.True(t is VectorType vt3 && vt3.ItemType == NumberType.R4 && vt3.Size == 5);
 
-            data = SelectColumnsTransform.CreateKeep(Env, data, new[] { "f2", "f3" });
+            data = ColumnSelectingTransformer.CreateKeep(Env, data, new[] { "f2", "f3" });
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat2.tsv");

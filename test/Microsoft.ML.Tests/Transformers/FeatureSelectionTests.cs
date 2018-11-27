@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                     IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                    savedData = SelectColumnsTransform.CreateKeep(Env, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
+                    savedData = ColumnSelectingTransformer.CreateKeep(Env, savedData, new[] { "bag_of_words_count", "bag_of_words_mi" });
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);

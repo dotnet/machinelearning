@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -169,11 +170,11 @@ namespace Microsoft.ML.Transforms
         /// Returns the computed count of rows remaining after skip and take operation.
         /// Returns null if count is unknown.
         /// </summary>
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             if (_take == 0)
                 return 0;
-            long? count = Source.GetRowCount(lazy);
+            long? count = Source.GetRowCount();
             if (count == null)
                 return null;
 

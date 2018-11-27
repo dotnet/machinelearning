@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static long ComputeRowCount(IDataView view)
         {
-            long? countNullable = view.GetRowCount(lazy: false);
+            long? countNullable = view.GetRowCount();
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;

@@ -45,16 +45,13 @@ namespace Microsoft.ML.Runtime.Learners
         protected readonly ArgumentsBase Args;
         protected readonly IHost Host;
         protected readonly ICalibratorTrainer Calibrator;
-
-        private TScalarTrainer _trainer;
+        protected readonly TScalarTrainer Trainer;
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
-
-        public TScalarTrainer PredictorType;
 
         /// <summary>
         /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
@@ -75,17 +72,15 @@ namespace Microsoft.ML.Runtime.Learners
             if (labelColumn != null)
                 LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
-            // Create the first trainer so errors in the args surface early.
-            _trainer = singleEstimator ?? CreateTrainer();
+            Trainer = singleEstimator ?? CreateTrainer();
 
             Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
-
             if (args.Calibrator != null)
                 Calibrator = args.Calibrator.CreateComponent(Host);
 
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
-            Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
+            Info = new TrainerInfo(normalization: Trainer.Info.NeedNormalization);
         }
 
         private TScalarTrainer CreateTrainer()
@@ -119,15 +114,6 @@ namespace Microsoft.ML.Runtime.Learners
                     dst = equalsTarget(in src) ? 1 : default(float));
         }
 
-        protected TScalarTrainer GetTrainer()
-        {
-            // We may have instantiated the first trainer to use already, from the constructor.
-            // If so capture it and set the retained trainer to null; otherwise create a new one.
-            var train = _trainer ?? CreateTrainer();
-            _trainer = null;
-            return train;
-        }
-
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
         /// <summary>
@@ -135,7 +121,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="context">The trainig context for this learner.</param>
         /// <returns>The trained model.</returns>
-        public TModel Train(TrainContext context)
+        TModel ITrainer<TModel>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -190,7 +176,7 @@ namespace Microsoft.ML.Runtime.Learners
                                 .Concat(MetadataForScoreColumn()));
                 return new[]
                 {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataForScoreColumn())),
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                     new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
                 };
             }
@@ -216,7 +202,7 @@ namespace Microsoft.ML.Runtime.Learners
             return cols;
         }
 
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
 
         /// <summary>
         /// Fits the data to the trainer.

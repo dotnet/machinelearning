@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -10,9 +11,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.KMeans;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,7 +151,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Info = new TrainerInfo();
         }
 
-        protected override KMeansPredictor TrainModelCore(TrainContext context)
+        private protected override KMeansPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -396,7 +397,7 @@ namespace Microsoft.ML.Trainers.KMeans
                             "Not enough distinct instances to populate {0} clusters (only found {1} distinct instances)", k, i);
                     }
 
-                    candidate.CopyTo(centroids[i].Values);
+                    candidate.CopyToDense(ref centroids[i]);
                     centroidL2s[i] = cachedCandidateL2 ?? VectorUtils.NormSquared(candidate);
                 }
             }
@@ -655,7 +656,7 @@ namespace Microsoft.ML.Trainers.KMeans
             if (pointRowIndex != -1) // if the space was available for cur in initializationState.
             {
                 // pointNorm is necessary for using triangle inequality.
-                float pointNorm = VectorUtils.NormSquared(point);
+                float pointNorm = VectorUtils.NormSquared(in point);
                 // We have cached distance information for this point.
                 bestCluster = initializationState.GetBestCluster(pointRowIndex);
                 float bestWeight = initializationState.GetBestWeight(pointRowIndex);
@@ -788,6 +789,7 @@ namespace Microsoft.ML.Trainers.KMeans
                 // The final chosen points, to be approximately clustered to determine starting
                 // centroids.
                 VBuffer<float>[] clusters = new VBuffer<float>[totalSamples];
+
                 // L2s, kept for distance trick.
                 float[] clustersL2s = new float[totalSamples];
 
@@ -1318,7 +1320,7 @@ namespace Microsoft.ML.Trainers.KMeans
             float[] centroidL2s = new float[k];
 
             for (int i = 0; i < k; i++)
-                centroidL2s[i] = VectorUtils.NormSquared(centroids[i]);
+                centroidL2s[i] = VectorUtils.NormSquared(in centroids[i]);
 
             using (var pch = host.StartProgressChannel("KMeansTrain"))
             {
@@ -1388,8 +1390,10 @@ namespace Microsoft.ML.Trainers.KMeans
 
                         for (int i = 0; i < k; i++)
                         {
+                            var reducedStateCacheValues = reducedState.CachedSumDebug[i].GetValues();
+                            var cachedSumCopyValues = cachedSumCopy[i].GetValues();
                             for (int j = 0; j < dimensionality; j++)
-                                Contracts.Assert(AlmostEq(reducedState.CachedSumDebug[i].Values[j], cachedSumCopy[i].Values[j]));
+                                Contracts.Assert(AlmostEq(reducedStateCacheValues[j], cachedSumCopyValues[j]));
                         }
                     }
 #endif

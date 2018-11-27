@@ -4,20 +4,20 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),
     "Bindable Mapper", SchemaBindablePredictorWrapper.LoaderSignature)]
@@ -754,12 +754,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(Utils.Size(_slotNames) > 0);
 
                 int size = Utils.Size(_slotNames);
-                var values = dst.Values;
-                if (Utils.Size(values) < size)
-                    values = new ReadOnlyMemory<char>[size];
+                var editor = VBufferEditor.Create(ref dst, size);
                 for (int i = 0; i < _slotNames.Length; i++)
-                    values[i] = _slotNames[i].AsMemory();
-                dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
+                    editor.Values[i] = _slotNames[i].AsMemory();
+                dst = editor.Commit();
             }
         }
     }

@@ -13,6 +13,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
+#pragma warning disable 612, 618
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarLearningPipelineTest()
         {
@@ -171,4 +172,5 @@ namespace Microsoft.ML.Scenarios
         [ColumnName("Score")]
         public float[] PredictedLabels;
     }
+#pragma warning restore 612, 618
 }

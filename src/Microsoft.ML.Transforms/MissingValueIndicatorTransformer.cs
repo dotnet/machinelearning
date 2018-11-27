@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Transforms
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly MissingValueIndicatorTransformer _parent;
             private readonly ColInfo[] _infos;
@@ -190,21 +191,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                     ValueGetter<bool> getter = (ref bool dst) =>
                     {
                         dst = true;
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
-                    result[iinfo] = new Schema.Column(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, getter);
+                    result[iinfo] = new Schema.DetachedColumn(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }
@@ -223,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -294,8 +295,8 @@ namespace Microsoft.ML.Transforms
 
                 // Find the indices of all of the NAs.
                 indices.Clear();
-                var srcValues = src.Values;
-                var srcCount = src.Count;
+                var srcValues = src.GetValues();
+                var srcCount = srcValues.Length;
                 if (src.IsDense)
                 {
                     for (int i = 0; i < srcCount; i++)
@@ -307,7 +308,7 @@ namespace Microsoft.ML.Transforms
                 }
                 else if (!defaultIsNA)
                 {
-                    var srcIndices = src.Indices;
+                    var srcIndices = src.GetIndices();
                     for (int ii = 0; ii < srcCount; ii++)
                     {
                         if (isNA(in srcValues[ii]))
@@ -318,7 +319,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // Note that this adds non-NAs to indices -- this is indicated by sense being false.
-                    var srcIndices = src.Indices;
+                    var srcIndices = src.GetIndices();
                     for (int ii = 0; ii < srcCount; ii++)
                     {
                         if (!isNA(in srcValues[ii]))
@@ -334,23 +335,20 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             private void FillValues(int srcLength, ref VBuffer<bool> dst, List<int> indices, bool sense)
             {
-                var dstValues = dst.Values;
-                var dstIndices = dst.Indices;
-
                 if (indices.Count == 0)
                 {
                     if (sense)
                     {
                         // Return empty VBuffer.
-                        dst = new VBuffer<bool>(srcLength, 0, dstValues, dstIndices);
+                        VBufferUtils.Resize(ref dst, srcLength, 0);
                         return;
                     }
 
                     // Return VBuffer filled with 1's.
-                    Utils.EnsureSize(ref dstValues, srcLength, false);
+                    var editor = VBufferEditor.Create(ref dst, srcLength);
                     for (int i = 0; i < srcLength; i++)
-                        dstValues[i] = true;
-                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                        editor.Values[i] = true;
+                    dst = editor.Commit();
                     return;
                 }
 
@@ -358,22 +356,20 @@ namespace Microsoft.ML.Transforms
                 {
                     // Will produce sparse output.
                     int dstCount = indices.Count;
-                    Utils.EnsureSize(ref dstValues, dstCount, false);
-                    Utils.EnsureSize(ref dstIndices, dstCount, false);
+                    var editor = VBufferEditor.Create(ref dst, srcLength, dstCount);
 
-                    indices.CopyTo(dstIndices);
+                    indices.CopyTo(editor.Indices);
                     for (int ii = 0; ii < dstCount; ii++)
-                        dstValues[ii] = true;
+                        editor.Values[ii] = true;
 
                     Host.Assert(dstCount <= srcLength);
-                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
+                    dst = editor.Commit();
                 }
                 else if (!sense && srcLength - indices.Count < srcLength / 2)
                 {
                     // Will produce sparse output.
                     int dstCount = srcLength - indices.Count;
-                    Utils.EnsureSize(ref dstValues, dstCount, false);
-                    Utils.EnsureSize(ref dstIndices, dstCount, false);
+                    var editor = VBufferEditor.Create(ref dst, srcLength, dstCount);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -389,8 +385,8 @@ namespace Microsoft.ML.Transforms
                         if (i < iNext)
                         {
                             Host.Assert(iiDst < dstCount);
-                            dstValues[iiDst] = true;
-                            dstIndices[iiDst++] = i;
+                            editor.Values[iiDst] = true;
+                            editor.Indices[iiDst++] = i;
                         }
                         else
                         {
@@ -402,12 +398,12 @@ namespace Microsoft.ML.Transforms
                     Host.Assert(srcLength == iiSrc + iiDst);
                     Host.Assert(iiDst == dstCount);
 
-                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
+                    dst = editor.Commit();
                 }
                 else
                 {
                     // Will produce dense output.
-                    Utils.EnsureSize(ref dstValues, srcLength, false);
+                    var editor = VBufferEditor.Create(ref dst, srcLength);
 
                     // Appends the length of the src to make the loop simpler,
                     // as the length of src will never be reached in the loop.
@@ -419,16 +415,16 @@ namespace Microsoft.ML.Transforms
                         Host.Assert(0 <= i && i <= indices[ii]);
                         if (i == indices[ii])
                         {
-                            dstValues[i] = sense;
+                            editor.Values[i] = sense;
                             ii++;
                             Host.Assert(ii < indices.Count);
                             Host.Assert(indices[ii - 1] < indices[ii]);
                         }
                         else
-                            dstValues[i] = !sense;
+                            editor.Values[i] = !sense;
                     }
 
-                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                    dst = editor.Commit();
                 }
             }
         }

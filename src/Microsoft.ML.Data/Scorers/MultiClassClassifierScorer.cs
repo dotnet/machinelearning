@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -16,6 +12,10 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer),
     typeof(MultiClassClassifierScorer.Arguments), typeof(SignatureDataScorer),
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Data
                         _labelNameGetter = (int c, ref VBuffer<T> val) => getter(ref val);
                         _metadataKind = metadataKind;
 
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public bool TryGetColumnIndex(string name, out int col)

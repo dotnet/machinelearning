@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -487,13 +488,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var values = slotNames.Values;
-                if (Utils.Size(values) < ClassNames.Length)
-                    values = new ReadOnlyMemory<char>[ClassNames.Length];
-
+                var editor = VBufferEditor.Create(ref slotNames, ClassNames.Length);
                 for (int i = 0; i < ClassNames.Length; i++)
-                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
+                    editor.Values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = editor.Commit();
             }
         }
 
@@ -804,12 +802,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClasses)
-                            values = new float[_numClasses];
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<float>(_numClasses, values);
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -820,12 +816,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClasses)
-                            values = new uint[_numClasses];
+                        var editor = VBufferEditor.Create(ref dst, _numClasses);
                         for (int i = 0; i < _numClasses; i++)
-                            values[i] = (uint)sortedIndices[i] + 1;
-                        dst = new VBuffer<uint>(_numClasses, values);
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClassesCol] = topKClassesFn;
             }
@@ -857,25 +851,25 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[4];
+            var infos = new Schema.DetachedColumn[4];
 
-            var assignedColKeyValues = new Schema.Metadata.Builder();
+            var assignedColKeyValues = new MetadataBuilder();
             assignedColKeyValues.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
-            infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
+            infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
 
-            infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
+            infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
 
-            var sortedScores = new Schema.Metadata.Builder();
+            var sortedScores = new MetadataBuilder();
             sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            var sortedClasses = new Schema.Metadata.Builder();
+            var sortedClasses = new MetadataBuilder();
             sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
             sortedClasses.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
 
-            infos[SortedScoresCol] = new Schema.Column(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
-            infos[SortedClassesCol] = new Schema.Column(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
+            infos[SortedScoresCol] = new Schema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
+            infos[SortedClassesCol] = new Schema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
             return infos;
         }
 
@@ -885,12 +879,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < numTopClasses)
-                        values = new ReadOnlyMemory<char>[numTopClasses];
+                    var editor = VBufferEditor.Create(ref dst, numTopClasses);
                     for (int i = 1; i <= numTopClasses; i++)
-                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
+                        editor.Values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -899,12 +891,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < _numClasses)
-                        values = new ReadOnlyMemory<char>[_numClasses];
+                    var editor = VBufferEditor.Create(ref dst, _numClasses);
                     for (int i = 0; i < _numClasses; i++)
-                        values[i] = _classNames[i];
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
+                        editor.Values[i] = _classNames[i];
+                    dst = editor.Commit();
                 };
         }
 
@@ -1050,15 +1040,15 @@ namespace Microsoft.ML.Runtime.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            input = new CopyColumnsTransform(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
-            return SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy );
+            input = new ColumnsCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
+            return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
         }
 
         private IDataView DropPerClassColumn(IDataView input)
         {
             if (input.Schema.TryGetColumnIndex(MultiClassClassifierEvaluator.PerClassLogLoss, out int perClassCol))
             {
-                input = SelectColumnsTransform.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
+                input = ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.PerClassLogLoss);
             }
             return input;
         }
@@ -1101,7 +1091,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!perInst.Schema.TryGetColumnIndex(schema.Label.Name, out int labelCol))
                 throw Host.Except("Could not find column '{0}'", schema.Label.Name);
             var labelType = perInst.Schema.GetColumnType(labelCol);
-            if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
+            if (labelType.IsKey && (!perInst.Schema.HasKeyValues(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
                 perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
                     schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,

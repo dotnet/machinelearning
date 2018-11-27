@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.IO;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
+using Microsoft.ML.Trainers.PCA;
+using System;
+using System.IO;
+using System.Linq;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Trainers.PCA
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        protected override PcaPredictor TrainModelCore(TrainContext context)
+        private protected override PcaPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -190,11 +191,11 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 var v = y[i];
-                VectorUtils.ScaleBy(ref v, 1 / VectorUtils.Norm(y[i]));
+                VectorUtils.ScaleBy(v, 1 / VectorUtils.Norm(y[i]));
 
                 // Make the next vectors in the queue orthogonal to the orthonormalized vectors.
                 for (var j = i + 1; j < oversampledRank; ++j) //subtract the projection of y[j] on v.
-                    VectorUtils.AddMult(in v, -VectorUtils.DotProduct(in v, in y[j]), ref y[j]);
+                    VectorUtils.AddMult(v, y[j], -VectorUtils.DotProduct(v, y[j]));
             }
             var q = y; // q in QR decomposition.
 
@@ -206,7 +207,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 for (var j = i; j < oversampledRank; ++j)
-                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(in b[i], in b[j]);
+                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(b[i], b[j]);
             }
 
             float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
@@ -217,15 +218,15 @@ namespace Microsoft.ML.Trainers.PCA
             return new PcaPredictor(Host, _rank, b, in mean);
         }
 
-        private static VBuffer<float>[] Zeros(int k, int d)
+        private static float[][] Zeros(int k, int d)
         {
-            var rv = new VBuffer<float>[k];
+            float[][] rv = new float[k][];
             for (var i = 0; i < k; ++i)
-                rv[i] = VBufferUtils.CreateDense<float>(d);
+                rv[i] = new float[d];
             return rv;
         }
 
-        private static VBuffer<float>[] GaussianMatrix(int k, int d, int seed)
+        private static float[][] GaussianMatrix(int k, int d, int seed)
         {
             var rv = Zeros(k, d);
             var rng = new SysRandom(seed);
@@ -235,7 +236,7 @@ namespace Microsoft.ML.Trainers.PCA
             for (var i = 0; i < k; ++i)
             {
                 for (var j = 0; j < d; ++j)
-                    rv[i].Values[j] = (float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
+                    rv[i][j] = (float)Stats.SampleFromGaussian(rng); // not fast for large matrix generation
             }
             return rv;
         }
@@ -243,7 +244,7 @@ namespace Microsoft.ML.Trainers.PCA
         //Project the covariance matrix A on to Omega: Y <- A * Omega
         //A = X' * X / n, where X = data - mean
         //Note that the covariance matrix is not computed explicitly
-        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<float> mean, VBuffer<float>[] omega, VBuffer<float>[] y, out long numBad)
+        private static void Project(IHost host, FeatureFloatVectorCursor.Factory cursorFactory, ref VBuffer<float> mean, float[][] omega, float[][] y, out long numBad)
         {
             Contracts.AssertValue(host, "host");
             host.AssertNonEmpty(omega);
@@ -251,7 +252,7 @@ namespace Microsoft.ML.Trainers.PCA
             int numCols = omega.Length;
 
             for (int i = 0; i < y.Length; ++i)
-                VBufferUtils.Clear(ref y[i]);
+                Array.Clear(y[i], 0, y[i].Length);
 
             bool center = mean.IsDense;
             float n = 0;
@@ -268,8 +269,8 @@ namespace Microsoft.ML.Trainers.PCA
                     {
                         VectorUtils.AddMult(
                             in cursor.Features,
-                            cursor.Weight * VectorUtils.DotProduct(in omega[i], in cursor.Features),
-                            ref y[i]);
+                            y[i],
+                            cursor.Weight * VectorUtils.DotProduct(omega[i], in cursor.Features));
                     }
                     n += cursor.Weight;
                     count++;
@@ -282,13 +283,13 @@ namespace Microsoft.ML.Trainers.PCA
             float invn = 1 / n;
 
             for (var i = 0; i < numCols; ++i)
-                VectorUtils.ScaleBy(ref y[i], invn);
+                VectorUtils.ScaleBy(y[i], invn);
 
             if (center)
             {
                 VectorUtils.ScaleBy(ref mean, invn);
                 for (int i = 0; i < numCols; i++)
-                    VectorUtils.AddMult(in mean, -VectorUtils.DotProduct(in omega[i], in mean), ref y[i]);
+                    VectorUtils.AddMult(in mean, y[i], -VectorUtils.DotProduct(omega[i], in mean));
             }
         }
 
@@ -296,9 +297,8 @@ namespace Microsoft.ML.Trainers.PCA
         /// Modifies <paramref name="y"/> in place so it becomes <paramref name="y"/> * eigenvectors / eigenvalues.
         /// </summary>
         // REVIEW: improve
-        private static void PostProcess(VBuffer<float>[] y, float[] sigma, float[] z, int d, int k)
+        private static void PostProcess(float[][] y, float[] sigma, float[] z, int d, int k)
         {
-            Contracts.Assert(y.All(v => v.IsDense));
             var pinv = new float[k];
             var tmp = new float[k];
 
@@ -311,10 +311,10 @@ namespace Microsoft.ML.Trainers.PCA
                 {
                     tmp[j] = 0;
                     for (int l = 0; l < k; l++)
-                        tmp[j] += y[l].Values[i] * z[j * k + l];
+                        tmp[j] += y[l][i] * z[j * k + l];
                 }
                 for (int j = 0; j < k; j++)
-                    y[j].Values[i] = pinv[j] * tmp[j];
+                    y[j][i] = pinv[j] * tmp[j];
             }
         }
 
@@ -398,7 +398,7 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, in VBuffer<float> mean)
+        internal PcaPredictor(IHostEnvironment env, int rank, float[][] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -408,8 +408,8 @@ namespace Microsoft.ML.Trainers.PCA
 
             for (var i = 0; i < rank; ++i) // Only want first k
             {
-                _eigenVectors[i] = eigenVectors[i];
-                _meanProjected[i] = VectorUtils.DotProduct(in eigenVectors[i], in mean);
+                _eigenVectors[i] = new VBuffer<float>(eigenVectors[i].Length, eigenVectors[i]);
+                _meanProjected[i] = VectorUtils.DotProduct(in _eigenVectors[i], in mean);
             }
 
             _mean = mean;

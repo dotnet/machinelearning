@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
@@ -140,7 +139,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// <summary>
         /// Get the data kind of a particular port.
         /// </summary>
-        public TlcModule.DataKind GetPortDataKind(string name)
+        internal TlcModule.DataKind GetPortDataKind(string name)
         {
             _host.CheckNonEmpty(name, nameof(name));
             EntryPointVariable variable;

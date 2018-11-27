@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -365,7 +366,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (int i = 0; i < _parent._map.Length; ++i)
                         _nameToCol[_parent._map[i].Key] = i;
 
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public string GetColumnName(int col)
@@ -601,7 +602,7 @@ namespace Microsoft.ML.Runtime.Data
                     _nameToIndex = new Dictionary<string, int>();
                     for (int i = 0; i < _parent._columns.Length; ++i)
                         _nameToIndex[_parent._columns[i].Name] = i;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public void GetMetadata<TValue>(string kind, int col, ref TValue value)

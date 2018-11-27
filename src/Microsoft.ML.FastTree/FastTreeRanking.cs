@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,8 +43,7 @@ namespace Microsoft.ML.Trainers.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeRankingTrainer
-        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>,
-          IHasLabelGains
+        : BoostingFastTreeTrainerBase<FastTreeRankingTrainer.Arguments, RankingPredictionTransformer<FastTreeRankingPredictor>, FastTreeRankingPredictor>
     {
         internal const string LoadNameValue = "FastTreeRanking";
         internal const string UserNameValue = "FastTree (Boosted Trees) Ranking";
@@ -95,16 +95,29 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.AssertValue(labelCol);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4)
+                error();
+        }
         protected override float GetMaxLabel()
         {
             return GetLabelGains().Length - 1;
         }
 
-        protected override FastTreeRankingPredictor TrainModelCore(TrainContext context)
+        private protected override FastTreeRankingPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
             ValidData = context.ValidationSet;
+            TestData = context.TestSet;
 
             using (var ch = Host.Start("Training"))
             {
@@ -116,7 +129,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return new FastTreeRankingPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
 
-        public Double[] GetLabelGains()
+        private Double[] GetLabelGains()
         {
             try
             {
@@ -443,6 +456,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, Schema trainSchema)
         => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public RankingPredictionTransformer<FastTreeRankingPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {

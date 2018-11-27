@@ -5,7 +5,7 @@ Changing data from row-wise to column-wise
 Warning: Skipped 8 instances with missing features during training
 Processed 329 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 3852 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Training calibrator.
 Not adding a normalizer.
@@ -14,7 +14,7 @@ Changing data from row-wise to column-wise
 Warning: Skipped 8 instances with missing features during training
 Processed 354 instances
 Binning and forming Feature objects
-Reserved memory for tree learner: 3816 bytes
+Reserved memory for tree learner: %Number% bytes
 Starting to train ...
 Training calibrator.
 TEST POSITIVE RATIO:	0.3702 (134.0/(134.0+228.0))

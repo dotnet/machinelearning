@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
         public void GetColumnSource(int col, out int srcIndex, out int srcCol)
         {
             CheckColumnInRange(col);
-            if (!_cumulativeColCounts.TryFindIndexSorted(0, _cumulativeColCounts.Length, col, out srcIndex))
+            if (!Utils.TryFindIndexSorted(_cumulativeColCounts, 0, _cumulativeColCounts.Length, col, out srcIndex))
                 srcIndex--;
             Contracts.Assert(0 <= srcIndex && srcIndex < _cumulativeColCounts.Length);
             srcCol = col - _cumulativeColCounts[srcIndex];

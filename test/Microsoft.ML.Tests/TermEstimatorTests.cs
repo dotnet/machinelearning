@@ -53,31 +53,31 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestDifferentTypes()
         {
-            string dataPath = GetDataPath("adult.test");
+            string dataPath = GetDataPath("adult.tiny.with-schema.txt");
 
             var loader = new TextLoader(Env, new TextLoader.Arguments
             {
                 Column = new[]{
-                    new TextLoader.Column("float1", DataKind.R4, 0),
-                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("double1", DataKind.R8, 0),
-                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("int1", DataKind.I4, 0),
+                    new TextLoader.Column("float1", DataKind.R4, 9),
+                    new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("double1", DataKind.R8, 9),
+                    new TextLoader.Column("double4", DataKind.R8, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) }),
+                    new TextLoader.Column("int1", DataKind.I4, 9),
                     new TextLoader.Column("text1", DataKind.TX, 1),
-                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(3)}),
+                    new TextLoader.Column("text2", DataKind.TX, new[]{new TextLoader.Range(1), new TextLoader.Range(2)}),
                 },
-                Separator = ",",
+                Separator = "\t",
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("float1", "TermFloat1"),
-                    new TermTransform.ColumnInfo("float4", "TermFloat4"),
-                    new TermTransform.ColumnInfo("double1", "TermDouble1"),
-                    new TermTransform.ColumnInfo("double4", "TermDouble4"),
-                    new TermTransform.ColumnInfo("int1", "TermInt1"),
-                    new TermTransform.ColumnInfo("text1", "TermText1"),
-                    new TermTransform.ColumnInfo("text2", "TermText2")
+                    new ValueToKeyMappingTransformer.ColumnInfo("float1", "TermFloat1"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("float4", "TermFloat4"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("double1", "TermDouble1"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("double4", "TermDouble4"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("int1", "TermInt1"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("text1", "TermText1"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("text2", "TermText2")
                 });
             var data = loader.Read(dataPath);
             data = TakeFilter.Create(Env, data, 10);
@@ -102,9 +102,9 @@ namespace Microsoft.ML.Tests
             var stringData = new[] { new TestClassDifferentTypes { A = "1", B = "c", C = "b" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
+                    new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("C", "TermC")
                 });
             var invalidData = ComponentCreation.CreateDataView(Env, xydata);
             var validFitNotValidTransformData = ComponentCreation.CreateDataView(Env, stringData);
@@ -117,9 +117,9 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var est = new ValueToKeyMappingEstimator(Env, new[]{
-                    new TermTransform.ColumnInfo("A", "TermA"),
-                    new TermTransform.ColumnInfo("B", "TermB"),
-                    new TermTransform.ColumnInfo("C", "TermC")
+                    new ValueToKeyMappingTransformer.ColumnInfo("A", "TermA"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("B", "TermB"),
+                    new ValueToKeyMappingTransformer.ColumnInfo("C", "TermC")
                 });
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -139,8 +139,8 @@ namespace Microsoft.ML.Tests
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var termEst = new ValueToKeyMappingEstimator(Env, new[] {
-                    new TermTransform.ColumnInfo("Term" ,"T") });
-                    
+                    new ValueToKeyMappingTransformer.ColumnInfo("Term" ,"T") });
+
             var termTransformer = termEst.Fit(dataView);
             var result = termTransformer.Transform(dataView);
             result.Schema.TryGetColumnIndex("T", out int termIndex);
@@ -155,10 +155,8 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));
-            }
+            var env = new MLContext();
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }));
         }
 
         private void ValidateTermTransformer(IDataView result)

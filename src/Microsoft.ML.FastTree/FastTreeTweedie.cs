@@ -3,15 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
 using System.Text;
@@ -86,11 +87,12 @@ namespace Microsoft.ML.Trainers.FastTree
             Initialize();
         }
 
-        protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)
+        private protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
             ValidData = context.ValidationSet;
+            TestData = context.TestSet;
 
             using (var ch = Host.Start("Training"))
             {
@@ -317,6 +319,9 @@ namespace Microsoft.ML.Trainers.FastTree
         protected override RegressionPredictionTransformer<FastTreeTweediePredictor> MakeTransformer(FastTreeTweediePredictor model, Schema trainSchema)
          => new RegressionPredictionTransformer<FastTreeTweediePredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public RegressionPredictionTransformer<FastTreeTweediePredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
+
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
@@ -511,7 +516,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Desc = FastTreeTweedieTrainer.Summary,
             UserName = FastTreeTweedieTrainer.UserNameValue,
             ShortName = FastTreeTweedieTrainer.ShortName,
-            XmlInclude = new [] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastTreeTweedieRegression""]/*' />" })]
         public static CommonOutputs.RegressionOutput TrainTweedieRegression(IHostEnvironment env, FastTreeTweedieTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

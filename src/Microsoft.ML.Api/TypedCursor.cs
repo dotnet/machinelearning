@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -381,21 +382,21 @@ namespace Microsoft.ML.Runtime.Api
                 return row =>
                 {
                     typedPeek(row, Position, ref buf);
-                    value = new VBuffer<TDst>(0, buf, value.Indices);
                     getter(ref value);
                     if (value.Length == Utils.Size(buf) && value.IsDense)
                     {
-                        // In this case, value.Values alone is enough to represent the vector.
-                        // Otherwise, we are either sparse (and need densifying), or value.Values is too large,
-                        // and we need to truncate.
-                        buf = value.Values;
+                        // In this case, buf (which came from the input object) is the
+                        // right size to represent the vector.
+                        // Otherwise, we are either sparse (and need densifying), or value.GetValues()
+                        // is a different length than buf.
+                        value.CopyTo(buf);
                     }
                     else
                     {
                         buf = new TDst[value.Length];
 
                         if (value.IsDense)
-                            Array.Copy(value.Values, buf, value.Length);
+                            value.GetValues().CopyTo(buf);
                         else
                         {
                             foreach (var pair in value.Items(true))
@@ -528,8 +529,6 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     public static class CursoringUtils
     {
-        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new LocalEnvironment().";
-
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
         /// </summary>
@@ -548,24 +547,6 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValueOrNull(schemaDefinition);
 
             return TypedCursorable<TRow>.Create(env, data, ignoreMissingColumns, schemaDefinition);
-        }
-
-        /// <summary>
-        /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The cursorable wrapper of <paramref name="data"/>.</returns>
-        [Obsolete(NeedEnvObsoleteMessage)]
-        public static ICursorable<TRow> AsCursorable<TRow>(this IDataView data, bool ignoreMissingColumns = false,
-            SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            // REVIEW: Take an env as a parameter.
-            var env = new ConsoleEnvironment();
-            return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
         /// <summary>
@@ -588,25 +569,6 @@ namespace Microsoft.ML.Runtime.Api
 
             var engine = new PipeEngine<TRow>(env, data, ignoreMissingColumns, schemaDefinition);
             return engine.RunPipe(reuseRowObject);
-        }
-
-        /// <summary>
-        /// Convert an <see cref="IDataView"/> into a strongly-typed <see cref="IEnumerable{TRow}"/>.
-        /// </summary>
-        /// <typeparam name="TRow">The user-defined row type.</typeparam>
-        /// <param name="data">The underlying data view.</param>
-        /// <param name="reuseRowObject">Whether to return the same object on every row, or allocate a new one per row.</param>
-        /// <param name="ignoreMissingColumns">Whether to ignore the case when a requested column is not present in the data view.</param>
-        /// <param name="schemaDefinition">Optional user-provided schema definition. If it is not present, the schema is inferred from the definition of T.</param>
-        /// <returns>The <see cref="IEnumerable{TRow}"/> that holds the data in <paramref name="data"/>. It can be enumerated multiple times.</returns>
-        [Obsolete(NeedEnvObsoleteMessage)]
-        public static IEnumerable<TRow> AsEnumerable<TRow>(this IDataView data, bool reuseRowObject,
-            bool ignoreMissingColumns = false, SchemaDefinition schemaDefinition = null)
-            where TRow : class, new()
-        {
-            // REVIEW: Take an env as a parameter.
-            var env = new ConsoleEnvironment();
-            return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }
 }

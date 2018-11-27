@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Trainers;
+using System;
 
 [assembly: LoadableClass(PoissonRegression.Summary, typeof(PoissonRegression), typeof(PoissonRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -97,6 +98,9 @@ namespace Microsoft.ML.Trainers
         protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public RegressionPredictionTransformer<PoissonRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
+
         protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
@@ -138,8 +142,9 @@ namespace Microsoft.ML.Trainers
             float mult = -(y - lambda) * weight;
             VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
             // From the computer's perspective exp(infinity)==infinity
             // so inf-inf=nan, but in reality, infinity is just a large
             // number we can't represent, and exp(X)-X for X=inf is just inf.

@@ -161,16 +161,16 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     switch (Type.RawKind)
                     {
-                    case DataKind.I1:
-                        return typeof(sbyte).Name;
-                    case DataKind.I2:
-                        return typeof(short).Name;
-                    case DataKind.I4:
-                        return typeof(int).Name;
-                    case DataKind.I8:
-                        return typeof(long).Name;
-                    case DataKind.TS:
-                        return typeof(TimeSpan).Name;
+                        case DataKind.I1:
+                            return typeof(sbyte).Name;
+                        case DataKind.I2:
+                            return typeof(short).Name;
+                        case DataKind.I4:
+                            return typeof(int).Name;
+                        case DataKind.I8:
+                            return typeof(long).Name;
+                        case DataKind.TS:
+                            return typeof(TimeSpan).Name;
                     }
                     return base.LoadName;
                 }
@@ -573,17 +573,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_currentSlot < 16);
                     switch (_currentBits & 0x3)
                     {
-                    case 0x0:
-                        value = false;
-                        break;
-                    case 0x1:
-                        value = true;
-                        break;
-                    case 0x2:
-                        value = false;
-                        break;
-                    default:
-                        throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
+                        case 0x0:
+                            value = false;
+                            break;
+                        case 0x1:
+                            value = true;
+                            break;
+                        case 0x2:
+                            value = false;
+                            break;
+                        default:
+                            throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
                     }
                 }
             }
@@ -1051,11 +1051,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Get a buffer.
                     var values = codec._bufferPool.Get();
                     Utils.EnsureSize(ref values, totalItems, false);
-                    if (totalItems > 0)
-                    {
-                        using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
-                            reader.Read(values, 0, totalItems);
-                    }
+                    using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
+                        reader.Read(values, 0, totalItems);
                     _values = values;
                     _vectorIndex = -1;
                 }
@@ -1109,29 +1106,29 @@ namespace Microsoft.ML.Runtime.Data.IO
                     int length = FixedLength ? _size : _lengths[_vectorIndex];
                     int count = _counts[_vectorIndex];
 
-                    int[] indices = value.Indices;
-                    T[] values = value.Values;
                     if (count < 0)
                     {
                         // dense
+                        var editor = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
-                            Utils.EnsureSize(ref values, length);
-                            Array.Copy(_values, _valuesOffset, values, 0, length);
+                            _values.AsSpan(_valuesOffset, length)
+                                .CopyTo(editor.Values);
                         }
-                        value = new VBuffer<T>(length, values, indices);
+                        value = editor.Commit();
                     }
                     else
                     {
                         // sparse
+                        var editor = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
-                            Utils.EnsureSize(ref values, count);
-                            Utils.EnsureSize(ref indices, count);
-                            Array.Copy(_values, _valuesOffset, values, 0, count);
-                            Array.Copy(_indices, _indicesOffset, indices, 0, count);
+                            _values.AsSpan(_valuesOffset, count)
+                                .CopyTo(editor.Values);
+                            _indices.AsSpan(_indicesOffset, count)
+                                .CopyTo(editor.Indices);
                         }
-                        value = new VBuffer<T>(length, count, values, indices);
+                        value = editor.Commit();
                     }
                 }
             }

@@ -15,6 +15,7 @@ namespace Microsoft.ML.Legacy.Models
     /// Each row of the matrix represents the instances in a predicted class
     /// while each column represents the instances in the actual class.
     /// </summary>
+    [Obsolete]
     public sealed class ConfusionMatrix
     {
         private readonly double[,] _elements;
@@ -75,9 +76,10 @@ namespace Microsoft.ML.Legacy.Models
                     elements = new double[type.VectorSize, type.VectorSize];
 
                 countGetter(ref countValues);
-                for (int i = 0; i < countValues.Length; i++)
+                ReadOnlySpan<double> values = countValues.GetValues();
+                for (int i = 0; i < values.Length; i++)
                 {
-                    elements[valuesRowIndex, i] = countValues.Values[i];
+                    elements[valuesRowIndex, i] = values[i];
                 }
 
                 valuesRowIndex++;

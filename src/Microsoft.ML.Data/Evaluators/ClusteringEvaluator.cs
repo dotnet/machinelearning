@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -731,12 +732,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<Single> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new Single[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<Single>(_numClusters, values);
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
@@ -747,33 +746,31 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new uint[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = (uint)sortedIndices[i] + 1;
-                        dst = new VBuffer<uint>(_numClusters, values);
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterCol] = topKClassesFn;
             }
             return getters;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[3];
-            infos[ClusterIdCol] = new Schema.Column(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.DetachedColumn[3];
+            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new Schema.Metadata.Builder();
+            var sortedClusters = new MetadataBuilder();
             sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            var sortedClusterScores = new Schema.Metadata.Builder();
-            sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+            var builder = new MetadataBuilder();
+            builder.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
-            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
+            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 
@@ -783,12 +780,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < numTopClusters)
-                        values = new ReadOnlyMemory<char>[numTopClusters];
+                    var editor = VBufferEditor.Create(ref dst, numTopClusters);
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = $"#{i} {suffix}".AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
+                        editor.Values[i - 1] = $"#{i} {suffix}".AsMemory();
+                    dst = editor.Commit();
                 };
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -701,7 +702,7 @@ namespace Microsoft.ML.Transforms
         // Delegates onto instance methods are more efficient than delegates onto static methods.
         private void VecTrivialGetter<TDst>(ref VBuffer<TDst> value)
         {
-            value = new VBuffer<TDst>(1, 0, value.Values, value.Indices);
+            VBufferUtils.Resize(ref value, 1, 0);
         }
 
         private Delegate MakeVecGetter(IRow input, int iinfo)

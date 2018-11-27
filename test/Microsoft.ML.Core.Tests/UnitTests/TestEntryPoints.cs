@@ -17,8 +17,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
@@ -41,6 +39,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+#pragma warning disable 612
     public partial class TestEntryPoints : CoreBaseTestClass
     {
         public TestEntryPoints(ITestOutputHelper output) : base(output)
@@ -351,7 +350,6 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
-            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessing.TimeSeriesProcessing).Assembly);
 
@@ -461,19 +459,19 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = CopyColumnsTransform.Create(Env,
-                    new CopyColumnsTransform.Arguments()
+                individualScores[i] = ColumnsCopyingTransformer.Create(Env,
+                    new ColumnsCopyingTransformer.Arguments()
                     {
                         Column = new[]
                         {
-                            new CopyColumnsTransform.Column()
+                            new ColumnsCopyingTransformer.Column()
                             {
                                 Name = MetadataUtils.Const.ScoreValueKind.Score + i,
                                 Source = MetadataUtils.Const.ScoreValueKind.Score
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
+                individualScores[i] = ColumnSelectingTransformer.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };
@@ -758,20 +756,20 @@ namespace Microsoft.ML.Runtime.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
 
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = TermTransform.Create(Env, new TermTransform.Arguments()
+                data = ValueToKeyMappingTransformer.Create(Env, new ValueToKeyMappingTransformer.Arguments()
                 {
                     Column = new[]
                     {
-                        new TermTransform.Column()
+                        new ValueToKeyMappingTransformer.Column()
                         {
                             Name = "Label",
                             Source = "Label",
-                            Sort = TermTransform.SortOrder.Value
+                            Sort = ValueToKeyMappingTransformer.SortOrder.Value
                         }
                     }
                 }, data);
@@ -1026,16 +1024,16 @@ namespace Microsoft.ML.Runtime.RunTests
                         new TextFeaturizingEstimator.Arguments()
                         {
                             Column = new TextFeaturizingEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
-                            StopWordsRemover = new PredefinedStopWordsRemoverFactory()
+                            UsePredefinedStopWordRemover = true
                         }, data);
                 }
                 else
                 {
-                    data = WordHashBagTransform.Create(Env,
-                        new WordHashBagTransform.Arguments()
+                    data = WordHashBagProducingTransformer.Create(Env,
+                        new WordHashBagProducingTransformer.Arguments()
                         {
                             Column =
-                                new[] { new WordHashBagTransform.Column() { Name = "Features", Source = new[] { "Text" } }, }
+                                new[] { new WordHashBagProducingTransformer.Column() { Name = "Features", Source = new[] { "Text" } }, }
                         },
                         data);
                 }
@@ -1226,9 +1224,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features1", 10, false),
                     new RandomFourierFeaturizingTransformer.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
-                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
+                data = ColumnConcatenatingTransformer.Create(Env, new ColumnConcatenatingTransformer.Arguments()
                 {
-                    Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
+                    Column = new[] { new ColumnConcatenatingTransformer.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
                 var mlr = new MulticlassLogisticRegression(Env, "Label", "Features");
@@ -1376,7 +1374,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
                     }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
+                data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
                     var lrInput = new LogisticRegression.Arguments
@@ -1384,8 +1382,9 @@ namespace Microsoft.ML.Runtime.RunTests
                         TrainingData = data,
                         NormalizeFeatures = NormalizeOption.Yes,
                         NumThreads = 1,
-                        ShowTrainingStats = true
-                    };
+                        ShowTrainingStats = true, 
+                        StdComputer = new ComputeLRTrainingStdThroughHal()
+                };
                     predictorModels[i] = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
                     var transformModel = new TransformModel(Env, data, splitOutput.TrainData[i]);
 
@@ -1483,9 +1482,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 return false;
             v1.CopyToDense(ref dense1);
             v2.CopyToDense(ref dense2);
+            var dense1Values = dense1.GetValues();
+            var dense2Values = dense2.GetValues();
             for (int i = 0; i < dense1.Length; i++)
             {
-                if (!Single.IsNaN(dense1.Values[i]) && !Single.IsNaN(dense2.Values[i]) && dense1.Values[i] != dense2.Values[i])
+                if (!Single.IsNaN(dense1Values[i]) && !Single.IsNaN(dense2Values[i]) && dense1Values[i] != dense2Values[i])
                     return false;
             }
             return true;
@@ -2018,7 +2019,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointLightLdaTransform()
+        public void EntryPointLightLdaTransformer()
         {
             string dataFile = DeleteOutputPath("SavePipe", "SavePipeTextLightLda-SampleText.txt");
             File.WriteAllLines(dataFile, new[] {
@@ -3575,9 +3576,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 TrainingData = dataView,
                 NormalizeFeatures = NormalizeOption.Yes,
                 NumThreads = 1,
-                // REVIEW: this depends on MKL library which is not available. Only a subset of training stats are reported.
-                ShowTrainingStats = true
-            };
+                ShowTrainingStats = true,
+                StdComputer= new ComputeLRTrainingStdThroughHal()
+        };
             var model = LogisticRegression.TrainBinary(Env, lrInput).PredictorModel;
 
             var mcLrInput = new MulticlassLogisticRegression.Arguments
@@ -3772,10 +3773,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 Data = dataView,
                 Column = new[] { new OneHotEncodingTransformer.Column { Name = "Categories", Source = "Categories" } }
             });
-            var concat = SchemaManipulation.ConcatColumns(Env, new ConcatTransform.Arguments()
+            var concat = SchemaManipulation.ConcatColumns(Env, new ColumnConcatenatingTransformer.Arguments()
             {
                 Data = cat.OutputData,
-                Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
+                Column = new[] { new ColumnConcatenatingTransformer.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
             var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
@@ -3848,11 +3849,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 InputFile = inputFile,
             }).Data;
-            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsTransform.Arguments()
+            var embedding = Transforms.Text.TextAnalytics.WordEmbeddings(Env, new WordEmbeddingsExtractingTransformer.Arguments()
             {
                 Data = dataView,
-                Column = new[] { new WordEmbeddingsTransform.Column { Name = "Features", Source = "Text" } },
-                ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe
+                Column = new[] { new WordEmbeddingsExtractingTransformer.Column { Name = "Features", Source = "Text" } },
+                ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe
             });
             var result = embedding.OutputData;
             using (var cursor = result.GetRowCursor((x => true)))
@@ -4040,4 +4041,5 @@ namespace Microsoft.ML.Runtime.RunTests
                 });
         }
     }
+#pragma warning restore 612
 }

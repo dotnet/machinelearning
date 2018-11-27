@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Threading;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
+using System;
+using System.Linq;
+using System.Threading;
+using Float = System.Single;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Trainers
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
             };
         }
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Trainers
                     }
                     else
                     {
-                        normSquared = VectorUtils.NormSquared(features);
+                        normSquared = VectorUtils.NormSquared(in features);
                         if (Args.BiasLearningRate == 0)
                             normSquared += 1;
 
@@ -193,6 +193,11 @@ namespace Microsoft.ML.Trainers
                         // Skip the dual/weights/bias update for label class. Will be taken care of at the end.
                         if (iClass == label)
                             continue;
+
+                        var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[iClass]);
+                        var l1IntermediateWeightsEditor =
+                            !l1ThresholdZero ? VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[iClass]) :
+                            default;
 
                         // Loop trials for compare-and-swap updates of duals.
                         // In general, concurrent update conflict to the same dual variable is rare
@@ -223,7 +228,7 @@ namespace Microsoft.ML.Trainers
 
                                 if (l1ThresholdZero)
                                 {
-                                    VectorUtils.AddMult(in features, weights[iClass].Values, -primalUpdate);
+                                    VectorUtils.AddMult(in features, weightsEditor.Values, -primalUpdate);
                                     biasReg[iClass] -= primalUpdate;
                                 }
                                 else
@@ -240,10 +245,11 @@ namespace Microsoft.ML.Trainers
                                         : 0;
                                     }
 
+                                    var featureValues = features.GetValues();
                                     if (features.IsDense)
-                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
-                                    else if (features.Count > 0)
-                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[iClass].Values, weights[iClass].Values);
+                                        CpuMathUtils.SdcaL1UpdateDense(-primalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeightsEditor.Values, weightsEditor.Values);
+                                    else if (featureValues.Length > 0)
+                                        CpuMathUtils.SdcaL1UpdateSparse(-primalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeightsEditor.Values, weightsEditor.Values);
                                 }
 
                                 break;
@@ -256,7 +262,8 @@ namespace Microsoft.ML.Trainers
                     biasUnreg[label] += labelAdjustment * lambdaNInv * instanceWeight;
                     if (l1ThresholdZero)
                     {
-                        VectorUtils.AddMult(in features, weights[label].Values, labelPrimalUpdate);
+                        var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[label]);
+                        VectorUtils.AddMult(in features, weightsEditor.Values, labelPrimalUpdate);
                         biasReg[label] += labelPrimalUpdate;
                     }
                     else
@@ -267,10 +274,13 @@ namespace Microsoft.ML.Trainers
                             ? intermediateBias - Math.Sign(intermediateBias) * l1Threshold
                             : 0;
 
+                        var weightsEditor = VBufferEditor.CreateFromBuffer(ref weights[label]);
+                        var l1IntermediateWeightsEditor = VBufferEditor.CreateFromBuffer(ref l1IntermediateWeights[label]);
+                        var featureValues = features.GetValues();
                         if (features.IsDense)
-                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
-                        else if (features.Count > 0)
-                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[label].Values, weights[label].Values);
+                            CpuMathUtils.SdcaL1UpdateDense(labelPrimalUpdate, featureValues.Length, featureValues, l1Threshold, l1IntermediateWeightsEditor.Values, weightsEditor.Values);
+                        else if (featureValues.Length > 0)
+                            CpuMathUtils.SdcaL1UpdateSparse(labelPrimalUpdate, featureValues.Length, featureValues, features.GetIndices(), l1Threshold, l1IntermediateWeightsEditor.Values, weightsEditor.Values);
                     }
 
                     rowCount++;
@@ -377,7 +387,7 @@ namespace Microsoft.ML.Trainers
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
             metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : weights.Sum(
-                weight => weight.Values.Count(w => w != 0)) / (numClasses * numFeatures);
+                weight => weight.GetValues().Count(w => w != 0)) / (numClasses * numFeatures);
 
             bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
 

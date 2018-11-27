@@ -2,13 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -16,6 +10,11 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator), typeof(MultiOutputRegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi Output Regression Evaluator", MultiOutputRegressionEvaluator.LoadName, "MultiOutputRegression", "MRE")]
@@ -246,11 +245,11 @@ namespace Microsoft.ML.Runtime.Data
                     _fnLoss = new double[size];
                 }
 
-                public void Update(Float[] score, Float[] label, int length, Float weight)
+                public void Update(ReadOnlySpan<float> score, ReadOnlySpan<float> label, int length, Float weight)
                 {
                     Contracts.Assert(length == _l1Loss.Length);
-                    Contracts.Assert(Utils.Size(score) >= length);
-                    Contracts.Assert(Utils.Size(label) >= length);
+                    Contracts.Assert(score.Length >= length);
+                    Contracts.Assert(label.Length >= length);
 
                     Double wht = weight;
                     Double l1 = 0;
@@ -340,22 +339,22 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                Float[] label;
+                ReadOnlySpan<float> label;
                 if (!_label.IsDense)
                 {
                     _label.CopyTo(_labelArr);
                     label = _labelArr;
                 }
                 else
-                    label = _label.Values;
-                Float[] score;
+                    label = _label.GetValues();
+                ReadOnlySpan<float> score;
                 if (!_score.IsDense)
                 {
                     _score.CopyTo(_scoreArr);
                     score = _scoreArr;
                 }
                 else
-                    score = _score.Values;
+                    score = _score.GetValues();
                 UnweightedCounters.Update(score, label, _size, 1);
                 if (WeightedCounters != null)
                     WeightedCounters.Update(score, label, _size, weight);
@@ -363,13 +362,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
-                var values = slotNames.Values;
-                if (Utils.Size(values) < _size)
-                    values = new ReadOnlyMemory<char>[_size];
-
+                var editor = VBufferEditor.Create(ref slotNames, _size);
                 for (int i = 0; i < _size; i++)
-                    values[i] = string.Format("(Label_{0})", i).AsMemory();
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(_size, values);
+                    editor.Values[i] = string.Format("(Label_{0})", i).AsMemory();
+                slotNames = editor.Commit();
             }
         }
     }
@@ -450,14 +446,14 @@ namespace Microsoft.ML.Runtime.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[5];
-            infos[LabelOutput] = new Schema.Column(LabelCol, _labelType, _labelMetadata);
-            infos[ScoreOutput] = new Schema.Column(ScoreCol, _scoreType, _scoreMetadata);
-            infos[L1Output] = new Schema.Column(L1, NumberType.R8, null);
-            infos[L2Output] = new Schema.Column(L2, NumberType.R8, null);
-            infos[DistCol] = new Schema.Column(Dist, NumberType.R8, null);
+            var infos = new Schema.DetachedColumn[5];
+            infos[LabelOutput] = new Schema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
+            infos[ScoreOutput] = new Schema.DetachedColumn(ScoreCol, _scoreType, _scoreMetadata);
+            infos[L1Output] = new Schema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Output] = new Schema.DetachedColumn(L2, NumberType.R8, null);
+            infos[DistCol] = new Schema.DetachedColumn(Dist, NumberType.R8, null);
             return infos;
         }
 
@@ -555,7 +551,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
             labelType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
             var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
-            var builder = new Schema.Metadata.Builder();
+            var builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
             labelMetadata = builder.GetMetadata();
 
@@ -563,15 +559,15 @@ namespace Microsoft.ML.Runtime.Data
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
             scoreType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
-            builder = new Schema.Metadata.Builder();
+            builder = new MetadataBuilder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
 
             ValueGetter<ReadOnlyMemory<char>> getter = GetScoreColumnKind;
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, null), getter);
+            builder.Add(MetadataUtils.Kinds.ScoreColumnKind, TextType.Instance, getter);
             getter = GetScoreValueKind;
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, null), getter);
+            builder.Add(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, getter);
             ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, null), uintGetter);
+            builder.Add(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, uintGetter);
             scoreMetadata = builder.GetMetadata();
         }
 
@@ -605,12 +601,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < length)
-                        values = new ReadOnlyMemory<char>[length];
+                    var editor = VBufferEditor.Create(ref dst, length);
                     for (int i = 0; i < length; i++)
-                        values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(length, values);
+                        editor.Values[i] = string.Format("{0}_{1}", prefix, i).AsMemory();
+                    dst = editor.Commit();
                 };
         }
     }

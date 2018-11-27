@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -201,12 +202,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < dictionaries.Length)
-                        values = new ReadOnlyMemory<char>[dictionaries.Length];
+                    var editor = VBufferEditor.Create(ref dst, dictionaries.Length);
                     for (int i = 0; i < dictionaries.Length; i++)
-                        values[i] = dictionaries[i].ColName.AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(dictionaries.Length, values, dst.Indices);
+                        editor.Values[i] = dictionaries[i].ColName.AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -504,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
 
-        public abstract Schema.Column[] GetOutputColumns();
+        public abstract Schema.DetachedColumn[] GetOutputColumns();
 
         public abstract Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer);
     }

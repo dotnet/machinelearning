@@ -86,7 +86,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features"));
+            var trainer = new StochasticGradientDescentClassificationTrainer(Env, "Label", "Features");
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView);
+            trainer.Train(transformedDataView, model.Model);
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -140,8 +146,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             // Pipeline.
             var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
-                                    new TermTransform.ColumnInfo("Workclass", "Group"),
-                                    new TermTransform.ColumnInfo("Label", "Label0") });
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Workclass", "Group"),
+                                    new ValueToKeyMappingTransformer.ColumnInfo("Label", "Label0") });
 
             return (pipeline, data);
         }

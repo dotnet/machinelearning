@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -359,9 +360,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public override Schema Schema => _transform.Schema;
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
-            return _transform.GetRowCount(lazy);
+            return _transform.GetRowCount();
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)

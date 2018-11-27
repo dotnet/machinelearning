@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -274,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             // Not a passthrough.
             return RowCount;
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
                     _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
                 }
 
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             public bool TryGetColumnIndex(string name, out int col)
@@ -504,8 +505,25 @@ namespace Microsoft.ML.Runtime.Data
             private T[][] _values;       // Working intermediate value buffers.
             private int[] _counts;       // Working intermediate count buffers.
 
-            // The transposed contents of _colStored.
-            private VBuffer<T>[] _cbuff; // Working intermediate column-wise buffer.
+            private struct ColumnBufferStorage
+            {
+                // The transposed contents of _colStored.
+                public VBuffer<T> Buffer;
+
+                // These two arrays are the "cached" arrays inside of the Buffer
+                // to be swapped between the _cbuff and _values/_indices.
+                public readonly T[] Values;
+                public readonly int[] Indices;
+
+                public ColumnBufferStorage(VBuffer<T> buffer, T[] values, int[] indices)
+                {
+                    Buffer = buffer;
+                    Values = values;
+                    Indices = indices;
+                }
+            }
+
+            private ColumnBufferStorage[] _cbuff; // Working intermediate column-wise buffer.
 
             // Variables to track current cursor position.
             private int _colStored;      // The current column of the source data view actually stored in the intermediate buffers.
@@ -704,20 +722,24 @@ namespace Microsoft.ML.Runtime.Data
                 Utils.EnsureSize(ref _cbuff, vecLen);
                 for (int s = 0; s < vecLen; ++s)
                 {
-                    var temp = new VBuffer<T>(_len, _counts[s], _values[s], _indices[s]);
-                    if (temp.Count < _len / 2)
+                    int count = _counts[s];
+                    T[] values = _values[s];
+                    int[] indices = _indices[s];
+                    var temp = new VBuffer<T>(_len, count, values, indices);
+                    if (count < _len / 2)
                     {
                         // Already sparse enough, I guess. Swap out the arrays.
-                        Utils.Swap(ref temp, ref _cbuff[s]);
-                        _indices[s] = temp.Indices ?? new int[_len];
-                        _values[s] = temp.Values ?? new T[_len];
+                        ColumnBufferStorage existingBuffer = _cbuff[s];
+                        _cbuff[s] = new ColumnBufferStorage(temp, values, indices);
+                        _indices[s] = existingBuffer.Indices ?? new int[_len];
+                        _values[s] = existingBuffer.Values ?? new T[_len];
                         Ch.Assert(_indices[s].Length == _len);
                         Ch.Assert(_values[s].Length == _len);
                     }
                     else
                     {
                         // Not dense enough. Densify temp into _cbuff[s]. Don't swap the arrays.
-                        temp.CopyToDense(ref _cbuff[s]);
+                        temp.CopyToDense(ref _cbuff[s].Buffer);
                     }
                 }
                 _colStored = _colCurr;
@@ -740,8 +762,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.Check(IsGood, "Cannot get values in the cursor's current state");
                 EnsureValid();
-                Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Length == _len);
-                _cbuff[_slotCurr].CopyTo(ref dst);
+                Ch.Assert(0 <= _slotCurr && _slotCurr < Utils.Size(_cbuff) && _cbuff[_slotCurr].Buffer.Length == _len);
+                _cbuff[_slotCurr].Buffer.CopyTo(ref dst);
             }
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
@@ -818,9 +840,9 @@ namespace Microsoft.ML.Runtime.Data
                 _schema = new SchemaImpl(this, nameToCol);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
-                return _input.GetRowCount(lazy);
+                return _input.GetRowCount();
             }
 
             /// <summary>
@@ -913,7 +935,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(nameToCol);
                     _slicer = slicer;
                     _nameToCol = nameToCol;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public override bool TryGetColumnIndex(string name, out int col)
@@ -1119,7 +1141,7 @@ namespace Microsoft.ML.Runtime.Data
                         : base(view, col)
                     {
                         Contracts.Assert(_view.Schema.GetColumnType(col).RawType == typeof(T));
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1205,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Data
                         for (int c = 1; c < _lims.Length; ++c)
                             _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
 
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1273,12 +1295,12 @@ namespace Microsoft.ML.Runtime.Data
                                 (ref VBuffer<T> value) =>
                                 {
                                     EnsureValid();
-                                    var values = value.Values;
+                                    VBufferEditor<T> editor;
                                     if (_inputValue.IsDense)
                                     {
-                                        Utils.EnsureSize(ref values, len);
-                                        Array.Copy(_inputValue.Values, min, values, 0, len);
-                                        value = new VBuffer<T>(len, values, value.Indices);
+                                        editor = VBufferEditor.Create(ref value, len);
+                                        _inputValue.GetValues().Slice(min, len).CopyTo(editor.Values);
+                                        value = editor.Commit();
                                         return;
                                     }
                                     // In the sparse case we have ranges on Indices/Values to consider.
@@ -1287,20 +1309,24 @@ namespace Microsoft.ML.Runtime.Data
                                     int scount = slim - smin;
                                     if (scount == 0)
                                     {
-                                        value = new VBuffer<T>(len, 0, value.Values, value.Indices);
+                                        VBufferUtils.Resize(ref value, len, 0);
                                         return;
                                     }
-                                    var indices = value.Indices;
-                                    Utils.EnsureSize(ref indices, scount);
-                                    Utils.EnsureSize(ref values, scount);
-                                    Array.Copy(_inputValue.Indices, smin, indices, 0, scount);
-                                    if (min != 0)
+
+                                    editor = VBufferEditor.Create(ref value, len, scount);
+                                    bool isDense = len == scount;
+                                    if (!isDense)
                                     {
-                                        for (int i = 0; i < scount; ++i)
-                                            indices[i] -= min;
+                                        _inputValue.GetIndices().Slice(smin, scount).CopyTo(editor.Indices);
+
+                                        if (min != 0)
+                                        {
+                                            for (int i = 0; i < scount; ++i)
+                                                editor.Indices[i] -= min;
+                                        }
                                     }
-                                    Array.Copy(_inputValue.Values, smin, values, 0, scount);
-                                    value = new VBuffer<T>(len, scount, values, indices);
+                                    _inputValue.GetValues().Slice(smin, scount).CopyTo(editor.Values);
+                                    value = editor.Commit();
                                 };
                         }
 
@@ -1314,15 +1340,14 @@ namespace Microsoft.ML.Runtime.Data
                             // and end of each slice.
                             if (_inputValue.IsDense)
                                 return;
-                            if (_inputValue.Count == 0)
+                            var indices = _inputValue.GetIndices();
+                            if (indices.Length == 0)
                             {
                                 // Handle this separately, since _inputValue.Indices might be null
                                 // in this case, and then we may as well short circuit it anyway.
                                 Array.Clear(_srcIndicesLims, 0, _srcIndicesLims.Length);
                                 return;
                             }
-                            var indices = _inputValue.Indices;
-                            Contracts.AssertValue(indices);
 
                             int ii = 0;
                             for (int i = 0; i < Lims.Length; ++i)
@@ -1331,7 +1356,7 @@ namespace Microsoft.ML.Runtime.Data
                                 // REVIEW: Would some form of bisection search be better
                                 // than this scan? Possibly if the search were to happen across
                                 // all lims at the same time, somehow.
-                                while (ii < _inputValue.Count && indices[ii] < lim)
+                                while (ii < indices.Length && indices[ii] < lim)
                                     ii++;
                                 _srcIndicesLims[i] = ii;
                             }
@@ -1503,7 +1528,7 @@ namespace Microsoft.ML.Runtime.Data
                 _schemaImpl = new SchemaImpl(this);
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public long? GetRowCount()
             {
                 var type = _data.Schema.GetColumnType(_col);
                 int valueCount = type.ValueCount;
@@ -1543,7 +1568,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.AssertValue(parent);
                     _parent = parent;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public ColumnType GetColumnType(int col)

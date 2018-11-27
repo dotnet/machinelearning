@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var secondTrainer = ml.BinaryClassification.Trainers.AveragedPerceptron("Label","Features");
 
             var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
-            var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
+            var finalModel = ((ITrainer)secondTrainer).Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
 
         }
     }

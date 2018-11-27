@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Api
             public override long Position => _position;
 
             public InputRow(IHostEnvironment env, InternalSchemaDefinition schemaDef)
-                : base(env, new Schema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
+                : base(env, SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
             {
                 _position = -1;
             }
@@ -238,11 +239,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n
-                        ? new TDst[n]
-                        : dst.Values, dst.Indices);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     for (int i = 0; i < n; i++)
-                        dst.Values[i] = convert(buf[i]);
+                        dstEditor.Values[i] = convert(buf[i]);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -267,10 +267,10 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     peek(GetCurrentRowObject(), Position, ref buf);
                     var n = Utils.Size(buf);
-                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values,
-                        dst.Indices);
+                    var dstEditor = VBufferEditor.Create(ref dst, n);
                     if (buf != null)
-                        Array.Copy(buf, dst.Values, n);
+                        buf.AsSpan(0, n).CopyTo(dstEditor.Values);
+                    dst = dstEditor.Commit();
                 });
             }
 
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.Api
                 Host.AssertValue(schemaDefn);
 
                 _schemaDefn = schemaDefn;
-                _schema = new Schema(GetSchemaColumns(schemaDefn));
+                _schema = SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDefn));
                 int n = schemaDefn.Columns.Length;
                 _peeks = new Delegate[n];
                 for (var i = 0; i < n; i++)
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public abstract long? GetRowCount(bool lazy = true);
+            public abstract long? GetRowCount();
 
             public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null);
 
@@ -555,7 +555,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return true; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return _data.Count;
             }
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return (_data as ICollection<TRow>)?.Count;
             }
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount()
             {
                 return null;
             }
@@ -791,17 +791,17 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        internal static Schema.Column[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
+        internal static Schema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
             Contracts.AssertValue(schemaDefn);
-            var columns = new Schema.Column[schemaDefn.Columns.Length];
+            var columns = new Schema.DetachedColumn[schemaDefn.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var col = schemaDefn.Columns[i];
-                var meta = new Schema.Metadata.Builder();
+                var meta = new MetadataBuilder();
                 foreach (var kvp in col.Metadata)
-                    meta.Add(new Schema.Column(kvp.Value.Kind, kvp.Value.MetadataType, null), kvp.Value.GetGetterDelegate());
-                columns[i] = new Schema.Column(col.ColumnName, col.ColumnType, meta.GetMetadata());
+                    meta.Add(kvp.Value.Kind, kvp.Value.MetadataType, kvp.Value.GetGetterDelegate());
+                columns[i] = new Schema.DetachedColumn(col.ColumnName, col.ColumnType, meta.GetMetadata());
             }
 
             return columns;
@@ -955,11 +955,12 @@ namespace Microsoft.ML.Runtime.Api
         {
             var value = (string[])(object)Value;
             var n = Utils.Size(value);
-            dst = new VBuffer<ReadOnlyMemory<char>>(n, Utils.Size(dst.Values) < n ? new ReadOnlyMemory<char>[n] : dst.Values, dst.Indices);
+            var dstEditor = VBufferEditor.Create(ref dst, n);
 
             for (int i = 0; i < n; i++)
-                dst.Values[i] = value[i].AsMemory();
+                dstEditor.Values[i] = value[i].AsMemory();
 
+            dst = dstEditor.Commit();
         }
 
         private ValueGetter<VBuffer<TDst>> GetArrayGetter<TDst>()
@@ -968,9 +969,10 @@ namespace Microsoft.ML.Runtime.Api
             var n = Utils.Size(value);
             return (ref VBuffer<TDst> dst) =>
             {
-                dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values, dst.Indices);
+                var dstEditor = VBufferEditor.Create(ref dst, n);
                 if (value != null)
-                    Array.Copy(value, dst.Values, n);
+                    value.AsSpan(0, n).CopyTo(dstEditor.Values);
+                dst = dstEditor.Commit();
             };
         }
 

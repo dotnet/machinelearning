@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Transforms
         private readonly SchemaImpl _schemaImpl;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="UngroupTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -149,13 +150,13 @@ namespace Microsoft.ML.Transforms
             _schemaImpl.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // Row count is known if the input's row count is known, and pivot column sizes are fixed.
             var commonSize = _schemaImpl.GetCommonPivotColumnSize();
             if (commonSize > 0)
             {
-                long? srcRowCount = Source.GetRowCount(true);
+                long? srcRowCount = Source.GetRowCount();
                 if (srcRowCount.HasValue && srcRowCount.Value <= (long.MaxValue / commonSize))
                     return srcRowCount.Value * commonSize;
             }
@@ -205,7 +206,6 @@ namespace Microsoft.ML.Transforms
                 case MetadataUtils.Kinds.ScoreColumnSetId:
                 case MetadataUtils.Kinds.ScoreColumnKind:
                 case MetadataUtils.Kinds.ScoreValueKind:
-                case MetadataUtils.Kinds.HasMissingValues:
                 case MetadataUtils.Kinds.IsUserVisible:
                     return true;
                 default:
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms
                     _pivotIndex[info.Index] = i;
                 }
 
-                AsSchema = Runtime.Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             private static void CheckAndBind(IExceptionContext ectx, ISchema inputSchema,
@@ -631,18 +631,20 @@ namespace Microsoft.ML.Transforms
                             cachedIndex = 0;
                         }
 
+                        var rowValues = row.GetValues();
                         if (_pivotColPosition >= row.Length)
                             value = naValue;
                         else if (row.IsDense)
-                            value = row.Values[_pivotColPosition];
+                            value = rowValues[_pivotColPosition];
                         else
                         {
                             // The row is sparse.
-                            while (cachedIndex < row.Count && _pivotColPosition > row.Indices[cachedIndex])
+                            var rowIndices = row.GetIndices();
+                            while (cachedIndex < rowIndices.Length && _pivotColPosition > rowIndices[cachedIndex])
                                 cachedIndex++;
 
-                            if (cachedIndex < row.Count && _pivotColPosition == row.Indices[cachedIndex])
-                                value = row.Values[cachedIndex];
+                            if (cachedIndex < rowIndices.Length && _pivotColPosition == rowIndices[cachedIndex])
+                                value = rowValues[cachedIndex];
                             else
                                 value = default(T);
                         }

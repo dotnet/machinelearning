@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -37,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public delegate void SignatureBindableMapper(IPredictor predictor);
 
-    public sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
+    internal sealed class ScoreCommand : DataCommand.ImplBase<ScoreCommand.Arguments>
     {
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
                 maxScoreId = loader.Schema.GetMaxMetadataKind(out int colMax, MetadataUtils.Kinds.ScoreColumnSetId);
             ch.Assert(outputAllColumns || maxScoreId > 0); // score set IDs are one-based
             var cols = new List<int>();
-            for (int i = 0; i < loader.Schema.ColumnCount; i++)
+            for (int i = 0; i < loader.Schema.Count; i++)
             {
                 if (!Args.KeepHidden && loader.Schema.IsHidden(i))
                     continue;
@@ -232,7 +233,8 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public static class ScoreUtils
+    [BestFriend]
+    internal static class ScoreUtils
     {
         public static IDataScorerTransform GetScorer(IPredictor predictor, RoleMappedData data, IHostEnvironment env, RoleMappedSchema trainSchema)
         {
@@ -304,7 +306,7 @@ namespace Microsoft.ML.Runtime.Data
 
             ComponentCatalog.LoadableClassInfo info = null;
             ReadOnlyMemory<char> scoreKind = default;
-            if (mapper.Schema.ColumnCount > 0 &&
+            if (mapper.Schema.Count > 0 &&
                 mapper.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
                 !scoreKind.IsEmpty)
             {

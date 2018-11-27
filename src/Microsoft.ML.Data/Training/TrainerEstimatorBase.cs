@@ -51,7 +51,8 @@ namespace Microsoft.ML.Runtime.Training
 
         public abstract PredictionKind PredictionKind { get; }
 
-        public TrainerEstimatorBase(IHost host,
+        [BestFriend]
+        private protected TrainerEstimatorBase(IHost host,
             SchemaShape.Column feature,
             SchemaShape.Column label,
             SchemaShape.Column weight = null)
@@ -87,7 +88,7 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
-        public TModel Train(TrainContext context)
+        TModel ITrainer<TModel>.Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             return TrainModelCore(context);
@@ -145,18 +146,19 @@ namespace Microsoft.ML.Runtime.Training
                 validRoles = MakeRoles(cachedValid);
             }
 
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
-        protected abstract TModel TrainModelCore(TrainContext trainContext);
+        [BestFriend]
+        private protected abstract TModel TrainModelCore(TrainContext trainContext);
 
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         protected virtual RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
 
-        IPredictor ITrainer.Train(TrainContext context) => Train(context);
+        IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
     }
 
     /// <summary>

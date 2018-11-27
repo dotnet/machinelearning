@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -63,6 +64,8 @@ namespace Microsoft.ML.Runtime.Data
         bool CanSaveOnnx(OnnxContext ctx);
 
         bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
+
+        NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
     }
 
     public static class NormalizeUtils
