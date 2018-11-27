@@ -329,18 +329,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 base.CloneCore(state);
                 Contracts.Assert(state is AnomalyDetectionStateBase);
                 var stateLocal = state as AnomalyDetectionStateBase;
-                stateLocal.LogMartingaleUpdateBuffer = (FixedSizeQueue<Double>)LogMartingaleUpdateBuffer.Clone();
-                stateLocal.RawScoreBuffer = (FixedSizeQueue<Single>)RawScoreBuffer.Clone();
+                stateLocal.LogMartingaleUpdateBuffer = LogMartingaleUpdateBuffer.Clone();
+                stateLocal.RawScoreBuffer = RawScoreBuffer.Clone();
             }
 
             public AnomalyDetectionStateBase(ModelLoadContext ctx) : base(ctx)
             {
-                LogMartingaleUpdateBuffer = new FixedSizeQueue<double>(
-                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadDoubleArray());
-
-                RawScoreBuffer = new FixedSizeQueue<float>(
-                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
-
+                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(ctx.Reader);
+                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
                 _logMartingaleValue = ctx.Reader.ReadDouble();
                 _sumSquaredDist = ctx.Reader.ReadDouble();
                 _martingaleAlertCounter = ctx.Reader.ReadInt32();
@@ -349,15 +345,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public override void Save(ModelSaveContext ctx)
             {
                 base.Save(ctx);
-
-                ctx.Writer.Write(LogMartingaleUpdateBuffer.Capacity);
-                ctx.Writer.Write(LogMartingaleUpdateBuffer.StartIndex);
-                ctx.Writer.WriteDoubleArray(LogMartingaleUpdateBuffer.Buffer);
-
-                ctx.Writer.Write(RawScoreBuffer.Capacity);
-                ctx.Writer.Write(RawScoreBuffer.StartIndex);
-                ctx.Writer.WriteSingleArray(RawScoreBuffer.Buffer);
-
+                TimeSeriesUtils.SerializeFixedSizeQueue(LogMartingaleUpdateBuffer, ctx.Writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(RawScoreBuffer, ctx.Writer);
                 ctx.Writer.Write(_logMartingaleValue);
                 ctx.Writer.Write(_sumSquaredDist);
                 ctx.Writer.Write(_martingaleAlertCounter);

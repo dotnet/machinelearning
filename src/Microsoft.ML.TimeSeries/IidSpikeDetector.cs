@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new IidSpikeDetector(env, args).MakeDataTransform(input);
         }
 
-        public override IStatefulTransformer Clone()
+        internal override IStatefulTransformer Clone()
         {
             var clone = (IidSpikeDetector)MemberwiseClone();
             clone.StateRef = (State)clone.StateRef.Clone();

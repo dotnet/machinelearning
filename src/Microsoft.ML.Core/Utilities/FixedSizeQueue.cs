@@ -13,15 +13,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     ///  an item will result in discarding the least recently added item.
     /// </summary>
     [BestFriend]
-    internal sealed class FixedSizeQueue<T> : ICloneable
+    internal sealed class FixedSizeQueue<T>
     {
         private readonly T[] _array;
         private int _startIndex;
         private int _count;
-
-        public int StartIndex => _startIndex;
-
-        public T[] Buffer => _array;
 
         public FixedSizeQueue(int capacity)
         {
@@ -148,7 +144,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             AssertValid();
         }
 
-        public object Clone() => new FixedSizeQueue<T>(Capacity, StartIndex, Buffer);
+        public FixedSizeQueue<T> Clone()
+        {
+            var q = new FixedSizeQueue<T>(Capacity);
+            for (int index = 0; index < Count; index++)
+                AddLast(this[index]);
+
+            return q;
+        }
 
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// The base class for encapsulating the State object for sequential processing. This class implements a windowed buffer.
         /// </summary>
-        public abstract class StateBase : ICanSaveModel, ICloneable
+        public abstract class StateBase
         {
             // Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
             // access to the state class when inheriting from SequentialTransformerBase.
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             protected long PreviousPosition;
 
-            public StateBase(ModelLoadContext ctx)
+            protected StateBase(ModelLoadContext ctx)
             {
                 WindowSize = ctx.Reader.ReadInt32();
                 InitialWindowSize = ctx.Reader.ReadInt32();
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public abstract void Consume(TInput value);
 
-            public object Clone()
+            public StateBase Clone()
             {
                 var clone = (StateBase)MemberwiseClone();
                 CloneCore(clone);
@@ -235,8 +235,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public virtual void CloneCore(StateBase state)
             {
-                state.WindowedBuffer = (FixedSizeQueue<TInput>)WindowedBuffer.Clone();
-                state.InitialWindowedBuffer = (FixedSizeQueue<TInput>)InitialWindowedBuffer.Clone();
+                state.WindowedBuffer = WindowedBuffer.Clone();
+                state.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
             }
         }
 
@@ -363,7 +363,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new TimeSeriesRowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema));
         }
 
-        public virtual IStatefulTransformer Clone() => (SequentialTransformerBase<TInput, TOutput, TState>)MemberwiseClone();
+        internal virtual IStatefulTransformer Clone() => (SequentialTransformerBase<TInput, TOutput, TState>)MemberwiseClone();
+
+        IStatefulTransformer IStatefulTransformer.Clone() => Clone();
 
         public sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
         {
@@ -388,8 +390,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void CloneStateInMapper() => _mapper.CloneState();
 
-            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
-    Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
+            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName,
+                string outputColumnName, Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
             {
                 var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
                 inputSchema[0].ColumnName = inputColumnName;

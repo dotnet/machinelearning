@@ -7,6 +7,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -67,24 +68,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public State(ModelLoadContext ctx) : base(ctx)
             {
-                WindowedBuffer = new FixedSizeQueue<float>(
-                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
-
-                InitialWindowedBuffer = new FixedSizeQueue<float>(
-                    ctx.Reader.ReadInt32(), ctx.Reader.ReadInt32(), ctx.Reader.ReadSingleArray());
+                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
+                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
             }
 
             public override void Save(ModelSaveContext ctx)
             {
                 base.Save(ctx);
-
-                ctx.Writer.Write(WindowedBuffer.Capacity);
-                ctx.Writer.Write(WindowedBuffer.StartIndex);
-                ctx.Writer.WriteSingleArray(WindowedBuffer.Buffer);
-
-                ctx.Writer.Write(InitialWindowedBuffer.Capacity);
-                ctx.Writer.Write(InitialWindowedBuffer.StartIndex);
-                ctx.Writer.WriteSingleArray(InitialWindowedBuffer.Buffer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, ctx.Writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, ctx.Writer);
             }
 
             public override void CloneCore(StateBase state)
@@ -92,8 +84,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 base.CloneCore(state);
                 Contracts.Assert(state is State);
                 var stateLocal = state as State;
-                stateLocal.WindowedBuffer = (FixedSizeQueue<Single>)WindowedBuffer.Clone();
-                stateLocal.InitialWindowedBuffer = (FixedSizeQueue<Single>)InitialWindowedBuffer.Clone();
+                stateLocal.WindowedBuffer = WindowedBuffer.Clone();
+                stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
             }
 
             private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)

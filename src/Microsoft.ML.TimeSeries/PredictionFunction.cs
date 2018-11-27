@@ -14,18 +14,18 @@ using System.Linq;
 
 namespace Microsoft.ML.TimeSeries
 {
-    public interface IStatefulRowToRowMapper : IRowToRowMapper
+    internal interface IStatefulRowToRowMapper : IRowToRowMapper
     {
     }
 
-    public interface IStatefulTransformer : ITransformer
+    internal interface IStatefulTransformer : ITransformer
     {
         IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema);
 
         IStatefulTransformer Clone();
     }
 
-    public interface IStatefulRow : IRow
+    internal interface IStatefulRow : IRow
     {
         Action<long> GetPinger();
     }
@@ -56,12 +56,12 @@ namespace Microsoft.ML.TimeSeries
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
             using (var file = File.Create(modelPath))
-                if (Transformer is ITransformerAccessor)
+                if (Transformer is ITransformerChainAccessor )
                 {
 
                     new TransformerChain<ITransformer>
-                    (((ITransformerAccessor)Transformer).Transformers,
-                    ((ITransformerAccessor)Transformer).Scopes).SaveTo(env, file);
+                    (((ITransformerChainAccessor )Transformer).Transformers,
+                    ((ITransformerChainAccessor )Transformer).Scopes).SaveTo(env, file);
                 }
                 else
                     Transformer.SaveTo(env, file);
@@ -71,9 +71,9 @@ namespace Microsoft.ML.TimeSeries
         {
             ITransformer[] transformersClone = null;
             TransformerScope[] scopeClone = null;
-            if (transformer is ITransformerAccessor)
+            if (transformer is ITransformerChainAccessor )
             {
-                ITransformerAccessor accessor = (ITransformerAccessor)transformer;
+                ITransformerChainAccessor  accessor = (ITransformerChainAccessor )transformer;
                 transformersClone = accessor.Transformers.Select(x => x).ToArray();
                 scopeClone = accessor.Scopes.Select(x => x).ToArray();
                 int index = 0;
@@ -94,7 +94,7 @@ namespace Microsoft.ML.TimeSeries
 
         internal override ITransformer ProcessTransformer(ITransformer transformer) => CloneTransformers(transformer);
 
-        public IRow GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
+        internal IRow GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
             List<IStatefulRow> rows, out Action disposer)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -180,8 +180,8 @@ namespace Microsoft.ML.TimeSeries
 
         private bool IsRowToRowMapper(ITransformer transformer)
         {
-            if (transformer is ITransformerAccessor)
-                return ((ITransformerAccessor)transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
+            if (transformer is ITransformerChainAccessor )
+                return ((ITransformerChainAccessor )transformer).Transformers.All(t => t.IsRowToRowMapper || t is IStatefulTransformer);
             else
                 return transformer.IsRowToRowMapper || transformer is IStatefulTransformer;
         }
@@ -192,15 +192,15 @@ namespace Microsoft.ML.TimeSeries
             Contracts.Check(IsRowToRowMapper(InputTransformer), nameof(GetRowToRowMapper) +
                 " method called despite " + nameof(IsRowToRowMapper) + " being false. or transformer not being " + nameof(IStatefulTransformer));
 
-            if (!(InputTransformer is ITransformerAccessor))
+            if (!(InputTransformer is ITransformerChainAccessor ))
                 if (InputTransformer is IStatefulTransformer)
                     return ((IStatefulTransformer)InputTransformer).GetStatefulRowToRowMapper(inputSchema);
                 else
                     return InputTransformer.GetRowToRowMapper(inputSchema);
 
-            Contracts.Check(InputTransformer is ITransformerAccessor);
+            Contracts.Check(InputTransformer is ITransformerChainAccessor );
 
-            var transformers = ((ITransformerAccessor)InputTransformer).Transformers;
+            var transformers = ((ITransformerChainAccessor )InputTransformer).Transformers;
             IRowToRowMapper[] mappers = new IRowToRowMapper[transformers.Length];
             Schema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)

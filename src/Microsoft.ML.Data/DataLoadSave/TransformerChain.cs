@@ -36,8 +36,12 @@ namespace Microsoft.ML.Data
         Everything = Training | Testing | Scoring
     }
 
+    /// <summary>
+    /// Used to determine if <see cref="ITransformer"/> object is of type <see cref="TransformerChain"/>
+    /// so that it's inter fields can be accessed.
+    /// </summary>
     [BestFriend]
-    internal interface ITransformerAccessor
+    internal interface ITransformerChainAccessor
     {
         ITransformer[] Transformers { get; }
         TransformerScope[] Scopes { get; }
@@ -47,22 +51,20 @@ namespace Microsoft.ML.Data
     /// A chain of transformers (possibly empty) that end with a <typeparamref name="TLastTransformer"/>.
     /// For an empty chain, <typeparamref name="TLastTransformer"/> is always <see cref="ITransformer"/>.
     /// </summary>
-    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>, ITransformerAccessor
+    public sealed class TransformerChain<TLastTransformer> : ITransformer, ICanSaveModel, IEnumerable<ITransformer>, ITransformerChainAccessor
     where TLastTransformer : class, ITransformer
     {
-        [BestFriend]
-        internal readonly ITransformer[] Transformers;
-        [BestFriend]
-        internal readonly TransformerScope[] Scopes;
+        private readonly ITransformer[] _transformers;
+        private readonly TransformerScope[] _scopes;
         public readonly TLastTransformer LastTransformer;
 
         private const string TransformDirTemplate = "Transform_{0:000}";
 
-        public bool IsRowToRowMapper => Transformers.All(t => t.IsRowToRowMapper);
+        public bool IsRowToRowMapper => _transformers.All(t => t.IsRowToRowMapper);
 
-        ITransformer[] ITransformerAccessor.Transformers => Transformers;
+        ITransformer[] ITransformerChainAccessor.Transformers => _transformers;
 
-        TransformerScope[] ITransformerAccessor.Scopes => Scopes;
+        TransformerScope[] ITransformerChainAccessor.Scopes => _scopes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -85,12 +87,12 @@ namespace Microsoft.ML.Data
             Contracts.CheckValueOrNull(transformers);
             Contracts.CheckValueOrNull(scopes);
 
-            Transformers = transformers?.ToArray() ?? new ITransformer[0];
-            Scopes = scopes?.ToArray() ?? new TransformerScope[0];
+            _transformers = transformers?.ToArray() ?? new ITransformer[0];
+            _scopes = scopes?.ToArray() ?? new TransformerScope[0];
             LastTransformer = transformers.LastOrDefault() as TLastTransformer;
 
-            Contracts.Check((Transformers.Length > 0) == (LastTransformer != null));
-            Contracts.Check(Transformers.Length == Scopes.Length);
+            Contracts.Check((_transformers.Length > 0) == (LastTransformer != null));
+            Contracts.Check(_transformers.Length == _scopes.Length);
         }
 
         /// <summary>
@@ -104,14 +106,14 @@ namespace Microsoft.ML.Data
 
             if (Utils.Size(transformers) == 0)
             {
-                Transformers = new ITransformer[0];
-                Scopes = new TransformerScope[0];
+                _transformers = new ITransformer[0];
+                _scopes = new TransformerScope[0];
                 LastTransformer = null;
             }
             else
             {
-                Transformers = transformers.ToArray();
-                Scopes = transformers.Select(x => TransformerScope.Everything).ToArray();
+                _transformers = transformers.ToArray();
+                _scopes = transformers.Select(x => TransformerScope.Everything).ToArray();
                 LastTransformer = transformers.Last() as TLastTransformer;
                 Contracts.Check(LastTransformer != null);
             }
@@ -122,7 +124,7 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
             var s = inputSchema;
-            foreach (var xf in Transformers)
+            foreach (var xf in _transformers)
                 s = xf.GetOutputSchema(s);
             return s;
         }
@@ -136,7 +138,7 @@ namespace Microsoft.ML.Data
             GetOutputSchema(input.Schema);
 
             var dv = input;
-            foreach (var xf in Transformers)
+            foreach (var xf in _transformers)
                 dv = xf.Transform(dv);
             return dv;
         }
@@ -145,12 +147,12 @@ namespace Microsoft.ML.Data
         {
             var xfs = new List<ITransformer>();
             var scopes = new List<TransformerScope>();
-            for (int i = 0; i < Transformers.Length; i++)
+            for (int i = 0; i < _transformers.Length; i++)
             {
-                if ((Scopes[i] & scopeFilter) != TransformerScope.None)
+                if ((_scopes[i] & scopeFilter) != TransformerScope.None)
                 {
-                    xfs.Add(Transformers[i]);
-                    scopes.Add(Scopes[i]);
+                    xfs.Add(_transformers[i]);
+                    scopes.Add(_scopes[i]);
                 }
             }
             return new TransformerChain<ITransformer>(xfs.ToArray(), scopes.ToArray());
@@ -160,7 +162,7 @@ namespace Microsoft.ML.Data
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
-            return new TransformerChain<TNewLast>(Transformers.AppendElement(transformer), Scopes.AppendElement(scope));
+            return new TransformerChain<TNewLast>(_transformers.AppendElement(transformer), _scopes.AppendElement(scope));
         }
 
         public void Save(ModelSaveContext ctx)
@@ -168,13 +170,13 @@ namespace Microsoft.ML.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.Writer.Write(Transformers.Length);
+            ctx.Writer.Write(_transformers.Length);
 
-            for (int i = 0; i < Transformers.Length; i++)
+            for (int i = 0; i < _transformers.Length; i++)
             {
-                ctx.Writer.Write((int)Scopes[i]);
+                ctx.Writer.Write((int)_scopes[i]);
                 var dirName = string.Format(TransformDirTemplate, i);
-                ctx.SaveModel(Transformers[i], dirName);
+                ctx.SaveModel(_transformers[i], dirName);
             }
         }
 
@@ -184,16 +186,16 @@ namespace Microsoft.ML.Data
         internal TransformerChain(IHostEnvironment env, ModelLoadContext ctx)
         {
             int len = ctx.Reader.ReadInt32();
-            Transformers = new ITransformer[len];
-            Scopes = new TransformerScope[len];
+            _transformers = new ITransformer[len];
+            _scopes = new TransformerScope[len];
             for (int i = 0; i < len; i++)
             {
-                Scopes[i] = (TransformerScope)(ctx.Reader.ReadInt32());
+                _scopes[i] = (TransformerScope)(ctx.Reader.ReadInt32());
                 var dirName = string.Format(TransformDirTemplate, i);
-                ctx.LoadModel<ITransformer, SignatureLoadModel>(env, out Transformers[i], dirName);
+                ctx.LoadModel<ITransformer, SignatureLoadModel>(env, out _transformers[i], dirName);
             }
             if (len > 0)
-                LastTransformer = Transformers[len - 1] as TLastTransformer;
+                LastTransformer = _transformers[len - 1] as TLastTransformer;
             else
                 LastTransformer = null;
         }
@@ -211,7 +213,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        public IEnumerator<ITransformer> GetEnumerator() => ((IEnumerable<ITransformer>)Transformers).GetEnumerator();
+        public IEnumerator<ITransformer> GetEnumerator() => ((IEnumerable<ITransformer>)_transformers).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -220,11 +222,11 @@ namespace Microsoft.ML.Data
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
 
-            IRowToRowMapper[] mappers = new IRowToRowMapper[Transformers.Length];
+            IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
             Schema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
-                mappers[i] = Transformers[i].GetRowToRowMapper(schema);
+                mappers[i] = _transformers[i].GetRowToRowMapper(schema);
                 schema = mappers[i].Schema;
             }
             return new CompositeRowToRowMapper(inputSchema, mappers);

@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new SsaChangePointDetector(env, args, input).MakeDataTransform(input);
         }
 
-        public override IStatefulTransformer Clone()
+        internal override IStatefulTransformer Clone()
         {
             var clone = (SsaChangePointDetector)MemberwiseClone();
             clone.Model = clone.Model.Clone();

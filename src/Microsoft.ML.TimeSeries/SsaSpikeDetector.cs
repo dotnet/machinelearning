@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new SsaSpikeDetector(env, ctx).MakeDataTransform(input);
         }
 
-        public override IStatefulTransformer Clone()
+        internal override IStatefulTransformer Clone()
         {
             var clone = (SsaSpikeDetector)MemberwiseClone();
             clone.Model = clone.Model.Clone();

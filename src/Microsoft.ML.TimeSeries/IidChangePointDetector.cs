@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new IidChangePointDetector(env, args).MakeDataTransform(input);
         }
 
-        public override IStatefulTransformer Clone()
+        internal override IStatefulTransformer Clone()
         {
             var clone = (IidChangePointDetector)MemberwiseClone();
             clone.StateRef = (State)clone.StateRef.Clone();
