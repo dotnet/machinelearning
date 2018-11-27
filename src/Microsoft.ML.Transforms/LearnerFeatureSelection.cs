@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 
@@ -108,31 +109,25 @@ namespace Microsoft.ML.Transforms
 
                 ch.Info(MessageSensitivity.Schema, "Selected {0} slots out of {1} in column '{2}'", selectedCount, scores.Length, args.FeatureColumn);
 
-                var dsArgs = new DropSlotsTransform.Arguments();
-                dsArgs.Column = new[] { column };
-                return new DropSlotsTransform(host, dsArgs, input);
+                return new SlotsDroppingTransformer(host, column).Transform(input) as IDataTransform;
             }
         }
 
-        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
+        private static SlotsDroppingTransformer.ColumnInfo CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.
             // 2. If it's less, we assume that the rest of the scores are zero and we drop the slots.
             // 3. If it's greater, the drop slots ignores the ranges that are outside the valid range of indices for the column.
             Contracts.Assert(args.Threshold.HasValue != args.NumSlotsToKeep.HasValue);
-            var col = new DropSlotsTransform.Column();
+            var col = new SlotsDroppingTransformer.Column();
             col.Source = args.FeatureColumn;
             selectedCount = 0;
             var scoresValues = scores.GetValues();
 
             // Degenerate case, dropping all slots.
             if (scoresValues.Length == 0)
-            {
-                var range = new DropSlotsTransform.Range();
-                col.Slots = new DropSlotsTransform.Range[] { range };
-                return col;
-            }
+                return new SlotsDroppingTransformer.ColumnInfo(args.FeatureColumn);
 
             int tiedScoresToKeep;
             float threshold;
@@ -147,7 +142,7 @@ namespace Microsoft.ML.Transforms
                 threshold = ComputeThreshold(scoresValues, args.NumSlotsToKeep.Value, out tiedScoresToKeep);
             }
 
-            var slots = new List<DropSlotsTransform.Range>();
+            var slots = new List<(int min, int? max)>();
             for (int i = 0; i < scoresValues.Length; i++)
             {
                 var score = Math.Abs(scoresValues[i]);
@@ -163,8 +158,7 @@ namespace Microsoft.ML.Transforms
                     continue;
                 }
 
-                var range = new DropSlotsTransform.Range();
-                range.Min = i;
+                int min = i;
                 while (++i < scoresValues.Length)
                 {
                     score = Math.Abs(scoresValues[i]);
@@ -180,8 +174,8 @@ namespace Microsoft.ML.Transforms
                         break;
                     }
                 }
-                range.Max = i - 1;
-                slots.Add(range);
+                int max = i - 1;
+                slots.Add((min, max));
             }
 
             if (!scores.IsDense)
@@ -192,14 +186,14 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < count; i++)
                 {
                     var range = slots[i];
-                    Contracts.Assert(range.Max != null);
-                    var min = range.Min;
-                    var max = range.Max.Value;
+                    Contracts.Assert(range.max != null);
+                    var min = range.min;
+                    var max = range.max.Value;
                     Contracts.Assert(min <= max);
                     Contracts.Assert(max < scoresValues.Length);
 
-                    range.Min = min == 0 ? 0 : scoresIndices[min - 1] + 1;
-                    range.Max = max == scoresIndices.Length - 1 ? scores.Length - 1 : scoresIndices[max + 1] - 1;
+                    range.min = min == 0 ? 0 : scoresIndices[min - 1] + 1;
+                    range.max = max == scoresIndices.Length - 1 ? scores.Length - 1 : scoresIndices[max + 1] - 1;
 
                     // Add the gaps before this range.
                     for (; ii < min; ii++)
@@ -208,10 +202,7 @@ namespace Microsoft.ML.Transforms
                         var gapMax = scoresIndices[ii] - 1;
                         if (gapMin <= gapMax)
                         {
-                            var gap = new DropSlotsTransform.Range();
-                            gap.Min = gapMin;
-                            gap.Max = gapMax;
-                            slots.Add(gap);
+                            slots.Add((gapMin, gapMax));
                         }
                     }
                     ii = max;
@@ -224,24 +215,16 @@ namespace Microsoft.ML.Transforms
                     var gapMax = ii == scoresIndices.Length ? scores.Length - 1 : scoresIndices[ii] - 1;
                     if (gapMin <= gapMax)
                     {
-                        var gap = new DropSlotsTransform.Range();
-                        gap.Min = gapMin;
-                        gap.Max = gapMax;
-                        slots.Add(gap);
+                        slots.Add((gapMin, gapMax));
                     }
                 }
 
                 // Remove all slots past scores.Length.
-                var lastRange = new DropSlotsTransform.Range();
-                lastRange.Min = scores.Length;
-                slots.Add(lastRange);
+                slots.Add((scores.Length, null));
             }
 
             if (slots.Count > 0)
-            {
-                col.Slots = slots.ToArray();
-                return col;
-            }
+                return new SlotsDroppingTransformer.ColumnInfo(args.FeatureColumn, slots: slots.ToArray());
 
             return null;
         }

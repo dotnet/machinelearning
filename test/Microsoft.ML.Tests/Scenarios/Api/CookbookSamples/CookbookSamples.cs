@@ -13,6 +13,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;

@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Projections;
@@ -121,7 +122,248 @@ namespace Microsoft.ML.StaticPipe
             float scale = LpNormalizingEstimatorBase.Defaults.Scale) => new OutPipelineColumn(input, subMean, useStdDev, scale);
     }
 
-    public static class CategoricalStaticExtensions
+    /// <summary>
+    /// Extensions for statically typed <see cref="MutualInformationFeatureSelectorExtensions"/>.
+    /// </summary>
+    public static class MutualInformationFeatureSelectorExtensions
+    {
+        private sealed class OutPipelineColumn<T> : Vector<T>
+        {
+            public readonly Vector<T> Input;
+            public readonly PipelineColumn LabelColumn;
+
+            public OutPipelineColumn(Vector<T> input, Scalar<float> labelColumn, int slotsInOutput, int numBins)
+                : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
+            {
+                Input = input;
+                LabelColumn = labelColumn;
+            }
+
+            public OutPipelineColumn(Vector<T> input, Scalar<bool> labelColumn, int slotsInOutput, int numBins)
+               : base(new Reconciler<T>(labelColumn, slotsInOutput, numBins), input, labelColumn)
+            {
+                Input = input;
+                LabelColumn = labelColumn;
+            }
+        }
+
+        private sealed class Reconciler<T> : EstimatorReconciler
+        {
+            private readonly PipelineColumn _labelColumn;
+            private readonly int _slotsInOutput;
+            private readonly int _numBins;
+
+            public Reconciler(PipelineColumn labelColumn, int slotsInOutput, int numBins)
+            {
+                _labelColumn = labelColumn;
+                _slotsInOutput = slotsInOutput;
+                _numBins = numBins;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn<T>)outCol).Input], outputNames[outCol]));
+
+                return new MutualInformationFeatureSelectingEstimator(env, inputNames[_labelColumn], _slotsInOutput, _numBins, pairs.ToArray());
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
+            this Vector<float> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<float> SelectFeaturesBasedOnMutualInformation(
+            this Vector<float> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
+            this Vector<double> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<double> SelectFeaturesBasedOnMutualInformation(
+            this Vector<double> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
+            this Vector<bool> input,
+            Scalar<bool> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="labelColumn">Name of the column to use for labels.</param>
+        /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
+        /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
+            this Vector<bool> input,
+            Scalar<float> labelColumn,
+            int slotsInOutput = MutualInformationFeatureSelectingEstimator.Defaults.SlotsInOutput,
+            int numBins = MutualInformationFeatureSelectingEstimator.Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
+    }
+
+    /// <summary>
+    /// Extensions for statically typed <see cref="CountFeatureSelectorExtensions"/>.
+    /// </summary>
+    public static class CountFeatureSelectorExtensions
+    {
+        private sealed class OutPipelineColumn<T> : Vector<T>
+        {
+            public readonly Vector<T> Input;
+
+            public OutPipelineColumn(Vector<T> input, long count)
+                : base(new Reconciler<T>(count), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler<T> : EstimatorReconciler
+        {
+            private readonly long _count;
+
+            public Reconciler(long count)
+            {
+                _count = count;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; i++)
+                    infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], outputNames[toOutput[i]], _count);
+
+                return new CountFeatureSelectingEstimator(env, infos);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
+            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<float>(input, count);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
+            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<double>(input, count);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
+        /// <param name="input">Name of the input column.</param>
+        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/FeatureSelectionTransform.cs?range=1-5,9-120)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
+            long count = CountFeatureSelectingEstimator.Defaults.Count) => new OutPipelineColumn<string>(input, count);
+    }
+        public static class CategoricalStaticExtensions
     {
         public enum OneHotVectorOutputKind : byte
         {

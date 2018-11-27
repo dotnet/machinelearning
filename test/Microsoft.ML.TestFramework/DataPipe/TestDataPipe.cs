@@ -459,7 +459,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
-                    // This tests the path where a no-op transform is created.
+                    // This tests the path where a copycolumn transform is created.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
                     // This tests counts greater than 1
                     "xf=KeyToVector{col=Key}",
