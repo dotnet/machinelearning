@@ -445,5 +445,20 @@ namespace Microsoft.ML.Transforms.Categorical
             return new ImplVector<string>(input, new Config(outputKind, hashBits, seed, ordered, invertHash));
         }
 
+        /// <summary>
+        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
+        /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
+        /// <param name="hashBits">Amount of bits to use for hashing.</param>
+        /// <param name="seed">Seed value used for hashing.</param>
+        /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+        public static Vector<float> OneHotHashEncoding(this VarVector<string> input, OneHotHashVectorOutputKind outputKind = DefOut,
+            int hashBits = DefHashBits, uint seed = DefSeed, bool ordered = DefOrdered, int invertHash = DefInvertHash)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new ImplVector<string>(input, new Config(outputKind, hashBits, seed, ordered, invertHash));
+        }
     }
 }
