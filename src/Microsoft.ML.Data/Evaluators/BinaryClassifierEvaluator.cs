@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.Runtime.Data
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
                 colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            fold = new ColumnsCopyingTransformer(Host, cols).Transform(fold);
+            fold = new ColumnCopyingTransformer(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
             fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());

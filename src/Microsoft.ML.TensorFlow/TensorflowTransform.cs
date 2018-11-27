@@ -931,7 +931,9 @@ namespace Microsoft.ML.Transforms
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />" })]
+            XmlInclude = new[] {
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />",
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name=""TensorflowTransform""]/*' />"})]
         public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

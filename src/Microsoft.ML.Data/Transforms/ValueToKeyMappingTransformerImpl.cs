@@ -12,7 +12,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     public sealed partial class ValueToKeyMappingTransformer
     {

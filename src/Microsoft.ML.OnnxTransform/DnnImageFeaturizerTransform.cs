@@ -46,14 +46,14 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/>s and three <see cref="ColumnsCopyingEstimator"/>
+    /// The Dnn Image Featurizer is just a wrapper around two <see cref="OnnxScoringEstimator"/>s and three <see cref="ColumnCopyingEstimator"/>
     /// with present pretrained DNN models. The ColumnsCopying are there to allow arbitrary column input and output names, as by default
     /// the ONNXTransform requires the names of the columns to be identical to the names of the ONNX model nodes.
     /// Note that because of this, it only works on Windows machines as that is a constraint of the OnnxTransform.
     /// </summary>
-    public sealed class DnnImageFeaturizerEstimator : IEstimator<TransformerChain<ColumnsCopyingTransformer>>
+    public sealed class DnnImageFeaturizerEstimator : IEstimator<TransformerChain<ColumnCopyingTransformer>>
     {
-        private readonly EstimatorChain<ColumnsCopyingTransformer> _modelChain;
+        private readonly EstimatorChain<ColumnCopyingTransformer> _modelChain;
 
         /// <summary>
         /// Constructor for the estimator for a DnnImageFeaturizer transform.
@@ -61,12 +61,12 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">Host environment.</param>
         /// <param name="modelFactory">An extension method on the <see cref="DnnImageModelSelector"/> that creates a chain of two
         /// <see cref="OnnxScoringEstimator"/>s (one for preprocessing and one with a pretrained image DNN) with specific models
-        /// included in a package together with that extension method. It also contains three <see cref="ColumnsCopyingEstimator"/>s
+        /// included in a package together with that extension method. It also contains three <see cref="ColumnCopyingEstimator"/>s
         /// to allow arbitrary column naming, as the ONNXEstimators require very specific naming based on the models.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <param name="inputColumn">inputColumn column name.</param>
         /// <param name="outputColumn">Output column name.</param>
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnsCopyingTransformer>> modelFactory, string inputColumn, string outputColumn)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory, string inputColumn, string outputColumn)
         {
             _modelChain = modelFactory( new DnnImageFeaturizerInput(env, inputColumn, outputColumn, new DnnImageModelSelector()));
         }
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Transforms
         /// Note that OnnxEstimator which this is based on is a trivial estimator, so this does not do any actual training,
         /// just verifies the schema.
         /// </summary>
-        public TransformerChain<ColumnsCopyingTransformer> Fit(IDataView input)
+        public TransformerChain<ColumnCopyingTransformer> Fit(IDataView input)
         {
             return _modelChain.Fit(input);
         }
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<float> input, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnsCopyingTransformer>> modelFactory)
+            public OutColumn(Vector<float> input, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory)
                 : base(new Reconciler(modelFactory), input)
             {
                 Input = input;
@@ -101,9 +101,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly Func<DnnImageFeaturizerInput, EstimatorChain<ColumnsCopyingTransformer>> _modelFactory;
+            private readonly Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> _modelFactory;
 
-            public Reconciler(Func<DnnImageFeaturizerInput, EstimatorChain<ColumnsCopyingTransformer>> modelFactory)
+            public Reconciler(Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory)
             {
                 _modelFactory = modelFactory;
             }
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Transforms
         /// included in a package together with that extension method.
         /// For an example, see Microsoft.ML.DnnImageFeaturizer.ResNet18 </param>
         /// <returns>A vector of float feature weights based on the input image.</returns>
-        public static Vector<float> DnnImageFeaturizer(this Vector<float> input, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnsCopyingTransformer>> modelFactory)
+        public static Vector<float> DnnImageFeaturizer(this Vector<float> input, Func<DnnImageFeaturizerInput, EstimatorChain<ColumnCopyingTransformer>> modelFactory)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelFactory);

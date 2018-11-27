@@ -222,7 +222,32 @@ namespace Microsoft.ML.Trainers.Online
 
         protected override bool NeedCalibration => true;
 
-        public LinearSvm(IHostEnvironment env, Arguments args)
+        /// <summary>
+        /// Initializes a new instance of <see cref="LinearSvm"/>.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightsColumn">The optional name of the weights column.</param>
+        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public LinearSvm(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weightsColumn = null,
+            int numIterations = Arguments.OnlineDefaultArgs.NumIterations,
+            Action<Arguments> advancedSettings = null)
+            :this(env, InvokeAdvanced(advancedSettings, new Arguments
+            {
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
+                InitialWeights = weightsColumn,
+                NumIterations = numIterations,
+            }))
+        {
+        }
+
+        internal LinearSvm(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             Contracts.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), UserErrorPositive);
