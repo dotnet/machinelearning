@@ -84,14 +84,15 @@ namespace Microsoft.ML.StaticPipe
     /// </summary>
     public static class IidSpikeStaticExtensions
     {
-        private sealed class OutColumn : Vector<float>
+        private sealed class OutColumn : Vector<double>
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<float> input,
+            public OutColumn(Scalar<float> input,
                 int confidence,
-                int pvalueHistoryLength)
-                : base(new Reconciler(confidence, pvalueHistoryLength), input)
+                int pvalueHistoryLength,
+                IidBase.AnomalySide side)
+                : base(new Reconciler(confidence, pvalueHistoryLength, side), input)
             {
                 Input = input;
             }
@@ -101,13 +102,16 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _confidence;
             private readonly int _pvalueHistoryLength;
+            private readonly IidBase.AnomalySide _side;
 
             public Reconciler(
                 int confidence,
-                int pvalueHistoryLength)
+                int pvalueHistoryLength,
+                IidBase.AnomalySide side)
             {
                 _confidence = confidence;
                 _pvalueHistoryLength = pvalueHistoryLength;
+                _side = side;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -122,11 +126,17 @@ namespace Microsoft.ML.StaticPipe
                     inputNames[outCol.Input],
                     outputNames[outCol],
                     _confidence,
-                    _pvalueHistoryLength);
+                    _pvalueHistoryLength,
+                    _side);
             }
         }
+        public static Vector<double> IidSpikeDetect(
+            this Scalar<float> input,
+            int confidence,
+            int pvalueHistoryLength,
+            IidBase.AnomalySide side = IidBase.AnomalySide.TwoSided
+            ) => new OutColumn(input, confidence, pvalueHistoryLength, side);
     }
-
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
