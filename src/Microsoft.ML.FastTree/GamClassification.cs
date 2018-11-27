@@ -23,9 +23,9 @@ using System.Threading.Tasks;
     BinaryClassificationGamTrainer.LoadNameValue,
     BinaryClassificationGamTrainer.ShortName, DocName = "trainer/GAM.md")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(BinaryClassGamPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(BinaryClassificationGamPredictor), null, typeof(SignatureLoadModel),
     "GAM Binary Class Predictor",
-    BinaryClassGamPredictor.LoaderSignature)]
+    BinaryClassificationGamPredictor.LoaderSignature)]
 
 namespace Microsoft.ML.Trainers.FastTree
 {
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Trainers.FastTree
         private protected override IPredictorProducing<float> TrainModelCore(TrainContext context)
         {
             TrainBase(context);
-            var predictor = new BinaryClassGamPredictor(Host, InputLength, TrainSet,
+            var predictor = new BinaryClassificationGamPredictor(Host, InputLength, TrainSet,
                 MeanEffect, BinEffects, FeatureMap);
             var calibrator = new PlattCalibrator(Host, -1.0 * _sigmoidParameter, 0);
             return new CalibratedPredictor(Host, predictor, calibrator);
@@ -157,16 +157,16 @@ namespace Microsoft.ML.Trainers.FastTree
         }
     }
 
-    public class BinaryClassGamPredictor : GamPredictorBase, IPredictorProducing<float>
+    public class BinaryClassificationGamPredictor : GamPredictorBase, IPredictorProducing<float>
     {
         public const string LoaderSignature = "BinaryClassGamPredictor";
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public BinaryClassGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset,
+        public BinaryClassificationGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset,
             double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, LoaderSignature, inputLength, trainset, meanEffect, binEffects, featureMap) { }
 
-        private BinaryClassGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private BinaryClassificationGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx) { }
 
         public static VersionInfo GetVersionInfo()
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(BinaryClassGamPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(BinaryClassificationGamPredictor).Assembly.FullName);
         }
 
         public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Trainers.FastTree
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            var predictor = new BinaryClassGamPredictor(env, ctx);
+            var predictor = new BinaryClassificationGamPredictor(env, ctx);
             ICalibrator calibrator;
             ctx.LoadModelOrNull<ICalibrator, SignatureLoadModel>(env, out calibrator, @"Calibrator");
             if (calibrator == null)

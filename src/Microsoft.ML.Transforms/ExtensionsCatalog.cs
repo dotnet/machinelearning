@@ -61,53 +61,5 @@ namespace Microsoft.ML
         /// <param name="columns">The name of the columns to use, and per-column transformation configuraiton.</param>
         public static MissingValueReplacingEstimator ReplaceMissingValues(this TransformsCatalog catalog, params MissingValueReplacingTransformer.ColumnInfo[] columns)
             => new MissingValueReplacingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="catalog">The categorical transform's catalog.</param>
-        /// <param name="inputColumn">The input column to apply feature selection on.</param>
-        /// <param name="outputColumn">The output column. Null means <paramref name="inputColumn"/> is used.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static CountFeatureSelector CountFeatures(this TransformsCatalog catalog,
-            string inputColumn,
-            string outputColumn = null,
-            long count = CountFeatureSelectingTransformer.Defaults.Count)
-            => new CountFeatureSelector(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        /// <param name="columns">Columns to use for feature selection.</param>
-        public static CountFeatureSelector CountFeatures(this TransformsCatalog catalog,
-            (string input, string output)[] columns,
-            long count = CountFeatureSelectingTransformer.Defaults.Count)
-            => new CountFeatureSelector(CatalogUtils.GetEnvironment(catalog), columns, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="inputColumn">The input column to apply feature selection on.</param>
-        /// <param name="outputColumn">The output column. Null means <paramref name="inputColumn"/> is used.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
-        public static MutualInformationFeatureSelector SelectFeaturesWithMutualInformation(this TransformsCatalog catalog,
-            string inputColumn,
-            string outputColumn = null,
-            string labelColumn = DefaultColumnNames.Label,
-            int slotsInOutput = MutualInformationFeatureSelectionTransform.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionTransform.Defaults.NumBins)
-            => new MutualInformationFeatureSelector(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, labelColumn, slotsInOutput, numBins);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
-        /// <param name="catalog">The transform extensions' catalog.</param>
-        /// <param name="columns">Columns to use for feature selection.</param>
-        /// <param name="labelColumn">Column to use for labels.</param>
-        /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
-        public static MutualInformationFeatureSelector SelectFeaturesWithMutualInformation(this TransformsCatalog catalog,
-            (string input, string output)[] columns,
-            string labelColumn = DefaultColumnNames.Label,
-            int slotsInOutput = MutualInformationFeatureSelectionTransform.Defaults.SlotsInOutput,
-            int numBins = MutualInformationFeatureSelectionTransform.Defaults.NumBins)
-            => new MutualInformationFeatureSelector(CatalogUtils.GetEnvironment(catalog), columns, labelColumn, slotsInOutput, numBins);
     }
 }

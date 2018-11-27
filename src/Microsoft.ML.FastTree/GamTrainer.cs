@@ -34,8 +34,33 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Learner.
+    /// Generalized Additive Model Trainer.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
+    /// similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
+    /// called a "shape function", that computes the response as a function of the feature's value.
+    /// (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
+    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
+    /// </para>
+    /// <para>
+    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
+    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
+    /// After training, an intercept is added to represent the average prediction over the training set,
+    /// and the shape functions are normalized to represent the deviation from the average prediction. This results
+    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+    /// See the sample below for an example of how to train a GAM model and inspect and interpret the results.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[GAM](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()

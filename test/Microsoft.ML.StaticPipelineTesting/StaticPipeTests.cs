@@ -12,6 +12,7 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -695,7 +696,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type is VectorType vecType && vecType.Size > 0 && vecType.ItemType is NumberType);
         }
 
-        [Fact(Skip = "FeatureSeclection transform cannot be trained on empty data, schema propagation fails")]
+        [Fact]
         public void FeatureSelection()
         {
             var env = new MLContext(0);
