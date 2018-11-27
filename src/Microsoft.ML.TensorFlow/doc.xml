@@ -61,49 +61,5 @@
 
       </remarks>
     </member>
-    <example>
-      <code language="csharp">
-        pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
-        pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
-        pipeline.Add(new TensorFlowScorer()
-        {
-        ModelLocation = model_location;
-        InputColumns = new[] { "Input" };
-        OutputColumns = new[] { "Output" };
-        }
-      </code>
-    </example>
-    <example name="TensorflowTransform">
-      <code language="csharp">
-        var pipeline = new Legacy.LearningPipeline(seed: 1);
-        pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
-        pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
-        {
-        ImageFolder = imageFolder
-        });
-
-        pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
-        {
-        ImageHeight = imageHeight,
-        ImageWidth = imageWidth,
-        Resizing = ImageResizerTransformResizingKind.IsoCrop
-        });
-
-        pipeline.Add(new ImagePixelExtractor(("ImageCropped", "Input"))
-        {
-        UseAlpha = false,
-        InterleaveArgb = true
-        });
-
-        pipeline.Add(new TensorFlowScorer()
-        {
-        ModelLocation = model_location,
-        InputColumns = new[] { "Input" },
-        OutputColumns = new[] { "Output" }
-        });
-
-      </code>
-    </example>
-
   </members>
 </doc>
