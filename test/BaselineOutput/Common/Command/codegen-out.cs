@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.ML;
+using Microsoft.ML.Legacy;
+using Microsoft.ML.Runtime.Api;
 
 namespace MLGeneratedCode
 {
@@ -70,7 +71,7 @@ PredictAsync(modelPath);
 /// This method demonstrates how to run prediction.
 ///
 ///</summary>
-public static void PredictAsync(string modelPath)
+public static async void PredictAsync(string modelPath)
 {
     var model = await PredictionModel.ReadAsync<InputData, ScoredOutput>(modelPath);
 
