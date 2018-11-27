@@ -10,18 +10,18 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.KMeansClustering;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using System.Collections.Generic;
 
-[assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
-    "KMeans predictor", KMeansPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
+    "KMeans predictor", KMeansModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.Trainers.KMeans
+namespace Microsoft.ML.KMeansClustering
 {
-    public sealed class KMeansPredictor :
+    public sealed class KMeansModelParameters :
         PredictorBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
@@ -42,12 +42,15 @@ namespace Microsoft.ML.Trainers.KMeans
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(KMeansPredictor).Assembly.FullName);
+                loaderAssemblyName: typeof(KMeansModelParameters).Assembly.FullName);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
+
+        private readonly ColumnType _inputType;
+        private readonly ColumnType _outputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -66,7 +69,7 @@ namespace Microsoft.ML.Trainers.KMeans
         /// a deep copy, if false then this constructor will take ownership of the passed in centroid vectors.
         /// If false then the caller must take care to not use or modify the input vectors once this object
         /// is constructed, and should probably remove all references.</param>
-        public KMeansPredictor(IHostEnvironment env, int k, VBuffer<float>[] centroids, bool copyIn)
+        public KMeansModelParameters(IHostEnvironment env, int k, VBuffer<float>[] centroids, bool copyIn)
             : base(env, LoaderSignature)
         {
             Host.CheckParam(k > 0, nameof(k), "Need at least one cluster");
@@ -92,8 +95,8 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            InputType = new VectorType(NumberType.Float, _dimensionality);
-            OutputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberType.Float, _dimensionality);
+            _outputType = new VectorType(NumberType.Float, _k);
         }
 
         /// <summary>
@@ -101,7 +104,7 @@ namespace Microsoft.ML.Trainers.KMeans
         /// </summary>
         /// <param name="ctx">The load context</param>
         /// <param name="env">The host environment</param>
-        private KMeansPredictor(IHostEnvironment env, ModelLoadContext ctx)
+        private KMeansModelParameters(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, ctx)
         {
             // *** Binary format ***
@@ -134,11 +137,11 @@ namespace Microsoft.ML.Trainers.KMeans
 
             InitPredictor();
 
-            InputType = new VectorType(NumberType.Float, _dimensionality);
-            OutputType = new VectorType(NumberType.Float, _k);
+            _inputType = new VectorType(NumberType.Float, _dimensionality);
+            _outputType = new VectorType(NumberType.Float, _k);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<Float>));
@@ -169,7 +172,7 @@ namespace Microsoft.ML.Trainers.KMeans
             }
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("K: {0}", _k);
             writer.WriteLine("Dimensionality: {0}", _dimensionality);
@@ -247,12 +250,12 @@ namespace Microsoft.ML.Trainers.KMeans
         /// <summary>
         /// This method is called by reflection to instantiate a predictor.
         /// </summary>
-        public static KMeansPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KMeansModelParameters Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new KMeansPredictor(env, ctx);
+            return new KMeansModelParameters(env, ctx);
         }
 
         /// <summary>

@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.KMeansClustering;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,10 +26,10 @@ using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
-namespace Microsoft.ML.Trainers.KMeans
+namespace Microsoft.ML.KMeansClustering
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>
+    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansModelParameters>, KMeansModelParameters>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Trainers.KMeans
             Info = new TrainerInfo();
         }
 
-        private protected override KMeansPredictor TrainModelCore(TrainContext context)
+        private protected override KMeansModelParameters TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Trainers.KMeans
             }
         }
 
-        private KMeansPredictor TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
+        private KMeansModelParameters TrainCore(IChannel ch, RoleMappedData data, int dimensionality)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     "{0} instances with missing features detected and ignored. Consider using MissingHandler.",
                     missingFeatureCount);
             }
-            return new KMeansPredictor(Host, _k, centroids, copyIn: true);
+            return new KMeansModelParameters(Host, _k, centroids, copyIn: true);
         }
 
         private static int ComputeNumThreads(IHost host, int? argNumThreads)
@@ -278,8 +278,8 @@ namespace Microsoft.ML.Trainers.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, Schema trainSchema)
-        => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
+        protected override ClusteringPredictionTransformer<KMeansModelParameters> MakeTransformer(KMeansModelParameters model, Schema trainSchema)
+        => new ClusteringPredictionTransformer<KMeansModelParameters>(Host, model, trainSchema, _featureColumn);
     }
 
     internal static class KMeansPlusPlusInit

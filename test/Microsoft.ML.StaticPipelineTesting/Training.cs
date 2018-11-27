@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.KMeansClustering;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
@@ -676,7 +676,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            KMeansPredictor pred = null;
+            KMeansModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                  .Append(r => (label: r.label.ToKey(), r.features))

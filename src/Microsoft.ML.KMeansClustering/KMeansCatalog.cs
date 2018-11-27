@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.KMeansClustering;
 using System;
 
 namespace Microsoft.ML
