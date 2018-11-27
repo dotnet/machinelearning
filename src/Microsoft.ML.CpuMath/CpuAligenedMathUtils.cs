@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Internal.CpuMath.Core;
+
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     [BestFriend]
