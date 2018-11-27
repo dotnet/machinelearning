@@ -675,13 +675,12 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void CommandShowSchemaModel()
         {
-            string trainDataPath = GetDataPath("adult.test");
+            string trainDataPath = GetDataPath("adult.tiny.with-schema.txt");
             string modelPath = ModelPath().Path;
             string args =
                 string.Format(
                     @"train data={{{0}}}
                      loader=Text{{
-                        sep=, 
                         header=+ 
                         col=NumFeatures:Num:9-14 
                         col=CatFeaturesText:TX:0~* 
