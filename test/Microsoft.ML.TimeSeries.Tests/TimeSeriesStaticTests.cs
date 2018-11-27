@@ -163,7 +163,7 @@ namespace Microsoft.ML.Tests
                 new double[] {0,      5,      0.261375},
                 new double[] {0,      5,      0.261375},
                 new double[] {0,      5,      0.50},
-                new double[] {0,      5,      0.50},
+                new double[] {0,      5,      0.50}
             };
 
             SpikePrediction row = null;
@@ -174,6 +174,67 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(expectedValues[i][0], row.Data[0], precision: 7);
                 Assert.Equal(expectedValues[i][1], row.Data[1], precision: 7);
                 Assert.Equal(expectedValues[i][2], row.Data[2], precision: 7);
+            }
+        }
+
+        [Fact]
+        public void SsaSpikeDetection()
+        {
+            var env = new MLContext(conc: 1);
+            const int Size = 16;
+            const int ChangeHistoryLength = Size / 4;
+            const int TrainingWindowSize = Size / 2;
+            const int SeasonalityWindowSize = Size / 8;
+
+            // Generate sample series data with a spike
+            List<Data> data = new List<Data>(Size);
+            var dataView = env.CreateStreamingDataView(data);
+            for (int i = 0; i < Size / 2; i++)
+                data.Add(new Data(5));
+            data.Add(new Data(10)); // This is the spike
+            for (int i = 0; i < Size / 2 - 1; i++)
+                data.Add(new Data(5));
+
+            // Convert to statically-typed data view.
+            var staticData = dataView.AssertStatic(env, c => new { Value = c.R4.Scalar });
+            // Build the pipeline
+            var staticLearningPipeline = staticData.MakeNewEstimator()
+                .Append(r => r.Value.SsaSpikeDetect(80, ChangeHistoryLength, TrainingWindowSize, SeasonalityWindowSize));
+            // Train
+            var detector = staticLearningPipeline.Fit(staticData);
+            // Transform
+            var output = detector.Transform(staticData);
+
+            // Get predictions
+            var enumerator = output.AsDynamic.AsEnumerable<SpikePrediction>(env, true).GetEnumerator();
+            var expectedValues = new List<double[]>() {
+                //            Alert   Score   P-Value
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {0,      0.0,    0.5},
+                new double[] {1,      5.0,    0.0},     // alert is on, predicted spike
+                new double[] {1,     -2.5,    0.093146},
+                new double[] {0,     -2.5,    0.215437},
+                new double[] {0,      0.0,    0.465745},
+                new double[] {0,      0.0,    0.465745},
+                new double[] {0,      0.0,    0.261375},
+                new double[] {0,      0.0,    0.377615},
+                new double[] {0,      0.0,    0.50}
+            };
+
+            SpikePrediction row = null;
+            for (var i = 0; enumerator.MoveNext() && i < expectedValues.Count; i++)
+            {
+                row = enumerator.Current;
+
+                Assert.Equal(expectedValues[i][0], row.Data[0], precision: 6);
+                Assert.Equal(expectedValues[i][1], row.Data[1], precision: 6);
+                Assert.Equal(expectedValues[i][2], row.Data[2], precision: 6);
             }
         }
     }

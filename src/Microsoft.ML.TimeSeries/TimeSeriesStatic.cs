@@ -82,7 +82,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class IidSpikeStaticExtensions
+    public static class IidSpikeDetectorStaticExtensions
     {
         private sealed class OutColumn : Vector<double>
         {
@@ -223,18 +223,20 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class SsaSpikeStaticExtensions
+    public static class SsaSpikeDetecotStaticExtensions
     {
-        private sealed class OutColumn : Vector<float>
+        private sealed class OutColumn : Vector<double>
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<float> input,
+            public OutColumn(Scalar<float> input,
                 int confidence,
                 int pvalueHistoryLength,
                 int trainingWindowSize,
-                int seasonalityWindowSize)
-                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
+                int seasonalityWindowSize,
+                SsaBase.AnomalySide side,
+                ErrorFunctionUtils.ErrorFunction errorFunction)
+                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction), input)
             {
                 Input = input;
             }
@@ -246,17 +248,23 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _pvalueHistoryLength;
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
+            private readonly SsaBase.AnomalySide _side;
+            private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
 
             public Reconciler(
                 int confidence,
                 int pvalueHistoryLength,
                 int trainingWindowSize,
-                int seasonalityWindowSize)
+                int seasonalityWindowSize,
+                SsaBase.AnomalySide side,
+                ErrorFunctionUtils.ErrorFunction errorFunction)
             {
                 _confidence = confidence;
                 _pvalueHistoryLength = pvalueHistoryLength;
                 _trainingWindowSize = trainingWindowSize;
                 _seasonalityWindowSize = seasonalityWindowSize;
+                _side = side;
+                _errorFunction = errorFunction;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -273,8 +281,21 @@ namespace Microsoft.ML.StaticPipe
                     _confidence,
                     _pvalueHistoryLength,
                     _trainingWindowSize,
-                    _seasonalityWindowSize);
+                    _seasonalityWindowSize,
+                    _side,
+                    _errorFunction);
             }
         }
+
+    public static Vector<double> SsaSpikeDetect(
+        this Scalar<float> input,
+        int confidence,
+        int changeHistoryLength,
+        int trainingWindowSize,
+        int seasonalityWindowSize,
+        SsaBase.AnomalySide side = SsaBase.AnomalySide.TwoSided,
+        ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference
+        ) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
+
     }
 }
