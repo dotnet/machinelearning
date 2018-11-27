@@ -12,7 +12,7 @@
   <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
     <Compile Include="..\Microsoft.ML.Core\BestFriendAttribute.cs" />
-    <Compile Include="..\Microsoft.ML.Core\Properties\PublicKey.cs" />
+    <Compile Include="..\Microsoft.ML.Core\PublicKey.cs" />
 
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />

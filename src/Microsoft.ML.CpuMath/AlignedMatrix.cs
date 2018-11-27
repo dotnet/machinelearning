@@ -4,7 +4,7 @@
 
 using Float = System.Single;
 
-using Microsoft.ML.Hidden;
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -17,7 +17,7 @@ using System.IO;
 using System.Threading;
 
 #if PRIVATE_CONTRACTS
-namespace Microsoft.ML.Hidden
+namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
 #else
 namespace Microsoft.ML.Runtime
 #endif

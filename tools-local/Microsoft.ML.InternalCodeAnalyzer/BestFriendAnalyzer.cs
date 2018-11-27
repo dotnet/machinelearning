@@ -30,8 +30,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
-        private const string AttributeName = "Microsoft.ML.BestFriendAttribute (or Microsoft.ML.Runtime.Internal.CpuMath.BestFriendAttribute)";
-        private const string AssemblyAttributeName = "Microsoft.ML.WantsToBeBestFriendsAttribute (or Microsoft.ML.Runtime.Internal.CpuMath.WantsToBeBestFriendsAttribute)";
+        private const string AttributeName = "Microsoft.ML.BestFriendAttribute";
+        private const string AssemblyAttributeName = "Microsoft.ML.WantsToBeBestFriendsAttribute";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Rule);
@@ -111,7 +111,7 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private void Analyze(SemanticModelAnalysisContext context)
         {
             AnalyzeCore(context, "Microsoft.ML.BestFriendAttribute", "Microsoft.ML.WantsToBeBestFriendsAttribute");
-            AnalyzeCore(context, "Microsoft.ML.Hidden.BestFriendAttribute", "Microsoft.ML.Hidden.WantsToBeBestFriendsAttribute");
+            AnalyzeCore(context, "Microsoft.ML.Runtime.Internal.CpuMath.Core.BestFriendAttribute", "Microsoft.ML.Runtime.Internal.CpuMath.Core.WantsToBeBestFriendsAttribute");
         }
     }
 }
