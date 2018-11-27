@@ -22,11 +22,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MutualInformationFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
         /// ]]>
         /// </format>
         /// </example>
-        public static MutualInformationFeatureSelectingEstimator MutualInformationFeatureSelectingEstimator(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
             string labelColumn = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
             int numBins = MutualInfoSelectDefaults.NumBins,
@@ -43,11 +43,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[MutualInformationFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnMutualInformation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
         /// ]]>
         /// </format>
         /// </example>
-        public static MutualInformationFeatureSelectingEstimator MutualInformationFeatureSelectingEstimator(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        public static MutualInformationFeatureSelectingEstimator SelectFeaturesBasedOnMutualInformation(this TransformsCatalog.FeatureSelectionTransforms catalog,
             string inputColumn, string outputColumn = null,
             string labelColumn = MutualInfoSelectDefaults.LabelColumn,
             int slotsInOutput = MutualInfoSelectDefaults.SlotsInOutput,
@@ -60,11 +60,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
         /// ]]>
         /// </format>
         /// </example>
-        public static CountFeatureSelectingEstimator CountFeatureSelectingEstimator(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
             params CountFeatureSelectingEstimator.ColumnInfo[] columns)
             => new CountFeatureSelectingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
@@ -76,11 +76,11 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// [!code-csharp[SelectFeaturesBasedOnCount](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
         /// ]]>
         /// </format>
         /// </example>
-        public static CountFeatureSelectingEstimator CountFeatureSelectingEstimator(this TransformsCatalog.FeatureSelectionTransforms catalog,
+        public static CountFeatureSelectingEstimator SelectFeaturesBasedOnCount(this TransformsCatalog.FeatureSelectionTransforms catalog,
             string inputColumn,
             string outputColumn = null,
             long count = CountSelectDefaults.Count)

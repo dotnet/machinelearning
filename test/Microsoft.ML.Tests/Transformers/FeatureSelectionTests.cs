@@ -39,8 +39,8 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(ML, "text", "bag_of_words")
-                .Append(ML.Transforms.FeatureSelection.CountFeatureSelectingEstimator("bag_of_words", "bag_of_words_count", 10)
-                .Append(ML.Transforms.FeatureSelection.MutualInformationFeatureSelectingEstimator("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("bag_of_words", "bag_of_words_count", 10)
+                .Append(ML.Transforms.FeatureSelection.SelectFeaturesBasedOnMutualInformation("bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
             var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))
