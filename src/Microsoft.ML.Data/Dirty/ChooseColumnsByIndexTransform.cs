@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -52,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
                 int[] indexCopy = args.Index == null ? new int[0] : args.Index.ToArray();
                 BuildNameDict(indexCopy, args.Drop, out Sources, out _dropped, out _nameToIndex, user: true);
 
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             private void BuildNameDict(int[] indexCopy, bool drop, out int[] sources, out int[] dropped, out Dictionary<string, int> nameToCol, bool user)
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 bool isDrop = ctx.Reader.ReadBoolByte();
                 BuildNameDict(ctx.Reader.ReadIntArray() ?? new int[0], isDrop, out Sources, out _dropped, out _nameToIndex, user: false);
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)

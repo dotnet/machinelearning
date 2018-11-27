@@ -14,6 +14,7 @@ using System.IO;
 
 namespace Microsoft.ML.Legacy
 {
+    [Obsolete]
     public sealed class ScorerPipelineStep : ILearningPipelineDataStep
     {
         public ScorerPipelineStep(Var<IDataView> data, Var<ITransformModel> model)
@@ -44,6 +45,7 @@ namespace Microsoft.ML.Legacy
     /// var model = pipeline.Train&lt;SentimentData, SentimentPrediction&gt;();
     /// </code>
     /// </example>
+    [Obsolete]
     [DebuggerTypeProxy(typeof(LearningPipelineDebugProxy))]
     public class LearningPipeline : ICollection<ILearningPipelineItem>
     {

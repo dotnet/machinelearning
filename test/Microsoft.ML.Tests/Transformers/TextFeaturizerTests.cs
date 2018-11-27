@@ -146,7 +146,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new TextNormalizingEstimator(Env, "text")
                 .Append(new WordTokenizingEstimator(Env, "text", "words"))
-                .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
+                .Append(new StopWordsRemovingEstimator(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "words_without_stopwords.tsv");
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash"));
+                Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash", invertHash:-1));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969

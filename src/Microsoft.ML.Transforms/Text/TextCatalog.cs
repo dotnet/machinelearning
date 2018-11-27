@@ -238,11 +238,11 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The column containing text to remove stop words on.</param>
         /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="language">Langauge of the input text column <paramref name="inputColumn"/>.</param>
-        public static StopwordRemover RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+        public static StopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,
-            StopWordsRemovingTransformer.Language language = StopWordsRemovingTransformer.Language.English)
-            => new StopwordRemover(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, language);
+            StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
+            => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), inputColumn, outputColumn, language);
 
         /// <summary>
         /// Removes stop words from incoming token streams in input columns
@@ -251,10 +251,10 @@ namespace Microsoft.ML
         /// <param name="catalog">The text-related transform's catalog.</param>
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        public static StopwordRemover RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
+        public static StopWordsRemovingEstimator RemoveStopWords(this TransformsCatalog.TextTransforms catalog,
             (string input, string output)[] columns,
-             StopWordsRemovingTransformer.Language language = StopWordsRemovingTransformer.Language.English)
-            => new StopwordRemover(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
+             StopWordsRemovingEstimator.Language language = StopWordsRemovingEstimator.Language.English)
+            => new StopWordsRemovingEstimator(Contracts.CheckRef(catalog, nameof(catalog)).GetEnvironment(), columns, language);
 
         /// <summary>
         /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>

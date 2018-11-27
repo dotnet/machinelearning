@@ -31,7 +31,7 @@ namespace Microsoft.ML.Trainers
     /// <para>The basic idea of matrix factorization is finding two low-rank factor marcies to apporimate the training matrix.
     /// In this module, the expected training data is a list of tuples. Every tuple consists of a column index, a row index,
     /// and the value at the location specified by the two indexes. For an example data structure of a tuple, one can use:
-    /// <para>
+    /// </para>
     /// <code language="csharp">
     /// // The following variables defines the shape of a m-by-n matrix. The variable firstRowIndex indicates the integer that
     /// // would be mapped to the first row index. If user data uses 0-based indices for rows, firstRowIndex can be set to 0.

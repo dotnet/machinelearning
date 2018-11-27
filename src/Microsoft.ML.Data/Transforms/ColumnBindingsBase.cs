@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -668,7 +669,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">The input schema that we're adding columns to.</param>
         /// <param name="addedColumns">The columns being added.</param>
-        public ColumnBindings(Schema input, Schema.Column[] addedColumns)
+        public ColumnBindings(Schema input, Schema.DetachedColumn[] addedColumns)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(addedColumns, nameof(addedColumns));
@@ -709,8 +710,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(indices.Count == addedColumns.Length + input.ColumnCount);
 
             // Create the output schema.
-            var schemaColumns = indices.Select(idx => idx >= 0 ? input[idx] : addedColumns[~idx]);
-            Schema = new Schema(schemaColumns);
+            var schemaColumns = indices.Select(idx => idx >= 0 ? new Schema.DetachedColumn(input[idx]) : addedColumns[~idx]);
+            Schema = SchemaBuilder.MakeSchema(schemaColumns);
 
             // Memorize column maps.
             _colMap = indices.ToArray();

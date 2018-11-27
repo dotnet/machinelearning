@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Api
             public override long Position => _position;
 
             public InputRow(IHostEnvironment env, InternalSchemaDefinition schemaDef)
-                : base(env, new Schema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
+                : base(env, SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
             {
                 _position = -1;
             }
@@ -384,7 +385,7 @@ namespace Microsoft.ML.Runtime.Api
                 Host.AssertValue(schemaDefn);
 
                 _schemaDefn = schemaDefn;
-                _schema = new Schema(GetSchemaColumns(schemaDefn));
+                _schema = SchemaBuilder.MakeSchema(GetSchemaColumns(schemaDefn));
                 int n = schemaDefn.Columns.Length;
                 _peeks = new Delegate[n];
                 for (var i = 0; i < n; i++)
@@ -790,17 +791,17 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        internal static Schema.Column[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
+        internal static Schema.DetachedColumn[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
             Contracts.AssertValue(schemaDefn);
-            var columns = new Schema.Column[schemaDefn.Columns.Length];
+            var columns = new Schema.DetachedColumn[schemaDefn.Columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 var col = schemaDefn.Columns[i];
-                var meta = new Schema.Metadata.Builder();
+                var meta = new MetadataBuilder();
                 foreach (var kvp in col.Metadata)
-                    meta.Add(new Schema.Column(kvp.Value.Kind, kvp.Value.MetadataType, null), kvp.Value.GetGetterDelegate());
-                columns[i] = new Schema.Column(col.ColumnName, col.ColumnType, meta.GetMetadata());
+                    meta.Add(kvp.Value.Kind, kvp.Value.MetadataType, kvp.Value.GetGetterDelegate());
+                columns[i] = new Schema.DetachedColumn(col.ColumnName, col.ColumnType, meta.GetMetadata());
             }
 
             return columns;

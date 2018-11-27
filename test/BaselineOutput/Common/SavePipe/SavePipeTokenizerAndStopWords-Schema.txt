@@ -7,7 +7,7 @@
   Source: Text
   Lang: Text
   SourceTokens: Vec<Text>
----- StopWordsRemovingTransformer ----
+---- RowToRowMapperTransform ----
 4 columns:
   Source: Text
   Lang: Text
