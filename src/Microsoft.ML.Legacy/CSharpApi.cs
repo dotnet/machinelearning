@@ -401,20 +401,6 @@ namespace Microsoft.ML
             }
 
             [Obsolete]
-            public Microsoft.ML.Legacy.Models.PipelineSweeper.Output Add(Microsoft.ML.Legacy.Models.PipelineSweeper input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.PipelineSweeper.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.PipelineSweeper input, Microsoft.ML.Legacy.Models.PipelineSweeper.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.PipelineSweeper", input, output));
-            }
-
-            [Obsolete]
             public Microsoft.ML.Legacy.Models.PlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.PlattCalibrator input)
             {
                 var output = new Microsoft.ML.Legacy.Models.PlattCalibrator.Output();
@@ -510,20 +496,6 @@ namespace Microsoft.ML
             public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
-            }
-
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.SweepResultExtractor.Output Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input)
-            {
-                var output = new Microsoft.ML.Legacy.Models.SweepResultExtractor.Output();
-                Add(input, output);
-                return output;
-            }
-
-            [Obsolete]
-            public void Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input, Microsoft.ML.Legacy.Models.SweepResultExtractor.Output output)
-            {
-                _jsonNodes.Add(Serialize("Models.SweepResultExtractor", input, output));
             }
 
             [Obsolete]
@@ -2328,29 +2300,29 @@ namespace Microsoft.ML
             {
                 _inputFilePath = filePath;
             }
-            
+
             [Obsolete]
             public void SetInput(IHostEnvironment env, Experiment experiment)
             {
                 IFileHandle inputFile = new SimpleFileHandle(env, _inputFilePath, false, false);
                 experiment.SetInput(InputFile, inputFile);
             }
-            
+
             [Obsolete]
             public Var<IDataView> GetInputData() => null;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
                 Contracts.Assert(previousStep == null);
-                
+
                 return new TextLoaderPipelineStep(experiment.Add(this));
             }
-            
+
             [Obsolete]
             private class TextLoaderPipelineStep : ILearningPipelineDataStep
             {
-                public TextLoaderPipelineStep (Output output)
+                public TextLoaderPipelineStep(Output output)
                 {
                     Data = output.Data;
                     Model = null;
@@ -3380,7 +3352,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -3503,7 +3475,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -3696,7 +3668,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -3832,7 +3804,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -4015,7 +3987,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -4089,7 +4061,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -4117,120 +4089,6 @@ namespace Microsoft.ML
 
                 [Obsolete]
                 public Var<IPredictorModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
-        /// <summary>
-        /// AutoML pipeline sweeping optimzation macro.
-        /// </summary>
-        [Obsolete]
-        public sealed partial class PipelineSweeper
-        {
-
-
-            /// <summary>
-            /// The data to be used for training.
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The data to be used for testing.
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.Data.IDataView> TestingData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// The arguments for creating an AutoMlState component.
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public AutoMlStateBase StateArguments { get; set; }
-
-            /// <summary>
-            /// The stateful object conducting of the autoML search.
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
-
-            /// <summary>
-            /// Number of candidate pipelines to retrieve each round.
-            /// </summary>
-            [Obsolete]
-            public int BatchSize { get; set; }
-
-            /// <summary>
-            /// Output datasets from previous iteration of sweep.
-            /// </summary>
-            [Obsolete]
-            public ArrayVar<Microsoft.ML.Runtime.Data.IDataView> CandidateOutputs { get; set; } = new ArrayVar<Microsoft.ML.Runtime.Data.IDataView>();
-
-            /// <summary>
-            /// Column(s) to use as Role 'Label'
-            /// </summary>
-            [Obsolete]
-            public string[] LabelColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'Group'
-            /// </summary>
-            [Obsolete]
-            public string[] GroupColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'Weight'
-            /// </summary>
-            [Obsolete]
-            public string[] WeightColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'Name'
-            /// </summary>
-            [Obsolete]
-            public string[] NameColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'NumericFeature'
-            /// </summary>
-            [Obsolete]
-            public string[] NumericFeatureColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'CategoricalFeature'
-            /// </summary>
-            [Obsolete]
-            public string[] CategoricalFeatureColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'TextFeature'
-            /// </summary>
-            [Obsolete]
-            public string[] TextFeatureColumns { get; set; }
-
-            /// <summary>
-            /// Column(s) to use as Role 'ImagePath'
-            /// </summary>
-            [Obsolete]
-            public string[] ImagePathColumns { get; set; }
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// Stateful autoML object, keeps track of where the search in progress.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
-
-                /// <summary>
-                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
             }
         }
     }
@@ -4277,7 +4135,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -4673,41 +4531,6 @@ namespace Microsoft.ML
     namespace Legacy.Models
     {
 
-        /// <summary>
-        /// Extracts the sweep result.
-        /// </summary>
-        [Obsolete]
-        public sealed partial class SweepResultExtractor
-        {
-
-
-            /// <summary>
-            /// The stateful object conducting of the autoML search.
-            /// </summary>
-            [Obsolete]
-            public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
-
-
-            [Obsolete]
-            public sealed class Output
-            {
-                /// <summary>
-                /// Stateful autoML object, keeps track of where the search in progress.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.IMlState> State { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.IMlState>();
-
-                /// <summary>
-                /// Results of the sweep, including pipelines (as graph strings), IDs, and metric values.
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> Results { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-            }
-        }
-    }
-
-    namespace Legacy.Models
-    {
-
         [Obsolete]
         public sealed partial class TrainTestBinaryMacroSubGraphInput
         {
@@ -5028,7 +4851,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5141,7 +4964,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5248,7 +5071,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5341,7 +5164,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5446,7 +5269,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5552,7 +5375,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5693,7 +5516,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5818,7 +5641,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -5886,14 +5709,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Learning rate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[]{0.01f, 0.1f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[] { 0.01f, 0.1f, 0.5f, 1f })]
             [Obsolete]
             public float LearningRate { get; set; } = 1f;
 
             /// <summary>
             /// Decrease learning rate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DecreaseLearningRate", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("DecreaseLearningRate", new object[] { false, true })]
             [Obsolete]
             public bool DecreaseLearningRate { get; set; } = false;
 
@@ -5943,7 +5766,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize:10, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
             [Obsolete]
             public int NumIterations { get; set; } = 1;
 
@@ -5956,14 +5779,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
             /// <summary>
             /// Whether to shuffle for each training iteration
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -6015,7 +5838,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -6145,7 +5968,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -6275,7 +6098,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -6405,7 +6228,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -6616,21 +6439,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -6760,7 +6583,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -6950,21 +6773,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -7094,7 +6917,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -7220,21 +7043,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -7422,21 +7245,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -7566,7 +7389,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -7726,21 +7549,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -7928,21 +7751,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -8072,7 +7895,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -8184,21 +8007,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -8386,21 +8209,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -8530,7 +8353,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -8647,21 +8470,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -8849,21 +8672,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -8993,7 +8816,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9038,7 +8861,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Initial learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.001f, 1f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.001f, 1f, isLogScale: true)]
             [Obsolete]
             public float LearningRate { get; set; } = 0.1f;
 
@@ -9059,14 +8882,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Regularization coefficient of linear weights
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LambdaLinear", 1E-08f, 1f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LambdaLinear", 1E-08f, 1f, isLogScale: true)]
             [Obsolete]
             public float LambdaLinear { get; set; } = 0.0001f;
 
             /// <summary>
             /// Regularization coefficient of latent weights
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LambdaLatent", 1E-08f, 1f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LambdaLatent", 1E-08f, 1f, isLogScale: true)]
             [Obsolete]
             public float LambdaLatent { get; set; } = 0.0001f;
 
@@ -9137,7 +8960,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9201,7 +9024,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Total number of iterations over all features
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[]{200, 1500, 9500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
             [Obsolete]
             public int NumIterations { get; set; } = 9500;
 
@@ -9214,7 +9037,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.002d;
 
@@ -9251,7 +9074,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Minimum number of training instances required to form a partition
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocuments { get; set; } = 10;
 
@@ -9315,7 +9138,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9379,7 +9202,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Total number of iterations over all features
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[]{200, 1500, 9500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 200, 1500, 9500 })]
             [Obsolete]
             public int NumIterations { get; set; } = 9500;
 
@@ -9392,7 +9215,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.001f, 0.1f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.002d;
 
@@ -9429,7 +9252,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Minimum number of training instances required to form a partition
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocuments", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocuments { get; set; } = 10;
 
@@ -9493,7 +9316,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9546,7 +9369,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The number of clusters
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("K", new object[]{5, 10, 20, 40})]
+            [TlcModule.SweepableDiscreteParamAttribute("K", new object[] { 5, 10, 20, 40 })]
             [Obsolete]
             public int K { get; set; } = 5;
 
@@ -9622,7 +9445,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9682,28 +9505,28 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
             [Obsolete]
             public int NumBoostRound { get; set; } = 100;
 
             /// <summary>
             /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double? LearningRate { get; set; }
 
             /// <summary>
             /// Maximum leaves for trees.
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int? NumLeaves { get; set; }
 
             /// <summary>
             /// Minimum number of instances needed in a child.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
             [Obsolete]
             public int? MinDataPerLeaf { get; set; }
 
@@ -9747,7 +9570,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Use softmax loss for the multi classification.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[] { true, false })]
             [Obsolete]
             public bool? UseSoftmax { get; set; }
 
@@ -9778,14 +9601,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Enable categorical split or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[] { true, false })]
             [Obsolete]
             public bool? UseCat { get; set; }
 
             /// <summary>
             /// Enable missing value auto infer or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[] { true, false })]
             [Obsolete]
             public bool UseMissing { get; set; } = false;
 
@@ -9793,7 +9616,7 @@ namespace Microsoft.ML
             /// Min number of instances per categorical group.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
             [Obsolete]
             public int MinDataPerGroup { get; set; } = 100;
 
@@ -9801,7 +9624,7 @@ namespace Microsoft.ML
             /// Max number of categorical thresholds.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
             [Obsolete]
             public int MaxCatThreshold { get; set; } = 32;
 
@@ -9809,7 +9632,7 @@ namespace Microsoft.ML
             /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[] { 1, 10, 20 })]
             [Obsolete]
             public double CatSmooth { get; set; } = 10d;
 
@@ -9817,7 +9640,7 @@ namespace Microsoft.ML
             /// L2 Regularization for categorical split.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[] { 0.1f, 0.5f, 1, 5, 10 })]
             [Obsolete]
             public double CatL2 { get; set; } = 10d;
 
@@ -9882,7 +9705,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -9927,28 +9750,28 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
             [Obsolete]
             public int NumBoostRound { get; set; } = 100;
 
             /// <summary>
             /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double? LearningRate { get; set; }
 
             /// <summary>
             /// Maximum leaves for trees.
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int? NumLeaves { get; set; }
 
             /// <summary>
             /// Minimum number of instances needed in a child.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
             [Obsolete]
             public int? MinDataPerLeaf { get; set; }
 
@@ -9992,7 +9815,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Use softmax loss for the multi classification.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[] { true, false })]
             [Obsolete]
             public bool? UseSoftmax { get; set; }
 
@@ -10023,14 +9846,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Enable categorical split or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[] { true, false })]
             [Obsolete]
             public bool? UseCat { get; set; }
 
             /// <summary>
             /// Enable missing value auto infer or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[] { true, false })]
             [Obsolete]
             public bool UseMissing { get; set; } = false;
 
@@ -10038,7 +9861,7 @@ namespace Microsoft.ML
             /// Min number of instances per categorical group.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
             [Obsolete]
             public int MinDataPerGroup { get; set; } = 100;
 
@@ -10046,7 +9869,7 @@ namespace Microsoft.ML
             /// Max number of categorical thresholds.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
             [Obsolete]
             public int MaxCatThreshold { get; set; } = 32;
 
@@ -10054,7 +9877,7 @@ namespace Microsoft.ML
             /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[] { 1, 10, 20 })]
             [Obsolete]
             public double CatSmooth { get; set; } = 10d;
 
@@ -10062,7 +9885,7 @@ namespace Microsoft.ML
             /// L2 Regularization for categorical split.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[] { 0.1f, 0.5f, 1, 5, 10 })]
             [Obsolete]
             public double CatL2 { get; set; } = 10d;
 
@@ -10127,7 +9950,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -10172,28 +9995,28 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
             [Obsolete]
             public int NumBoostRound { get; set; } = 100;
 
             /// <summary>
             /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double? LearningRate { get; set; }
 
             /// <summary>
             /// Maximum leaves for trees.
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int? NumLeaves { get; set; }
 
             /// <summary>
             /// Minimum number of instances needed in a child.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
             [Obsolete]
             public int? MinDataPerLeaf { get; set; }
 
@@ -10237,7 +10060,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Use softmax loss for the multi classification.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[] { true, false })]
             [Obsolete]
             public bool? UseSoftmax { get; set; }
 
@@ -10268,14 +10091,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Enable categorical split or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[] { true, false })]
             [Obsolete]
             public bool? UseCat { get; set; }
 
             /// <summary>
             /// Enable missing value auto infer or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[] { true, false })]
             [Obsolete]
             public bool UseMissing { get; set; } = false;
 
@@ -10283,7 +10106,7 @@ namespace Microsoft.ML
             /// Min number of instances per categorical group.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
             [Obsolete]
             public int MinDataPerGroup { get; set; } = 100;
 
@@ -10291,7 +10114,7 @@ namespace Microsoft.ML
             /// Max number of categorical thresholds.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
             [Obsolete]
             public int MaxCatThreshold { get; set; } = 32;
 
@@ -10299,7 +10122,7 @@ namespace Microsoft.ML
             /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[] { 1, 10, 20 })]
             [Obsolete]
             public double CatSmooth { get; set; } = 10d;
 
@@ -10307,7 +10130,7 @@ namespace Microsoft.ML
             /// L2 Regularization for categorical split.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[] { 0.1f, 0.5f, 1, 5, 10 })]
             [Obsolete]
             public double CatL2 { get; set; } = 10d;
 
@@ -10372,7 +10195,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -10417,28 +10240,28 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[]{10, 20, 50, 100, 150, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
             [Obsolete]
             public int NumBoostRound { get; set; } = 100;
 
             /// <summary>
             /// Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRate", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double? LearningRate { get; set; }
 
             /// <summary>
             /// Maximum leaves for trees.
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int? NumLeaves { get; set; }
 
             /// <summary>
             /// Minimum number of instances needed in a child.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[]{1, 10, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerLeaf", new object[] { 1, 10, 20, 50 })]
             [Obsolete]
             public int? MinDataPerLeaf { get; set; }
 
@@ -10482,7 +10305,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Use softmax loss for the multi classification.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseSoftmax", new object[] { true, false })]
             [Obsolete]
             public bool? UseSoftmax { get; set; }
 
@@ -10513,14 +10336,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Enable categorical split or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseCat", new object[] { true, false })]
             [Obsolete]
             public bool? UseCat { get; set; }
 
             /// <summary>
             /// Enable missing value auto infer or not.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[]{true, false})]
+            [TlcModule.SweepableDiscreteParamAttribute("UseMissing", new object[] { true, false })]
             [Obsolete]
             public bool UseMissing { get; set; } = false;
 
@@ -10528,7 +10351,7 @@ namespace Microsoft.ML
             /// Min number of instances per categorical group.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[]{10, 50, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDataPerGroup", new object[] { 10, 50, 100, 200 })]
             [Obsolete]
             public int MinDataPerGroup { get; set; } = 100;
 
@@ -10536,7 +10359,7 @@ namespace Microsoft.ML
             /// Max number of categorical thresholds.
             /// </summary>
             [TlcModule.Range(Inf = 0, Max = 2147483647)]
-            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[]{8, 16, 32, 64})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxCatThreshold", new object[] { 8, 16, 32, 64 })]
             [Obsolete]
             public int MaxCatThreshold { get; set; } = 32;
 
@@ -10544,7 +10367,7 @@ namespace Microsoft.ML
             /// Lapalace smooth term in categorical feature spilt. Avoid the bias of small categories.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[]{1, 10, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatSmooth", new object[] { 1, 10, 20 })]
             [Obsolete]
             public double CatSmooth { get; set; } = 10d;
 
@@ -10552,7 +10375,7 @@ namespace Microsoft.ML
             /// L2 Regularization for categorical split.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[]{0.1f, 0.5f, 1, 5, 10})]
+            [TlcModule.SweepableDiscreteParamAttribute("CatL2", new object[] { 0.1f, 0.5f, 1, 5, 10 })]
             [Obsolete]
             public double CatL2 { get; set; } = 10d;
 
@@ -10617,7 +10440,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -10663,7 +10486,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Regularizer constant
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Lambda", 1E-05f, 0.1f, stepSize:10, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Lambda", 1E-05f, 0.1f, stepSize: 10, isLogScale: true)]
             [Obsolete]
             public float Lambda { get; set; } = 0.001f;
 
@@ -10676,14 +10499,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Perform projection to unit-ball? Typically used with batch size > 1.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("PerformProjection", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("PerformProjection", new object[] { false, true })]
             [Obsolete]
             public bool PerformProjection { get; set; } = false;
 
             /// <summary>
             /// No bias
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NoBias", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("NoBias", new object[] { false, true })]
             [Obsolete]
             public bool NoBias { get; set; } = false;
 
@@ -10703,7 +10526,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize:10, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
             [Obsolete]
             public int NumIterations { get; set; } = 1;
 
@@ -10716,14 +10539,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
             /// <summary>
             /// Whether to shuffle for each training iteration
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -10775,7 +10598,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -10826,28 +10649,28 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L2Weight { get; set; } = 1f;
 
             /// <summary>
             /// L1 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
             /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
+            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[] { 0.0001f, 1E-07f })]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
             /// Memory size for L-BFGS. Lower=faster, less accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
             [Obsolete]
             public int MemorySize { get; set; } = 20;
 
@@ -10873,7 +10696,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
@@ -10892,7 +10715,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Force densification of the internal optimization vectors
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
             [Obsolete]
             public bool DenseOptimizer { get; set; } = false;
 
@@ -10950,7 +10773,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11001,28 +10824,28 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L2Weight { get; set; } = 1f;
 
             /// <summary>
             /// L1 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
             /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
+            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[] { 0.0001f, 1E-07f })]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
             /// Memory size for L-BFGS. Lower=faster, less accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
             [Obsolete]
             public int MemorySize { get; set; } = 20;
 
@@ -11048,7 +10871,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
@@ -11067,7 +10890,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Force densification of the internal optimization vectors
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
             [Obsolete]
             public bool DenseOptimizer { get; set; } = false;
 
@@ -11125,7 +10948,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11209,7 +11032,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11261,14 +11084,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Learning rate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[]{0.01f, 0.1f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[] { 0.01f, 0.1f, 0.5f, 1f })]
             [Obsolete]
             public float LearningRate { get; set; } = 0.1f;
 
             /// <summary>
             /// Decrease learning rate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DecreaseLearningRate", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("DecreaseLearningRate", new object[] { false, true })]
             [Obsolete]
             public bool DecreaseLearningRate { get; set; } = true;
 
@@ -11318,7 +11141,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of iterations
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize:10, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
             [Obsolete]
             public int NumIterations { get; set; } = 1;
 
@@ -11331,14 +11154,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
             /// <summary>
             /// Whether to shuffle for each training iteration
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -11390,7 +11213,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11434,7 +11257,7 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularization weight
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[]{1E-06f, 0.1f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Weight", new object[] { 1E-06f, 0.1f, 1f })]
             [Obsolete]
             public float L2Weight { get; set; } = 1E-06f;
 
@@ -11492,7 +11315,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11537,21 +11360,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The number of components in the PCA
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Rank", new object[]{10, 20, 40, 80})]
+            [TlcModule.SweepableDiscreteParamAttribute("Rank", new object[] { 10, 20, 40, 80 })]
             [Obsolete]
             public int Rank { get; set; } = 20;
 
             /// <summary>
             /// Oversampling parameter for randomized PCA training
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Oversampling", new object[]{10, 20, 40})]
+            [TlcModule.SweepableDiscreteParamAttribute("Oversampling", new object[] { 10, 20, 40 })]
             [Obsolete]
             public int Oversampling { get; set; } = 20;
 
             /// <summary>
             /// If enabled, data is centered to be zero mean
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Center", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Center", new object[] { false, true })]
             [Obsolete]
             public bool Center { get; set; } = true;
 
@@ -11603,7 +11426,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11648,28 +11471,28 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L2Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L2Weight { get; set; } = 1f;
 
             /// <summary>
             /// L1 regularization weight
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute("L1Weight", 0f, 1f, numSteps: 4)]
             [Obsolete]
             public float L1Weight { get; set; } = 1f;
 
             /// <summary>
             /// Tolerance parameter for optimization convergence. Lower = slower, more accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[]{0.0001f, 1E-07f})]
+            [TlcModule.SweepableDiscreteParamAttribute("OptTol", new object[] { 0.0001f, 1E-07f })]
             [Obsolete]
             public float OptTol { get; set; } = 1E-07f;
 
             /// <summary>
             /// Memory size for L-BFGS. Lower=faster, less accurate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[]{5, 20, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MemorySize", new object[] { 5, 20, 50 })]
             [Obsolete]
             public int MemorySize { get; set; } = 20;
 
@@ -11695,7 +11518,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Init weights diameter
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0f, 1f, numSteps: 5)]
             [Obsolete]
             public float InitWtsDiameter { get; set; }
 
@@ -11714,7 +11537,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Force densification of the internal optimization vectors
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("DenseOptimizer", new object[] { false, true })]
             [Obsolete]
             public bool DenseOptimizer { get; set; } = false;
 
@@ -11772,7 +11595,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11843,14 +11666,14 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[]{"<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { "<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f })]
             [Obsolete]
             public float? L2Const { get; set; }
 
             /// <summary>
             /// L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[]{"<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             [Obsolete]
             public float? L1Threshold { get; set; }
 
@@ -11863,21 +11686,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[]{0.001f, 0.01f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             [Obsolete]
             public float ConvergenceTolerance { get; set; } = 0.1f;
 
             /// <summary>
             /// Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[]{"<Auto>", 10, 20, 100})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
             [Obsolete]
             public int? MaxIterations { get; set; }
 
             /// <summary>
             /// Shuffle data every epoch?
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -11890,7 +11713,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate for adjusting bias from being regularized.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[]{0f, 0.01f, 0.1f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[] { 0f, 0.01f, 0.1f, 1f })]
             [Obsolete]
             public float BiasLearningRate { get; set; }
 
@@ -11936,7 +11759,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -11988,14 +11811,14 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[]{"<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { "<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f })]
             [Obsolete]
             public float? L2Const { get; set; }
 
             /// <summary>
             /// L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[]{"<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             [Obsolete]
             public float? L1Threshold { get; set; }
 
@@ -12008,21 +11831,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[]{0.001f, 0.01f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             [Obsolete]
             public float ConvergenceTolerance { get; set; } = 0.1f;
 
             /// <summary>
             /// Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[]{"<Auto>", 10, 20, 100})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
             [Obsolete]
             public int? MaxIterations { get; set; }
 
             /// <summary>
             /// Shuffle data every epoch?
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -12035,7 +11858,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate for adjusting bias from being regularized.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[]{0f, 0.01f, 0.1f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[] { 0f, 0.01f, 0.1f, 1f })]
             [Obsolete]
             public float BiasLearningRate { get; set; }
 
@@ -12081,7 +11904,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12133,14 +11956,14 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[]{"<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { "<Auto>", 1E-07f, 1E-06f, 1E-05f, 0.0001f, 0.001f, 0.01f })]
             [Obsolete]
             public float? L2Const { get; set; }
 
             /// <summary>
             /// L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[]{"<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
             [Obsolete]
             public float? L1Threshold { get; set; }
 
@@ -12153,21 +11976,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The tolerance for the ratio between duality gap and primal loss for convergence checking.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[]{0.001f, 0.01f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
             [Obsolete]
             public float ConvergenceTolerance { get; set; } = 0.01f;
 
             /// <summary>
             /// Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[]{"<Auto>", 10, 20, 100})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { "<Auto>", 10, 20, 100 })]
             [Obsolete]
             public int? MaxIterations { get; set; }
 
             /// <summary>
             /// Shuffle data every epoch?
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -12180,7 +12003,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate for adjusting bias from being regularized.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[]{0f, 0.01f, 0.1f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("BiasLearningRate", new object[] { 0f, 0.01f, 0.1f, 1f })]
             [Obsolete]
             public float BiasLearningRate { get; set; } = 1f;
 
@@ -12226,7 +12049,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12279,7 +12102,7 @@ namespace Microsoft.ML
             /// <summary>
             /// L2 Regularization constant
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[]{1E-07f, 5E-07f, 1E-06f, 5E-06f, 1E-05f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[] { 1E-07f, 5E-07f, 1E-06f, 5E-06f, 1E-05f })]
             [Obsolete]
             public float L2Weight { get; set; } = 1E-06f;
 
@@ -12292,14 +12115,14 @@ namespace Microsoft.ML
             /// <summary>
             /// Exponential moving averaged improvement tolerance for convergence
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[]{0.01f, 0.001f, 0.0001f, 1E-05f})]
+            [TlcModule.SweepableDiscreteParamAttribute("ConvergenceTolerance", new object[] { 0.01f, 0.001f, 0.0001f, 1E-05f })]
             [Obsolete]
             public double ConvergenceTolerance { get; set; } = 0.0001d;
 
             /// <summary>
             /// Maximum number of iterations; set to 1 to simulate online learning.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[]{1, 5, 10, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("MaxIterations", new object[] { 1, 5, 10, 20 })]
             [Obsolete]
             public int MaxIterations { get; set; } = 20;
 
@@ -12312,7 +12135,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Shuffle data every epoch?
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[]{false, true})]
+            [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
             [Obsolete]
             public bool Shuffle { get; set; } = true;
 
@@ -12389,7 +12212,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12439,7 +12262,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Number of passes over the data.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumberOfIterations", new object[]{1, 5, 10, 20, 30, 40, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumberOfIterations", new object[] { 1, 5, 10, 20, 30, 40, 50 })]
             [Obsolete]
             public int NumberOfIterations { get; set; } = 50;
 
@@ -12452,21 +12275,21 @@ namespace Microsoft.ML
             /// <summary>
             /// Learning rate
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[]{"<Auto>", 10f, 1f, 0.1f, 0.01f, 0.001f})]
+            [TlcModule.SweepableDiscreteParamAttribute("LearningRate", new object[] { "<Auto>", 10f, 1f, 0.1f, 0.01f, 0.001f })]
             [Obsolete]
             public float? LearningRate { get; set; }
 
             /// <summary>
             /// L2 regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("L2Regularization", new object[]{0f, 1E-05f, 1E-05f, 1E-06f, 1E-07f})]
+            [TlcModule.SweepableDiscreteParamAttribute("L2Regularization", new object[] { 0f, 1E-05f, 1E-05f, 1E-06f, 1E-07f })]
             [Obsolete]
             public float L2Regularization { get; set; }
 
             /// <summary>
             /// The number of iterations each thread learns a local model until combining it with the global model. Low value means more updated global model and high value means less cache traffic.
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("UpdateFrequency", new object[]{"<Auto>", 5, 20})]
+            [TlcModule.SweepableDiscreteParamAttribute("UpdateFrequency", new object[] { "<Auto>", 5, 20 })]
             [Obsolete]
             public int? UpdateFrequency { get; set; }
 
@@ -12530,7 +12353,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => TrainingData;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12620,7 +12443,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12695,7 +12518,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12778,7 +12601,7 @@ namespace Microsoft.ML
             public BinNormalizer()
             {
             }
-            
+
             public BinNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -12789,7 +12612,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public BinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -12800,7 +12623,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>(Column);
@@ -12863,7 +12686,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -12966,7 +12789,7 @@ namespace Microsoft.ML
             public CategoricalHashOneHotVectorizer()
             {
             }
-            
+
             public CategoricalHashOneHotVectorizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -12977,7 +12800,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public CategoricalHashOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -12988,7 +12811,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotHashEncodingTransformerColumn>(Column);
@@ -13063,7 +12886,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13164,7 +12987,7 @@ namespace Microsoft.ML
             public CategoricalOneHotVectorizer()
             {
             }
-            
+
             public CategoricalOneHotVectorizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -13175,7 +12998,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public CategoricalOneHotVectorizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -13186,7 +13009,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.OneHotEncodingTransformerColumn>(Column);
@@ -13261,7 +13084,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13324,7 +13147,7 @@ namespace Microsoft.ML
             public CharacterTokenizer()
             {
             }
-            
+
             public CharacterTokenizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -13335,7 +13158,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public CharacterTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -13346,7 +13169,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TokenizingByCharactersTransformerColumn>(Column);
@@ -13397,7 +13220,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13462,12 +13285,12 @@ namespace Microsoft.ML
             public ColumnConcatenator()
             {
             }
-            
+
             public ColumnConcatenator(string outputColumn, params string[] inputColumns)
             {
                 AddColumn(outputColumn, inputColumns);
             }
-            
+
             public void AddColumn(string name, params string[] source)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnConcatenatingTransformerColumn>(Column);
@@ -13505,7 +13328,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13570,7 +13393,7 @@ namespace Microsoft.ML
             public ColumnCopier()
             {
             }
-            
+
             public ColumnCopier(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -13581,7 +13404,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ColumnCopier(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -13592,7 +13415,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>(Column);
@@ -13637,7 +13460,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13730,7 +13553,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13807,7 +13630,7 @@ namespace Microsoft.ML
             public ColumnTypeConverter()
             {
             }
-            
+
             public ColumnTypeConverter(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -13818,7 +13641,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ColumnTypeConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -13829,7 +13652,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.TypeConvertingTransformerColumn>(Column);
@@ -13886,7 +13709,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -13965,7 +13788,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14042,7 +13865,7 @@ namespace Microsoft.ML
             public ConditionalNormalizer()
             {
             }
-            
+
             public ConditionalNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -14053,7 +13876,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ConditionalNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -14064,7 +13887,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
@@ -14121,7 +13944,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14198,7 +14021,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14374,7 +14197,7 @@ namespace Microsoft.ML
             public Dictionarizer()
             {
             }
-            
+
             public Dictionarizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -14385,7 +14208,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public Dictionarizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -14396,7 +14219,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
@@ -14465,7 +14288,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14540,7 +14363,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14620,7 +14443,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14712,7 +14535,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14793,7 +14616,7 @@ namespace Microsoft.ML
             public GlobalContrastNormalizer()
             {
             }
-            
+
             public GlobalContrastNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -14804,7 +14627,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public GlobalContrastNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -14815,7 +14638,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformerGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformerGcnColumn>(Column);
@@ -14878,7 +14701,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -14972,7 +14795,7 @@ namespace Microsoft.ML
             public HashConverter()
             {
             }
-            
+
             public HashConverter(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -14983,7 +14806,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public HashConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -14994,7 +14817,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoiningTransformColumn>(Column);
@@ -15063,7 +14886,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15128,7 +14951,7 @@ namespace Microsoft.ML
             public ImageGrayscale()
             {
             }
-            
+
             public ImageGrayscale(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -15139,7 +14962,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ImageGrayscale(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -15150,7 +14973,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>(Column);
@@ -15195,7 +15018,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15260,7 +15083,7 @@ namespace Microsoft.ML
             public ImageLoader()
             {
             }
-            
+
             public ImageLoader(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -15271,7 +15094,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ImageLoader(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -15282,7 +15105,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>(Column);
@@ -15333,7 +15156,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15446,7 +15269,7 @@ namespace Microsoft.ML
             public ImagePixelExtractor()
             {
             }
-            
+
             public ImagePixelExtractor(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -15457,7 +15280,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ImagePixelExtractor(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -15468,7 +15291,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>(Column);
@@ -15561,7 +15384,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15667,7 +15490,7 @@ namespace Microsoft.ML
             public ImageResizer()
             {
             }
-            
+
             public ImageResizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -15678,7 +15501,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public ImageResizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -15689,7 +15512,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>(Column);
@@ -15758,7 +15581,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15821,7 +15644,7 @@ namespace Microsoft.ML
             public KeyToTextConverter()
             {
             }
-            
+
             public KeyToTextConverter(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -15832,7 +15655,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public KeyToTextConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -15843,7 +15666,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueMappingTransformerColumn>(Column);
@@ -15888,7 +15711,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -15969,7 +15792,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16040,7 +15863,7 @@ namespace Microsoft.ML
             public LabelIndicator()
             {
             }
-            
+
             public LabelIndicator(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -16051,7 +15874,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public LabelIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -16062,7 +15885,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>(Column);
@@ -16113,7 +15936,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16188,7 +16011,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16318,7 +16141,7 @@ namespace Microsoft.ML
             public LightLda()
             {
             }
-            
+
             public LightLda(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -16329,7 +16152,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public LightLda(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -16340,7 +16163,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LatentDirichletAllocationTransformerColumn>(Column);
@@ -16365,35 +16188,35 @@ namespace Microsoft.ML
             /// <summary>
             /// The number of topics
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[]{20, 40, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTopic", new object[] { 20, 40, 100, 200 })]
             [Obsolete]
             public int NumTopic { get; set; } = 100;
 
             /// <summary>
             /// Dirichlet prior on document-topic vectors
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("AlphaSum", new object[]{1, 10, 100, 200})]
+            [TlcModule.SweepableDiscreteParamAttribute("AlphaSum", new object[] { 1, 10, 100, 200 })]
             [Obsolete]
             public float AlphaSum { get; set; } = 100f;
 
             /// <summary>
             /// Dirichlet prior on vocab-topic vectors
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Beta", new object[]{0.01f, 0.015f, 0.07f, 0.02f})]
+            [TlcModule.SweepableDiscreteParamAttribute("Beta", new object[] { 0.01f, 0.015f, 0.07f, 0.02f })]
             [Obsolete]
             public float Beta { get; set; } = 0.01f;
 
             /// <summary>
             /// Number of Metropolis Hasting step
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("Mhstep", new object[]{2, 4, 8, 16})]
+            [TlcModule.SweepableDiscreteParamAttribute("Mhstep", new object[] { 2, 4, 8, 16 })]
             [Obsolete]
             public int Mhstep { get; set; } = 4;
 
             /// <summary>
             /// Number of iterations
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[]{100, 200, 300, 400})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumIterations", new object[] { 100, 200, 300, 400 })]
             [Obsolete]
             public int NumIterations { get; set; } = 200;
 
@@ -16424,7 +16247,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The number of burn-in iterations
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumBurninIterations", new object[]{10, 20, 30, 40})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumBurninIterations", new object[] { 10, 20, 30, 40 })]
             [Obsolete]
             public int NumBurninIterations { get; set; } = 10;
 
@@ -16463,7 +16286,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16534,7 +16357,7 @@ namespace Microsoft.ML
             public LogMeanVarianceNormalizer()
             {
             }
-            
+
             public LogMeanVarianceNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -16545,7 +16368,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public LogMeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -16556,7 +16379,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>(Column);
@@ -16613,7 +16436,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16697,7 +16520,7 @@ namespace Microsoft.ML
             public LpNormalizer()
             {
             }
-            
+
             public LpNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -16708,7 +16531,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public LpNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -16719,7 +16542,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormalizingTransformerColumn>(Column);
@@ -16776,7 +16599,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16860,7 +16683,7 @@ namespace Microsoft.ML
             public MeanVarianceNormalizer()
             {
             }
-            
+
             public MeanVarianceNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -16871,7 +16694,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MeanVarianceNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -16882,7 +16705,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
@@ -16945,7 +16768,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -16993,7 +16816,7 @@ namespace Microsoft.ML
             public MinMaxNormalizer()
             {
             }
-            
+
             public MinMaxNormalizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17004,7 +16827,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MinMaxNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17015,7 +16838,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
@@ -17072,7 +16895,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17163,7 +16986,7 @@ namespace Microsoft.ML
             public MissingValueHandler()
             {
             }
-            
+
             public MissingValueHandler(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17174,7 +16997,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MissingValueHandler(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17185,7 +17008,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueHandlingTransformerColumn>(Column);
@@ -17248,7 +17071,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17312,7 +17135,7 @@ namespace Microsoft.ML
             public MissingValueIndicator()
             {
             }
-            
+
             public MissingValueIndicator(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17323,7 +17146,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MissingValueIndicator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17334,7 +17157,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueIndicatorTransformerColumn>(Column);
@@ -17379,7 +17202,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17443,7 +17266,7 @@ namespace Microsoft.ML
             public MissingValuesDropper()
             {
             }
-            
+
             public MissingValuesDropper(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17454,7 +17277,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MissingValuesDropper(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17465,7 +17288,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueDroppingTransformerColumn>(Column);
@@ -17510,7 +17333,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17590,7 +17413,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17682,7 +17505,7 @@ namespace Microsoft.ML
             public MissingValueSubstitutor()
             {
             }
-            
+
             public MissingValueSubstitutor(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17693,7 +17516,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public MissingValueSubstitutor(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17704,7 +17527,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.MissingValueReplacingTransformerColumn>(Column);
@@ -17761,7 +17584,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -17892,7 +17715,7 @@ namespace Microsoft.ML
             public NGramTranslator()
             {
             }
-            
+
             public NGramTranslator(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -17903,7 +17726,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public NGramTranslator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -17914,7 +17737,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>(Column);
@@ -17989,7 +17812,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18058,7 +17881,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18132,7 +17955,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18226,7 +18049,7 @@ namespace Microsoft.ML
             public PcaCalculator()
             {
             }
-            
+
             public PcaCalculator(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -18237,7 +18060,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public PcaCalculator(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -18248,7 +18071,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>(Column);
@@ -18323,7 +18146,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18398,7 +18221,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18508,7 +18331,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18613,7 +18436,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18694,7 +18517,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18769,7 +18592,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18844,7 +18667,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -18919,7 +18742,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19042,7 +18865,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19122,7 +18945,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19280,7 +19103,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19396,12 +19219,12 @@ namespace Microsoft.ML
             public TextFeaturizer()
             {
             }
-            
+
             public TextFeaturizer(string outputColumn, params string[] inputColumns)
             {
                 AddColumn(outputColumn, inputColumns);
             }
-            
+
             public void AddColumn(string name, params string[] source)
             {
                 Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextFeaturizingEstimatorColumn>.Create(name, source);
@@ -19505,7 +19328,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19552,7 +19375,7 @@ namespace Microsoft.ML
             public TextToKeyConverter()
             {
             }
-            
+
             public TextToKeyConverter(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -19563,7 +19386,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public TextToKeyConverter(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -19574,7 +19397,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ValueToKeyMappingTransformerColumn>(Column);
@@ -19643,7 +19466,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19775,7 +19598,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -19930,7 +19753,7 @@ namespace Microsoft.ML
             public VectorToImage()
             {
             }
-            
+
             public VectorToImage(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -19941,7 +19764,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public VectorToImage(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -19952,7 +19775,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>(Column);
@@ -20051,7 +19874,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -20130,7 +19953,7 @@ namespace Microsoft.ML
             public WordEmbeddings()
             {
             }
-            
+
             public WordEmbeddings(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -20141,7 +19964,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public WordEmbeddings(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -20152,7 +19975,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsExtractingTransformerColumn>(Column);
@@ -20209,7 +20032,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -20279,7 +20102,7 @@ namespace Microsoft.ML
             public WordTokenizer()
             {
             }
-            
+
             public WordTokenizer(params string[] inputColumns)
             {
                 if (inputColumns != null)
@@ -20290,7 +20113,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public WordTokenizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
             {
                 if (inputOutputColumns != null)
@@ -20301,7 +20124,7 @@ namespace Microsoft.ML
                     }
                 }
             }
-            
+
             public void AddColumn(string inputColumn)
             {
                 var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizingTransformerColumn>(Column);
@@ -20352,7 +20175,7 @@ namespace Microsoft.ML
             }
             [Obsolete]
             public Var<IDataView> GetInputData() => Data;
-            
+
             [Obsolete]
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
@@ -20390,151 +20213,7 @@ namespace Microsoft.ML
     namespace Runtime
     {
         [Obsolete]
-        public abstract class AutoMlEngine : ComponentKind {}
-
-
-
-        /// <summary>
-        /// AutoML engine that returns learners with default settings.
-        /// </summary>
-        [Obsolete]
-        public sealed class DefaultsAutoMlEngine : AutoMlEngine
-        {
-            [Obsolete]
-            internal override string ComponentName => "Defaults";
-        }
-
-
-
-        /// <summary>
-        /// AutoML engine that consists of distinct, hierarchical stages of operation.
-        /// </summary>
-        [Obsolete]
-        public sealed class RocketAutoMlEngine : AutoMlEngine
-        {
-            /// <summary>
-            /// Number of learners to retain for second stage.
-            /// </summary>
-            [Obsolete]
-            public int TopKLearners { get; set; } = 2;
-
-            /// <summary>
-            /// Number of trials for retained second stage learners.
-            /// </summary>
-            [Obsolete]
-            public int SecondRoundTrialsPerLearner { get; set; } = 5;
-
-            /// <summary>
-            /// Use random initialization only.
-            /// </summary>
-            [Obsolete]
-            public bool RandomInitialization { get; set; } = false;
-
-            /// <summary>
-            /// Number of initilization pipelines, used for random initialization only.
-            /// </summary>
-            [Obsolete]
-            public int NumInitializationPipelines { get; set; } = 20;
-
-            [Obsolete]
-            internal override string ComponentName => "Rocket";
-        }
-
-
-
-        /// <summary>
-        /// AutoML engine using uniform random sampling.
-        /// </summary>
-        [Obsolete]
-        public sealed class UniformRandomAutoMlEngine : AutoMlEngine
-        {
-            [Obsolete]
-            internal override string ComponentName => "UniformRandom";
-        }
-
-        [Obsolete]
-        public abstract class AutoMlStateBase : ComponentKind {}
-
-        [Obsolete]
-        public enum PipelineSweeperSupportedMetricsMetrics
-        {
-            Auc = 0,
-            AccuracyMicro = 1,
-            AccuracyMacro = 2,
-            L1 = 3,
-            L2 = 4,
-            F1 = 5,
-            AuPrc = 6,
-            TopKAccuracy = 7,
-            Rms = 8,
-            LossFn = 9,
-            RSquared = 10,
-            LogLoss = 11,
-            LogLossReduction = 12,
-            Ndcg = 13,
-            Dcg = 14,
-            PositivePrecision = 15,
-            PositiveRecall = 16,
-            NegativePrecision = 17,
-            NegativeRecall = 18,
-            DrAtK = 19,
-            DrAtPFpr = 20,
-            DrAtNumPos = 21,
-            NumAnomalies = 22,
-            ThreshAtK = 23,
-            ThreshAtP = 24,
-            ThreshAtNumPos = 25,
-            Nmi = 26,
-            AvgMinScore = 27,
-            Dbi = 28
-        }
-
-
-
-        /// <summary>
-        /// State of an AutoML search and search space.
-        /// </summary>
-        [Obsolete]
-        public sealed class AutoMlStateAutoMlStateBase : AutoMlStateBase
-        {
-            /// <summary>
-            /// Supported metric for evaluator.
-            /// </summary>
-            [Obsolete]
-            public PipelineSweeperSupportedMetricsMetrics Metric { get; set; } = PipelineSweeperSupportedMetricsMetrics.Auc;
-
-            /// <summary>
-            /// AutoML engine (pipeline optimizer) that generates next candidates.
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public AutoMlEngine Engine { get; set; }
-
-            /// <summary>
-            /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
-            /// </summary>
-            [Obsolete]
-            public Microsoft.ML.Legacy.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Legacy.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
-
-            /// <summary>
-            /// Arguments for creating terminator, which determines when to stop search.
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            [Obsolete]
-            public SearchTerminator TerminatorArgs { get; set; }
-
-            /// <summary>
-            /// Learner set to sweep over (if available).
-            /// </summary>
-            [Obsolete]
-            public string[] RequestedLearners { get; set; }
-
-            [Obsolete]
-            internal override string ComponentName => "AutoMlState";
-        }
-
-        [Obsolete]
-        public abstract class BoosterParameterFunction : ComponentKind {}
+        public abstract class BoosterParameterFunction : ComponentKind { }
 
 
 
@@ -20629,7 +20308,7 @@ namespace Microsoft.ML
             /// L2 regularization term on weights, increasing this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegLambda { get; set; } = 0.01d;
 
@@ -20637,7 +20316,7 @@ namespace Microsoft.ML
             /// L1 regularization term on weights, increase this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegAlpha { get; set; }
 
@@ -20711,7 +20390,7 @@ namespace Microsoft.ML
             /// L2 regularization term on weights, increasing this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegLambda { get; set; } = 0.01d;
 
@@ -20719,7 +20398,7 @@ namespace Microsoft.ML
             /// L1 regularization term on weights, increase this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegAlpha { get; set; }
 
@@ -20807,7 +20486,7 @@ namespace Microsoft.ML
             /// L2 regularization term on weights, increasing this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegLambda", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegLambda { get; set; } = 0.01d;
 
@@ -20815,7 +20494,7 @@ namespace Microsoft.ML
             /// L1 regularization term on weights, increase this value will make model more conservative.
             /// </summary>
             [TlcModule.Range(Min = 0d)]
-            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[]{0f, 0.5f, 1f})]
+            [TlcModule.SweepableDiscreteParamAttribute("RegAlpha", new object[] { 0f, 0.5f, 1f })]
             [Obsolete]
             public double RegAlpha { get; set; }
 
@@ -20830,7 +20509,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class CalibratorTrainer : ComponentKind {}
+        public abstract class CalibratorTrainer : ComponentKind { }
 
 
 
@@ -20884,7 +20563,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class ClassificationLossFunction : ComponentKind {}
+        public abstract class ClassificationLossFunction : ComponentKind { }
 
 
 
@@ -20953,7 +20632,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EarlyStoppingCriterion : ComponentKind {}
+        public abstract class EarlyStoppingCriterion : ComponentKind { }
 
 
 
@@ -21065,7 +20744,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleBinaryDiversityMeasure : ComponentKind {}
+        public abstract class EnsembleBinaryDiversityMeasure : ComponentKind { }
 
 
 
@@ -21077,7 +20756,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleBinaryOutputCombiner : ComponentKind {}
+        public abstract class EnsembleBinaryOutputCombiner : ComponentKind { }
 
 
 
@@ -21148,7 +20827,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleBinarySubModelSelector : ComponentKind {}
+        public abstract class EnsembleBinarySubModelSelector : ComponentKind { }
 
 
 
@@ -21230,7 +20909,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleFeatureSelector : ComponentKind {}
+        public abstract class EnsembleFeatureSelector : ComponentKind { }
 
 
 
@@ -21257,7 +20936,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind {}
+        public abstract class EnsembleMulticlassDiversityMeasure : ComponentKind { }
 
 
 
@@ -21269,7 +20948,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleMulticlassOutputCombiner : ComponentKind {}
+        public abstract class EnsembleMulticlassOutputCombiner : ComponentKind { }
 
 
 
@@ -21354,7 +21033,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleMulticlassSubModelSelector : ComponentKind {}
+        public abstract class EnsembleMulticlassSubModelSelector : ComponentKind { }
 
 
 
@@ -21430,7 +21109,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleRegressionDiversityMeasure : ComponentKind {}
+        public abstract class EnsembleRegressionDiversityMeasure : ComponentKind { }
 
 
 
@@ -21442,7 +21121,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleRegressionOutputCombiner : ComponentKind {}
+        public abstract class EnsembleRegressionOutputCombiner : ComponentKind { }
 
 
 
@@ -21478,7 +21157,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleRegressionSubModelSelector : ComponentKind {}
+        public abstract class EnsembleRegressionSubModelSelector : ComponentKind { }
 
 
 
@@ -21555,7 +21234,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class EnsembleSubsetSelector : ComponentKind {}
+        public abstract class EnsembleSubsetSelector : ComponentKind { }
 
 
 
@@ -21606,7 +21285,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class FastTreeTrainer : ComponentKind {}
+        public abstract class FastTreeTrainer : ComponentKind { }
 
 
 
@@ -21692,21 +21371,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -21894,21 +21573,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -22156,21 +21835,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -22358,21 +22037,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -22572,21 +22251,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -22774,21 +22453,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -22994,21 +22673,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The learning rate
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
             [Obsolete]
             public double LearningRates { get; set; } = 0.2d;
 
             /// <summary>
             /// Shrinkage
             /// </summary>
-            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Shrinkage", 0.025f, 4f, isLogScale: true)]
             [Obsolete]
             public double Shrinkage { get; set; } = 1d;
 
             /// <summary>
             /// Dropout rate for tree regularization
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[]{0f, 1E-09f, 0.05f, 0.1f, 0.2f})]
+            [TlcModule.SweepableDiscreteParamAttribute("DropoutRate", new object[] { 0f, 1E-09f, 0.05f, 0.1f, 0.2f })]
             [Obsolete]
             public double DropoutRate { get; set; }
 
@@ -23196,21 +22875,21 @@ namespace Microsoft.ML
             /// <summary>
             /// The max number of leaves in each regression tree
             /// </summary>
-            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize:4, isLogScale:true)]
+            [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, stepSize: 4, isLogScale: true)]
             [Obsolete]
             public int NumLeaves { get; set; } = 20;
 
             /// <summary>
             /// The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[]{1, 10, 50})]
+            [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
             [Obsolete]
             public int MinDocumentsInLeafs { get; set; } = 10;
 
             /// <summary>
             /// Total number of decision trees to create in the ensemble
             /// </summary>
-            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[]{20, 100, 500})]
+            [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
             [Obsolete]
             public int NumTrees { get; set; } = 100;
 
@@ -23333,7 +23012,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class NgramExtractor : ComponentKind {}
+        public abstract class NgramExtractor : ComponentKind { }
 
 
 
@@ -23432,7 +23111,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class ParallelLightGBM : ComponentKind {}
+        public abstract class ParallelLightGBM : ComponentKind { }
 
 
 
@@ -23447,7 +23126,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class ParallelTraining : ComponentKind {}
+        public abstract class ParallelTraining : ComponentKind { }
 
 
 
@@ -23462,7 +23141,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class PartitionedPathParser : ComponentKind {}
+        public abstract class PartitionedPathParser : ComponentKind { }
 
 
 
@@ -23524,7 +23203,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class RegressionLossFunction : ComponentKind {}
+        public abstract class RegressionLossFunction : ComponentKind { }
 
 
 
@@ -23569,7 +23248,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class SDCAClassificationLossFunction : ComponentKind {}
+        public abstract class SDCAClassificationLossFunction : ComponentKind { }
 
 
 
@@ -23620,7 +23299,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class SDCARegressionLossFunction : ComponentKind {}
+        public abstract class SDCARegressionLossFunction : ComponentKind { }
 
 
 
@@ -23635,28 +23314,7 @@ namespace Microsoft.ML
         }
 
         [Obsolete]
-        public abstract class SearchTerminator : ComponentKind {}
-
-
-
-        /// <summary>
-        /// Terminators a sweep based on total number of iterations.
-        /// </summary>
-        [Obsolete]
-        public sealed class IterationLimitedSearchTerminator : SearchTerminator
-        {
-            /// <summary>
-            /// Total number of iterations.
-            /// </summary>
-            [Obsolete]
-            public int FinalHistoryLength { get; set; }
-
-            [Obsolete]
-            internal override string ComponentName => "IterationLimited";
-        }
-
-        [Obsolete]
-        public abstract class StopWordsRemover : ComponentKind {}
+        public abstract class StopWordsRemover : ComponentKind { }
 
 
 
