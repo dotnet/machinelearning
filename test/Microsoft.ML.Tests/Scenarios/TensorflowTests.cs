@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.IO;
 using Xunit;
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Scenarios
     public partial class ScenariosTests
     {
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
-        public void TensorFlowTransforCifarmEndToEndTest()
+        public void TensorFlowTransforCifarEndToEndTest()
         {
             var imageHeight = 32;
             var imageWidth = 32;
