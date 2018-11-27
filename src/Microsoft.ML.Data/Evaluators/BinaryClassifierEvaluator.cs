@@ -878,6 +878,20 @@ namespace Microsoft.ML.Runtime.Data
                 F1Score = Fetch(BinaryClassifierEvaluator.F1);
                 Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
             }
+
+            [BestFriend]
+            internal Result(double auc, double accuracy, double positivePrecision, double positiveRecall,
+                double negativePrecision, double negativeRecall, double f1Score, double auprc)
+            {
+                Auc = auc;
+                Accuracy = accuracy;
+                PositivePrecision = positivePrecision;
+                PositiveRecall = positiveRecall;
+                NegativePrecision = negativePrecision;
+                NegativeRecall = negativeRecall;
+                F1Score = f1Score;
+                Auprc = auprc;
+            }
         }
 
         /// <summary>
