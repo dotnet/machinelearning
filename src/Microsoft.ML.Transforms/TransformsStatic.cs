@@ -163,8 +163,6 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                Contracts.Assert(toOutput.Length == 1);
-
                 var pairs = new List<(string input, string output)>();
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn<T>)outCol).Input], outputNames[outCol]));
@@ -313,8 +311,6 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                env.Assert(toOutput.Length == 1);
-
                 var infos = new CountFeatureSelectingEstimator.ColumnInfo[toOutput.Length];
                 for (int i = 0; i < toOutput.Length; i++)
                     infos[i] = new CountFeatureSelectingEstimator.ColumnInfo(inputNames[((OutPipelineColumn<T>)toOutput[i]).Input], outputNames[toOutput[i]], _count);
