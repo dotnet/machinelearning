@@ -112,13 +112,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
             var columns = new[] {
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", count: 1),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing690", count: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing100", count: 100),
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing690", count: 690),
-                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing100", count: 100)
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "FeatureSelectDouble", minCount: 1),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing690", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("ScalarFloat", "ScalFeatureSelectMissing100", minCount: 100),
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing690", minCount: 690),
+                new CountFeatureSelectingEstimator.ColumnInfo("VectorDouble", "VecFeatureSelectMissing100", minCount: 100)
             };
-            var est = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", count: 1)
+            var est = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", minCount: 1)
                 .Append(new CountFeatureSelectingEstimator(ML, columns));
 
             TestEstimatorCore(est, data);
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var pipe = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", count: 1);
+            var pipe = new CountFeatureSelectingEstimator(ML, "VectorFloat", "FeatureSelect", minCount: 1);
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

@@ -186,6 +186,9 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             }
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one input-output column pair.
+        /// </summary>
         public sealed class ColumnInfo
         {
             public readonly string Input;
@@ -269,7 +272,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Host.CheckUserArg(AreRangesValid(SlotsMin, SlotsMax), nameof(columns), "The range min and max must be non-negative and min must be less than or equal to max.");
         }
 
-        internal SlotsDroppingTransformer(IHostEnvironment env, ModelLoadContext ctx)
+        private SlotsDroppingTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), ctx)
         {
             Host.AssertValue(ctx);
@@ -292,8 +295,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             Host.Assert(AreRangesValid(SlotsMin, SlotsMax));
         }
 
-        // Factory method for SignatureLoadModel
-        internal static SlotsDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static SlotsDroppingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             ctx.CheckAtModel(GetVersionInfo());
@@ -301,18 +304,18 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             var columns = args.Column.Select(column => new ColumnInfo(column)).ToArray();
             return new SlotsDroppingTransformer(env, columns).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)

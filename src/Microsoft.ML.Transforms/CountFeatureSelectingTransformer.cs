@@ -50,27 +50,34 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         {
             public readonly string Input;
             public readonly string Output;
-            public readonly long Count;
+            public readonly long MinCount;
 
             /// <summary>
             /// Describes the parameters of the feature selection process for a column pair.
             /// </summary>
             /// <param name="input">Name of the input column.</param>
             /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
-            /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
-            public ColumnInfo(string input, string output = null, long count = Defaults.Count)
+            /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+            public ColumnInfo(string input, string output = null, long minCount = Defaults.Count)
             {
                 Input = input;
                 Contracts.CheckValue(Input, nameof(Input));
                 Output = output ?? input;
                 Contracts.CheckValue(Output, nameof(Output));
-                Count = count;
+                MinCount = minCount;
             }
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Describes the parameters of the feature selection process for each column pair.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public CountFeatureSelectingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -84,9 +91,16 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="env">The environment to use.</param>
         /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
-        public CountFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = Defaults.Count)
-            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, count))
+        /// <param name="minCount">If the count of non-default values for a slot is greater than or equal to this threshold in the training data, the slot is preserved.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[CountFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
+        public CountFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, long minCount = Defaults.Count)
+            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, minCount))
         {
         }
 
@@ -99,7 +113,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
                 if (!CountFeatureSelectionUtils.IsValidColumnType(col.ItemType))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.Input);
+                    throw _host.ExceptUserArg(nameof(inputSchema), "Column '{0}' does not have compatible type. Expected types are float, double or string.", colPair.Input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -156,7 +170,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
             host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
             host.CheckUserArg(args.Count > 0, nameof(args.Count));
 
-            var columnInfos = args.Column.Select(inColName => new ColumnInfo(inColName, count: args.Count)).ToArray();
+            var columnInfos = args.Column.Select(inColName => new ColumnInfo(inColName, minCount: args.Count)).ToArray();
 
             return new CountFeatureSelectingEstimator(env, columnInfos).Fit(input).Transform(input) as IDataTransform;
         }
@@ -179,11 +193,11 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 selectedCount[i] = 0;
                 for (int j = 0; j < score.Length; j++)
                 {
-                    if (score[j] < columnInfos[i].Count)
+                    if (score[j] < columnInfos[i].MinCount)
                     {
                         // Adjacent slots are combined into a single range.
                         int min = j;
-                        while (j < score.Length && score[j] < columnInfos[i].Count)
+                        while (j < score.Length && score[j] < columnInfos[i].MinCount)
                             j++;
                         int max = j - 1;
                         slots.Add((min, max));

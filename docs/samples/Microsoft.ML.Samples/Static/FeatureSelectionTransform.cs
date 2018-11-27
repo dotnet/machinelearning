@@ -41,11 +41,11 @@ namespace Microsoft.ML.Samples.Dynamic
             // Then, we use the reader to read the data as an IDataView.
             var data = reader.Read(dataFilePath);
 
-            // Second, we define the transformations that we apply on the data. Remember that an Estimator does not trnasform data
+            // Second, we define the transformations that we apply on the data. Remember that an Estimator does not transform data
             // directly, but it needs to be trained on data using .Fit(), and it will output a Transformer, which can transform data.
 
             // In this example we define a CountFeatureSelectingEstimator, that selects slots in a feature vector that have more non-default 
-            // values than the specified count. This transformation can be used to remove columns with too many missing values.
+            // values than the specified count. This transformation can be used to remove slots with too many missing values.
             // We also define a MutualInformationFeatureSelectingEstimator that selects the top k slots in a feature 
             // vector based on highest mutual information between that slot and a specified label. Notice that it is possible to 
             // specify the parameter `numBins', which controls the number of bins used in the approximation of the mutual information
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Samples.Dynamic
             printHelper("FeaturesCountSelect", countSelectColumn);
             printHelper("FeaturesMISelect", MISelectColumn);
 
-            // Below is the output of the this code. We see that some slots habe been dropped by the first trnsformation.
+            // Below is the output of the this code. We see that some slots habe been dropped by the first transformation.
             // Among the remaining slots, the second transformation only preserves the top 5 slots based on mutualinformation 
             // with the label column.
 

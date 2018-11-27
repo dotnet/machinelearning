@@ -32,7 +32,6 @@ namespace Microsoft.ML.Transforms.FeatureSelection
 
         internal const string UserName = "Mutual Information Feature Selection Transform";
         internal const string ShortName = "MIFeatureSelection";
-        internal const string FriendlyName = "Mutual Information Feature Selection";
         internal static string RegistrationName = "MutualInformationFeatureSelectionTransform";
 
         public static class Defaults
@@ -73,6 +72,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
         /// <param name="columns">Specifies the names of the input columns for the transformation, and their respective output column names.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MutualInformationFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public MutualInformationFeatureSelectingEstimator(IHostEnvironment env,
             string labelColumn = Defaults.LabelColumn,
             int slotsInOutput = Defaults.SlotsInOutput,
@@ -100,6 +106,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="labelColumn">Name of the column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in the output. The number of slots to preserve is taken across all input columns.</param>
         /// <param name="numBins">Max number of bins used to approximate mutual information between each input column and the label column. Power of 2 recommended.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[MutualInformationFeatureSelectingEstimator](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureSelectionTransform.cs?range=1-4,10-121)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public MutualInformationFeatureSelectingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string labelColumn = Defaults.LabelColumn, int slotsInOutput = Defaults.SlotsInOutput, int numBins = Defaults.NumBins)
             : this(env, labelColumn, slotsInOutput, numBins, (inputColumn, outputColumn ?? inputColumn))
@@ -161,7 +174,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 if (!inputSchema.TryFindColumn(colPair.input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
                 if (!MutualInformationFeatureSelectionUtils.IsValidColumnType(col.ItemType))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                    throw _host.ExceptUserArg(nameof(inputSchema),
+                        "Column '{0}' does not have compatible type. Expected types are float, double, int, bool and key.", colPair.input);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
@@ -311,27 +325,8 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         /// <param name="labelColumnName">The label column.</param>
         /// <param name="columns">The columns for which to compute the feature selection scores.</param>
         /// <param name="numBins">The number of bins to use for numeric features.</param>
+        /// <param name="colSizes">The columns' sizes before dropping any slots.</param>
         /// <returns>A list of scores for each column and each slot.</returns>
-        public static float[][] Train(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins)
-        {
-            Contracts.CheckValue(host, nameof(host));
-            host.CheckValue(input, nameof(input));
-            host.CheckNonWhiteSpace(labelColumnName, nameof(labelColumnName));
-            host.CheckValue(columns, nameof(columns));
-            host.Check(columns.Length > 0, "At least one column must be specified.");
-            host.Check(numBins > 1, "numBins must be greater than 1.");
-
-            HashSet<string> colSet = new HashSet<string>();
-            foreach (string col in columns)
-            {
-                if (!colSet.Add(col))
-                    throw host.Except("Column '{0}' specified multiple times.", col);
-            }
-
-            var colSizes = new int[columns.Length];
-            return TrainCore(host, input, labelColumnName, columns, numBins, colSizes);
-        }
-
         internal static float[][] TrainCore(IHost host, IDataView input, string labelColumnName, string[] columns, int numBins, int[] colSizes)
         {
             var impl = new Impl(host);
