@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _shouldStablize = model._shouldStablize;
             _shouldMaintainInfo = model._shouldMaintainInfo;
             _info = model._info;
-            _buffer = model._buffer.Clone();//new FixedSizeQueue<Single>(_seriesLength);
+            _buffer = model._buffer.Clone();
             _alpha = new Single[_windowSize - 1];
             Array.Copy(model._alpha, _alpha, _windowSize - 1);
             _state = new Single[_windowSize - 1];
@@ -461,7 +461,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _y.CopyFrom(tempArray, ref i);
             }
 
-            //_buffer = new FixedSizeQueue<Single>(_seriesLength);
             _buffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, _host);
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);

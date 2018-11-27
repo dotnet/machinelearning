@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             protected long PreviousPosition;
 
-            protected StateBase(ModelLoadContext ctx)
+            private protected StateBase(ModelLoadContext ctx)
             {
                 WindowSize = ctx.Reader.ReadInt32();
                 InitialWindowSize = ctx.Reader.ReadInt32();
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return clone;
             }
 
-            public virtual void CloneCore(StateBase state)
+            private protected virtual void CloneCore(StateBase state)
             {
                 state.WindowedBuffer = WindowedBuffer.Clone();
                 state.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
@@ -342,9 +342,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public abstract Schema GetOutputSchema(Schema inputSchema);
 
-        protected abstract IStatefulRowMapper MakeRowMapper(ISchema schema);
+        private protected abstract IStatefulRowMapper MakeRowMapper(ISchema schema);
 
-        protected SequentialDataTransform MakeDataTransform(IDataView input)
+        private protected SequentialDataTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return new SequentialDataTransform(Host, this, input, MakeRowMapper(input.Schema));
@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             throw new InvalidOperationException("Not a RowToRowMapper.");
         }
 
-        public IRowToRowMapper GetStatefulRowToRowMapper(Schema inputSchema)
+        IRowToRowMapper IStatefulTransformer.GetStatefulRowToRowMapper(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return new TimeSeriesRowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), MakeRowMapper(inputSchema));
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         IStatefulTransformer IStatefulTransformer.Clone() => Clone();
 
-        public sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
+        internal sealed class SequentialDataTransform : TransformBase, ITransformTemplate, IRowToRowMapper
         {
             private readonly IStatefulRowMapper _mapper;
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         }
 
-        public sealed class Row : IStatefulRow
+        private sealed class Row : IStatefulRow
         {
             private readonly Schema _schema;
             private readonly IRow _input;
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// to get the dependencies on input columns and the getters for the output columns, given an active set of output columns.
     /// </summary>
 
-    public sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IStatefulRowToRowMapper,
+    internal sealed class TimeSeriesRowToRowMapperTransform : RowToRowTransformBase, IStatefulRowToRowMapper,
         ITransformCanSaveOnnx, ITransformCanSavePfa
     {
         private readonly IStatefulRowMapper _mapper;

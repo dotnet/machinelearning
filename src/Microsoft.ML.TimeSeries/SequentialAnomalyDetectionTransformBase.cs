@@ -324,7 +324,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             protected Double LatestMartingaleScore => Math.Exp(_logMartingaleValue);
 
-            public override void CloneCore(StateBase state)
+            private protected AnomalyDetectionStateBase() { }
+
+            private protected override void CloneCore(StateBase state)
             {
                 base.CloneCore(state);
                 Contracts.Assert(state is AnomalyDetectionStateBase);
@@ -333,7 +335,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 stateLocal.RawScoreBuffer = RawScoreBuffer.Clone();
             }
 
-            public AnomalyDetectionStateBase(ModelLoadContext ctx) : base(ctx)
+            private protected AnomalyDetectionStateBase(ModelLoadContext ctx) : base(ctx)
             {
                 LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(ctx.Reader, Host);
                 RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
@@ -350,10 +352,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 ctx.Writer.Write(_logMartingaleValue);
                 ctx.Writer.Write(_sumSquaredDist);
                 ctx.Writer.Write(_martingaleAlertCounter);
-            }
-
-            private protected AnomalyDetectionStateBase() : base()
-            {
             }
 
             private Double ComputeKernelPValue(Double rawScore)
@@ -572,7 +570,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        private protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
 
         private sealed class Mapper : IStatefulRowMapper
         {

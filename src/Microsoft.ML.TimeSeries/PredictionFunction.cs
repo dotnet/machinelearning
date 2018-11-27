@@ -30,7 +30,7 @@ namespace Microsoft.ML.TimeSeries
         Action<long> GetPinger();
     }
 
-    public interface IStatefulRowMapper : IRowMapper
+    internal interface IStatefulRowMapper : IRowMapper
     {
         void CloneState();
 

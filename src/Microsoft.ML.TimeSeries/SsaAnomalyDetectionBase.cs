@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, ctx.Writer);
             }
 
-            public override void CloneCore(StateBase state)
+            private protected override void CloneCore(StateBase state)
             {
                 base.CloneCore(state);
                 Contracts.Assert(state is State);
