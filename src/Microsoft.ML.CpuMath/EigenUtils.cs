@@ -5,6 +5,8 @@
 using System;
 using Float = System.Single;
 
+using Microsoft.ML.Hidden;
+
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     [BestFriend]

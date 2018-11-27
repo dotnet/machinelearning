@@ -17,7 +17,7 @@ using System.IO;
 using System.Threading;
 
 #if PRIVATE_CONTRACTS
-namespace Microsoft.ML.Runtime.Internal
+namespace Microsoft.ML.Hidden
 #else
 namespace Microsoft.ML.Runtime
 #endif
@@ -55,9 +55,7 @@ namespace Microsoft.ML.Runtime
     }
 #endif
 
-#if !PRIVATE_CONTRACTS
     [BestFriend]
-#endif
     internal static partial class Contracts
     {
         public const string IsMarkedKey = "ML_IsMarked";

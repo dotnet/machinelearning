@@ -4,6 +4,7 @@
 
 using Float = System.Single;
 
+using Microsoft.ML.Hidden;
 using System;
 using System.Collections;
 using System.Collections.Generic;

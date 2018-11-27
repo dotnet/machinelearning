@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="..\Microsoft.ML.Core\Utilities\Contracts.cs" />
     <Compile Include="..\Microsoft.ML.Core\BestFriendAttribute.cs" />
     <Compile Include="..\Microsoft.ML.Core\Properties\PublicKey.cs" />
