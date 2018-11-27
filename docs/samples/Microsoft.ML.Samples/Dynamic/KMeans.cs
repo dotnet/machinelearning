@@ -1,10 +1,7 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.KMeansClustering;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

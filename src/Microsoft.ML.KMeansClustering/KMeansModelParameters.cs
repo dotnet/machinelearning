@@ -4,16 +4,16 @@
 
 using Float = System.Single;
 
-using System;
-using System.IO;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.KMeansClustering;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.KMeansClustering;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Numeric;
+using System;
+using System.IO;
 using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
