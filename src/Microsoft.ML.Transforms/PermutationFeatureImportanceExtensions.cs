@@ -61,7 +61,7 @@ namespace Microsoft.ML
         /// Namely, how much the model's predictions will change if we randomly permute the values of one feature across the evaluation set.
         /// If the quality doesn't change much, this feature is not very important. If the quality drops drastically, this was a really important feature.
         /// </summary>
-        /// <param name="ctx">The regression context.</param>
+        /// <param name="ctx">The binary classification context.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
         /// <param name="label">Label column name.</param>
