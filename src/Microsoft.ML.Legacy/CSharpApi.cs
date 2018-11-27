@@ -13544,7 +13544,7 @@ namespace Microsoft.ML
     {
 
         [Obsolete]
-        public sealed partial class ColumnsCopyingTransformerColumn : OneToOneColumn<ColumnsCopyingTransformerColumn>, IOneToOneColumn
+        public sealed partial class ColumnCopyingTransformerColumn : OneToOneColumn<ColumnCopyingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -13595,15 +13595,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnsCopyingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ColumnCopyingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13612,7 +13612,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public ColumnsCopyingTransformerColumn[] Column { get; set; }
+            public ColumnCopyingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Input dataset
@@ -17829,7 +17829,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
         [Obsolete]
-        public enum NgramCountingEstimatorWeightingCriteria
+        public enum NgramExtractingEstimatorWeightingCriteria
         {
             Tf = 0,
             Idf = 1,
@@ -17838,7 +17838,7 @@ namespace Microsoft.ML
 
 
         [Obsolete]
-        public sealed partial class NgramCountingTransformerColumn : OneToOneColumn<NgramCountingTransformerColumn>, IOneToOneColumn
+        public sealed partial class NgramExtractingTransformerColumn : OneToOneColumn<NgramExtractingTransformerColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Maximum ngram length
@@ -17868,7 +17868,7 @@ namespace Microsoft.ML
             /// Statistical measure used to evaluate how important a word is to a document in a corpus
             /// </summary>
             [Obsolete]
-            public NgramCountingEstimatorWeightingCriteria? Weighting { get; set; }
+            public NgramExtractingEstimatorWeightingCriteria? Weighting { get; set; }
 
             /// <summary>
             /// Name of the new column
@@ -17917,15 +17917,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramCountingTransformerColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramExtractingTransformerColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -17934,7 +17934,7 @@ namespace Microsoft.ML
             /// New column definition(s) (optional form: name:src)
             /// </summary>
             [Obsolete]
-            public NgramCountingTransformerColumn[] Column { get; set; }
+            public NgramExtractingTransformerColumn[] Column { get; set; }
 
             /// <summary>
             /// Maximum ngram length
@@ -17964,7 +17964,7 @@ namespace Microsoft.ML
             /// The weighting criteria
             /// </summary>
             [Obsolete]
-            public NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = NgramCountingEstimatorWeightingCriteria.Tf;
+            public NgramExtractingEstimatorWeightingCriteria Weighting { get; set; } = NgramExtractingEstimatorWeightingCriteria.Tf;
 
             /// <summary>
             /// Input dataset
@@ -19161,6 +19161,7 @@ namespace Microsoft.ML
     {
 
         /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
+        /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name="TensorflowTransform"]/*' />
         [Obsolete]
         public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
@@ -23370,7 +23371,7 @@ namespace Microsoft.ML
             /// The weighting criteria
             /// </summary>
             [Obsolete]
-            public Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramCountingEstimatorWeightingCriteria.Tf;
+            public Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramExtractingEstimatorWeightingCriteria.Tf;
 
             [Obsolete]
             internal override string ComponentName => "NGram";

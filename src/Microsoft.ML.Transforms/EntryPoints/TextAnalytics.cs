@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Linq;
 
@@ -52,14 +52,14 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramCountingTransformer.Summary,
-            UserName = NgramCountingTransformer.UserName,
-            ShortName = NgramCountingTransformer.LoaderSignature,
+            Desc = NgramExtractingTransformer.Summary,
+            UserName = NgramExtractingTransformer.UserName,
+            ShortName = NgramExtractingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = NgramCountingTransformer.Create(h, input, input.Data);
+            var xf = NgramExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

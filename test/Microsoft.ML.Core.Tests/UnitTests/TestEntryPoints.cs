@@ -24,6 +24,7 @@ using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Projections;
 using Microsoft.ML.Transforms.Text;
@@ -459,12 +460,12 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = ColumnsCopyingTransformer.Create(Env,
-                    new ColumnsCopyingTransformer.Arguments()
+                individualScores[i] = ColumnCopyingTransformer.Create(Env,
+                    new ColumnCopyingTransformer.Arguments()
                     {
                         Column = new[]
                         {
-                            new ColumnsCopyingTransformer.Column()
+                            new ColumnCopyingTransformer.Column()
                             {
                                 Name = MetadataUtils.Const.ScoreValueKind.Score + i,
                                 Source = MetadataUtils.Const.ScoreValueKind.Score

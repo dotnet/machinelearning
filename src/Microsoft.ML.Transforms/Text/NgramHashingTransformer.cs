@@ -116,37 +116,49 @@ namespace Microsoft.ML.Transforms.Text
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum ngram length", ShortName = "ngram", SortOrder = 3)]
-            public int NgramLength = 2;
+            public int NgramLength = ArgumentDefaults.NgramLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength),
                 ShortName = "all", SortOrder = 4)]
-            public bool AllLengths = true;
+            public bool AllLengths = ArgumentDefaults.AllLengths;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Maximum number of tokens to skip when constructing an ngram",
                 ShortName = "skips", SortOrder = 3)]
-            public int SkipLength = 0;
+            public int SkipLength = ArgumentDefaults.SkipLength;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Number of bits to hash into. Must be between 1 and 30, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = 16;
+            public int HashBits = ArgumentDefaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = ArgumentDefaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to rehash unigrams", ShortName = "rehash")]
-            public bool RehashUnigrams;
+            public bool RehashUnigrams = ArgumentDefaults.RehashUnigrams;
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether the position of each source column should be included in the hash (when there are multiple source columns).",
                 ShortName = "ord", SortOrder = 6)]
-            public bool Ordered = true;
+            public bool Ordered = ArgumentDefaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash;
+            public int InvertHash = ArgumentDefaults.InvertHash;
+        }
+
+        internal static class ArgumentDefaults
+        {
+            internal const int NgramLength = 2;
+            internal const bool AllLengths = true;
+            internal const int SkipLength = 0;
+            internal const int HashBits = 16;
+            internal const uint Seed = 314489979;
+            internal const bool RehashUnigrams = false;
+            internal const bool Ordered = true;
+            internal const int InvertHash = 0;
         }
 
         private sealed class Bindings : ManyToOneColumnBindingsBase

@@ -1132,7 +1132,7 @@ var learningPipeline = reader.MakeNewEstimator()
         BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
         // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
-        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf),
+        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf),
 
         // NLP pipeline 4: word embeddings.
         Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsExtractorTransformer.PretrainedModelKind.GloVeTwitter25D)
@@ -1186,8 +1186,8 @@ var dynamicPipeline =
 
     // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
     .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-    .Append(new NgramCountingEstimator(mlContext, "MessageChars", "BagOfTrichar",
-                ngramLength: 3, weighting: NgramTokenizingTransformer.WeightingCriteria.TfIdf))
+    .Append(new NgramExtractingEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
     // NLP pipeline 4: word embeddings.
     .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
@@ -1297,7 +1297,7 @@ var dynamicPipeline =
     // Concatenate all the features together into one column 'Features'.
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
-    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+    .Append(mlContext.Transforms.Conversions.MapValueToKey("Label"), TransformerScope.TrainTest)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 

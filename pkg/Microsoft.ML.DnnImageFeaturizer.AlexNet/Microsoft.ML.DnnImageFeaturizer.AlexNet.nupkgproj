@@ -10,8 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>  
-    <Content Include="$(ObjDir)\DnnImageModels\AlexNetOnnx\AlexNet.onnx" Pack="true" PackagePath="tools\DnnImageModels\AlexNetOnnx" /> 
-    <Content Include="$(ObjDir)\DnnImageModels\AlexNetPrepOnnx\AlexNetPreprocess.onnx" Pack="true" PackagePath="tools\DnnImageModels\AlexNetPrepOnnx" /> 
     <Content Include="..\common\DnnImageFeaturizer.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" /> 
   </ItemGroup>  
 

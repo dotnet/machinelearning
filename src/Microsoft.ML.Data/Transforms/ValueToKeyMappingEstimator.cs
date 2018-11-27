@@ -12,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator: IEstimator<ValueToKeyMappingTransformer>

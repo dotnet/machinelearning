@@ -35,6 +35,7 @@ namespace Microsoft.ML
         /// Trainers and tasks specific to clustering problems.
         /// </summary>
         public ClusteringContext Clustering { get; }
+
         /// <summary>
         /// Trainers and tasks specific to ranking problems.
         /// </summary>

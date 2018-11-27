@@ -152,9 +152,9 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.Assert(toOutput.Length == 1);
 
-                var columns = new List<StopWordsRemovingTransform.ColumnInfo>();
+                var columns = new List<StopWordsRemovingTransformer.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new StopWordsRemovingTransform.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
+                    columns.Add(new StopWordsRemovingTransformer.ColumnInfo(inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol], _language));
 
                 return new StopWordsRemovingEstimator(env, columns.ToArray());
             }
@@ -254,7 +254,7 @@ namespace Microsoft.ML.StaticPipe
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramCountingEstimator.WeightingCriteria weighting)
+                NgramExtractingEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -267,9 +267,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramCountingEstimator.WeightingCriteria _weighting;
+            private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingEstimator.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -319,7 +319,7 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
@@ -430,7 +430,7 @@ namespace Microsoft.ML.StaticPipe
                 int skipLength,
                 bool allLengths,
                 int maxNumTerms,
-                NgramCountingEstimator.WeightingCriteria weighting)
+                NgramExtractingEstimator.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -443,9 +443,9 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _skipLength;
             private readonly bool _allLengths;
             private readonly int _maxNumTerms;
-            private readonly NgramCountingEstimator.WeightingCriteria _weighting;
+            private readonly NgramExtractingEstimator.WeightingCriteria _weighting;
 
-            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramCountingEstimator.WeightingCriteria weighting)
+            public Reconciler(int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramExtractingEstimator.WeightingCriteria weighting)
             {
                 _ngramLength = ngramLength;
                 _skipLength = skipLength;
@@ -476,7 +476,7 @@ namespace Microsoft.ML.StaticPipe
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new NgramCountingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
+                return new NgramExtractingEstimator(env, pairs.ToArray(), _ngramLength, _skipLength, _allLengths, _maxNumTerms, _weighting);
             }
         }
 
@@ -498,7 +498,7 @@ namespace Microsoft.ML.StaticPipe
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramCountingEstimator.WeightingCriteria weighting = NgramCountingEstimator.WeightingCriteria.Tf)
+            NgramExtractingEstimator.WeightingCriteria weighting = NgramExtractingEstimator.WeightingCriteria.Tf)
                 => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 

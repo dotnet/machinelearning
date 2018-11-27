@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
+using Microsoft.ML;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -62,7 +63,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             // Create a pipeline with a single operator.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, userColumnName, itemColumnName, labelColumnName,
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(userColumnName, itemColumnName, labelColumnName,
                 advancedSettings: s =>
                 {
                     s.NumIterations = 3;
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
             // Compute prediction errors
-            var metrices = mlContext.Regression.Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
+            var metrices = mlContext.Recommendation().Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
 
             // Determine if the selected metric is reasonable for different platforms
             double tolerance = Math.Pow(10, -7);
@@ -181,7 +182,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext,
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
                 nameof(MatrixElement.MatrixColumnIndex),
                 nameof(MatrixElement.MatrixRowIndex),
                 nameof(MatrixElement.Value),
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result
-            var metrics = mlContext.Regression.Evaluate(prediction, label: nameof(MatrixElement.Value),
+            var metrics = mlContext.Recommendation().Evaluate(prediction, label: nameof(MatrixElement.Value),
                 score: nameof(MatrixElementForScore.Score));
 
             // Native test. Just check the pipeline runs.
@@ -273,7 +274,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext,
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
                 nameof(MatrixElementZeroBased.MatrixColumnIndex),
                 nameof(MatrixElementZeroBased.MatrixRowIndex),
                 nameof(MatrixElementZeroBased.Value),
@@ -304,7 +305,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result. It's a global
-            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.L2, 0, 0.1);
@@ -390,7 +391,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var pipeline = new MatrixFactorizationTrainer(mlContext,
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization(
                 nameof(OneClassMatrixElementZeroBased.MatrixColumnIndex),
                 nameof(OneClassMatrixElementZeroBased.MatrixRowIndex),
                 nameof(OneClassMatrixElementZeroBased.Value),
@@ -415,7 +416,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
+            var metrics = mlContext.Recommendation().Evaluate(prediction, label: "Value", score: "Score");
 
             // Make sure the prediction error is not too large.
             Assert.InRange(metrics.L2, 0, 0.0016);
