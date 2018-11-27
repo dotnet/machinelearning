@@ -505,9 +505,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
             var data = mlContext.Data.ReadFromTextFile(new[]
             {
-                new TextLoader.Column("Income", DataKind.R4, 2),
-                new TextLoader.Column("Features", DataKind.R4, 10, 12)
-            }, GetDataPath("adult.train"), s => { s.Separator = ","; s.HasHeader = true; });
+                new TextLoader.Column("Income", DataKind.R4, 10),
+                new TextLoader.Column("Features", DataKind.R4, 12, 14)
+            }, GetDataPath("adult.tiny.with-schema.txt"), s => { s.Separator = "\t"; s.HasHeader = true; });
 
             PrepareData(mlContext, data);
             TrainModel(mlContext, data);

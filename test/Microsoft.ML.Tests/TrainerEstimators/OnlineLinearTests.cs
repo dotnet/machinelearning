@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
@@ -26,14 +25,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainData = pipe.Fit(data).Transform(data).AsDynamic;
 
-            IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, "Label", "Features");
-            TestEstimatorCore(est, trainData);
+            var ogdTrainer = new OnlineGradientDescentTrainer(Env, "Label", "Features");
+            TestEstimatorCore(ogdTrainer, trainData);
+            var ogdModel = ogdTrainer.Fit(trainData);
+            ogdTrainer.Train(trainData, ogdModel.Model);
 
-            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
+            var apTrainer = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction: new HingeLoss(), advancedSettings: s =>
             {
                 s.LearningRate = 0.5f;
             });
-            TestEstimatorCore(est, trainData);
+            TestEstimatorCore(apTrainer, trainData);
+
+            var apModel = apTrainer.Fit(trainData);
+            apTrainer.Train(trainData, apModel.Model);
 
             Done();
 

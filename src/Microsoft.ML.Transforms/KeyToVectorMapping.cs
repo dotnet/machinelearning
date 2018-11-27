@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -219,22 +220,22 @@ namespace Microsoft.ML.Transforms.Conversions
                 return infos;
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                var result = new Schema.DetachedColumn[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.Metadata.Builder();
+                    var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
+            private void AddMetadata(int iinfo, MetadataBuilder builder)
             {
                 InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 var inputMetadata = InputSchema[srcCol].Metadata;
@@ -268,7 +269,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     {
                         dst = true;
                     };
-                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), normalizeGetter);
+                    builder.Add(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, normalizeGetter);
                 }
                 else
                 {
@@ -279,7 +280,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             GetSlotNames(iinfo, ref dst);
                         };
                         var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
-                        builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, slotNamesType, null), getter);
+                        builder.Add(MetadataUtils.Kinds.SlotNames, slotNamesType, getter);
                     }
                 }
             }

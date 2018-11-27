@@ -15,6 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+#pragma warning disable 612, 618
     public class TestCSharpApi : BaseTestClass
     {
         public TestCSharpApi(ITestOutputHelper output) : base(output)
@@ -980,4 +981,5 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(10, (schema.GetColumnType(2) as VectorType)?.Size);
         }
     }
+#pragma warning restore 612, 618
 }

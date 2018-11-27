@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -1459,7 +1460,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss?? Args.LossFunction.CreateComponent(env);
+            _loss = loss ?? Args.LossFunction.CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
@@ -1578,8 +1579,6 @@ namespace Microsoft.ML.Trainers
 
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
-
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
@@ -1742,6 +1741,9 @@ namespace Microsoft.ML.Trainers
 
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
 
         //For complexity analysis, we assume that
         // - The number of features is N

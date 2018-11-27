@@ -5,69 +5,10 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using System;
 using System.Linq;
-using static Microsoft.ML.Transforms.Text.StopWordsRemovingTransformer;
 
 namespace Microsoft.ML.Transforms.Text
 {
-
-    /// <summary>
-    /// Stopword remover removes language-specific lists of stop words (most common words)
-    /// This is usually applied after tokenizing text, so it compares individual tokens
-    /// (case-insensitive comparison) to the stopwords.
-    /// </summary>
-    public sealed class StopwordRemover : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Removes stop words from incoming token streams in <paramref name="inputColumn"/>
-        /// and outputs the token streams without stopwords as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to remove stop words on.</param>
-        /// <param name="outputColumn">The column containing output text. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="language">Langauge of the input text column <paramref name="inputColumn"/>.</param>
-        public StopwordRemover(IHostEnvironment env, string inputColumn, string outputColumn = null, Language language = Language.English)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, language)
-        {
-        }
-
-        /// <summary>
-        /// Removes stop words from incoming token streams in input columns
-        /// and outputs the token streams without stop words as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to remove stop words on.</param>
-        /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
-        public StopwordRemover(IHostEnvironment env, (string input, string output)[] columns, Language language = Language.English)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StopwordRemover)), MakeTransformer(env, columns, language))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, Language language)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new StopWordsRemovingTransformer.Arguments
-            {
-                Column = columns.Select(x => new StopWordsRemovingTransformer.Column { Source = x.input, Name = x.output }).ToArray(),
-                Language = language
-            };
-
-            // Create a valid instance of data.
-            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new StopWordsRemovingTransformer(env, args, emptyData));
-        }
-    }
 
     /// <summary>
     /// Produces a bag of counts of ngrams (sequences of consecutive words) in a given text.
@@ -450,52 +391,6 @@ namespace Microsoft.ML.Transforms.Text
             };
 
             return new TransformWrapper(Host, new NgramHashingTransformer(Host, args, input));
-        }
-    }
-
-    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaEstimator : TrainedWrapperEstimatorBase
-    {
-        private readonly LdaTransform.Arguments _args;
-
-        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LdaEstimator(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
-                    numTopic,
-                    advancedSettings)
-        {
-        }
-
-        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to compute LDA.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LdaEstimator(IHostEnvironment env,
-            (string input, string output)[] columns,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaEstimator)))
-        {
-            _args = new LdaTransform.Arguments();
-            _args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
-            _args.NumTopic = numTopic;
-
-            advancedSettings?.Invoke(_args);
-        }
-
-        public override TransformWrapper Fit(IDataView input)
-        {
-            return new TransformWrapper(Host, new LdaTransform(Host, _args, input));
         }
     }
 }

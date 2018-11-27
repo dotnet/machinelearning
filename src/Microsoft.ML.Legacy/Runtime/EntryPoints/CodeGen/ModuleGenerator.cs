@@ -211,6 +211,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 {
                     if (info.IsOfType(kvp.Key))
                     {
+                        writer.WriteLine("[Obsolete]");
                         kvp.Value.Generate(writer, _modulePrefix, _regenerate, info,
                             _moduleId ?? Guid.NewGuid().ToString(), _moduleName, _moduleOwner, _moduleVersion, _moduleState,
                             _moduleType, _moduleDeterminism, _moduleCategory, _exclude, _namespaces);
