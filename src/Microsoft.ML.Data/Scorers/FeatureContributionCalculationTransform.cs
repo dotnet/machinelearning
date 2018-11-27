@@ -27,9 +27,20 @@ using Microsoft.ML.Runtime.Numeric;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// The Feature Importance scorer is superset of a generic scorer.
-    /// It outputs score columns from Generic Scorer plus for given features provides vector of corresponding feature contributions.
+    /// Feature Contribution Calculation Transform.
     /// </summary>
+    /// <remarks>
+    /// The Feature Contribution Calculation Transform scores the model on an input dataset and
+    /// computes model-specific contribution scores for each feature. See the sample below for
+    /// an example of how to compute feature importance using the Feature Contribution Calculation Transform.
+    /// </remarks>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[FCT](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class FeatureContributionCalculationTransform
     {
         // Apparently, loader signature is limited in length to 24 characters.
