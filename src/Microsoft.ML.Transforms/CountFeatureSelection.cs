@@ -144,13 +144,13 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 ch.Info("Total number of slots selected: {0}", selectedCount.Sum());
 
                 if (dropSlotsColumns.Length <= 0)
-                    return new ColumnsCopyingTransformer(_host, copyColumnsPairs);
+                    return new ColumnCopyingTransformer(_host, copyColumnsPairs);
                 else if (copyColumnsPairs.Length <= 0)
                     return new SlotsDroppingTransformer(_host, dropSlotsColumns);
 
                 var transformerChain = new TransformerChain<SlotsDroppingTransformer>(
                     new ITransformer[] {
-                        new ColumnsCopyingTransformer(_host, copyColumnsPairs),
+                        new ColumnCopyingTransformer(_host, copyColumnsPairs),
                         new SlotsDroppingTransformer(_host, dropSlotsColumns)
                     });
                 return transformerChain;
