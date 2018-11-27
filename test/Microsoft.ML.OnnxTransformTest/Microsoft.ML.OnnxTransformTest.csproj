@@ -14,23 +14,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <DnnPrepModelFiles Include="$(ObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx" />
+    <Content Include="$(ObjDir)DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx">
+      <Link>DnnImageModels\ResNetPrepOnnx\ResNetPreprocess.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <DnnMainModelFiles Include="$(ObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx" />
+    <Content Include="$(ObjDir)DnnImageModels\ResNet18Onnx\ResNet18.onnx">
+      <Link>DnnImageModels\ResNet18Onnx\ResNet18.onnx</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-
-  <Target Name="CopyPrepFiles">
-    <Copy 
-      SourceFiles="@(DnnPrepModelFiles)"
-      DestinationFolder="$(OutDir)\DnnImageModels\ResNetPrepOnnx" />
-  </Target>
-  
-  <Target Name="CopyMainFiles" AfterTargets="Build" DependsOnTargets="CopyPrepFiles">
-    <Copy 
-      SourceFiles="@(DnnMainModelFiles)"
-      DestinationFolder="$(OutDir)\DnnImageModels\ResNet18Onnx" />
-  </Target>
 
 </Project>
