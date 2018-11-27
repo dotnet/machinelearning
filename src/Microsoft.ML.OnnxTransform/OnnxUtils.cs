@@ -26,7 +26,7 @@ namespace Microsoft.ML.Transforms
 
         /// <summary>
         /// OnnxModelInfo contains the data that we should get from
-        /// Sonoma API once that functionality is added.
+        /// OnnxRuntime API once that functionality is added.
         /// </summary>
         public sealed class OnnxModelInfo
         {
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
 
     internal sealed class OnnxUtils
     {
-        private static Dictionary<System.Type, System.Type> _onnxTypeMap;
+        private static HashSet<System.Type> _onnxTypeMap;
         private static Dictionary<System.Type, DataKind> _typeToKindMap;
 
         /// <summary>
@@ -172,10 +172,10 @@ namespace Microsoft.ML.Transforms
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateScalarNamedOnnxValue<T>(string name, T data)
         {
-            var typeMap = SystemTypeToOnnxType();
-            if (!typeMap.ContainsKey(typeof(T)))
+            var typeMap = SupportedOnnxRuntimeTypes();
+            if (!typeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
-            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { }));
+            return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(new T[] { data }, new int[] { 0 }));
         }
 
         /// <summary>
@@ -189,8 +189,8 @@ namespace Microsoft.ML.Transforms
         /// <returns>NamedOnnxValue</returns>
         public static NamedOnnxValue CreateNamedOnnxValue<T>(string name, ReadOnlySpan<T> data, OnnxShape shape)
         {
-            var typeMap = SystemTypeToOnnxType();
-            if (!typeMap.ContainsKey(typeof(T)))
+            var typeMap = SupportedOnnxRuntimeTypes();
+            if (!typeMap.Contains(typeof(T)))
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
             return NamedOnnxValue.CreateFromTensor<T>(name, new DenseTensor<T>(data.ToArray(), shape.Select(x => (int)x).ToArray()));
         }
@@ -230,20 +230,20 @@ namespace Microsoft.ML.Transforms
             return _typeToKindMap;
         }
 
-        internal static Dictionary<System.Type, System.Type> SystemTypeToOnnxType()
+        internal static HashSet<System.Type> SupportedOnnxRuntimeTypes()
         {
             if (_onnxTypeMap == null)
             {
-                _onnxTypeMap = new Dictionary<System.Type, System.Type>
+                _onnxTypeMap = new HashSet<System.Type>
                 {
-                    { typeof(Double) , typeof(Double) },
-                    { typeof(Single) , typeof(Single) },
-                    { typeof(Int16) , typeof(Int16) },
-                    { typeof(Int32) , typeof(Int32) },
-                    { typeof(Int64) , typeof(Int64) },
-                    { typeof(UInt16) , typeof(UInt16) },
-                    { typeof(UInt32) , typeof(UInt32) },
-                    { typeof(UInt64) , typeof(UInt64) }
+                     typeof(Double),
+                     typeof(Single),
+                     typeof(Int16),
+                     typeof(Int32),
+                     typeof(Int64),
+                     typeof(UInt16),
+                     typeof(UInt32),
+                     typeof(UInt64)
                 };
             }
             return _onnxTypeMap;

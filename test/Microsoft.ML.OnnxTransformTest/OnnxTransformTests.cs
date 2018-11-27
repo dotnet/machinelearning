@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
@@ -298,16 +299,10 @@ namespace Microsoft.ML.Tests
                     {
                         getScoresa(ref buffera);
                         getScoresb(ref bufferb);
-                        var suma = 0f;
-                        var sumb = 0f;
-                        foreach (var x in buffera.DenseValues())
-                            suma += x;
-                        foreach (var x in bufferb.DenseValues())
-                            sumb += x;
                         Assert.Equal(5, buffera.Length);
                         Assert.Equal(5, bufferb.Length);
-                        Assert.Equal(0, suma);
-                        Assert.Equal(30, sumb);
+                        Assert.Equal(0, buffera.GetValues().ToArray().Sum());
+                        Assert.Equal(30, bufferb.GetValues().ToArray().Sum());
                     }
                 }
             }

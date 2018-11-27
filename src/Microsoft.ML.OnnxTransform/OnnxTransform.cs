@@ -46,7 +46,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     /// <remarks>
     /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
-    /// <a href='https://www.nuget.org/packages/Microsoft.ML.Scoring/'>Microsoft.ML.Scoring</a> library
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library
     /// </p>
     /// <p>The inputs and outputs of the onnx models must of of Tensors. Sequence and Maps are not yet supported.</p>
     /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
@@ -363,10 +363,10 @@ namespace Microsoft.ML.Transforms
                 {
                     UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
                     var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
-                    var editor = VBufferEditor.Create(ref dst, namedOnnxValue.AsTensor<T>().Count());
                     var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
                     if (denseTensor == null)
                         throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
+                    var editor = VBufferEditor.Create(ref dst, (int) denseTensor.Length);
                     denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
