@@ -116,13 +116,13 @@ namespace Microsoft.ML.Samples.Dynamic
             // help to determine if the effect is real or just sampling noise. See for example 
             // Tan, Caruana, Hooker, and Lou. "Distill-and-Compare: Auditing Black-Box Models Using Transparent Model 
             // Distillation." <a href='https://arxiv.org/abs/1710.06169'>arXiv:1710.06169</a>."
-            Console.WriteLine(string.Empty);
+            Console.WriteLine();
             Console.WriteLine("Student-Teacher Ratio");
             for (int i = 0; i < teacherRatioBinUpperBounds.Length; i++)
             {
                 Console.WriteLine($"x < {teacherRatioBinUpperBounds[i]:0.00} => {teacherRatioFeatureWeights[i]:0.000}");
             }
-            Console.WriteLine(string.Empty);
+            Console.WriteLine();
         }
     }
 }
