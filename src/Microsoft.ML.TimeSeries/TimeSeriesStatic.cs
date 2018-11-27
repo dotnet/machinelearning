@@ -7,11 +7,12 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.StaticPipe.Runtime;
 using System.Collections.Generic;
-using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
-using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 namespace Microsoft.ML.StaticPipe
 {
+    using IidBase = Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
+    using SsaBase = Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
+
     /// <summary>
     /// IidChangePoint static API extension methods.
     /// </summary>
@@ -25,7 +26,7 @@ namespace Microsoft.ML.StaticPipe
                 Scalar<float> input,
                 int confidence,
                 int changeHistoryLength,
-                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale,
+                IidBase.MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, martingale, eps), input)
             {
@@ -37,13 +38,13 @@ namespace Microsoft.ML.StaticPipe
         {
             private readonly int _confidence;
             private readonly int _changeHistoryLength;
-            private readonly SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType _martingale;
+            private readonly IidBase.MartingaleType _martingale;
             private readonly double _eps;
 
             public Reconciler(
                 int confidence,
                 int changeHistoryLength,
-                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale,
+                IidBase.MartingaleType martingale,
                 double eps)
             {
                 _confidence = confidence;
@@ -74,7 +75,7 @@ namespace Microsoft.ML.StaticPipe
             this Scalar<float> input,
             int confidence,
             int changeHistoryLength,
-            SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType martingale = SequentialAnomalyDetectionTransformBase < System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>.MartingaleType.Power,
+            IidBase.MartingaleType martingale = IidBase.MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, martingale, eps);
     }
 
@@ -141,7 +142,7 @@ namespace Microsoft.ML.StaticPipe
                 int trainingWindowSize,
                 int seasonalityWindowSize,
                 ErrorFunctionUtils.ErrorFunction errorFunction,
-                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale,
+                SsaBase.MartingaleType martingale,
                 double eps)
                 : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps), input)
             {
@@ -156,7 +157,7 @@ namespace Microsoft.ML.StaticPipe
             private readonly int _trainingWindowSize;
             private readonly int _seasonalityWindowSize;
             private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
-            private readonly SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType _martingale;
+            private readonly SsaBase.MartingaleType _martingale;
             private readonly double _eps;
 
             public Reconciler(
@@ -165,7 +166,7 @@ namespace Microsoft.ML.StaticPipe
                 int trainingWindowSize,
                 int seasonalityWindowSize,
                 ErrorFunctionUtils.ErrorFunction errorFunction,
-                SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale,
+                SsaBase.MartingaleType martingale,
                 double eps)
             {
                 _confidence = confidence;
@@ -205,7 +206,7 @@ namespace Microsoft.ML.StaticPipe
             int trainingWindowSize,
             int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
-            SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType martingale = SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>.MartingaleType.Power,
+            SsaBase.MartingaleType martingale = SsaBase.MartingaleType.Power,
             double eps = 0.1) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, errorFunction, martingale, eps);
     }
 

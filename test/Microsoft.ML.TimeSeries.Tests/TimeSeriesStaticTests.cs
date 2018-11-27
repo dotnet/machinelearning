@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests
         {
             var env = new MLContext(conc: 1);
             const int Size = 10;
-            List<Data> data = new List<Data>(Size);
+            var data = new List<Data>(Size);
             var dataView = env.CreateStreamingDataView(data);
             for (int i = 0; i < Size / 2; i++)
                 data.Add(new Data(5));
@@ -65,10 +65,10 @@ namespace Microsoft.ML.Tests
             {
                 row = enumerator.Current;
 
-                Assert.Equal(expectedValues[index++], row.Data[0]);
-                Assert.Equal(expectedValues[index++], row.Data[1]);
-                Assert.Equal(expectedValues[index++], row.Data[2]);
-                Assert.Equal(expectedValues[index++], row.Data[3]);
+                Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);
+                Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);
+                Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);
+                Assert.Equal(expectedValues[index++], row.Data[3], precision: 7);
             }
         }
 
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Tests
             const int NumberOfSeasonsInTraining = 5;
             const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
 
-            List<Data> data = new List<Data>();
+            var data = new List<Data>();
             var dataView = env.CreateStreamingDataView(data);
 
             for (int j = 0; j < NumberOfSeasonsInTraining; j++)
@@ -111,6 +111,7 @@ namespace Microsoft.ML.Tests
             while (enumerator.MoveNext() && index < expectedValues.Count)
             {
                 row = enumerator.Current;
+                
                 Assert.Equal(expectedValues[index++], row.Data[0], precision: 7);  // Alert
                 Assert.Equal(expectedValues[index++], row.Data[1], precision: 7);  // Raw score
                 Assert.Equal(expectedValues[index++], row.Data[2], precision: 7);  // P-Value score
