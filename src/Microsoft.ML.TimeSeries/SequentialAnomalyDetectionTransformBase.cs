@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
@@ -335,23 +336,23 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 stateLocal.RawScoreBuffer = RawScoreBuffer.Clone();
             }
 
-            private protected AnomalyDetectionStateBase(ModelLoadContext ctx) : base(ctx)
+            private protected AnomalyDetectionStateBase(BinaryReader reader) : base(reader)
             {
-                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(ctx.Reader, Host);
-                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
-                _logMartingaleValue = ctx.Reader.ReadDouble();
-                _sumSquaredDist = ctx.Reader.ReadDouble();
-                _martingaleAlertCounter = ctx.Reader.ReadInt32();
+                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(reader, Host);
+                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                _logMartingaleValue = reader.ReadDouble();
+                _sumSquaredDist = reader.ReadDouble();
+                _martingaleAlertCounter = reader.ReadInt32();
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void Save(BinaryWriter writer)
             {
-                base.Save(ctx);
-                TimeSeriesUtils.SerializeFixedSizeQueue(LogMartingaleUpdateBuffer, ctx.Writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(RawScoreBuffer, ctx.Writer);
-                ctx.Writer.Write(_logMartingaleValue);
-                ctx.Writer.Write(_sumSquaredDist);
-                ctx.Writer.Write(_martingaleAlertCounter);
+                base.Save(writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(LogMartingaleUpdateBuffer, writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(RawScoreBuffer, writer);
+                writer.Write(_logMartingaleValue);
+                writer.Write(_sumSquaredDist);
+                writer.Write(_martingaleAlertCounter);
             }
 
             private Double ComputeKernelPValue(Double rawScore)

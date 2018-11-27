@@ -174,11 +174,39 @@ namespace Microsoft.ML.Tests
 
             //Predict.
             var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction1>(ml);
-            //Even though time series column is not requested it will pass the observation through time series transform.
+
+            //Checkpoint.
+            var modelPath = "temp.zip";
+            engine.CheckPoint(ml, modelPath);
+
+            ITransformer model2 = null;
+            using (var file = File.OpenRead(modelPath))
+                model2 = TransformerChain.LoadFrom(ml, file);
+
+            //Raw score after state gets updated with two inputs.
+            var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            engine2.Predict(new Data(1));
+            var prediction2 = engine2.Predict(new Data(1));
+            Assert.Equal(0, prediction2.Change[0], precision: 7); // Alert
+            Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 7); // Raw score
+
+            //Even though time series column is not requested it will 
+            // pass the observation through time series transform and update the state with the first input.
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(-1, prediction.Random);
-            prediction = engine.Predict(new Data(2));
-            Assert.Equal(-1, prediction.Random);
+
+            //Save the model with state updated with just one input.
+            engine.CheckPoint(ml, modelPath + 1);
+            ITransformer model3 = null;
+            using (var file = File.OpenRead(modelPath + 1))
+                model3 = TransformerChain.LoadFrom(ml, file);
+
+            //Load the model with state updated with just one put, then pass in the second input
+            //and raw score should match the raw score obtained by passing the two input in the first model.
+            var engine3 = model3.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
+            var prediction3 = engine3.Predict(new Data(1));
+            Assert.Equal(0, prediction2.Change[0], precision: 7); // Alert
+            Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 7); // Raw score
         }
 
         [Fact]

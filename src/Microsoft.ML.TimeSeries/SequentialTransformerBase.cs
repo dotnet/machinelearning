@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using System.Linq;
 using Microsoft.ML.Data;
+using System.IO;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -71,16 +72,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             protected long PreviousPosition;
 
-            private protected StateBase(ModelLoadContext ctx)
+            private protected StateBase(BinaryReader reader)
             {
-                WindowSize = ctx.Reader.ReadInt32();
-                InitialWindowSize = ctx.Reader.ReadInt32();
+                WindowSize = reader.ReadInt32();
+                InitialWindowSize = reader.ReadInt32();
             }
 
-            public virtual void Save(ModelSaveContext ctx)
+            internal virtual void Save(BinaryWriter writer)
             {
-                ctx.Writer.Write(WindowSize);
-                ctx.Writer.Write(InitialWindowSize);
+                writer.Write(WindowSize);
+                writer.Write(InitialWindowSize);
             }
 
             /// <summary>

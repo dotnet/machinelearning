@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -154,7 +155,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
 
             IsAdaptive = ctx.Reader.ReadBoolean();
-            StateRef = new State(ctx);
+            StateRef = new State(ctx.Reader);
 
             ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
             Host.CheckDecode(Model != null);
@@ -200,7 +201,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(DiscountFactor);
             ctx.Writer.Write((byte)ErrorFunction);
             ctx.Writer.Write(IsAdaptive);
-            StateRef.Save(ctx);
+            StateRef.Save(ctx.Writer);
 
             ctx.SaveModel(Model, "SSA");
         }
@@ -212,20 +213,19 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public State()
             {
-
             }
 
-            public State(ModelLoadContext ctx) : base(ctx)
+            internal State(BinaryReader reader) : base(reader)
             {
-                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
-                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
+                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void Save(BinaryWriter writer)
             {
-                base.Save(ctx);
-                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, ctx.Writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, ctx.Writer);
+                base.Save(writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
             }
 
             private protected override void CloneCore(StateBase state)

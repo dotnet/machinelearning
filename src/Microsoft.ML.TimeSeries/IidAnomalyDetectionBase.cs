@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             : base(env, ctx, name)
         {
             Host.CheckDecode(InitialWindowSize == 0);
-            StateRef = new State(ctx);
+            StateRef = new State(ctx.Reader);
             StateRef.InitState(this, Host);
         }
 
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // *** Binary format ***
             // <base>
             // State: StateRef
-            StateRef.Save(ctx);
+            StateRef.Save(ctx.Writer);
         }
 
         public sealed class State : AnomalyDetectionStateBase
@@ -65,17 +66,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             {
             }
 
-            public State(ModelLoadContext ctx) : base(ctx)
+            internal State(BinaryReader reader) : base(reader)
             {
-                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
-                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
+                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
             }
 
-            public override void Save(ModelSaveContext ctx)
+            internal override void Save(BinaryWriter writer)
             {
-                base.Save(ctx);
-                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, ctx.Writer);
-                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, ctx.Writer);
+                base.Save(writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
             }
 
             private protected override void CloneCore(StateBase state)
