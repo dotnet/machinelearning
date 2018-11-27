@@ -98,7 +98,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
+        /// Predict a target using generalized additive models trained with the <see cref="BinaryClassificationGamTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
@@ -123,7 +123,7 @@ namespace Microsoft.ML
         }
 
         /// <summary>
-        /// Predict a target using a decision tree binary classification model trained with the <see cref="RegressionGamTrainer"/>.
+        /// Predict a target using generalized additive models trained with the <see cref="RegressionGamTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="labelColumn">The labelColumn column.</param>
