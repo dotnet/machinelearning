@@ -68,8 +68,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public State(ModelLoadContext ctx) : base(ctx)
             {
-                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
-                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
+                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
+                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
             }
 
             public override void Save(ModelSaveContext ctx)

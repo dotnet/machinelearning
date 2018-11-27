@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             var q = new FixedSizeQueue<T>(Capacity);
             for (int index = 0; index < Count; index++)
-                AddLast(this[index]);
+                q.AddLast(this[index]);
 
             return q;
         }

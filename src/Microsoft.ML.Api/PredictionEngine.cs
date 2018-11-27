@@ -208,8 +208,6 @@ namespace Microsoft.ML.Runtime.Api
             return transformer.GetRowToRowMapper;
         }
 
-        internal virtual ITransformer ProcessTransformer(ITransformer transformer) => transformer;
-
         ~PredictionEngineBase()
         {
             _disposer?.Invoke();

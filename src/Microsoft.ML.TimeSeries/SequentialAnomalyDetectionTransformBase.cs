@@ -335,8 +335,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public AnomalyDetectionStateBase(ModelLoadContext ctx) : base(ctx)
             {
-                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(ctx.Reader);
-                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader);
+                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(ctx.Reader, Host);
+                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, Host);
                 _logMartingaleValue = ctx.Reader.ReadDouble();
                 _sumSquaredDist = ctx.Reader.ReadDouble();
                 _martingaleAlertCounter = ctx.Reader.ReadInt32();

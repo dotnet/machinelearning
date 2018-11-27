@@ -21,9 +21,9 @@ namespace Microsoft.ML.Tests
         private sealed class Prediction
         {
 #pragma warning disable CS0649
-            [VectorType(4)] 
+            [VectorType(4)]
             public double[] Change;
-#pragma warning restore CS0649            
+#pragma warning restore CS0649
         }
 
         public class Prediction1
@@ -216,7 +216,8 @@ namespace Microsoft.ML.Tests
 
             // Train.
             var model = pipeline.Fit(dataView);
-            //Predict.
+            
+            //Model 1: Prediction #1.
             var engine = model.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
@@ -224,22 +225,29 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
             Assert.Equal(5.1200000000000114E-08, prediction.Change[3], precision: 7); // Martingale score
 
-            //Checkpoint.
+            //Model 1: Checkpoint.
             var modelPath = "temp.zip";
             engine.CheckPoint(ml, modelPath);
 
-            // Load model.
+            //Model 1: Prediction #2
+            prediction = engine.Predict(new Data(1));
+            Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
+            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 7); // Martingale score
+
+            // Load Model 1.
             ITransformer model2 = null;
             using (var file = File.OpenRead(modelPath))
                 model2 = TransformerChain.LoadFrom(ml, file);
 
-            //Predict and expect different result for the same input.
+            //Predict and expect the same result after checkpointing(Prediction #2).
             engine = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             prediction = engine.Predict(new Data(1));
             Assert.Equal(0, prediction.Change[0], precision: 7); // Alert
-            Assert.Equal(-0.12883400917053223, prediction.Change[1], precision: 7); // Raw score
-            Assert.Equal(0.5, prediction.Change[2], precision: 7); // P-Value score
-            Assert.Equal(2.6214400000000113E-15, prediction.Change[3], precision: 7); // Martingale score
+            Assert.Equal(0.12216401100158691, prediction.Change[1], precision: 7); // Raw score
+            Assert.Equal(0.14823824685192111, prediction.Change[2], precision: 7); // P-Value score
+            Assert.Equal(1.5292508189989167E-07, prediction.Change[3], precision: 7); // Martingale score
         }
     }
 }

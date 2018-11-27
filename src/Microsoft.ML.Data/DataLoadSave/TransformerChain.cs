@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data
 
     /// <summary>
     /// Used to determine if <see cref="ITransformer"/> object is of type <see cref="TransformerChain"/>
-    /// so that it's inter fields can be accessed.
+    /// so that its internal fields can be accessed.
     /// </summary>
     [BestFriend]
     internal interface ITransformerChainAccessor

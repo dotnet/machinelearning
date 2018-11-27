@@ -92,8 +92,6 @@ namespace Microsoft.ML.TimeSeries
         {
         }
 
-        internal override ITransformer ProcessTransformer(ITransformer transformer) => CloneTransformers(transformer);
-
         internal IRow GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
             List<IStatefulRow> rows, out Action disposer)
         {
