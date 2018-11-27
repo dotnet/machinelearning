@@ -685,7 +685,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
             return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
     }

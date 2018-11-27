@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 2)]
             public int Bottom = 10;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features' contribution should be normalized", ShortName = "norm", SortOrder = 3)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 3)]
             public bool Normalize = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution in string key-value format", ShortName = "str", SortOrder = 4)]
