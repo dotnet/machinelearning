@@ -342,7 +342,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
-                    .Append(mlContext.Transforms.Categorical.MapValueToKey("Label", "KeyLabel", maxNumTerms: 10))
+                    .Append(mlContext.Transforms.Conversion.MapValueToKey("Label", "KeyLabel", maxNumTerms: 10))
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("KeyLabel", "Features"));
 
                 var trainedModel = pipe.Fit(trainData);
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipeline = new Legacy.LearningPipeline(seed: 1);
             pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnsCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
+            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
                 ModelLocation = model_location,

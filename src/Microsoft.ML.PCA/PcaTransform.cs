@@ -660,6 +660,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
         internal static class Defaults
@@ -674,10 +675,9 @@ namespace Microsoft.ML.Transforms.Projections
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
-        /// <summary>Convinence constructor for simple one column case.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">Input column to apply PCA on.</param>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputColumn">Input column to project to Principal Component.</param>
         /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
@@ -692,6 +692,9 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The dataset columns to use, and their specific settings.</param>
         public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -283,6 +283,17 @@ namespace Microsoft.ML.Transforms.Text
             public bool AllLengths = true;
         }
 
+        internal static class DefaultArguments
+        {
+            public const int NgramLength = 1;
+            public const int SkipLength = 0;
+            public const int HashBits = 16;
+            public const uint Seed = 314489979;
+            public const bool Ordered = true;
+            public const int InvertHash = 0;
+            public const bool AllLengths = true;
+        }
+
         [TlcModule.Component(Name = "NGramHash", FriendlyName = "NGram Hash Extractor Transform", Alias = "NGramHashExtractorTransform,NGramHashExtractor",
                             Desc = "Extracts NGrams from text and convert them to vector using hashing trick.")]
         public sealed class NgramHashExtractorArguments : ArgumentsBase, INgramExtractorFactoryFactory

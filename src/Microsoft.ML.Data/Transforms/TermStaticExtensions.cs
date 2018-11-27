@@ -6,7 +6,7 @@ using System;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     public static partial class TermStaticExtensions
     {

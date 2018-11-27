@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.Online;
 using Xunit;
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Scenarios
             var data = reader.Read(GetDataPath(dataPath));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, new LinearSvm(mlContext, new LinearSvm.Arguments()),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, new LinearSvm(mlContext),  useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);

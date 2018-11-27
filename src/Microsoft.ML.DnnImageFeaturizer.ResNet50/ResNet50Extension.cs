@@ -21,7 +21,7 @@ namespace Microsoft.ML.Transforms
         /// This assumes both of the models are in the same location as the file containing this method, which they will be if used through the NuGet.
         /// This should be the default way to use ResNet50 if importing the model from a NuGet.
         /// </summary>
-        public static EstimatorChain<ColumnsCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn)
+        public static EstimatorChain<ColumnCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn)
         {
             return ResNet50(dnnModelContext, env, inputColumn, outputColumn, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "DnnImageModels"));
         }
@@ -32,13 +32,13 @@ namespace Microsoft.ML.Transforms
         /// must be in a directory all by themsleves for the OnnxTransform to work, this method appends a ResNet50Onnx/ResNetPrepOnnx subdirectory
         /// to the passed in directory to prevent having to make that directory manually each time.
         /// </summary>
-        public static EstimatorChain<ColumnsCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn, string modelDir)
+        public static EstimatorChain<ColumnCopyingTransformer> ResNet50(this DnnImageModelSelector dnnModelContext, IHostEnvironment env, string inputColumn, string outputColumn, string modelDir)
         {
-            var modelChain = new EstimatorChain<ColumnsCopyingTransformer>();
+            var modelChain = new EstimatorChain<ColumnCopyingTransformer>();
 
-            var inputRename = new ColumnsCopyingEstimator(env, new[] { (inputColumn, "OriginalInput") });
-            var midRename = new ColumnsCopyingEstimator(env, new[] { ("PreprocessedInput", "Input750") });
-            var endRename = new ColumnsCopyingEstimator(env, new[] { ("Pooling1096_Output_0", outputColumn) });
+            var inputRename = new ColumnCopyingEstimator(env, new[] { (inputColumn, "OriginalInput") });
+            var midRename = new ColumnCopyingEstimator(env, new[] { ("PreprocessedInput", "Input750") });
+            var endRename = new ColumnCopyingEstimator(env, new[] { ("Pooling1096_Output_0", outputColumn) });
 
             // There are two estimators created below. The first one is for image preprocessing and the second one is the actual DNN model.
             var prepEstimator = new OnnxScoringEstimator(env, Path.Combine(modelDir, "ResNetPrepOnnx", "ResNetPreprocess.onnx"), new[] { "OriginalInput" }, new[] { "PreprocessedInput" });
