@@ -4,7 +4,7 @@
 
 using System;
 
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
 // CpuMath has its own BestFriend and WantsToBeBestFriends attributes for making itself a standalone module
 namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
 #else

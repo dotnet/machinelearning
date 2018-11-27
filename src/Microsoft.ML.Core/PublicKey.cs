@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if !PRIVATE_CONTRACTS
+#if !CPUMATH_INFRASTRUCTURE
 // This namespace contains the PublicKey generally used in ML.NET project settings
 namespace Microsoft.ML
 #else

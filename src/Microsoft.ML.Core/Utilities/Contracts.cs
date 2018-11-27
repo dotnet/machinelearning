@@ -16,7 +16,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
 namespace Microsoft.ML.Runtime.Internal.CpuMath.Core
 #else
 namespace Microsoft.ML.Runtime
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime
     /// totally replace the exception, etc. It is not legal to return null from
     /// Process (unless null was passed in, which really shouldn't happen).
     /// </summary>
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
     internal interface IExceptionContext
 #else
     public interface IExceptionContext
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime
         string ContextDescription { get; }
     }
 
-#if PRIVATE_CONTRACTS
+#if CPUMATH_INFRASTRUCTURE
     [Flags]
     internal enum MessageSensitivity
     {
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime
             return (ex.Data[SensitivityKey] as MessageSensitivity?) ?? MessageSensitivity.Unknown;
         }
 
-#if !PRIVATE_CONTRACTS
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// This is an internal convenience implementation of an exception context to make marking
         /// exceptions with a specific sensitivity flag a bit less onorous. The alternative to a scheme
@@ -740,7 +740,7 @@ namespace Microsoft.ML.Runtime
                 throw ExceptIO(ctx, msg);
         }
 
-#if !PRIVATE_CONTRACTS
+#if !CPUMATH_INFRASTRUCTURE
         /// <summary>
         /// Check state of the host and throw exception if host marked to stop all exection.
         /// </summary>
