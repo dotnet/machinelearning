@@ -199,7 +199,6 @@ namespace Microsoft.ML.InternalCodeAnalyzer
             // Contract functions defined Microsoft.ML.Hidden are introduced for breaking the dependencies
             // from CpuMath project to Microsoft.ML.Core.
             if (containingSymbolName != "Microsoft.ML.Runtime.Contracts" &&
-                containingSymbolName != "Microsoft.ML.Runtime.Internal.Contracts" &&
                 containingSymbolName != "Microsoft.ML.Runtime.Internal.CpuMath.Core.Contracts")
             {
                 return;
