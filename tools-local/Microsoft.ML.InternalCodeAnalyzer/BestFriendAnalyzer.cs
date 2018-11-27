@@ -17,21 +17,21 @@ namespace Microsoft.ML.InternalCodeAnalyzer
         private const string Category = "Access";
         internal const string DiagnosticId = "MSML_NoBestFriendInternal";
 
-        private string Title => "Cross-assembly internal access requires referenced item to have " + _attributeName + " attribute.";
-        private string Format => "Access of '{0}' is a cross assembly internal " +
+        private const string Title = "Cross-assembly internal access requires referenced item to have " + AttributeName + " attribute.";
+        private const string Format = "Access of '{0}' is a cross assembly internal " +
             "reference, and the declaring assembly wants these accesses to be on something " +
-            "with the attribute " + _attributeName + ".";
-        private string Description =>
+            "with the attribute " + AttributeName + ".";
+        private const string Description =
             "The identifier indicated is defined as an internal member of an assembly that has the " +
-            _assemblyAttributeName + " assembly-level attribute set. Even with friend access to that " +
-            "assembly, such a usage requires that the item have the " + _attributeName + " on it.";
+            AssemblyAttributeName + " assembly-level attribute set. Even with friend access to that " +
+            "assembly, such a usage requires that the item have the " + AttributeName + " on it.";
 
-        private DiagnosticDescriptor Rule =>
+        private static DiagnosticDescriptor Rule =
             new DiagnosticDescriptor(DiagnosticId, Title, Format, Category,
                 DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
-        private string _attributeName;
-        private string _assemblyAttributeName;
+        private const string AttributeName = "Microsoft.ML.BestFriendAttribute (or Microsoft.ML.Runtime.Internal.CpuMath.BestFriendAttribute)";
+        private const string AssemblyAttributeName = "Microsoft.ML.WantsToBeBestFriendsAttribute (or Microsoft.ML.Runtime.Internal.CpuMath.WantsToBeBestFriendsAttribute)";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Rule);
@@ -110,15 +110,8 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 
         private void Analyze(SemanticModelAnalysisContext context)
         {
-            // Analyzer function for BestFriend defined in Microsoft.ML
-            _attributeName = "Microsoft.ML.BestFriendAttribute";
-            _assemblyAttributeName = "Microsoft.ML.WantsToBeBestFriendsAttribute";
-            AnalyzeCore(context, _attributeName, _assemblyAttributeName);
-
-            // Analyzer function for BestFriend defined in Microsoft.ML.Hidden
-            _attributeName = "Microsoft.ML.Hidden.BestFriendAttribute";
-            _assemblyAttributeName = "Microsoft.ML.Hidden.WantsToBeBestFriendsAttribute";
-            AnalyzeCore(context, _attributeName, _assemblyAttributeName);
+            AnalyzeCore(context, "Microsoft.ML.BestFriendAttribute", "Microsoft.ML.WantsToBeBestFriendsAttribute");
+            AnalyzeCore(context, "Microsoft.ML.Hidden.BestFriendAttribute", "Microsoft.ML.Hidden.WantsToBeBestFriendsAttribute");
         }
     }
 }
