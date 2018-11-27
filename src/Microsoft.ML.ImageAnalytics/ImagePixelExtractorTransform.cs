@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false)
-                : this(input, output, colors, interleave, false, 1f, 0f)
+                : this(input, output, colors, interleave, true, 1f, 0f)
             {
             }
 

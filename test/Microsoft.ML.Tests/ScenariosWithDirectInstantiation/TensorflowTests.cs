@@ -2,23 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.TensorFlow;
-using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
-using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.RunTests;
 
 namespace Microsoft.ML.Scenarios
 {
@@ -36,9 +30,9 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
-            var env = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = ComponentCreation.CreateDataView(env,
+            var loader = ComponentCreation.CreateDataView(mlContext,
                     new List<TestData>(new TestData[] { new TestData() { a = new[] { 1.0f, 2.0f,
                                                                                      3.0f, 4.0f },
                                                                          b = new[] { 1.0f, 2.0f,
@@ -48,7 +42,7 @@ namespace Microsoft.ML.Scenarios
                                          b = new[] { 3.0f, 3.0f,
                                                      3.0f, 3.0f } } }));
 
-            var trans = TensorFlowTransform.Create(env, loader, model_location, new[] { "c" }, new[] { "a", "b" });
+            var trans = TensorFlowTransform.Create(mlContext, loader, model_location, new[] { "c" }, new[] { "a", "b" });
 
             using (var cursor = trans.GetRowCursor(a => true))
             {
@@ -81,11 +75,11 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformObjectDetectionTest()
         {
             var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
-            var env = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+            var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
                 {
@@ -93,20 +87,20 @@ namespace Microsoft.ML.Scenarios
                 },
                 ImageFolder = imageFolder
             }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
             {
                 Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =32, ImageWidth = 32, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
             }, images);
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
             {
                 Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "image_tensor", UseAlpha=false, InterleaveArgb=true, Convert = false}
                     }
             }, cropped);
 
-            var tf = TensorFlowTransform.Create(env, pixels, model_location,
+            var tf = TensorFlowTransform.Create(mlContext, pixels, model_location,
                 new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" },
                 new[] { "image_tensor" });
 
@@ -139,11 +133,11 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInceptionTest()
         {
             var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            var env = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+            var data = mlContext.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
                 {
@@ -151,20 +145,20 @@ namespace Microsoft.ML.Scenarios
                 },
                 ImageFolder = imageFolder
             }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
             {
                 Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =224, ImageWidth = 224, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
             }, images);
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
             {
                 Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "input", UseAlpha=false, InterleaveArgb=true, Convert = true}
                     }
             }, cropped);
 
-            var tf = TensorFlowTransform.Create(env, pixels, model_location, new[] { "softmax2_pre_activation" }, new[] { "input" });
+            var tf = TensorFlowTransform.Create(mlContext, pixels, model_location, new[] { "softmax2_pre_activation" }, new[] { "input" });
 
             tf.Schema.TryGetColumnIndex("input", out int input);
             tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
@@ -185,9 +179,9 @@ namespace Microsoft.ML.Scenarios
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowInputsOutputsSchemaTest()
         {
-            var env = new MLContext(seed: 1, conc: 1);
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var model_location = "mnist_model/frozen_saved_model.pb";
-            var schema = TensorFlowUtils.GetModelSchema(env, model_location);
+            var schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             Assert.Equal(86, schema.ColumnCount);
             Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
             var type = (VectorType)schema.GetColumnType(col);
@@ -248,7 +242,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal("sequential/dense_1/BiasAdd", inputOps.GetValues()[0].ToString());
 
             model_location = "model_matmul/frozen_saved_model.pb";
-            schema = TensorFlowUtils.GetModelSchema(env, model_location);
+            schema = TensorFlowUtils.GetModelSchema(mlContext, model_location);
             char name = 'a';
             for (int i = 0; i < schema.ColumnCount; i++)
             {
@@ -534,34 +528,6 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(5, GetMaxIndexForOnePrediction(onePrediction));
         }
 
-#pragma warning disable 612, 618
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
-        public void TensorFlowTransformMNISTConvPipelineTest()
-        {
-            var model_location = "mnist_model/frozen_saved_model.pb";
-            var dataPath = GetDataPath(TestDatasets.mnistTiny28.trainFilename);
-
-            var pipeline = new Legacy.LearningPipeline(seed: 1);
-            pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new ColumnCopyingTransformerColumn() { Name = "reshape_input", Source = "Placeholder" } } });
-            pipeline.Add(new TensorFlowScorer()
-            {
-                ModelLocation = model_location,
-                OutputColumns = new[] { "Softmax", "dense/Relu" },
-                InputColumns = new[] { "Placeholder", "reshape_input" }
-            });
-            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ColumnConcatenatingTransformerColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
-            pipeline.Add(new Legacy.Transforms.LabelToFloatConverter() { LabelColumn = "Label" });
-            pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
-
-            var model = pipeline.Train<MNISTData, MNISTPrediction>();
-
-            var sample1 = GetOneMNISTExample();;
-
-            MNISTPrediction prediction = model.Predict(sample1);
-        }
-#pragma warning restore 612, 618
-
         private MNISTData GetOneMNISTExample()
         {
             return new MNISTData()
@@ -648,8 +614,8 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            var env = new MLContext();
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema.GetColumnType(column);
@@ -658,7 +624,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
             {
                 Column = new[]
                 {
@@ -666,30 +632,14 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
-            {
-                Column = new ImageLoaderTransform.Column[1]
-                {
-                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
-                },
-                ImageFolder = imageFolder
-            }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
-            {
-                Column = new ImageResizerTransform.Column[1]{
-                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
-                    }
-            }, images);
 
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
-            {
-                Column = new ImagePixelExtractorTransform.Column[1]{
-                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
-                    }
-            }, cropped);
+            var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImagePath", "ImageReal"))
+                .Append(new ImageResizingEstimator(mlContext, "ImageReal", "ImageCropped", imageWidth, imageHeight))
+                .Append(new ImagePixelExtractingEstimator(mlContext, "ImageCropped", "Input", interleave: true));
 
+            var pixels = pipeEstimator.Fit(data).Transform(data);
 
-            IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+            IDataView trans = TensorFlowTransform.Create(mlContext, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(col => col == output))
@@ -712,8 +662,8 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_saved_model";
 
-            var env = new MLContext();
-            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(mlContext, model_location);
             var schema = tensorFlowModel.GetInputSchema();
             Assert.True(schema.TryGetColumnIndex("Input", out int column));
             var type = (VectorType)schema.GetColumnType(column);
@@ -722,7 +672,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
             {
                 Column = new[]
                 {
@@ -730,7 +680,7 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
                 {
@@ -738,14 +688,14 @@ namespace Microsoft.ML.Scenarios
                 },
                 ImageFolder = imageFolder
             }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
             {
                 Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
             }, images);
 
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
             {
                 Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
@@ -753,7 +703,7 @@ namespace Microsoft.ML.Scenarios
             }, cropped);
 
 
-            IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+            IDataView trans = TensorFlowTransform.Create(mlContext, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
             trans.Schema.TryGetColumnIndex("Output", out int output);
             using (var cursor = trans.GetRowCursor(col => col == output))
@@ -776,12 +726,12 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            var env = new MLContext();
+            var mlContext = new MLContext(seed: 1, conc: 1);
             var imageHeight = 28;
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(env, new TextLoader.Arguments()
+            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
             {
                 Column = new[]
                 {
@@ -789,7 +739,7 @@ namespace Microsoft.ML.Scenarios
                         new TextLoader.Column("Name", DataKind.TX, 1),
                     }
             }, new MultiFileSource(dataFile));
-            var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+            var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
                 {
@@ -797,14 +747,14 @@ namespace Microsoft.ML.Scenarios
                 },
                 ImageFolder = imageFolder
             }, data);
-            var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+            var cropped = ImageResizerTransform.Create(mlContext, new ImageResizerTransform.Arguments()
             {
                 Column = new ImageResizerTransform.Column[1]{
                         new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
                     }
             }, images);
 
-            var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+            var pixels = ImagePixelExtractorTransform.Create(mlContext, new ImagePixelExtractorTransform.Arguments()
             {
                 Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "Input", UseAlpha=false, InterleaveArgb=true}
@@ -814,7 +764,7 @@ namespace Microsoft.ML.Scenarios
             var thrown = false;
             try
             {
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(mlContext, pixels, model_location, new[] { "Output" }, new[] { "Input" });
             }
             catch
             {
