@@ -102,6 +102,7 @@
   </Target>
 
   <Target Name="CopyDnnModelFiles"
+          Inputs="@(ModelFileCopy)" Outputs="@(ModelFileCopy->'%(TargetPath)')"
           DependsOnTargets="DownloadDnnModelFiles">
     <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
     <Copy SourceFiles="@(ModelFileCopy)"
