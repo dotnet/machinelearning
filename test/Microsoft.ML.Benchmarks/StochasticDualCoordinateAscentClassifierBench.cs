@@ -7,10 +7,8 @@ using BenchmarkDotNet.Engines;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
@@ -18,6 +16,7 @@ using System.Globalization;
 
 namespace Microsoft.ML.Benchmarks
 {
+#pragma warning disable 612, 618
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
@@ -190,4 +189,5 @@ namespace Microsoft.ML.Benchmarks
         [ColumnName("Score")]
         public float[] PredictedLabels;
     }
+#pragma warning restore 612, 618
 }

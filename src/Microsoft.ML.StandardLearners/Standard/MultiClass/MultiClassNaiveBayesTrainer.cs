@@ -52,8 +52,8 @@ namespace Microsoft.ML.Trainers
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         public MultiClassNaiveBayesTrainer(IHostEnvironment env,
-            string featureColumn = DefaultColumnNames.Features,
-            string labelColumn = DefaultColumnNames.Label)
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
@@ -76,15 +76,12 @@ namespace Microsoft.ML.Trainers
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var scoreMetadata = new List<SchemaShape.Column>() { new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false) };
-            scoreMetadata.AddRange(MetadataUtils.GetTrainerOutputMetadata());
-
             var predLabelMetadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
 
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(scoreMetadata)),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, predLabelMetadata)
             };
         }
@@ -240,7 +237,7 @@ namespace Microsoft.ML.Trainers
             labelCount = _labelCount;
             featureCount = _featureCount;
             Utils.EnsureSize(ref featureHistogram, _labelCount);
-            for(int i = 0; i < _labelCount; i++)
+            for (int i = 0; i < _labelCount; i++)
             {
                 Utils.EnsureSize(ref featureHistogram[i], _featureCount);
                 Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);

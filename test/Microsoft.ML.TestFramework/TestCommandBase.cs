@@ -683,9 +683,9 @@ namespace Microsoft.ML.Runtime.RunTests
                      loader=Text{{
                         sep=, 
                         header=+ 
-                        col=NumFeatures:Num:0,2,4,10-12 
+                        col=NumFeatures:Num:9-14 
                         col=CatFeaturesText:TX:0~* 
-                        col=Label:Num:14}}
+                        col=Label:Num:0}}
                     xf=Categorical{{col=CatFeatures:CatFeaturesText}}
                     xf=Concat{{col=Features:NumFeatures,CatFeatures}}
                     trainer=ft{{iter=1 numLeaves=2}}
@@ -871,10 +871,10 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandCrossValidationWTF()
         {
-            string pathData = GetDataPath(@"..\UCI", "adult.train");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             var metricsFile = MetricsPath();
-            const string loaderArgs = "loader=TextLoader{sep=, col=Features:R4:0,2,4,10-12 col=workclass:TX:1 col=education:TX:3 col=marital_status:TX:5 " +
-                " col=occupation:TX:6 col=relationship:TX:7 col=ethnicity:TX:8 col=sex:TX:9 col=native_country:TX:13 col=label_IsOver50K_:R4:14 header=+} " +
+            const string loaderArgs = "loader=TextLoader{col=Features:R4:9-14 col=workclass:TX:1 col=education:TX:2 col=marital_status:TX:3 " +
+                " col=occupation:TX:4 col=relationship:TX:5 col=ethnicity:TX:6 col=sex:TX:7 col=native_country:TX:8 col=label_IsOver50K_:R4:0 header=+} " +
                 " xf=CopyColumns{col=Label:label_IsOver50K_} xf=CategoricalTransform{col=workclass col=education col=marital_status col=occupation col=relationship col=ethnicity col=sex col=native_country} " +
                 " xf=Concat{col=Features:Features,workclass,education,marital_status,occupation,relationship,ethnicity,sex,native_country}" +
                 " prexf=Take{c=100}";
@@ -953,9 +953,9 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                string trainData = GetDataPath(@"..\UCI", "adult.train");
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
                 string testData = GetDataPath(@"..\UCI", "adult.test.tiny");
-                const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12 col=Name:TX:0} "
+                const string loaderArgs = "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} "
                     + "xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}";
                 OutputPath metricsFile = MetricsPath();
                 string extraArgs = string.Format("test={{{0}}} tr=ft{{t=1}} lab=Lab feat=Feat norm=Warn", testData);
@@ -968,9 +968,9 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandTrainTestTranspose()
         {
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
-            string testData = GetDataPath(@"..\UCI", "adult.test.tiny");
-            const string loaderArgs = "loader=text{header+ sep=comma col=Label:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12 col=Name:TX:0} "
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
+            string testData = GetDataPath("adult.tiny.with-schema.txt");
+            const string loaderArgs = "loader=text{header+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} "
                 + "xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Features:Cat,Num}";
 
             OutputPath transTrainData = CreateOutputPath("adult_train.tdv");
@@ -1003,10 +1003,10 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                string trainData = GetDataPath(@"..\UCI", "adult.train");
-                string testData = GetDataPath(@"..\UCI", "adult.test.tiny");
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
+                string testData = GetDataPath("adult.tiny.with-schema.txt");
                 const string featureColumnName = "{Funky \\} feat\\{col name}";
-                const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12 col=Name:TX:0} "
+                const string loaderArgs = "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} "
                     + "xf=Cat{col=Cat} xf=Concat{col={name=" + featureColumnName + " src=Cat src=Num}}";
                 OutputPath metricsFile = MetricsPath();
                 string extraArgs = string.Format("test={{{0}}} tr=ft{{t=1}} lab=Lab feat={1} norm=Yes", testData, featureColumnName);
@@ -1019,15 +1019,15 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandTrainingLrWithInitialization()
         {
-            const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Num:0,2,4,10-12}";
+            const string loaderArgs = "loader=text{header+ col=Lab:0 col=Num:9-14}";
             const string extraArgs = "tr=lr{t=-} lab=Lab feat=Num";
 
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", trainData, loaderArgs, extraArgs);
 
             _step++;
-            string moreTrainData = GetDataPath(@"..\UCI", "adult.test");
+            string moreTrainData = GetDataPath("adult.tiny.with-schema.txt");
             TestInOutCore("train", moreTrainData, trainModel, extraArgs + " " + loaderArgs + " cont+");
 
             Done();
@@ -1035,15 +1035,15 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void CommandTrainingLinearLearnerTest(string trArg)
         {
-            const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Num:0,2,4,10-12}";
+            const string loaderArgs = "loader=text{header+ col=Lab:0 col=Num:9-14}";
             string extraArgs = "tr=" + trArg + " lab=Lab feat=Num";
 
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", trainData, loaderArgs, extraArgs);
 
             _step++;
-            string moreTrainData = GetDataPath(@"..\UCI", "adult.test");
+            string moreTrainData = GetDataPath("adult.tiny.with-schema.txt");
             TestInOutCore("train", moreTrainData, trainModel, extraArgs + " cont+");
 
             // Save model summary.
@@ -1078,10 +1078,10 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void CommandTrainingLrWithStats()
         {
-            const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Num:0,2,4,10-12}";
+            const string loaderArgs = "loader=text{header+ col=Lab:0 col=Num:9-14}";
             const string extraArgs = "tr=lr{t=- stat=+} lab=Lab feat=Num";
 
-            string trainData = GetDataPath("adult.train");
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", trainData, loaderArgs, extraArgs);
 
@@ -1218,14 +1218,14 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12 col=Name:TX:0,1} "
+                const string loaderArgs = "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9,1} "
                                        + "xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}";
 
                 // Perform two FastTree trainings, one with and one without negated labels.
                 // The negated labels training should be the same (more or less, up to the
                 // influence of any numerical precision issues).
-                string trainData = GetDataPath(@"..\UCI", "adult.train");
-                string testData = GetDataPath(@"..\UCI", "adult.test.tiny");
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
+                string testData = GetDataPath("adult.tiny.with-schema.txt");
                 OutputPath metricsFile = MetricsPath();
                 string extraArgs = string.Format("test={{{0}}} tr=ftr{{t=1 numTrees=5 dt+}} lab=Lab feat=Feat norm=Warn", testData);
                 TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
@@ -1262,10 +1262,10 @@ namespace Microsoft.ML.Runtime.RunTests
             RunMTAThread(() =>
             {
                 // First run a training.
-                string trainData = GetDataPath(@"..\UCI", "adult.train");
+                string trainData = GetDataPath("adult.tiny.with-schema.txt");
                 OutputPath trainModel = ModelPath();
                 TestCore("train", trainData,
-                    "loader=text{header+ sep=comma col=Lab:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}",
+                    "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}",
                     "tr=ft{t=1} lab=Lab feat=Feat");
 
                 // Then run the testing.
@@ -1595,11 +1595,10 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandTrainTestWTFAdult()
         {
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
-            string testData = GetDataPath(@"..\UCI", "adult.test");
-            string testDataTiny = GetDataPath(@"..\UCI", "adult.test.tiny");
+            string trainData = GetDataPath("adult.tiny.with-schema.txt");
+            string testData = GetDataPath("adult.tiny.with-schema.txt");
 
-            const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12 col=Name:TX:0} "
+            const string loaderArgs = "loader=text{header+ col=Lab:0 col=Cat:TX:1-8 col=Num:9-14 col=Name:TX:9} "
               + "xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Feat:Cat,Num}";
 
             OutputPath metricsFile = CreateOutputPath("metrics-wtf.txt");
@@ -1610,7 +1609,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // Check stringify option.
             _step++;
             metricsFile = CreateOutputPath("metrics-wtf-str.txt");
-            extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=wtf{{top=3 bottom=3 str+}} lab=Lab feat=Feat norm=Warn", testDataTiny);
+            extraArgs = string.Format("test={{{0}}} tr=AP{{shuf-}} scorer=wtf{{top=3 bottom=3 str+}} lab=Lab feat=Feat norm=Warn", testData);
             TestCore("traintest", trainData, loaderArgs, extraArgs, metricsFile.Arg("dout"));
             Done();
         }
@@ -1907,10 +1906,10 @@ namespace Microsoft.ML.Runtime.RunTests
         public void CommandTrainClustering()
         {
             // First run a training.
-            const string loaderCmdline = "loader=text{header+ sep=comma rows=1000 col=Label:14 col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Features:Cat,Num}";
-            const string loaderCmdlineNoLabel = "loader=text{header+ sep=comma rows=1000       col=Cat:TX:1,3,5-9,13 col=Num:0,2,4,10-12} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Features:Cat,Num}";
+            const string loaderCmdline = "loader=text{header+ col=Label:0 col=Cat:TX:1-8 col=Num:9-14} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Features:Cat,Num}";
+            const string loaderCmdlineNoLabel = "loader=text{header+ col=Cat:TX:1-8 col=Num:9-14} xf=Cat{col=Cat} xf=MinMax{col=Num} xf=Concat{col=Features:Cat,Num}";
             const string trainArgs = "seed=13 tr=KM{init=random nt=1}";
-            string pathTrain = GetDataPath(@"..\UCI\adult.train");
+            string pathTrain = GetDataPath("adult.tiny.with-schema.txt");
             OutputPath trainModel = ModelPath();
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
 

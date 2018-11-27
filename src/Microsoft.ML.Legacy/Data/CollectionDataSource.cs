@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Legacy.Data
 {
     /// <summary>
     /// Creates data source for pipeline based on provided collection of data.
     /// </summary>
+    [Obsolete]
     public static class CollectionDataSource
     {
         /// <summary>

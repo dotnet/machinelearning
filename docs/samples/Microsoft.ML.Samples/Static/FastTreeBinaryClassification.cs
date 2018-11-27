@@ -2,6 +2,7 @@
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 
 namespace Microsoft.ML.Samples.Static

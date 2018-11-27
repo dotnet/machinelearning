@@ -284,7 +284,7 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        // Factory method for SignatureLoadModel
+        // Factory method for SignatureLoadModel.
         internal static VectorWhiteningTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -769,7 +769,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
-        /// <param name="columns"> Describes the parameters of the whitening process for each column pair.</param>
+        /// <param name="columns">Describes the parameters of the whitening process for each column pair.</param>
         public VectorWhiteningEstimator(IHostEnvironment env, params VectorWhiteningTransformer.ColumnInfo[] columns)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(VectorWhiteningTransformer));
@@ -779,7 +779,7 @@ namespace Microsoft.ML.Transforms.Projections
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced. </param>
+        /// <param name="outputColumn">Name of the column resulting from the transformation of <paramref name="inputColumn"/>. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Whitening constant, prevents division by zero when scaling the data by inverse of eigenvalues.</param>
         /// <param name="maxRows">Maximum number of rows used to train the transform.</param>

@@ -409,6 +409,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         public static void GenerateMethod(IndentedTextWriter writer, string className, string defaultNamespace)
         {
             var inputOuputClassName = defaultNamespace + className;
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public {inputOuputClassName}.Output Add({inputOuputClassName} input)");
             writer.WriteLine("{");
             writer.Indent();
@@ -418,6 +419,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.Outdent();
             writer.WriteLine("}");
             writer.WriteLineNoTabs();
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public void Add({inputOuputClassName} input, {inputOuputClassName}.Output output)");
             writer.WriteLine("{");
             writer.Indent();
@@ -430,6 +432,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         public static void GenerateLoaderAddInputMethod(IndentedTextWriter writer, string className)
         {
             //Constructor.
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine("[JsonIgnore]");
             writer.WriteLine("private string _inputFilePath = null;");
             writer.WriteLine($"public {className}(string filePath)");
@@ -441,6 +444,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("");
 
             //SetInput.
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public void SetInput(IHostEnvironment env, Experiment experiment)");
             writer.WriteLine("{");
             writer.Indent();
@@ -451,10 +455,12 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("");
 
             //GetInputData
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine("public Var<IDataView> GetInputData() => null;");
             writer.WriteLine("");
 
             //Apply.
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)");
             writer.WriteLine("{");
             writer.Indent();
@@ -466,6 +472,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("");
 
             //Pipelinestep class.
+            writer.WriteLine("[Obsolete]");
             writer.WriteLine($"private class {className}PipelineStep : ILearningPipelineDataStep");
             writer.WriteLine("{");
             writer.Indent();

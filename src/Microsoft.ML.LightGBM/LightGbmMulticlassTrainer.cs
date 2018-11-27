@@ -8,9 +8,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                     labels[i] = defaultLabel;
         }
 
-        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
+        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numLeaves = (int)Options["num_leaves"];
@@ -217,13 +217,16 @@ namespace Microsoft.ML.Runtime.LightGBM
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
             };
         }
 
         protected override MulticlassPredictionTransformer<OvaPredictor> MakeTransformer(OvaPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<OvaPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        public MulticlassPredictionTransformer<OvaPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
     }
 
     /// <summary>

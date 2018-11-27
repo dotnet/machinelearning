@@ -8,8 +8,8 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
-                .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
                 // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -318,8 +318,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
                 // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
                 .Append(mlContext.Transforms.Text.TokenizeCharacters("Message", "MessageChars"))
-                .Append(new NgramCountingEstimator(mlContext, "MessageChars", "BagOfTrichar",
-                            ngramLength: 3, weighting: NgramCountingEstimator.WeightingCriteria.TfIdf))
+                .Append(new NgramExtractingEstimator(mlContext, "MessageChars", "BagOfTrichar",
+                            ngramLength: 3, weighting: NgramExtractingEstimator.WeightingCriteria.TfIdf))
 
                 // NLP pipeline 4: word embeddings.
                 .Append(mlContext.Transforms.Text.TokenizeWords("NormalizedMessage", "TokenizedMessage"))
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("CategoricalFeatures", "CategoricalBag", OneHotEncodingTransformer.OutputKind.Bag))
                 // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
                 .Append(mlContext.Transforms.Categorical.OneHotEncoding("Workclass", "WorkclassOneHot"))
-                .Append(new CountFeatureSelector(mlContext, "WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
+                .Append(mlContext.Transforms.FeatureSelection.SelectFeaturesBasedOnCount("WorkclassOneHot", "WorkclassOneHotTrimmed", count: 10));
 
             // Let's train our pipeline, and then apply it to the same data.
             var transformedData = dynamicPipeline.Fit(data).Transform(data);
@@ -439,7 +439,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Concatenate all the features together into one column 'Features'.
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
-                .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+                .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
@@ -505,9 +505,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
             var data = mlContext.Data.ReadFromTextFile(new[]
             {
-                new TextLoader.Column("Income", DataKind.R4, 2),
-                new TextLoader.Column("Features", DataKind.R4, 10, 12)
-            }, GetDataPath("adult.train"), s => { s.Separator = ","; s.HasHeader = true; });
+                new TextLoader.Column("Income", DataKind.R4, 10),
+                new TextLoader.Column("Features", DataKind.R4, 12, 14)
+            }, GetDataPath("adult.tiny.with-schema.txt"), s => { s.Separator = "\t"; s.HasHeader = true; });
 
             PrepareData(mlContext, data);
             TrainModel(mlContext, data);

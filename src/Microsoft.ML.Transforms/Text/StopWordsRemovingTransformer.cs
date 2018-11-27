@@ -22,17 +22,17 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 
-[assembly: LoadableClass(StopWordsRemovingTransform.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransform), typeof(StopWordsRemovingTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), typeof(StopWordsRemovingTransformer.Arguments), typeof(SignatureDataTransform),
     "Stopwords Remover Transform", "StopWordsRemoverTransform", "StopWordsRemover", "StopWords")]
 
-[assembly: LoadableClass(StopWordsRemovingTransform.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransform), null, typeof(SignatureLoadDataTransform),
-    "Stopwords Remover Transform", StopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(IDataTransform), typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadDataTransform),
+    "Stopwords Remover Transform", StopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(StopWordsRemovingTransform.Summary, typeof(StopWordsRemovingTransform), null, typeof(SignatureLoadModel),
-    "Stopwords Remover Transform", StopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(StopWordsRemovingTransformer.Summary, typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadModel),
+    "Stopwords Remover Transform", StopWordsRemovingTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(StopWordsRemovingTransform), null, typeof(SignatureLoadRowMapper),
-    "Stopwords Remover Transform", StopWordsRemovingTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(StopWordsRemovingTransformer), null, typeof(SignatureLoadRowMapper),
+    "Stopwords Remover Transform", StopWordsRemovingTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(CustomStopWordsRemovingTransform.Summary, typeof(IDataTransform), typeof(CustomStopWordsRemovingTransform), typeof(CustomStopWordsRemovingTransform.Arguments), typeof(SignatureDataTransform),
     "Custom Stopwords Remover Transform", "CustomStopWordsRemoverTransform", "CustomStopWords")]
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         public IStopWordsRemoverTransform CreateComponent(IHostEnvironment env, IDataView input, OneToOneColumn[] columns)
         {
-            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransform.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
+            return new StopWordsRemovingEstimator(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
         }
 
     }
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.Text
     /// The transform is usually applied after tokenizing text, so it compares individual tokens
     /// (case-insensitive comparison) to the stopwords.
     /// </summary>
-    public sealed class StopWordsRemovingTransform : OneToOneTransformerBase
+    public sealed class StopWordsRemovingTransformer : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(StopWordsRemovingTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(StopWordsRemovingTransformer).Assembly.FullName);
         }
 
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to remove stop words from.</param>
-        public StopWordsRemovingTransform(IHostEnvironment env, params ColumnInfo[] columns) :
+        public StopWordsRemovingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns;
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        private StopWordsRemovingTransform(IHost host, ModelLoadContext ctx) :
+        private StopWordsRemovingTransformer(IHost host, ModelLoadContext ctx) :
             base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -270,13 +270,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadModel.
-        private static StopWordsRemovingTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static StopWordsRemovingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new StopWordsRemovingTransform(host, ctx);
+            return new StopWordsRemovingTransformer(host, ctx);
         }
 
         // Factory method for SignatureDataTransform.
@@ -296,7 +296,7 @@ namespace Microsoft.ML.Transforms.Text
                    item.Language ?? args.Language,
                    item.LanguagesColumn ?? args.LanguagesColumn);
             }
-            return new StopWordsRemovingTransform(env, cols).MakeDataTransform(input);
+            return new StopWordsRemovingTransformer(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -375,12 +375,12 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase
         {
             private readonly ColumnType[] _types;
-            private readonly StopWordsRemovingTransform _parent;
+            private readonly StopWordsRemovingTransformer _parent;
             private readonly int[] _languageColumns;
             private readonly bool?[] _resourcesExist;
             private readonly Dictionary<int, int> _colMapNewToOld;
 
-            public Mapper(StopWordsRemovingTransform parent, Schema inputSchema)
+            public Mapper(StopWordsRemovingTransformer parent, Schema inputSchema)
              : base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
                 _parent = parent;
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms.Text
     /// This is usually applied after tokenizing text, so it compares individual tokens
     /// (case-insensitive comparison) to the stopwords.
     /// </summary>
-    public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransform>
+    public sealed class StopWordsRemovingEstimator : TrivialEstimator<StopWordsRemovingTransformer>
     {
         /// <summary>
         /// Stopwords language. This enumeration is serialized.
@@ -570,12 +570,12 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="columns">Pairs of columns to remove stop words on.</param>
         /// <param name="language">Langauge of the input text columns <paramref name="columns"/>.</param>
         public StopWordsRemovingEstimator(IHostEnvironment env, (string input, string output)[] columns, Language language = Language.English)
-            : this(env, columns.Select(x => new StopWordsRemovingTransform.ColumnInfo(x.input, x.output, language)).ToArray())
+            : this(env, columns.Select(x => new StopWordsRemovingTransformer.ColumnInfo(x.input, x.output, language)).ToArray())
         {
         }
 
-        public StopWordsRemovingEstimator(IHostEnvironment env, params StopWordsRemovingTransform.ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StopWordsRemovingEstimator)), new StopWordsRemovingTransform(env, columns))
+        public StopWordsRemovingEstimator(IHostEnvironment env, params StopWordsRemovingTransformer.ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(StopWordsRemovingEstimator)), new StopWordsRemovingTransformer(env, columns))
         {
         }
 

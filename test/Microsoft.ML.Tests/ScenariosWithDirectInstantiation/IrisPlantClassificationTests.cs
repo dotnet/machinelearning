@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612
     public partial class ScenariosTests
     {
         [Fact]
@@ -144,4 +145,5 @@ namespace Microsoft.ML.Scenarios
             }
         }
     }
+#pragma warning restore 612
 }

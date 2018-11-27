@@ -79,7 +79,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // 2. Copy source column to a column with the name expected by the pretrained model featurization
             // transform pipeline.
-            var copyTransformer = new ColumnsCopyingTransformer(env, (args.Source, ModelInputColumnName));
+            var copyTransformer = new ColumnCopyingTransformer(env, (args.Source, ModelInputColumnName));
 
             input = copyTransformer.Transform(input);
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Transforms.Text
 
             // 4. Copy the output column from the pretrained model to a temporary column.
             var scoreTempName = input.Schema.GetTempColumnName("sa_out");
-            copyTransformer = new ColumnsCopyingTransformer(env, (ModelScoreColumnName, scoreTempName));
+            copyTransformer = new ColumnCopyingTransformer(env, (ModelScoreColumnName, scoreTempName));
             input = copyTransformer.Transform(input);
 
             // 5. Drop all the columns created by the pretrained model, including the expected input column
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms.Text
             input = UnaliasIfNeeded(env, input, aliased);
 
             // 7. Copy the temporary column with the score we created in (4) to a column with the user-specified destination name.
-            copyTransformer = new ColumnsCopyingTransformer(env, (scoreTempName, args.Name));
+            copyTransformer = new ColumnCopyingTransformer(env, (scoreTempName, args.Name));
             input = copyTransformer.Transform(input);
 
             // 8. Drop the temporary column with the score created in (4).
@@ -130,9 +130,9 @@ namespace Microsoft.ML.Transforms.Text
 
             hiddenNames = toHide.Select(colName =>
                 new KeyValuePair<string, string>(colName, input.Schema.GetTempColumnName(colName))).ToArray();
-            return ColumnsCopyingTransformer.Create(env, new ColumnsCopyingTransformer.Arguments()
+            return ColumnCopyingTransformer.Create(env, new ColumnCopyingTransformer.Arguments()
             {
-                Column = hiddenNames.Select(pair => new ColumnsCopyingTransformer.Column() { Name = pair.Value, Source = pair.Key }).ToArray()
+                Column = hiddenNames.Select(pair => new ColumnCopyingTransformer.Column() { Name = pair.Value, Source = pair.Key }).ToArray()
             }, input);
         }
 
@@ -141,9 +141,9 @@ namespace Microsoft.ML.Transforms.Text
             if (Utils.Size(hiddenNames) == 0)
                 return input;
 
-            input = ColumnsCopyingTransformer.Create(env, new ColumnsCopyingTransformer.Arguments()
+            input = ColumnCopyingTransformer.Create(env, new ColumnCopyingTransformer.Arguments()
             {
-                Column = hiddenNames.Select(pair => new ColumnsCopyingTransformer.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
+                Column = hiddenNames.Select(pair => new ColumnCopyingTransformer.Column() { Name = pair.Key, Source = pair.Value }).ToArray()
             }, input);
 
             return ColumnSelectingTransformer.CreateDrop(env, input, hiddenNames.Select(pair => pair.Value).ToArray());

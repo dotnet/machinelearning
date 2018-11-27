@@ -18,6 +18,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             GenerateModuleAttribute(writer, prefix, component, moduleId);
             GenerateOutputPort(writer);
             GenerateModuleType(writer, component);
+            writer.WriteLine("[Obsolete]");
             GenerateMethodSignature(writer, prefix, component);
             GenerateImplCall(writer, prefix, component);
         }

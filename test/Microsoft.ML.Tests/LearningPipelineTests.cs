@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612, 618
     public class LearningPipelineTests : BaseTestClass
     {
         public LearningPipelineTests(ITestOutputHelper output)
@@ -154,4 +155,5 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.Equal(3, pipeline.Count);
         }
     }
+#pragma warning restore 612, 618
 }
