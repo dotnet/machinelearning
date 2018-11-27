@@ -64,11 +64,11 @@ namespace Microsoft.ML.Runtime.Data
             if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
                 throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
 
-            var wtfMapper = mapper as RowMapper;
+            var contributionMapper = mapper as RowMapper;
             env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
 
-            var scorer = ScoreUtils.GetScorerComponent(env, wtfMapper);
-            var scoredPipe = scorer.CreateComponent(env, data, wtfMapper, trainSchema);
+            var scorer = ScoreUtils.GetScorerComponent(env, contributionMapper);
+            var scoredPipe = scorer.CreateComponent(env, data, contributionMapper, trainSchema);
             return scoredPipe;
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.WriteBoolByte(Stringify);
             }
 
-            public Delegate GetTextWtfGetter(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            public Delegate GetTextContributionGetter(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 return (Delegate)meth.Invoke(this, new object[] { input, colSrc, slotNames });
             }
 
-            public Delegate GetWtfGetter(IRow input, int colSrc)
+            public Delegate GetContributionGetter(IRow input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    _outputSchema = new WtfSchema(_env, DefaultColumnNames.FeatureContributions,
+                    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
                         new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
                         InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
@@ -382,8 +382,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (predicate(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
-                        ? _parent.GetTextWtfGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
-                        : _parent.GetWtfGetter(input, InputRoleMappedSchema.Feature.Index);
+                        ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
+                        : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class WtfSchema : ISchema
+        private sealed class FeatureContributionSchema : ISchema
         {
             private readonly Schema _parentSchema;
             private readonly IExceptionContext _ectx;
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public int ColumnCount => _types.Length;
 
-            public WtfSchema(IExceptionContext ectx, string columnName, ColumnType columnType, Schema parentSchema, int featureCol)
+            public FeatureContributionSchema(IExceptionContext ectx, string columnName, ColumnType columnType, Schema parentSchema, int featureCol)
             {
                 Contracts.CheckValueOrNull(ectx);
                 Contracts.CheckValue(parentSchema, nameof(parentSchema));
