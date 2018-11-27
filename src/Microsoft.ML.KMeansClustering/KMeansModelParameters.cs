@@ -28,7 +28,7 @@ namespace Microsoft.ML.KMeansClustering
         ICanSaveModel,
         ISingleCanSaveOnnx
     {
-        public const string LoaderSignature = "KMeansPredictor";
+        internal const string LoaderSignature = "KMeansPredictor";
 
         /// <summary>
         /// Version information to be saved in binary format
@@ -45,7 +45,7 @@ namespace Microsoft.ML.KMeansClustering
                 loaderAssemblyName: typeof(KMeansModelParameters).Assembly.FullName);
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Clustering;
+        private override PredictionKind PredictionKind => PredictionKind.Clustering;
 
         private readonly ColumnType _inputType;
         private readonly ColumnType _outputType;
@@ -218,7 +218,7 @@ namespace Microsoft.ML.KMeansClustering
         /// Save the predictor in binary format.
         /// </summary>
         /// <param name="ctx">The context to save to</param>
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

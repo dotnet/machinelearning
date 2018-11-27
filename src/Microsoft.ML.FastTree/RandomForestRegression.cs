@@ -76,7 +76,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _quantileSampleCount = ctx.Reader.ReadInt32();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

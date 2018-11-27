@@ -462,7 +462,7 @@ namespace Microsoft.ML.Trainers.PCA
             _inputType = new VectorType(NumberType.Float, _dimension);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

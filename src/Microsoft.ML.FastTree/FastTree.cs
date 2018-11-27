@@ -2891,7 +2891,7 @@ namespace Microsoft.ML.Trainers.FastTree
             InputType = new VectorType(NumberType.Float, NumFeatures);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 

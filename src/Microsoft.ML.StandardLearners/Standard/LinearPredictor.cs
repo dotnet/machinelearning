@@ -185,7 +185,8 @@ namespace Microsoft.ML.Runtime.Learners
                 _weightsDenseLock = new object();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -459,7 +460,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // (Base class)
@@ -613,7 +614,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -689,7 +690,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PoissonRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
