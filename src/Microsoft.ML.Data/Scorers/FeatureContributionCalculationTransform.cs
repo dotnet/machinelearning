@@ -128,6 +128,10 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool _normalize;
             private readonly IHostEnvironment _env;
 
+            public readonly IFeatureContributionMapper Predictor;
+            public readonly ISchemaBindableMapper GenericMapper;
+            public readonly bool Stringify;
+
             private static VersionInfo GetVersionInfo()
             {
                 return new VersionInfo(
@@ -138,10 +142,6 @@ namespace Microsoft.ML.Runtime.Data
                     loaderSignature: MapperLoaderSignature,
                     loaderAssemblyName: typeof(FeatureContributionCalculationTransform).Assembly.FullName);
             }
-
-            public readonly IFeatureContributionMapper Predictor;
-            public readonly ISchemaBindableMapper GenericMapper;
-            public readonly bool Stringify;
 
             public PredictionKind PredictionKind => Predictor.PredictionKind;
 
@@ -266,7 +266,10 @@ namespace Microsoft.ML.Runtime.Data
                         map(in features, ref contributions);
                         var indices = new Span<int>();
                         var values = new Span<float>();
-                        (contributions.IsDense ? Utils.GetIdentityPermutation(contributions.Length).AsSpan() : contributions.GetIndices()).CopyTo(indices);
+                        if (contributions.IsDense)
+                            Utils.GetIdentityPermutation(contributions.Length).AsSpan().CopyTo(indices);
+                        else
+                            contributions.GetIndices().CopyTo(indices);
                         contributions.GetValues().CopyTo(values);
                         var count = values.Length;
                         var sb = new StringBuilder();
