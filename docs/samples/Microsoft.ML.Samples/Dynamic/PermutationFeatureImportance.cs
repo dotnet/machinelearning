@@ -49,7 +49,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 2: Pipeline
             // Concatenate the features to create a Feature vector.
-            // Normalize the values between 0 and 1
+            // Normalize the data set so that for each feature, its maximum value is 1 while its minimum value is 0.
             // Then append a linear regression trainer, setting the "MedianHomeValue" column as the label of the dataset,
             // the "Features" column produced by concatenation as the features column.
             var labelName = "MedianHomeValue";
