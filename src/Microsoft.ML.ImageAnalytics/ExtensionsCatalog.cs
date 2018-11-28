@@ -5,7 +5,6 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
@@ -16,7 +15,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform's catalog.</param>
         /// <param name="columns">The name of the columns containing the image paths(first item of the tuple), and the name of the resulting output column (second item of the tuple).</param>
-        public static ImageGrayscalingEstimator Grayscale(this TransformsCatalog catalog, params (string input, string output)[] columns)
+        public static ImageGrayscalingEstimator ConvertToGrayscale(this TransformsCatalog catalog, params (string input, string output)[] columns)
             => new ImageGrayscalingEstimator(CatalogUtils.GetEnvironment(catalog), columns);
 
         /// <summary>

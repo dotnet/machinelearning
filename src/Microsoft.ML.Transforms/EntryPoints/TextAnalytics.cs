@@ -4,8 +4,9 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
 
@@ -51,14 +52,14 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.NGramTranslator",
-            Desc = NgramCountingTransformer.Summary,
-            UserName = NgramCountingTransformer.UserName,
-            ShortName = NgramCountingTransformer.LoaderSignature,
+            Desc = NgramExtractingTransformer.Summary,
+            UserName = NgramExtractingTransformer.UserName,
+            ShortName = NgramExtractingTransformer.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""NgramTranslator""]/*' />" })]
-        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramCountingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput NGramTransform(IHostEnvironment env, NgramExtractingTransformer.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NGramTransform", input);
-            var xf = NgramCountingTransformer.Create(h, input, input.Data);
+            var xf = NgramExtractingTransformer.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -118,18 +119,21 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.LightLda",
-            Desc = LdaTransform.Summary,
-            UserName = LdaTransform.UserName,
-            ShortName = LdaTransform.ShortName,
+            Desc = LatentDirichletAllocationTransformer.Summary,
+            UserName = LatentDirichletAllocationTransformer.UserName,
+            ShortName = LatentDirichletAllocationTransformer.ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""LightLDA""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""LightLDA""]/*' />" })]
-        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LdaTransform.Arguments input)
+        public static CommonOutputs.TransformOutput LightLda(IHostEnvironment env, LatentDirichletAllocationTransformer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var view = new LdaTransform(h, input, input.Data);
+            var cols = input.Column.Select(colPair => new LatentDirichletAllocationTransformer.ColumnInfo(colPair, input)).ToArray();
+            var est = new LatentDirichletAllocationEstimator(h, cols);
+            var view = est.Fit(input.Data).Transform(input.Data);
+
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

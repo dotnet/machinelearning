@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -502,7 +503,7 @@ namespace Microsoft.ML.Runtime.Data
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "RANK PRED",
+                modelSignature: "RANKPRED",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,

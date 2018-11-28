@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -309,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
                     _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
                 }
 
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             public bool TryGetColumnIndex(string name, out int col)
@@ -934,7 +935,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(nameToCol);
                     _slicer = slicer;
                     _nameToCol = nameToCol;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public override bool TryGetColumnIndex(string name, out int col)
@@ -1140,7 +1141,7 @@ namespace Microsoft.ML.Runtime.Data
                         : base(view, col)
                     {
                         Contracts.Assert(_view.Schema.GetColumnType(col).RawType == typeof(T));
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1226,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Data
                         for (int c = 1; c < _lims.Length; ++c)
                             _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
 
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1567,7 +1568,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.AssertValue(parent);
                     _parent = parent;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public ColumnType GetColumnType(int col)

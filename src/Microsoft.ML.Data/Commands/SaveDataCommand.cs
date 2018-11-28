@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
             else
                 saver = new TextSaver(Host, new TextSaver.Arguments() { Dense = Args.Dense });
             var cols = new List<int>();
-            for (int i = 0; i < data.Schema.ColumnCount; i++)
+            for (int i = 0; i < data.Schema.Count; i++)
             {
                 if (!Args.KeepHidden && data.Schema.IsHidden(i))
                     continue;

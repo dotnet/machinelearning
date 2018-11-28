@@ -39,7 +39,7 @@ namespace Microsoft.ML.Data
         public double Rms { get; }
 
         /// <summary>
-        /// Gets the user defined loss function.
+        /// Gets the result of user defined loss function.
         /// </summary>
         /// <remarks>
         /// This is the average of a loss function defined by the user,
@@ -61,6 +61,16 @@ namespace Microsoft.ML.Data
             Rms = Fetch(RegressionEvaluator.Rms);
             LossFn = Fetch(RegressionEvaluator.Loss);
             RSquared = Fetch(RegressionEvaluator.RSquared);
+        }
+
+        [BestFriend]
+        internal RegressionMetrics(double l1, double l2, double rms, double lossFunction, double rSquared)
+        {
+            L1 = l1;
+            L2 = l2;
+            Rms = rms;
+            LossFn = lossFunction;
+            RSquared = rSquared;
         }
     }
 }

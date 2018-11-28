@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -917,11 +918,11 @@ namespace Microsoft.ML.Transforms
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var info = new Schema.Column[_parent.Outputs.Length];
+                var info = new Schema.DetachedColumn[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new Schema.Column(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new Schema.DetachedColumn(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
         }
@@ -930,7 +931,9 @@ namespace Microsoft.ML.Transforms
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />" })]
+            XmlInclude = new[] {
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />",
+                @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/example[@name=""TensorflowTransform""]/*' />"})]
         public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

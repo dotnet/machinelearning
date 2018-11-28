@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
@@ -11,7 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms.Categorical
+namespace Microsoft.ML.Transforms.Conversions
 {
     /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator: IEstimator<ValueToKeyMappingTransformer>

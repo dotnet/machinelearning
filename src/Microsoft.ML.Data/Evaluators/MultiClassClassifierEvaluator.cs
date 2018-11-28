@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -760,25 +761,25 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[4];
+            var infos = new Schema.DetachedColumn[4];
 
-            var assignedColKeyValues = new Schema.Metadata.Builder();
+            var assignedColKeyValues = new MetadataBuilder();
             assignedColKeyValues.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
-            infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
+            infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
 
-            infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
+            infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
 
-            var sortedScores = new Schema.Metadata.Builder();
+            var sortedScores = new MetadataBuilder();
             sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            var sortedClasses = new Schema.Metadata.Builder();
+            var sortedClasses = new MetadataBuilder();
             sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
             sortedClasses.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
 
-            infos[SortedScoresCol] = new Schema.Column(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
-            infos[SortedClassesCol] = new Schema.Column(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
+            infos[SortedScoresCol] = new Schema.DetachedColumn(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
+            infos[SortedClassesCol] = new Schema.DetachedColumn(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
             return infos;
         }
 
@@ -949,7 +950,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            input = new ColumnsCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
+            input = new ColumnCopyingTransformer(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
             return ColumnSelectingTransformer.CreateDrop(Host, input, MultiClassClassifierEvaluator.TopKAccuracy);
         }
 
@@ -1011,27 +1012,9 @@ namespace Microsoft.ML.Runtime.Data
             if (perInstSchema.TryGetColumnIndex(MultiClassPerInstanceEvaluator.SortedClasses, out int sortedClassesIndex))
             {
                 var type = perInstSchema.GetColumnType(sortedClassesIndex);
+                // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
                 if (_numTopClasses < type.VectorSize)
-                {
-                    // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column
-                            {
-                                Name = MultiClassPerInstanceEvaluator.SortedClasses,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClasses
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                    perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedClasses, min: _numTopClasses).Transform(perInst);
             }
 
             // Wrap with a DropSlots transform to pick only the first _numTopClasses slots.
@@ -1039,25 +1022,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var type = perInst.Schema.GetColumnType(sortedScoresIndex);
                 if (_numTopClasses < type.VectorSize)
-                {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = MultiClassPerInstanceEvaluator.SortedScores,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClasses
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                   perInst = new SlotsDroppingTransformer(Host, MultiClassPerInstanceEvaluator.SortedScores, min: _numTopClasses).Transform(perInst);
             }
             return perInst;
         }

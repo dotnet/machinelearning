@@ -34,8 +34,33 @@ namespace Microsoft.ML.Trainers.FastTree
     using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
-    /// Generalized Additive Model Learner.
+    /// Generalized Additive Model Trainer.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Generalized Additive Models, or GAMs, model the data as a set of linearly independent features
+    /// similar to a linear model. For each feature, the GAM trainer learns a non-linear function,
+    /// called a "shape function", that computes the response as a function of the feature's value.
+    /// (In contrast, a linear model fits a linear response (e.g. a line) to each feature.)
+    /// To score an example, the outputs of all the shape functions are summed and the score is the total value.
+    /// </para>
+    /// <para>
+    /// This GAM trainer is implemented using shallow gradient boosted trees (e.g. tree stumps) to learn nonparametric
+    /// shape functions, and is based on the method described in Lou, Caruana, and Gehrke.
+    /// <a href='http://www.cs.cornell.edu/~yinlou/papers/lou-kdd12.pdf'>&quot;Intelligible Models for Classification and Regression.&quot;</a> KDD&apos;12, Beijing, China. 2012.
+    /// After training, an intercept is added to represent the average prediction over the training set,
+    /// and the shape functions are normalized to represent the deviation from the average prediction. This results
+    /// in models that are easily interpreted simply by inspecting the intercept and the shape functions.
+    /// See the sample below for an example of how to train a GAM model and inspect and interpret the results.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[GAM](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
         where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
@@ -628,7 +653,7 @@ namespace Microsoft.ML.Trainers.FastTree
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
-        private readonly double _intercept;
+        public readonly double Intercept;
         private readonly int _numFeatures;
         private readonly ColumnType _inputType;
         // These would be the bins for a totally sparse input.
@@ -660,7 +685,7 @@ namespace Microsoft.ML.Trainers.FastTree
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _featureMap = featureMap;
 
-            _intercept = meanEffect;
+            Intercept = meanEffect;
 
             //No features were filtered.
             if (_featureMap == null)
@@ -725,7 +750,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckDecode(_numFeatures >= 0);
             _inputLength = reader.ReadInt32();
             Host.CheckDecode(_inputLength >= 0);
-            _intercept = reader.ReadDouble();
+            Intercept = reader.ReadDouble();
 
             _binEffects = new double[_numFeatures][];
             _binUpperBounds = new double[_numFeatures][];
@@ -772,7 +797,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.Assert(_numFeatures >= 0);
             ctx.Writer.Write(_inputLength);
             Host.Assert(_inputLength >= 0);
-            ctx.Writer.Write(_intercept);
+            ctx.Writer.Write(Intercept);
             for (int i = 0; i < _numFeatures; i++)
                 ctx.Writer.WriteDoubleArray(_binEffects[i]);
             int diff = _binEffects.Sum(e => e.Take(e.Length - 1).Select((ef, i) => ef != e[i + 1] ? 1 : 0).Sum());
@@ -804,7 +829,7 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
-            double value = _intercept;
+            double value = Intercept;
             var featuresValues = features.GetValues();
             if (features.IsDense)
             {
@@ -842,7 +867,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             // The model is Intercept + Features
             builder.Reset(features.Length + 1, false);
-            builder.AddFeature(0, (float)_intercept);
+            builder.AddFeature(0, (float)Intercept);
 
             var featuresValues = features.GetValues();
             if (features.IsDense)
@@ -889,7 +914,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Host.CheckParam(features.Length == _inputLength, nameof(features));
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
 
-            double value = _intercept;
+            double value = Intercept;
             var featuresValues = features.GetValues();
             if (features.IsDense)
             {
@@ -931,6 +956,50 @@ namespace Microsoft.ML.Trainers.FastTree
             return _binEffects[featureIndex][binIndex];
         }
 
+        /// <summary>
+        /// Get the bin upper bounds for each feature.
+        /// </summary>
+        /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
+        /// <returns>The bin upper bounds. May be null if this feature has no bins.</returns>
+        public double[] GetFeatureBinUpperBounds(int featureIndex)
+        {
+            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            double[] featureBins;
+            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            {
+                featureBins = new double[_binUpperBounds[j].Length];
+                _binUpperBounds[j].CopyTo(featureBins, 0);
+            }
+            else
+            {
+                featureBins = new double[0];
+            }
+
+            return featureBins;
+        }
+
+        /// <summary>
+        /// Get the binned weights for each feature.
+        /// </summary>
+        /// <param name="featureIndex">The index of the feature (in the training vector) to get.</param>
+        /// <returns>The binned weights for each feature.</returns>
+        public double[] GetFeatureWeights(int featureIndex)
+        {
+            Contracts.Assert(0 <= featureIndex && featureIndex < _numFeatures);
+            double[] featureWeights;
+            if (_inputFeatureToDatasetFeatureMap.TryGetValue(featureIndex, out int j))
+            {
+                featureWeights = new double[_binUpperBounds[j].Length];
+                _binEffects[j].CopyTo(featureWeights, 0);
+            }
+            else
+            {
+                featureWeights = new double[0];
+            }
+
+            return featureWeights;
+        }
+
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
@@ -960,7 +1029,7 @@ namespace Microsoft.ML.Trainers.FastTree
             writer.WriteLine();
             writer.WriteLine("Per feature binned effects:");
             writer.WriteLine("Feature Index\tFeature Value Bin Upper Bound\tOutput (effect on label)");
-            writer.WriteLine($"{-1:D}\t{float.MaxValue:R}\t{_intercept:R}");
+            writer.WriteLine($"{-1:D}\t{float.MaxValue:R}\t{Intercept:R}");
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];

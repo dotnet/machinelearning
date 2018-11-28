@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(ctx, nameof(ctx));
             h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NopTransform(h, ctx,  input));
+            return h.Apply("Loading Model", ch => new NopTransform(h, ctx, input));
         }
 
         private NopTransform(IHost host, ModelLoadContext ctx, IDataView input)

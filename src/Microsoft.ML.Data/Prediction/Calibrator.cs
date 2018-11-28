@@ -2,24 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.Model.Pfa;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Newtonsoft.Json.Linq;
-using Microsoft.ML.Runtime.EntryPoints;
+using Float = System.Single;
 
 [assembly: LoadableClass(PlattCalibratorTrainer.Summary, typeof(PlattCalibratorTrainer), null, typeof(SignatureCalibrator),
     PlattCalibratorTrainer.UserName,
@@ -215,11 +215,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IWhatTheFeatureValueMapper,
+    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper,
         IDistCanSavePfa, IDistCanSaveOnnx
     {
         private readonly IValueMapper _mapper;
-        private readonly IWhatTheFeatureValueMapper _whatTheFeature;
+        private readonly IFeatureContributionMapper _featureContribution;
 
         public ColumnType InputType => _mapper.InputType;
         public ColumnType OutputType => _mapper.OutputType;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
             Host.Check(_mapper.OutputType == NumberType.Float, "The output type of the predictor is expected to be Float");
 
-            _whatTheFeature = predictor as IWhatTheFeatureValueMapper;
+            _featureContribution = predictor as IFeatureContributionMapper;
         }
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
@@ -258,11 +258,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_whatTheFeature != null, "Predictor does not implement IWhatTheFeatureValueMapper");
-            return _whatTheFeature.GetWhatTheFeatureMapper<TSrc, TDst>(top, bottom, normalize);
+            Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     }
 
     public sealed class SchemaBindableCalibratedPredictor : CalibratedPredictorBase, ISchemaBindableMapper, ICanSaveModel,
-        IBindableCanSavePfa, IBindableCanSaveOnnx, IWhatTheFeatureValueMapper
+        IBindableCanSavePfa, IBindableCanSaveOnnx, IFeatureContributionMapper
     {
         private sealed class Bound : ISchemaBoundRowMapper
         {
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
 
         private readonly ISchemaBindableMapper _bindable;
-        private readonly IWhatTheFeatureValueMapper _whatTheFeature;
+        private readonly IFeatureContributionMapper _featureContribution;
 
         public const string LoaderSignature = "SchemaBindableCalibrated";
 
@@ -631,14 +631,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             : base(env, LoaderSignature, predictor, calibrator)
         {
             _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
+            _featureContribution = SubPredictor as IFeatureContributionMapper;
         }
 
         private SchemaBindableCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
             _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
+            _featureContribution = SubPredictor as IFeatureContributionMapper;
         }
 
         public static SchemaBindableCalibratedPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -682,11 +682,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return new Bound(Host, this, schema);
         }
 
-        public ValueMapper<TSrc, VBuffer<float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_whatTheFeature != null, "Predictor does not implement IWhatTheFeatureValueMapper");
-            return _whatTheFeature.GetWhatTheFeatureMapper<TSrc, TDst>(top, bottom, normalize);
+            Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
+            return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
     }
 

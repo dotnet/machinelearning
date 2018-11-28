@@ -161,16 +161,16 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     switch (Type.RawKind)
                     {
-                    case DataKind.I1:
-                        return typeof(sbyte).Name;
-                    case DataKind.I2:
-                        return typeof(short).Name;
-                    case DataKind.I4:
-                        return typeof(int).Name;
-                    case DataKind.I8:
-                        return typeof(long).Name;
-                    case DataKind.TS:
-                        return typeof(TimeSpan).Name;
+                        case DataKind.I1:
+                            return typeof(sbyte).Name;
+                        case DataKind.I2:
+                            return typeof(short).Name;
+                        case DataKind.I4:
+                            return typeof(int).Name;
+                        case DataKind.I8:
+                            return typeof(long).Name;
+                        case DataKind.TS:
+                            return typeof(TimeSpan).Name;
                     }
                     return base.LoadName;
                 }
@@ -573,17 +573,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_currentSlot < 16);
                     switch (_currentBits & 0x3)
                     {
-                    case 0x0:
-                        value = false;
-                        break;
-                    case 0x1:
-                        value = true;
-                        break;
-                    case 0x2:
-                        value = false;
-                        break;
-                    default:
-                        throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
+                        case 0x0:
+                            value = false;
+                            break;
+                        case 0x1:
+                            value = true;
+                            break;
+                        case 0x2:
+                            value = false;
+                            break;
+                        default:
+                            throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
                     }
                 }
             }
@@ -1051,11 +1051,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Get a buffer.
                     var values = codec._bufferPool.Get();
                     Utils.EnsureSize(ref values, totalItems, false);
-                    if (totalItems > 0)
-                    {
-                        using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
-                            reader.Read(values, 0, totalItems);
-                    }
+                    using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
+                        reader.Read(values, 0, totalItems);
                     _values = values;
                     _vectorIndex = -1;
                 }

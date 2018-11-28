@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -182,7 +183,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             public ColumnInfo(string input, string output, ColorBits colors = ColorBits.Rgb, bool interleave = false)
-                : this(input, output, colors, interleave, false, 1f, 0f)
+                : this(input, output, colors, interleave, true, 1f, 0f)
             {
             }
 
@@ -425,8 +426,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _types = ConstructTypes();
             }
 
-            protected override Schema.Column[] GetOutputColumnsCore()
-                => _parent._columns.Select((x, idx) => new Schema.Column(x.Output, _types[idx], null)).ToArray();
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select((x, idx) => new Schema.DetachedColumn(x.Output, _types[idx], null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {

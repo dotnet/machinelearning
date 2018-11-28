@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Arguments), typeof(SignatureDataTransform),
@@ -108,6 +109,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(input, nameof(input));
 
             return new IidChangePointDetector(env, args).MakeDataTransform(input);
+        }
+
+        internal override IStatefulTransformer Clone()
+        {
+            var clone = (IidChangePointDetector)MemberwiseClone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
+            return clone;
         }
 
         internal IidChangePointDetector(IHostEnvironment env, Arguments args)

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Data
         public double AvgMinScore { get; }
 
         /// <summary>
-        /// <a href="https://en.wikipedia.org/wiki/Davies�Bouldin_index">Davies-Bouldin Index</a>
+        /// <a href="https://en.wikipedia.org/wiki/Davies%E2%80%93Bouldin_index">Davies-Bouldin Index</a>
         /// DBI is a measure of the how much scatter is in the cluster and the cluster separation.
         /// </summary>
         public double Dbi { get; }

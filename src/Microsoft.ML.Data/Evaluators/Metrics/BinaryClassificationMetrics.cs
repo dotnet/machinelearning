@@ -95,5 +95,19 @@ namespace Microsoft.ML.Data
             F1Score = Fetch(BinaryClassifierEvaluator.F1);
             Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
         }
+
+        [BestFriend]
+        internal BinaryClassificationMetrics(double auc, double accuracy, double positivePrecision, double positiveRecall,
+            double negativePrecision, double negativeRecall, double f1Score, double auprc)
+        {
+            Auc = auc;
+            Accuracy = accuracy;
+            PositivePrecision = positivePrecision;
+            PositiveRecall = positiveRecall;
+            NegativePrecision = negativePrecision;
+            NegativeRecall = negativeRecall;
+            F1Score = f1Score;
+            Auprc = auprc;
+        }
     }
 }

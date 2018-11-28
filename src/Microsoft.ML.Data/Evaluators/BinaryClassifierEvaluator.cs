@@ -1079,16 +1079,16 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
             if (_probIndex >= 0)
             {
-                var infos = new Schema.Column[2];
-                infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
-                infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], null);
+                var infos = new Schema.DetachedColumn[2];
+                infos[LogLossCol] = new Schema.DetachedColumn(LogLoss, _types[LogLossCol], null);
+                infos[AssignedCol] = new Schema.DetachedColumn(Assigned, _types[AssignedCol], null);
                 return infos;
             }
-            return new[] { new Schema.Column(Assigned, _types[AssignedCol], null), };
+            return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
         private void CheckInputColumnTypes(ISchema schema)
@@ -1221,7 +1221,7 @@ namespace Microsoft.ML.Runtime.Data
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
                 colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            fold = new ColumnsCopyingTransformer(Host, cols).Transform(fold);
+            fold = new ColumnCopyingTransformer(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
             fold = ColumnSelectingTransformer.CreateKeep(Host, fold, colsToKeep.ToArray());
