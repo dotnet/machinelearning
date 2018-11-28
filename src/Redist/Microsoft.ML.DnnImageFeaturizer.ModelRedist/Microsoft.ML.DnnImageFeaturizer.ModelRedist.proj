@@ -110,6 +110,7 @@
   </Target>
 
   <Target Name="Build"
+          Condition="'$(SkipRIDAgnosticAssets)' == ''"
           DependsOnTargets="CopyDnnModelFiles" />
 
 </Project>

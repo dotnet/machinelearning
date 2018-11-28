@@ -118,6 +118,12 @@
             "BuildNative": "default"
           }
         },
+        "skipRIDAgnosticAssets": {
+          "description": "Avoid building RID agnostic assets in redist.",
+          "settings": {
+            "SkipRIDAgnosticAssets": "default"
+          }
+        },
         "buildPackages": {
           "description": "Builds the NuGet packages.",
           "settings": {
