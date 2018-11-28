@@ -157,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 ColumnIndex = index;
                 Name = name;
                 Codec = codec;
-                Type = Codec != null ? Codec.Type : null;
+                Type = Codec?.Type;
                 Compression = compression;
                 RowsPerBlock = rowsPerBlock;
                 LookupOffset = lookupOffset;
