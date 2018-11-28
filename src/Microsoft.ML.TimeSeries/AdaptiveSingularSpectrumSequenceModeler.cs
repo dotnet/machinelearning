@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 
 [assembly: LoadableClass(typeof(AdaptiveSingularSpectrumSequenceModeler), typeof(AdaptiveSingularSpectrumSequenceModeler), null, typeof(SignatureLoadModel),
     "SSA Sequence Modeler",
@@ -338,7 +339,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _shouldStablize = model._shouldStablize;
             _shouldMaintainInfo = model._shouldMaintainInfo;
             _info = model._info;
-            _buffer = new FixedSizeQueue<Single>(_seriesLength);
+            _buffer = model._buffer.Clone();
             _alpha = new Single[_windowSize - 1];
             Array.Copy(model._alpha, _alpha, _windowSize - 1);
             _state = new Single[_windowSize - 1];
@@ -454,10 +455,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _wTrans = new CpuAlignedMatrixRow(_rank, _windowSize, SseUtils.CbAlign);
                 int i = 0;
                 _wTrans.CopyFrom(tempArray, ref i);
+                tempArray = ctx.Reader.ReadFloatArray();
+                i = 0;
+                _y = new CpuAlignedVector(_rank, SseUtils.CbAlign);
+                _y.CopyFrom(tempArray, ref i);
             }
 
-            _buffer = new FixedSizeQueue<Single>(_seriesLength);
-
+            _buffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(ctx.Reader, _host);
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
@@ -528,7 +532,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 int iv = 0;
                 _wTrans.CopyTo(tempArray, ref iv);
                 ctx.Writer.WriteSingleArray(tempArray);
+                tempArray = new float[_rank];
+                iv = 0;
+                _y.CopyTo(tempArray, ref iv);
+                ctx.Writer.WriteSingleArray(tempArray);
             }
+
+            TimeSeriesUtils.SerializeFixedSizeQueue(_buffer, ctx.Writer);
         }
 
         private static void ReconstructSignal(TrajectoryMatrix tMat, Single[] singularVectors, int rank, Single[] output)
