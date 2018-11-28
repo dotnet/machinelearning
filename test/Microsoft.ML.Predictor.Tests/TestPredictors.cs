@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers with non-negative coefficients
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionNonNegativeTest()
         {
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionBinNormTest()
         {
@@ -904,7 +904,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             predGetters[i](ref preds[i]);
                         }
                         if (scores.All(s => !float.IsNaN(s)))
-                            Assert.Equal(score, scores.Sum() / predCount, 3);
+                            CompareNumbersWithTolerance(score, scores.Sum() / predCount);
                         for (int i = 0; i < predCount; i++)
                             Assert.Equal(vectorScore.Length, vectorScores[i].Length);
                         for (int i = 0; i < vectorScore.Length; i++)
@@ -1561,7 +1561,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for no calibrators
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void DefaultCalibratorPerceptronTest()
         {
@@ -1573,7 +1573,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for PAV calibrators
         ///</summary>
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
         [TestCategory("Calibrator")]
         public void PAVCalibratorPerceptronTest()
         {
@@ -1585,7 +1585,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for random calibrators
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))]  // netcore3.0 and x86 output differs from Baseline
         [TestCategory("Calibrator")]
         public void RandomCalibratorPerceptronTest()
         {

@@ -351,7 +351,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 differs from Baseline
         public void KmeansTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
