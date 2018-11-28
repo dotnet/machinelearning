@@ -192,6 +192,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
             public Schema Schema { get; }
+            public Schema OutputSchema => Schema;
             public ISchemaBindableMapper Bindable => _parent;
 
             public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, Schema outputSchema)
@@ -473,6 +474,9 @@ namespace Microsoft.ML.Runtime.Data
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
             public Schema Schema { get; }
+
+            public Schema OutputSchema => Schema;
+
             public ISchemaBindableMapper Bindable => _parent;
 
             public CalibratedRowMapper(RoleMappedSchema schema, SchemaBindableBinaryPredictorWrapper parent)

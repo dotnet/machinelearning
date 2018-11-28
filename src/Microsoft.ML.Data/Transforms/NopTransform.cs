@@ -104,6 +104,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema Schema => Source.Schema;
 
+        public Schema OutputSchema => Schema;
+
         public long? GetRowCount()
         {
             return Source.GetRowCount();

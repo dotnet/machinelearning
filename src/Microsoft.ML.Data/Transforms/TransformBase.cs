@@ -159,6 +159,8 @@ namespace Microsoft.ML.Runtime.Data
 
         Schema IRowToRowMapper.InputSchema => Source.Schema;
 
+        public Schema OutputSchema => Schema;
+
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));

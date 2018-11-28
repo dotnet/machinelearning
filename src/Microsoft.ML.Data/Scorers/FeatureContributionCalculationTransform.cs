@@ -337,6 +337,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema Schema { get; }
 
+            public Schema OutputSchema => Schema;
+
             public ISchemaBindableMapper Bindable => _parent;
 
             public RowMapper(IHostEnvironment env, BindableMapper parent, RoleMappedSchema schema)

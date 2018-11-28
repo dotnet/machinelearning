@@ -593,7 +593,7 @@ namespace Microsoft.ML.Transforms
 
             public long Batch => _input.Batch;
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IRow.Schema => _mapper.Schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -627,7 +627,9 @@ namespace Microsoft.ML.Transforms
 
             Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IDataView.Schema => _mapper.Schema;
+
+            Schema IRowToRowMapper.OutputSchema => _mapper.Schema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
@@ -705,7 +707,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IRow.Schema => _mapper.Schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

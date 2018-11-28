@@ -252,6 +252,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Schema Schema => _outSchema.AsSchema;
 
+                public Schema OutputSchema => Schema;
+
                 public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
                 public Schema InputSchema => _mapper.InputSchema;
 

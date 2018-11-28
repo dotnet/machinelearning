@@ -77,6 +77,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public override Schema Schema => _bindings.Schema;
 
+        public Schema OutputSchema => Schema;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;

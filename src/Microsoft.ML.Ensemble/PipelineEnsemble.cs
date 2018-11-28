@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             public RoleMappedSchema InputRoleMappedSchema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
             public Schema Schema { get; }
+            public Schema OutputSchema => Schema;
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {

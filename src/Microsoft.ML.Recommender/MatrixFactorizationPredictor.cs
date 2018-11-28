@@ -278,8 +278,9 @@ namespace Microsoft.ML.Trainers.Recommender
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
-            public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema Schema { get; }
+            public Schema OutputSchema => Schema;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 

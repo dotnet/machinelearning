@@ -61,6 +61,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
         public Schema Schema { get; }
+
+        public Schema OutputSchema => Schema;
+
         public Schema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;

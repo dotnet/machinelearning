@@ -529,6 +529,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
             public Schema InputSchema => _predictor.InputSchema;
             public Schema Schema { get; }
+            public Schema OutputSchema => Schema;
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
