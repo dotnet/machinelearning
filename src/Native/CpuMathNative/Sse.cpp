@@ -65,9 +65,14 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
         for (int i = 0 ; i < crow; i++)
         {
             float dotProduct = 0;
-            for (int j = 0; j < ccol; j++)
+            switch (ccol)
             {
-                dotProduct += pmat[i * ccol + j] * psrc[j];
+                case 3:
+                    dotProduct += pmat[i * ccol + 2] * psrc[2];
+                case 2:
+                    dotProduct += pmat[i * ccol + 1] * psrc[1];
+                case 1:
+                    dotProduct += pmat[i * ccol + 0] * psrc[0];
             }
             pdst[i] = dotProduct;
         }

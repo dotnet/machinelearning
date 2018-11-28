@@ -145,7 +145,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(4, 9)]
         [InlineData(5, 7)]
         [InlineData(5, 9)]
-
         private void MatMulTranAnyDimensionTest(int col, int row)
         {
             float[] mat = new float[col * row];

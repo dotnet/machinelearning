@@ -529,8 +529,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 Array.Copy(_wTrans, tempArray, _wTrans.Length);
                 ctx.Writer.WriteSingleArray(tempArray);
                 tempArray = new float[_rank];
-                iv = 0;
-                _y.CopyTo(tempArray, ref iv);
+                Array.Copy(_y, tempArray, tempArray.Length);
                 ctx.Writer.WriteSingleArray(tempArray);
             }
 
@@ -1348,7 +1347,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             // Setting the weight matrix
             _wTrans = new float[_rank * _windowSize];
-            Array.Copy(leftSingularVecs, _wTrans, _rank * _windowSize);
+            Array.Copy(leftSingularVecs, _wTrans, _wTrans.Length);
 
             // Setting alpha
             Single nu = 0;
