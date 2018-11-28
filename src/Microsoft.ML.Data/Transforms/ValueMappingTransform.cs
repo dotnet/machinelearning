@@ -30,7 +30,6 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
-
     /// <summary>
     /// The ValueMappingEstimator is a 1-1 mapping from a key to value. The key type and value type are specified
     /// through TKeyType and TValueType. Arrays are supported for vector types which can be used as either a key or a value
@@ -478,7 +477,27 @@ namespace Microsoft.ML.Transforms
             public override Delegate GetGetter(IRow input, int index)
             {
                 var src = default(TKeyType);
-                ValueGetter<TKeyType> getSrc = input.GetGetter<TKeyType>(index);;
+                ValueGetter<TKeyType> getSrc = input.GetGetter<TKeyType>(index);
+                TValueType missingValue = default;
+
+                // Get the default value if the key is missing
+                if (!ValueType.IsVector)
+                {
+                    bool identity;
+                    ValueMapper<TKeyType, TValueType> conv;
+                    if (Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion<TKeyType, TValueType>(
+                                                                    KeyType,
+                                                                    ValueType,
+                                                                    out conv,
+                                                                    out identity))
+                    {
+                        TKeyType key = default;
+                        TValueType value = default;
+                        conv(key, ref value);
+                        missingValue = value;
+                    }
+                }
+
                 ValueGetter<TValueType> retVal =
                 (ref TValueType dst) =>
                 {
@@ -491,7 +510,7 @@ namespace Microsoft.ML.Transforms
                             dst = Utils.MarshalInvoke(GetValue<int>, ValueType.RawType, _mapping[src]);
                     }
                     else
-                        dst = default;
+                       dst = missingValue;
                 };
                 return retVal;
             }

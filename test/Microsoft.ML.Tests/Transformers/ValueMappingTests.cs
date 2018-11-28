@@ -40,10 +40,10 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory()};
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
             IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
 
-            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new [] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -70,15 +70,13 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
-
-
-            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory()};
-            List<int[]> values = new List<int[]>() { 
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() };
+            List<int[]> values = new List<int[]>() {
                 new int[] {2, 3, 4 },
                 new int[] {100, 200 },
                 new int[] {400, 500, 600, 700 }};
 
-            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new [] { ("A", "D"), ("B", "E"),("C", "F") });
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
             var t = estimator.Fit(dataView);
 
             var result = t.Transform(dataView);
@@ -87,7 +85,7 @@ namespace Microsoft.ML.Tests.Transformers
             var getterE = cursor.GetGetter<VBuffer<int>>(4);
             var getterF = cursor.GetGetter<VBuffer<int>>(5);
             cursor.MoveNext();
-            
+
             var valuesArray = values.ToArray();
             VBuffer<int> dValue = default;
             getterD(ref dValue);
@@ -99,6 +97,37 @@ namespace Microsoft.ML.Tests.Transformers
             getterF(ref fValue);
             Assert.Equal(values[0].Length, fValue.Length);
         }
+
+        [Fact]
+        public void ValueMappingMissingKey()
+        {
+            var data = new[] { new TestClass() { A = "barTest", B = "test", C = "foo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+            IEnumerable<int> values = new List<int>() { 1, 2, 3, 4 };
+
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, keys, values, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursor((col) => true);
+            var getterD = cursor.GetGetter<int>(3);
+            var getterE = cursor.GetGetter<int>(4);
+            var getterF = cursor.GetGetter<int>(5);
+            cursor.MoveNext();
+
+            int dValue = 1;
+            getterD(ref dValue);
+            Assert.Equal(0, dValue);
+            int eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal(3, eValue);
+            int fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal(1, fValue);
+        }
+
 
         [Fact]
         public void ValueMappingWorkout()
@@ -120,8 +149,8 @@ namespace Microsoft.ML.Tests.Transformers
         void TestCommandLine()
         {
             var dataFile = GetDataPath("QuotingData.csv");
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data=" 
-                                    + dataFile 
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data="
+                                    + dataFile
                                     + @" col=A:B loader=Text{col=ID:R4:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
         }
     }
