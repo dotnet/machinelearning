@@ -21,6 +21,8 @@ namespace Microsoft.ML
     public abstract class TrainContextBase
     {
         protected readonly IHost Host;
+
+        [BestFriend]
         internal IHostEnvironment Environment => Host;
 
         /// <summary>
@@ -162,6 +164,7 @@ namespace Microsoft.ML
         /// </summary>
         public abstract class ContextInstantiatorBase
         {
+            [BestFriend]
             internal TrainContextBase Owner { get; }
 
             protected ContextInstantiatorBase(TrainContextBase ctx)
@@ -328,13 +331,35 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(score, nameof(score));
 
             if(features != null)
-                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty, if provided, if you want to calculate the Dbi metric.");
+                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty if you want to calculate the Dbi metric.");
 
             if (label != null)
-                Host.CheckNonEmpty(label, nameof(label), "The features column name should be non-empty, if provided, if you want to calculate the Nmi metric.");
+                Host.CheckNonEmpty(label, nameof(label), "The label column name should be non-empty if you want to calculate the Nmi metric.");
 
             var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(features) });
             return eval.Evaluate(data, score, label, features);
+        }
+
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">Optional label column for evaluation (clustering tasks may not always have a label).</param>
+        /// <param name="featuresColumn">Optional features column for evaluation (needed for calculating Dbi metric)</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
+        public (ClusteringEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null, string stratificationColumn = null)
+        {
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (Evaluate(x.scoredTestSet, label: labelColumn, features: featuresColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
 
@@ -476,7 +501,7 @@ namespace Microsoft.ML
     }
 
     /// <summary>
-    /// The central context for regression trainers.
+    /// The central context for ranking trainers.
     /// </summary>
     public sealed class RankingContext : TrainContextBase
     {

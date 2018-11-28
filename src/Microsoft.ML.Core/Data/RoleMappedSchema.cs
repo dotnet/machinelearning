@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         /// be used when possible for consistency reasons. However, practitioners should not be afraid to declare custom
         /// roles if approppriate for their task.
         /// </summary>
-        public struct ColumnRole
+        public readonly struct ColumnRole
         {
             /// <summary>
             /// Role for features. Commonly used as the independent variables given to trainers, and scorers.

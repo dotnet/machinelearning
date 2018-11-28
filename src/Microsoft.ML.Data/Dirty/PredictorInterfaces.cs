@@ -173,16 +173,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     {
     }
 
-    public interface IHasLabelGains : ITrainer
-    {
-        Double[] GetLabelGains();
-    }
-
     /// <summary>
     /// Interface for mapping input values to corresponding feature contributions.
     /// This interface is commonly implemented by predictors.
     /// </summary>
-    public interface IWhatTheFeatureValueMapper : IPredictor
+    public interface IFeatureContributionMapper : IPredictor
     {
         /// <summary>
         /// Get a delegate for mapping Contributions to Features.
@@ -192,7 +187,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// For trees we will not have negative contributions, so bottom param will be ignored.
         /// If normalization is requested that resulting values will be normalized to [-1, 1].
         /// </summary>
-        ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize);
+        ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize);
     }
 
     /// <summary>

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
 
 namespace Microsoft.ML.Legacy.Models
@@ -52,26 +52,24 @@ namespace Microsoft.ML.Legacy.Models
 
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                using (var env = new ConsoleEnvironment())
+                var env = new MLContext();
+                var subgraph = env.CreateExperiment();
+                subgraph.Add(_trainer);
+                var ova = new OneVersusAll();
+                if (previousStep != null)
                 {
-                    var subgraph = env.CreateExperiment();
-                    subgraph.Add(_trainer);
-                    var ova = new OneVersusAll();
-                    if (previousStep != null)
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
                     {
-                        if (!(previousStep is ILearningPipelineDataStep dataStep))
-                        {
-                            throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                        }
-
-                        _data = dataStep.Data;
-                        ova.TrainingData = dataStep.Data;
-                        ova.UseProbabilities = _useProbabilities;
-                        ova.Nodes = subgraph;
+                        throw new InvalidOperationException($"{ nameof(OneVersusAll)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
                     }
-                    Output output = experiment.Add(ova);
-                    return new OvaPipelineStep(output);
+
+                    _data = dataStep.Data;
+                    ova.TrainingData = dataStep.Data;
+                    ova.UseProbabilities = _useProbabilities;
+                    ova.Nodes = subgraph;
                 }
+                Output output = experiment.Add(ova);
+                return new OvaPipelineStep(output);
             }
 
             public Var<IDataView> GetInputData() => _data;

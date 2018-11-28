@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Data;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Core.Data;
-using System;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -124,6 +122,33 @@ namespace Microsoft.ML.Runtime.Api
         }
     }
 
+    public sealed class PredictionEngine<TSrc, TDst> : PredictionEngineBase<TSrc, TDst>
+       where TSrc : class
+       where TDst : class, new()
+    {
+        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : base(env, transformer, ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        /// <summary>
+        /// Run prediction pipeline on one example.
+        /// </summary>
+        /// <param name="example">The example to run on.</param>
+        /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
+        /// is reused.</param>
+        public override void Predict(TSrc example, ref TDst prediction)
+        {
+            Contracts.CheckValue(example, nameof(example));
+            ExtractValues(example);
+            if (prediction == null)
+                prediction = new TDst();
+
+            FillValues(prediction);
+        }
+    }
+
     /// <summary>
     /// A class that runs the previously trained model (and the preceding transform pipeline) on the
     /// in-memory data, one example at a time.
@@ -132,20 +157,17 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
-    public sealed class PredictionEngine<TSrc, TDst>
+    public abstract class PredictionEngineBase<TSrc, TDst>
         where TSrc : class
         where TDst : class, new()
     {
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
+        [BestFriend]
+        private protected ITransformer Transformer { get; }
 
-        internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, StreamChecker(env, modelStream), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
-        {
-        }
-
+        [BestFriend]
         private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
         {
             env.CheckValue(modelStream, nameof(modelStream));
@@ -158,39 +180,35 @@ namespace Microsoft.ML.Runtime.Api
             };
         }
 
-        internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
+        [BestFriend]
+        private protected PredictionEngineBase(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, new TransformWrapper(env, env.CheckRef(dataPipe, nameof(dataPipe))), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
+            Contracts.CheckValue(env, nameof(env));
+            env.AssertValue(transformer);
+            Transformer = transformer;
+            var makeMapper = TransformerChecker(env, transformer);
+            env.AssertValue(makeMapper);
+            _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
+            PredictionEngineCore(env, _inputRow, makeMapper(_inputRow.Schema), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition, out _disposer, out _outputRow);
         }
 
-        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
-            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : this(env, TransformerChecker(env, transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        internal virtual void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
+                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
+            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
+            var outputRowLocal = mapper.GetRow(_inputRow, col => true, out disposer);
+            outputRow = cursorable.GetRow(outputRowLocal);
         }
 
-        private static Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        protected virtual Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
             return transformer.GetRowToRowMapper;
         }
 
-        private PredictionEngine(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
-                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.AssertValue(makeMapper);
-
-            _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
-            var mapper = makeMapper(_inputRow.Schema);
-            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
-            var outputRow = mapper.GetRow(_inputRow, col => true, out _disposer);
-            _outputRow = cursorable.GetRow(outputRow);
-        }
-
-        ~PredictionEngine()
+        ~PredictionEngineBase()
         {
             _disposer?.Invoke();
         }
@@ -207,91 +225,16 @@ namespace Microsoft.ML.Runtime.Api
             return result;
         }
 
+        protected void ExtractValues(TSrc example) => _inputRow.ExtractValues(example);
+
+        protected void FillValues(TDst prediction) => _outputRow.FillValues(prediction);
+
         /// <summary>
         /// Run prediction pipeline on one example.
         /// </summary>
         /// <param name="example">The example to run on.</param>
         /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
         /// is reused.</param>
-        public void Predict(TSrc example, ref TDst prediction)
-        {
-            Contracts.CheckValue(example, nameof(example));
-            _inputRow.ExtractValues(example);
-            if (prediction == null)
-                prediction = new TDst();
-            _outputRow.FillValues(prediction);
-        }
-    }
-
-    /// <summary>
-    /// This class encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
-    /// and the output is a float score. For binary classification predictors that can output probability, there are output
-    /// fields that report the predicted label and probability.
-    /// </summary>
-    public sealed class SimplePredictionEngine
-    {
-        private class Example
-        {
-            // REVIEW: convert to VBuffer once we have support for them.
-            public Float[] Features;
-        }
-
-        /// <summary>
-        /// The prediction output. For every field, if there are no column with the matched name in the scoring pipeline,
-        /// the field will be left intact by the engine (and keep 0 as value unless the user code changes it).
-        /// </summary>
-        public class Prediction
-        {
-            public Float Score;
-            public Float Probability;
-        }
-
-        private readonly PredictionEngine<Example, Prediction> _engine;
-        private readonly int _nFeatures;
-
-        /// <summary>
-        /// Create a prediction engine.
-        /// </summary>
-        /// <param name="env">The host environment to use.</param>
-        /// <param name="modelStream">The model stream to load pipeline from.</param>
-        /// <param name="nFeatures">Number of features.</param>
-        /// <param name="featureColumnName">Name of the features column.</param>
-        internal SimplePredictionEngine(IHostEnvironment env, Stream modelStream, int nFeatures, string featureColumnName = "Features")
-        {
-            Contracts.AssertValue(env);
-            Contracts.AssertValue(modelStream);
-            Contracts.Assert(nFeatures > 0);
-
-            _nFeatures = nFeatures;
-            var schema =
-                new SchemaDefinition
-                {
-                new SchemaDefinition.Column
-                {
-                        MemberName = featureColumnName,
-                        ColumnType = new VectorType(NumberType.Float, nFeatures)
-                }
-            };
-            _engine = new PredictionEngine<Example, Prediction>(env, modelStream, true, schema);
-        }
-
-        /// <summary>
-        /// Score an example.
-        /// </summary>
-        /// <param name="features">The feature array of the example.</param>
-        /// <returns>The prediction object. New object is created on every call.</returns>
-        public Prediction Predict(Float[] features)
-        {
-            Contracts.CheckValue(features, nameof(features));
-            if (features.Length != _nFeatures)
-                throw Contracts.ExceptParam(nameof(features), "Number of features should be {0}, but it is {1}", _nFeatures, features.Length);
-
-            var example = new Example { Features = features };
-            return _engine.Predict(example);
-        }
-        public Prediction Predict(VBuffer<Float> features)
-        {
-            throw Contracts.ExceptNotImpl("VBuffers aren't supported yet.");
-        }
+        public abstract void Predict(TSrc example, ref TDst prediction);
     }
 }

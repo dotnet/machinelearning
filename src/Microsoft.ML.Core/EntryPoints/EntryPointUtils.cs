@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
-    public static class EntryPointUtils
+    [BestFriend]
+    internal static class EntryPointUtils
     {
         private static bool IsValueWithinRange<T>(TlcModule.RangeAttribute range, object obj)
         {
@@ -109,8 +108,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             if (value == "")
                 return null;
-            int col;
-            if (!schema.TryGetColumnIndex(value, out col))
+            if (schema.GetColumnOrNull(value) == null)
             {
                 if (value.IsExplicit)
                     throw ectx.Except("Column '{0}' not found", value);

@@ -51,7 +51,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
 
         private Dataset _trainSet;
         private short[] _labels;
-        private Ensemble _compressedEnsemble;
+        private TreeEnsemble _compressedEnsemble;
         private int[] _sampleObservationIndices;
         private Random _rnd;
 
@@ -458,9 +458,9 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return fit;
         }
 
-        private Ensemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, Ensemble originalEnsemble)
+        private TreeEnsemble GetEnsembleFromSolution(LassoFit fit, int solutionIdx, TreeEnsemble originalEnsemble)
         {
-            Ensemble ensemble = new Ensemble();
+            TreeEnsemble ensemble = new TreeEnsemble();
 
             int weightsCount = fit.NumberOfWeights[solutionIdx];
             for (int i = 0; i < weightsCount; i++)
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        public bool Compress(IChannel ch, Ensemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
+        public bool Compress(IChannel ch, TreeEnsemble ensemble, double[] trainScores, int bestIteration, int maxTreesAfterCompression)
         {
             LoadTargets(trainScores, bestIteration);
 
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return true;
         }
 
-        public Ensemble GetCompressedEnsemble()
+        public TreeEnsemble GetCompressedEnsemble()
         {
             return _compressedEnsemble;
         }

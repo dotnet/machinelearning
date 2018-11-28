@@ -7,10 +7,8 @@ using BenchmarkDotNet.Engines;
 using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
@@ -18,6 +16,7 @@ using System.Globalization;
 
 namespace Microsoft.ML.Benchmarks
 {
+#pragma warning disable 612, 618
     public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
@@ -63,18 +62,17 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            using (var env = new ConsoleEnvironment(seed: 1))
-            {
-                // Pipeline
-                var loader = TextLoader.ReadFile(env,
-                    new TextLoader.Arguments()
+            var env = new MLContext(seed: 1);
+            // Pipeline
+            var loader = TextLoader.ReadFile(env,
+                new TextLoader.Arguments()
+                {
+                    AllowQuoting = false,
+                    AllowSparse = false,
+                    Separator = "tab",
+                    HasHeader = true,
+                    Column = new[]
                     {
-                        AllowQuoting = false,
-                        AllowSparse = false,
-                        Separator = "tab",
-                        HasHeader = true,
-                        Column = new[]
-                        {
                             new TextLoader.Column()
                             {
                                 Name = "Label",
@@ -88,46 +86,43 @@ namespace Microsoft.ML.Benchmarks
                                 Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
                                 Type = DataKind.Text
                             }
-                        }
-                    }, new MultiFileSource(_sentimentDataPath));
+                    }
+                }, new MultiFileSource(_sentimentDataPath));
 
-                var text = TextFeaturizingEstimator.Create(env,
-                    new TextFeaturizingEstimator.Arguments()
+            var text = TextFeaturizingEstimator.Create(env,
+                new TextFeaturizingEstimator.Arguments()
+                {
+                    Column = new TextFeaturizingEstimator.Column
                     {
-                        Column = new TextFeaturizingEstimator.Column
-                        {
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
                         },
                         OutputTokens = true,
                         KeepPunctuations=false,
-                        StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
+                        UsePredefinedStopWordRemover = true,
                         VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = WordEmbeddingsTransform.Create(env,
-                    new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsExtractingTransformer.Create(env,
+                    new WordEmbeddingsExtractingTransformer.Arguments()
                     {
-                        Column = new WordEmbeddingsTransform.Column[1]
+                        Column = new WordEmbeddingsExtractingTransformer.Column[1]
                         {
-                            new WordEmbeddingsTransform.Column
+                            new WordEmbeddingsExtractingTransformer.Column
                             {
                                 Name = "Features",
                                 Source = "WordEmbeddings_TransformedText"
                             }
                         },
-                        ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                        ModelKind = WordEmbeddingsExtractingTransformer.PretrainedModelKind.Sswe,
                     }, text);
 
-                // Train
-                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", maxIterations: 20);
-                var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
-
-                var predicted = trainer.Train(trainRoles);
-                _consumer.Consume(predicted);
-            }
+            // Train
+            var trainer = new SdcaMultiClassTrainer(env, "Label", "Features", maxIterations: 20);
+            var predicted = trainer.Fit(trans);
+            _consumer.Consume(predicted);
         }
 
         [GlobalSetup(Targets = new string[] { nameof(PredictIris), nameof(PredictIrisBatchOf1), nameof(PredictIrisBatchOf2), nameof(PredictIrisBatchOf5) })]
@@ -194,4 +189,5 @@ namespace Microsoft.ML.Benchmarks
         [ColumnName("Score")]
         public float[] PredictedLabels;
     }
+#pragma warning restore 612, 618
 }

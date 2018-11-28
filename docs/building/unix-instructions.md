@@ -42,11 +42,12 @@ macOS 10.12 (Sierra) or higher is needed to build dotnet/machinelearning.
 
 On macOS a few components are needed which are not provided by a default developer setup:
 * cmake 3.10.3
-* gcc
+* libomp
+* libgdiplus
+* gettext
 * All the requirements necessary to run .NET Core 2.0 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore2x).
 
-One way of obtaining CMake and gcc is via [Homebrew](https://brew.sh):
+One way of obtaining CMake and other required libraries is via [Homebrew](https://brew.sh):
 ```sh
-$ brew install cmake
-$ brew install gcc
+$ brew install cmake libomp mono-libgdiplus gettext && brew link gettext --force
 ```

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
             bool identity;
             // Second choice: if key, utilize the KeyValues metadata for that key, if it has one and is text.
-            if (schema.HasKeyNames(col, type.KeyCount))
+            if (schema.HasKeyValues(col, type.KeyCount))
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
@@ -56,11 +57,11 @@ namespace Microsoft.ML.Runtime.Data
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
                 var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberType.U4, out identity);
                 return
-                    (ref T src, ref StringBuilder dst) =>
+                    (in T src, ref StringBuilder dst) =>
                     {
                         ClearDst(ref dst);
                         uint intermediate = 0;
-                        keyMapper(ref src, ref intermediate);
+                        keyMapper(in src, ref intermediate);
                         if (intermediate == 0)
                             return;
                         keyValues.GetItemOrDefault((int)(intermediate - 1), ref value);
@@ -77,13 +78,13 @@ namespace Microsoft.ML.Runtime.Data
             StringBuilder sb = null;
             char[] buffer = null;
             return
-                (ref KeyValuePair<int, T> pair, ref StringBuilder dst) =>
+                (in KeyValuePair<int, T> pair, ref StringBuilder dst) =>
                 {
                     ClearDst(ref dst);
                     dst.Append(pair.Key);
                     dst.Append(':');
                     var subval = pair.Value;
-                    submap(ref subval, ref sb);
+                    submap(in subval, ref sb);
                     AppendToEnd(sb, dst, ref buffer);
                 };
         }
@@ -107,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
         /// but also maintain the order in which it was inserted, assuming that
         /// we're using something like a hashset where order is not preserved.
         /// </summary>
-        private struct Pair
+        private readonly struct Pair
         {
             public readonly T Value;
             public readonly int Order;
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
             _stringifyMapper = mapper;
             _comparer = new PairEqualityComparer(comparer);
             _slotToValueSet = new Dictionary<int, HashSet<Pair>>();
-            _copier = copier ?? ((ref T src, ref T dst) => dst = src);
+            _copier = copier ?? ((in T src, ref T dst) => dst = src);
         }
 
         private ReadOnlyMemory<char> Textify(ref StringBuilder sb, ref StringBuilder temp, ref char[] cbuffer, ref Pair[] buffer, HashSet<Pair> pairs)
@@ -199,7 +200,7 @@ namespace Microsoft.ML.Runtime.Data
             if (count == 1)
             {
                 var value = buffer[0].Value;
-                _stringifyMapper(ref value, ref temp);
+                _stringifyMapper(in value, ref temp);
                 return Utils.Size(temp) > 0 ? temp.ToString().AsMemory() : String.Empty.AsMemory();
             }
 
@@ -215,7 +216,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (i > 0)
                     sb.Append(',');
                 var value = pair.Value;
-                _stringifyMapper(ref value, ref temp);
+                _stringifyMapper(in value, ref temp);
                 InvertHashUtils.AppendToEnd(temp, sb, ref cbuffer);
             }
             sb.Append('}');
@@ -293,7 +294,7 @@ namespace Microsoft.ML.Runtime.Data
             else
                 pairSet = _slotToValueSet[dstSlot] = new HashSet<Pair>(_comparer);
             T dst = default(T);
-            _copier(ref key, ref dst);
+            _copier(in key, ref dst);
             pairSet.Add(new Pair(dst, pairSet.Count));
         }
 
@@ -372,7 +373,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, ref VBuffer<ReadOnlyMemory<char>> values)
+        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, in VBuffer<ReadOnlyMemory<char>> values)
         {
             Contracts.AssertValue(ch);
             ch.CheckValue(ctx, nameof(ctx));
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 using (var writer = textCodec.OpenWriter(mem))
                 {
-                    writer.Write(ref values);
+                    writer.Write(in values);
                     writer.Commit();
                 }
                 ctx.Writer.WriteByteArray(mem.ToArray());
@@ -412,7 +413,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveTextStream("Terms.txt",
                 writer =>
                 {
-                    writer.WriteLine("# Number of terms = {0} of length {1}", v.Count, v.Length);
+                    writer.WriteLine("# Number of terms = {0} of length {1}", v.GetValues().Length, v.Length);
                     foreach (var pair in v.Items())
                     {
                         var text = pair.Value;
@@ -491,7 +492,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (keyValues[iinfo].Length == 0)
                         continue;
                     ctx.SaveSubModel(string.Format(dirFormat, iinfo),
-                        c => Save(ch, c, factory, ref keyValues[iinfo]));
+                        c => Save(ch, c, factory, in keyValues[iinfo]));
                 }
             }
         }

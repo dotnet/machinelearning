@@ -68,17 +68,18 @@ namespace Microsoft.ML.Runtime.Data
             _queue.Clear();
         }
 
-        public bool AddNgrams(ref VBuffer<uint> src, int icol, uint keyMax)
+        public bool AddNgrams(in VBuffer<uint> src, int icol, uint keyMax)
         {
             Contracts.Assert(icol >= 0);
             Contracts.Assert(keyMax > 0);
 
+            var srcValues = src.GetValues();
             uint curKey = 0;
             if (src.IsDense)
             {
                 for (int i = 0; i < src.Length; i++)
                 {
-                    curKey = src.Values[i];
+                    curKey = srcValues[i];
                     if (curKey > keyMax)
                         curKey = 0;
 
@@ -92,13 +93,14 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var queueSize = _queue.Capacity;
+                var srcIndices = src.GetIndices();
 
                 int iindex = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (iindex < src.Count && i == src.Indices[iindex])
+                    if (iindex < srcIndices.Length && i == srcIndices[iindex])
                     {
-                        curKey = src.Values[iindex];
+                        curKey = srcValues[iindex];
                         if (curKey > keyMax)
                             curKey = 0;
                         iindex++;

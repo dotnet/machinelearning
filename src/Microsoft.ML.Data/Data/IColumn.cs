@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -274,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The base class for a few <see cref="ICounted"/> implementations that do not "go" anywhere.
         /// </summary>
-        public abstract class DefaultCounted : ICounted
+        private abstract class DefaultCounted : ICounted
         {
             public long Position => 0;
             public long Batch => 0;
@@ -331,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
         /// column as an <see cref="IRow"/>. This class will cease to be necessary at the point when all
         /// metadata implementations are just simple <see cref="IRow"/>s.
         /// </summary>
-        public sealed class MetadataRow : DefaultCounted, IRow
+        public sealed class MetadataRow : IRow
         {
             public Schema Schema => _schemaImpl.AsSchema;
 
@@ -340,6 +341,14 @@ namespace Microsoft.ML.Runtime.Data
             private readonly SchemaImpl _schemaImpl;
 
             private readonly KeyValuePair<string, ColumnType>[] _map;
+
+            long ICounted.Position => 0;
+            long ICounted.Batch => 0;
+            ValueGetter<UInt128> ICounted.GetIdGetter()
+                => IdGetter;
+
+            private static void IdGetter(ref UInt128 id)
+                => id = default;
 
             private sealed class SchemaImpl : ISchema
             {
@@ -357,7 +366,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (int i = 0; i < _parent._map.Length; ++i)
                         _nameToCol[_parent._map[i].Key] = i;
 
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public string GetColumnName(int col)
@@ -593,7 +602,7 @@ namespace Microsoft.ML.Runtime.Data
                     _nameToIndex = new Dictionary<string, int>();
                     for (int i = 0; i < _parent._columns.Length; ++i)
                         _nameToIndex[_parent._columns[i].Name] = i;
-                    AsSchema = Data.Schema.Create(this);
+                    AsSchema = Schema.Create(this);
                 }
 
                 public void GetMetadata<TValue>(string kind, int col, ref TValue value)

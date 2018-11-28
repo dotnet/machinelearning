@@ -98,20 +98,16 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     indexList.Add(kvp.Key);
                 }
 
-                var vals = dst.Values;
-                if (Utils.Size(vals) < nameList.Count)
-                    vals = new ReadOnlyMemory<char>[nameList.Count];
-                Array.Copy(nameList.ToArray(), vals, nameList.Count);
+                Contracts.Assert(nameList.Count == indexList.Count);
+
+                var editor = VBufferEditor.Create(ref dst, _collection.Count, nameList.Count);
+                nameList.CopyTo(editor.Values);
                 if (nameList.Count < _collection.Count)
                 {
-                    var indices = dst.Indices;
-                    if (Utils.Size(indices) < indexList.Count)
-                        indices = new int[indexList.Count];
-                    Array.Copy(indexList.ToArray(), indices, indexList.Count);
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, nameList.Count, vals, indices);
+                    indexList.CopyTo(editor.Indices);
                 }
-                else
-                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, vals, dst.Indices);
+
+                dst = editor.Commit();
             }
         }
 
@@ -199,18 +195,15 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
             else
                 slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
-            string[] names = new string[slotNames.Count];
-            for (int i = 0; i < slotNames.Count; ++i)
-                names[i] = !slotNames.Values[i].IsEmpty ? slotNames.Values[i].ToString() : null;
+            var slotNameValues = slotNames.GetValues();
+            string[] names = new string[slotNameValues.Length];
+            for (int i = 0; i < slotNameValues.Length; ++i)
+                names[i] = !slotNameValues[i].IsEmpty ? slotNameValues[i].ToString() : null;
             if (slotNames.IsDense)
                 return new Dense(names.Length, names);
 
-            int[] indices = slotNames.Indices;
-            if (indices == null)
-                indices = new int[0];
-            else if (indices.Length != slotNames.Count)
-                Array.Resize(ref indices, slotNames.Count);
-            return new Sparse(slotNames.Length, slotNames.Count, indices, names);
+            ReadOnlySpan<int> indices = slotNames.GetIndices();
+            return new Sparse(slotNames.Length, slotNameValues.Length, indices.ToArray(), names);
         }
 
         public const string LoaderSignature = "FeatureNamesExec";
@@ -226,7 +219,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 loaderAssemblyName: typeof(FeatureNameCollection).Assembly.FullName);
         }
 
-        public static void Save(ModelSaveContext ctx, ref VBuffer<ReadOnlyMemory<char>> names)
+        public static void Save(ModelSaveContext ctx, in VBuffer<ReadOnlyMemory<char>> names)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();
@@ -239,19 +232,21 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             // int[]: ids of names (matches either number of features or number of indices)
 
             ctx.Writer.Write(names.Length);
+            var nameValues = names.GetValues();
             if (names.IsDense)
             {
                 ctx.Writer.Write(-1);
-                for (int i = 0; i < names.Length; i++)
-                    ctx.SaveStringOrNull(names.Values[i].ToString());
+                for (int i = 0; i < nameValues.Length; i++)
+                    ctx.SaveStringOrNull(nameValues[i].ToString());
             }
             else
             {
-                ctx.Writer.Write(names.Count);
-                for (int ii = 0; ii < names.Count; ii++)
-                    ctx.Writer.Write(names.Indices[ii]);
-                for (int ii = 0; ii < names.Count; ii++)
-                    ctx.SaveStringOrNull(names.Values[ii].ToString());
+                var nameIndices = names.GetIndices();
+                ctx.Writer.Write(nameValues.Length);
+                for (int ii = 0; ii < nameIndices.Length; ii++)
+                    ctx.Writer.Write(nameIndices[ii]);
+                for (int ii = 0; ii < nameValues.Length; ii++)
+                    ctx.SaveStringOrNull(nameValues[ii].ToString());
             }
         }
 
@@ -379,7 +374,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     Array.Copy(names, _names, size);
 
                 // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
-                Schema = new RoleMappedSchema(Data.Schema.Create(new FeatureNameCollectionSchema(this)),
+                Schema = new RoleMappedSchema(ML.Data.Schema.Create(new FeatureNameCollectionSchema(this)),
                     roles: RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 
@@ -471,7 +466,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(cv == cnn);
 
                 // REVIEW: This seems wrong. The default feature column name is "Features" yet the role is named "Feature".
-                _schema = new RoleMappedSchema(Data.Schema.Create(new FeatureNameCollectionSchema(this)),
+                _schema = new RoleMappedSchema(ML.Data.Schema.Create(new FeatureNameCollectionSchema(this)),
                     roles: RoleMappedSchema.ColumnRole.Feature.Bind(RoleMappedSchema.ColumnRole.Feature.Value));
             }
 

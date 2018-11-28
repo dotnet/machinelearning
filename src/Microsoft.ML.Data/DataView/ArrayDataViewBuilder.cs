@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -197,7 +195,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema Schema { get { return _schema; } }
 
-            public long? GetRowCount(bool lazy = true) { return _rowCount; }
+            public long? GetRowCount() { return _rowCount; }
 
             public bool CanShuffle { get { return true; } }
 
@@ -211,20 +209,20 @@ namespace Microsoft.ML.Runtime.Data
                 _host.Assert(builder._names.Count == builder._columns.Count);
                 _columns = builder._columns.ToArray();
 
-                var schemaCols = new Schema.Column[_columns.Length];
-                for(int i=0; i<schemaCols.Length; i++)
+                var schemaBuilder = new SchemaBuilder();
+                for(int i=0; i< _columns.Length; i++)
                 {
-                    var meta = new Schema.Metadata.Builder();
+                    var meta = new MetadataBuilder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
-                    schemaCols[i] = new Schema.Column(builder._names[i], _columns[i].Type, meta.GetMetadata());
+                    schemaBuilder.AddColumn(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 
-                _schema = new Schema(schemaCols);
+                _schema = schemaBuilder.GetSchema();
                 _rowCount = rowCount;
             }
 
@@ -393,7 +391,7 @@ namespace Microsoft.ML.Runtime.Data
             /// compromising this object's ownership of <c>src</c>. What that operation will be
             /// will depend on the types.
             /// </summary>
-            protected abstract void CopyOut(ref TIn src, ref TOut dst);
+            protected abstract void CopyOut(in TIn src, ref TOut dst);
 
             /// <summary>
             /// Produce the output value given the index. This overload utilizes the <c>CopyOut</c>
@@ -402,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
             public override void CopyOut(int index, ref TOut value)
             {
                 Contracts.Assert(0 <= index & index < _values.Length);
-                CopyOut(ref _values[index], ref value);
+                CopyOut(in _values[index], ref value);
             }
         }
 
@@ -417,7 +415,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override void CopyOut(ref T src, ref T dst)
+            protected override void CopyOut(in T src, ref T dst)
             {
                 dst = src;
             }
@@ -433,7 +431,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override void CopyOut(ref string src, ref ReadOnlyMemory<char> dst)
+            protected override void CopyOut(in string src, ref ReadOnlyMemory<char> dst)
             {
                 dst = src.AsMemory();
             }
@@ -482,7 +480,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override void CopyOut(ref VBuffer<T> src, ref VBuffer<T> dst)
+            protected override void CopyOut(in VBuffer<T> src, ref VBuffer<T> dst)
             {
                 src.CopyTo(ref dst);
             }
@@ -495,7 +493,7 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected override void CopyOut(ref T[] src, ref VBuffer<T> dst)
+            protected override void CopyOut(in T[] src, ref VBuffer<T> dst)
             {
                 VBuffer<T>.Copy(src, 0, ref dst, Utils.Size(src));
             }
@@ -511,7 +509,7 @@ namespace Microsoft.ML.Runtime.Data
                 _bldr = new BufferBuilder<T>(combiner);
             }
 
-            protected override void CopyOut(ref T[] src, ref VBuffer<T> dst)
+            protected override void CopyOut(in T[] src, ref VBuffer<T> dst)
             {
                 var length = Utils.Size(src);
                 _bldr.Reset(length, false);

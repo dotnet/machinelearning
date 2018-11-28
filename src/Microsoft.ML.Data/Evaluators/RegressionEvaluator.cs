@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(RegressionEvaluator), typeof(RegressionEvaluator), typeof(RegressionEvaluator.Arguments), typeof(SignatureEvaluator),
     "Regression Evaluator", RegressionEvaluator.LoadName, "Regression")]
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                protected override void UpdateCore(Float label, ref float score, ref double loss, Float weight)
+                protected override void UpdateCore(Float label, in float score, in double loss, Float weight)
                 {
                     Double currL1Loss = Math.Abs((Double)label - score);
                     TotalL1Loss += currL1Loss * weight;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
                     TotalLoss += loss * weight; // REVIEW: Fix this! += (Double)loss * wht; //Loss as reported by regressor, note it can result in NaN if loss is NaN
                 }
 
-                protected override void Normalize(ref double src, ref double dst)
+                protected override void Normalize(in double src, ref double dst)
                 {
                     dst = src / SumWeights;
                 }
@@ -140,12 +140,12 @@ namespace Microsoft.ML.Runtime.Data
                 _weightedCounters = Weighted ? new Counters() : null;
             }
 
-            protected override void ApplyLossFunction(ref float score, float label, ref double loss)
+            protected override void ApplyLossFunction(in float score, float label, ref double loss)
             {
                 loss = LossFunction.Loss(score, label);
             }
 
-            protected override bool IsNaN(ref Float score)
+            protected override bool IsNaN(in Float score)
             {
                 return Float.IsNaN(score);
             }
@@ -211,6 +211,16 @@ namespace Microsoft.ML.Runtime.Data
                 Rms = Fetch(RegressionEvaluator.Rms);
                 LossFn = Fetch(RegressionEvaluator.Loss);
                 RSquared = Fetch(RegressionEvaluator.RSquared);
+            }
+
+            [BestFriend]
+            internal Result(double l1, double l2, double rms, double lossFunction, double rSquared)
+            {
+                L1 = l1;
+                L2 = l2;
+                Rms = rms;
+                LossFn = lossFunction;
+                RSquared = rSquared;
             }
         }
 
@@ -308,11 +318,11 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[2];
-            infos[L1Col] = new Schema.Column(L1, NumberType.R8, null);
-            infos[L2Col] = new Schema.Column(L2, NumberType.R8, null);
+            var infos = new Schema.DetachedColumn[2];
+            infos[L1Col] = new Schema.DetachedColumn(L1, NumberType.R8, null);
+            infos[L2Col] = new Schema.DetachedColumn(L2, NumberType.R8, null);
             return infos;
         }
 

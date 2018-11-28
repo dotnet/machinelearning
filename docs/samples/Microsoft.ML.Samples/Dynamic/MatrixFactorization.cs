@@ -1,19 +1,12 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 
-// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
-// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
-// line by line. 
 namespace Microsoft.ML.Samples.Dynamic
 {
-    public partial class TrainerSamples
+    public class MatrixFactorizationExample
     {
         // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
         // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
@@ -71,8 +64,10 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
             // matrix's column index, and "MatrixRowIndex" as the matrix's row index. Here nameof(...) is used to extract field
             // names' in MatrixElement class.
-            var pipeline = new MatrixFactorizationTrainer(mlContext, nameof(MatrixElement.Value),
-                nameof(MatrixElement.MatrixColumnIndex), nameof(MatrixElement.MatrixRowIndex),
+            var pipeline = mlContext.Recommendation().Trainers.MatrixFactorization( 
+                nameof(MatrixElement.MatrixColumnIndex),
+                nameof(MatrixElement.MatrixRowIndex),
+                nameof(MatrixElement.Value),
                 advancedSettings: s =>
                 {
                     s.NumIterations = 10;
@@ -87,7 +82,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var prediction = model.Transform(dataView);
 
             // Calculate regression matrices for the prediction result.
-            var metrics = mlContext.Regression.Evaluate(prediction,
+            var metrics = mlContext.Recommendation().Evaluate(prediction,
                 label: nameof(MatrixElement.Value), score: nameof(MatrixElementForScore.Score));
 
             // Print out some metrics for checking the model's quality.
@@ -97,11 +92,12 @@ namespace Microsoft.ML.Samples.Dynamic
             Console.WriteLine($"RMS - {metrics.Rms}");
             Console.WriteLine($"RSquared - {metrics.RSquared}");
 
-            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it's default.
-            // If any of row and column indexes are out-of-range (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
+            // Create two two entries for making prediction. Of course, the prediction value, Score, is unknown so it can be anything
+            // (here we use Score=0 and it will be overwritten by the true prediction). If any of row and column indexes are out-of-range
+            // (e.g., MatrixColumnIndex=99999), the prediction value will be NaN.
             var testMatrix = new List<MatrixElementForScore>() {
-                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = default },
-                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = default } };
+                new MatrixElementForScore() { MatrixColumnIndex = 1, MatrixRowIndex = 7, Score = 0 },
+                new MatrixElementForScore() { MatrixColumnIndex = 3, MatrixRowIndex = 6, Score = 0 } };
 
             // Again, convert the test data to a format supported by ML.NET.
             var testDataView = ComponentCreation.CreateDataView(mlContext, testMatrix);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -43,7 +44,7 @@ namespace Microsoft.ML.Transforms
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            return new ConcatTransform(_host, _name, _source);
+            return new ColumnConcatenatingTransformer(_host, _name, _source);
         }
 
         private bool HasCategoricals(SchemaShape.Column col)

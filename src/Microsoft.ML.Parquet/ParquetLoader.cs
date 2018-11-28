@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -310,12 +311,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="ectx">The exception context.</param>
         /// <param name="cols">The columns.</param>
         /// <returns>The resulting schema.</returns>
-        private Schema CreateSchema(IExceptionContext ectx, Column[] cols)
+        private ML.Data.Schema CreateSchema(IExceptionContext ectx, Column[] cols)
         {
             Contracts.AssertValue(ectx);
             Contracts.AssertValue(cols);
-
-            return new Schema(cols.Select(c => new Schema.Column(c.Name, c.ColType, null)));
+            var builder = new SchemaBuilder();
+            builder.AddColumns(cols.Select(c => new ML.Data.Schema.DetachedColumn(c.Name, c.ColType, null)));
+            return builder.GetSchema();
         }
 
         /// <summary>
@@ -382,9 +384,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public Schema Schema { get; }
+        public ML.Data.Schema Schema { get; }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             return _rowCount;
         }
@@ -545,7 +547,7 @@ namespace Microsoft.ML.Runtime.Data
                 return (ref TValue value) =>
                 {
                     TSource val = (TSource)_columnValues[activeIdx][_curDataSetRow];
-                    valueConverter(ref val, ref value);
+                    valueConverter(in val, ref value);
                 };
             }
             #endregion
@@ -584,7 +586,7 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public Schema Schema => _loader.Schema;
+            public ML.Data.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
@@ -676,41 +678,41 @@ namespace Microsoft.ML.Runtime.Data
                 _ch = channel;
             }
 
-            public void Conv(ref byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
+            public void Conv(in byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
 
-            public void Conv(ref sbyte? src, ref sbyte dst) => dst = (sbyte)src;
+            public void Conv(in sbyte? src, ref sbyte dst) => dst = (sbyte)src;
 
-            public void Conv(ref byte src, ref byte dst) => dst = src;
+            public void Conv(in byte src, ref byte dst) => dst = src;
 
-            public void Conv(ref short? src, ref short dst) => dst = (short)src;
+            public void Conv(in short? src, ref short dst) => dst = (short)src;
 
-            public void Conv(ref ushort src, ref ushort dst) => dst = src;
+            public void Conv(in ushort src, ref ushort dst) => dst = src;
 
-            public void Conv(ref int? src, ref int dst) => dst = (int)src;
+            public void Conv(in int? src, ref int dst) => dst = (int)src;
 
-            public void Conv(ref long? src, ref long dst) => dst = (long)src;
+            public void Conv(in long? src, ref long dst) => dst = (long)src;
 
-            public void Conv(ref float? src, ref Single dst) => dst = src ?? Single.NaN;
+            public void Conv(in float? src, ref Single dst) => dst = src ?? Single.NaN;
 
-            public void Conv(ref double? src, ref Double dst) => dst = src ?? Double.NaN;
+            public void Conv(in double? src, ref Double dst) => dst = src ?? Double.NaN;
 
-            public void Conv(ref decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
+            public void Conv(in decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
 
-            public void Conv(ref string src, ref ReadOnlyMemory<char> dst) => dst = src.AsMemory();
+            public void Conv(in string src, ref ReadOnlyMemory<char> dst) => dst = src.AsMemory();
 
             //Behavior for NA values is undefined.
-            public void Conv(ref bool src, ref bool dst) => dst = src;
+            public void Conv(in bool src, ref bool dst) => dst = src;
 
-            public void Conv(ref DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
+            public void Conv(in DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
 
-            public void Conv(ref IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
+            public void Conv(in IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
             /// <summary>
             ///  Converts a System.Numerics.BigInteger value to a UInt128 data type value.
             /// </summary>
             /// <param name="src">BigInteger value.</param>
             /// <param name="dst">UInt128 object.</param>
-            public void Conv(ref BigInteger src, ref UInt128 dst)
+            public void Conv(in BigInteger src, ref UInt128 dst)
             {
                 try
                 {
@@ -732,7 +734,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             /// <param name="src">Parquet Interval value (int : months, int : days, int : milliseconds).</param>
             /// <param name="dst">TimeSpan object.</param>
-            public void Conv(ref Interval src, ref TimeSpan dst)
+            public void Conv(in Interval src, ref TimeSpan dst)
             {
                 dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
             }

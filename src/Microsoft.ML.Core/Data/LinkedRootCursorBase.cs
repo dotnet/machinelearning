@@ -8,7 +8,8 @@ namespace Microsoft.ML.Runtime.Data
     /// Base class for a cursor has an input cursor, but still needs to do work on
     /// MoveNext/MoveMany.
     /// </summary>
-    public abstract class LinkedRootCursorBase<TInput> : RootCursorBase
+    [BestFriend]
+    internal abstract class LinkedRootCursorBase<TInput> : RootCursorBase
         where TInput : class, ICursor
     {
         private readonly ICursor _root;

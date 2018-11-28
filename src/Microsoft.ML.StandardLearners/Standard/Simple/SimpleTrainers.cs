@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 
@@ -32,7 +33,7 @@ using System.Linq;
 [assembly: LoadableClass(typeof(PriorPredictor), null, typeof(SignatureLoadModel),
     "Prior predictor", PriorPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// A trainer that trains a predictor that returns random values
@@ -70,14 +71,12 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<RandomPredictor> Fit(IDataView input)
         {
-            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
-
-            RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
+            RoleMappedData trainRoles = new RoleMappedData(input);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        public override RandomPredictor Train(TrainContext context)
+        private protected override RandomPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             return new RandomPredictor(Host, Host.Rand.Next());
@@ -216,12 +215,12 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = PredictCore();
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = PredictCore();
             prob = (score + 1) / 2;
@@ -270,14 +269,12 @@ namespace Microsoft.ML.Runtime.Learners
 
         public BinaryPredictionTransformer<PriorPredictor> Fit(IDataView input)
         {
-            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
-
-            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, feature: null, label: _labelColumnName, weight: _weightColumnName);
+            RoleMappedData trainRoles = new RoleMappedData(input, feature: null, label: _labelColumnName, weight: _weightColumnName);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
+            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, input.Schema, featureColumn: null);
         }
 
-        public override PriorPredictor Train(TrainContext context)
+        private protected override PriorPredictor Train(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -436,12 +433,12 @@ namespace Microsoft.ML.Runtime.Learners
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<float> src, ref float dst)
+        private void Map(in VBuffer<float> src, ref float dst)
         {
             dst = _raw;
         }
 
-        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
+        private void MapDist(in VBuffer<float> src, ref float score, ref float prob)
         {
             score = _raw;
             prob = _prob;

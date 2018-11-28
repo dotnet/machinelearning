@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Trainers;
+using System;
 
 [assembly: LoadableClass(PoissonRegression.Summary, typeof(PoissonRegression), typeof(PoissonRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -46,22 +47,24 @@ namespace Microsoft.ML.Trainers
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
-        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="weights">The name for the example weight column.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null,
+        public PoissonRegression(IHostEnvironment env,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weightColumn, advancedSettings,
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weights, advancedSettings,
                    l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -95,13 +98,16 @@ namespace Microsoft.ML.Trainers
         protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public RegressionPredictionTransformer<PoissonRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
+
         protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
             return InitializeWeights(srcPredictor.Weights2, new[] { srcPredictor.Bias });
         }
 
-        protected override void PreTrainingProcessInstance(float label, ref VBuffer<float> feat, float weight)
+        protected override void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
             if (!(label >= 0))
                 throw Contracts.Except("Poisson regression must regress to a non-negative label, but label {0} encountered", label);
@@ -109,9 +115,9 @@ namespace Microsoft.ML.Trainers
         }
 
         // Make sure _lossnormalizer is added only once
-        protected override float DifferentiableFunction(ref VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
+        protected override float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
         {
-            return base.DifferentiableFunction(ref x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
+            return base.DifferentiableFunction(in x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
         }
 
         // Poisson: p(y;lambda) = lambda^y * exp(-lambda) / y!
@@ -124,20 +130,21 @@ namespace Microsoft.ML.Trainers
         // Goal is to find w that maximizes
         // Note: We negate the above in ordrer to minimize
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            float dot = VectorUtils.DotProductWithOffset(ref x, 1, ref feat) + bias;
+            float dot = VectorUtils.DotProductWithOffset(in x, 1, in feat) + bias;
             float lambda = MathUtils.ExpSlow(dot);
 
             float y = label;
             float mult = -(y - lambda) * weight;
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1);
+            VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
             // From the computer's perspective exp(infinity)==infinity
             // so inf-inf=nan, but in reality, infinity is just a large
             // number we can't represent, and exp(X)-X for X=inf is just inf.
@@ -152,7 +159,7 @@ namespace Microsoft.ML.Trainers
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
-            return new PoissonRegressionPredictor(Host, ref weights, bias);
+            return new PoissonRegressionPredictor(Host, in weights, bias);
         }
 
         protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)

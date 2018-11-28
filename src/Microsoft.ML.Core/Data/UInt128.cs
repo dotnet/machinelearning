@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// A sixteen-byte unsigned integer.
     /// </summary>
-    public struct UInt128 : IComparable<UInt128>, IEquatable<UInt128>
+    public readonly struct UInt128 : IComparable<UInt128>, IEquatable<UInt128>
     {
         // The low order bits. Corresponds to H1 in the Murmur algorithms.
         public readonly ulong Lo;

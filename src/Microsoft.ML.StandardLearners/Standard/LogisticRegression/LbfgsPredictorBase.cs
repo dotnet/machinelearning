@@ -301,11 +301,11 @@ namespace Microsoft.ML.Runtime.Learners
             int numExamples = 0;
             var oldWeights = VBufferUtils.CreateEmpty<float>(BiasCount + WeightCount);
             DTerminate terminateSgd =
-                (ref VBuffer<float> x) =>
+                (in VBuffer<float> x) =>
                 {
                     if (++numExamples % 1000 != 0)
                         return false;
-                    VectorUtils.AddMult(ref x, -1, ref oldWeights);
+                    VectorUtils.AddMult(in x, -1, ref oldWeights);
                     float normDiff = VectorUtils.Norm(oldWeights);
                     x.CopyTo(ref oldWeights);
                     // #if OLD_TRACING // REVIEW: How should this be ported?
@@ -326,10 +326,10 @@ namespace Microsoft.ML.Runtime.Learners
                 float[] scratch = null;
 
                 SgdOptimizer.DStochasticGradient lossSgd =
-                    (ref VBuffer<float> x, ref VBuffer<float> grad) =>
+                    (in VBuffer<float> x, ref VBuffer<float> grad) =>
                     {
                         // Zero out the gradient by sparsifying.
-                        grad = new VBuffer<float>(grad.Length, 0, grad.Values, grad.Indices);
+                        VBufferUtils.Resize(ref grad, grad.Length, 0);
                         EnsureBiases(ref grad);
 
                         if (cursor == null || !cursor.MoveNext())
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Runtime.Learners
                             if (!cursor.MoveNext())
                                 return;
                         }
-                        AccumulateOneGradient(ref cursor.Features, cursor.Label, cursor.Weight, ref x, ref grad, ref scratch);
+                        AccumulateOneGradient(in cursor.Features, cursor.Label, cursor.Weight, in x, ref grad, ref scratch);
                     };
 
                 VBuffer<float> sgdWeights;
@@ -369,7 +369,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract void CheckLabel(RoleMappedData data);
 
-        protected virtual void PreTrainingProcessInstance(float label, ref VBuffer<float> feat, float weight)
+        protected virtual void PreTrainingProcessInstance(float label, in VBuffer<float> feat, float weight)
         {
         }
 
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        protected override TModel TrainModelCore(TrainContext context)
+        private protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));
@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // REVIEW: maybe it makes sense for the factory to capture the good row count after
                 // the first successful cursoring?
-                Double totalCount = data.Data.GetRowCount(true) ?? Double.NaN;
+                Double totalCount = data.Data.GetRowCount() ?? Double.NaN;
 
                 long exCount = 0;
                 pch.SetHeader(new ProgressHeader(null, new[] { "examples" }),
@@ -458,7 +458,7 @@ namespace Microsoft.ML.Runtime.Learners
                     if (ShowTrainingStats)
                         ProcessPriorDistribution(cursor.Label, cursor.Weight);
 
-                    PreTrainingProcessInstance(cursor.Label, ref cursor.Features, cursor.Weight);
+                    PreTrainingProcessInstance(cursor.Label, in cursor.Features, cursor.Weight);
                     exCount++;
                     if (_features != null)
                     {
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Learners
             int numParams = BiasCount;
             if ((L1Weight > 0 && !Quiet) || ShowTrainingStats)
             {
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) numParams++; });
+                VBufferUtils.ForEachDefined(in CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) numParams++; });
                 if (L1Weight > 0 && !Quiet)
                     ch.Info("L1 regularization selected {0} of {1} weights.", numParams, BiasCount + WeightCount);
             }
@@ -575,8 +575,8 @@ namespace Microsoft.ML.Runtime.Learners
             VBufferUtils.DensifyFirst(ref vec, BiasCount);
         }
 
-        protected abstract float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> xDense, ref VBuffer<float> grad, ref float[] scratch);
+        protected abstract float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> xDense, ref VBuffer<float> grad, ref float[] scratch);
 
         protected abstract void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams);
 
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// The gradient being used by the optimizer
         /// </summary>
-        protected virtual float DifferentiableFunction(ref VBuffer<float> x, ref VBuffer<float> gradient,
+        protected virtual float DifferentiableFunction(in VBuffer<float> x, ref VBuffer<float> gradient,
             IProgressChannelProvider progress)
         {
             Contracts.Assert((_numChunks == 0) != (_data == null));
@@ -595,25 +595,29 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValueOrNull(progress);
 
             float scaleFactor = 1 / (float)WeightSum;
-            VBuffer<float> xDense = default(VBuffer<float>);
+            VBuffer<float> xDense = default;
             if (x.IsDense)
                 xDense = x;
             else
-                x.CopyToDense(ref xDense);
+            {
+                VBuffer<float> xDenseTemp = default;
+                x.CopyToDense(ref xDenseTemp);
+                xDense = xDenseTemp;
+            }
 
             IProgressChannel pch = progress != null ? progress.StartProgressChannel("Gradient") : null;
             float loss;
             using (pch)
             {
                 loss = _data == null
-                    ? DifferentiableFunctionMultithreaded(ref xDense, ref gradient, pch)
-                    : DifferentiableFunctionStream(_cursorFactory, ref xDense, ref gradient, pch);
+                    ? DifferentiableFunctionMultithreaded(in xDense, ref gradient, pch)
+                    : DifferentiableFunctionStream(_cursorFactory, in xDense, ref gradient, pch);
             }
             float regLoss = 0;
             if (L2Weight > 0)
             {
                 Contracts.Assert(xDense.IsDense);
-                var values = xDense.Values;
+                var values = xDense.GetValues();
                 Double r = 0;
                 for (int i = BiasCount; i < values.Length; i++)
                 {
@@ -623,7 +627,7 @@ namespace Microsoft.ML.Runtime.Learners
                 regLoss = (float)(r * L2Weight * 0.5);
 
                 // Here we probably want to use sparse x
-                VBufferUtils.ApplyWithEitherDefined(ref x, ref gradient,
+                VBufferUtils.ApplyWithEitherDefined(in x, ref gradient,
                     (int ind, float v1, ref float v2) => { if (ind >= BiasCount) v2 += L2Weight * v1; });
             }
             VectorUtils.ScaleBy(ref gradient, scaleFactor);
@@ -640,7 +644,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// REVIEW: consider getting rid of multithread-targeted members
         /// Using TPL, the distinction between Multithreaded and Sequential implementations is unnecessary
         /// </remarks>
-        protected virtual float DifferentiableFunctionMultithreaded(ref VBuffer<float> xDense, ref VBuffer<float> gradient, IProgressChannel pch)
+        protected virtual float DifferentiableFunctionMultithreaded(in VBuffer<float> xDense, ref VBuffer<float> gradient, IProgressChannel pch)
         {
             Contracts.Assert(_data == null);
             Contracts.Assert(_cursorFactory == null);
@@ -658,21 +662,21 @@ namespace Microsoft.ML.Runtime.Learners
                 ichk =>
                 {
                     if (ichk == 0)
-                        _localLosses[ichk] = DifferentiableFunctionComputeChunk(ichk, ref xx, ref gg, pch);
+                        _localLosses[ichk] = DifferentiableFunctionComputeChunk(ichk, in xx, ref gg, pch);
                     else
-                        _localLosses[ichk] = DifferentiableFunctionComputeChunk(ichk, ref xx, ref _localGradients[ichk - 1], null);
+                        _localLosses[ichk] = DifferentiableFunctionComputeChunk(ichk, in xx, ref _localGradients[ichk - 1], null);
                 });
             gradient = gg;
             float loss = _localLosses[0];
             for (int i = 1; i < _numChunks; i++)
             {
-                VectorUtils.Add(ref _localGradients[i - 1], ref gradient);
+                VectorUtils.Add(in _localGradients[i - 1], ref gradient);
                 loss += _localLosses[i];
             }
             return loss;
         }
 
-        protected float DifferentiableFunctionComputeChunk(int ichk, ref VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
+        protected float DifferentiableFunctionComputeChunk(int ichk, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
         {
             Contracts.Assert(0 <= ichk && ichk < _numChunks);
             Contracts.AssertValueOrNull(pch);
@@ -690,7 +694,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (iv = ivMin; iv < ivLim; iv++)
             {
                 float weight = _weights != null ? _weights[iv] : 1;
-                loss += AccumulateOneGradient(ref _features[iv], _labels[iv], weight, ref xDense, ref grad, ref scratch);
+                loss += AccumulateOneGradient(in _features[iv], _labels[iv], weight, in xDense, ref grad, ref scratch);
             }
             // we need use double type to accumulate loss to avoid roundoff error
             // please see http://mathworld.wolfram.com/RoundoffError.html for roundoff error definition
@@ -698,7 +702,7 @@ namespace Microsoft.ML.Runtime.Learners
             return (float)loss;
         }
 
-        protected float DifferentiableFunctionStream(FloatLabelCursor.Factory cursorFactory, ref VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
+        protected float DifferentiableFunctionStream(FloatLabelCursor.Factory cursorFactory, in VBuffer<float> xDense, ref VBuffer<float> grad, IProgressChannel pch)
         {
             Contracts.AssertValue(cursorFactory);
 
@@ -714,8 +718,8 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 while (cursor.MoveNext())
                 {
-                    loss += AccumulateOneGradient(ref cursor.Features, cursor.Label, cursor.Weight,
-                        ref xDense, ref grad, ref scratch);
+                    loss += AccumulateOneGradient(in cursor.Features, cursor.Label, cursor.Weight,
+                        in xDense, ref grad, ref scratch);
                     count++;
                 }
             }

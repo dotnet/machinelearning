@@ -18,6 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
+#pragma warning disable 612
     public class CollectionDataSourceTests : BaseTestClass
     {
         public CollectionDataSourceTests(ITestOutputHelper output)
@@ -59,15 +60,13 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyApplyATransform()
         {
             var collection = CollectionDataSource.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
-            using (var environment = new ConsoleEnvironment())
-            {
+            var environment = new MLContext();
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = (Legacy.ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
 
                 Assert.NotNull(output.Data);
                 Assert.NotNull(output.Data.VarName);
                 Assert.Null(output.Model);
-            }
         }
 
         [Fact]
@@ -79,9 +78,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new Input { Number1 = 3, String1 = "3" }
             });
 
-            using (var environment = new ConsoleEnvironment())
-            {
-                Experiment experiment = environment.CreateExperiment();
+            var environment = new MLContext();
+            Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
@@ -128,7 +126,6 @@ namespace Microsoft.ML.EntryPoints.Tests
 
                     Assert.False(cursor.MoveNext());
                 }
-            }
         }
 
         [Fact]
@@ -294,7 +291,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float fFloat;
             public double fDouble;
             public bool fBool;
-            public string fString="";
+            public string fString = "";
         }
 
         public bool CompareObjectValues(object x, object y, Type type)
@@ -418,17 +415,15 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ConversionSimpleClass()
             };
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                }
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
             }
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
         public class ConversionNotSupportedMinValueClass
@@ -442,27 +437,25 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionExceptionsBehavior()
         {
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var data = new ConversionNotSupportedMinValueClass[1];
+            foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
             {
-                var data = new ConversionNotSupportedMinValueClass[1];
-                foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
+                data[0] = new ConversionNotSupportedMinValueClass();
+                FieldInfo fi;
+                if ((fi = field.FieldType.GetField("MinValue")) != null)
                 {
-                    data[0] = new ConversionNotSupportedMinValueClass();
-                    FieldInfo fi;
-                    if ((fi = field.FieldType.GetField("MinValue")) != null)
-                    {
-                        field.SetValue(data[0], fi.GetValue(null));
-                    }
-                    var dataView = ComponentCreation.CreateDataView(env, data);
-                    var enumerator = dataView.AsEnumerable<ConversionNotSupportedMinValueClass>(env, false).GetEnumerator();
-                    try
-                    {
-                        enumerator.MoveNext();
-                        Assert.True(false);
-                    }
-                    catch
-                    {
-                    }
+                    field.SetValue(data[0], fi.GetValue(null));
+                }
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumerator = dataView.AsEnumerable<ConversionNotSupportedMinValueClass>(env, false).GetEnumerator();
+                try
+                {
+                    enumerator.MoveNext();
+                    Assert.True(false);
+                }
+                catch
+                {
                 }
             }
         }
@@ -496,15 +489,13 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithConstField(){ fInt=-1, fString ="" },
             };
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-            }
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
 
@@ -524,15 +515,13 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
             };
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-            }
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
         public abstract class BaseClassWithInheritedProperties
@@ -580,28 +569,25 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
             };
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                    Assert.True(enumeratorSimple.Current.UnusedPropertyWithPrivateSetter == 100);
-                }
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(enumeratorSimple.Current.UnusedPropertyWithPrivateSetter == 100);
             }
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
         public class ClassWithInheritedProperties : BaseClassWithInheritedProperties
         {
-            private int _fInt;
             private long _fLong;
             private byte _fByte2;
-            public int IntProp { get { return _fInt; } set { _fInt = value; } }
-            public override long LongProp { get { return _fLong; } set { _fLong = value; } }
-            public override byte ByteProp { get { return _fByte2; } set { _fByte2 = value; } }
+            public int IntProp { get; set; }
+            public override long LongProp { get => _fLong; set => _fLong = value; }
+            public override byte ByteProp { get => _fByte2; set => _fByte2 = value; }
         }
 
         [Fact]
@@ -613,15 +599,13 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
             };
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-            }
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
         public class ClassWithArrays
@@ -666,44 +650,30 @@ namespace Microsoft.ML.EntryPoints.Tests
             };
 
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                }
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
             }
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
         public class ClassWithArrayProperties
         {
-            private string[] _fString;
-            private int[] _fInt;
-            private uint[] _fuInt;
-            private short[] _fShort;
-            private ushort[] _fuShort;
-            private sbyte[] _fsByte;
-            private byte[] _fByte;
-            private long[] _fLong;
-            private ulong[] _fuLong;
-            private float[] _fFloat;
-            private double[] _fDouble;
-            private bool[] _fBool;
-            public string[] StringProp { get { return _fString; } set { _fString = value; } }
-            public int[] IntProp { get { return _fInt; } set { _fInt = value; } }
-            public uint[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
-            public short[] ShortProp { get { return _fShort; } set { _fShort = value; } }
-            public ushort[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
-            public sbyte[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
-            public byte[] ByteProp { get { return _fByte; } set { _fByte = value; } }
-            public long[] LongProp { get { return _fLong; } set { _fLong = value; } }
-            public ulong[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
-            public float[] FloatProp { get { return _fFloat; } set { _fFloat = value; } }
-            public double[] DobuleProp { get { return _fDouble; } set { _fDouble = value; } }
-            public bool[] BoolProp { get { return _fBool; } set { _fBool = value; } }
+            public string[] StringProp { get; set; }
+            public int[] IntProp { get; set; }
+            public uint[] UIntProp { get; set; }
+            public short[] ShortProp { get; set; }
+            public ushort[] UShortProp { get; set; }
+            public sbyte[] SByteProp { get; set; }
+            public byte[] ByteProp { get; set; }
+            public long[] LongProp { get; set; }
+            public ulong[] ULongProp { get; set; }
+            public float[] FloatProp { get; set; }
+            public double[] DobuleProp { get; set; }
+            public bool[] BoolProp { get; set; }
         }
 
         [Fact]
@@ -731,27 +701,23 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrayProperties()
             };
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
-                }
-                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-            }
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+            Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
         }
 
-        class ClassWithGetter
+        private sealed class ClassWithGetter
         {
             private DateTime _dateTime = DateTime.Now;
-            public float Day { get { return _dateTime.Day; } }
-            public int Hour { get { return _dateTime.Hour; } }
+            public float Day => _dateTime.Day;
+            public int Hour => _dateTime.Hour;
         }
 
-        class ClassWithSetter
+        private sealed class ClassWithSetter
         {
             public float Day { private get; set; }
             public int Hour { private get; set; }
@@ -772,17 +738,16 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithGetter()
             };
 
-            using (var env = new ConsoleEnvironment())
+            var env = new MLContext();
+            var dataView = ComponentCreation.CreateDataView(env, data);
+            var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();
+            var originalEnumerator = data.GetEnumerator();
+            while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
             {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();
-                var originalEnumerator = data.GetEnumerator();
-                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
-                {
-                    Assert.True(enumeratorSimple.Current.GetDay == originalEnumerator.Current.Day &&
-                        enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour);
-                }
+                Assert.True(enumeratorSimple.Current.GetDay == originalEnumerator.Current.Day &&
+                    enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour);
             }
         }
     }
+#pragma warning restore 612
 }

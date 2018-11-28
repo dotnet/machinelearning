@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),
@@ -120,6 +121,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new SsaChangePointDetector(env, args, input).MakeDataTransform(input);
         }
 
+        internal override IStatefulTransformer Clone()
+        {
+            var clone = (SsaChangePointDetector)MemberwiseClone();
+            clone.Model = clone.Model.Clone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
+            return clone;
+        }
+
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args)
             : base(new BaseArguments(args), LoaderSignature, env)
         {
@@ -197,6 +207,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// Estimator for <see cref="SsaChangePointDetector"/>
     /// </summary>
+    /// <p>Example code can be found by searching for <i>SsaChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SsaChangePointDetectorTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;

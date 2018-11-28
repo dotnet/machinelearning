@@ -16,6 +16,7 @@ namespace Microsoft.ML.Runtime
         public ConversionTransforms Conversion { get; }
         public TextTransforms Text { get; }
         public ProjectionTransforms Projection { get; }
+        public FeatureSelectionTransforms FeatureSelection { get; }
 
         internal TransformsCatalog(IHostEnvironment env)
         {
@@ -26,6 +27,7 @@ namespace Microsoft.ML.Runtime
             Conversion = new ConversionTransforms(this);
             Text = new TextTransforms(this);
             Projection = new ProjectionTransforms(this);
+            FeatureSelection = new FeatureSelectionTransforms(this);
         }
 
         public abstract class SubCatalogBase
@@ -75,6 +77,16 @@ namespace Microsoft.ML.Runtime
         public sealed class ProjectionTransforms : SubCatalogBase
         {
             public ProjectionTransforms(TransformsCatalog owner) : base(owner)
+            {
+            }
+        }
+
+        /// <summary>
+        /// The catalog of feature selection operations.
+        /// </summary>
+        public sealed class FeatureSelectionTransforms : SubCatalogBase
+        {
+            public FeatureSelectionTransforms(TransformsCatalog owner) : base(owner)
             {
             }
         }

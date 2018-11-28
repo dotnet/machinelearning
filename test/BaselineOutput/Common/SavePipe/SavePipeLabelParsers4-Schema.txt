@@ -7,7 +7,7 @@
   Features: Vec<Text, 2>
     Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
----- TermLookupTransform ----
+---- TermLookupTransformer ----
 4 columns:
   RawLabel: Text
   Names: Vec<Text, 2>
@@ -17,7 +17,7 @@
     Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
       [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
   FileLabelNum: R4
----- TermLookupTransform ----
+---- TermLookupTransformer ----
 5 columns:
   RawLabel: Text
   Names: Vec<Text, 2>

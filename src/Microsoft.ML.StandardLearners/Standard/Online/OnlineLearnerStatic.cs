@@ -37,6 +37,12 @@ namespace Microsoft.ML.StaticPipe
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
         /// <seealso cref="AveragedPerceptronTrainer"/>.
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[AveragedPerceptron](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Static/AveragedPerceptronBinaryClassification.cs)]
+        /// ]]></format>
+        /// </example>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label,

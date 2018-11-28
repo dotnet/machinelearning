@@ -74,7 +74,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
-        protected ConsoleEnvironment Env;
+        private protected ConsoleEnvironment _env;
+        protected IHostEnvironment Env => _env;
         protected MLContext ML;
         private bool _normal;
         private bool _passed;
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+            _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
             ML = new MLContext(42);
         }
@@ -106,9 +107,8 @@ namespace Microsoft.ML.Runtime.RunTests
         // It is called as a first step in test clean up.
         protected override void Cleanup()
         {
-            if (Env != null)
-                Env.Dispose();
-            Env = null;
+            _env?.Dispose();
+            _env = null;
 
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// When hardware dependent baseline values should be tolerated, scope the code
         /// that does the comparisons with an instance of this disposable struct.
         /// </summary>
-        protected struct MismatchContext : IDisposable
+        protected readonly struct MismatchContext : IDisposable
         {
             // The test class instance.
             private readonly BaseTestBaseline _host;
@@ -495,9 +495,9 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
 
                     count++;
-                    GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
+                    var inRange = GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
-                    if (line1 != line2)
+                    if (!inRange || line1 != line2)
                     {
                         if (line1 == null || line2 == null)
                             Fail("Output and baseline different lengths: '{0}'", relPath);
@@ -509,47 +509,78 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private bool GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            
+
             MatchCollection firstCollection = MatchNumbers.Matches(firstString);
             MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
-                MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
+            {
+                if (!MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision))
+                {
+                    return false;
+                }
+            }
+
             firstString = MatchNumbers.Replace(firstString, "%Number%");
             secondString = MatchNumbers.Replace(secondString, "%Number%");
+            return true;
         }
 
-        private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private bool MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
-                // this follows the IEEE recommendations for how to compare floating point numbers
-                double allowedVariance = Math.Pow(10, -digitsOfPrecision);
-                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
-                // limitting to the digits we care about. 
-                delta = Math.Round(delta, digitsOfPrecision);
-
-                bool inRange = delta > -allowedVariance && delta < allowedVariance;
-
-                // for some cases, rounding up is not beneficial
-                // so checking on whether the difference is significant prior to rounding, and failing only then. 
-                // example, for 5 digits of precision. 
-                // F1 = 1.82844949 Rounds to 1.8284
-                // F2 = 1.8284502  Rounds to 1.8285
-                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
-                // (1.82844949 - 1.8284502) = -0.00000071
-
-                if (!inRange)
+                if (!CompareNumbersWithTolerance(f1, f2, i, digitsOfPrecision))
                 {
-                    delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                    return false;
                 }
             }
+
+            return true;
+        }
+
+        public bool CompareNumbersWithTolerance(double expected, double actual, int? iterationOnCollection = null, int digitsOfPrecision = DigitsOfPrecision)
+        {
+            // this follows the IEEE recommendations for how to compare floating point numbers
+            double allowedVariance = Math.Pow(10, -digitsOfPrecision);
+            double delta = Round(expected, digitsOfPrecision) - Round(actual, digitsOfPrecision);
+            // limitting to the digits we care about. 
+            delta = Math.Round(delta, digitsOfPrecision);
+
+            bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+            // for some cases, rounding up is not beneficial
+            // so checking on whether the difference is significant prior to rounding, and failing only then. 
+            // example, for 5 digits of precision. 
+            // F1 = 1.82844949 Rounds to 1.8284
+            // F2 = 1.8284502  Rounds to 1.8285
+            // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+            // (1.82844949 - 1.8284502) = -0.00000071
+
+            double delta2 = 0;
+            if (!inRange)
+            {
+                delta2 = Math.Round(expected - actual, digitsOfPrecision);
+                inRange = delta2 >= -allowedVariance && delta2 <= allowedVariance;
+            }
+
+            if (!inRange)
+            {
+                var message = iterationOnCollection != null ? "" : $"Output and baseline mismatch at line {iterationOnCollection}." + Environment.NewLine;
+
+                Fail(_allowMismatch, message +
+                        $"Values to compare are {expected} and {actual}" + Environment.NewLine +
+                        $"\t AllowedVariance: {allowedVariance}" + Environment.NewLine +
+                        $"\t delta: {delta}" + Environment.NewLine +
+                        $"\t delta2: {delta2}" + Environment.NewLine);
+            }
+
+            return inRange;
         }
 
         private static double Round(double value, int digitsOfPrecision)
@@ -786,11 +817,8 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected static int MainForTest(string args)
         {
-            using (var env = new ConsoleEnvironment())
-            {
-                int result = Maml.MainCore(env, args, false);
-                return result;
-            }
+            var env = new MLContext();
+            return Maml.MainCore(env, args, false);
         }
     }
 

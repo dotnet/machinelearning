@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static long ComputeRowCount(IDataView view)
         {
-            long? countNullable = view.GetRowCount(lazy: false);
+            long? countNullable = view.GetRowCount();
             if (countNullable != null)
                 return countNullable.Value;
             long count = 0;
@@ -1154,7 +1155,7 @@ namespace Microsoft.ML.Runtime.Data
             private IRowCursor _currentCursor;
             private bool _disposed;
 
-            private struct CursorStats
+            private readonly struct CursorStats
             {
                 public readonly long Batch;
                 public readonly int CursorIdx;
@@ -1342,7 +1343,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!Conversions.Instance.TryGetStringConversion<T>(colType, out conversion))
             {
                 var error = $"Cannot display {colType}";
-                conversion = (ref T src, ref StringBuilder builder) =>
+                conversion = (in T src, ref StringBuilder builder) =>
                 {
                     if (builder == null)
                         builder = new StringBuilder();
@@ -1357,7 +1358,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref ReadOnlyMemory<char> value) =>
                 {
                     floatGetter(ref v);
-                    conversion(ref v, ref dst);
+                    conversion(in v, ref dst);
                     string text = dst.ToString();
                     value = text.AsMemory();
                 };
@@ -1384,7 +1385,7 @@ namespace Microsoft.ML.Runtime.Data
                             x =>
                             {
                                 var v = x.Value;
-                                conversion(ref v, ref dst);
+                                conversion(in v, ref dst);
                                 return dst.ToString();
                             }));
                     value = string.Format("<{0}{1}>", stringRep, suffix).AsMemory();

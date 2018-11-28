@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
@@ -100,8 +101,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         copyCols.Add((source, name));
                     }
 
-                    var copyColumn = new CopyColumnsTransform(env, copyCols.ToArray()).Transform(input.Data);
-                    var dropColumn = SelectColumnsTransform.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
+                    var copyColumn = new ColumnCopyingTransformer(env, copyCols.ToArray()).Transform(input.Data);
+                    var dropColumn = ColumnSelectingTransformer.CreateDrop(env, copyColumn, copyCols.Select(c => c.Source).ToArray());
                     return new CommonOutputs.TransformOutput { Model = new TransformModel(env, dropColumn, input.Data), OutputData = dropColumn };
                 }
             }

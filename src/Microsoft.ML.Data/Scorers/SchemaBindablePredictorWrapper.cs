@@ -4,20 +4,20 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(SchemaBindablePredictorWrapper), null, typeof(SignatureLoadModel),
     "Bindable Mapper", SchemaBindablePredictorWrapper.LoaderSignature)]
@@ -44,9 +44,9 @@ namespace Microsoft.ML.Runtime.Data
         protected readonly IValueMapper ValueMapper;
         protected readonly ColumnType ScoreType;
 
-        public bool CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
+        bool ICanSavePfa.CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindablePredictorWrapperBase(IPredictor predictor)
         {
@@ -89,17 +89,31 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveModel(Predictor, ModelFileUtils.DirPredictor);
         }
 
-        public virtual void SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
+        void IBindableCanSavePfa.SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Assert(ValueMapper is ISingleCanSavePfa);
-            var mapper = (ISingleCanSavePfa)ValueMapper;
+            SaveAsPfaCore(ctx, schema, outputNames);
+        }
 
+        [BestFriend]
+        private protected virtual void SaveAsPfaCore(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
+        {
             ctx.Hide(outputNames);
         }
 
-        public virtual bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
+        bool IBindableCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            Contracts.CheckValue(schema, nameof(schema));
+            Contracts.Assert(ValueMapper is ISingleCanSaveOnnx);
+            var mapper = (ISingleCanSaveOnnx)ValueMapper;
+            return SaveAsOnnxCore(ctx, schema, outputNames);
+        }
+
+        [BestFriend]
+        private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames) => false;
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
@@ -153,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
                 (ref TDst dst) =>
                 {
                     featureGetter(ref features);
-                    map(ref features, ref dst);
+                    map(in features, ref dst);
                 };
         }
 
@@ -271,7 +285,7 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override void SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
+        private protected override void SaveAsPfaCore(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
@@ -287,7 +301,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.DeclareVar(outputNames[0], scoreToken);
         }
 
-        public override bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        private protected override bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
@@ -382,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override void SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
+        private protected override void SaveAsPfaCore(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
@@ -402,7 +416,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(ctx.TokenOrNullForName(outputNames[1]) == probToken.ToString());
         }
 
-        public override bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+        private protected override bool SaveAsOnnxCore(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             Contracts.CheckValue(schema, nameof(schema));
@@ -546,7 +560,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (featureGetter != null)
                         featureGetter(ref features);
 
-                    mapper(ref features, ref score, ref prob);
+                    mapper(in features, ref score, ref prob);
                     cachedPosition = input.Position;
                 }
             }
@@ -667,7 +681,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     featureGetter(ref features);
                     Contracts.Check(features.Length == featureCount || featureCount == 0);
-                    map(ref features, ref value);
+                    map(in features, ref value);
                 };
             return del;
         }
@@ -740,12 +754,10 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(Utils.Size(_slotNames) > 0);
 
                 int size = Utils.Size(_slotNames);
-                var values = dst.Values;
-                if (Utils.Size(values) < size)
-                    values = new ReadOnlyMemory<char>[size];
+                var editor = VBufferEditor.Create(ref dst, size);
                 for (int i = 0; i < _slotNames.Length; i++)
-                    values[i] = _slotNames[i].AsMemory();
-                dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
+                    editor.Values[i] = _slotNames[i].AsMemory();
+                dst = editor.Commit();
             }
         }
     }

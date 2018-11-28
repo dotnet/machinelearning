@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Base class for creating a cursor of rows that filters out some input rows.
     /// </summary>
-    public abstract class LinkedRowFilterCursorBase : LinkedRowRootCursorBase
+    [BestFriend]
+    internal abstract class LinkedRowFilterCursorBase : LinkedRowRootCursorBase
     {
         public override long Batch => Input.Batch;
 

@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612, 618
     public partial class ScenariosTests
     {
         [Fact(Skip = "Missing data set. See https://github.com/dotnet/machinelearning/issues/3")]
@@ -70,4 +71,5 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(.8, metrics.RSquared, 1);
         }
     }
+#pragma warning restore 612, 618
 }

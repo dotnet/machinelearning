@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 using System.Collections.Generic;
 using Float = System.Single;
@@ -10,7 +11,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
-    public interface ICpuBuffer<T> : IEnumerable<T>, IDisposable
+    [BestFriend]
+    internal interface ICpuBuffer<T> : IEnumerable<T>, IDisposable
         where T : struct
     {
         int ValueCount { get; }
@@ -39,7 +41,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// <summary>
     /// A logical math vector.
     /// </summary>
-    public interface ICpuVector : ICpuBuffer<Float>
+    [BestFriend]
+    internal interface ICpuVector : ICpuBuffer<Float>
     {
         /// <summary>
         /// The vector size
@@ -52,7 +55,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         Float GetValue(int i);
     }
 
-    public interface ICpuMatrix : ICpuBuffer<Float>
+    [BestFriend]
+    internal interface ICpuMatrix : ICpuBuffer<Float>
     {
         /// <summary>
         /// The row count
@@ -68,7 +72,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// <summary>
     /// A 2-dimensional matrix.
     /// </summary>
-    public interface ICpuFullMatrix : ICpuMatrix
+    [BestFriend]
+    internal interface ICpuFullMatrix : ICpuMatrix
     {
         /// <summary>
         /// Copy the values for the given row into dst, starting at slot ivDst.

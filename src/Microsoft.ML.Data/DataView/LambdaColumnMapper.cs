@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Data
                         (ref T2 v2) =>
                         {
                             getSrc(ref v1);
-                            _map1(ref v1, ref v2);
+                            _map1(in v1, ref v2);
                         };
                     return getter;
                 }
@@ -178,8 +178,8 @@ namespace Microsoft.ML.Runtime.Data
                         (ref T3 v3) =>
                         {
                             getSrc(ref v1);
-                            _map1(ref v1, ref v2);
-                            _map2(ref v2, ref v3);
+                            _map1(in v1, ref v2);
+                            _map2(in v2, ref v3);
                         };
                     return getter;
                 }
