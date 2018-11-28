@@ -8,6 +8,8 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -54,6 +56,17 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=WordToken{col=B:A} in=f:\2.txt" }), (int)0);
         }
 
+#pragma warning disable 169
+        // This is a C# native data structure used to capture the output of ML.NET tokenizer in the test below.
+        public class NativeResult
+        {
+            public string A;
+            public string[] B;
+            public string[] TokenizeA;
+            public string[] TokenizeB;
+        }
+#pragma warning restore 169
+
         [Fact]
         public void TestOldSavingAndLoading()
         {
@@ -65,6 +78,24 @@ namespace Microsoft.ML.Tests.Transformers
                     new WordTokenizingTransformer.ColumnInfo("B", "TokenizeB"),
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
+
+            // Extract the output of the first row (the only row we have because data contains only one TestClass) as a native class.
+            var nativeResult = new List<NativeResult>(result.AsEnumerable<NativeResult>(Env, false))[0];
+
+            // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
+            var tokenizeA = new[] { "This", "is", "a", "good", "sentence." };
+            Assert.True(tokenizeA.Length == nativeResult.TokenizeA.Length);
+            for (int i = 0; i < tokenizeA.Length; ++i)
+                Assert.Equal(tokenizeA[i], nativeResult.TokenizeA[i]);
+
+            // Check the tokenization of B. Expected result is { "Much", "words", "Wow", "So", "Cool" }. One may think that the expected output
+            // should be a 2-D array { { "Much", "words"}, { "Wow", "So", "Cool" } }, but please note that ML.NET may flatten all outputs if
+            // they are high-dimension tensors.
+            var tokenizeB = new[] { "Much", "words", "Wow", "So", "Cool" };
+            Assert.True(tokenizeB.Length == nativeResult.TokenizeB.Length);
+            for (int i = 0; i < tokenizeB.Length; ++i)
+                Assert.Equal(tokenizeB[i], nativeResult.TokenizeB[i]);
+
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
