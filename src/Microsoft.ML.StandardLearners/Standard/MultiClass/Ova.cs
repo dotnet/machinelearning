@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 using System.Collections.Generic;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -31,14 +32,13 @@ using System.Collections.Generic;
     OvaPredictor.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(OvaPredictor))]
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
 
-    /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' />
     public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
     {
         internal const string LoadNameValue = "OVA";
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
         /// <param name="args">The legacy <see cref="Arguments"/></param>
-        public Ova(IHostEnvironment env, Arguments args)
+        internal Ova(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
             _args = args;
@@ -78,14 +78,18 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorTrainer"/></param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
-            int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
+        public Ova(IHostEnvironment env,
+            TScalarTrainer binaryEstimator,
+            string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false,
+            ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000,
+            bool useProbabilities = true)
          : base(env,
                new Arguments
                {
@@ -106,7 +110,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < predictors.Length; i++)
             {
                 ch.Info($"Training learner {i}");
-                predictors[i] = TrainOne(ch, GetTrainer(), data, i).Model;
+                predictors[i] = TrainOne(ch, Trainer, data, i).Model;
             }
             return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
@@ -130,7 +134,7 @@ namespace Microsoft.ML.Runtime.Learners
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
-                   calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
@@ -184,11 +188,11 @@ namespace Microsoft.ML.Runtime.Learners
 
                     if (i == 0)
                     {
-                        var transformer = TrainOne(ch, GetTrainer(), td, i);
+                        var transformer = TrainOne(ch, Trainer, td, i);
                         featureColumn = transformer.FeatureColumn;
                     }
 
-                    predictors[i] = TrainOne(ch, GetTrainer(), td, i).Model;
+                    predictors[i] = TrainOne(ch, Trainer, td, i).Model;
                 }
             }
 
@@ -226,8 +230,9 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType => _impl.InputType;
         public ColumnType OutputType { get; }
         public ColumnType DistType => OutputType;
-        public bool CanSavePfa => _impl.CanSavePfa;
+        bool ICanSavePfa.CanSavePfa => _impl.CanSavePfa;
 
+        [BestFriend]
         internal static OvaPredictor Create(IHost host, bool useProb, TScalarPredictor[] predictors)
         {
             ImplBase impl;
@@ -256,39 +261,6 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             return new OvaPredictor(host, impl);
-        }
-
-        [TlcModule.EntryPoint(Name = "Models.OvaModelCombiner", Desc = "Combines a sequence of PredictorModels into a single model")]
-        public static ModelOperations.PredictorModelOutput CombineOvaModels(IHostEnvironment env, ModelOperations.CombineOvaPredictorModelsInput input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("CombineOvaModels");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-            host.CheckNonEmpty(input.ModelArray, nameof(input.ModelArray));
-            // Something tells me we should put normalization as part of macro expansion, but since i get
-            // subgraph instead of learner it's a bit tricky to get learner and decide should we add
-            // normalization node or not, plus everywhere in code we leave that reposnsibility to TransformModel.
-            var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
-            using (var ch = host.Start("CombineOvaModels"))
-            {
-                var schema = normalizedView.Schema;
-                var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
-                    input.LabelColumn,
-                    DefaultColumnNames.Label);
-                var feature = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.FeatureColumn),
-                    input.FeatureColumn, DefaultColumnNames.Features);
-                var weight = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.WeightColumn),
-                    input.WeightColumn, DefaultColumnNames.Weight);
-                var data = new RoleMappedData(normalizedView, label, feature, null, weight);
-
-                return new ModelOperations.PredictorModelOutput
-                {
-                    PredictorModel = new PredictorModel(env, data, input.TrainingData,
-                    Create(host, input.UseProbabilities,
-                            input.ModelArray.Select(p => p.Predictor as IPredictorProducing<float>).ToArray()))
-                };
-            }
         }
 
         /// <summary>
@@ -370,7 +342,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ctx.SaveModel(preds[i], string.Format(SubPredictorFmt, i));
         }
 
-        public JToken SaveAsPfa(BoundPfaContext ctx, JToken input)
+        JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
         {
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckValue(input, nameof(input));
@@ -486,19 +458,19 @@ namespace Microsoft.ML.Runtime.Learners
                 for (int i = 0; i < Predictors.Length; i++)
                     maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
 
+                var buffer = new float[maps.Length];
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
 
-                        var values = dst.Values;
-                        if (Utils.Size(values) < maps.Length)
-                            values = new float[maps.Length];
-
                         var tmp = src;
-                        Parallel.For(0, maps.Length, i => maps[i](ref tmp, ref values[i]));
-                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
+                        Parallel.For(0, maps.Length, i => maps[i](in tmp, ref buffer[i]));
+
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 
@@ -555,25 +527,25 @@ namespace Microsoft.ML.Runtime.Learners
                 for (int i = 0; i < Predictors.Length; i++)
                     maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
+                var buffer = new float[maps.Length];
                 return
-                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
+                    (in VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
-
-                        var values = dst.Values;
-                        if (Utils.Size(values) < maps.Length)
-                            values = new float[maps.Length];
 
                         var tmp = src;
                         Parallel.For(0, maps.Length,
                             i =>
                             {
                                 float score = 0;
-                                maps[i](ref tmp, ref score, ref values[i]);
+                                maps[i](in tmp, ref score, ref buffer[i]);
                             });
-                        Normalize(values, maps.Length);
-                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
+                        Normalize(buffer, maps.Length);
+
+                        var editor = VBufferEditor.Create(ref dst, maps.Length);
+                        buffer.CopyTo(editor.Values);
+                        dst = editor.Commit();
                     };
             }
 

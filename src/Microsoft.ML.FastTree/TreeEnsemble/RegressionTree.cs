@@ -397,12 +397,12 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                                  CategoricalSplitFeatureRanges[indexLocal].Length == 2);
 
                 writer.WriteIntArray(CategoricalSplitFeatures[indexLocal]);
-                writer.WriteIntsNoCount(CategoricalSplitFeatureRanges[indexLocal], 2);
+                writer.WriteIntsNoCount(CategoricalSplitFeatureRanges[indexLocal].AsSpan(0, 2));
             }
 
             writer.WriteUIntArray(Thresholds);
-            writer.WriteFloatArray(RawThresholds);
-            writer.WriteFloatArray(DefaultValueForMissing);
+            writer.WriteSingleArray(RawThresholds);
+            writer.WriteSingleArray(DefaultValueForMissing);
             writer.WriteDoubleArray(LeafValues);
 
             writer.WriteDoubleArray(_splitGain);
@@ -699,11 +699,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return GetOutput(leaf);
         }
 
-        public virtual double GetOutput(ref VBuffer<Float> feat)
+        public virtual double GetOutput(in VBuffer<Float> feat)
         {
             if (LteChild[0] == 0)
                 return 0;
-            int leaf = GetLeaf(ref feat);
+            int leaf = GetLeaf(in feat);
             return GetOutput(leaf);
         }
 
@@ -758,18 +758,18 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         // Returns index to a leaf an instance/document belongs to.
         // Input are the raw feature values in dense format.
         // For empty tree returns 0.
-        public int GetLeaf(ref VBuffer<Float> feat)
+        public int GetLeaf(in VBuffer<Float> feat)
         {
             // REVIEW: This really should validate feat.Length!
             if (feat.IsDense)
-                return GetLeafCore(feat.Values);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values);
+                return GetLeafCore(feat.GetValues());
+            return GetLeafCore(feat.GetIndices(), feat.GetValues());
         }
 
         /// <summary>
         /// Returns leaf index the instance falls into, if we start the search from the <paramref name="root"/> node.
         /// </summary>
-        private int GetLeafFrom(ref VBuffer<Float> feat, int root)
+        private int GetLeafFrom(in VBuffer<Float> feat, int root)
         {
             if (root < 0)
             {
@@ -778,8 +778,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
 
             if (feat.IsDense)
-                return GetLeafCore(feat.Values, root: root);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values, root: root);
+                return GetLeafCore(feat.GetValues(), root: root);
+            return GetLeafCore(feat.GetIndices(), feat.GetValues(), root: root);
         }
 
         /// <summary>
@@ -787,7 +787,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// path from the root to that leaf. If 'path' is null a new list is initialized. All elements in 'path' are cleared
         /// before filling in the current path nodes.
         /// </summary>
-        public int GetLeaf(ref VBuffer<Float> feat, ref List<int> path)
+        public int GetLeaf(in VBuffer<Float> feat, ref List<int> path)
         {
             // REVIEW: This really should validate feat.Length!
             if (path == null)
@@ -796,9 +796,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 path.Clear();
 
             if (feat.IsDense)
-                return GetLeafCore(feat.Values, path);
-            return GetLeafCore(feat.Count, feat.Indices, feat.Values, path);
-
+                return GetLeafCore(feat.GetValues(), path);
+            return GetLeafCore(feat.GetIndices(), feat.GetValues(), path);
         }
 
         private Float GetFeatureValue(Float x, int node)
@@ -817,9 +816,8 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
         }
 
-        private int GetLeafCore(Float[] nonBinnedInstance, List<int> path = null, int root = 0)
+        private int GetLeafCore(ReadOnlySpan<Float> nonBinnedInstance, List<int> path = null, int root = 0)
         {
-            Contracts.AssertValue(nonBinnedInstance);
             Contracts.Assert(path == null || path.Count == 0);
             Contracts.Assert(root >= 0);
 
@@ -896,13 +894,13 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return ~node;
         }
 
-        private int GetLeafCore(int count, int[] featIndices, Float[] featValues, List<int> path = null, int root = 0)
+        private int GetLeafCore(ReadOnlySpan<int> featIndices, ReadOnlySpan<Float> featValues, List<int> path = null, int root = 0)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(featIndices) >= count);
-            Contracts.Assert(Utils.Size(featValues) >= count);
+            Contracts.Assert(featIndices.Length == featValues.Length);
             Contracts.Assert(path == null || path.Count == 0);
             Contracts.Assert(root >= 0);
+
+            int count = featValues.Length;
 
             // check for an empty tree
             if (NumLeaves == 1)
@@ -1482,7 +1480,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return false;
         }
 
-        public void AppendFeatureContributions(ref VBuffer<Float> src, BufferBuilder<Float> contributions)
+        public void AppendFeatureContributions(in VBuffer<Float> src, BufferBuilder<Float> contributions)
         {
             if (LteChild[0] == 0)
             {
@@ -1491,7 +1489,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             }
 
             // Walk down to the leaf, to get the true output.
-            var mainLeaf = GetLeaf(ref src);
+            var mainLeaf = GetLeaf(in src);
             var trueOutput = GetOutput(mainLeaf);
 
             // Now walk down again, spawning ghost instances to calculate deltas.
@@ -1515,7 +1513,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
                 }
 
                 // What if we went the other way?
-                var ghostLeaf = GetLeafFrom(ref src, otherWay);
+                var ghostLeaf = GetLeafFrom(in src, otherWay);
                 var ghostOutput = GetOutput(ghostLeaf);
 
                 // If the ghost got a smaller output, the contribution of the feature is positive, so

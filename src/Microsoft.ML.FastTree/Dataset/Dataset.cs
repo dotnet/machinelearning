@@ -388,7 +388,11 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         /// <returns>Row forward indexer</returns>
         public RowForwardIndexer GetFeatureBinRowwiseIndexer(bool[] activeFeatures = null)
         {
-            return new RowForwardIndexer(this, activeFeatures);
+            Contracts.Assert(activeFeatures == null || activeFeatures.Length >= NumFeatures);
+            var truncatedActiveFeatures = Enumerable.Repeat(true, NumFeatures).ToArray();
+            if (activeFeatures != null)
+                Array.Copy(activeFeatures, 0, truncatedActiveFeatures, 0, NumFeatures);
+            return new RowForwardIndexer(this, truncatedActiveFeatures);
         }
 
         public struct DatasetSkeletonQueryDocData
@@ -912,7 +916,7 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             private readonly Dataset _dataset;
             private readonly FeatureFlockBase.FlockForwardIndexerBase[] _flockIndexers;
 
-            public struct Row
+            public readonly struct Row
             {
                 private readonly RowForwardIndexer _indexer;
                 private readonly int _rowIndex;

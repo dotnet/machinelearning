@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Numeric
     /// </summary>
     /// <param name="x">Current iterate</param>
     /// <returns>True if search should terminate</returns>
-    public delegate bool DTerminate(ref VBuffer<Float> x);
+    public delegate bool DTerminate(in VBuffer<Float> x);
 
     /// <summary>
     /// Stochastic gradient descent with variations (minibatch, momentum, averaging).
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         /// <param name="x">Point at which to evaluate</param>
         /// <param name="grad">Vector to be filled in with gradient</param>
-        public delegate void DStochasticGradient(ref VBuffer<Float> x, ref VBuffer<Float> grad);
+        public delegate void DStochasticGradient(in VBuffer<Float> x, ref VBuffer<Float> grad);
 
         /// <summary>
         /// Minimize the function represented by <paramref name="f"/>.
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="result">Approximate minimum of <paramref name="f"/></param>
         public void Minimize(DStochasticGradient f, ref VBuffer<Float> initial, ref VBuffer<Float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.Values, initial.Count), "The initial vector contains NaNs or infinite values.");
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             int dim = initial.Length;
 
             VBuffer<Float> grad = VBufferUtils.CreateEmpty<Float>(dim);
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Numeric
             for (int n = 0; _maxSteps == 0 || n < _maxSteps; ++n)
             {
                 if (_momentum == 0)
-                    step = new VBuffer<Float>(step.Length, 0, step.Values, step.Indices);
+                    VBufferUtils.Resize(ref step, step.Length, 0);
                 else
                     VectorUtils.ScaleBy(ref step, _momentum);
 
@@ -192,18 +192,18 @@ namespace Microsoft.ML.Runtime.Numeric
                 Float scale = (1 - _momentum) / _batchSize;
                 for (int i = 0; i < _batchSize; ++i)
                 {
-                    f(ref x, ref grad);
-                    VectorUtils.AddMult(ref grad, scale, ref step);
+                    f(in x, ref grad);
+                    VectorUtils.AddMult(in grad, scale, ref step);
                 }
 
                 if (_averaging)
                 {
                     Utils.Swap(ref avg, ref prev);
                     VectorUtils.ScaleBy(prev, ref avg, (Float)n / (n + 1));
-                    VectorUtils.AddMult(ref step, -stepSize, ref x);
-                    VectorUtils.AddMult(ref x, (Float)1 / (n + 1), ref avg);
+                    VectorUtils.AddMult(in step, -stepSize, ref x);
+                    VectorUtils.AddMult(in x, (Float)1 / (n + 1), ref avg);
 
-                    if ((n > 0 && TerminateTester.ShouldTerminate(ref avg, ref prev)) || _terminate(ref avg))
+                    if ((n > 0 && TerminateTester.ShouldTerminate(in avg, in prev)) || _terminate(in avg))
                     {
                         result = avg;
                         return;
@@ -212,8 +212,8 @@ namespace Microsoft.ML.Runtime.Numeric
                 else
                 {
                     Utils.Swap(ref x, ref prev);
-                    VectorUtils.AddMult(ref step, -stepSize, ref prev, ref x);
-                    if ((n > 0 && TerminateTester.ShouldTerminate(ref x, ref prev)) || _terminate(ref x))
+                    VectorUtils.AddMult(in step, -stepSize, ref prev, ref x);
+                    if ((n > 0 && TerminateTester.ShouldTerminate(in x, in prev)) || _terminate(in x))
                     {
                         result = x;
                         return;
@@ -300,26 +300,26 @@ namespace Microsoft.ML.Runtime.Numeric
 
             private DifferentiableFunction _func;
 
-            public Float Deriv => VectorUtils.DotProduct(ref _dir, ref _grad);
+            public Float Deriv => VectorUtils.DotProduct(in _dir, in _grad);
 
-            public LineFunc(DifferentiableFunction function, ref VBuffer<Float> initial, bool useCG = false)
+            public LineFunc(DifferentiableFunction function, in VBuffer<Float> initial, bool useCG = false)
             {
                 int dim = initial.Length;
 
                 initial.CopyTo(ref _point);
                 _func = function;
                 // REVIEW: plumb the IProgressChannelProvider through.
-                _value = _func(ref _point, ref _grad, null);
-                VectorUtils.ScaleInto(ref _grad, -1, ref _dir);
+                _value = _func(in _point, ref _grad, null);
+                VectorUtils.ScaleInto(in _grad, -1, ref _dir);
 
                 _useCG = useCG;
             }
 
             public Float Eval(Float step, out Float deriv)
             {
-                VectorUtils.AddMultInto(ref _point, step, ref _dir, ref _newPoint);
-                _newValue = _func(ref _newPoint, ref _newGrad, null);
-                deriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                VectorUtils.AddMultInto(in _point, step, in _dir, ref _newPoint);
+                _newValue = _func(in _newPoint, ref _newGrad, null);
+                deriv = VectorUtils.DotProduct(in _dir, in _newGrad);
                 return _newValue;
             }
 
@@ -328,15 +328,15 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (_useCG)
                 {
                     Float newByNew = VectorUtils.NormSquared(_newGrad);
-                    Float newByOld = VectorUtils.DotProduct(ref _newGrad, ref _grad);
+                    Float newByOld = VectorUtils.DotProduct(in _newGrad, in _grad);
                     Float oldByOld = VectorUtils.NormSquared(_grad);
                     Float betaPR = (newByNew - newByOld) / oldByOld;
                     Float beta = Math.Max(0, betaPR);
                     VectorUtils.ScaleBy(ref _dir, beta);
-                    VectorUtils.AddMult(ref _newGrad, -1, ref _dir);
+                    VectorUtils.AddMult(in _newGrad, -1, ref _dir);
                 }
                 else
-                    VectorUtils.ScaleInto(ref _newGrad, -1, ref _dir);
+                    VectorUtils.ScaleInto(in _newGrad, -1, ref _dir);
                 _newPoint.CopyTo(ref _point);
                 _newGrad.CopyTo(ref _grad);
                 _value = _newValue;
@@ -349,10 +349,10 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="function">Function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum</param>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DifferentiableFunction function, in VBuffer<Float> initial, ref VBuffer<Float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.Values, initial.Count), "The initial vector contains NaNs or infinite values.");
-            LineFunc lineFunc = new LineFunc(function, ref initial, UseCG);
+            Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
+            LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
             VBuffer<Float> prev = default(VBuffer<Float>);
             initial.CopyTo(ref prev);
 
@@ -360,8 +360,8 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 Float step = LineSearch.Minimize(lineFunc.Eval, lineFunc.Value, lineFunc.Deriv);
                 var newPoint = lineFunc.NewPoint;
-                bool terminateNow = n > 0 && TerminateTester.ShouldTerminate(ref newPoint, ref prev);
-                if (terminateNow || Terminate(ref newPoint))
+                bool terminateNow = n > 0 && TerminateTester.ShouldTerminate(in newPoint, in prev);
+                if (terminateNow || Terminate(in newPoint))
                     break;
                 newPoint.CopyTo(ref prev);
                 lineFunc.ChangeDir();
@@ -382,101 +382,107 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="x">The current value.</param>
         /// <param name="xprev">The value from the previous iteration.</param>
         /// <returns>True if the optimization routine should terminate at this iteration.</returns>
-        internal static bool ShouldTerminate(ref VBuffer<Float> x, ref VBuffer<Float> xprev)
+        internal static bool ShouldTerminate(in VBuffer<Float> x, in VBuffer<Float> xprev)
         {
             Contracts.Assert(x.Length == xprev.Length, "Vectors must have the same dimensionality.");
-            Contracts.Assert(FloatUtils.IsFinite(xprev.Values, xprev.Count));
+            Contracts.Assert(FloatUtils.IsFinite(xprev.GetValues()));
 
-            if (!FloatUtils.IsFinite(x.Values, x.Count))
+            var xValues = x.GetValues();
+            if (!FloatUtils.IsFinite(xValues))
                 return true;
 
+            var xprevValues = xprev.GetValues();
             if (x.IsDense && xprev.IsDense)
             {
-                for (int i = 0; i < x.Length; i++)
+                for (int i = 0; i < xValues.Length; i++)
                 {
-                    if (x.Values[i] != xprev.Values[i])
+                    if (xValues[i] != xprevValues[i])
                         return false;
                 }
             }
             else if (xprev.IsDense)
             {
+                var xIndices = x.GetIndices();
                 int j = 0;
-                for (int ii = 0; ii < x.Count; ii++)
+                for (int ii = 0; ii < xValues.Length; ii++)
                 {
-                    int i = x.Indices[ii];
+                    int i = xIndices[ii];
                     while (j < i)
                     {
-                        if (xprev.Values[j++] != 0)
+                        if (xprevValues[j++] != 0)
                             return false;
                     }
                     Contracts.Assert(i == j);
-                    if (x.Values[ii] != xprev.Values[j++])
+                    if (xValues[ii] != xprevValues[j++])
                         return false;
                 }
 
-                while (j < xprev.Length)
+                while (j < xprevValues.Length)
                 {
-                    if (xprev.Values[j++] != 0)
+                    if (xprevValues[j++] != 0)
                         return false;
                 }
             }
             else if (x.IsDense)
             {
+                var xprevIndices = xprev.GetIndices();
                 int i = 0;
-                for (int jj = 0; jj < xprev.Count; jj++)
+                for (int jj = 0; jj < xprevValues.Length; jj++)
                 {
-                    int j = xprev.Indices[jj];
+                    int j = xprevIndices[jj];
                     while (i < j)
                     {
-                        if (x.Values[i++] != 0)
+                        if (xValues[i++] != 0)
                             return false;
                     }
                     Contracts.Assert(j == i);
-                    if (x.Values[i++] != xprev.Values[jj])
+                    if (xValues[i++] != xprevValues[jj])
                         return false;
                 }
 
-                while (i < x.Length)
+                while (i < xValues.Length)
                 {
-                    if (x.Values[i++] != 0)
+                    if (xValues[i++] != 0)
                         return false;
                 }
             }
             else
             {
                 // Both sparse.
+                var xIndices = x.GetIndices();
+                var xprevIndices = xprev.GetIndices();
                 int ii = 0;
                 int jj = 0;
-                while (ii < x.Count && jj < xprev.Count)
+                while (ii < xValues.Length && jj < xprevValues.Length)
                 {
-                    int i = x.Indices[ii];
-                    int j = xprev.Indices[jj];
+                    int i = xIndices[ii];
+                    int j = xprevIndices[jj];
                     if (i == j)
                     {
-                        if (x.Values[ii++] != xprev.Values[jj++])
+                        if (xValues[ii++] != xprevValues[jj++])
                             return false;
                     }
                     else if (i < j)
                     {
-                        if (x.Values[ii++] != 0)
+                        if (xValues[ii++] != 0)
                             return false;
                     }
                     else
                     {
-                        if (xprev.Values[jj++] != 0)
+                        if (xprevValues[jj++] != 0)
                             return false;
                     }
                 }
 
-                while (ii < x.Count)
+                while (ii < xValues.Length)
                 {
-                    if (x.Values[ii++] != 0)
+                    if (xValues[ii++] != 0)
                         return false;
                 }
 
-                while (jj < xprev.Count)
+                while (jj < xprevValues.Length)
                 {
-                    if (xprev.Values[jj++] != 0)
+                    if (xprevValues[jj++] != 0)
                         return false;
                 }
             }

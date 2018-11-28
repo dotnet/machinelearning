@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Security;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    public static class IntUtils
+    [BestFriend]
+    internal static class IntUtils
     {
         /// <summary>
         /// Add src to the 128 bits contained in dst. Ignores overflow, that is, the addition is done modulo 2^128.

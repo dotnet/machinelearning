@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML
 {
     /// <summary>
     /// Extension methods that allow chaining estimator and transformer pipes together.
@@ -50,7 +53,24 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(start, nameof(start));
             Contracts.CheckValue(estimator, nameof(estimator));
 
+            if (start is EstimatorChain<ITransformer> est)
+                return est.Append(estimator, scope);
+
             return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
+        }
+
+        /// <summary>
+        /// Append a 'caching checkpoint' to the estimator chain. This will ensure that the downstream estimators will be trained against
+        /// cached data. It is helpful to have a caching checkpoint before trainers that take multiple data passes.
+        /// </summary>
+        /// <param name="start">The starting estimator</param>
+        /// <param name="env">The host environment to use for caching.</param>
+
+        public static EstimatorChain<TTrans> AppendCacheCheckpoint<TTrans>(this IEstimator<TTrans> start, IHostEnvironment env)
+            where TTrans : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            return new EstimatorChain<ITransformer>().Append(start).AppendCacheCheckpoint(env);
         }
 
         /// <summary>

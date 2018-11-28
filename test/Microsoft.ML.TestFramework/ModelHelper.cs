@@ -11,9 +11,10 @@ using System.IO;
 
 namespace Microsoft.ML.TestFramework
 {
+#pragma warning disable 612, 618
     public static class ModelHelper
     {
-        private static ConsoleEnvironment s_environment = new ConsoleEnvironment(seed: 1);
+        private static IHostEnvironment s_environment = new MLContext(seed: 1);
         private static ITransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)
@@ -35,7 +36,6 @@ namespace Microsoft.ML.TestFramework
             {
                 s_housePriceModel = CreateKcHousePricePredictorModel(dataPath);
             }
-
             s_housePriceModel.Save(s_environment, stream);
         }
 
@@ -263,4 +263,5 @@ namespace Microsoft.ML.TestFramework
             return experiment.GetOutput(scorerOutput.ScoringTransform);
         }
     }
+#pragma warning restore 612, 618
 }

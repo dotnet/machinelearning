@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -16,6 +12,10 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierScorer),
     typeof(MultiClassClassifierScorer.Arguments), typeof(SignatureDataScorer),
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
             public VectorType Type => _type;
-            public bool CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
-            public bool CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+            bool ICanSavePfa.CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
+            bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
             public ISchemaBindableMapper InnerBindable => _bindable;
 
             private static VersionInfo GetVersionInfo()
@@ -196,20 +196,20 @@ namespace Microsoft.ML.Runtime.Data
                     throw _host.Except("We do not know how to serialize label names of type '{0}'", _type.ItemType);
             }
 
-            public void SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
+            void IBindableCanSavePfa.SaveAsPfa(BoundPfaContext ctx, RoleMappedSchema schema, string[] outputNames)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));
-                Contracts.Check(CanSavePfa, "Cannot be saved as PFA");
+                Contracts.Check(((ICanSavePfa)this).CanSavePfa, "Cannot be saved as PFA");
                 Contracts.Assert(_bindable is IBindableCanSavePfa);
                 ((IBindableCanSavePfa)_bindable).SaveAsPfa(ctx, schema, outputNames);
             }
 
-            public bool SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
+            bool IBindableCanSaveOnnx.SaveAsOnnx(OnnxContext ctx, RoleMappedSchema schema, string[] outputNames)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));
-                Contracts.Check(CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                Contracts.Check(((ICanSaveOnnx)this).CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
                 Contracts.Assert(_bindable is IBindableCanSaveOnnx);
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Data
                         _labelNameGetter = (int c, ref VBuffer<T> val) => getter(ref val);
                         _metadataKind = metadataKind;
 
-                        AsSchema = Data.Schema.Create(this);
+                        AsSchema = Schema.Create(this);
                     }
 
                     public bool TryGetColumnIndex(string name, out int col)
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     Host.Check(score.Length == scoreLength);
-                    int index = VectorUtils.ArgMax(ref score);
+                    int index = VectorUtils.ArgMax(in score);
                     if (index < 0)
                         dst = 0;
                     else

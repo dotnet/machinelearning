@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             for (int i = 0; i < values.Length; i++)
             {
                 // Leave a zero vector as all zeros. Otherwise, make the L1 norm equal to 1.
-                var sum = VectorUtils.L1Norm(ref values[i]);
+                var sum = VectorUtils.L1Norm(in values[i]);
                 if (!FloatUtils.IsFinite(sum))
                     return false;
                 if (sum > 0)
@@ -98,12 +98,10 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
         protected void GetNaNOutput(ref VBuffer<Single> dst, int len)
         {
             Contracts.Assert(len >= 0);
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
+            var editor = VBufferEditor.Create(ref dst, len);
             for (int i = 0; i < len; i++)
-                values[i] = Single.NaN;
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+                editor.Values[i] = Single.NaN;
+            dst = editor.Commit();
         }
     }
 }

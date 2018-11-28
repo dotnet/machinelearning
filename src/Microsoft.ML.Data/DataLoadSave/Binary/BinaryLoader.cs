@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -156,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 ColumnIndex = index;
                 Name = name;
                 Codec = codec;
-                Type = Codec != null ? Codec.Type : null;
+                Type = Codec?.Type;
                 Compression = compression;
                 RowsPerBlock = rowsPerBlock;
                 LookupOffset = lookupOffset;
@@ -761,7 +762,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private long RowCount { get { return _header.RowCount; } }
 
-        public long? GetRowCount(bool lazy = true) { return RowCount; }
+        public long? GetRowCount() { return RowCount; }
 
         public bool CanShuffle { get { return true; } }
 
@@ -806,7 +807,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _schema = Schema.Create(new SchemaImpl(this));
-                _host.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
+                _host.Assert(_schema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -895,7 +896,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
                 _schema = Schema.Create(new SchemaImpl(this));
-                ch.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
+                ch.Assert(_schema.Count == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
@@ -1014,7 +1015,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             saverArgs.Silent = true;
             var saver = new BinarySaver(env, saverArgs);
 
-            var cols = Enumerable.Range(0, schema.ColumnCount)
+            var cols = Enumerable.Range(0, schema.Count)
                 .Select(x => new { col = x, isSavable = saver.IsColumnSavable(schema.GetColumnType(x)) });
             int[] toSave = cols.Where(x => x.isSavable).Select(x => x.col).ToArray();
             unsavableColIndices = cols.Where(x => !x.isSavable).Select(x => x.col).ToArray();
@@ -1192,7 +1193,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private void CalculateShufflePoolRows(IChannel ch, out int poolRows)
         {
-            if (!ShuffleTransform.CanShuffleAll(Schema))
+            if (!RowShufflingTransformer.CanShuffleAll(Schema))
             {
                 // This will only happen if we expand the set of types we can serialize,
                 // without expanding the set of types we can cache. That is entirely
@@ -1228,7 +1229,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             int count = _header.RowCount <= int.MaxValue ? (int)_header.RowCount : 0;
             KeyType type = new KeyType(DataKind.U8, 0, count);
             // We are mapping the row index as expressed as a long, into a key value, so we must increment by one.
-            ValueMapper<long, ulong> mapper = (ref long src, ref ulong dst) => dst = (ulong)(src + 1);
+            ValueMapper<long, ulong> mapper = (in long src, ref ulong dst) => dst = (ulong)(src + 1);
             var entry = new TableOfContentsEntry(this, rowIndexName, type, mapper);
             return entry;
         }
@@ -1241,7 +1242,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 // the entire dataset in memory anyway.
                 var ourRand = _randomShufflePoolRows == _header.RowCount ? null : rand;
                 var cursor = new Cursor(this, predicate, ourRand);
-                return ShuffleTransform.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
+                return RowShufflingTransformer.GetShuffledCursor(_host, _randomShufflePoolRows, cursor, rand);
             }
             return new Cursor(this, predicate, rand);
         }
@@ -1710,7 +1711,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     Ectx.Check(_curr != null, _badCursorState);
                     long src = _curr.RowIndexLim - _remaining - 1;
-                    _mapper(ref src, ref value);
+                    _mapper(in src, ref value);
                 }
 
                 public override Delegate GetGetter()
@@ -2137,7 +2138,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        public sealed class InfoCommand : ICommand
+        internal sealed class InfoCommand : ICommand
         {
             public const string LoadName = "IdvInfo";
 

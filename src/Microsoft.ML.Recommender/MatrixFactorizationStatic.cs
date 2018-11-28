@@ -56,7 +56,7 @@ namespace Microsoft.ML.StaticPipe
 
             var rec = new MatrixFactorizationReconciler<T>((env, labelColName, matrixColumnIndexColName, matrixRowIndexColName) =>
             {
-                var trainer = new MatrixFactorizationTrainer(env, labelColName, matrixColumnIndexColName, matrixRowIndexColName, advancedSettings:
+                var trainer = new MatrixFactorizationTrainer(env, matrixColumnIndexColName, matrixRowIndexColName, labelColName, advancedSettings:
                     args =>
                     {
                         args.Lambda = regularizationCoefficient;

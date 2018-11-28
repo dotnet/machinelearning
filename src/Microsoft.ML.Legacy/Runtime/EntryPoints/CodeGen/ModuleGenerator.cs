@@ -5,6 +5,7 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,7 +22,7 @@ using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
-    public class ModuleGenerator : IGenerator
+    internal sealed class ModuleGenerator : IGenerator
     {
         private readonly string _modulePrefix;
         private readonly bool _generateModule;
@@ -205,11 +206,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         {
             using (var sw = new StreamWriter(filename))
             {
-                var writer = IndentingTextWriter.Wrap(sw, "    ");
+                var writer = new IndentedTextWriter(sw, "    ");
                 foreach (var kvp in mapping)
                 {
                     if (info.IsOfType(kvp.Key))
                     {
+                        writer.WriteLine("[Obsolete]");
                         kvp.Value.Generate(writer, _modulePrefix, _regenerate, info,
                             _moduleId ?? Guid.NewGuid().ToString(), _moduleName, _moduleOwner, _moduleVersion, _moduleState,
                             _moduleType, _moduleDeterminism, _moduleCategory, _exclude, _namespaces);

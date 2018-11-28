@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using Xunit;
@@ -32,7 +33,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegression()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0, conc: 1);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -45,7 +46,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             LinearRegressionPredictor pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2, onFit: p => pred = p)));
+                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2,
+                onFit: p => pred = p, advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -74,7 +76,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegressionNameCollision()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new RegressionContext(env);
@@ -85,7 +87,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 separator: ';', hasHeader: true);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2)));
+                .Append(r => (r.label, r.Score, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2, advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -104,7 +106,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -118,7 +120,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                     maxIterations: 2,
-                    onFit: (p, c) => { pred = p; cali = c; })));
+                    onFit: (p, c) => { pred = p; cali = c; },
+                    advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -149,7 +152,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaBinaryClassificationNoCalibration()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -165,7 +168,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                 maxIterations: 2,
-                loss: loss, onFit: p => pred = p)));
+                loss: loss, onFit: p => pred = p,
+                advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -192,7 +196,43 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AveragePerceptronNoCalibration()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryPredictor pred = null;
+
+            var loss = new HingeLoss(1);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
+                numIterations: 2, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights2.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+        }
+
+        [Fact]
+        public void AveragePerceptronCalibration()
+        {
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -228,7 +268,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void FfmBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -260,7 +300,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaMulticlass()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -310,7 +350,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void CrossValidate()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -334,7 +374,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void FastTreeBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -373,7 +413,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void FastTreeRegression()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -415,7 +455,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -455,7 +495,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmRegression()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -497,7 +537,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void PoissonRegression()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -513,7 +553,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features,
                     l1Weight: 2,
                     enoforceNoNegativity: true,
-                    onFit: (p) => { pred = p; })));
+                    onFit: (p) => { pred = p; },
+                    advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -539,7 +580,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void LogisticRegressionBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -552,7 +593,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features,
                     l1Weight: 10,
-                    onFit: (p) => { pred = p; })));
+                    onFit: (p) => { pred = p; },
+                    advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -577,7 +619,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void MulticlassLogisticRegression()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -592,7 +634,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (label: r.label.ToKey(), r.features))
                 .Append(r => (r.label, preds: ctx.Trainers.MultiClassLogisticRegression(
                     r.label,
-                    r.features, onFit: p => pred = p)));
+                    r.features, onFit: p => pred = p,
+                    advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -620,7 +663,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void OnlineGradientDescent()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -663,11 +706,10 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void KMeans()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0, conc: 1);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new ClusteringContext(env);
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
@@ -675,7 +717,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                  .Append(r => (label: r.label.ToKey(), r.features))
-                 .Append(r => (r.label, r.features, preds: ctx.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p)));
+                 .Append(r => (r.label, r.features, preds: env.Clustering.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p, advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 
@@ -691,23 +733,23 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
+            var metrics = env.Clustering.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
             Assert.NotNull(metrics);
 
             Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
             Assert.InRange(metrics.Nmi, 0.73, 0.77);
             Assert.InRange(metrics.Dbi, 0.662, 0.667);
 
-            metrics = ctx.Evaluate(data, r => r.preds.score, label: r => r.label);
+            metrics = env.Clustering.Evaluate(data, r => r.preds.score, label: r => r.label);
             Assert.NotNull(metrics);
 
             Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
             Assert.True(metrics.Dbi == 0.0);
 
-            metrics = ctx.Evaluate(data, r => r.preds.score, features: r => r.features);
+            metrics = env.Clustering.Evaluate(data, r => r.preds.score, features: r => r.features);
             Assert.True(double.IsNaN(metrics.Nmi));
 
-            metrics = ctx.Evaluate(data, r => r.preds.score);
+            metrics = env.Clustering.Evaluate(data, r => r.preds.score);
             Assert.NotNull(metrics);
             Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
             Assert.True(double.IsNaN(metrics.Nmi));
@@ -718,7 +760,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void FastTreeRanking()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -759,7 +801,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRanking()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -800,7 +842,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void MultiClassLightGBM()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -838,7 +880,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void MultiClassNaiveBayesTrainer()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
@@ -883,7 +925,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void HogwildSGDBinaryClassification()
         {
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new BinaryClassificationContext(env);
@@ -896,7 +938,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features,
                     l2Weight: 0,
-                    onFit: (p) => { pred = p; })));
+                    onFit: (p) => { pred = p; },
+                    advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 

@@ -46,8 +46,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal("Label", result.Schema[0].Name);
                 Assert.Equal("Features", result.Schema[1].Name);
                 Assert.Equal("Features", result.Schema[2].Name);
-                Assert.Equal(9, result.Schema[1].Type.VectorSize);
-                Assert.Equal(18, result.Schema[2].Type.VectorSize);
+                Assert.Equal(9, (result.Schema[1].Type as VectorType)?.Size);
+                Assert.Equal(18, (result.Schema[2].Type as VectorType)?.Size);
             }
         }
     }

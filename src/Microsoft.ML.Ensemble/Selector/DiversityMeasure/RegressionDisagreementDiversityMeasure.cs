@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
     {
         public const string LoadName = "RegressionDisagreementDiversityMeasure";
 
-        protected override Single GetDifference(ref Single valueX, ref Single valueY)
+        protected override Single GetDifference(in Single valueX, in Single valueY)
         {
             return Math.Abs(valueX - valueY);
         }

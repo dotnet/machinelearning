@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
                     _counts = null;
                     break;
                 }
-                long? count = dv.GetRowCount(true);
+                long? count = dv.GetRowCount();
                 if (count == null || count < 0 || count > int.MaxValue)
                 {
                     _canShuffle = false;
@@ -127,12 +128,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public long? GetRowCount(bool lazy = true)
+        public long? GetRowCount()
         {
             long sum = 0;
             foreach (var source in _sources)
             {
-                var cur = source.GetRowCount(lazy);
+                var cur = source.GetRowCount();
                 if (cur == null)
                     return null;
                 _host.Check(cur.Value >= 0, "One of the sources returned a negative row count");

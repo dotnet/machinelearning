@@ -8,10 +8,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(MultiStacking), typeof(MultiStacking.Arguments), typeof(SignatureCombiner),
@@ -23,7 +21,7 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using TVectorPredictor = IPredictorProducing<VBuffer<Single>>;
-    public sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
+    internal sealed class MultiStacking : BaseStacking<VBuffer<Single>>, ICanSaveModel, IMultiClassOutputCombiner
     {
         public const string LoadName = "MultiStacking";
         public const string LoaderSignature = "MultiStackingCombiner";
@@ -39,9 +37,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 loaderAssemblyName: typeof(MultiStacking).Assembly.FullName);
         }
 
+#pragma warning disable CS0649 // The fields will still be set via the reflection driven mechanisms.
         [TlcModule.Component(Name = LoadName, FriendlyName = Stacking.UserName)]
         public sealed class Arguments : ArgumentsBase, ISupportMulticlassOutputCombinerFactory
         {
+            // REVIEW: If we make this public again it should be an *estimator* of this type of predictor, rather than the (deprecated) ITrainer.
             [Argument(ArgumentType.Multiple, HelpText = "Base predictor for meta learning", ShortName = "bp", SortOrder = 50,
                 Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureMultiClassClassifierTrainer))]
             [TGUI(Label = "Base predictor")]
@@ -50,18 +50,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             internal override IComponentFactory<ITrainer<TVectorPredictor>> GetPredictorFactory() => BasePredictorType;
 
             public IMultiClassOutputCombiner CreateComponent(IHostEnvironment env) => new MultiStacking(env, this);
-
-            public Arguments()
-            {
-                // REVIEW: Perhaps we can have a better non-parametetric learner.
-                BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
-                    env => new Ova(env, new Ova.Arguments()
-                    {
-                        PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                            e => new FastTreeBinaryClassificationTrainer(e, DefaultColumnNames.Label, DefaultColumnNames.Features))
-                    }));
-            }
         }
+#pragma warning restore CS0649
 
         public MultiStacking(IHostEnvironment env, Arguments args)
             : base(env, LoaderSignature, args)
@@ -96,19 +86,17 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             for (int i = 0; i < src.Length; i++)
                 len += src[i].Length;
 
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+            var editor = VBufferEditor.Create(ref dst, len);
 
             int iv = 0;
             for (int i = 0; i < src.Length; i++)
             {
-                src[i].CopyTo(values, iv);
+                src[i].CopyTo(editor.Values, iv);
                 iv += src[i].Length;
                 Contracts.Assert(iv <= len);
             }
             Contracts.Assert(iv == len);
+            dst = editor.Commit();
         }
     }
 }

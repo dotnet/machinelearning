@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Google.Protobuf;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Google.Protobuf;
-using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
-using Microsoft.ML.Runtime.Data;
-using System;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
@@ -368,8 +368,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 else if (type.ValueCount > 1)
                 {
                     var vec = type.AsVector;
-                    for (int i = 0; i < vec.DimCount; i++)
-                        dimsLocal.Add(vec.GetDim(i));
+                    for (int i = 0; i < vec.Dimensions.Length; i++)
+                        dimsLocal.Add(vec.Dimensions[i]);
                 }
             }
             //batch size.

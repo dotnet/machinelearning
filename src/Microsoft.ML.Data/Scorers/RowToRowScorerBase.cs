@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Model;
 
@@ -214,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             return bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
         {
             private readonly BindingsBase _bindings;
             private readonly bool[] _active;

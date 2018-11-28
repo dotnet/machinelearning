@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Newtonsoft.Json.Linq;
 
@@ -20,7 +21,8 @@ namespace Microsoft.ML.Runtime.Model.Pfa
     /// has facilities to remember what column name in <see cref="IDataView"/> maps to
     /// what token in the PFA being built up.
     /// </summary>
-    public sealed class BoundPfaContext
+    [BestFriend]
+    internal sealed class BoundPfaContext
     {
         /// <summary>
         /// The internal PFA context, for an escape hatch.

@@ -14,7 +14,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// <summary>
     /// Convenience utilities for vector operations on <see cref="VBuffer{T}"/>.
     /// </summary>
-    public static class VBufferUtils
+    [BestFriend]
+    internal static class VBufferUtils
     {
         private const float SparsityThreshold = 0.25f;
 
@@ -91,41 +92,45 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static bool HasNaNs(ref VBuffer<Single> buffer)
+        public static bool HasNaNs(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Single.IsNaN(buffer.Values[i]))
+                if (Single.IsNaN(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNaNs(ref VBuffer<Double> buffer)
+        public static bool HasNaNs(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (Double.IsNaN(buffer.Values[i]))
+                if (Double.IsNaN(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNonFinite(ref VBuffer<Single> buffer)
+        public static bool HasNonFinite(in VBuffer<Single> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
         }
 
-        public static bool HasNonFinite(ref VBuffer<Double> buffer)
+        public static bool HasNonFinite(in VBuffer<Double> buffer)
         {
-            for (int i = 0; i < buffer.Count; i++)
+            var values = buffer.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                if (!FloatUtils.IsFinite(buffer.Values[i]))
+                if (!FloatUtils.IsFinite(values[i]))
                     return true;
             }
             return false;
@@ -147,21 +152,23 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Applies <paramref name="visitor"/> to every explicitly defined element of the vector,
         /// in order of index.
         /// </summary>
-        public static void ForEachDefined<T>(ref VBuffer<T> a, Action<int, T> visitor)
+        public static void ForEachDefined<T>(in VBuffer<T> a, Action<int, T> visitor)
         {
             Contracts.CheckValue(visitor, nameof(visitor));
 
             // REVIEW: This is analogous to an old Vector method, but is there
             // any real reason to have it given that we have the Items extension method?
+            var aValues = a.GetValues();
             if (a.IsDense)
             {
-                for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i]);
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(i, aValues[i]);
             }
             else
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i]);
             }
         }
 
@@ -169,43 +176,49 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Applies the <paramref name="visitor "/>to each corresponding pair of elements
         /// where the item is emplicitly defined in the vector. By explicitly defined,
         /// we mean that for a given index <c>i</c>, both vectors have an entry in
-        /// <see cref="VBuffer{T}.Values"/> corresponding to that index.
+        /// <see cref="VBuffer{T}.GetValues"/> corresponding to that index.
         /// </summary>
         /// <param name="a">The first vector</param>
         /// <param name="b">The second vector</param>
         /// <param name="visitor">Delegate to apply to each pair of non-zero values.
         /// This is passed the index, and two values</param>
-        public static void ForEachBothDefined<T>(ref VBuffer<T> a, ref VBuffer<T> b, Action<int, T, T> visitor)
+        public static void ForEachBothDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; i++)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
-                for (int i = 0; i < a.Count; i++)
-                    visitor(a.Indices[i], a.Values[i], b.Values[a.Indices[i]]);
+                var aIndices = a.GetIndices();
+                for (int i = 0; i < aValues.Length; i++)
+                    visitor(aIndices[i], aValues[i], bValues[aIndices[i]]);
             }
             else if (a.IsDense)
             {
-                for (int i = 0; i < b.Count; i++)
-                    visitor(b.Indices[i], a.Values[b.Indices[i]], b.Values[i]);
+                var bIndices = b.GetIndices();
+                for (int i = 0; i < bValues.Length; i++)
+                    visitor(bIndices[i], aValues[bIndices[i]], bValues[i]);
             }
             else
             {
                 // Both sparse.
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int i = a.Indices[aI];
-                    int j = b.Indices[bI];
+                    int i = aIndices[aI];
+                    int j = bIndices[bI];
                     if (i == j)
-                        visitor(i, a.Values[aI++], b.Values[bI++]);
+                        visitor(i, aValues[aI++], bValues[bI++]);
                     else if (i < j)
                         aI++;
                     else
@@ -220,32 +233,36 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="a">a vector</param>
         /// <param name="b">another vector</param>
         /// <param name="visitor">Function to apply to each pair of non-zero values - passed the index, and two values</param>
-        public static void ForEachEitherDefined<T>(ref VBuffer<T> a, ref VBuffer<T> b, Action<int, T, T> visitor)
+        public static void ForEachEitherDefined<T>(in VBuffer<T> a, in VBuffer<T> b, Action<int, T, T> visitor)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(visitor, nameof(visitor));
 
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
             if (a.IsDense && b.IsDense)
             {
                 for (int i = 0; i < a.Length; ++i)
-                    visitor(i, a.Values[i], b.Values[i]);
+                    visitor(i, aValues[i], bValues[i]);
             }
             else if (b.IsDense)
             {
                 int aI = 0;
+                var aIndices = a.GetIndices();
                 for (int i = 0; i < b.Length; i++)
                 {
-                    T aVal = (aI < a.Count && i == a.Indices[aI]) ? a.Values[aI++] : default(T);
-                    visitor(i, aVal, b.Values[i]);
+                    T aVal = (aI < aValues.Length && i == aIndices[aI]) ? aValues[aI++] : default(T);
+                    visitor(i, aVal, bValues[i]);
                 }
             }
             else if (a.IsDense)
             {
                 int bI = 0;
+                var bIndices = b.GetIndices();
                 for (int i = 0; i < a.Length; i++)
                 {
-                    T bVal = (bI < b.Count && i == b.Indices[bI]) ? b.Values[bI++] : default(T);
-                    visitor(i, a.Values[i], bVal);
+                    T bVal = (bI < bValues.Length && i == bIndices[bI]) ? bValues[bI++] : default(T);
+                    visitor(i, aValues[i], bVal);
                 }
             }
             else
@@ -253,36 +270,38 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // Both sparse
                 int aI = 0;
                 int bI = 0;
-                while (aI < a.Count && bI < b.Count)
+                var aIndices = a.GetIndices();
+                var bIndices = b.GetIndices();
+                while (aI < aValues.Length && bI < bValues.Length)
                 {
-                    int diff = a.Indices[aI] - b.Indices[bI];
+                    int diff = aIndices[aI] - bIndices[bI];
                     if (diff == 0)
                     {
-                        visitor(b.Indices[bI], a.Values[aI], b.Values[bI]);
+                        visitor(bIndices[bI], aValues[aI], bValues[bI]);
                         aI++;
                         bI++;
                     }
                     else if (diff < 0)
                     {
-                        visitor(a.Indices[aI], a.Values[aI], default(T));
+                        visitor(aIndices[aI], aValues[aI], default(T));
                         aI++;
                     }
                     else
                     {
-                        visitor(b.Indices[bI], default(T), b.Values[bI]);
+                        visitor(bIndices[bI], default(T), bValues[bI]);
                         bI++;
                     }
                 }
 
-                while (aI < a.Count)
+                while (aI < aValues.Length)
                 {
-                    visitor(a.Indices[aI], a.Values[aI], default(T));
+                    visitor(aIndices[aI], aValues[aI], default(T));
                     aI++;
                 }
 
-                while (bI < b.Count)
+                while (bI < bValues.Length)
                 {
-                    visitor(b.Indices[bI], default(T), b.Values[bI]);
+                    visitor(bIndices[bI], default(T), bValues[bI]);
                     bI++;
                 }
             }
@@ -295,9 +314,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static void Clear<T>(ref VBuffer<T> dst)
         {
-            if (dst.Count == 0)
-                return;
-            Array.Clear(dst.Values, 0, dst.Count);
+            var editor = VBufferEditor.CreateFromBuffer(ref dst);
+            editor.Values.Clear();
         }
 
         // REVIEW: Look into removing slot in this and other manipulators, so that we
@@ -325,15 +343,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             Contracts.CheckValue(manip, nameof(manip));
 
+            var editor = VBufferEditor.CreateFromBuffer(ref dst);
             if (dst.IsDense)
             {
-                for (int i = 0; i < dst.Length; i++)
-                    manip(i, ref dst.Values[i]);
+                for (int i = 0; i < editor.Values.Length; i++)
+                    manip(i, ref editor.Values[i]);
             }
             else
             {
-                for (int i = 0; i < dst.Count; i++)
-                    manip(dst.Indices[i], ref dst.Values[i]);
+                var dstIndices = dst.GetIndices();
+                for (int i = 0; i < editor.Values.Length; i++)
+                    manip(dstIndices[i], ref editor.Values[i]);
             }
         }
 
@@ -357,17 +377,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.CheckValue(manip, nameof(manip));
             Contracts.CheckValueOrNull(pred);
 
+            var editor = VBufferEditor.CreateFromBuffer(ref dst);
+            int dstValuesCount = editor.Values.Length;
             if (dst.IsDense)
             {
                 // The vector is dense, so we can just do a direct access.
-                manip(slot, ref dst.Values[slot]);
+                manip(slot, ref editor.Values[slot]);
                 return;
             }
             int idx = 0;
-            if (dst.Count > 0 && Utils.TryFindIndexSorted(dst.Indices, 0, dst.Count, slot, out idx))
+            if (dstValuesCount > 0 && Utils.TryFindIndexSorted(editor.Indices, 0, dstValuesCount, slot, out idx))
             {
                 // Vector is sparse, but the item exists so we can access it.
-                manip(slot, ref dst.Values[idx]);
+                manip(slot, ref editor.Values[idx]);
                 return;
             }
             // The vector is sparse and there is no corresponding item, yet.
@@ -378,26 +400,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (pred(ref value))
                 return;
             // We have to insert this value, somehow.
-            int[] indices = dst.Indices;
-            T[] values = dst.Values;
+
             // There is a modest special case where there is exactly one free slot
             // we are modifying in the sparse vector, in which case the vector becomes
             // dense. Then there is no need to do anything with indices.
-            bool needIndices = dst.Count + 1 < dst.Length;
-            if (needIndices)
-                Utils.EnsureSize(ref indices, dst.Count + 1, dst.Length - 1);
-            Utils.EnsureSize(ref values, dst.Count + 1, dst.Length);
-            if (idx != dst.Count)
+            bool needIndices = dstValuesCount + 1 < dst.Length;
+            editor = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1);
+            if (idx != dstValuesCount)
             {
                 // We have to do some sort of shift copy.
+                int sliceLength = dstValuesCount - idx;
                 if (needIndices)
-                    Array.Copy(indices, idx, indices, idx + 1, dst.Count - idx);
-                Array.Copy(values, idx, values, idx + 1, dst.Count - idx);
+                    editor.Indices.Slice(idx, sliceLength).CopyTo(editor.Indices.Slice(idx + 1));
+                editor.Values.Slice(idx, sliceLength).CopyTo(editor.Values.Slice(idx + 1));
             }
             if (needIndices)
-                indices[idx] = slot;
-            values[idx] = value;
-            dst = new VBuffer<T>(dst.Length, dst.Count + 1, values, indices);
+                editor.Indices[idx] = slot;
+            editor.Values[idx] = value;
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -407,37 +427,41 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             if (dst.IsDense)
                 return;
-            var indices = dst.Indices;
-            var values = dst.Values;
-            if (Utils.Size(values) >= dst.Length)
+
+            var indices = dst.GetIndices();
+            var values = dst.GetValues();
+            var editor = VBufferEditor.Create(
+                ref dst,
+                dst.Length);
+
+            if (!editor.CreatedNewValues)
             {
                 // Densify in place.
-                for (int i = dst.Count; --i >= 0; )
+                for (int i = values.Length; --i >= 0; )
                 {
                     Contracts.Assert(i <= indices[i]);
-                    values[indices[i]] = values[i];
+                    editor.Values[indices[i]] = values[i];
                 }
-                if (dst.Count == 0)
-                    Array.Clear(values, 0, dst.Length);
+                if (values.Length == 0)
+                    editor.Values.Clear();
                 else
                 {
                     int min = 0;
-                    for (int ii = 0; ii < dst.Count; ++ii)
+                    for (int ii = 0; ii < values.Length; ++ii)
                     {
-                        Array.Clear(values, min, indices[ii] - min);
+                        editor.Values.Slice(min, indices[ii] - min).Clear();
                         min = indices[ii] + 1;
                     }
-                    Array.Clear(values, min, dst.Length - min);
+                    editor.Values.Slice(min, dst.Length - min).Clear();
                 }
             }
             else
             {
-                T[] newValues = new T[dst.Length];
-                for (int i = 0; i < dst.Count; ++i)
-                    newValues[indices[i]] = values[i];
-                values = newValues;
+                // createdNewValues is true, keepOldOnResize is false, so Values is already cleared
+                for (int i = 0; i < values.Length; ++i)
+                    editor.Values[indices[i]] = values[i];
             }
-            dst = new VBuffer<T>(dst.Length, values, indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -447,7 +471,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static void DensifyFirst<T>(ref VBuffer<T> dst, int denseCount)
         {
             Contracts.Check(0 <= denseCount && denseCount <= dst.Length);
-            if (dst.IsDense || denseCount == 0 || (dst.Count >= denseCount && dst.Indices[denseCount - 1] == denseCount - 1))
+            var dstValues = dst.GetValues();
+            var dstIndices = dst.GetIndices();
+            if (dst.IsDense || denseCount == 0 || (dstValues.Length >= denseCount && dstIndices[denseCount - 1] == denseCount - 1))
                 return;
             if (denseCount == dst.Length)
             {
@@ -455,44 +481,43 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return;
             }
 
-            // Densify the first BiasCount entries.
-            int[] indices = dst.Indices;
-            T[] values = dst.Values;
-            if (indices == null)
+            // Densify the first denseCount entries.
+            if (dstIndices.IsEmpty)
             {
-                Contracts.Assert(dst.Count == 0);
-                indices = Utils.GetIdentityPermutation(denseCount);
-                Utils.EnsureSize(ref values, denseCount, dst.Length, keepOld: false);
-                Array.Clear(values, 0, denseCount);
-                dst = new VBuffer<T>(dst.Length, denseCount, values, indices);
+                // no previous values
+                var newIndicesEditor = VBufferEditor.Create(ref dst, dst.Length, denseCount);
+                Utils.FillIdentity(newIndicesEditor.Indices, denseCount);
+                newIndicesEditor.Values.Clear();
+                dst = newIndicesEditor.Commit();
                 return;
             }
-            int lim = Utils.FindIndexSorted(indices, 0, dst.Count, denseCount);
+            int lim = Utils.FindIndexSorted(dstIndices, 0, dstValues.Length, denseCount);
             Contracts.Assert(lim < denseCount);
-            int newLen = dst.Count + denseCount - lim;
+            int newLen = dstValues.Length + denseCount - lim;
             if (newLen == dst.Length)
             {
                 Densify(ref dst);
                 return;
             }
-            Utils.EnsureSize(ref values, newLen, dst.Length);
-            Utils.EnsureSize(ref indices, newLen, dst.Length);
-            Array.Copy(values, lim, values, denseCount, dst.Count - lim);
-            Array.Copy(indices, lim, indices, denseCount, dst.Count - lim);
+
+            var editor = VBufferEditor.Create(ref dst, dst.Length, newLen, keepOldOnResize: true);
+            int sliceLength = dstValues.Length - lim;
+            editor.Values.Slice(lim, sliceLength).CopyTo(editor.Values.Slice(denseCount));
+            editor.Indices.Slice(lim, sliceLength).CopyTo(editor.Indices.Slice(denseCount));
             int i = lim - 1;
             for (int ii = denseCount; --ii >= 0; )
             {
-                values[ii] = i >= 0 && indices[i] == ii ? values[i--] : default(T);
-                indices[ii] = ii;
+                editor.Values[ii] = i >= 0 && dstIndices[i] == ii ? dstValues[i--] : default(T);
+                editor.Indices[ii] = ii;
             }
-            dst = new VBuffer<T>(dst.Length, newLen, values, indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
         /// Creates a maybe sparse copy of a VBuffer.
         /// Whether the created copy is sparse or not is determined by the proportion of non-default entries compared to the sparsity parameter.
         /// </summary>
-        public static void CreateMaybeSparseCopy<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
+        public static void CreateMaybeSparseCopy<T>(in VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
         {
             Contracts.CheckParam(0 < sparsityThreshold && sparsityThreshold < 1, nameof(sparsityThreshold));
             if (!src.IsDense || src.Length < 20)
@@ -503,9 +528,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             int sparseCount = 0;
             var sparseCountThreshold = (int)(src.Length * sparsityThreshold);
+            var srcValues = src.GetValues();
             for (int i = 0; i < src.Length; i++)
             {
-                if (!isDefaultPredicate(in src.Values[i]))
+                if (!isDefaultPredicate(in srcValues[i]))
                     sparseCount++;
 
                 if (sparseCount > sparseCountThreshold)
@@ -515,23 +541,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
 
-            var indices = dst.Indices;
-            var values = dst.Values;
-
+            var editor = VBufferEditor.Create(ref dst, src.Length, sparseCount);
             if (sparseCount > 0)
             {
-                if (Utils.Size(values) < sparseCount)
-                    values = new T[sparseCount];
-                if (Utils.Size(indices) < sparseCount)
-                    indices = new int[sparseCount];
                 int j = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (!isDefaultPredicate(in src.Values[i]))
+                    if (!isDefaultPredicate(in srcValues[i]))
                     {
                         Contracts.Assert(j < sparseCount);
-                        indices[j] = i;
-                        values[j] = src.Values[i];
+                        editor.Indices[j] = i;
+                        editor.Values[j] = srcValues[i];
                         j++;
                     }
                 }
@@ -539,7 +559,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Contracts.Assert(j == sparseCount);
             }
 
-            dst = new VBuffer<T>(src.Length, sparseCount, values, indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -573,9 +593,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWith<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWith<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: false);
+            ApplyWithCore(in src, ref dst, manip, outer: false);
         }
 
         /// <summary>
@@ -589,12 +609,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
+        public static void ApplyWithCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
         {
-            ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer: false);
+            ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer: false);
         }
 
         /// <summary>
@@ -608,9 +629,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWithEitherDefined<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: true);
+            ApplyWithCore(in src, ref dst, manip, outer: true);
         }
 
         /// <summary>
@@ -622,12 +643,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
         /// <param name="src">Argument vector, whose elements are only read</param>
-        /// <param name="dst">Argument vector, whose elements are only read</param>
+        /// <param name="dst">Argument vector, whose elements are read in most cases. But in some
+        /// cases <paramref name="dst"/> may be densified.</param>
         /// <param name="res">Result vector</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithEitherDefinedCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
+        public static void ApplyWithEitherDefinedCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip)
         {
-            ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer: true);
+            ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer: true);
         }
 
         /// <summary>
@@ -636,7 +658,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// where necessary depending on whether this is an inner or outer join of the
         /// indices of <paramref name="src"/> on <paramref name="dst"/>.
         /// </summary>
-        private static void ApplyWithCore<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
+        private static void ApplyWithCore<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
@@ -646,10 +668,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // of the "outer" parameter. There are nine, top level cases. Each case is
             // considered in this order.
 
-            // 1. src.Count == 0.
+            // 1. srcValues.Length == 0.
             // 2. src.Dense.
             // 3. dst.Dense.
-            // 4. dst.Count == 0.
+            // 4. dstValues.Length == 0.
 
             // Beyond this point the cases can assume both src/dst are sparse non-empty vectors.
             // We then calculate the size of the resulting output array, then use that to fall
@@ -667,20 +689,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Case 5 does not require special handling, because it falls through to other cases
             // that do the special handling for them.
 
-            if (src.Count == 0)
+            var srcValues = src.GetValues();
+            var dstValues = dst.GetValues();
+            var dstIndices = dst.GetIndices();
+            var editor = VBufferEditor.CreateFromBuffer(ref dst);
+            if (srcValues.Length == 0)
             {
-                // Major case 1, with src.Count == 0.
+                // Major case 1, with srcValues.Length == 0.
                 if (!outer)
                     return;
                 if (dst.IsDense)
                 {
                     for (int i = 0; i < dst.Length; i++)
-                        manip(i, default(TSrc), ref dst.Values[i]);
+                        manip(i, default(TSrc), ref editor.Values[i]);
                 }
                 else
                 {
-                    for (int i = 0; i < dst.Count; i++)
-                        manip(dst.Indices[i], default(TSrc), ref dst.Values[i]);
+                    for (int i = 0; i < dstValues.Length; i++)
+                        manip(dstIndices[i], default(TSrc), ref editor.Values[i]);
                 }
                 return;
             }
@@ -689,76 +715,81 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 // Major case 2, with src.Dense.
                 if (!dst.IsDense)
+                {
                     Densify(ref dst);
+                    editor = VBufferEditor.CreateFromBuffer(ref dst);
+                }
+
                 // Both are now dense. Both cases of outer are covered.
-                for (int i = 0; i < src.Length; i++)
-                    manip(i, src.Values[i], ref dst.Values[i]);
+                for (int i = 0; i < srcValues.Length; i++)
+                    manip(i, srcValues[i], ref editor.Values[i]);
                 return;
             }
 
+            var srcIndices = src.GetIndices();
             if (dst.IsDense)
             {
-                // Major case 3, with dst.Dense. Note that !a.Dense.
+                // Major case 3, with dst.Dense. Note that !src.Dense.
                 if (outer)
                 {
                     int sI = 0;
-                    int sIndex = src.Indices[sI];
+                    int sIndex = srcIndices[sI];
                     for (int i = 0; i < dst.Length; ++i)
                     {
                         if (i == sIndex)
                         {
-                            manip(i, src.Values[sI], ref dst.Values[i]);
-                            sIndex = ++sI == src.Count ? src.Length : src.Indices[sI];
+                            manip(i, srcValues[sI], ref editor.Values[i]);
+                            sIndex = ++sI == srcValues.Length ? src.Length : srcIndices[sI];
                         }
                         else
-                            manip(i, default(TSrc), ref dst.Values[i]);
+                            manip(i, default(TSrc), ref editor.Values[i]);
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < src.Count; i++)
-                        manip(src.Indices[i], src.Values[i], ref dst.Values[src.Indices[i]]);
+                    for (int i = 0; i < srcValues.Length; i++)
+                        manip(srcIndices[i], srcValues[i], ref editor.Values[srcIndices[i]]);
                 }
                 return;
             }
 
-            if (dst.Count == 0)
+            if (dstValues.Length == 0)
             {
                 // Major case 4, with dst empty. Note that !src.Dense.
                 // Neither is dense, and dst is empty. Both cases of outer are covered.
-                var values = dst.Values;
-                var indices = dst.Indices;
-                Utils.EnsureSize(ref values, src.Count, src.Length);
-                Array.Clear(values, 0, src.Count);
-                Utils.EnsureSize(ref indices, src.Count, src.Length);
-                for (int i = 0; i < src.Count; i++)
-                    manip(indices[i] = src.Indices[i], src.Values[i], ref values[i]);
-                dst = new VBuffer<TDst>(src.Length, src.Count, values, indices);
+                editor = VBufferEditor.Create(ref dst,
+                    src.Length,
+                    srcValues.Length,
+                    maxValuesCapacity: src.Length);
+                editor.Values.Clear();
+                for (int i = 0; i < srcValues.Length; i++)
+                    manip(editor.Indices[i] = srcIndices[i], srcValues[i], ref editor.Values[i]);
+                dst = editor.Commit();
                 return;
             }
 
             // Beyond this point, we can assume both a and b are sparse with positive count.
             int dI = 0;
-            int newCount = dst.Count;
+            int newCount = dstValues.Length;
             // Try to find each src index in dst indices, counting how many more we'll add.
-            for (int sI = 0; sI < src.Count; sI++)
+            for (int sI = 0; sI < srcValues.Length; sI++)
             {
-                int sIndex = src.Indices[sI];
-                while (dI < dst.Count && dst.Indices[dI] < sIndex)
+                int sIndex = srcIndices[sI];
+                while (dI < dstValues.Length && dstIndices[dI] < sIndex)
                     dI++;
-                if (dI == dst.Count)
+                if (dI == dstValues.Length)
                 {
-                    newCount += src.Count - sI;
+                    newCount += srcValues.Length - sI;
                     break;
                 }
-                if (dst.Indices[dI] == sIndex)
+                if (dstIndices[dI] == sIndex)
                     dI++;
                 else
                     newCount++;
             }
             Contracts.Assert(newCount > 0);
-            Contracts.Assert(0 < src.Count && src.Count <= newCount);
-            Contracts.Assert(0 < dst.Count && dst.Count <= newCount);
+            Contracts.Assert(0 < srcValues.Length && srcValues.Length <= newCount);
+            Contracts.Assert(0 < dstValues.Length && dstValues.Length <= newCount);
 
             // REVIEW: Densify above a certain threshold, not just if
             // the output will necessarily become dense? But then we get into
@@ -773,25 +804,27 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // This is unnecessary -- falling through to the sparse code will
                 // actually handle this case just fine -- but it is more efficient.
                 Densify(ref dst);
-                ApplyWithCore(ref src, ref dst, manip, outer);
+                ApplyWithCore(in src, ref dst, manip, outer);
                 return;
             }
 
-            if (newCount != src.Count && newCount != dst.Count)
+            if (newCount != srcValues.Length && newCount != dstValues.Length)
             {
                 // Major case 6, neither set of indices is a subset of the other.
                 // This subcase used to fall through to another subcase, but this
                 // proved to be inefficient so we go to the little bit of extra work
                 // to handle it here.
 
-                var indices = dst.Indices;
-                var values = dst.Values;
-                Utils.EnsureSize(ref indices, newCount, dst.Length, keepOld: false);
-                Utils.EnsureSize(ref values, newCount, dst.Length, keepOld: false);
-                int sI = src.Count - 1;
-                dI = dst.Count - 1;
-                int sIndex = src.Indices[sI];
-                int dIndex = dst.Indices[dI];
+                editor = VBufferEditor.Create(ref dst,
+                    src.Length,
+                    newCount,
+                    maxValuesCapacity: dst.Length);
+                var indices = editor.Indices;
+                var values = editor.Values;
+                int sI = srcValues.Length - 1;
+                dI = dstValues.Length - 1;
+                int sIndex = srcIndices[sI];
+                int dIndex = dstIndices[dI];
 
                 // Go from the end, so that even if we're writing over dst's vectors in
                 // place, we do not corrupt the data as we are reorganizing it.
@@ -800,17 +833,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if (sIndex < dIndex)
                     {
                         indices[i] = dIndex;
-                        values[i] = dst.Values[dI];
+                        values[i] = dstValues[dI];
                         if (outer)
                             manip(dIndex, default(TSrc), ref values[i]);
-                        dIndex = --dI >= 0 ? dst.Indices[dI] : -1;
+                        dIndex = --dI >= 0 ? dstIndices[dI] : -1;
                     }
                     else if (sIndex > dIndex)
                     {
                         indices[i] = sIndex;
                         values[i] = default(TDst);
-                        manip(sIndex, src.Values[sI], ref values[i]);
-                        sIndex = --sI >= 0 ? src.Indices[sI] : -1;
+                        manip(sIndex, srcValues[sI], ref values[i]);
+                        sIndex = --sI >= 0 ? srcIndices[sI] : -1;
                     }
                     else
                     {
@@ -818,84 +851,88 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         Contracts.Assert(sIndex >= 0);
                         Contracts.Assert(sIndex == dIndex);
                         indices[i] = dIndex;
-                        values[i] = dst.Values[dI];
-                        manip(sIndex, src.Values[sI], ref values[i]);
-                        sIndex = --sI >= 0 ? src.Indices[sI] : -1;
-                        dIndex = --dI >= 0 ? dst.Indices[dI] : -1;
+                        values[i] = dstValues[dI];
+                        manip(sIndex, srcValues[sI], ref values[i]);
+                        sIndex = --sI >= 0 ? srcIndices[sI] : -1;
+                        dIndex = --dI >= 0 ? dstIndices[dI] : -1;
                     }
                 }
-                dst = new VBuffer<TDst>(dst.Length, newCount, values, indices);
+                dst = editor.Commit();
                 return;
             }
 
-            if (newCount == dst.Count)
+            if (newCount == dstValues.Length)
             {
-                if (newCount == src.Count)
+                if (newCount == srcValues.Length)
                 {
                     // Major case 7, the set of indices is the same for src and dst.
-                    Contracts.Assert(src.Count == dst.Count);
-                    for (int i = 0; i < src.Count; i++)
+                    Contracts.Assert(srcValues.Length == dstValues.Length);
+                    for (int i = 0; i < srcValues.Length; i++)
                     {
-                        Contracts.Assert(src.Indices[i] == dst.Indices[i]);
-                        manip(src.Indices[i], src.Values[i], ref dst.Values[i]);
+                        Contracts.Assert(srcIndices[i] == dstIndices[i]);
+                        manip(srcIndices[i], srcValues[i], ref editor.Values[i]);
                     }
                     return;
                 }
                 // Major case 8, the indices of src must be a subset of dst's indices.
-                Contracts.Assert(newCount > src.Count);
+                Contracts.Assert(newCount > srcValues.Length);
                 dI = 0;
                 if (outer)
                 {
                     int sI = 0;
-                    int sIndex = src.Indices[sI];
-                    for (int i = 0; i < dst.Count; ++i)
+                    int sIndex = srcIndices[sI];
+                    for (int i = 0; i < dstValues.Length; ++i)
                     {
-                        if (dst.Indices[i] == sIndex)
+                        if (dstIndices[i] == sIndex)
                         {
-                            manip(sIndex, src.Values[sI], ref dst.Values[i]);
-                            sIndex = ++sI == src.Count ? src.Length : src.Indices[sI];
+                            manip(sIndex, srcValues[sI], ref editor.Values[i]);
+                            sIndex = ++sI == srcValues.Length ? src.Length : srcIndices[sI];
                         }
                         else
-                            manip(dst.Indices[i], default(TSrc), ref dst.Values[i]);
+                            manip(dstIndices[i], default(TSrc), ref editor.Values[i]);
                     }
                 }
                 else
                 {
-                    for (int sI = 0; sI < src.Count; sI++)
+                    for (int sI = 0; sI < srcValues.Length; sI++)
                     {
-                        int sIndex = src.Indices[sI];
-                        while (dst.Indices[dI] < sIndex)
+                        int sIndex = srcIndices[sI];
+                        while (dstIndices[dI] < sIndex)
                             dI++;
-                        Contracts.Assert(dst.Indices[dI] == sIndex);
-                        manip(sIndex, src.Values[sI], ref dst.Values[dI++]);
+                        Contracts.Assert(dstIndices[dI] == sIndex);
+                        manip(sIndex, srcValues[sI], ref editor.Values[dI++]);
                     }
                 }
                 return;
             }
 
-            if (newCount == src.Count)
+            if (newCount == srcValues.Length)
             {
                 // Major case 9, the indices of dst must be a subset of src's indices. Both cases of outer are covered.
 
                 // First do a "quasi" densification of dst, by making the indices
                 // of dst correspond to those in src.
+                editor = VBufferEditor.Create(ref dst, newCount, dstValues.Length);
                 int sI = 0;
-                for (dI = 0; dI < dst.Count; ++dI)
+                for (dI = 0; dI < dstValues.Length; ++dI)
                 {
-                    int bIndex = dst.Indices[dI];
-                    while (src.Indices[sI] < bIndex)
+                    int bIndex = dstIndices[dI];
+                    while (srcIndices[sI] < bIndex)
                         sI++;
-                    Contracts.Assert(src.Indices[sI] == bIndex);
-                    dst.Indices[dI] = sI++;
+                    Contracts.Assert(srcIndices[sI] == bIndex);
+                    editor.Indices[dI] = sI++;
                 }
-                dst = new VBuffer<TDst>(newCount, dst.Count, dst.Values, dst.Indices);
+                dst = editor.Commit();
                 Densify(ref dst);
-                int[] indices = dst.Indices;
-                Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, newCount);
-                dst = new VBuffer<TDst>(src.Length, newCount, dst.Values, indices);
-                for (sI = 0; sI < src.Count; sI++)
-                    manip(src.Indices[sI], src.Values[sI], ref dst.Values[sI]);
+
+                editor = VBufferEditor.Create(ref dst,
+                    src.Length,
+                    newCount,
+                    maxValuesCapacity: src.Length);
+                srcIndices.CopyTo(editor.Indices);
+                for (sI = 0; sI < srcValues.Length; sI++)
+                    manip(srcIndices[sI], srcValues[sI], ref editor.Values[sI]);
+                dst = editor.Commit();
                 return;
             }
 
@@ -908,77 +945,82 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// where necessary depending on whether this is an inner or outer join of the
         /// indices of <paramref name="src"/> on <paramref name="dst"/>.
         /// </summary>
-        private static void ApplyWithCoreCopy<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip, bool outer)
+        private static void ApplyWithCoreCopy<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, ref VBuffer<TDst> res, PairManipulatorCopy<TSrc, TDst> manip, bool outer)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
-            Contracts.Assert(Utils.Size(src.Values) >= src.Count);
-            Contracts.Assert(Utils.Size(dst.Values) >= dst.Count);
+
             int length = src.Length;
 
-            if (dst.Count == 0)
+            var srcValues = src.GetValues();
+            var dstValues = dst.GetValues();
+
+            if (dstValues.Length == 0)
             {
-                if (src.Count == 0)
-                    res = new VBuffer<TDst>(length, 0, res.Values, res.Indices);
+                if (srcValues.Length == 0)
+                {
+                    Resize(ref res, length, 0);
+                }
                 else if (src.IsDense)
                 {
-                    Contracts.Assert(src.Count == src.Length);
-                    TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
+                    Contracts.Assert(srcValues.Length == src.Length);
+                    var editor = VBufferEditor.Create(ref res, length);
                     for (int i = 0; i < length; i++)
-                        manip(i, src.Values[i], default(TDst), ref resValues[i]);
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                        manip(i, srcValues[i], default(TDst), ref editor.Values[i]);
+                    res = editor.Commit();
                 }
                 else
                 {
                     // src is non-empty sparse.
-                    int count = src.Count;
+                    int count = srcValues.Length;
                     Contracts.Assert(0 < count && count < length);
-                    int[] resIndices = Utils.Size(res.Indices) >= count ? res.Indices : new int[count];
-                    TDst[] resValues = Utils.Size(res.Values) >= count ? res.Values : new TDst[count];
-                    Array.Copy(src.Indices, resIndices, count);
+                    var editor = VBufferEditor.Create(ref res, length, count);
+                    var srcIndices = src.GetIndices();
+                    srcIndices.CopyTo(editor.Indices);
                     for (int ii = 0; ii < count; ii++)
                     {
-                        int i = src.Indices[ii];
-                        resIndices[ii] = i;
-                        manip(i, src.Values[ii], default(TDst), ref resValues[ii]);
+                        int i = srcIndices[ii];
+                        editor.Indices[ii] = i;
+                        manip(i, srcValues[ii], default(TDst), ref editor.Values[ii]);
                     }
-                    res = new VBuffer<TDst>(length, count, resValues, resIndices);
+                    res = editor.Commit();
                 }
             }
             else if (dst.IsDense)
             {
-                TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
-                if (src.Count == 0)
+                var editor = VBufferEditor.Create(ref res, length);
+                if (srcValues.Length == 0)
                 {
                     if (outer)
                     {
                         // Apply manip to all slots, as all slots of dst are defined.
                         for (int j = 0; j < length; j++)
-                            manip(j, default(TSrc), dst.Values[j], ref resValues[j]);
+                            manip(j, default(TSrc), dstValues[j], ref editor.Values[j]);
                     }
                     else
                     {
                         // Copy only. No slot of src is defined.
                         for (int j = 0; j < length; j++)
-                            resValues[j] = dst.Values[j];
+                            editor.Values[j] = dstValues[j];
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    res = editor.Commit();
                 }
                 else if (src.IsDense)
                 {
-                    Contracts.Assert(src.Count == src.Length);
+                    Contracts.Assert(srcValues.Length == src.Length);
                     for (int i = 0; i < length; i++)
-                        manip(i, src.Values[i], dst.Values[i], ref resValues[i]);
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                        manip(i, srcValues[i], dstValues[i], ref editor.Values[i]);
+                    res = editor.Commit();
                 }
                 else
                 {
                     // src is sparse and non-empty.
-                    int count = src.Count;
+                    int count = srcValues.Length;
                     Contracts.Assert(0 < count && count < length);
 
                     int ii = 0;
-                    int i = src.Indices[ii];
+                    var srcIndices = src.GetIndices();
+                    int i = srcIndices[ii];
                     if (outer)
                     {
                         // All slots of dst are defined. Always apply manip.
@@ -986,11 +1028,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         {
                             if (j == i)
                             {
-                                manip(j, src.Values[ii], dst.Values[j], ref resValues[j]);
-                                i = ++ii == count ? length : src.Indices[ii];
+                                manip(j, srcValues[ii], dstValues[j], ref editor.Values[j]);
+                                i = ++ii == count ? length : srcIndices[ii];
                             }
                             else
-                                manip(j, default(TSrc), dst.Values[j], ref resValues[j]);
+                                manip(j, default(TSrc), dstValues[j], ref editor.Values[j]);
                         }
                     }
                     else
@@ -1000,88 +1042,89 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         {
                             if (j == i)
                             {
-                                manip(j, src.Values[ii], dst.Values[j], ref resValues[j]);
-                                i = ++ii == count ? length : src.Indices[ii];
+                                manip(j, srcValues[ii], dstValues[j], ref editor.Values[j]);
+                                i = ++ii == count ? length : srcIndices[ii];
                             }
                             else
-                                resValues[j] = dst.Values[j];
+                                editor.Values[j] = dstValues[j];
                         }
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    res = editor.Commit();
                 }
             }
             else
             {
                 // dst is non-empty sparse
-                int dstCount = dst.Count;
+                int dstCount = dstValues.Length;
+                var dstIndices = dst.GetIndices();
                 Contracts.Assert(dstCount > 0);
-                if (src.Count == 0)
+                if (srcValues.Length == 0)
                 {
-                    int[] resIndices = Utils.Size(res.Indices) >= dstCount ? res.Indices : new int[dstCount];
-                    TDst[] resValues = Utils.Size(res.Values) >= dstCount ? res.Values : new TDst[dstCount];
+                    var editor = VBufferEditor.Create(ref res, length, dstCount);
                     if (outer)
                     {
                         for (int jj = 0; jj < dstCount; jj++)
                         {
-                            int j = dst.Indices[jj];
-                            resIndices[jj] = j;
-                            manip(j, default(TSrc), dst.Values[jj], ref resValues[jj]);
+                            int j = dstIndices[jj];
+                            editor.Indices[jj] = j;
+                            manip(j, default(TSrc), dstValues[jj], ref editor.Values[jj]);
                         }
                     }
                     else
                     {
                         for (int jj = 0; jj < dstCount; jj++)
                         {
-                            resIndices[jj] = dst.Indices[jj];
-                            resValues[jj] = dst.Values[jj];
+                            editor.Indices[jj] = dstIndices[jj];
+                            editor.Values[jj] = dstValues[jj];
                         }
                     }
-                    res = new VBuffer<TDst>(length, dstCount, resValues, resIndices);
+                    res = editor.Commit();
                 }
                 else if (src.IsDense)
                 {
                     // res will be dense.
-                    TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
+                    var editor = VBufferEditor.Create(ref res, length);
                     int jj = 0;
-                    int j = dst.Indices[jj];
+                    int j = dstIndices[jj];
                     for (int i = 0; i < length; i++)
                     {
                         if (i == j)
                         {
-                            manip(i, src.Values[i], dst.Values[jj], ref resValues[i]);
-                            j = ++jj == dstCount ? length : dst.Indices[jj];
+                            manip(i, srcValues[i], dstValues[jj], ref editor.Values[i]);
+                            j = ++jj == dstCount ? length : dstIndices[jj];
                         }
                         else
-                            manip(i, src.Values[i], default(TDst), ref resValues[i]);
+                            manip(i, srcValues[i], default(TDst), ref editor.Values[i]);
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    res = editor.Commit();
                 }
                 else
                 {
                     // Both src and dst are non-empty sparse.
-                    Contracts.Assert(src.Count > 0);
+                    Contracts.Assert(srcValues.Length > 0);
 
                     // Find the count of result, which is the size of the union of the indices set of src and dst.
                     int resCount = dstCount;
-                    for (int ii = 0, jj = 0; ii < src.Count; ii++)
+                    var srcIndices = src.GetIndices();
+                    for (int ii = 0, jj = 0; ii < srcValues.Length; ii++)
                     {
-                        int i = src.Indices[ii];
-                        while (jj < dst.Count && dst.Indices[jj] < i)
+                        int i = srcIndices[ii];
+                        while (jj < dstValues.Length && dstIndices[jj] < i)
                             jj++;
-                        if (jj == dst.Count)
+                        if (jj == dstValues.Length)
                         {
-                            resCount += src.Count - ii;
+                            resCount += srcValues.Length - ii;
                             break;
                         }
-                        if (dst.Indices[jj] == i)
+                        if (dstIndices[jj] == i)
                             jj++;
                         else
                             resCount++;
                     }
 
                     Contracts.Assert(0 < resCount && resCount <= length);
-                    Contracts.Assert(resCount <= src.Count + dstCount);
-                    Contracts.Assert(src.Count <= resCount);
+                    Contracts.Assert(resCount <= srcValues.Length + dstCount);
+                    Contracts.Assert(srcValues.Length <= resCount);
                     Contracts.Assert(dstCount <= resCount);
 
                     if (resCount == length)
@@ -1090,17 +1133,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         // This is unnecessary -- falling through to the sparse code will
                         // actually handle this case just fine -- but it is more efficient.
                         Densify(ref dst);
-                        ApplyWithCoreCopy(ref src, ref dst, ref res, manip, outer);
+                        ApplyWithCoreCopy(in src, ref dst, ref res, manip, outer);
                     }
                     else
                     {
-                        int[] resIndices = Utils.Size(res.Indices) >= resCount ? res.Indices : new int[resCount];
-                        TDst[] resValues = Utils.Size(res.Values) >= resCount ? res.Values : new TDst[resCount];
+                        var editor = VBufferEditor.Create(ref res, length, resCount);
 
                         int ii = 0;
-                        int i = src.Indices[ii];
+                        int i = srcIndices[ii];
                         int jj = 0;
-                        int j = dst.Indices[jj];
+                        int j = dstIndices[jj];
 
                         for (int kk = 0; kk < resCount; kk++)
                         {
@@ -1108,35 +1150,35 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                             if (i == j)
                             {
                                 // Slot (i == j) both defined in src and dst. Apply manip.
-                                resIndices[kk] = i;
-                                manip(i, src.Values[ii], dst.Values[jj], ref resValues[kk]);
-                                i = ++ii == src.Count ? length : src.Indices[ii];
-                                j = ++jj == dstCount ? length : dst.Indices[jj];
+                                editor.Indices[kk] = i;
+                                manip(i, srcValues[ii], dstValues[jj], ref editor.Values[kk]);
+                                i = ++ii == srcValues.Length ? length : srcIndices[ii];
+                                j = ++jj == dstCount ? length : dstIndices[jj];
                             }
                             else if (i < j)
                             {
                                 // Slot i defined only in src, but not in dst. Apply manip.
-                                resIndices[kk] = i;
-                                manip(i, src.Values[ii], default(TDst), ref resValues[kk]);
-                                i = ++ii == src.Count ? length : src.Indices[ii];
+                                editor.Indices[kk] = i;
+                                manip(i, srcValues[ii], default(TDst), ref editor.Values[kk]);
+                                i = ++ii == srcValues.Length ? length : srcIndices[ii];
                             }
                             else
                             {
                                 // Slot j defined only in dst, but not in src. Apply manip if outer.
                                 // Otherwise just copy.
-                                resIndices[kk] = j;
+                                editor.Indices[kk] = j;
                                 // REVIEW: Should we move checking of outer outside the loop?
                                 if (outer)
-                                    manip(j, default(TSrc), dst.Values[jj], ref resValues[kk]);
+                                    manip(j, default(TSrc), dstValues[jj], ref editor.Values[kk]);
                                 else
-                                    resValues[kk] = dst.Values[jj];
-                                j = ++jj == dstCount ? length : dst.Indices[jj];
+                                    editor.Values[kk] = dstValues[jj];
+                                j = ++jj == dstCount ? length : dstIndices[jj];
                             }
                         }
 
-                        Contracts.Assert(ii == src.Count && jj == dstCount);
+                        Contracts.Assert(ii == srcValues.Length && jj == dstCount);
                         Contracts.Assert(i == length && j == length);
-                        res = new VBuffer<TDst>(length, resCount, resValues, resIndices);
+                        res = editor.Commit();
                     }
                 }
             }
@@ -1152,33 +1194,38 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         /// <seealso cref="ApplyWith{TSrc,TDst}"/>
         /// <seealso cref="ApplyWithEitherDefined{TSrc,TDst}"/>
-        public static void ApplyIntoEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
+        public static void ApplyIntoEitherDefined<TSrc, TDst>(in VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
         {
             Contracts.CheckValue(func, nameof(func));
 
+            var srcValues = src.GetValues();
+
             // REVIEW: The analogous WritableVector method insisted on
             // equal lengths, but I don't care here.
-            if (src.Count == 0)
+            if (srcValues.Length == 0)
             {
-                dst = new VBuffer<TDst>(src.Length, src.Count, dst.Values, dst.Indices);
+                Resize(ref dst, src.Length, 0);
                 return;
             }
-            int[] indices = dst.Indices;
-            TDst[] values = dst.Values;
-            Utils.EnsureSize(ref values, src.Count, src.Length, keepOld: false);
+            var editor = VBufferEditor.Create(ref dst,
+                src.Length,
+                srcValues.Length,
+                maxValuesCapacity: src.Length);
+            Span<TDst> values = editor.Values;
             if (src.IsDense)
             {
                 for (int i = 0; i < src.Length; ++i)
-                    values[i] = func(i, src.Values[i]);
+                    values[i] = func(i, srcValues[i]);
             }
             else
             {
-                Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, src.Count);
-                for (int i = 0; i < src.Count; ++i)
-                    values[i] = func(src.Indices[i], src.Values[i]);
+                Span<int> indices = editor.Indices;
+                var srcIndices = src.GetIndices();
+                srcIndices.CopyTo(indices);
+                for (int i = 0; i < srcValues.Length; ++i)
+                    values[i] = func(srcIndices[i], srcValues[i]);
             }
-            dst = new VBuffer<TDst>(src.Length, src.Count, values, indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -1189,7 +1236,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// necessarily be dense. Otherwise, if both are sparse, the output will be sparse iff
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
-        public static void ApplyInto<TSrc1, TSrc2, TDst>(ref VBuffer<TSrc1> a, ref VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
+        public static void ApplyInto<TSrc1, TSrc2, TDst>(in VBuffer<TSrc1> a, in VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(func, nameof(func));
@@ -1205,54 +1252,61 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // 5. b's indices are a subset of a's.
             // 6. Neither a nor b's indices are a subset of the other.
 
-            if (a.Count == 0 && b.Count == 0)
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
+            if (aValues.Length == 0 && bValues.Length == 0)
             {
                 // Case 1. Output will be empty.
-                dst = new VBuffer<TDst>(a.Length, 0, dst.Values, dst.Indices);
+                Resize(ref dst, a.Length, 0);
                 return;
             }
 
             int aI = 0;
             int bI = 0;
-            TDst[] values = dst.Values;
+            ReadOnlySpan<int> aIndices;
+            ReadOnlySpan<int> bIndices;
+            VBufferEditor<TDst> editor;
             if (a.IsDense || b.IsDense)
             {
                 // Case 2. One of the two inputs is dense. The output will be dense.
-                Utils.EnsureSize(ref values, a.Length, a.Length, keepOld: false);
-
+                editor = VBufferEditor.Create(ref dst, a.Length);
                 if (!a.IsDense)
                 {
                     // a is sparse, b is dense
+                    aIndices = a.GetIndices();
                     for (int i = 0; i < b.Length; i++)
                     {
-                        TSrc1 aVal = (aI < a.Count && i == a.Indices[aI]) ? a.Values[aI++] : default(TSrc1);
-                        values[i] = func(i, aVal, b.Values[i]);
+                        TSrc1 aVal = (aI < aIndices.Length && i == aIndices[aI]) ? aValues[aI++] : default(TSrc1);
+                        editor.Values[i] = func(i, aVal, bValues[i]);
                     }
                 }
                 else if (!b.IsDense)
                 {
                     // b is sparse, a is dense
+                    bIndices = b.GetIndices();
                     for (int i = 0; i < a.Length; i++)
                     {
-                        TSrc2 bVal = (bI < b.Count && i == b.Indices[bI]) ? b.Values[bI++] : default(TSrc2);
-                        values[i] = func(i, a.Values[i], bVal);
+                        TSrc2 bVal = (bI < bIndices.Length && i == bIndices[bI]) ? bValues[bI++] : default(TSrc2);
+                        editor.Values[i] = func(i, aValues[i], bVal);
                     }
                 }
                 else
                 {
                     // both dense
                     for (int i = 0; i < a.Length; i++)
-                        values[i] = func(i, a.Values[i], b.Values[i]);
+                        editor.Values[i] = func(i, aValues[i], bValues[i]);
                 }
-                dst = new VBuffer<TDst>(a.Length, values, dst.Indices);
+                dst = editor.Commit();
                 return;
             }
 
             // a, b both sparse.
             int newCount = 0;
-            while (aI < a.Count && bI < b.Count)
+            aIndices = a.GetIndices();
+            bIndices = b.GetIndices();
+            while (aI < aIndices.Length && bI < bIndices.Length)
             {
-                int aCompB = a.Indices[aI] - b.Indices[bI];
+                int aCompB = aIndices[aI] - bIndices[bI];
                 if (aCompB <= 0) // a is no larger than b.
                     aI++;
                 if (aCompB >= 0) // b is no larger than a.
@@ -1260,58 +1314,57 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 newCount++;
             }
 
-            if (aI < a.Count)
-                newCount += a.Count - aI;
-            if (bI < b.Count)
-                newCount += b.Count - bI;
+            if (aI < aIndices.Length)
+                newCount += aIndices.Length - aI;
+            if (bI < bIndices.Length)
+                newCount += bIndices.Length - bI;
 
             // REVIEW: Worth optimizing the newCount == a.Length case?
             // Probably not...
 
-            int[] indices = dst.Indices;
-            Utils.EnsureSize(ref indices, newCount, a.Length, keepOld: false);
-            Utils.EnsureSize(ref values, newCount, a.Length, keepOld: false);
+            editor = VBufferEditor.Create(ref dst, a.Length, newCount);
+            Span<int> indices = editor.Indices;
 
-            if (newCount == b.Count)
+            if (newCount == bValues.Length)
             {
-                if (newCount == a.Count)
+                if (newCount == aValues.Length)
                 {
                     // Case 3, a and b actually have the same indices!
-                    Array.Copy(a.Indices, indices, a.Count);
-                    for (aI = 0; aI < a.Count; aI++)
+                    aIndices.CopyTo(indices);
+                    for (aI = 0; aI < aValues.Length; aI++)
                     {
-                        Contracts.Assert(a.Indices[aI] == b.Indices[aI]);
-                        values[aI] = func(a.Indices[aI], a.Values[aI], b.Values[aI]);
+                        Contracts.Assert(aIndices[aI] == bIndices[aI]);
+                        editor.Values[aI] = func(aIndices[aI], aValues[aI], bValues[aI]);
                     }
                 }
                 else
                 {
                     // Case 4, a's indices are a subset of b's.
-                    Array.Copy(b.Indices, indices, b.Count);
+                    bIndices.CopyTo(indices);
                     aI = 0;
-                    for (bI = 0; aI < a.Count && bI < b.Count; bI++)
+                    for (bI = 0; aI < aValues.Length && bI < bValues.Length; bI++)
                     {
-                        Contracts.Assert(a.Indices[aI] >= b.Indices[bI]);
-                        TSrc1 aVal = a.Indices[aI] == b.Indices[bI] ? a.Values[aI++] : default(TSrc1);
-                        values[bI] = func(b.Indices[bI], aVal, b.Values[bI]);
+                        Contracts.Assert(aIndices[aI] >= bIndices[bI]);
+                        TSrc1 aVal = aIndices[aI] == bIndices[bI] ? aValues[aI++] : default(TSrc1);
+                        editor.Values[bI] = func(bIndices[bI], aVal, bValues[bI]);
                     }
-                    for (; bI < b.Count; bI++)
-                        values[bI] = func(b.Indices[bI], default(TSrc1), b.Values[bI]);
+                    for (; bI < bValues.Length; bI++)
+                        editor.Values[bI] = func(bIndices[bI], default(TSrc1), bValues[bI]);
                 }
             }
-            else if (newCount == a.Count)
+            else if (newCount == aValues.Length)
             {
                 // Case 5, b's indices are a subset of a's.
-                Array.Copy(a.Indices, indices, a.Count);
+                aIndices.CopyTo(indices);
                 bI = 0;
-                for (aI = 0; bI < b.Count && aI < a.Count; aI++)
+                for (aI = 0; bI < bValues.Length && aI < aValues.Length; aI++)
                 {
-                    Contracts.Assert(b.Indices[bI] >= a.Indices[aI]);
-                    TSrc2 bVal = a.Indices[aI] == b.Indices[bI] ? b.Values[bI++] : default(TSrc2);
-                    values[aI] = func(a.Indices[aI], a.Values[aI], bVal);
+                    Contracts.Assert(bIndices[bI] >= aIndices[aI]);
+                    TSrc2 bVal = aIndices[aI] == bIndices[bI] ? bValues[bI++] : default(TSrc2);
+                    editor.Values[aI] = func(aIndices[aI], aValues[aI], bVal);
                 }
-                for (; aI < a.Count; aI++)
-                    values[aI] = func(a.Indices[aI], a.Values[aI], default(TSrc2));
+                for (; aI < aValues.Length; aI++)
+                    editor.Values[aI] = func(aIndices[aI], aValues[aI], default(TSrc2));
             }
             else
             {
@@ -1319,49 +1372,49 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 int newI = aI = bI = 0;
                 TSrc1 aVal = default(TSrc1);
                 TSrc2 bVal = default(TSrc2);
-                while (aI < a.Count && bI < b.Count)
+                while (aI < aIndices.Length && bI < bIndices.Length)
                 {
-                    int aCompB = a.Indices[aI] - b.Indices[bI];
+                    int aCompB = aIndices[aI] - bIndices[bI];
                     int index = 0;
 
                     if (aCompB < 0)
                     {
-                        index = a.Indices[aI];
-                        aVal = a.Values[aI++];
+                        index = aIndices[aI];
+                        aVal = aValues[aI++];
                         bVal = default(TSrc2);
                     }
                     else if (aCompB > 0)
                     {
-                        index = b.Indices[bI];
+                        index = bIndices[bI];
                         aVal = default(TSrc1);
-                        bVal = b.Values[bI++];
+                        bVal = bValues[bI++];
                     }
                     else
                     {
-                        index = a.Indices[aI];
-                        Contracts.Assert(index == b.Indices[bI]);
-                        aVal = a.Values[aI++];
-                        bVal = b.Values[bI++];
+                        index = aIndices[aI];
+                        Contracts.Assert(index == bIndices[bI]);
+                        aVal = aValues[aI++];
+                        bVal = bValues[bI++];
                     }
-                    values[newI] = func(index, aVal, bVal);
+                    editor.Values[newI] = func(index, aVal, bVal);
                     indices[newI++] = index;
                 }
 
-                for (; aI < a.Count; aI++)
+                for (; aI < aIndices.Length; aI++)
                 {
-                    int index = a.Indices[aI];
-                    values[newI] = func(index, a.Values[aI], default(TSrc2));
+                    int index = aIndices[aI];
+                    editor.Values[newI] = func(index, aValues[aI], default(TSrc2));
                     indices[newI++] = index;
                 }
 
-                for (; bI < b.Count; bI++)
+                for (; bI < bIndices.Length; bI++)
                 {
-                    int index = b.Indices[bI];
-                    values[newI] = func(index, default(TSrc1), b.Values[bI]);
+                    int index = bIndices[bI];
+                    editor.Values[newI] = func(index, default(TSrc1), bValues[bI]);
                     indices[newI++] = index;
                 }
             }
-            dst = new VBuffer<TDst>(a.Length, newCount, values, indices);
+            dst = editor.Commit();
         }
 
         /// <summary>
@@ -1370,14 +1423,26 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static void Copy<T>(List<T> src, ref VBuffer<T> dst, int length)
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
-            var values = dst.Values;
+            var editor = VBufferEditor.Create(ref dst, length);
             if (length > 0)
             {
-                if (Utils.Size(values) < length)
-                    values = new T[length];
-                src.CopyTo(values);
+                // List<T>.CopyTo should have an overload for Span - https://github.com/dotnet/corefx/issues/33006
+                for (int i = 0; i < length; i++)
+                {
+                    editor.Values[i] = src[i];
+                }
             }
-            dst = new VBuffer<T>(length, values, dst.Indices);
+            dst = editor.Commit();
+        }
+
+        /// <summary>
+        /// Updates the logical length and number of physical values to be represented in
+        /// <paramref name="dst"/>, while preserving the underlying buffers.
+        /// </summary>
+        public static void Resize<T>(ref VBuffer<T> dst, int newLogicalLength, int? valuesCount = null)
+        {
+            dst = VBufferEditor.Create(ref dst, newLogicalLength, valuesCount)
+                .Commit();
         }
     }
 }

@@ -77,34 +77,32 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             int count = Utils.Size(src);
             if (count == 0)
             {
-                dst = new VBuffer<Single>(0, dst.Values, dst.Indices);
+                VBufferUtils.Resize(ref dst, 0);
                 return;
             }
 
             int len = GetClassCount(src);
-            var values = dst.Values;
-            if (Utils.Size(values) < len)
-                values = new Single[len];
-            else
-                Array.Clear(values, 0, len);
+            var editor = VBufferEditor.Create(ref dst, len);
+            if (!editor.CreatedNewValues)
+                editor.Values.Clear();
 
             int voteCount = 0;
             for (int i = 0; i < count; i++)
             {
-                int index = VectorUtils.ArgMax(ref src[i]);
+                int index = VectorUtils.ArgMax(in src[i]);
                 if (index >= 0)
                 {
-                    values[index]++;
+                    editor.Values[index]++;
                     voteCount++;
                 }
             }
 
             // Normalize by dividing by the number of votes.
             for (int i = 0; i < len; i++)
-                values[i] /= voteCount;
+                editor.Values[i] /= voteCount;
 
             // Set the output to values.
-            dst = new VBuffer<Single>(len, values, dst.Indices);
+            dst = editor.Commit();
         }
     }
 }

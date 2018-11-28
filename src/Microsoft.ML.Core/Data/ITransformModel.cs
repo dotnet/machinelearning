@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.EntryPoints

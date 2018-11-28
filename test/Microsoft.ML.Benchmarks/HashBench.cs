@@ -41,12 +41,12 @@ namespace Microsoft.ML.Benchmarks
             _counted = new Counted();
             var inRow = RowColumnUtils.GetRow(_counted, col);
             // One million features is a nice, typical number.
-            var info = new HashTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
-            var xf = new HashTransformer(_env, new[] { info });
+            var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
+            var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
             mapper.Schema.TryGetColumnIndex("Bar", out int outCol);
             var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
-            if (type.IsVector)
+            if (type is VectorType)
                 _vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             else
                 _getter = outRow.GetGetter<uint>(outCol);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashScalarKey))]
         public void SetupHashScalarKey()
         {
-            InitMap(6u, new KeyType(DataKind.U4, 0, 100));
+            InitMap(6u, new KeyType(typeof(uint), 0, 100));
         }
 
         [Benchmark]
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Benchmarks
         [GlobalSetup(Target = nameof(HashVectorKey))]
         public void SetupHashVectorKey()
         {
-            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(DataKind.U4, 0, 100));
+            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 0, 100));
         }
 
         [Benchmark]

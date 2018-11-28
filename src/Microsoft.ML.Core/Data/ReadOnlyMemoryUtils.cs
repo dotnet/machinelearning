@@ -10,7 +10,8 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public static class ReadOnlyMemoryUtils
+    [BestFriend]
+    internal static class ReadOnlyMemoryUtils
     {
 
         /// <summary>
@@ -208,18 +209,6 @@ namespace Microsoft.ML.Runtime.Data
             return memory.Slice(0, ichLim);
         }
 
-        public static NormStr AddToPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
-        {
-            Contracts.CheckValue(pool, nameof(pool));
-            return pool.Add(memory);
-        }
-
-        public static NormStr FindInPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
-        {
-            Contracts.CheckValue(pool, nameof(pool));
-            return pool.Get(memory);
-        }
-
         public static void AddLowerCaseToStringBuilder(ReadOnlySpan<char> span, StringBuilder sb)
         {
             Contracts.CheckValue(sb, nameof(sb));
@@ -264,6 +253,19 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return sb;
+        }
+
+        public sealed class ReadonlyMemoryCharComparer : IEqualityComparer<ReadOnlyMemory<char>>
+        {
+            public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
+            {
+                return x.Span.SequenceEqual(y.Span);
+            }
+
+            public int GetHashCode(ReadOnlyMemory<char> obj)
+            {
+                return (int)Hashing.HashString(obj.Span);
+            }
         }
     }
 }

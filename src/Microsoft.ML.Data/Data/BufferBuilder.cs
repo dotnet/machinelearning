@@ -382,60 +382,21 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        private void GetResult(ref T[] values, ref int[] indices, out int count, out int length)
-        {
-            if (_count == 0)
-            {
-                count = 0;
-                length = _length;
-                return;
-            }
-
-            if (!_dense)
-            {
-                if (!_sorted)
-                    SortAndSumDups();
-                if (!_dense && _count >= _length / 2)
-                    MakeDense();
-            }
-
-            if (_dense)
-            {
-                if (Utils.Size(values) < _length)
-                    values = new T[_length];
-                Array.Copy(_values, values, _length);
-                count = _length;
-                length = _length;
-            }
-            else
-            {
-                Contracts.Assert(_count < _length);
-                if (Utils.Size(values) < _count)
-                    values = new T[_count];
-                if (Utils.Size(indices) < _count)
-                    indices = new int[_count];
-                Array.Copy(_values, values, _count);
-                Array.Copy(_indices, indices, _count);
-                count = _count;
-                length = _length;
-            }
-        }
-
         public void Reset(int length, bool dense)
         {
             ResetImpl(length, dense);
             SetActiveRangeImpl(0, length);
         }
 
-        public void AddFeatures(int index, ref VBuffer<T> buffer)
+        public void AddFeatures(int index, in VBuffer<T> buffer)
         {
             Contracts.Check(0 <= index && index <= _length - buffer.Length);
 
-            int count = buffer.Count;
+            var values = buffer.GetValues();
+            int count = values.Length;
             if (count == 0)
                 return;
 
-            var values = buffer.Values;
             if (buffer.IsDense)
             {
                 Contracts.Assert(count == buffer.Length);
@@ -454,7 +415,7 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 // REVIEW: Validate indices!
-                var indices = buffer.Indices;
+                var indices = buffer.GetIndices();
                 if (_dense)
                 {
                     for (int i = 0; i < count; i++)
@@ -471,24 +432,34 @@ namespace Microsoft.ML.Runtime.Data
 
         public void GetResult(ref VBuffer<T> buffer)
         {
-            var values = buffer.Values;
-            var indices = buffer.Indices;
-
             if (IsEmpty)
             {
-                buffer = new VBuffer<T>(_length, 0, values, indices);
+                VBufferUtils.Resize(ref buffer, _length, 0);
                 return;
             }
 
-            int count;
-            int length;
-            GetResult(ref values, ref indices, out count, out length);
-            Contracts.Assert(0 <= count && count <= length);
+            if (!_dense)
+            {
+                if (!_sorted)
+                    SortAndSumDups();
+                if (!_dense && _count >= _length / 2)
+                    MakeDense();
+            }
 
-            if (count == length)
-                buffer = new VBuffer<T>(length, values, indices);
+            if (_dense)
+            {
+                var editor = VBufferEditor.Create(ref buffer, _length);
+                _values.AsSpan(0, _length).CopyTo(editor.Values);
+                buffer = editor.Commit();
+            }
             else
-                buffer = new VBuffer<T>(length, count, values, indices);
+            {
+                Contracts.Assert(_count < _length);
+                var editor = VBufferEditor.Create(ref buffer, _length, _count);
+                _values.AsSpan(0, _count).CopyTo(editor.Values);
+                _indices.AsSpan(0, _count).CopyTo(editor.Indices);
+                buffer = editor.Commit();
+            }
         }
     }
 }

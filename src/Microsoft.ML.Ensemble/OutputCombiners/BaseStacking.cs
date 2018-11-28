@@ -16,7 +16,7 @@ using Microsoft.ML.Runtime.Training;
 namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
 {
     using ColumnRole = RoleMappedSchema.ColumnRole;
-    public abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
+    internal abstract class BaseStacking<TOutput> : IStackingTrainer<TOutput>
     {
         public abstract class ArgumentsBase
         {
@@ -28,13 +28,13 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             internal abstract IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> GetPredictorFactory();
         }
 
-        protected readonly IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> BasePredictorType;
-        protected readonly IHost Host;
-        protected IPredictorProducing<TOutput> Meta;
+        private protected readonly IComponentFactory<ITrainer<IPredictorProducing<TOutput>>> BasePredictorType;
+        private protected readonly IHost Host;
+        private protected IPredictorProducing<TOutput> Meta;
 
         public Single ValidationDatasetProportion { get; }
 
-        internal BaseStacking(IHostEnvironment env, string name, ArgumentsBase args)
+        private protected BaseStacking(IHostEnvironment env, string name, ArgumentsBase args)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             Host.CheckValue(BasePredictorType, nameof(BasePredictorType));
         }
 
-        internal BaseStacking(IHostEnvironment env, string name, ModelLoadContext ctx)
+        private protected BaseStacking(IHostEnvironment env, string name, ModelLoadContext ctx)
         {
             Contracts.AssertValue(env);
             env.AssertNonWhiteSpace(name);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                 (ref TOutput dst, TOutput[] src, Single[] weights) =>
                 {
                     FillFeatureBuffer(src, ref feat);
-                    map(ref feat, ref dst);
+                    map(in feat, ref dst);
                 };
             return res;
         }
@@ -159,11 +159,11 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                             var model = models[i];
                             if (model.SelectedFeatures != null)
                             {
-                                EnsembleUtils.SelectFeatures(ref cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
-                                maps[i](ref vBuffers[i], ref predictions[i]);
+                                EnsembleUtils.SelectFeatures(in cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                                maps[i](in vBuffers[i], ref predictions[i]);
                             }
                             else
-                                maps[i](ref cursor.Features, ref predictions[i]);
+                                maps[i](in cursor.Features, ref predictions[i]);
                         });
 
                         Utils.EnsureSize(ref labels, count + 1);

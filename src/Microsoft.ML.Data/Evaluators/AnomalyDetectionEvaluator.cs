@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public abstract class CountersBase
             {
-                protected struct Info
+                protected readonly struct Info
                 {
                     public readonly Single Label;
                     public readonly Single Score;
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected IEnumerable<Info> ReverseHeap(Heap<Info> heap)
+                private protected Info[] ReverseHeap(Heap<Info> heap)
                 {
                     var res = new Info[heap.Count];
                     while (heap.Count > 0)
@@ -724,8 +724,8 @@ namespace Microsoft.ML.Runtime.Data
             colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
-            overall = new CopyColumnsTransform(Host, cols).Transform(overall);
-            IDataView fold = SelectColumnsTransform.CreateKeep(Host, overall, colsToKeep.ToArray());
+            overall = new ColumnCopyingTransformer(Host, cols).Transform(overall);
+            IDataView fold = ColumnSelectingTransformer.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;
             ch.Info(MetricWriter.GetPerFoldResults(Host, fold, out weightedFold));
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            return SelectColumnsTransform.CreateDrop(Host,
+            return ColumnSelectingTransformer.CreateDrop(Host,
                                                     overall,
                                                     AnomalyDetectionEvaluator.OverallMetrics.NumAnomalies,
                                                     AnomalyDetectionEvaluator.OverallMetrics.ThreshAtK,

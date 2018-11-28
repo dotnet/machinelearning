@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -121,7 +123,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string name = TestName + "4-out.txt";
             string pathOut = DeleteOutputPath("SavePipe", name);
             using (var writer = OpenWriter(pathOut))
-            using (Env.RedirectChannelOutput(writer, writer))
+            using (_env.RedirectChannelOutput(writer, writer))
             {
                 TestCore(pathData, true,
                     new[] {
@@ -131,7 +133,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             "xf=SelectColumns{keepcol=RawLabel keepcol=FileLabelNum keepcol=FileLabelKey hidden=-}"
                     }, suffix: "4");
                 writer.WriteLine(ProgressLogLine);
-                Env.PrintProgress();
+                _env.PrintProgress();
             }
             CheckEqualityNormalized("SavePipe", name);
 
@@ -163,19 +165,19 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
             File.WriteAllLines(pathTerms, new string[] {
-                "Amer-Indian-Eskimo",
+                "Amer-Indian-Inuit",
                 "Black",
                 "Asian-Pac-Islander",
                 "White",
             });
 
-            string pathData = GetDataPath("adult.train");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, false,
                 new[] {
-                    "loader=Text{header+ sep=comma col=Label:14 col=Age:0 col=Gender:TX:9 col=Mar:TX:5 col=Race:TX:8 col=Num:2,4,10-12 col=Txt:TX:~}",
+                    "loader=Text{header+ col=Label:0 col=Age:9 col=Gender:TX:7 col=Mar:TX:3 col=Race:TX:6 col=Num:10-14 col=Txt:TX:~}",
                     "xf=Cat{col=Race2:Key:Race data={" + pathTerms + "} termCol=Whatever}",
                     "xf=Cat{col=Gender2:Gender terms=Male,Female}",
-                    "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Eskimo}}",
+                    "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Inuit}}",
                 });
 
             Done();
@@ -192,10 +194,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 "Female"
             });
 
-            string pathData = GetDataPath("adult.test");
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
             TestCore(pathData, true,
                 new[] {
-                    "loader=Text{header+ sep=comma col=Mar:TX:5 col=Race:TX:8 col=Gen:TX:8~9}",
+                    "loader=Text{header+ col=Mar:TX:3 col=Race:TX:6 col=Gen:TX:7~8}",
                     "xf=Concat{col=Comb:Race,Gen,Race}",
                     "xf=Cat{kind=Key col=MarKey:Mar}",
                     "xf=Cat{kind=Key col={name=CombKey src=Comb} data={" + pathTerms + "}}",
@@ -230,7 +232,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             {
                                 getters[i](ref v1);
                                 getters[i + 1](ref v2);
-                                Check(CompareVec(ref v1, ref v2, v1.Length, fn), "Mismatch");
+                                Check(CompareVec(in v1, in v2, v1.Length, fn), "Mismatch");
                             }
                         }
                     }
@@ -457,7 +459,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=CatHash{col=OneInd:One bits=10}",
                     // One is for the non-vector case and OneInd is reduced to a small size.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
-                    // This tests the path where a no-op transform is created.
+                    // This tests the path where a copycolumn transform is created.
                     "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
                     // This tests counts greater than 1
                     "xf=KeyToVector{col=Key}",
@@ -495,18 +497,18 @@ namespace Microsoft.ML.Runtime.RunTests
             where TDst : struct
         {
             TDst v = default(TDst);
-            conv(ref src, ref v);
+            conv(in src, ref v);
             if (EqualityComparer<TDst>.Default.Equals(dst, v))
                 return true;
             TSrc vSrc = default;
-            convBack(ref v, ref vSrc);
+            convBack(in v, ref vSrc);
             if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
                 return true;
             Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");
             return false;
         }
 
-        [Fact(Skip = "Fails until issue #1342 is resolved.")]
+        [Fact]
         public void SavePipeNgramHash()
         {
             string pathData = GetDataPath("lm.sample.txt");
@@ -522,7 +524,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=NgramHash{bits=6 col=HashNgram4:HashBig,Hash rehash+}",
                     "xf=NgramHash{bits=3 ngram=1 col={name=HashNgram5 src=Hash src=Hash} col={name=HashNgram6 src=Hash ord-}}",
                     "xf=NgramHash{bits=6 col=HashNgram7:HashBig,Hash rehash+ all- col={name=HashNgram8 src=Hash all+ ord-}}",
-                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8, hidden=-}",
+                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8 hidden=-}",
                 });
 
             TestCore(null, true,
@@ -588,7 +590,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             get1(ref bag1);
                             get2(ref bag2);
-                            if (!CompareVec(ref bag1, ref bag2, bag1.Length, (x1, x2) => x1 <= x2))
+                            if (!CompareVec(in bag1, in bag2, bag1.Length, (x1, x2) => x1 <= x2))
                             {
                                 Fail("Values don't match in columns F13, F23");
                                 return;
@@ -596,6 +598,189 @@ namespace Microsoft.ML.Runtime.RunTests
                         }
                     }
                 });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWithKey()
+        {
+            var dataPath = GetDataPath("breast-cancer-withheader.txt");
+            TestCore(dataPath, true,
+                new[] {
+                    "loader=Text{header=+",
+                    "  col=Label:U1[0-1]:0",
+                    "  col=Features:U2:1-*",
+                    "  col=A:U1[1-5]:1",
+                    "  col=B:U1[3-8]:2",
+                    "  col=C:U4[0-5]:3",
+                    "  col=D:U1[1-*]:4",
+                    "  col=E:[3-*]:5",
+                    "  col=F:U1[0-*]:6",
+                    "}",
+                    "xf=Convert{col=Label2:U2[0-1]:Label col=Features2:Features type=Num}",
+                },
+
+                pipe =>
+                {
+                    var argsText = new TextLoader.Arguments();
+                    bool tmp = CmdParser.ParseArguments(Env,
+                        " header=+" +
+                        " col=Label:TX:0" +
+                        " col=Features:TX:1-*" +
+                        " col=A:TX:1" +
+                        " col=B:TX:2" +
+                        " col=C:TX:3" +
+                        " col=D:TX:4" +
+                        " col=E:TX:5" +
+                        " col=F:TX:6",
+                        argsText);
+                    Check(tmp, "Parsing argsText failed!");
+                    IDataView view2 = TextLoader.Create(Env, argsText, new MultiFileSource(dataPath));
+
+                    var argsConv = new TypeConvertingTransformer.Arguments();
+                    tmp = CmdParser.ParseArguments(Env,
+                        " col=Label:U1[0-1]:Label" +
+                        " col=Features:U2:Features" +
+                        " col=A:U1[1-5]:A" +
+                        " col=B:U1[3-8]:B" +
+                        " col=C:[0-5]:C" +
+                        " col=D:U1[1-*]:D" +
+                        " col=E" +
+                        " col=F:U1[0-*]:F" +
+                        " key={min=3}",
+                        argsConv);
+                    Check(tmp, "Parsing argsConv failed!");
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
+
+                    argsConv = new TypeConvertingTransformer.Arguments();
+                    tmp = CmdParser.ParseArguments(Env,
+                        " col=Label2:U2:Label col=Features2:Num:Features",
+                        argsConv);
+                    Check(tmp, "Parsing argsConv(2) failed!");
+                    view2 = TypeConvertingTransformer.Create(Env, argsConv, view2);
+
+                    var colsChoose = new[] { "Label", "Features", "Label2", "Features2", "A", "B", "C", "D", "E", "F" };
+
+                    IDataView view1 = ColumnSelectingTransformer.CreateKeep(Env, pipe, colsChoose);
+                    view2 = ColumnSelectingTransformer.CreateKeep(Env, view2, colsChoose);
+
+                    CheckSameValues(view1, view2);
+                },
+
+                logCurs: true);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeDropColumns()
+        {
+            string pathData = GetDataPath("adult.tiny.with-schema.txt");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{header+ col=One:TX:9 col=Num:R4:9-14 col=Cat:TX:0~*}",
+                    "xf=MinMax{col=Num}",
+                    "xf=NAHandle{col=NumSparse:Num}",
+                    "xf=MinMax{col=NumSparse}",
+                    "xf=SelectColumns{dropcol=NumSparse hidden=+}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeCustomStopwordsRemover()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-dataFile.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "When does Fred McGriff of the Padres become a free agent?",
+                "Is erythromycin effective in treating pneumonia?"
+            });
+
+            var stopwordsList = new[]
+                {
+                    "When",
+                    "does",
+                    "of",
+                    "the",
+                    "Padres",
+                    "become",
+                    "a",
+                    "Is",
+                    "effective",
+                    "in"
+                };
+            string stopwordsFile = DeleteOutputPath("SavePipe", "CustomStopwordsRemover-stopwordsFile.txt");
+            File.WriteAllLines(stopwordsFile, stopwordsList);
+
+            Action<IDataLoader> action
+                = pipe =>
+                {
+                    VBuffer<ReadOnlyMemory<char>>[] expected = new VBuffer<ReadOnlyMemory<char>>[2];
+                    ReadOnlyMemory<char>[] values = { "Fred".AsMemory(), "McGriff".AsMemory(), "free".AsMemory(), "agent".AsMemory() };
+                    expected[0] = new VBuffer<ReadOnlyMemory<char>>(values.Length, values);
+                    ReadOnlyMemory<char>[] values1 = { "erythromycin".AsMemory(), "treating".AsMemory(), "pneumonia".AsMemory() };
+                    expected[1] = new VBuffer<ReadOnlyMemory<char>>(values1.Length, values1);
+
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        int col;
+                        bool res = c.Schema.TryGetColumnIndex("T", out col);
+                        if (!Check(res, "Column T not found!"))
+                            return;
+                        var getter = c.GetGetter<VBuffer<ReadOnlyMemory<char>>>(col);
+                        var buffer = default(VBuffer<ReadOnlyMemory<char>>);
+                        int index = 0;
+                        while (c.MoveNext())
+                        {
+                            getter(ref buffer);
+                            CompareVec(in buffer, in expected[index++], buffer.GetValues().Length, (s1, s2) => s1.Span.SequenceEqual(s2.Span));
+                        }
+                    }
+                };
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{data={0} col=T}}", stopwordsFile),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T:TX:0}",
+                    "xf=WordToken{col=T}",
+                    "xf=TextNorm{col=T case=None punc=-}",
+                    string.Format("xf=CustomStopWords{{stopwords={0} col=T}}", string.Join(",", stopwordsList)),
+                    "xf=SelectColumns{keepcol=T}"
+                }, action, baselineSchema: false);
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeTokenizerAndStopWords()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "Multi-Languages.txt");
+            File.WriteAllLines(dataFile, new[] {
+                "1 \"Oh, no,\" she's saying, \"our $400 blender can't handle something this hard!\"	English",
+                "2 Vous êtes au volant d'une voiture et vous roulez à grande vitesse	French",
+                "3 Lange nichts voneinander gehört! Es freut mich, dich kennen zu lernen	German",
+                "4 Goedemorgen, Waar kom je vandaan? Ik kom uit Nederlands	Dutch",
+                "5 Ciao, Come va? Bene grazie. E tu? Quanto tempo!	Italian",
+                "六 初めまして 良い一日を ごきげんよう！ さようなら	Japanese",
+                "6 ¡Hola! ¿Cómo te llamas? Mi nombre es ABELE	Spanish"
+            });
+
+            TestCore(dataFile, true,
+                new[] {
+                    "Loader=Text{col=Source:TXT:0 col=Lang:TXT:1 sep=tab}",
+                    "xf=Token{col=SourceTokens:Source}",
+                    "xf=StopWords{langscol=Lang col=Output:SourceTokens}"
+                }, roundTripText: false);
 
             Done();
         }
@@ -649,14 +834,14 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -687,14 +872,14 @@ namespace Microsoft.ML.Runtime.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            var col = new HashTransformer.Column();
+            var col = new HashingTransformer.Column();
             col.Name = "F1V";
             col.HashBits = 5;
             col.Seed = 42;
-            var args = new HashTransformer.Arguments();
-            args.Column = new HashTransformer.Column[] { col };
+            var args = new HashingTransformer.Arguments();
+            args.Column = new HashingTransformer.Column[] { col };
 
-            var hashTransform = HashTransformer.Create(Env, args, srcView);
+            var hashTransform = HashingTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);
@@ -728,23 +913,13 @@ namespace Microsoft.ML.Runtime.RunTests
             };
 
             builder.AddColumn("F1V", NumberType.Float, data);
-
             var srcView = builder.GetDataView();
 
-            LdaTransform.Column col = new LdaTransform.Column();
-            col.Source = "F1V";
-            col.NumTopic = 20;
-            col.NumTopic = 3;
-            col.NumSummaryTermPerTopic = 3;
-            col.AlphaSum = 3;
-            col.NumThreads = 1;
-            col.ResetRandomGenerator = true;
-            LdaTransform.Arguments args = new LdaTransform.Arguments();
-            args.Column = new LdaTransform.Column[] { col };
+            var est = new LatentDirichletAllocationEstimator(Env, "F1V", numTopic: 3, numSummaryTermPerTopic: 3, alphaSum: 3, numThreads: 1, resetRandomGenerator: true);
+            var ldaTransformer = est.Fit(srcView);
+            var transformedData = ldaTransformer.Transform(srcView);
 
-            LdaTransform ldaTransform = new LdaTransform(Env, args, srcView);
-
-            using (var cursor = ldaTransform.GetRowCursor(c => true))
+            using (var cursor = transformedData.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<Float>>(1);
                 VBuffer<Float> resultFirstRow = new VBuffer<Float>();
@@ -775,7 +950,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void TestLdaTransformEmptyDocumentException()
+        public void TestLdaTransformerEmptyDocumentException()
         {
             var builder = new ArrayDataViewBuilder(Env);
             var data = new[]
@@ -788,18 +963,18 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("Zeros", NumberType.Float, data);
 
             var srcView = builder.GetDataView();
-            var col = new LdaTransform.Column()
+            var col = new LatentDirichletAllocationTransformer.Column()
             {
-                Source = "Zeros"
+                Source = "Zeros",
             };
-            var args = new LdaTransform.Arguments()
+            var args = new LatentDirichletAllocationTransformer.Arguments()
             {
                 Column = new[] { col }
             };
 
             try
             {
-                var lda = new LdaTransform(Env, args, srcView);
+                var lda = new LatentDirichletAllocationEstimator(Env, "Zeros").Fit(srcView).Transform(srcView);
             }
             catch (InvalidOperationException ex)
             {

@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
@@ -27,12 +29,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
                 .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
-            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
+            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new ValueToKeyMappingEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(new Ova(ml, sdcaTrainer))
-                .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
+                .Append(new KeyToValueMappingEstimator(ml, "PredictedLabel"));
 
             var model = pipeline.Fit(data);
         }

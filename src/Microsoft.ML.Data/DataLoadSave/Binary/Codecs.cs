@@ -45,15 +45,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            public abstract void Write(ref T value);
+            public abstract void Write(in T value);
 
-            public virtual void Write(T[] values, int index, int count)
+            public virtual void Write(ReadOnlySpan<T> values)
             {
-                Contracts.Assert(0 <= index && index <= Utils.Size(values));
-                Contracts.Assert(0 <= count && count <= Utils.Size(values) - index);
                 // Basic un-optimized reference implementation.
-                for (int i = 0; i < count; ++i)
-                    Write(ref values[i + index]);
+                for (int i = 0; i < values.Length; ++i)
+                    Write(in values[i]);
             }
 
             public abstract void Commit();
@@ -163,16 +161,16 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     switch (Type.RawKind)
                     {
-                    case DataKind.I1:
-                        return typeof(sbyte).Name;
-                    case DataKind.I2:
-                        return typeof(short).Name;
-                    case DataKind.I4:
-                        return typeof(int).Name;
-                    case DataKind.I8:
-                        return typeof(long).Name;
-                    case DataKind.TS:
-                        return typeof(TimeSpan).Name;
+                        case DataKind.I1:
+                            return typeof(sbyte).Name;
+                        case DataKind.I2:
+                            return typeof(short).Name;
+                        case DataKind.I4:
+                            return typeof(int).Name;
+                        case DataKind.I8:
+                            return typeof(long).Name;
+                        case DataKind.TS:
+                            return typeof(TimeSpan).Name;
                     }
                     return base.LoadName;
                 }
@@ -214,23 +212,20 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _ops = codec._ops;
                 }
 
-                public override void Write(ref T value)
+                public override void Write(in T value)
                 {
                     _ops.Write(value, Writer);
                     _numWritten++;
                 }
 
-                public override void Write(T[] values, int index, int count)
+                public override void Write(ReadOnlySpan<T> values)
                 {
-                    Contracts.Assert(0 <= index && index <= Utils.Size(values));
-                    Contracts.Assert(0 <= count && count <= Utils.Size(values) - index);
+                    int count = values.Length;
                     _ops.Apply(values, ptr =>
                     {
                         // REVIEW: In some future work we will want to avoid needless copies by
                         // seeing if this is a stream that can work over IntPtr writes or reads.
-                        int offset = index * _ops.Size;
                         int byteLength = count * _ops.Size;
-                        ptr += offset;
                         while (byteLength > 0)
                         {
                             int sublen = Math.Min(byteLength, _buffer.Length);
@@ -346,7 +341,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _boundaries = new List<int>();
                 }
 
-                public override void Write(ref ReadOnlyMemory<char> value)
+                public override void Write(in ReadOnlyMemory<char> value)
                 {
                     Contracts.Check(_builder != null, "writer was already committed");
                     _builder.AppendMemory(value);
@@ -456,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref bool value)
+                public override void Write(in bool value)
                 {
                     Contracts.Assert(0 <= _currentIndex && _currentIndex < 8);
 
@@ -578,17 +573,17 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Assert(_currentSlot < 16);
                     switch (_currentBits & 0x3)
                     {
-                    case 0x0:
-                        value = false;
-                        break;
-                    case 0x1:
-                        value = true;
-                        break;
-                    case 0x2:
-                        value = false;
-                        break;
-                    default:
-                        throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
+                        case 0x0:
+                            value = false;
+                            break;
+                        case 0x1:
+                            value = true;
+                            break;
+                        case 0x2:
+                            value = false;
+                            break;
+                        default:
+                            throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
                     }
                 }
             }
@@ -620,7 +615,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref DateTime value)
+                public override void Write(in DateTime value)
                 {
                     Writer.Write(value.Ticks);
                     _numWritten++;
@@ -698,7 +693,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _ticks = new List<long>();
                 }
 
-                public override void Write(ref DateTimeOffset value)
+                public override void Write(in DateTimeOffset value)
                 {
                     Contracts.Assert(_offsets != null, "writer was already committed");
 
@@ -827,13 +822,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             public int WriteParameterization(Stream stream)
             {
                 int total = _factory.WriteCodec(stream, _innerCodec);
-                int count = _type.DimCount;
+                int count = _type.Dimensions.Length;
                 total += sizeof(int) * (1 + count);
                 using (BinaryWriter writer = _factory.OpenBinaryWriter(stream))
                 {
                     writer.Write(count);
                     for (int i = 0; i < count; i++)
-                        writer.Write(_type.GetDim(i));
+                        writer.Write(_type.Dimensions[i]);
                 }
                 return total;
             }
@@ -927,7 +922,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     return structureLength + _valueWriter.GetCommitLengthEstimate();
                 }
 
-                public override void Write(ref VBuffer<T> value)
+                public override void Write(in VBuffer<T> value)
                 {
                     Contracts.Check(_valuesStream != null, "writer already committed");
                     if (FixedLength)
@@ -939,18 +934,21 @@ namespace Microsoft.ML.Runtime.Data.IO
                         _lengths.Add(value.Length);
                     // REVIEW: In the non-fixed length case we can still check that the
                     // length is a multiple of the product of the non-zero tail sizes of the type.
+                    var valueValues = value.GetValues();
                     if (value.IsDense)
                     {
                         _counts.Add(-1);
-                        _valueWriter.Write(value.Values, 0, value.Length);
+                        _valueWriter.Write(valueValues);
                     }
                     else
                     {
-                        _counts.Add(value.Count);
-                        if (value.Count > 0)
+                        _counts.Add(valueValues.Length);
+                        if (valueValues.Length > 0)
                         {
-                            _indices.AddRange(value.Indices.Take(value.Count));
-                            _valueWriter.Write(value.Values, 0, value.Count);
+                            var valueIndices = value.GetIndices();
+                            for (int i = 0; i < valueIndices.Length; i++)
+                                _indices.Add(valueIndices[i]);
+                            _valueWriter.Write(valueValues);
                         }
                     }
                 }
@@ -1053,11 +1051,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                     // Get a buffer.
                     var values = codec._bufferPool.Get();
                     Utils.EnsureSize(ref values, totalItems, false);
-                    if (totalItems > 0)
-                    {
-                        using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
-                            reader.Read(values, 0, totalItems);
-                    }
+                    using (var reader = codec._innerCodec.OpenReader(stream, totalItems))
+                        reader.Read(values, 0, totalItems);
                     _values = values;
                     _vectorIndex = -1;
                 }
@@ -1111,29 +1106,29 @@ namespace Microsoft.ML.Runtime.Data.IO
                     int length = FixedLength ? _size : _lengths[_vectorIndex];
                     int count = _counts[_vectorIndex];
 
-                    int[] indices = value.Indices;
-                    T[] values = value.Values;
                     if (count < 0)
                     {
                         // dense
+                        var editor = VBufferEditor.Create(ref value, length);
                         if (length > 0)
                         {
-                            Utils.EnsureSize(ref values, length);
-                            Array.Copy(_values, _valuesOffset, values, 0, length);
+                            _values.AsSpan(_valuesOffset, length)
+                                .CopyTo(editor.Values);
                         }
-                        value = new VBuffer<T>(length, values, indices);
+                        value = editor.Commit();
                     }
                     else
                     {
                         // sparse
+                        var editor = VBufferEditor.Create(ref value, length, count);
                         if (count > 0)
                         {
-                            Utils.EnsureSize(ref values, count);
-                            Utils.EnsureSize(ref indices, count);
-                            Array.Copy(_values, _valuesOffset, values, 0, count);
-                            Array.Copy(_indices, _indicesOffset, indices, 0, count);
+                            _values.AsSpan(_valuesOffset, count)
+                                .CopyTo(editor.Values);
+                            _indices.AsSpan(_indicesOffset, count)
+                                .CopyTo(editor.Indices);
                         }
-                        value = new VBuffer<T>(length, count, values, indices);
+                        value = editor.Commit();
                     }
                 }
             }
@@ -1163,7 +1158,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                     type = new VectorType(itemType, dims);
                 }
                 else
+                {
+                    // In prior times, in the case where the VectorType was of single rank, *and* of unknown length,
+                    // then the vector type would be considered to have a dimension count of 0, for some reason.
+                    // This can no longer occur, but in the case where we read an older file we have to account for
+                    // the fact that nothing may have been written.
                     type = new VectorType(itemType);
+                }
             }
             // Next create the vbuffer codec.
             Type codecType = typeof(VBufferCodec<>).MakeGenericType(itemType.RawType);

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -50,7 +51,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        internal LightGbmRankingPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
+        internal LightGbmRankingPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }
@@ -92,8 +93,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name of the column containing the group ID. </param>
-        /// <param name="weightColumn">The name of the column containing the initial weight.</param>
+        /// <param name="groupId">The name of the column containing the group ID. </param>
+        /// <param name="weights">The name of the optional column containing the initial weights.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -103,18 +104,18 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LightGbmRankingTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string groupIdColumn,
-            string weightColumn = null,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string groupId = DefaultColumnNames.GroupId,
+            string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weights, groupId, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
-            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
+            Host.CheckNonEmpty(groupId, nameof(groupId));
         }
 
         protected override void CheckDataValid(IChannel ch, RoleMappedData data)
@@ -135,6 +136,19 @@ namespace Microsoft.ML.Runtime.LightGBM
                 throw ch.ExceptParam(nameof(data),
                    $"Group column '{data.Schema.Group.Name}' is of type '{groupType}', but must be U4 or a Key.");
             }
+        }
+
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.AssertValue(labelCol);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4)
+                error();
         }
 
         private protected override LightGbmRankingPredictor CreatePredictor()
@@ -166,6 +180,9 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         protected override RankingPredictionTransformer<LightGbmRankingPredictor> MakeTransformer(LightGbmRankingPredictor model, Schema trainSchema)
          => new RankingPredictionTransformer<LightGbmRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public RankingPredictionTransformer<LightGbmRankingPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
     }
 
     /// <summary>

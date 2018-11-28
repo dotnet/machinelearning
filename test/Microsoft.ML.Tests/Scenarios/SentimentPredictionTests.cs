@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.ML.Scenarios
 {
+#pragma warning disable 612, 618
     public partial class ScenariosTests
     {
         public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
@@ -320,7 +321,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
@@ -367,7 +368,7 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
@@ -414,14 +415,13 @@ namespace Microsoft.ML.Scenarios
             {
                 KeepPunctuations = false,
                 OutputTokens = true,
-                StopWordsRemover = new PredefinedStopWordsRemover(),
+                UsePredefinedStopWordRemover = true,
                 VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2,
                 CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
             });
 
-
-            pipeline.Add(new SymSgdBinaryClassifier() { NumberOfThreads = 1});
+            pipeline.Add(new SymSgdBinaryClassifier() { NumberOfThreads = 1 });
 
             pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
             return pipeline;
@@ -517,5 +517,6 @@ namespace Microsoft.ML.Scenarios
             public bool Sentiment;
         }
     }
+#pragma warning restore 612, 618
 }
 

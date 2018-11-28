@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -253,7 +254,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -284,8 +285,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _columns[col].Input, "image", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             private readonly ImageResizerTransform _parent;
 
@@ -303,10 +303,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 _parent = parent;
             }
 
-            public override Schema.Column[] GetOutputColumns()
-                => _parent._columns.Select(x => new Schema.Column(x.Output, x.Type, null)).ToArray();
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+                => _parent._columns.Select(x => new Schema.DetachedColumn(x.Output, x.Type, null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);

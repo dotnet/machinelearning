@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -96,7 +97,7 @@ namespace Microsoft.ML.Transforms
         private readonly GroupSchema _groupSchema;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="GroupTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -147,7 +148,7 @@ namespace Microsoft.ML.Transforms
             _groupSchema.Save(ctx);
         }
 
-        public override long? GetRowCount(bool lazy = true)
+        public override long? GetRowCount()
         {
             // We have no idea how many total rows we'll have.
             return null;
@@ -429,7 +430,7 @@ namespace Microsoft.ML.Transforms
         /// - The group column getters are taken directly from the trailing cursor.
         /// - The keep column getters are provided by the aggregators.
         /// </summary>
-        public sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase, IRowCursor
         {
             /// <summary>
             /// This class keeps track of the previous group key and tests the current group key against the previous one.
@@ -516,9 +517,9 @@ namespace Microsoft.ML.Transforms
 
                     private void Getter(ref VBuffer<TValue> dst)
                     {
-                        var values = (Utils.Size(dst.Values) < _size) ? new TValue[_size] : dst.Values;
-                        Array.Copy(_buffer, values, _size);
-                        dst = new VBuffer<TValue>(_size, values, dst.Indices);
+                        var editor = VBufferEditor.Create(ref dst, _size);
+                        _buffer.AsSpan(0, _size).CopyTo(editor.Values);
+                        dst = editor.Commit();
                     }
 
                     public override ValueGetter<T> GetGetter<T>(IExceptionContext ctx)

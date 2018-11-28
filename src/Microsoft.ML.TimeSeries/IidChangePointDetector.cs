@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Arguments), typeof(SignatureDataTransform),
@@ -110,6 +111,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new IidChangePointDetector(env, args).MakeDataTransform(input);
         }
 
+        internal override IStatefulTransformer Clone()
+        {
+            var clone = (IidChangePointDetector)MemberwiseClone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
+            return clone;
+        }
+
         internal IidChangePointDetector(IHostEnvironment env, Arguments args)
             : base(new BaseArguments(args), LoaderSignature, env)
         {
@@ -188,6 +197,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// Estimator for <see cref="IidChangePointDetector"/>
     /// </summary>
+    /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/IidChangePointDetectorTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </example>
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>
@@ -200,12 +217,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="changeHistoryLength">The length of the sliding window on p-values for computing the martingale score.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        /// <p>Example code can be found by searching for <i>IidChangePointDetector</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/Timeseries.cs "Timeseries examples for changepoint detection.")]
-        /// ]]>
-        /// </format>
         public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),

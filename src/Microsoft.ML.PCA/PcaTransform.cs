@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -175,11 +176,11 @@ namespace Microsoft.ML.Transforms.Projections
                 for (int i = 0; i < Rank; i++)
                 {
                     Eigenvectors[i] = ctx.Reader.ReadFloatArray(Dimension);
-                    Contracts.CheckDecode(FloatUtils.IsFinite(Eigenvectors[i], Eigenvectors[i].Length));
+                    Contracts.CheckDecode(FloatUtils.IsFinite(Eigenvectors[i]));
                 }
 
                 MeanProjected = ctx.Reader.ReadFloatArray();
-                Contracts.CheckDecode(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected, MeanProjected.Length)));
+                Contracts.CheckDecode(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected)));
             }
 
             public void Save(ModelSaveContext ctx)
@@ -199,11 +200,11 @@ namespace Microsoft.ML.Transforms.Projections
                 ctx.Writer.Write(Rank);
                 for (int i = 0; i < Rank; i++)
                 {
-                    Contracts.Assert(FloatUtils.IsFinite(Eigenvectors[i], Eigenvectors[i].Length));
-                    ctx.Writer.WriteFloatsNoCount(Eigenvectors[i], Dimension);
+                    Contracts.Assert(FloatUtils.IsFinite(Eigenvectors[i]));
+                    ctx.Writer.WriteSinglesNoCount(Eigenvectors[i].AsSpan(0, Dimension));
                 }
-                Contracts.Assert(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected, Rank)));
-                ctx.Writer.WriteFloatArray(MeanProjected);
+                Contracts.Assert(MeanProjected == null || (MeanProjected.Length == Rank && FloatUtils.IsFinite(MeanProjected)));
+                ctx.Writer.WriteSingleArray(MeanProjected);
             }
 
             public void ProjectMean(float[] mean)
@@ -285,7 +286,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(inputSchema);
+            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -477,15 +478,16 @@ namespace Microsoft.ML.Transforms.Projections
                         weightGetters[iinfo]?.Invoke(ref weight);
                         columnGetters[iinfo](ref features);
 
-                        if (FloatUtils.IsFinite(weight) && weight >= 0 && (features.Count == 0 || FloatUtils.IsFinite(features.Values, features.Count)))
+                        var featureValues = features.GetValues();
+                        if (FloatUtils.IsFinite(weight) && weight >= 0 && (featureValues.Length == 0 || FloatUtils.IsFinite(featureValues)))
                         {
                             totalColWeight[iinfo] += weight;
 
                             if (center[iinfo])
-                                VectorUtils.AddMult(ref features, mean[iinfo], weight);
+                                VectorUtils.AddMult(in features, mean[iinfo], weight);
 
                             for (int i = 0; i < omega[iinfo].Length; i++)
-                                VectorUtils.AddMult(ref features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
+                                VectorUtils.AddMult(in features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, in features));
                         }
                     }
                 }
@@ -538,7 +540,7 @@ namespace Microsoft.ML.Transforms.Projections
             return y;
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -553,7 +555,7 @@ namespace Microsoft.ML.Transforms.Projections
                 throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : OneToOneMapperBase
         {
             public sealed class ColumnSchemaInfo
             {
@@ -599,15 +601,15 @@ namespace Microsoft.ML.Transforms.Projections
                 }
             }
 
-            public override Schema.Column[] GetOutputColumns()
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
             {
-                var result = new Schema.Column[_numColumns];
+                var result = new Schema.DetachedColumn[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new Schema.DetachedColumn(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
@@ -619,27 +621,24 @@ namespace Microsoft.ML.Transforms.Projections
                 ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
                     {
                         srcGetter(ref src);
-                        TransformFeatures(Host, ref src, ref dst, _parent._transformInfos[iinfo]);
+                        TransformFeatures(Host, in src, ref dst, _parent._transformInfos[iinfo]);
                     };
 
                 return dstGetter;
             }
 
-            private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
+            private static void TransformFeatures(IExceptionContext ectx, in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
             {
                 ectx.Check(src.Length == transformInfo.Dimension);
 
-                var values = dst.Values;
-                if (Utils.Size(values) < transformInfo.Rank)
-                    values = new float[transformInfo.Rank];
-
+                var editor = VBufferEditor.Create(ref dst, transformInfo.Rank);
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
+                    editor.Values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 
-                dst = new VBuffer<float>(transformInfo.Rank, values, dst.Indices);
+                dst = editor.Commit();
             }
         }
 
@@ -661,6 +660,7 @@ namespace Microsoft.ML.Transforms.Projections
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
     public sealed class PrincipalComponentAnalysisEstimator : IEstimator<PcaTransform>
     {
         internal static class Defaults
@@ -675,10 +675,9 @@ namespace Microsoft.ML.Transforms.Projections
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
-        /// <summary>Convinence constructor for simple one column case.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">Input column to apply PCA on.</param>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="inputColumn">Input column to project to Principal Component.</param>
         /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
@@ -693,6 +692,9 @@ namespace Microsoft.ML.Transforms.Projections
         {
         }
 
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The dataset columns to use, and their specific settings.</param>
         public PrincipalComponentAnalysisEstimator(IHostEnvironment env, params PcaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));

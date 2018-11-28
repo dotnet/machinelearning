@@ -75,12 +75,6 @@
     <MSBuild Projects="@(PkgProject)"
              Targets="Pack" />
   </Target>
-
-  <ItemGroup>
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
-      Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />    
-  </ItemGroup>
   
   <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
     <BenchmarkFile Update="@(BenchmarkFile)">
