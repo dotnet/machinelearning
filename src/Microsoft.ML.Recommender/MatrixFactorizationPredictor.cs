@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -13,7 +14,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.Recommender;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
@@ -156,8 +156,8 @@ namespace Microsoft.ML.Trainers.Recommender
             ctx.Writer.Write(_approximationRank);
             _host.Check(Utils.Size(_leftFactorMatrix) == _numberOfRows * _approximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
             _host.Check(Utils.Size(_rightFactorMatrix) == _numberofColumns * _approximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
-            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix, _numberOfRows * _approximationRank);
-            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix, _numberofColumns * _approximationRank);
+            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix.AsSpan(0, _numberOfRows * _approximationRank));
+            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix.AsSpan(0, _numberofColumns * _approximationRank));
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 {
                     matrixColumnIndexGetter(ref matrixColumnIndex);
                     matrixRowIndexGetter(ref matrixRowIndex);
-                    mapper(ref matrixColumnIndex, ref matrixRowIndex, ref value);
+                    mapper(in matrixColumnIndex, ref matrixRowIndex, ref value);
                 };
             return del;
         }
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Trainers.Recommender
             return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
-        private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
+        private void MapperCore(in uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
@@ -347,9 +347,12 @@ namespace Microsoft.ML.Trainers.Recommender
                 var getters = new Delegate[1];
                 if (active[0])
                 {
+                    // First check if expected columns are ok and then create getters to acccess those columns' values.
                     CheckInputSchema(input.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
-                    var matrixColumnIndexGetter = input.GetGetter<uint>(_matrixColumnIndexColumnIndex);
-                    var matrixRowIndexGetter = input.GetGetter<uint>(_matrixRowIndexCololumnIndex);
+                    var matrixColumnIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixColumnIndexColumnIndex);
+                    var matrixRowIndexGetter = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, _matrixRowIndexCololumnIndex);
+
+                    // Assign the getter of the prediction score. It maps a pair of matrix column index and matrix row index to a scalar.
                     getters[0] = _parent.GetGetter(matrixColumnIndexGetter, matrixRowIndexGetter);
                 }
                 return getters;

@@ -5,6 +5,7 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,41 +15,36 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// ColumnType is the abstract base class for all types in the IDataView type system.
+    /// This is the abstract base class for all types in the <see cref="IDataView"/> type system.
     /// </summary>
     public abstract class ColumnType : IEquatable<ColumnType>
     {
-        private readonly Type _rawType;
-        private readonly DataKind _rawKind;
-
-        // We cache these for speed and code size.
-        private readonly bool _isPrimitive;
-        private readonly bool _isVector;
-        private readonly bool _isNumber;
-        private readonly bool _isKey;
-
-        // This private constructor sets all the _isXxx flags. It is invoked by other ctors.
+        // This private constructor sets all the IsXxx flags. It is invoked by other ctors.
         private ColumnType()
         {
-            _isPrimitive = this is PrimitiveType;
-            _isVector = this is VectorType;
-            _isNumber = this is NumberType;
-            _isKey = this is KeyType;
-        }
-
-        protected ColumnType(Type rawType)
-            : this()
-        {
-            Contracts.CheckValue(rawType, nameof(rawType));
-            _rawType = rawType;
-            _rawType.TryGetDataKind(out _rawKind);
+            IsPrimitive = this is PrimitiveType;
+            IsVector = this is VectorType;
+            IsNumber = this is NumberType;
+            IsKey = this is KeyType;
         }
 
         /// <summary>
-        /// Internal sub types can pass both the rawType and rawKind values. This asserts that they
-        /// are consistent.
+        /// Constructor for extension types, which must be either <see cref="PrimitiveType"/> or <see cref="StructuredType"/>.
         /// </summary>
-        internal ColumnType(Type rawType, DataKind rawKind)
+        private protected ColumnType(Type rawType)
+            : this()
+        {
+            Contracts.CheckValue(rawType, nameof(rawType));
+            RawType = rawType;
+            RawType.TryGetDataKind(out var rawKind);
+            RawKind = rawKind;
+        }
+
+        /// <summary>
+        /// Internal sub types can pass both the <paramref name="rawType"/> and <paramref name="rawKind"/> values.
+        /// This asserts that they are consistent.
+        /// </summary>
+        private protected ColumnType(Type rawType, DataKind rawKind)
             : this()
         {
             Contracts.AssertValue(rawType);
@@ -57,42 +53,50 @@ namespace Microsoft.ML.Runtime.Data
             rawType.TryGetDataKind(out tmp);
             Contracts.Assert(tmp == rawKind);
 #endif
-            _rawType = rawType;
-            _rawKind = rawKind;
+            RawType = rawType;
+            RawKind = rawKind;
         }
 
         /// <summary>
-        /// The raw System.Type for this ColumnType. Note that this is the raw representation type
-        /// and NOT the complete information content of the ColumnType. Code should not assume that
-        /// a RawType uniquely identifiers a ColumnType.
+        /// The raw <see cref="Type"/> for this <see cref="ColumnType"/>. Note that this is the raw representation type
+        /// and not the complete information content of the <see cref="ColumnType"/>. Code should not assume that
+        /// a <see cref="RawType"/> uniquely identifiers a <see cref="ColumnType"/>. For example, most practical instances of
+        /// <see cref="KeyType"/> and <see cref="NumberType.U4"/> will have a <see cref="RawType"/> of <see cref="uint"/>,
+        /// but both are very different in the types of information conveyed in that number.
         /// </summary>
-        public Type RawType { get { return _rawType; } }
+        public Type RawType { get; }
 
         /// <summary>
-        /// The DataKind corresponding to RawType, if there is one (zero otherwise). It is equivalent
-        /// to the result produced by DataKindExtensions.TryGetDataKind(RawType, out kind).
+        /// The <see cref="DataKind"/> corresponding to <see cref="RawType"/>, if there is one (<c>default</c> otherwise).
+        /// It is equivalent to the result produced by <see cref="DataKindExtensions.TryGetDataKind(Type, out DataKind)"/>.
+        /// For external code it would be preferable to operate over <see cref="RawType"/>.
         /// </summary>
-        public DataKind RawKind { get { return _rawKind; } }
+        [BestFriend]
+        internal DataKind RawKind { get; }
 
         /// <summary>
-        /// Whether this is a primitive type.
+        /// Whether this is a primitive type. External code should use <c>is <see cref="PrimitiveType"/></c>.
         /// </summary>
-        public bool IsPrimitive { get { return _isPrimitive; } }
+        [BestFriend]
+        internal bool IsPrimitive { get; }
 
         /// <summary>
-        /// Equivalent to "this as PrimitiveType".
+        /// Equivalent to <c>as <see cref="PrimitiveType"/></c>.
         /// </summary>
-        public PrimitiveType AsPrimitive { get { return _isPrimitive ? (PrimitiveType)this : null; } }
+        [BestFriend]
+        internal PrimitiveType AsPrimitive => IsPrimitive ? (PrimitiveType)this : null;
 
         /// <summary>
-        /// Whether this type is a standard numeric type.
+        /// Whether this type is a standard numeric type. External code should use <c>is <see cref="NumberType"/></c>.
         /// </summary>
-        public bool IsNumber { get { return _isNumber; } }
+        [BestFriend]
+        internal bool IsNumber { get; }
 
         /// <summary>
-        /// Whether this type is the standard text type.
+        /// Whether this type is the standard text type. External code should use <c>is <see cref="TextType"/></c>.
         /// </summary>
-        public bool IsText
+        [BestFriend]
+        internal bool IsText
         {
             get
             {
@@ -105,9 +109,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard boolean type.
+        /// Whether this type is the standard boolean type. External code should use <c>is <see cref="BoolType"/></c>.
         /// </summary>
-        public bool IsBool
+        [BestFriend]
+        internal bool IsBool
         {
             get
             {
@@ -120,118 +125,93 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard <see cref="TimeSpanType"/> type.
+        /// Whether this type is a standard scalar type completely determined by its <see cref="RawType"/>
+        /// (not a <see cref="KeyType"/> or <see cref="StructuredType"/>, etc).
         /// </summary>
-        public bool IsTimeSpan
-        {
-            get
-            {
-                Contracts.Assert((this == TimeSpanType.Instance) == (this is TimeSpanType));
-                return this is TimeSpanType;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a <see cref="DateTimeType"/>.
-        /// </summary>
-        public bool IsDateTime
-        {
-            get
-            {
-                Contracts.Assert((this == DateTimeType.Instance) == (this is DateTimeType));
-                return this is DateTimeType;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a <see cref="DateTimeOffsetType"/>
-        /// </summary>
-        public bool IsDateTimeZone
-        {
-            get
-            {
-                Contracts.Assert((this == DateTimeOffsetType.Instance) == (this is DateTimeOffsetType));
-                return this is DateTimeOffsetType;
-            }
-        }
-
-        /// <summary>
-        /// Whether this type is a standard scalar type completely determined by its RawType
-        /// (not a KeyType or StructureType, etc).
-        /// </summary>
-        public bool IsStandardScalar
-        {
-            get { return IsNumber || IsText || IsBool || IsTimeSpan || IsDateTime || IsDateTimeZone; }
-        }
+        [BestFriend]
+        internal bool IsStandardScalar => IsNumber || IsText || IsBool ||
+            (this is TimeSpanType) || (this is DateTimeType) || (this is DateTimeOffsetType);
 
         /// <summary>
         /// Whether this type is a key type, which implies that the order of values is not significant,
         /// and arithmetic is non-sensical. A key type can define a cardinality.
+        /// External code should use <c>is <see cref="KeyType"/></c>.
         /// </summary>
-        public bool IsKey { get { return _isKey; } }
+        [BestFriend]
+        internal bool IsKey { get; }
 
         /// <summary>
-        /// Equivalent to "this as KeyType".
+        /// Equivalent to <c>as <see cref="KeyType"/></c>.
         /// </summary>
-        public KeyType AsKey { get { return _isKey ? (KeyType)this : null; } }
+        [BestFriend]
+        internal KeyType AsKey => IsKey ? (KeyType)this : null;
 
         /// <summary>
-        /// Zero return means either it's not a key type or the cardinality is unknown.
+        /// Zero return means either it's not a key type or the cardinality is unknown. External code should first
+        /// test whether this is of type <see cref="KeyType"/>, then if so get the <see cref="KeyType.Count"/> property
+        /// from that.
         /// </summary>
-        public int KeyCount { get { return KeyCountCore; } }
+        [BestFriend]
+        internal int KeyCount => KeyCountCore;
 
         /// <summary>
-        /// The only sub-class that should override this is KeyType!
+        /// The only sub-class that should override this is <see cref="KeyType"/>.
         /// </summary>
-        internal virtual int KeyCountCore { get { return 0; } }
+        private protected virtual int KeyCountCore => 0;
 
         /// <summary>
-        /// Whether this is a vector type.
+        /// Whether this is a vector type. External code should just check directly against whether this type
+        /// is <see cref="VectorType"/>.
         /// </summary>
-        public bool IsVector { get { return _isVector; } }
+        [BestFriend]
+        internal bool IsVector { get; }
 
         /// <summary>
-        /// Equivalent to "this as VectorType".
+        /// Equivalent to <c>as <see cref="VectorType"/></c>.
         /// </summary>
-        public VectorType AsVector { get { return _isVector ? (VectorType)this : null; } }
+        [BestFriend]
+        internal VectorType AsVector => IsVector ? (VectorType)this : null;
 
         /// <summary>
-        /// For non-vector types, this returns the column type itself (ie, return this).
+        /// For non-vector types, this returns the column type itself (i.e., return <c>this</c>).
         /// </summary>
-        public ColumnType ItemType { get { return ItemTypeCore; } }
+        [BestFriend]
+        internal ColumnType ItemType => ItemTypeCore;
 
         /// <summary>
         /// Whether this is a vector type with known size. Returns false for non-vector types.
-        /// Equivalent to VectorSize > 0.
+        /// Equivalent to <c><see cref="VectorSize"/> &gt; 0</c>.
         /// </summary>
-        public bool IsKnownSizeVector { get { return VectorSize > 0; } }
+        [BestFriend]
+        internal bool IsKnownSizeVector => VectorSize > 0;
 
         /// <summary>
-        /// Zero return means either it's not a vector or the size is unknown. Equivalent to
-        /// IsVector ? ValueCount : 0 and to IsKnownSizeVector ? ValueCount : 0.
+        /// Zero return means either it's not a vector or the size is unknown.
         /// </summary>
-        public int VectorSize { get { return VectorSizeCore; } }
+        [BestFriend]
+        internal int VectorSize => VectorSizeCore;
 
         /// <summary>
         /// For non-vectors, this returns one. For unknown size vectors, it returns zero.
         /// Equivalent to IsVector ? VectorSize : 1.
         /// </summary>
-        public int ValueCount { get { return ValueCountCore; } }
+        [BestFriend]
+        internal int ValueCount => ValueCountCore;
 
         /// <summary>
         /// The only sub-class that should override this is VectorType!
         /// </summary>
-        internal virtual ColumnType ItemTypeCore { get { return this; } }
+        private protected virtual ColumnType ItemTypeCore => this;
+
+        /// <summary>
+        /// The only sub-class that should override this is <see cref="VectorType"/>!
+        /// </summary>
+        private protected virtual int VectorSizeCore => 0;
 
         /// <summary>
         /// The only sub-class that should override this is VectorType!
         /// </summary>
-        internal virtual int VectorSizeCore { get { return 0; } }
-
-        /// <summary>
-        /// The only sub-class that should override this is VectorType!
-        /// </summary>
-        internal virtual int ValueCountCore { get { return 1; } }
+        private protected virtual int ValueCountCore => 1;
 
         // IEquatable<T> interface recommends also to override base class implementations of
         // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
@@ -243,7 +223,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Equivalent to calling Equals(ColumnType) for non-vector types. For vector type,
         /// returns true if current and other vector types have the same size and item type.
         /// </summary>
-        public bool SameSizeAndItemType(ColumnType other)
+        [BestFriend]
+        internal bool SameSizeAndItemType(ColumnType other)
         {
             if (other == null)
                 return false;
@@ -271,7 +252,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(!IsPrimitive);
         }
 
-        internal StructuredType(Type rawType, DataKind rawKind)
+        private protected StructuredType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
             Contracts.Assert(!IsPrimitive);
@@ -289,17 +270,18 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.Assert(IsPrimitive);
             Contracts.CheckParam(!typeof(IDisposable).IsAssignableFrom(RawType), nameof(rawType),
-                "A PrimitiveType cannot have a disposable RawType");
+                "A " + nameof(PrimitiveType) + " cannot have a disposable " + nameof(RawType));
         }
 
-        internal PrimitiveType(Type rawType, DataKind rawKind)
+        private protected PrimitiveType(Type rawType, DataKind rawKind)
             : base(rawType, rawKind)
         {
             Contracts.Assert(IsPrimitive);
             Contracts.Assert(!typeof(IDisposable).IsAssignableFrom(RawType));
         }
 
-        public static PrimitiveType FromKind(DataKind kind)
+        [BestFriend]
+        internal static PrimitiveType FromKind(DataKind kind)
         {
             if (kind == DataKind.TX)
                 return TextType.Instance;
@@ -344,10 +326,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return "Text";
-        }
+        public override string ToString() => "Text";
     }
 
     /// <summary>
@@ -486,51 +465,50 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static NumberType Float
-        {
-            get { return R4; }
-        }
+        public static NumberType Float => R4;
 
-        public static new NumberType FromKind(DataKind kind)
+        [BestFriend]
+        internal static new NumberType FromKind(DataKind kind)
         {
             switch (kind)
             {
-            case DataKind.I1:
-                return I1;
-            case DataKind.U1:
-                return U1;
-            case DataKind.I2:
-                return I2;
-            case DataKind.U2:
-                return U2;
-            case DataKind.I4:
-                return I4;
-            case DataKind.U4:
-                return U4;
-            case DataKind.I8:
-                return I8;
-            case DataKind.U8:
-                return U8;
-            case DataKind.R4:
-                return R4;
-            case DataKind.R8:
-                return R8;
-            case DataKind.UG:
-                return UG;
+                case DataKind.I1:
+                    return I1;
+                case DataKind.U1:
+                    return U1;
+                case DataKind.I2:
+                    return I2;
+                case DataKind.U2:
+                    return U2;
+                case DataKind.I4:
+                    return I4;
+                case DataKind.U4:
+                    return U4;
+                case DataKind.I8:
+                    return I8;
+                case DataKind.U8:
+                    return U8;
+                case DataKind.R4:
+                    return R4;
+                case DataKind.R8:
+                    return R8;
+                case DataKind.UG:
+                    return UG;
             }
 
             Contracts.Assert(false);
-            throw Contracts.Except("Bad data kind in NumericType.FromKind: {0}", kind);
+            throw Contracts.Except($"Bad data kind in {nameof(NumberType)}.{nameof(FromKind)}: {kind}");
         }
 
-        public static NumberType FromType(Type type)
+        [BestFriend]
+        internal static NumberType FromType(Type type)
         {
             DataKind kind;
             if (type.TryGetDataKind(out kind))
                 return FromKind(kind);
 
             Contracts.Assert(false);
-            throw Contracts.Except("Bad data kind in NumericType.FromKind: {0}", kind);
+            throw Contracts.Except($"Bad data kind in {nameof(NumberType)}.{nameof(FromType)}: {kind}", kind);
         }
 
         public override bool Equals(ColumnType other)
@@ -541,10 +519,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return _name;
-        }
+        public override string ToString() => _name;
     }
 
     /// <summary>
@@ -608,10 +583,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return "DateTime";
-        }
+        public override string ToString() => "DateTime";
     }
 
     public sealed class DateTimeOffsetType : PrimitiveType
@@ -640,10 +612,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return "DateTimeZone";
-        }
+        public override string ToString() => "DateTimeZone";
     }
 
     /// <summary>
@@ -675,10 +644,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return "TimeSpan";
-        }
+        public override string ToString() => "TimeSpan";
     }
 
     /// <summary>
@@ -699,24 +665,43 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class KeyType : PrimitiveType
     {
-        private readonly bool _contiguous;
-        private readonly ulong _min;
-        // _count is only valid if _contiguous is true. Zero means unknown.
-        private readonly int _count;
-
-        public KeyType(DataKind kind, ulong min, int count, bool contiguous = true)
-            : base(ToRawType(kind), kind)
+        private KeyType(Type type, DataKind kind, ulong min, int count, bool contiguous)
+            : base(type, kind)
         {
+            Contracts.AssertValue(type);
+            Contracts.Assert(kind.ToType() == type);
+
             Contracts.CheckParam(min >= 0, nameof(min));
-            Contracts.CheckParam(count >= 0, nameof(count), "count for key type must be non-negative");
+            Contracts.CheckParam(count >= 0, nameof(count), "Must be non-negative.");
             Contracts.CheckParam((ulong)count <= ulong.MaxValue - min, nameof(count));
             Contracts.CheckParam((ulong)count <= kind.ToMaxInt(), nameof(count));
-            Contracts.CheckParam(contiguous || count == 0, nameof(count), "count must be 0 for non-contiguous");
+            Contracts.CheckParam(contiguous || count == 0, nameof(count), "Must be 0 for non-contiguous");
 
-            _contiguous = contiguous;
-            _min = min;
-            _count = count;
+            Contiguous = contiguous;
+            Min = min;
+            Count = count;
             Contracts.Assert(IsKey);
+        }
+
+        public KeyType(Type type, ulong min, int count, bool contiguous = true)
+            : this(type, CheckRefRawType(type), min, count, contiguous)
+        {
+        }
+
+        [BestFriend]
+        internal KeyType(DataKind kind, ulong min, int count, bool contiguous = true)
+            : this(ToRawType(kind), kind, min, count, contiguous)
+        {
+        }
+
+        private static DataKind CheckRefRawType(Type type)
+        {
+            Contracts.CheckValue(type, nameof(type));
+            Contracts.CheckParam(IsValidDataType(type), nameof(type));
+            var result = type.TryGetDataKind(out var kind);
+            Contracts.Assert(result);
+            return kind;
+
         }
 
         private static Type ToRawType(DataKind kind)
@@ -726,31 +711,43 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Returns true iff the given DataKind is valid for a KeyType. The valid ones are
-        /// U1, U2, U4, and U8, that is, the unsigned integer kinds.
+        /// Returns true iff the given DataKind is valid for a <see cref="KeyType"/>. The valid ones are
+        /// <see cref="DataKind.U1"/>, <see cref="DataKind.U2"/>, <see cref="DataKind.U4"/>, and <see cref="DataKind.U8"/>,
+        /// that is, the unsigned integer kinds.
         /// </summary>
-        public static bool IsValidDataKind(DataKind kind)
+        [BestFriend]
+        internal static bool IsValidDataKind(DataKind kind)
         {
             switch (kind)
             {
-            case DataKind.U1:
-            case DataKind.U2:
-            case DataKind.U4:
-            case DataKind.U8:
-                return true;
-            default:
-                return false;
+                case DataKind.U1:
+                case DataKind.U2:
+                case DataKind.U4:
+                case DataKind.U8:
+                    return true;
+                default:
+                    return false;
             }
         }
 
-        internal override int KeyCountCore { get { return _count; } }
+        /// <summary>
+        /// Returns true iff the given type is valid for a <see cref="KeyType"/>. The valid ones are
+        /// <see cref="byte"/>, <see cref="ushort"/>, <see cref="uint"/>, and <see cref="ulong"/>, that is, the unsigned integer types.
+        /// </summary>
+        public static bool IsValidDataType(Type type)
+        {
+            Contracts.CheckValue(type, nameof(type));
+            return type == typeof(byte) || type == typeof(ushort) || type == typeof(uint) || type == typeof(ulong);
+        }
+
+        private protected override int KeyCountCore => Count;
 
         /// <summary>
         /// This is the Min of the key type for display purposes and conversion to/from text. The values
         /// actually stored always start at 1 (for the smallest legal value), with zero being reserved
         /// for "not there"/"none". Typical Min values are 0 or 1, but can be any value >= 0.
         /// </summary>
-        public ulong Min { get { return _min; } }
+        public ulong Min { get; }
 
         /// <summary>
         /// If this key type has contiguous values and a known cardinality, Count is that cardinality.
@@ -760,9 +757,9 @@ namespace Microsoft.ML.Runtime.Data
         /// representation. Note that an id of 0 is used to represent the notion "none", which is
         /// typically mapped to a vector of all zeros (of length Count).
         /// </summary>
-        public int Count { get { return _count; } }
+        public int Count { get; }
 
-        public bool Contiguous { get { return _contiguous; } }
+        public bool Contiguous { get; }
 
         public override bool Equals(ColumnType other)
         {
@@ -775,11 +772,11 @@ namespace Microsoft.ML.Runtime.Data
             if (RawKind != tmp.RawKind)
                 return false;
             Contracts.Assert(RawType == tmp.RawType);
-            if (_contiguous != tmp._contiguous)
+            if (Contiguous != tmp.Contiguous)
                 return false;
-            if (_min != tmp._min)
+            if (Min != tmp.Min)
                 return false;
-            if (_count != tmp._count)
+            if (Count != tmp.Count)
                 return false;
             return true;
         }
@@ -791,17 +788,17 @@ namespace Microsoft.ML.Runtime.Data
 
         public override int GetHashCode()
         {
-            return Hashing.CombinedHash(RawKind.GetHashCode(), _contiguous, _min, _count);
+            return Hashing.CombinedHash(RawKind.GetHashCode(), Contiguous, Min, Count);
         }
 
         public override string ToString()
         {
-            if (_count > 0)
-                return string.Format("Key<{0}, {1}-{2}>", RawKind.GetString(), _min, _min + (ulong)_count - 1);
-            if (_contiguous)
-                return string.Format("Key<{0}, {1}-*>", RawKind.GetString(), _min);
+            if (Count > 0)
+                return string.Format("Key<{0}, {1}-{2}>", RawKind.GetString(), Min, Min + (ulong)Count - 1);
+            if (Contiguous)
+                return string.Format("Key<{0}, {1}-*>", RawKind.GetString(), Min);
             // This is the non-contiguous case - simply show the Min.
-            return string.Format("Key<{0}, Min:{1}>", RawKind.GetString(), _min);
+            return string.Format("Key<{0}, Min:{1}>", RawKind.GetString(), Min);
         }
     }
 
@@ -810,74 +807,75 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class VectorType : StructuredType
     {
-        private readonly PrimitiveType _itemType;
-        private readonly int _size;
+        /// <summary>b
+        /// The dimensions. This will always have at least one item. All values will be non-negative.
+        /// As with <see cref="Size"/>, a zero value indicates that the vector type is considered to have
+        /// unknown length along that dimension.
+        /// </summary>
+        public ImmutableArray<int> Dimensions { get; }
 
-        // The _sizes are the cumulative products of the _dims. These may be null, meaning that
-        // the information is naturally one dimensional.
-        private readonly int[] _sizes;
-        private readonly int[] _dims;
-
+        /// <summary>
+        /// Constructs a new single-dimensional vector type.
+        /// </summary>
+        /// <param name="itemType">The type of the items contained in the vector.</param>
+        /// <param name="size">The size of the single dimension.</param>
         public VectorType(PrimitiveType itemType, int size = 0)
             : base(GetRawType(itemType), 0)
         {
             Contracts.CheckParam(size >= 0, nameof(size));
 
-            _itemType = itemType;
-            _size = size;
+            ItemType = itemType;
+            Size = size;
+            Dimensions = ImmutableArray.Create(Size);
         }
 
-        public VectorType(PrimitiveType itemType, params int[] dims)
-            : base(GetRawType(itemType), default(DataKind))
+        /// <summary>
+        /// Constructs a potentially multi-dimensional vector type.
+        /// </summary>
+        /// <param name="itemType">The type of the items contained in the vector.</param>
+        /// <param name="dimensions">The dimensions. Note that, like <see cref="Dimensions"/>, must be non-empty, with all
+        /// non-negative values. Also, because <see cref="Size"/> is the product of <see cref="Dimensions"/>, the result of
+        /// multiplying all these values together must not overflow <see cref="int"/>.</param>
+        public VectorType(PrimitiveType itemType, params int[] dimensions)
+            : base(GetRawType(itemType), default)
         {
+            Contracts.CheckParam(Utils.Size(dimensions) > 0, nameof(dimensions));
+            Contracts.CheckParam(dimensions.All(d => d >= 0), nameof(dimensions));
+
+            ItemType = itemType;
+            Dimensions = dimensions.ToImmutableArray();
+            Size = ComputeSize(Dimensions);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="VectorType"/> whose dimensionality information is the given <paramref name="template"/>'s information.
+        /// </summary>
+        [BestFriend]
+        internal VectorType(PrimitiveType itemType, VectorType template)
+            : base(GetRawType(itemType), default)
+        {
+            Contracts.CheckValue(template, nameof(template));
+
+            ItemType = itemType;
+            Dimensions = template.Dimensions;
+            Size = template.Size;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="VectorType"/> whose dimensionality information is the given <paramref name="template"/>'s information,
+        /// concatenated with the specified <paramref name="dims"/>.
+        /// </summary>
+        [BestFriend]
+        internal VectorType(PrimitiveType itemType, VectorType template, params int[] dims)
+            : base(GetRawType(itemType), default)
+        {
+            Contracts.CheckValue(template, nameof(template));
             Contracts.CheckParam(Utils.Size(dims) > 0, nameof(dims));
             Contracts.CheckParam(dims.All(d => d >= 0), nameof(dims));
 
-            _itemType = itemType;
-
-            if (dims.Length == 1)
-                _size = dims[0];
-            else
-            {
-                _dims = new int[dims.Length];
-                Array.Copy(dims, _dims, _dims.Length);
-                _size = ComputeSizes(_dims, out _sizes);
-            }
-        }
-
-        /// <summary>
-        /// Creates a VectorType whose dimensionality information is the given template's information.
-        /// </summary>
-        public VectorType(PrimitiveType itemType, VectorType template)
-            : base(GetRawType(itemType), default(DataKind))
-        {
-            Contracts.CheckValue(template, nameof(template));
-
-            _itemType = itemType;
-            _size = template._size;
-            _sizes = template._sizes;
-            _dims = template._dims;
-        }
-
-        /// <summary>
-        /// Creates a VectorType whose dimensionality information is the given template's information
-        /// concatenated with the specified dims.
-        /// </summary>
-        public VectorType(PrimitiveType itemType, VectorType template, params int[] dims)
-            : base(GetRawType(itemType), default(DataKind))
-        {
-            Contracts.CheckValue(template, nameof(template));
-
-            _itemType = itemType;
-
-            if (template._dims == null)
-                _dims = Utils.Concat(new int[] { template._size }, dims);
-            else
-            {
-                Contracts.Assert(template._dims.Length >= 2);
-                _dims = Utils.Concat(template._dims, dims);
-            }
-            _size = ComputeSizes(_dims, out _sizes);
+            ItemType = itemType;
+            Dimensions = template.Dimensions.AddRange(dims);
+            Size = ComputeSize(Dimensions);
         }
 
         private static Type GetRawType(PrimitiveType itemType)
@@ -886,60 +884,48 @@ namespace Microsoft.ML.Runtime.Data
             return typeof(VBuffer<>).MakeGenericType(itemType.RawType);
         }
 
-        private static int ComputeSizes(int[] dims, out int[] sizes)
+        private static int ComputeSize(ImmutableArray<int> dims)
         {
-            sizes = new int[dims.Length];
             int size = 1;
-            for (int i = dims.Length; --i >= 0; )
-                size = sizes[i] = checked(size * dims[i]);
+            for (int i = 0; i < dims.Length; ++i)
+                size = checked(size * dims[i]);
             return size;
         }
 
-        public int DimCount { get { return _dims != null ? _dims.Length : _size > 0 ? 1 : 0; } }
+        /// <summary>
+        /// The type of the items stored as values in vectors of this type.
+        /// </summary>
+        public new PrimitiveType ItemType { get; }
 
-        public int GetDim(int idim)
-        {
-            if (_dims == null)
-            {
-                // That that if _size is zero, DimCount is zero, so this method is illegal
-                // to call. That case is caught by Check(_size > 0).
-                Contracts.Check(_size > 0);
-                Contracts.Assert(DimCount == 1);
-                Contracts.CheckParam(idim == 0, nameof(idim));
-                return _size;
-            }
+        /// <summary>
+        /// The size of the vector. A value of zero means it is a vector whose size is unknown.
+        /// A vector whose size is known should correspond to values that always have the same <see cref="VBuffer{T}.Length"/>,
+        /// whereas one whose size is known may have values whose <see cref="VBuffer{T}.Length"/> varies from record to record.
+        /// Note that this is always the product of the elements in <see cref="Dimensions"/>.
+        /// </summary>
+        public int Size { get; }
 
-            Contracts.CheckParam(0 <= idim && idim < _dims.Length, nameof(idim));
-            return _dims[idim];
-        }
+        private protected override ColumnType ItemTypeCore => ItemType;
 
-        public new PrimitiveType ItemType { get { return _itemType; } }
+        private protected override int VectorSizeCore => Size;
 
-        internal override ColumnType ItemTypeCore { get { return _itemType; } }
-
-        internal override int VectorSizeCore { get { return _size; } }
-
-        internal override int ValueCountCore { get { return _size; } }
+        private protected override int ValueCountCore => Size;
 
         public override bool Equals(ColumnType other)
         {
             if (other == this)
                 return true;
-            var tmp = other.AsVector;
-            if (tmp == null)
+            if (!(other is VectorType tmp))
                 return false;
-            if (!_itemType.Equals(tmp._itemType))
+            if (!ItemType.Equals(tmp.ItemType))
                 return false;
-            if (_size != tmp._size)
+            if (Size != tmp.Size)
                 return false;
-            int count = Utils.Size(_dims);
-            if (count != Utils.Size(tmp._dims))
+            if (Dimensions.Length != tmp.Dimensions.Length)
                 return false;
-            if (count == 0)
-                return true;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Dimensions.Length; i++)
             {
-                if (_dims[i] != tmp._dims[i])
+                if (Dimensions[i] != tmp.Dimensions[i])
                     return false;
             }
             return true;
@@ -952,47 +938,26 @@ namespace Microsoft.ML.Runtime.Data
 
         public override int GetHashCode()
         {
-            int hash = Hashing.CombinedHash(_itemType.GetHashCode(), _size);
-            int count = Utils.Size(_dims);
-            hash = Hashing.CombineHash(hash, count.GetHashCode());
-            for (int i = 0; i < count; i++)
-                hash = Hashing.CombineHash(hash, _dims[i].GetHashCode());
+            int hash = Hashing.CombinedHash(ItemType.GetHashCode(), Size);
+            hash = Hashing.CombineHash(hash, Dimensions.Length);
+            for (int i = 0; i < Dimensions.Length; i++)
+                hash = Hashing.CombineHash(hash, Dimensions[i].GetHashCode());
             return hash;
-        }
-
-        /// <summary>
-        /// Returns true if current has the same item type of other, and the size
-        /// of other is unknown or the current size is equal to the size of other.
-        /// </summary>
-        public bool IsSubtypeOf(VectorType other)
-        {
-            if (other == this)
-                return true;
-            if (other == null)
-                return false;
-
-            // REVIEW: Perhaps we should allow the case when _itemType is
-            // a sub-type of other._itemType (in particular for key types)
-            if (!_itemType.Equals(other._itemType))
-                return false;
-            if (other._size == 0 || _size == other._size)
-                return true;
-            return false;
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("Vec<").Append(_itemType);
+            sb.Append("Vec<").Append(ItemType);
 
-            if (_dims == null)
+            if (Dimensions.Length == 1)
             {
-                if (_size > 0)
-                    sb.Append(", ").Append(_size);
+                if (Size > 0)
+                    sb.Append(", ").Append(Size);
             }
             else
             {
-                foreach (var dim in _dims)
+                foreach (var dim in Dimensions)
                 {
                     sb.Append(", ");
                     if (dim > 0)

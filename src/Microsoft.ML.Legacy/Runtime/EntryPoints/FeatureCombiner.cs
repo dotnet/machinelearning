@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using System;
@@ -16,6 +15,7 @@ using System.Linq;
 using System.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(FeatureCombiner), null, typeof(SignatureEntryPointModule), "FeatureCombiner")]
+
 namespace Microsoft.ML.Runtime.EntryPoints
 {
     public static class FeatureCombiner
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     throw ch.Except("No feature columns specified");
                 var featNames = new HashSet<string>();
                 var concatNames = new List<KeyValuePair<string, string>>();
-                List<ConvertingTransform.ColumnInfo> cvt;
+                List<TypeConvertingTransformer.ColumnInfo> cvt;
                 int errCount;
                 var ktv = ConvertFeatures(feats.ToArray(), featNames, concatNames, ch, out cvt, out errCount);
                 Contracts.Assert(featNames.Count > 0);
@@ -73,18 +73,18 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // (a key type) as a feature column. We convert that column to a vector so it is no longer valid
                 // as a group id. That's just one example - you get the idea.
                 string nameFeat = DefaultColumnNames.Features;
-                viewTrain = ConcatTransform.Create(host,
-                    new ConcatTransform.TaggedArguments()
+                viewTrain = ColumnConcatenatingTransformer.Create(host,
+                    new ColumnConcatenatingTransformer.TaggedArguments()
                     {
                         Column =
-                            new[] { new ConcatTransform.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
+                            new[] { new ColumnConcatenatingTransformer.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
                     },
                     viewTrain);
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, viewTrain, input.Data), OutputData = viewTrain };
             }
         }
 
-        private static IDataView ApplyKeyToVec(List<KeyToVectorTransform.ColumnInfo> ktv, IDataView viewTrain, IHost host)
+        private static IDataView ApplyKeyToVec(List<KeyToVectorMappingTransformer.ColumnInfo> ktv, IDataView viewTrain, IHost host)
         {
             Contracts.AssertValueOrNull(ktv);
             Contracts.AssertValue(viewTrain);
@@ -95,19 +95,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // when the user has slightly different key values between the training and testing set.
                 // The solution is to apply KeyToValue, then Term using the terms from the key metadata of the original key column
                 // and finally the KeyToVector transform.
-                viewTrain = new KeyToValueTransform(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
+                viewTrain = new KeyToValueMappingTransformer(host, ktv.Select(x => (x.Input, x.Output)).ToArray())
                     .Transform(viewTrain);
 
-                viewTrain = TermTransform.Create(host,
-                    new TermTransform.Arguments()
+                viewTrain = ValueToKeyMappingTransformer.Create(host,
+                    new ValueToKeyMappingTransformer.Arguments()
                     {
                         Column = ktv
-                            .Select(c => new TermTransform.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
+                            .Select(c => new ValueToKeyMappingTransformer.Column() { Name = c.Output, Source = c.Output, Terms = GetTerms(viewTrain, c.Input) })
                             .ToArray(),
                         TextKeyValues = true
                     },
                      viewTrain);
-                viewTrain = KeyToVectorTransform.Create(host, viewTrain, ktv.Select(c => new KeyToVectorTransform.ColumnInfo(c.Output, c.Output)).ToArray());
+                viewTrain = KeyToVectorMappingTransformer.Create(host, viewTrain, ktv.Select(c => new KeyToVectorMappingTransformer.ColumnInfo(c.Output, c.Output)).ToArray());
             }
             return viewTrain;
         }
@@ -129,33 +129,34 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return null;
             var sb = new StringBuilder();
             var pre = "";
-            for (int i = 0; i < metadata.Length; i++)
+            var metadataValues = metadata.GetValues();
+            for (int i = 0; i < metadataValues.Length; i++)
             {
                 sb.Append(pre);
-                sb.AppendMemory(metadata.Values[i]);
+                sb.AppendMemory(metadataValues[i]);
                 pre = ",";
             }
             return sb.ToString();
         }
 
-        private static IDataView ApplyConvert(List<ConvertingTransform.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
+        private static IDataView ApplyConvert(List<TypeConvertingTransformer.ColumnInfo> cvt, IDataView viewTrain, IHostEnvironment env)
         {
             Contracts.AssertValueOrNull(cvt);
             Contracts.AssertValue(viewTrain);
             Contracts.AssertValue(env);
             if (Utils.Size(cvt) > 0)
-                viewTrain = new ConvertingTransform(env,cvt.ToArray()).Transform(viewTrain);
+                viewTrain = new TypeConvertingTransformer(env,cvt.ToArray()).Transform(viewTrain);
             return viewTrain;
         }
 
-        private static List<KeyToVectorTransform.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
-            out List<ConvertingTransform.ColumnInfo> cvt, out int errCount)
+        private static List<KeyToVectorMappingTransformer.ColumnInfo> ConvertFeatures(ColumnInfo[] feats, HashSet<string> featNames, List<KeyValuePair<string, string>> concatNames, IChannel ch,
+            out List<TypeConvertingTransformer.ColumnInfo> cvt, out int errCount)
         {
             Contracts.AssertValue(feats);
             Contracts.AssertValue(featNames);
             Contracts.AssertValue(concatNames);
             Contracts.AssertValue(ch);
-            List<KeyToVectorTransform.ColumnInfo> ktv = null;
+            List<KeyToVectorMappingTransformer.ColumnInfo> ktv = null;
             cvt = null;
             errCount = 0;
             foreach (var col in feats)
@@ -173,7 +174,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         {
                             var colName = GetUniqueName();
                             concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                            Utils.Add(ref ktv, new KeyToVectorTransform.ColumnInfo(col.Name, colName));
+                            Utils.Add(ref ktv, new KeyToVectorMappingTransformer.ColumnInfo(col.Name, colName));
                             continue;
                         }
                     }
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         // This happens when the training is done on an XDF and the scoring is done on a data frame.
                         var colName = GetUniqueName();
                         concatNames.Add(new KeyValuePair<string, string>(col.Name, colName));
-                        Utils.Add(ref cvt, new ConvertingTransform.ColumnInfo(col.Name, colName, DataKind.R4));
+                        Utils.Add(ref cvt, new TypeConvertingTransformer.ColumnInfo(col.Name, colName, DataKind.R4));
                         continue;
                     }
                 }
@@ -241,20 +242,20 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new TermTransform.Arguments()
+            var args = new ValueToKeyMappingTransformer.Arguments()
             {
                 Column = new[]
                 {
-                    new TermTransform.Column()
+                    new ValueToKeyMappingTransformer.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
                         TextKeyValues = input.TextKeyValues,
-                        Sort = TermTransform.SortOrder.Value
+                        Sort = ValueToKeyMappingTransformer.SortOrder.Value
                     }
                 }
             };
-            var xf = TermTransform.Create(host, args, input.Data);
+            var xf = ValueToKeyMappingTransformer.Create(host, args, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -276,7 +277,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var xf = new KeyToValueTransform(host, input.PredictedLabelColumn).Transform(input.Data);
+            var xf = new KeyToValueMappingTransformer(host, input.PredictedLabelColumn).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -298,11 +299,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, nop, input.Data), OutputData = nop };
             }
 
-            var args = new ConvertingTransform.Arguments()
+            var args = new TypeConvertingTransformer.Arguments()
             {
                 Column = new[]
                 {
-                    new ConvertingTransform.Column()
+                    new TypeConvertingTransformer.Column()
                     {
                         Name = input.LabelColumn,
                         Source = input.LabelColumn,
@@ -310,7 +311,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     }
                 }
             };
-            var xf = new ConvertingTransform(host, new ConvertingTransform.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
+            var xf = new TypeConvertingTransformer(host, new TypeConvertingTransformer.ColumnInfo(input.LabelColumn, input.LabelColumn, DataKind.R4)).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

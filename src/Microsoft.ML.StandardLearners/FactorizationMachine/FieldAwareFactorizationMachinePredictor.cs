@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -145,7 +146,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             ctx.Writer.Write(FieldCount);
             ctx.Writer.Write(FeatureCount);
             ctx.Writer.Write(LatentDim);
-            ctx.Writer.WriteFloatArray(_linearWeights);
+            ctx.Writer.WriteSingleArray(_linearWeights);
             float[] latentWeights = new float[FeatureCount * FieldCount * LatentDim];
             for (int j = 0; j < FeatureCount; j++)
             {
@@ -157,7 +158,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                         latentWeights[vBias + k] = _latentWeightsAligned[vBiasAligned + k];
                 }
             }
-            ctx.Writer.WriteFloatArray(latentWeights);
+            ctx.Writer.WriteSingleArray(latentWeights);
         }
 
         internal float CalculateResponse(ValueGetter<VBuffer<float>>[] getters, VBuffer<float> featureBuffer,

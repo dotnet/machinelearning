@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
     /// </summary>
     public sealed class InputBuilder
     {
-        private struct Attributes
+        private readonly struct Attributes
         {
             public readonly ArgumentAttribute Input;
             public readonly TlcModule.RangeAttribute Range;

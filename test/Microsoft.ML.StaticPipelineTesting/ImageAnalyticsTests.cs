@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Xunit;
@@ -20,7 +19,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleImageSmokeTest()
         {
-            var env = new ConsoleEnvironment(0, verbose: true);
+            var env = new MLContext(0);
 
             var reader = TextLoader.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage().AsGrayscale().Resize(10, 8).ExtractPixels());
@@ -28,13 +27,13 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = reader.AsDynamic.GetOutputSchema();
             Assert.True(schema.TryGetColumnIndex("Data", out int col), "Could not find 'Data' column");
             var type = schema.GetColumnType(col);
-            Assert.True(type.IsKnownSizeVector, $"Type was supposed to be known size vector but was instead '{type}'");
-            var vecType = type.AsVector;
+            var vecType = type as VectorType;
+            Assert.True(vecType?.Size > 0, $"Type was supposed to be known size vector but was instead '{type}'");
             Assert.Equal(NumberType.R4, vecType.ItemType);
-            Assert.Equal(3, vecType.DimCount);
-            Assert.Equal(3, vecType.GetDim(0));
-            Assert.Equal(8, vecType.GetDim(1));
-            Assert.Equal(10, vecType.GetDim(2));
+            Assert.Equal(3, vecType.Dimensions.Length);
+            Assert.Equal(3, vecType.Dimensions[0]);
+            Assert.Equal(8, vecType.Dimensions[1]);
+            Assert.Equal(10, vecType.Dimensions[2]);
 
             var readAsImage = TextLoader.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage());

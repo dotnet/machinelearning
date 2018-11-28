@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Trainers.Online;
 using System;
 
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Trainers.Online
                     VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
-                return new LinearRegressionPredictor(ParentHost, ref weights, bias);
+                return new LinearRegressionPredictor(ParentHost, in weights, bias);
             }
         }
 
@@ -101,8 +102,8 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="advancedSettings">A delegate to supply advanced arguments to the algorithm. </param>
         public OnlineGradientDescentTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             float learningRate = Arguments.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,
@@ -182,5 +183,8 @@ namespace Microsoft.ML.Trainers.Online
 
         protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, Schema trainSchema)
         => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public RegressionPredictionTransformer<LinearRegressionPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
     }
 }

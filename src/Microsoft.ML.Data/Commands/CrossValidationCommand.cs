@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -21,7 +22,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class CrossValidationCommand : DataCommand.ImplBase<CrossValidationCommand.Arguments>
+    [BestFriend]
+    internal sealed class CrossValidationCommand : DataCommand.ImplBase<CrossValidationCommand.Arguments>
     {
         // REVIEW: We need a way to specify different data sets, not just LabeledExamples.
         public sealed class Arguments : DataCommand.ArgumentsBase
@@ -354,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class FoldHelper
         {
-            public struct FoldResult
+            public readonly struct FoldResult
             {
                 public readonly Dictionary<string, IDataView> Metrics;
                 public readonly Schema ScoreSchema;

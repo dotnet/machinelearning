@@ -24,7 +24,7 @@ namespace Microsoft.ML
         public static OneHotEncodingEstimator OneHotEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string inputColumn,
                 string outputColumn = null,
-                CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
+                OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
             => new OneHotEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
 
         /// <summary>
@@ -43,13 +43,17 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="inputColumn">The input column</param>
         /// <param name="outputColumn">The output column. If <c>null</c>, <paramref name="inputColumn"/> is used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         /// <param name="outputKind">The conversion mode.</param>
         /// <returns></returns>
         public static OneHotHashEncodingEstimator OneHotHashEncoding(this TransformsCatalog.CategoricalTransforms catalog,
                 string inputColumn,
                 string outputColumn = null,
-                CategoricalTransform.OutputKind outputKind = CategoricalTransform.OutputKind.Ind)
-            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, outputKind);
+                int hashBits = OneHotHashEncodingEstimator.Defaults.HashBits,
+                int invertHash = OneHotHashEncodingEstimator.Defaults.InvertHash,
+                OneHotEncodingTransformer.OutputKind outputKind = OneHotEncodingTransformer.OutputKind.Ind)
+            => new OneHotHashEncodingEstimator(CatalogUtils.GetEnvironment(catalog), inputColumn, outputColumn, hashBits, invertHash, outputKind);
 
         /// <summary>
         /// Convert several text column into hash-based one-hot encoded vectors.

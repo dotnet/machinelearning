@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Trainers.Online
                     bias = TotalBias / (float)NumWeightUpdates;
                 }
 
-                return new LinearBinaryPredictor(ParentHost, ref weights, bias);
+                return new LinearBinaryPredictor(ParentHost, in weights, bias);
             }
         }
 
@@ -96,8 +97,8 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         /// <param name="env">The local instance of the <see cref="IHostEnvironment"/></param>
         /// <param name="lossFunction">The classification loss function. </param>
-        /// <param name="label">The name of the label column. </param>
-        /// <param name="features">The name of the feature column.</param>
+        /// <param name="labelColumn">The name of the label column. </param>
+        /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weights">The optional name of the weights column.</param>
         /// <param name="learningRate">The learning rate. </param>
         /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
@@ -105,8 +106,8 @@ namespace Microsoft.ML.Trainers.Online
         /// <param name="numIterations">The number of training iteraitons.</param>
         /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         public AveragedPerceptronTrainer(IHostEnvironment env,
-            string label,
-            string features,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weights = null,
             IClassificationLoss lossFunction = null,
             float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
@@ -116,8 +117,8 @@ namespace Microsoft.ML.Trainers.Online
             Action<Arguments> advancedSettings = null)
             : this(env, InvokeAdvanced(advancedSettings, new Arguments
             {
-                LabelColumn = label,
-                FeatureColumn = features,
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
                 InitialWeights = weights,
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
@@ -182,11 +183,14 @@ namespace Microsoft.ML.Trainers.Online
         protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public BinaryPredictionTransformer<LinearBinaryPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
+
         [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
-            Desc = Summary,
-            UserName = UserNameValue,
-            ShortName = ShortName,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
+             Desc = Summary,
+             UserName = UserNameValue,
+             ShortName = ShortName,
+             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {

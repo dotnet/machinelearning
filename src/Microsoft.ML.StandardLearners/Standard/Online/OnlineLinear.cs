@@ -70,7 +70,7 @@ namespace Microsoft.ML.Trainers.Online
             public int Iteration;
 
             /// <summary>
-            /// The number of examples in the current iteration. Incremented by <see cref="ProcessDataInstance(IChannel, ref VBuffer{Float}, Float, Float)"/>,
+            /// The number of examples in the current iteration. Incremented by <see cref="ProcessDataInstance(IChannel, in VBuffer{Float}, Float, Float)"/>,
             /// and reset by <see cref="BeginIteration(IChannel)"/>.
             /// </summary>
             public long NumIterExamples;
@@ -130,16 +130,18 @@ namespace Microsoft.ML.Trainers.Online
                             numFeatures + 1, numFeatures);
                     }
 
-                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
+                    var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        Weights.Values[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                        weightValues[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                    Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = Float.Parse(weightStr[numFeatures], CultureInfo.InvariantCulture);
                 }
                 else if (parent.Args.InitWtsDiameter > 0)
                 {
-                    Weights = VBufferUtils.CreateDense<Float>(numFeatures);
+                    var weightValues = new float[numFeatures];
                     for (int i = 0; i < numFeatures; i++)
-                        Weights.Values[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                        weightValues[i] = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
+                    Weights = new VBuffer<float>(numFeatures, weightValues);
                     Bias = parent.Args.InitWtsDiameter * (parent.Host.Rand.NextSingle() - (Float)0.5);
                 }
                 else if (numFeatures <= 1000)
@@ -200,25 +202,25 @@ namespace Microsoft.ML.Trainers.Online
             /// <summary>
             /// This should be overridden by derived classes. This implementation simply increments <see cref="NumIterExamples"/>.
             /// </summary>
-            public virtual void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+            public virtual void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
             {
-                ch.Assert(FloatUtils.IsFinite(feat.Values, feat.Count));
+                ch.Assert(FloatUtils.IsFinite(feat.GetValues()));
                 ++NumIterExamples;
             }
 
             /// <summary>
             /// Return the raw margin from the decision hyperplane
             /// </summary>
-            public Float CurrentMargin(ref VBuffer<Float> feat)
-                => Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            public Float CurrentMargin(in VBuffer<Float> feat)
+                => Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
 
             /// <summary>
-            /// The default implementation just calls <see cref="CurrentMargin(ref VBuffer{Float})"/>.
+            /// The default implementation just calls <see cref="CurrentMargin(in VBuffer{Float})"/>.
             /// </summary>
             /// <param name="feat"></param>
             /// <returns></returns>
-            public virtual Float Margin(ref VBuffer<Float> feat)
-                => CurrentMargin(ref feat);
+            public virtual Float Margin(in VBuffer<Float> feat)
+                => CurrentMargin(in feat);
 
             public abstract TModel CreatePredictor();
         }
@@ -254,7 +256,7 @@ namespace Microsoft.ML.Trainers.Online
             return args;
         }
 
-        protected sealed override TModel TrainModelCore(TrainContext context)
+        private protected sealed override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor;
@@ -271,7 +273,7 @@ namespace Microsoft.ML.Trainers.Online
                 TrainCore(ch, data, state);
 
                 ch.Assert(state.WeightsScale == 1);
-                Float maxNorm = Math.Max(VectorUtils.MaxNorm(ref state.Weights), Math.Abs(state.Bias));
+                Float maxNorm = Math.Max(VectorUtils.MaxNorm(in state.Weights), Math.Abs(state.Bias));
                 ch.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
                 return state.CreatePredictor();
@@ -299,7 +301,7 @@ namespace Microsoft.ML.Trainers.Online
                 using (var cursor = cursorFactory.Create(rand))
                 {
                     while (cursor.MoveNext())
-                        state.ProcessDataInstance(ch, ref cursor.Features, cursor.Label, cursor.Weight);
+                        state.ProcessDataInstance(ch, in cursor.Features, cursor.Label, cursor.Weight);
                     numBad += cursor.BadFeaturesRowCount;
                 }
 

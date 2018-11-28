@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Legacy.Models
 {
@@ -70,16 +69,14 @@ namespace Microsoft.ML.Legacy.Models
         /// <param name="model">Model that needs to be converted to ONNX format.</param>
         public void Convert(PredictionModel model)
         {
-            using (var environment = new ConsoleEnvironment())
-            {
-                environment.CheckValue(model, nameof(model));
+            var environment = new MLContext();
+            environment.CheckValue(model, nameof(model));
 
-                Experiment experiment = environment.CreateExperiment();
-                experiment.Add(this);
-                experiment.Compile();
-                experiment.SetInput(Model, model.PredictorModel);
-                experiment.Run();
-            }
+            Experiment experiment = environment.CreateExperiment();
+            experiment.Add(this);
+            experiment.Compile();
+            experiment.SetInput(Model, model.PredictorModel);
+            experiment.Run();
         }
     }
 }

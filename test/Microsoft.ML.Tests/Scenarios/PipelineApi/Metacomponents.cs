@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
 {
+#pragma warning disable 612, 618
     public partial class PipelineApiScenarioTests
     {
         /// <summary>
@@ -39,4 +40,5 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var prediction = model.Predict(new IrisData { PetalLength = 1, PetalWidth = 2, SepalLength = 1.4f, SepalWidth = 1.6f });
         }
     }
+#pragma warning restore 612, 618
 }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Legacy.Transforms;
 using System;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Legacy
 {
@@ -16,6 +18,7 @@ namespace Microsoft.ML.Legacy
     /// The debug proxy class for a LearningPipeline.
     /// Displays the current columns and values in the debugger Watch window.
     /// </summary>
+    [Obsolete]
     internal sealed class LearningPipelineDebugProxy
     {
         // load more rows than we display in order for transforms like CategoricalOneHotVectorizer
@@ -25,7 +28,7 @@ namespace Microsoft.ML.Legacy
         private const int MaxSlotNamesToDisplay = 100;
 
         private readonly LearningPipeline _pipeline;
-        private readonly ConsoleEnvironment _environment;
+        private readonly IHostEnvironment _environment;
         private IDataView _preview;
         private Exception _pipelineExecutionException;
         private PipelineItemDebugColumn[] _columns;
@@ -39,7 +42,7 @@ namespace Microsoft.ML.Legacy
             _pipeline = new LearningPipeline();
 
             // use a ConcurrencyFactor of 1 so other threads don't need to run in the debugger
-            _environment = new ConsoleEnvironment(conc: 1);
+            _environment = new MLContext(conc: 1);
 
             foreach (ILearningPipelineItem item in pipeline)
             {
@@ -220,6 +223,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     [DebuggerDisplay("{Name} {Type}{SlotNames}")]
     internal class PipelineItemDebugColumn
     {
@@ -233,6 +237,7 @@ namespace Microsoft.ML.Legacy
         }
     }
 
+    [Obsolete]
     [DebuggerDisplay("{Values}")]
     internal class PipelineItemDebugRow
     {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -9,7 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.FeatureSelection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -303,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
                                     continue;
                                 var centroidJ = _clusterCentroids[j];
                                 Double num = _distancesToCentroids[i] + _distancesToCentroids[j];
-                                Single denom = VectorUtils.Distance(ref centroidI, ref centroidJ);
+                                Single denom = VectorUtils.Distance(in centroidI, in centroidJ);
                                 maxi = Math.Max(maxi, num / denom);
                             }
 
@@ -364,11 +365,11 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public void UpdateSecondPass(ref VBuffer<Single> features, int[] indices)
+                public void UpdateSecondPass(in VBuffer<Single> features, int[] indices)
                 {
                     int assigned = indices[0];
 
-                    var distance = VectorUtils.Distance(ref _clusterCentroids[assigned], ref features);
+                    var distance = VectorUtils.Distance(in _clusterCentroids[assigned], in features);
                     _distancesToCentroids[assigned] += distance;
                 }
             }
@@ -431,7 +432,7 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
 
-                if (VBufferUtils.HasNaNs(ref _scores) || VBufferUtils.HasNonFinite(ref _scores))
+                if (VBufferUtils.HasNaNs(in _scores) || VBufferUtils.HasNonFinite(in _scores))
                 {
                     NumBadScores++;
                     return;
@@ -459,7 +460,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_clusterCentroids != null)
                 {
                     _featGetter(ref _features);
-                    VectorUtils.Add(ref _features, ref _clusterCentroids[_indicesArr[0]]);
+                    VectorUtils.Add(in _features, ref _clusterCentroids[_indicesArr[0]]);
                 }
             }
 
@@ -471,16 +472,16 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _scores);
                 Host.Check(_scores.Length == _scoresArr.Length);
 
-                if (VBufferUtils.HasNaNs(ref _scores) || VBufferUtils.HasNonFinite(ref _scores))
+                if (VBufferUtils.HasNaNs(in _scores) || VBufferUtils.HasNonFinite(in _scores))
                     return;
                 _scores.CopyTo(_scoresArr);
                 int j = 0;
                 foreach (var index in Enumerable.Range(0, _scoresArr.Length).OrderBy(i => _scoresArr[i]))
                     _indicesArr[j++] = index;
 
-                UnweightedCounters.UpdateSecondPass(ref _features, _indicesArr);
+                UnweightedCounters.UpdateSecondPass(in _features, _indicesArr);
                 if (WeightedCounters != null)
-                    WeightedCounters.UpdateSecondPass(ref _features, _indicesArr);
+                    WeightedCounters.UpdateSecondPass(in _features, _indicesArr);
             }
 
             public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
@@ -731,12 +732,10 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<Single> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new Single[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<Single>(_numClusters, values);
+                            editor.Values[i] = scores.GetItemOrDefault(sortedIndices[i]);
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
@@ -747,33 +746,31 @@ namespace Microsoft.ML.Runtime.Data
                     (ref VBuffer<uint> dst) =>
                     {
                         updateCacheIfNeeded();
-                        var values = dst.Values;
-                        if (Utils.Size(values) < _numClusters)
-                            values = new uint[_numClusters];
+                        var editor = VBufferEditor.Create(ref dst, _numClusters);
                         for (int i = 0; i < _numClusters; i++)
-                            values[i] = (uint)sortedIndices[i] + 1;
-                        dst = new VBuffer<uint>(_numClusters, values);
+                            editor.Values[i] = (uint)sortedIndices[i] + 1;
+                        dst = editor.Commit();
                     };
                 getters[SortedClusterCol] = topKClassesFn;
             }
             return getters;
         }
 
-        public override Schema.Column[] GetOutputColumns()
+        public override Schema.DetachedColumn[] GetOutputColumns()
         {
-            var infos = new Schema.Column[3];
-            infos[ClusterIdCol] = new Schema.Column(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.DetachedColumn[3];
+            infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new Schema.Metadata.Builder();
+            var sortedClusters = new MetadataBuilder();
             sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            var sortedClusterScores = new Schema.Metadata.Builder();
-            sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+            var builder = new MetadataBuilder();
+            builder.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
-            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
+            infos[SortedClusterCol] = new Schema.DetachedColumn(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.DetachedColumn(SortedClusterScores, _types[SortedClusterScoreCol], builder.GetMetadata());
             return infos;
         }
 
@@ -783,12 +780,10 @@ namespace Microsoft.ML.Runtime.Data
             return
                 (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
-                    var values = dst.Values;
-                    if (Utils.Size(values) < numTopClusters)
-                        values = new ReadOnlyMemory<char>[numTopClusters];
+                    var editor = VBufferEditor.Create(ref dst, numTopClusters);
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = $"#{i} {suffix}".AsMemory();
-                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
+                        editor.Values[i - 1] = $"#{i} {suffix}".AsMemory();
+                    dst = editor.Commit();
                 };
         }
 
@@ -882,50 +877,14 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
-                {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = ClusteringPerInstanceEvaluator.SortedClusters,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClusters
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                    perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusters, min: _numTopClusters).Transform(perInst);
             }
 
             if (perInst.Schema.TryGetColumnIndex(ClusteringPerInstanceEvaluator.SortedClusterScores, out index))
             {
                 var type = perInst.Schema.GetColumnType(index);
                 if (_numTopClusters < type.VectorSize)
-                {
-                    var args = new DropSlotsTransform.Arguments
-                    {
-                        Column = new DropSlotsTransform.Column[]
-                        {
-                            new DropSlotsTransform.Column()
-                            {
-                                Name = ClusteringPerInstanceEvaluator.SortedClusterScores,
-                                Slots = new[] {
-                                    new DropSlotsTransform.Range()
-                                    {
-                                        Min = _numTopClusters
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    perInst = new DropSlotsTransform(Host, args, perInst);
-                }
+                    perInst = new SlotsDroppingTransformer(Host, ClusteringPerInstanceEvaluator.SortedClusterScores, min: _numTopClusters).Transform(perInst);
             }
             return perInst;
         }

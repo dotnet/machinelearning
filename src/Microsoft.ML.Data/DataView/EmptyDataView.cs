@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -25,7 +26,7 @@ namespace Microsoft.ML.Runtime.Data
             Schema = schema;
         }
 
-        public long? GetRowCount(bool lazy = true) => 0;
+        public long? GetRowCount() => 0;
 
         public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
         {

@@ -113,6 +113,7 @@
   <!-- Taken from https://github.com/dotnet/sdk/blob/073c98b92c81066c6c2e17c3674adbb6e833409a/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.Sdk.props#L41-L47 -->
   <PropertyGroup Condition="'$(Configuration)' == 'Debug-Intrinsics'">
     <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>$(DefineContants);DEBUG</DefineConstants>
     <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release-Intrinsics'">

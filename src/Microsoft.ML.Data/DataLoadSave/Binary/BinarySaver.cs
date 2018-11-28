@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// This is a simple struct to associate a source index with a codec, without having to have
         /// parallel structures everywhere.
         /// </summary>
-        private struct ColumnCodec
+        private readonly struct ColumnCodec
         {
             public readonly int SourceIndex;
             public readonly IValueCodec Codec;
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 Contracts.Assert(_writer != null);
                 _getter(ref _value);
-                _writer.Write(ref _value);
+                _writer.Write(in _value);
             }
 
             public override MemoryStream EndBlock()
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// also have a dual usage if <see cref="Exception"/> is non-null of indicating
         /// a source worker threw an exception.
         /// </summary>
-        private struct Block
+        private readonly struct Block
         {
             /// <summary>
             /// Take one guess.
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             MemoryStream uncompressedMem = _memPool.Get();
             using (IValueWriter<T> writer = codec.OpenWriter(uncompressedMem))
             {
-                writer.Write(ref value);
+                writer.Write(in value);
                 writer.Commit();
             }
             MemoryStream compressedMem = _memPool.Get();
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             fetchWriteEstimator = () =>
             {
                 getter(ref val);
-                specificWriter.Write(ref val);
+                specificWriter.Write(in val);
                 return specificWriter.GetCommitLengthEstimate();
             };
         }
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             using (var writer = codecT.OpenWriter(stream))
             {
-                writer.Write(ref value);
+                writer.Write(in value);
                 bytesWritten += (int)writer.GetCommitLengthEstimate();
                 writer.Commit();
             }

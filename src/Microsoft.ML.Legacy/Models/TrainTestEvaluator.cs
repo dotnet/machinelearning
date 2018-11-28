@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Microsoft.ML.Legacy.Models
             where TInput : class
             where TOutput : class, new()
         {
-            using (var environment = new ConsoleEnvironment())
+            var environment = new MLContext();
             {
                 Experiment subGraph = environment.CreateExperiment();
                 ILearningPipelineStep step = null;
@@ -174,6 +175,7 @@ namespace Microsoft.ML.Legacy.Models
         }
     }
 
+    [Obsolete]
     public class TrainTestEvaluatorOutput<TInput, TOutput>
             where TInput : class
             where TOutput : class, new()

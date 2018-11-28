@@ -3,13 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
@@ -44,9 +45,9 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// Initializes a new instance of <see cref="LightGbmMulticlassTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="labelColumn">The name of the labelColumn column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="weights">The name for the column containing the initial weight.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
@@ -56,22 +57,22 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LightGbmMulticlassTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
-            string weightColumn = null,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumn), featureColumn, weightColumn, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeU4ScalarColumn(labelColumn), featureColumn, weights, null, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
             _numClass = -1;
         }
 
-        private Ensemble GetBinaryEnsemble(int classID)
+        private TreeEnsemble GetBinaryEnsemble(int classID)
         {
-            var res = new Ensemble();
+            var res = new TreeEnsemble();
             for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numClass)
             {
                 // Ignore dummy trees.
@@ -124,23 +125,23 @@ namespace Microsoft.ML.Runtime.LightGBM
                 float minLabel = float.MaxValue;
                 float maxLabel = float.MinValue;
                 bool hasNaNLabel = false;
-                foreach (var label in labels)
+                foreach (var labelColumn in labels)
                 {
-                    if (float.IsNaN(label))
+                    if (float.IsNaN(labelColumn))
                         hasNaNLabel = true;
                     else
                     {
-                        minLabel = Math.Min(minLabel, label);
-                        maxLabel = Math.Max(maxLabel, label);
+                        minLabel = Math.Min(minLabel, labelColumn);
+                        maxLabel = Math.Max(maxLabel, labelColumn);
                     }
                 }
-                ch.CheckParam(minLabel >= 0, nameof(data), "min label cannot be negative");
+                ch.CheckParam(minLabel >= 0, nameof(data), "min labelColumn cannot be negative");
                 if (maxLabel >= _maxNumClass)
-                    throw ch.ExceptParam(nameof(data), $"max label cannot exceed {_maxNumClass}");
+                    throw ch.ExceptParam(nameof(data), $"max labelColumn cannot exceed {_maxNumClass}");
 
                 if (data.Schema.Label.Type.IsKey)
                 {
-                    ch.Check(data.Schema.Label.Type.AsKey.Contiguous, "label value should be contiguous");
+                    ch.Check(data.Schema.Label.Type.AsKey.Contiguous, "labelColumn value should be contiguous");
                     if (hasNaNLabel)
                         _numClass = data.Schema.Label.Type.AsKey.Count + 1;
                     else
@@ -162,7 +163,7 @@ namespace Microsoft.ML.Runtime.LightGBM
                     labels[i] = defaultLabel;
         }
 
-        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg=false)
+        protected override void GetDefaultParameters(IChannel ch, int numRow, bool hasCategorical, int totalCats, bool hiddenMsg = false)
         {
             base.GetDefaultParameters(ch, numRow, hasCategorical, totalCats, true);
             int numLeaves = (int)Options["num_leaves"];
@@ -216,13 +217,16 @@ namespace Microsoft.ML.Runtime.LightGBM
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.MetadataForMulticlassScoreColumn(labelCol))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
             };
         }
 
         protected override MulticlassPredictionTransformer<OvaPredictor> MakeTransformer(OvaPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<OvaPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        public MulticlassPredictionTransformer<OvaPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
     }
 
     /// <summary>

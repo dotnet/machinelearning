@@ -44,23 +44,107 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         [StructLayout(LayoutKind.Explicit)]
         private struct MFParameter
         {
+            /// <summary>
+            /// Enum of loss functions which can be minimized.
+            ///  0: square loss for regression.
+            ///  1: absolute loss for regression.
+            ///  2: KL-divergence for regression.
+            ///  5: logistic loss for binary classification.
+            ///  6: squared hinge loss for binary classification.
+            ///  7: hinge loss for binary classification.
+            ///  10: row-wise Bayesian personalized ranking.
+            ///  11: column-wise Bayesian personalized ranking.
+            ///  12: squared loss for implicit-feedback matrix factorization.
+            /// Fun 12 is solved by a coordinate descent method while other functions invoke
+            /// a stochastic gradient method.
+            /// </summary>
             [FieldOffset(0)]
-            public int K;
+            public int Fun;
+
+            /// <summary>
+            /// Rank of factor matrices.
+            /// </summary>
             [FieldOffset(4)]
-            public int NrThreads;
+            public int K;
+
+            /// <summary>
+            /// Number of threads which can be used for training.
+            /// </summary>
             [FieldOffset(8)]
-            public int NrBins;
+            public int NrThreads;
+
+            /// <summary>
+            /// Number of blocks that the training matrix is divided into. The parallel stochastic gradient
+            /// method in LIBMF processes assigns each thread a block at one time. The ratings in one block
+            /// would be sequentially accessed (not randomaly accessed like standard stochastic gradient methods).
+            /// </summary>
             [FieldOffset(12)]
-            public int NrIters;
+            public int NrBins;
+
+            /// <summary>
+            /// Number of training iteration. At one iteration, all values in the training matrix are roughly accessed once.
+            /// </summary>
             [FieldOffset(16)]
-            public float Lambda;
+            public int NrIters;
+
+            /// <summary>
+            /// L1-norm regularization coefficient of left factor matrix.
+            /// </summary>
             [FieldOffset(20)]
-            public float Eta;
+            public float LambdaP1;
+
+            /// <summary>
+            /// L2-norm regularization coefficient of left factor matrix.
+            /// </summary>
             [FieldOffset(24)]
-            public int DoNmf;
+            public float LambdaP2;
+
+            /// <summary>
+            /// L1-norm regularization coefficient of right factor matrix.
+            /// </summary>
             [FieldOffset(28)]
-            public int Quiet;
+            public float LambdaQ1;
+
+            /// <summary>
+            /// L2-norm regularization coefficient of right factor matrix.
+            /// </summary>
             [FieldOffset(32)]
+            public float LambdaQ2;
+
+            /// <summary>
+            /// Learning rate of LIBMF's stochastic gradient method.
+            /// </summary>
+            [FieldOffset(36)]
+            public float Eta;
+
+            /// <summary>
+            /// Coefficient of loss function on unobserved entries in the training matrix. It's used only with fun=12.
+            /// </summary>
+            [FieldOffset(40)]
+            public float Alpha;
+
+            /// <summary>
+            /// Desired value of unobserved entries in the training matrix. It's used only with fun=12.
+            /// </summary>
+            [FieldOffset(44)]
+            public float C;
+
+            /// <summary>
+            /// Specify if the factor matrices should be non-negative.
+            /// </summary>
+            [FieldOffset(48)]
+            public int DoNmf;
+
+            /// <summary>
+            /// Set to true so that LIBMF may produce less information to STDOUT.
+            /// </summary>
+            [FieldOffset(52)]
+            public int Quiet;
+
+            /// <summary>
+            /// Set to false so that LIBMF may reuse and modifiy the data passed in.
+            /// </summary>
+            [FieldOffset(56)]
             public int CopyData;
         }
 
@@ -68,14 +152,36 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         private unsafe struct MFModel
         {
             [FieldOffset(0)]
-            public int M;
+            public int Fun;
+            /// <summary>
+            /// Number of rows in the training matrix.
+            /// </summary>
             [FieldOffset(4)]
-            public int N;
+            public int M;
+            /// <summary>
+            /// Number of columns in the training matrix.
+            /// </summary>
             [FieldOffset(8)]
+            public int N;
+            /// <summary>
+            /// Rank of factor matrices.
+            /// </summary>
+            [FieldOffset(12)]
             public int K;
+            /// <summary>
+            /// Average value in the training matrix.
+            /// </summary>
             [FieldOffset(16)]
+            public float B;
+            /// <summary>
+            /// Left factor matrix. Its shape is M-by-K stored in row-major format.
+            /// </summary>
+            [FieldOffset(24)] // pointer is 8-byte on 64-bit machine.
             public float* P;
-            [FieldOffset(24)]
+            /// <summary>
+            /// Right factor matrix. Its shape is N-by-K stored in row-major format.
+            /// </summary>
+            [FieldOffset(32)] // pointer is 8-byte on 64-bit machine.
             public float* Q;
         }
 
@@ -100,16 +206,23 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         private unsafe MFModel* _pMFModel;
         private readonly IHost _host;
 
-        public SafeTrainingAndModelBuffer(IHostEnvironment env, int k, int nrBins, int nrThreads, int nrIters, double lambda, double eta,
+        public SafeTrainingAndModelBuffer(IHostEnvironment env, int fun, int k, int nrThreads,
+            int nrBins, int nrIters, double lambda, double eta, double alpha, double c,
             bool doNmf, bool quiet, bool copyData)
         {
             _host = env.Register("SafeTrainingAndModelBuffer");
+            _mfParam.Fun = fun;
             _mfParam.K = k;
-            _mfParam.NrBins = nrBins;
             _mfParam.NrThreads = nrThreads;
+            _mfParam.NrBins = nrBins;
             _mfParam.NrIters = nrIters;
-            _mfParam.Lambda = (float)lambda;
+            _mfParam.LambdaP1 = 0;
+            _mfParam.LambdaP2 = (float)lambda;
+            _mfParam.LambdaQ1 = 0;
+            _mfParam.LambdaQ2 = (float)lambda;
             _mfParam.Eta = (float)eta;
+            _mfParam.Alpha = (float)alpha;
+            _mfParam.C = (float)c;
             _mfParam.DoNmf = doNmf ? 1 : 0;
             _mfParam.Quiet = quiet ? 1 : 0;
             _mfParam.CopyData = copyData ? 1 : 0;

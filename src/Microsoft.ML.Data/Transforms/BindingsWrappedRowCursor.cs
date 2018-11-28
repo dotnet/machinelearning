@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
@@ -11,7 +13,7 @@ namespace Microsoft.ML.Runtime.Data
     /// inconvenient or inefficient to handle the "no output selected" case in their
     /// own implementation.
     /// </summary>
-    public sealed class BindingsWrappedRowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+    internal sealed class BindingsWrappedRowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
     {
         private readonly ColumnBindingsBase _bindings;
 

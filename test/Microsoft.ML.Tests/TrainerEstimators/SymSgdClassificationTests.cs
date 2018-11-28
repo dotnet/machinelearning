@@ -18,8 +18,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
-            pipe = pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
-            TestEstimatorCore(pipe, dataView);
+            var trainer = new SymSgdClassificationTrainer(Env, "Label", "Features");
+            var pipeWithTrainer = pipe.Append(trainer);
+            TestEstimatorCore(pipeWithTrainer, dataView);
+
+            var transformedDataView = pipe.Fit(dataView).Transform(dataView);
+            var model = trainer.Fit(transformedDataView);
+            trainer.Train(transformedDataView, model.Model);
             Done();
         }
 
@@ -29,13 +34,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var initPredictor = new LinearClassificationTrainer(Env, "Features", "Label").Fit(transformedData);
+            var initPredictor = new SdcaBinaryTrainer(Env, "Label", "Features").Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
-            var withInitPredictor = new SymSgdClassificationTrainer(Env, "Features", "Label").Train(transformedData, initialPredictor: initPredictor.Model);
+            var withInitPredictor = new SymSgdClassificationTrainer(Env, "Label", "Features").Train(transformedData, initialPredictor: initPredictor.Model);
             var outInitData = withInitPredictor.Transform(transformedData);
 
-            var notInitPredictor = new SymSgdClassificationTrainer(Env, "Features", "Label").Train(transformedData);
+            var notInitPredictor = new SymSgdClassificationTrainer(Env, "Label", "Features").Train(transformedData);
             var outNoInitData = notInitPredictor.Transform(transformedData);
 
             int numExamples = 10;

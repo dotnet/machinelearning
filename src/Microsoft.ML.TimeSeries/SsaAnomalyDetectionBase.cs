@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -104,7 +107,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected readonly bool IsAdaptive;
         protected readonly ErrorFunctionUtils.ErrorFunction ErrorFunction;
         protected readonly Func<Double, Double, Double> ErrorFunc;
-        protected readonly ISequenceModeler<Single, Single> Model;
+        protected SequenceModelerBase<Single, Single> Model;
 
         public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
             : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
@@ -120,7 +123,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             IsAdaptive = args.IsAdaptive;
             // Creating the master SSA model
             Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
-                DiscountFactor, null, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
+                DiscountFactor, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
+
+            StateRef = new State();
+            StateRef.InitState(WindowSize, InitialWindowSize, this, Host);
         }
 
         public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
@@ -149,9 +155,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
 
             IsAdaptive = ctx.Reader.ReadBoolean();
+            StateRef = new State(ctx.Reader);
 
-            ctx.LoadModel<ISequenceModeler<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
+            ctx.LoadModel<SequenceModelerBase<Single, Single>, SignatureLoadModel>(env, out Model, "SSA");
             Host.CheckDecode(Model != null);
+            StateRef.InitState(this, Host);
         }
 
         public override Schema GetOutputSchema(Schema inputSchema)
@@ -185,6 +193,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // float: _discountFactor
             // byte: _errorFunction
             // bool: _isAdaptive
+            // State: StateRef
             // AdaptiveSingularSpectrumSequenceModeler: _model
 
             base.Save(ctx);
@@ -192,37 +201,73 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write(DiscountFactor);
             ctx.Writer.Write((byte)ErrorFunction);
             ctx.Writer.Write(IsAdaptive);
+            StateRef.Save(ctx.Writer);
+
             ctx.SaveModel(Model, "SSA");
         }
 
         public sealed class State : AnomalyDetectionStateBase
         {
-            private ISequenceModeler<Single, Single> _model;
+            private SequenceModelerBase<Single, Single> _model;
             private SsaAnomalyDetectionBase _parentAnomalyDetector;
 
-            protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
+            public State()
+            {
+            }
+
+            internal State(BinaryReader reader) : base(reader)
+            {
+                WindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                InitialWindowedBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+            }
+
+            internal override void Save(BinaryWriter writer)
+            {
+                base.Save(writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(WindowedBuffer, writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(InitialWindowedBuffer, writer);
+            }
+
+            private protected override void CloneCore(StateBase state)
+            {
+                base.CloneCore(state);
+                Contracts.Assert(state is State);
+                var stateLocal = state as State;
+                stateLocal.WindowedBuffer = WindowedBuffer.Clone();
+                stateLocal.InitialWindowedBuffer = InitialWindowedBuffer.Clone();
+                if (_model != null)
+                {
+                    _parentAnomalyDetector.Model = _parentAnomalyDetector.Model.Clone();
+                    _model = _parentAnomalyDetector.Model;
+                }
+            }
+
+            private protected override void LearnStateFromDataCore(FixedSizeQueue<Single> data)
             {
                 // This method is empty because there is no need to implement a training logic here.
             }
 
-            protected override void InitializeAnomalyDetector()
+            private protected override void InitializeAnomalyDetector()
             {
                 _parentAnomalyDetector = (SsaAnomalyDetectionBase)Parent;
-                _model = _parentAnomalyDetector.Model.Clone();
+                _model = _parentAnomalyDetector.Model;
             }
 
-            protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
+            private protected override double ComputeRawAnomalyScore(ref Single input, FixedSizeQueue<Single> windowedBuffer, long iteration)
             {
                 // Get the prediction for the next point opn the series
                 Single expectedValue = 0;
                 _model.PredictNext(ref expectedValue);
 
-                // Feed the current point to the model
-                _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
+                if (PreviousPosition == -1)
+                    // Feed the current point to the model
+                    _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
 
                 // Return the error as the raw anomaly score
                 return _parentAnomalyDetector.ErrorFunc(input, expectedValue);
             }
+
+            public override void Consume(Single input) => _model.Consume(ref input, _parentAnomalyDetector.IsAdaptive);
         }
     }
 }

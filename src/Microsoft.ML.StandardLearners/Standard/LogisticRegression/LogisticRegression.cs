@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -40,11 +41,26 @@ namespace Microsoft.ML.Runtime.Learners
 
         public sealed class Arguments : ArgumentsBase
         {
+            /// <summary>
+            /// If set to <value>true</value>training statistics will be generated at the end of training.
+            /// If you have a large number of learned training parameters(more than 500),
+            /// generating the training statistics might take a few seconds.
+            /// More than 1000 weights might take a few minutes. For those cases consider using the instance of <see cref="ComputeLRTrainingStd"/>
+            /// present in the Microsoft.ML.HalLearners package. That computes the statistics using hardware acceleration.
+            /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
             public bool ShowTrainingStats = false;
+
+            /// <summary>
+            /// The instance of <see cref="ComputeLRTrainingStd"/> that computes the std of the training statistics, at the end of training.
+            /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
+            /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>.
+            /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
+            /// </summary>
+            public ComputeLRTrainingStd StdComputer;
         }
 
-        private Double _posWeight;
+        private double _posWeight;
         private LinearModelStatistics _stats;
 
         /// <summary>
@@ -53,7 +69,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="weights">The name for the example weight column.</param>
         /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
@@ -61,17 +77,17 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env,
-            string featureColumn,
-            string labelColumn,
-            string weightColumn = null,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
+            string weights = null,
             float l1Weight = Arguments.Defaults.L1Weight,
             float l2Weight = Arguments.Defaults.L2Weight,
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn, advancedSettings,
-                  l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weights, advancedSettings,
+                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -111,12 +127,15 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        public BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> Train(IDataView trainData, IPredictor initialPredictor = null)
+            => TrainTransformer(trainData, initPredictor: initialPredictor);
+
+        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            float score = bias + VectorUtils.DotProductWithOffset(ref x, 1, ref feat);
+            float score = bias + VectorUtils.DotProductWithOffset(in x, 1, in feat);
 
             float s = score / 2;
 
@@ -131,11 +150,12 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(!float.IsNaN(datumLoss), "Unexpected NaN");
 
             float mult = weight * (modelProb1 - label01);
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
+            VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
+            var editor = VBufferEditor.CreateFromBuffer(ref grad);
+            Contracts.Assert(editor.Values.Length >= BiasCount && (grad.IsDense || editor.Indices[BiasCount - 1] == BiasCount - 1));
+            editor.Values[0] += mult;
 
             return weight * datumLoss;
         }
@@ -155,12 +175,13 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Compute deviance: start with loss function.
             float deviance = (float)(2 * loss * WeightSum);
+            var currentWeightsValues = CurrentWeights.GetValues();
 
             if (L2Weight > 0)
             {
                 // Need to subtract L2 regularization loss.
                 // The bias term is not regularized.
-                var regLoss = VectorUtils.NormSquared(CurrentWeights.Values, 1, CurrentWeights.Length - 1) * L2Weight;
+                var regLoss = VectorUtils.NormSquared(currentWeightsValues.Slice(1)) * L2Weight;
                 deviance -= regLoss;
             }
 
@@ -169,7 +190,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // Need to subtract L1 regularization loss.
                 // The bias term is not regularized.
                 Double regLoss = 0;
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
+                VBufferUtils.ForEachDefined(in CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
                 deviance -= (float)regLoss * L1Weight * 2;
             }
 
@@ -212,9 +233,9 @@ namespace Microsoft.ML.Runtime.Learners
                 weightIndices[0] = 0;
                 weightIndicesInvMap[0] = 0;
                 int j = 1;
-                for (int i = 1; i < CurrentWeights.Length; i++)
+                for (int i = 1; i < currentWeightsValues.Length; i++)
                 {
-                    if (CurrentWeights.Values[i] != 0)
+                    if (currentWeightsValues[i] != 0)
                     {
                         weightIndices[j] = i;
                         weightIndicesInvMap[i] = j++;
@@ -261,21 +282,21 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             // Initialize the remaining entries.
-            var bias = CurrentWeights.Values[0];
+            var bias = currentWeightsValues[0];
             using (var cursor = cursorFactory.Create())
             {
                 while (cursor.MoveNext())
                 {
                     var label = cursor.Label;
                     var weight = cursor.Weight;
-                    var score = bias + VectorUtils.DotProductWithOffset(ref CurrentWeights, 1, ref cursor.Features);
+                    var score = bias + VectorUtils.DotProductWithOffset(in CurrentWeights, 1, in cursor.Features);
                     // Compute Bernoulli variance n_i * p_i * (1 - p_i) for the i-th training example.
                     var variance = weight / (2 + 2 * Math.Cosh(score));
 
                     // Increment the first entry of hessian.
                     hessian[0] += variance;
 
-                    var values = cursor.Features.Values;
+                    var values = cursor.Features.GetValues();
                     if (cursor.Features.IsDense)
                     {
                         int ioff = 1;
@@ -301,8 +322,8 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     else
                     {
-                        var indices = cursor.Features.Indices;
-                        for (int ii = 0; ii < cursor.Features.Count; ++ii)
+                        var indices = cursor.Features.GetIndices();
+                        for (int ii = 0; ii < values.Length; ++ii)
                         {
                             int i = indices[ii];
                             int wi = i + 1;
@@ -330,7 +351,13 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            if (Args.StdComputer == null)
+                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            else
+            {
+                var std = Args.StdComputer.ComputeStd(hessian, weightIndices, numParams, CurrentWeights.Length, ch, L2Weight);
+                _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, std);
+            }
         }
 
         protected override void ProcessPriorDistribution(float label, float weight)
@@ -373,7 +400,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias, _stats),
+                new LinearBinaryPredictor(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 
@@ -396,5 +423,25 @@ namespace Microsoft.ML.Runtime.Learners
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
+    }
+
+    /// <summary>
+    /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
+    /// p-value and z-Score.
+    /// If you need fast calculations, use the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HALLearners package,
+    /// which makes use of hardware acceleration.
+    /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
+    /// </summary>
+    public abstract class ComputeLRTrainingStd
+    {
+        /// <summary>
+        /// Computes the standard deviation matrix of each of the non-zero training weights, needed to calculate further the standard deviation,
+        /// p-value and z-Score.
+        /// The calculations are not part of Microsoft.ML package, due to the size of MKL.
+        /// If you need these calculations, add the Microsoft.ML.HalLearners package, and initialize <see cref="LogisticRegression.Arguments.StdComputer"/>
+        /// to the <see cref="ComputeLRTrainingStd"/> implementation in the Microsoft.ML.HalLearners package.
+        /// Due to the existence of regularization, an approximation is used to compute the variances of the trained linear coefficients.
+        /// </summary>
+        public abstract VBuffer<float> ComputeStd(double[] hessian, int[] weightIndices, int parametersCount, int currentWeightsCount, IChannel ch, float l2Weight);
     }
 }

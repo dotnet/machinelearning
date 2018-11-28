@@ -3,14 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
 using System.Text;
@@ -59,20 +60,20 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="minDatapointsInLeaves">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRegressionTrainer(IHostEnvironment env,
-            string labelColumn,
-            string featureColumn,
+            string labelColumn = DefaultColumnNames.Label,
+            string featureColumn = DefaultColumnNames.Features,
             string weightColumn = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            int minDatapointsInLeaves = Defaults.MinDocumentsInLeaves,
             double learningRate = Defaults.LearningRates,
             Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDatapointsInLeaves, learningRate, advancedSettings)
         {
         }
 
@@ -84,11 +85,12 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
+        private protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
             ValidData = context.ValidationSet;
+            TestData = context.TestSet;
 
             using (var ch = Host.Start("Training"))
             {
@@ -164,6 +166,9 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        public RegressionPredictionTransformer<FastTreeRegressionPredictor> Train(IDataView trainData, IDataView validationData = null)
+            => TrainTransformer(trainData, validationData);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
@@ -462,7 +467,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010005;
 
-        internal FastTreeRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
+        internal FastTreeRegressionPredictor(IHostEnvironment env, TreeEnsemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
         }

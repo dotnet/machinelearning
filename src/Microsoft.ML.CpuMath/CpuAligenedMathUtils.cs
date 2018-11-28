@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
+
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
-    public static class CpuAligenedMathUtils<TMatrix>
+    [BestFriend]
+    internal static class CpuAligenedMathUtils<TMatrix>
         where TMatrix : CpuAlignedMatrixBase, ICpuFullMatrix
     {
         /// <summary>
@@ -85,7 +88,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, src, dst);
             var m = A(mat);
-            CpuMathUtils.MatTimesSrc(colMajor, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatrixTimesSource(colMajor, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
 
         /// <summary>
@@ -100,7 +103,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, dst, src);
             var m = A(mat);
-            CpuMathUtils.MatTimesSrc(!colMajor, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatrixTimesSource(!colMajor, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
     }
 
