@@ -157,8 +157,8 @@ namespace Microsoft.ML.Runtime.Data
         ValueGetter<TValue> GetGetter<TValue>(int col);
 
         /// <summary>
-        /// Gets a Schema, which provides name and type information for variables stored
-        /// in this row.
+        /// Gets a <see cref="Schema"/>, which provides name and type information for variables
+        /// (i.e., columns in ML.NET's type system) stored in this row.
         /// </summary>
         Schema Schema { get; }
 
