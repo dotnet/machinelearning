@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<Float>,
-        IWhatTheFeatureValueMapper,
+        IFeatureContributionMapper,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
     {
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.Learners
             Weight.CopyTo(ref weights);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
         {
             Contracts.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));
