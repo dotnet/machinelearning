@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
 
-            // Extract the output of the first row (the only row we have because data contains only one TestClass) as a native class.
+            // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
             var nativeResult = new List<NativeResult>(result.AsEnumerable<NativeResult>(Env, false))[0];
 
             // Check the tokenization of A. Expected result is { "This", "is", "a", "good", "sentence." }.
