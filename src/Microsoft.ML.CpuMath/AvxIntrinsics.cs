@@ -9,6 +9,7 @@
 // * P suffix means sparse (unaligned) partial vector - the vector is only part of a larger sparse vector.
 // * Tran means the matrix is transposed.
 
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
