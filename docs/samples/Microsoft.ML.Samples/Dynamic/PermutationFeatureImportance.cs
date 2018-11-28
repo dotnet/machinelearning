@@ -20,6 +20,9 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
+            // The data looks like this:
+            //     24.00  0.00632  18.00  2.310  0  0.5380  6.5750  65.20  4.0900  1  296.0  15.30
+            //     21.60  0.02731   0.00  7.070  0  0.4690  6.4210  78.90  4.9671  2  242.0  17.80
             var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
                 {
                     Separator = "tab",
@@ -47,7 +50,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Step 2: Pipeline
             // Concatenate the features to create a Feature vector.
             // Normalize the values between 0 and 1
-            // Then append a gam regressor, setting the "MedianHomeValue" column as the label of the dataset,
+            // Then append a linear regression trainer, setting the "MedianHomeValue" column as the label of the dataset,
             // the "Features" column produced by concatenation as the features column.
             var labelName = "MedianHomeValue";
             var pipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
