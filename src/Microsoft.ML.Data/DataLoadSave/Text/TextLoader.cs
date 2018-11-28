@@ -1008,19 +1008,29 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
 
-        public TextLoader(IHostEnvironment env, Column[] columns, Action<Arguments> advancedSettings, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, advancedSettings), dataSample)
+        /// <summary>
+        /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
+        /// Should accept any file that TlcTextInstances accepts.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChars">Defines the characters used as separators between data points in a row.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, hasHeader, separatorChars, advancedSettings), dataSample)
         {
         }
 
-        private static Arguments MakeArgs(Column[] columns, Action<Arguments> advancedSettings)
+        private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, Action<Arguments> advancedSettings)
         {
-            var result = new Arguments { Column = columns };
+            var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
             advancedSettings?.Invoke(result);
             return result;
         }
 
-        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
+        internal TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
