@@ -51,7 +51,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // Concatenate the features to create a Feature vector.
             // Normalize the data set so that for each feature, its maximum value is 1 while its minimum value is 0.
             // Then append a linear regression trainer, setting the "MedianHomeValue" column as the label of the dataset,
-            // the "Features" column produced by concatenation as the features column.
+            // the "Features" column produced by concatenation as the features of the dataset.
             var labelName = "MedianHomeValue";
             var pipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
                         "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
@@ -59,14 +59,14 @@ namespace Microsoft.ML.Samples.Dynamic
                     .Append(mlContext.Transforms.Normalize("Features"))
                     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
                         labelColumn: labelName, featureColumn: "Features"));
-            var fitPipeline = pipeline.Fit(data);
+            var model = pipeline.Fit(data);
 
             // Extract the model from the pipeline
-            var linearPredictor = fitPipeline.LastTransformer;
+            var linearPredictor = model.LastTransformer;
             var weights = GetLinearModelWeights(linearPredictor.Model);
 
             // Compute the permutation metrics using the properly-featurized data.
-            var transformedData = fitPipeline.Transform(data);
+            var transformedData = model.Transform(data);
             var permutationMetrics = mlContext.Regression.PermutationFeatureImportance(
                 linearPredictor, transformedData, label: labelName, features: "Features");
 
