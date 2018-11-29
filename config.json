@@ -30,6 +30,12 @@
       "values": [],
       "defaultValue": ""
     },
+    "SkipRIDAgnosticAssets": {
+      "description": "Prevents RID agnostic assets in redist from being built.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
     "MsBuildLogging": {
       "description": "MsBuild logging options.",
       "valueType": "passThrough",
