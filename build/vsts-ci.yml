@@ -24,7 +24,7 @@ phases:
     container: LinuxContainer
   steps:
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -buildNative -$(BuildConfig)
+  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
     displayName: Build
 
   - task: PublishBuildArtifacts@1
@@ -49,7 +49,7 @@ phases:
     - agent.os -equals Darwin
   steps:
   # Only build native assets to avoid conflicts.
-  - script: ./build.sh -buildNative -$(BuildConfig)
+  - script: ./build.sh -buildNative -$(BuildConfig) -skipRIDAgnosticAssets
     displayName: Build
 
   - task: PublishBuildArtifacts@1
@@ -89,7 +89,7 @@ phases:
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
   # Only build native assets to avoid conflicts.
-  - script: ./build.cmd -buildNative -$(BuildConfig) -buildArch=x86
+  - script: ./build.cmd -buildNative -$(BuildConfig) -buildArch=x86 -skipRIDAgnosticAssets
     displayName: Build
   
   - task: MSBuild@1
