@@ -243,7 +243,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="groupId">The name of the groupId column.</param>
         /// <param name="score">The name of the predicted score column.</param>
         /// <returns>The evaluation metrics for these outputs.</returns>
-        public Result Evaluate(IDataView data, string label, string groupId, string score)
+        public RankerMetrics Evaluate(IDataView data, string label, string groupId, string score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -257,12 +257,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
-            Result result;
+            RankerMetrics result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
                 Host.Assert(moved);
-                result = new Result(Host, cursor);
+                result = new RankerMetrics(Host, cursor);
                 moved = cursor.MoveNext();
                 Host.Assert(!moved);
             }
@@ -536,40 +536,6 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
                     editor.Values[i] = string.Format("@{0}", i + 1).AsMemory();
                 slotNames = editor.Commit();
-            }
-        }
-
-        public sealed class Result
-        {
-            /// <summary>
-            /// Normalized Discounted Cumulative Gain
-            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/ndcg.png"></a>
-            /// </summary>
-            public double[] Ndcg { get; }
-
-            /// <summary>
-            /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a>
-            /// is the sum of the gains, for all the instances i, normalized by the natural logarithm of the instance + 1.
-            /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
-            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/dcg.png"></a>
-            /// </summary>
-            public double[] Dcg { get; }
-
-            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
-
-                Dcg = Fetch(RankerEvaluator.Dcg).GetValues().ToArray();
-                Ndcg = Fetch(RankerEvaluator.Ndcg).GetValues().ToArray();
             }
         }
     }

@@ -152,7 +152,7 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(1.0, (double)summary[0].Value, 1);
         }
 
-        private BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
+        private Microsoft.ML.Legacy.Models.BinaryClassificationMetrics EvaluateBinary(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
 
@@ -163,7 +163,8 @@ namespace Microsoft.ML.Scenarios
             var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments());
             var metricsDic = evaluator.Evaluate(dataEval);
 
-            return BinaryClassificationMetrics.FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
+            return Microsoft.ML.Legacy.Models.BinaryClassificationMetrics
+                    .FromMetrics(env, metricsDic["OverallMetrics"], metricsDic["ConfusionMatrix"])[0];
         }
     }
 #pragma warning restore 612

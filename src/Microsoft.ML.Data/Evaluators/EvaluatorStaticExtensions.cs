@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -24,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public static BinaryClassifierEvaluator.CalibratedResult Evaluate<T>(
+        public static CalibratedBinaryClassificationMetrics Evaluate<T>(
             this BinaryClassificationContext ctx,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
@@ -60,7 +61,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="pred">The index delegate for columns from uncalibrated prediction of a binary classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
-        public static BinaryClassifierEvaluator.Result Evaluate<T>(
+        public static BinaryClassificationMetrics Evaluate<T>(
             this BinaryClassificationContext ctx,
             DataView<T> data,
             Func<T, Scalar<bool>> label,
@@ -94,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The optional index delegate for the label column.</param>
         /// <param name="features">The optional index delegate for the features column.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static ClusteringEvaluator.Result Evaluate<T>(
+        public static ClusteringMetrics Evaluate<T>(
             this ClusteringContext ctx,
             DataView<T> data,
             Func<T, Vector<float>> score,
@@ -127,11 +128,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="pred">The index delegate for columns from the prediction of a multiclass classifier.
         /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierEvaluator.Result.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation metrics.</returns>
-        public static MultiClassClassifierEvaluator.Result Evaluate<T, TKey>(
+        public static MultiClassClassifierMetrics Evaluate<T, TKey>(
             this MulticlassClassificationContext ctx,
             DataView<T> data,
             Func<T, Key<uint, TKey>> label,
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static RegressionEvaluator.Result Evaluate<T>(
+        public static RegressionMetrics Evaluate<T>(
             this RegressionContext ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
@@ -212,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="groupId">The index delegate for the groupId column. </param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static RankerEvaluator.Result Evaluate<T, TVal>(
+        public static RankerMetrics Evaluate<T, TVal>(
             this RankingContext ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
