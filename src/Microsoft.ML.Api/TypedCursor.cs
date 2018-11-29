@@ -163,24 +163,15 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create and return a new cursor.
         /// </summary>
-        public IRowCursor<TRow> GetCursor()
-        {
-            return GetCursor(x => false);
-        }
+        public IRowCursor<TRow> GetCursor() => GetCursor(x => false);
 
         /// <summary>
         /// Create and return a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        public IRowCursor<TRow> GetRandomizedCursor(int randomSeed)
-        {
-            return GetCursor(x => false, randomSeed);
-        }
+        public IRowCursor<TRow> GetRandomizedCursor(int randomSeed) => GetCursor(x => false, randomSeed);
 
-        public IRowReadableAs<TRow> GetRow(IRow input)
-        {
-            return new TypedRow(this, input);
-        }
+        public IRowReadableAs<TRow> GetRow(IRow input) => new TypedRow(this, input);
 
         /// <summary>
         /// Create a new cursor with additional active columns.
@@ -198,10 +189,7 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursor(this, cursor);
         }
 
-        public Func<int, bool> GetDependencies(Func<int, bool> additionalColumnsPredicate)
-        {
-            return col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
-        }
+        public Func<int, bool> GetDependencies(Func<int, bool> additionalColumnsPredicate) => col => _columnIndices.Contains(col) || additionalColumnsPredicate(col);
 
         /// <summary>
         /// Create a set of cursors with additional active columns.
@@ -280,10 +268,7 @@ namespace Microsoft.ML.Runtime.Api
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
+            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
             private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
@@ -460,15 +445,11 @@ namespace Microsoft.ML.Runtime.Api
                     setter(row);
             }
 
-            public bool IsColumnActive(int col)
-            {
-                return _input.IsColumnActive(col);
-            }
+            public bool IsColumnActive(int col) => _input.IsColumnActive(col);
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
-            {
-                return _input.GetGetter<TValue>(col);
-            }
+
+            public ValueGetter<TValue> GetGetter<TValue>(int col) => _input.GetGetter<TValue>(col);
+
         }
 
         private sealed class TypedRow : TypedRowBase
@@ -508,20 +489,12 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public bool MoveNext()
-            {
-                return _input.MoveNext();
-            }
+            public bool MoveNext() => _input.MoveNext();
 
-            public bool MoveMany(long count)
-            {
-                return _input.MoveMany(count);
-            }
+            public bool MoveMany(long count) => _input.MoveMany(count);
 
-            public ICursor GetRootCursor()
-            {
-                return _input.GetRootCursor();
-            }
+            public ICursor GetRootCursor() => _input.GetRootCursor();
+
         }
     }
 

@@ -37,16 +37,13 @@ namespace Microsoft.ML.Runtime.Api
 
         internal const string LoaderSignature = "CustomTransformer";
 
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
+        private static VersionInfo GetVersionInfo() => new VersionInfo(
                 modelSignature: "CUSTOMXF",
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(LambdaTransform).Assembly.FullName);
-        }
 
         internal static void SaveCustomTransformer(IExceptionContext ectx, ModelSaveContext ctx, string contractName)
         {
@@ -270,10 +267,8 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private bool CanSave()
-        {
-            return _saveAction != null;
-        }
+        private bool CanSave() => _saveAction != null;
+
 
         [Conditional("DEBUG")]
         private void AssertConsistentSerializable()

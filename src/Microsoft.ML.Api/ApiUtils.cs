@@ -28,18 +28,27 @@ namespace Microsoft.ML.Runtime.Api
             }
 
             // Simple primitive types.
-            if (t == typeof(Single))
-                return OpCodes.Stind_R4;
-            if (t == typeof(Double))
-                return OpCodes.Stind_R8;
-            if (t == typeof(sbyte) || t == typeof(byte) || t == typeof(bool))
-                return OpCodes.Stind_I1;
-            if (t == typeof(short) || t == typeof(ushort))
-                return OpCodes.Stind_I2;
-            if (t == typeof(int) || t == typeof(uint))
-                return OpCodes.Stind_I4;
-            if (t == typeof(long) || t == typeof(ulong))
-                return OpCodes.Stind_I8;
+            switch (t)
+            {
+                case t == typeof(Single):
+                    return OpCodes.Stind_R4;
+                    break;
+                case t == typeof(Double):
+                    return OpCodes.Stind_R8;
+                    break;
+                case t == typeof(sbyte) || t == typeof(byte) || t == typeof(bool):
+                    return OpCodes.Stind_I1;
+                    break;
+                case t == typeof(short) || t == typeof(ushort):
+                    return OpCodes.Stind_I2;
+                    break;
+                case t == typeof(int) || t == typeof(uint):
+                    return OpCodes.Stind_I4;
+                    break;
+                case t == typeof(long) || t == typeof(ulong):
+                    return OpCodes.Stind_I8;
+                    break;
+            }
             throw Contracts.ExceptNotSupp("Type '{0}' is not supported.", t.FullName);
         }
 

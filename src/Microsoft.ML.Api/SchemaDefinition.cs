@@ -251,10 +251,8 @@ namespace Microsoft.ML.Runtime.Api
                     : new Dictionary<string, MetadataInfo>();
             }
 
-            public Column()
-            {
-                _metadata = _metadata ?? new Dictionary<string, MetadataInfo>();
-            }
+            public Column() => _metadata = _metadata ?? new Dictionary<string, MetadataInfo>();
+
 
             /// <summary>
             /// Add metadata to the column.

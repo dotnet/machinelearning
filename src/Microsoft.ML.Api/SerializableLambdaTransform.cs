@@ -150,16 +150,18 @@ namespace Microsoft.ML.Runtime.Api
                 return null;
             }
             // Either it's not the right type, or obj itself may be null. Either way we have an error.
-            if (info == null)
+            switch (info)
             {
-                inner = ectx.ExceptDecode("Failed to deserialize the method");
-                return null;
+                case info == null:
+                    inner = ectx.ExceptDecode("Failed to deserialize the method");
+                    return null;
+                    break;
+                case !info.IsStatic:
+                    inner = ectx.ExceptDecode("Deserialized method is not static");
+                    return null;
+                    break;
             }
-            if (!info.IsStatic)
-            {
-                inner = ectx.ExceptDecode("Deserialized method is not static");
-                return null;
-            }
+
             try
             {
                 var del = info.CreateDelegate(typeof(LambdaTransform.LoadDelegate));

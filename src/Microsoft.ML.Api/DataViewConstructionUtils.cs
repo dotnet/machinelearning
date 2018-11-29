@@ -655,15 +655,9 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount()
-            {
-                return (_data as ICollection<TRow>)?.Count;
-            }
+            public override long? GetRowCount() => (_data as ICollection<TRow>)?.Count;
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
-            {
-                return new Cursor(Host, this, predicate);
-            }
+            public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null) => new Cursor(Host, this, predicate);
 
             /// <summary>
             /// Since all the cursors only depend on an enumerator (rather than the data itself),
@@ -699,10 +693,7 @@ namespace Microsoft.ML.Runtime.Api
                         };
                 }
 
-                protected override TRow GetCurrentRowObject()
-                {
-                    return _currentRow;
-                }
+                protected override TRow GetCurrentRowObject() => _currentRow;
 
                 protected override bool MoveNextCore()
                 {
@@ -736,10 +727,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return false; }
             }
 
-            public override long? GetRowCount()
-            {
-                return null;
-            }
+            public override long? GetRowCount() => null;
 
             public void SetCurrentRowObject(TRow value)
             {
@@ -773,10 +761,8 @@ namespace Microsoft.ML.Runtime.Api
                         };
                 }
 
-                protected override TRow GetCurrentRowObject()
-                {
-                    return _currentRow;
-                }
+                protected override TRow GetCurrentRowObject() => _currentRow;
+
 
                 protected override bool MoveNextCore()
                 {
@@ -983,14 +969,10 @@ namespace Microsoft.ML.Runtime.Api
             return (ref VBuffer<TDst> dst) => castValue.CopyTo(ref dst);
         }
 
-        private void GetString(ref ReadOnlyMemory<char> dst)
-        {
-            dst = ((string)(object)Value).AsMemory();
-        }
+        private void GetString(ref ReadOnlyMemory<char> dst) => dst = ((string)(object)Value).AsMemory();
 
-        private void GetDirectValue<TDst>(ref TDst dst)
-        {
-            dst = (TDst)(object)Value;
-        }
+        private void GetDirectValue<TDst>(ref TDst dst) => dst = (TDst)(object)Value;
+
+
     }
 }

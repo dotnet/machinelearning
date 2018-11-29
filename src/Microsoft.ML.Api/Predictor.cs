@@ -28,13 +28,11 @@ namespace Microsoft.ML.Runtime.Api
         /// This is needed, for instance, to inspect the weights of a predictor programmatically.
         /// The intention is to expose most methods through the API and make usage of this method increasingly unnecessary.
         /// </summary>
-        [Obsolete("Welcome adventurous stranger, to the Underdark! By calling the mysterious GetPredictorObject method,"+
-            " you have entered a world of shifting realities, where nothing is as it seems. Your code may work today, but"+
-            " the churning impermanence of the Underdark means the strong foothold today may be nothing but empty air"+
+        [Obsolete("Welcome adventurous stranger, to the Underdark! By calling the mysterious GetPredictorObject method," +
+            " you have entered a world of shifting realities, where nothing is as it seems. Your code may work today, but" +
+            " the churning impermanence of the Underdark means the strong foothold today may be nothing but empty air" +
             " tomorrow. Brace yourself!")]
-        public object GetPredictorObject()
-        {
-            return Pred;
-        }
+        public object GetPredictorObject() => Pred;
+
     }
 }
