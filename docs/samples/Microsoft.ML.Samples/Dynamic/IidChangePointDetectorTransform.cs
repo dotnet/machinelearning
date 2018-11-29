@@ -38,26 +38,26 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Generate sample series data with a change
-            const int size = 16;
-            var data = new List<IidChangePointData>(size);
-            for (int i = 0; i < size / 2; i++)
+            const int Size = 16;
+            var data = new List<IidChangePointData>(Size);
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidChangePointData(5));
             // This is a change point
-            for (int i = 0; i < size / 2; i++)
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidChangePointData(7));
 
             // Convert data to IDataView.
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup IidSpikeDetector arguments
-            string outputColumnName = "Prediction";
-            string inputColumnName = "Value";
+            string outputColumnName = nameof(ChangePointPrediction.Prediction);
+            string inputColumnName = nameof(IidChangePointData.Value);
             var args = new IidChangePointDetector.Arguments()
             {
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = size / 4, // The length of the sliding window on p-values for computing the martingale score. 
+                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
             };
 
             // The transformed data.
@@ -103,26 +103,26 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Generate sample series data with a change
-            const int size = 16;
-            var data = new List<IidChangePointData>(size);
-            for (int i = 0; i < size / 2; i++)
+            const int Size = 16;
+            var data = new List<IidChangePointData>(Size);
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidChangePointData(5));
             // This is a change point
-            for (int i = 0; i < size / 2; i++)
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidChangePointData(7));
 
             // Convert data to IDataView.
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup IidSpikeDetector arguments
-            string outputColumnName = "Prediction";
-            string inputColumnName = "Value";
+            string outputColumnName = nameof(ChangePointPrediction.Prediction);
+            string inputColumnName = nameof(IidChangePointData.Value);
             var args = new IidChangePointDetector.Arguments()
             {
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = size / 4, // The length of the sliding window on p-values for computing the martingale score. 
+                ChangeHistoryLength = Size / 4, // The length of the sliding window on p-values for computing the martingale score. 
             };
 
             // Time Series model.

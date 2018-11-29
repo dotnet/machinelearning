@@ -152,8 +152,7 @@ namespace Microsoft.ML.Samples.Dynamic
                     prediction.Prediction[1], prediction.Prediction[2]);
             }
 
-            // Prediction column obtained post-transformation.
-            // Datat Alert   Score   P-Value
+            // Data Alert   Score   P-Value
             // 5      0       5.00    0.50
             // 5      0       5.00    0.50
             // 5      0       5.00    0.50
