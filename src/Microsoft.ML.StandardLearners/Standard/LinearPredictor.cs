@@ -354,7 +354,7 @@ namespace Microsoft.ML.Runtime.Learners
             subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberType.R4, Weight.Length);
             var builder = new MetadataBuilder();
-            builder.AddRawValue("Bias", NumberType.R4, Bias);
+            builder.AddPrimitiveValue("Bias", NumberType.R4, Bias);
             builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }

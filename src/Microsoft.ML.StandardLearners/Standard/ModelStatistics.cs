@@ -416,10 +416,10 @@ namespace Microsoft.ML.Runtime.Learners
 
             var builder = new MetadataBuilder();
 
-            builder.AddRawValue("Count of training examples", NumberType.I8, _trainingExampleCount);
-            builder.AddRawValue("Residual Deviance", NumberType.R4, _deviance);
-            builder.AddRawValue("Null Deviance", NumberType.R4, _nullDeviance);
-            builder.AddRawValue("AIC", NumberType.R4, 2 * _paramCount + _deviance);
+            builder.AddPrimitiveValue("Count of training examples", NumberType.I8, _trainingExampleCount);
+            builder.AddPrimitiveValue("Residual Deviance", NumberType.R4, _deviance);
+            builder.AddPrimitiveValue("Null Deviance", NumberType.R4, _nullDeviance);
+            builder.AddPrimitiveValue("AIC", NumberType.R4, 2 * _paramCount + _deviance);
 
             if (parent == null)
                 return builder.GetMetadata();
@@ -428,10 +428,10 @@ namespace Microsoft.ML.Runtime.Learners
                 return builder.GetMetadata();
 
             var biasEstimate = parent.Bias;
-            builder.AddRawValue("BiasEstimate", NumberType.R4, biasEstimate);
-            builder.AddRawValue("BiasStandardError", NumberType.R4, biasStdErr);
-            builder.AddRawValue("BiasZScore", NumberType.R4, biasZScore);
-            builder.AddRawValue("BiasPValue", NumberType.R4, biasPValue);
+            builder.AddPrimitiveValue("BiasEstimate", NumberType.R4, biasEstimate);
+            builder.AddPrimitiveValue("BiasStandardError", NumberType.R4, biasStdErr);
+            builder.AddPrimitiveValue("BiasZScore", NumberType.R4, biasZScore);
+            builder.AddPrimitiveValue("BiasPValue", NumberType.R4, biasPValue);
 
             var weights = default(VBuffer<float>);
             parent.GetFeatureWeights(ref weights);

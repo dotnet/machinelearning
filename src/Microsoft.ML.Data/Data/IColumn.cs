@@ -204,35 +204,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Given a column, returns a deep-copied memory-materialized version of it. Note that
-        /// it is acceptable for the column to be inactive: the returned column will likewise
-        /// be inactive.
-        /// </summary>
-        /// <param name="column"></param>
-        /// <returns>A memory materialized version of <paramref name="column"/> which may be,
-        /// under appropriate circumstances, the input object itself</returns>
-        public static IColumn CloneColumn(IColumn column)
-        {
-            Contracts.CheckValue(column, nameof(column));
-            return Utils.MarshalInvoke(CloneColumnCore<int>, column.Type.RawType, column);
-        }
-
-        private static IColumn CloneColumnCore<T>(IColumn column)
-        {
-            Contracts.Assert(column is IValueColumn<T>);
-            IRow meta = column.Metadata;
-            if (meta != null)
-                meta = RowCursorUtils.CloneRow(meta);
-
-            var tcolumn = (IValueColumn<T>)column;
-            if (!tcolumn.IsActive)
-                return new InactiveImpl<T>(tcolumn.Name, meta, tcolumn.Type);
-            T val = default(T);
-            tcolumn.GetGetter()(ref val);
-            return GetColumn(tcolumn.Name, tcolumn.Type, ref val, meta);
-        }
-
-        /// <summary>
         /// The implementation for a simple wrapping of an <see cref="IRow"/>.
         /// </summary>
         private sealed class RowWrap<T> : IValueColumn<T>

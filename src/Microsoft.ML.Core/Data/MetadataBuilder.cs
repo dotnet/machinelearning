@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data
         /// <param name="value">The value of the metadata.</param>
         /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
         /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
-        public void AddRawValue<TValue>(string name, PrimitiveType type, TValue value, Schema.Metadata metadata = null)
+        public void AddPrimitiveValue<TValue>(string name, PrimitiveType type, TValue value, Schema.Metadata metadata = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValue(type, nameof(type));
