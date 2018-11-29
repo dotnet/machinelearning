@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Schema Schema { get; }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -84,10 +84,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null);
+        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
 
         public abstract IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null);
+            Func<int, bool> predicate, int n, Random rand = null);
     }
 
     /// <summary>
@@ -718,7 +718,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -730,7 +730,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);

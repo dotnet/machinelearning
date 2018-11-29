@@ -265,12 +265,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             return _view.GetRowCursor(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
@@ -867,7 +867,7 @@ namespace Microsoft.ML.Runtime.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 bool[] activeSplitters;
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
@@ -891,7 +891,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Given a possibly null predicate for this data view, produce the dependency predicate for the sources,
             /// as well as a list of all the splitters for which we should produce rowsets.
             /// </summary>
-            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(Func{int, bool}, IRandom)"/> method.</param>
+            /// <param name="pred">The predicate input into the <see cref="GetRowCursor(Func{int, bool}, Random)"/> method.</param>
             /// <param name="activeSplitters">A boolean indicator array of length equal to the number of splitters,
             /// indicating whether that splitter has any active columns in its outputs or not</param>
             /// <returns>The predicate to use when constructing the row cursor from the source</returns>
@@ -1536,7 +1536,7 @@ namespace Microsoft.ML.Runtime.Data
                 return valueCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.ItemType.RawType, predicate(0));
@@ -1547,7 +1547,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor<T>(this, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 consolidator = null;

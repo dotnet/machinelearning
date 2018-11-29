@@ -400,10 +400,10 @@ namespace Microsoft.ML.Runtime.Api
 
             public abstract long? GetRowCount();
 
-            public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null);
+            public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
 
             public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
-                int n, IRandom rand = null)
+                int n, Random rand = null)
             {
                 consolidator = null;
                 return new[] { GetRowCursor(predicate, rand) };
@@ -561,7 +561,7 @@ namespace Microsoft.ML.Runtime.Api
                 return _data.Count;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
                 return new Cursor(Host, "ListDataView", this, predicate, rand);
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.Api
                 }
 
                 public Cursor(IHostEnvironment env, string name, ListDataView<TRow> dataView,
-                    Func<int, bool> predicate, IRandom rand)
+                    Func<int, bool> predicate, Random rand)
                     : base(env, dataView, predicate)
                 {
                     Ch.AssertValueOrNull(rand);
@@ -660,7 +660,7 @@ namespace Microsoft.ML.Runtime.Api
                 return (_data as ICollection<TRow>)?.Count;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 return new Cursor(Host, this, predicate);
             }
@@ -747,7 +747,7 @@ namespace Microsoft.ML.Runtime.Api
                 _current = value;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
                 return new Cursor(Host, this, predicate);
