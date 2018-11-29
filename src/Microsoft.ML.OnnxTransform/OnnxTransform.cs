@@ -91,6 +91,12 @@ namespace Microsoft.ML.Transforms
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile)
+        {
+            var args = new Arguments { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } };
+            return Create(env, args, input);
+        }
+
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
         {
             var args = new Arguments { ModelFile = modelFile, InputColumns = inputColumns, OutputColumns = outputColumns };
@@ -163,15 +169,15 @@ namespace Microsoft.ML.Transforms
                 Model = OnnxModel.CreateFromBytes(modelBytes);
 
             var modelInfo = Model.ModelInfo;
-            Inputs = args.InputColumns;
-            Outputs = args.OutputColumns;
-            OutputTypes = new ColumnType[args.OutputColumns.Length];
+            Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
+            Outputs = (args.OutputColumns.Count() == 0 ) ? Model.OutputNames.ToArray() : args.OutputColumns;
+            OutputTypes = new ColumnType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
-            for (int i=0; i < args.OutputColumns.Length; i++)
+            for (int i=0; i < Outputs.Length; i++)
             {
-                var idx = Model.OutputNames.IndexOf(args.OutputColumns[i]);
+                var idx = Model.OutputNames.IndexOf(Outputs[i]);
                 if (idx < 0)
-                    throw Host.Except($"Column {args.OutputColumns[i]} doesn't match output node names of model");
+                    throw Host.Except($"Column {Outputs[i]} doesn't match output node names of model");
 
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
@@ -179,6 +185,11 @@ namespace Microsoft.ML.Transforms
                 OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims);
             }
             _args = args;
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile)
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } })
+        {
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
@@ -451,6 +462,11 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile)
+            : this(env, new OnnxTransform(env, modelFile, new string[] { }, new string[] { }))
+        {
+        }
+
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
            : this(env, new OnnxTransform(env, modelFile, inputs, outputs))
         {
