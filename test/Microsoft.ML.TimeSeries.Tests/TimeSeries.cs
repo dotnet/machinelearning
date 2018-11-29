@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // Test is Flaky on netcore 3.0
         public void SavePipeMovingAverageUniform()
         {
             TestCore(null, true,
