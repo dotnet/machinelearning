@@ -27,32 +27,29 @@ namespace Microsoft.ML.Samples.Dynamic
             // "car truck driver bus pickup"       
             // "car truck driver bus pickup horse"
 
-            // A pipeline for featurizing the "Review" column
+            string review = nameof(SamplesUtils.DatasetUtils.SampleTopicsData.Review);
             string ldaFeatures = "LdaFeatures";
-            var pipeline = ml.Transforms.Text.ProduceWordBags("Review").
-                Append(ml.Transforms.Text.LatentDirichletAllocation("Review", ldaFeatures, numTopic:3));
+
+            // A pipeline for featurizing the "Review" column
+            var pipeline = ml.Transforms.Text.ProduceWordBags(review).
+                Append(ml.Transforms.Text.LatentDirichletAllocation(review, ldaFeatures, numTopic:3));
 
             // The transformed data
             var transformer = pipeline.Fit(trainData);
             var transformed_data = transformer.Transform(trainData);
 
-            // Small helper to print the text inside the columns, in the console. 
-            Action<string, IEnumerable<VBuffer<float>>> printHelper = (columnName, column) =>
+            // Column obtained after processing the input.
+            var ldaFeaturesColumn = transformed_data.GetColumn<VBuffer<float>>(ml, ldaFeatures);
+
+            Console.WriteLine($"{ldaFeatures} column obtained post-transformation.");
+            foreach (var featureRow in ldaFeaturesColumn)
             {
-                Console.WriteLine($"{columnName} column obtained post-transformation.");
-                foreach (var featureRow in column)
-                {
-                    foreach (var value in featureRow.GetValues())
-                        Console.Write($"{value} ");
-                    Console.WriteLine("");
-                }
+                foreach (var value in featureRow.GetValues())
+                    Console.Write($"{value} ");
+                Console.WriteLine("");
+            }
 
-                Console.WriteLine("===================================================");
-            };
-
-            // Preview of the column obtained after processing the input.
-            var defaultColumn = transformed_data.GetColumn<VBuffer<float>>(ml, ldaFeatures);
-            printHelper(ldaFeatures, defaultColumn);
+            Console.WriteLine("===================================================");
 
             // LdaFeatures column obtained post-transformation.
             // For LDA, we had specified numTopic:3. Hence each row of text has been featurized as a vector of floats with length 3.
