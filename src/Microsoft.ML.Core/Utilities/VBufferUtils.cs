@@ -405,7 +405,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // we are modifying in the sparse vector, in which case the vector becomes
             // dense. Then there is no need to do anything with indices.
             bool needIndices = dstValuesCount + 1 < dst.Length;
-            editor = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1);
+            editor = VBufferEditor.Create(ref dst, dst.Length, dstValuesCount + 1, keepOldOnResize: true);
             if (idx != dstValuesCount)
             {
                 // We have to do some sort of shift copy.
