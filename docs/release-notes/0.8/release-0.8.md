@@ -52,7 +52,9 @@ Below are some of the highlights from this release.
       data is transformed as expected. 
     * You can now preview an IDataView by going to the Watch window in the VS
       debugger, entering a variable name you want to preview and calling its
-      `Preview()` method. ![](dataPreview.gif)
+      `Preview()` method. 
+      
+    ![](dataPreview.gif)
 
 * Enabled a stateful prediction engine for time series problems
   ([#1727](https://github.com/dotnet/machinelearning/pull/1727))
