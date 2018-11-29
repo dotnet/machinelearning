@@ -349,17 +349,12 @@ namespace Microsoft.ML.Transforms.Categorical
             // If the user specified non-key values, we define the value column to be numeric.
             if (!keyValues)
                 return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                    (env, files) => TextLoader.Create(
-                        env,
-                        new TextLoader.Arguments()
-                        {
-                            Column = new[]
+                    (env, files) => new TextLoader(
+                        env, new[]
                             {
                                 new TextLoader.Column("Term", DataKind.TX, 0),
                                 new TextLoader.Column("Value", DataKind.Num, 1)
-                            }
-                        },
-                        files));
+                            }, dataSample: files).Read(files) as IDataLoader);
 
             // If the user specified key values, we scan the values to determine the range of the key type.
             ulong min = ulong.MaxValue;
@@ -369,7 +364,11 @@ namespace Microsoft.ML.Transforms.Categorical
                 var txtArgs = new TextLoader.Arguments();
                 bool parsed = CmdParser.ParseArguments(host, "col=Term:TX:0 col=Value:TX:1", txtArgs);
                 host.Assert(parsed);
-                var data = TextLoader.ReadFile(host, txtArgs, new MultiFileSource(filename));
+                var data = TextLoader.ReadFile(host, new MultiFileSource(filename), new[]
+                    {
+                        new TextLoader.Column("Term", DataKind.TX, 0),
+                        new TextLoader.Column("Value", DataKind.TX, 1)
+                    });
                 using (var cursor = data.GetRowCursor(c => true))
                 {
                     var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(0);
@@ -444,17 +443,14 @@ namespace Microsoft.ML.Transforms.Categorical
             }
 
             return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
-                   (env, files) => TextLoader.Create(
-                       env,
-                       new TextLoader.Arguments()
-                       {
-                           Column = new[]
-                           {
-                                new TextLoader.Column("Term", DataKind.TX, 0),
-                                valueColumn
-                           }
-                       },
-                       files));
+                   (env, files) => new TextLoader(
+                        env,
+                        columns: new[]
+                        {
+                            new TextLoader.Column("Term", DataKind.TX, 0),
+                            valueColumn
+                        },
+                        dataSample: files).Read(files) as IDataLoader);
         }
 
         // This saves the lookup data as a byte array encoded as a binary .idv file.

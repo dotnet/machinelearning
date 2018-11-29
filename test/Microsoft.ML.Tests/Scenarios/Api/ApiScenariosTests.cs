@@ -52,34 +52,30 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float Score;
         }
 
-        private static TextLoader.Arguments MakeIrisTextLoaderArgs()
+        private static TextLoader.Column[] MakeIrisColumns()
         {
-            return new TextLoader.Arguments()
-            {
-                Separator = "comma",
-                Column = new[]
+            return new[]
                 {
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
                     new TextLoader.Column("SepalWidth", DataKind.R4, 1),
                     new TextLoader.Column("PetalLength", DataKind.R4, 2),
                     new TextLoader.Column("PetalWidth",DataKind.R4, 3),
                     new TextLoader.Column("Label", DataKind.Text, 4)
-                }
-            };
+                };
         }
 
-        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
+        private static char[] MakeIrisSeparator()
         {
-            return new TextLoader.Arguments()
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
+            return new[] { ',' };
+        }
+
+        private static TextLoader.Column[] MakeSentimentColumns()
+        {
+            return new[]
                 {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }
-            };
+                };
         }
     }
 }

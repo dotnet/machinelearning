@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests.Transformers
             var loader = ML.Data.TextReader(new[] {
                     new TextLoader.Column("Float1", DataKind.R4, 9),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(9), new TextLoader.Range(10), new TextLoader.Range(11), new TextLoader.Range(12) })
-            }, s => { s.Separator = "\t"; s.HasHeader = true; });
+            }, hasHeader: true);
 
             var data = loader.Read(source);
 
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new TextLoader.Column("Float1", DataKind.R4, 0),
                     new TextLoader.Column("Float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
                     new TextLoader.Column("Text1", DataKind.Text, 0)
-            }, s => { s.Separator = ","; s.HasHeader = true; });
+            }, hasHeader: true, separatorChars: new[] { ',' });
 
             var data = loader.Read(source);
 

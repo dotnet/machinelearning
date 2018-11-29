@@ -17,33 +17,27 @@ namespace Microsoft.ML
         /// Create a text reader.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
-        /// <param name="args">The arguments to text reader, describing the data schema.</param>
-        /// <param name="dataSample">The optional location of a data sample.</param>
-        public static TextLoader TextReader(this DataOperations catalog,
-            TextLoader.Arguments args, IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
-
-        /// <summary>
-        /// Create a text reader.
-        /// </summary>
-        /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
         /// <param name="advancedSettings">The delegate to set additional settings.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataOperations catalog,
-            TextLoader.Column[] columns, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, advancedSettings: advancedSettings, dataSample: dataSample);
+            Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChars, advancedSettings, dataSample);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
-        /// <param name="advancedSettings">The delegate to set additional settings</param>
-        /// <param name="path">The path to the file</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
+        /// <param name="advancedSettings">The delegate to set additional settings.</param>
+        /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperations catalog,
-            TextLoader.Column[] columns, string path, Action<Arguments> advancedSettings = null)
+            string path, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -51,7 +45,7 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, advancedSettings: advancedSettings, dataSample: null);
+            var reader = new TextLoader(env, columns, hasHeader, separatorChars, advancedSettings, dataSample: null);
             return reader.Read(new MultiFileSource(path));
         }
 

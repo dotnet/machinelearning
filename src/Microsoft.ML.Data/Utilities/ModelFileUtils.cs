@@ -283,8 +283,7 @@ namespace Microsoft.ML.Runtime.Model
             {
                 // REVIEW: Should really validate the schema here, and consider
                 // ignoring this stream if it isn't as expected.
-                var loader = TextLoader.ReadFile(env, new TextLoader.Arguments(),
-                    new RepositoryStreamWrapper(rep, DirTrainingInfo, RoleMappingFile));
+                var loader = TextLoader.ReadFile(env, new RepositoryStreamWrapper(rep, DirTrainingInfo, RoleMappingFile), null);
 
                 using (var cursor = loader.GetRowCursor(c => true))
                 {

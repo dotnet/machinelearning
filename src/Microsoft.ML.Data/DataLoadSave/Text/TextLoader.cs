@@ -1294,7 +1294,7 @@ namespace Microsoft.ML.Runtime.Data
             _parser = new Parser(this);
         }
 
-        public static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
+        internal static TextLoader Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
@@ -1306,16 +1306,22 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // These are legacy constructors needed for ComponentCatalog.
-        public static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
+        internal static IDataLoader Create(IHostEnvironment env, ModelLoadContext ctx, IMultiStreamSource files)
             => (IDataLoader)Create(env, ctx).Read(files);
-        public static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
+        internal static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
             => (IDataLoader)new TextLoader(env, args, files).Read(files);
 
         /// <summary>
-        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// Creates a <see cref="TextLoader"/> and uses it to read a specified file.
         /// </summary>
-        public static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
-            => new TextLoader(env, args, fileSource).Read(fileSource);
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
+        /// <param name="hasHeader">Whether the file has a header.</param>
+        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="fileSource">Specifies a file from which to read.</param>
+        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null)
+            => new TextLoader(env, columns, hasHeader, separatorChars, advancedSettings, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
         {

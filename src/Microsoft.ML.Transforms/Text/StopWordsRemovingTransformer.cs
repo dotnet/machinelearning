@@ -722,17 +722,13 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     if (stopwordsCol == null)
                         stopwordsCol = "Stopwords";
-                    dataLoader = TextLoader.Create(
+                    dataLoader = new TextLoader(
                         Host,
-                        new TextLoader.Arguments()
+                        columns: new[]
                         {
-                            Separator = "tab",
-                            Column = new[]
-                            {
-                                new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
-                            }
+                            new TextLoader.Column(stopwordsCol, DataKind.TX, 0)
                         },
-                        fileSource);
+                        dataSample: fileSource).Read(fileSource) as IDataLoader;
                 }
                 ch.AssertNonEmpty(stopwordsCol);
             }
