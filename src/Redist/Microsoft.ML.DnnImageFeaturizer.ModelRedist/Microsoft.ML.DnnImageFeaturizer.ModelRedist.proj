@@ -106,11 +106,11 @@
           DependsOnTargets="DownloadDnnModelFiles">
     <Message Importance="High" Text="Copying external model files... @(ModelFileCopy->'%(TargetPath)')" />
     <Copy SourceFiles="@(ModelFileCopy)"
+          Condition="'$(SkipRIDAgnosticAssets)' == ''"
           DestinationFiles="@(ModelFileCopy->'%(TargetPath)')" />
   </Target>
 
   <Target Name="Build"
-          Condition="'$(SkipRIDAgnosticAssets)' == ''"
           DependsOnTargets="CopyDnnModelFiles" />
 
 </Project>
