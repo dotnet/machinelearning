@@ -87,7 +87,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
             var env = new MLContext(conc: 1);
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]
+        [Fact]
         public void ChangePointDetectionWithSeasonalityPredictionEngineNoColumn()
         {
             const int ChangeHistorySize = 10;
@@ -190,7 +190,7 @@ namespace Microsoft.ML.Tests
             var engine2 = model2.CreateTimeSeriesPredictionFunction<Data, Prediction>(ml);
             var prediction2 = engine2.Predict(new Data(1));
             //Raw score after first input.
-            Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 5); // Raw score
+            Assert.Equal(1.1661833524703979, prediction2.Change[1], precision: 4); // Raw score
             prediction2 = engine2.Predict(new Data(1));
             //Raw score after second input.
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 4); // Raw score
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Tests
             Assert.Equal(0.12216401100158691, prediction2.Change[1], precision: 4); // Raw score
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]
+        [Fact]
         public void ChangePointDetectionWithSeasonalityPredictionEngine()
         {
             const int ChangeHistorySize = 10;
