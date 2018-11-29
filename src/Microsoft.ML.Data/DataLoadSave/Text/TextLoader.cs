@@ -25,7 +25,6 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
-    /// Should accept any file that TlcTextInstances accepts.
     /// </summary>
     public sealed partial class TextLoader : IDataReader<IMultiStreamSource>, ICanSaveModel
     {
@@ -1009,13 +1008,12 @@ namespace Microsoft.ML.Runtime.Data
         private const string RegistrationName = "TextLoader";
 
         /// <summary>
-        /// Loads a text file into an IDataView. Supports basic mapping from input columns to IDataView columns.
-        /// Should accept any file that TlcTextInstances accepts.
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChars">Defines the characters used as separators between data points in a row.</param>
+        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
         public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
@@ -1025,6 +1023,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, Action<Arguments> advancedSettings)
         {
+            separatorChars = separatorChars ?? new[] { '\t' };
             var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
             advancedSettings?.Invoke(result);
             return result;

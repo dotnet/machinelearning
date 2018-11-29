@@ -5,13 +5,8 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.StaticPipe;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using static Microsoft.ML.Runtime.Data.TextLoader;
 
 namespace Microsoft.ML
@@ -36,8 +31,8 @@ namespace Microsoft.ML
         /// <param name="advancedSettings">The delegate to set additional settings.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataOperations catalog,
-            TextLoader.Column[] columns, Action<TextLoader.Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, advancedSettings, dataSample);
+            TextLoader.Column[] columns, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, advancedSettings: advancedSettings, dataSample: dataSample);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -48,7 +43,7 @@ namespace Microsoft.ML
         /// <param name="path">The path to the file</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperations catalog,
-            TextLoader.Column[] columns, string path, Action<TextLoader.Arguments> advancedSettings = null)
+            TextLoader.Column[] columns, string path, Action<Arguments> advancedSettings = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -56,7 +51,7 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, advancedSettings, dataSample: null);
+            var reader = new TextLoader(env, columns, advancedSettings: advancedSettings, dataSample: null);
             return reader.Read(new MultiFileSource(path));
         }
 
