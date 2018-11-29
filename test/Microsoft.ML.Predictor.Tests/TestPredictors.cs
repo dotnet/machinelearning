@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // x86 output differs from Baseline and flaky on netcore 3.0
         [TestCategory("Binary")]
         public void BinaryClassifierLogisticRegressionGaussianNormTest()
         {
