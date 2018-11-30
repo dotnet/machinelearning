@@ -94,11 +94,10 @@ namespace Microsoft.ML.Runtime.Data
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
-            ISchema outSchema = mapper.OutputSchema;
             int scoreIdx;
-            if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
+            if (!mapper.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
-            if (outSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TrainingLabelValues, scoreIdx) != null)
+            if (mapper.OutputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TrainingLabelValues, scoreIdx) != null)
                 return false; // The mapper publishes a score column, and already produces its own slot names.
 
             return labelNameType.IsVector && labelNameType.VectorSize == 2;
