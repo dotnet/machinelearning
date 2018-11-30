@@ -278,8 +278,8 @@ namespace Microsoft.ML.Trainers.Recommender
             private readonly string _matrixColumnIndexColumnName;
             private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
-            public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema OutputSchema { get; }
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
@@ -307,12 +307,12 @@ namespace Microsoft.ML.Trainers.Recommender
 
                 CheckInputSchema(schema.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
                 InputRoleMappedSchema = schema;
-                Schema = outputSchema;
+                OutputSchema = outputSchema;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => (col == _matrixColumnIndexColumnIndex || col == _matrixRowIndexCololumnIndex);
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Trainers.Recommender
             private Delegate[] CreateGetter(IRow input, bool[] active)
             {
                 _env.CheckValue(input, nameof(input));
-                _env.Assert(Utils.Size(active) == Schema.ColumnCount);
+                _env.Assert(Utils.Size(active) == OutputSchema.ColumnCount);
 
                 var getters = new Delegate[1];
                 if (active[0])
@@ -360,10 +360,10 @@ namespace Microsoft.ML.Trainers.Recommender
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
-                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
+                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
                 var getters = CreateGetter(input, active);
                 disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
 
             public ISchemaBindableMapper Bindable { get { return _parent; } }

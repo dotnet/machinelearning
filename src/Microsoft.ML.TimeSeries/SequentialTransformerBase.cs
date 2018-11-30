@@ -443,8 +443,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return false;
             }
 
-            public override Schema Schema => _bindings.Schema;
-
             public override long? GetRowCount()
             {
                 return _transform.GetRowCount();
@@ -467,9 +465,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             public Schema InputSchema => Source.Schema;
+
+            public override Schema OutputSchema => _bindings.Schema;
+
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => true;
@@ -542,11 +543,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(IHost host, SequentialDataTransform parent, IRowCursor input)
                 : base(host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public Schema Schema { get { return _parent.OutputSchema; } }
 
             public bool IsColumnActive(int col)
             {
@@ -586,7 +587,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(TimeSeriesRowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema Schema => _bindings.Schema;
+        public override Schema OutputSchema => _bindings.Schema;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
@@ -753,13 +755,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             using (var ch = Host.Start("GetEntireRow"))
             {
                 Action disp;
-                var activeArr = new bool[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new StatefulRow(input, this, Schema, getters,
+                return new StatefulRow(input, this, OutputSchema, getters,
                     _mapper.CreatePinger(input, pred, out disp));
             }
         }

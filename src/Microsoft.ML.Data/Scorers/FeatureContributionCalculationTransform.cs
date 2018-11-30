@@ -335,7 +335,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 
@@ -368,8 +368,8 @@ namespace Microsoft.ML.Runtime.Data
                         InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
 
-                _outputGenericSchema = _genericRowMapper.Schema;
-                Schema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                _outputGenericSchema = _genericRowMapper.OutputSchema;
+                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 
             /// <summary>
@@ -377,7 +377,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
                 }
 
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)

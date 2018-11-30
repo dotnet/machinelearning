@@ -174,8 +174,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.TrainedEnsemble.NumTrees);
-                Schema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
+                OutputSchema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
                 disposer = null;
-                return new SimpleRow(Schema, input, CreateGetters(input, predicate));
+                return new SimpleRow(OutputSchema, input, CreateGetters(input, predicate));
             }
 
             private Delegate[] CreateGetters(IRow input, Func<int, bool> predicate)
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;

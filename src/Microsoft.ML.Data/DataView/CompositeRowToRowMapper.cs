@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
         private static readonly IRowToRowMapper[] _empty = new IRowToRowMapper[0];
 
         public Schema InputSchema { get; }
-        public Schema Schema { get; }
+        public Schema OutputSchema { get; }
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(mappers);
             InnerMappers = Utils.Size(mappers) > 0 ? mappers : _empty;
             InputSchema = inputSchema;
-            Schema = Utils.Size(mappers) > 0 ? mappers[mappers.Length - 1].Schema : inputSchema;
+            OutputSchema = Utils.Size(mappers) > 0 ? mappers[mappers.Length - 1].OutputSchema : inputSchema;
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)

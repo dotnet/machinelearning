@@ -227,7 +227,7 @@ namespace Microsoft.ML.Data
             for (int i = 0; i < mappers.Length; ++i)
             {
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);
-                schema = mappers[i].Schema;
+                schema = mappers[i].OutputSchema;
             }
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }

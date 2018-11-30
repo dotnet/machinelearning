@@ -102,7 +102,16 @@ namespace Microsoft.ML.Runtime.Data
             get { return Source.CanShuffle; }
         }
 
-        public Schema Schema => Source.Schema;
+        /// <summary>
+        /// Explicit implementation prevents Schema from being accessed from derived classes.
+        /// It's our first step to separate data produced by transform from transform.
+        /// </summary>
+        Schema IDataView.Schema => OutputSchema;
+
+        /// <summary>
+        /// Shape information of the produced output. Note that the input and the output of this transform (and their types) are identical.
+        /// </summary>
+        public Schema OutputSchema => Source.Schema;
 
         public long? GetRowCount()
         {
