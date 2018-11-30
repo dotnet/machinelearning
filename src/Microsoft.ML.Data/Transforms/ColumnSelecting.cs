@@ -625,11 +625,11 @@ namespace Microsoft.ML.Transforms
 
             public IDataView Source { get; }
 
-            Schema IRowToRowMapper.InputSchema => Source.Schema;
+            public Schema InputSchema => Source.Schema;
 
-            Schema IDataView.Schema => _mapper.Schema;
+            Schema IDataView.Schema => OutputSchema;
 
-            Schema IRowToRowMapper.OutputSchema => _mapper.Schema;
+            public Schema OutputSchema => _mapper.Schema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
