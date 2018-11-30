@@ -48,8 +48,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup SsaChangePointDetector arguments
-            string outputColumnName = "Prediction";
-            string inputColumnName = "Value";
+            var inputColumnName = nameof(SsaChangePointData.Value);
+            var outputColumnName = nameof(ChangePointPrediction.Prediction);
             var args = new SsaChangePointDetector.Arguments()
             {
                 Source = inputColumnName,
@@ -119,8 +119,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup SsaChangePointDetector arguments
-            string outputColumnName = "Prediction";
-            string inputColumnName = "Value";
+            var inputColumnName = nameof(SsaChangePointData.Value);
+            var outputColumnName = nameof(ChangePointPrediction.Prediction);
             var args = new SsaChangePointDetector.Arguments()
             {
                 Source = inputColumnName,

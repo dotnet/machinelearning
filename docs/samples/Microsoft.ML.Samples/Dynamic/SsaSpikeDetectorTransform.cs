@@ -1,14 +1,13 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Core.Data;
-
-using Microsoft.ML.TimeSeries;
-using System.IO;
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -57,8 +56,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup IidSpikeDetector arguments
-            var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var inputColumnName = nameof(SsaSpikeData.Value);
+            var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var args = new SsaSpikeDetector.Arguments()
             {
                 Source = inputColumnName,
@@ -128,8 +127,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup IidSpikeDetector arguments
-            var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var inputColumnName = nameof(SsaSpikeData.Value);
+            var outputColumnName = nameof(SsaSpikePrediction.Prediction);
             var args = new SsaSpikeDetector.Arguments()
             {
                 Source = inputColumnName,
