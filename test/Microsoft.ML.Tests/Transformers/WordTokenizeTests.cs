@@ -28,6 +28,21 @@ namespace Microsoft.ML.Tests.Transformers
             [VectorType(2)]
             public string[] B;
         }
+
+// Visual Studio complains because the following class members are not never assigned. That is wrong because that class 
+// will be implicitly created in runtime and therefore we disable warning 169.
+#pragma warning disable 169
+        // This is a C# native data structure used to capture the output of ML.NET tokenizer in the test below.
+        public class NativeResult
+        {
+            public string A;
+            public string[] B;
+            public string[] TokenizeA;
+            public string[] TokenizeB;
+        }
+#pragma warning restore 169
+
+
         private class TestWrong
         {
             public float A;
@@ -35,6 +50,7 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] B;
         }
         [Fact]
+
         public void WordTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
@@ -47,36 +63,8 @@ namespace Microsoft.ML.Tests.Transformers
                 });
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataView);
-            Done();
-        }
 
-        [Fact]
-        public void TestCommandLine()
-        {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=WordToken{col=B:A} in=f:\2.txt" }), (int)0);
-        }
-
-#pragma warning disable 169
-        // This is a C# native data structure used to capture the output of ML.NET tokenizer in the test below.
-        public class NativeResult
-        {
-            public string A;
-            public string[] B;
-            public string[] TokenizeA;
-            public string[] TokenizeB;
-        }
-#pragma warning restore 169
-
-        [Fact]
-        public void TestOldSavingAndLoading()
-        {
-            var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
-
-            var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new WordTokenizingEstimator(Env, new[]{
-                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA"),
-                    new WordTokenizingTransformer.ColumnInfo("B", "TokenizeB"),
-                });
+            // Reuse the pipe trained on dataView in TestEstimatorCore to make prediction.
             var result = pipe.Fit(dataView).Transform(dataView);
 
             // Extract the transformed result of the first row (the only row we have because data contains only one TestClass) as a native class.
@@ -96,6 +84,26 @@ namespace Microsoft.ML.Tests.Transformers
             for (int i = 0; i < tokenizeB.Length; ++i)
                 Assert.Equal(tokenizeB[i], nativeResult.TokenizeB[i]);
 
+            Done();
+        }
+
+        [Fact]
+        public void TestCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:TX:0} xf=WordToken{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestOldSavingAndLoading()
+        {
+            var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
+
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var pipe = new WordTokenizingEstimator(Env, new[]{
+                    new WordTokenizingTransformer.ColumnInfo("A", "TokenizeA"),
+                    new WordTokenizingTransformer.ColumnInfo("B", "TokenizeB"),
+                });
+            var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
             {
