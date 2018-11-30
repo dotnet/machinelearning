@@ -528,8 +528,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public ISchemaBindableMapper Bindable => _parent;
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
             public Schema InputSchema => _predictor.InputSchema;
-            public Schema Schema { get; }
-            public Schema OutputSchema => Schema;
+            public Schema OutputSchema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -542,12 +541,12 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                Schema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = Schema.Create(new BinaryClassifierSchema());
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -563,7 +562,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                     {
@@ -572,17 +571,17 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     }
                 }
                 var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
-                var getters = new Delegate[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount - 1; i++)
+                var getters = new Delegate[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(Schema.ColumnCount - 1))
-                    getters[Schema.ColumnCount - 1] = GetProbGetter(predictorRow);
-                return new SimpleRow(Schema, predictorRow, getters);
+                if (predicate(OutputSchema.ColumnCount - 1))
+                    getters[OutputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(IRow input, int col)

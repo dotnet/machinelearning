@@ -43,14 +43,13 @@ namespace Microsoft.ML.Runtime.Ensemble
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputRoleMappedSchema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
-            public Schema Schema { get; }
-            public Schema OutputSchema => Schema;
+            public Schema OutputSchema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
+                OutputSchema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
@@ -91,7 +90,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -106,7 +105,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
-                return new SimpleRow(Schema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
+                return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
             }
 
             public abstract Delegate CreateScoreGetter(IRow input, Func<int, bool> mapperPredicate, out Action disposer);

@@ -473,9 +473,7 @@ namespace Microsoft.ML.Runtime.Data
             public RoleMappedSchema InputRoleMappedSchema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public Schema Schema { get; }
-
-            public Schema OutputSchema => Schema;
+            public Schema OutputSchema { get; }
 
             public ISchemaBindableMapper Bindable => _parent;
 
@@ -488,7 +486,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = Schema.Create(new BinaryClassifierSchema());
 
                 if (schema.Feature != null)
                 {
@@ -500,7 +498,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i) && InputRoleMappedSchema.Feature != null)
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -572,10 +570,10 @@ namespace Microsoft.ML.Runtime.Data
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
+                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
                 var getters = CreateGetters(input, active);
                 disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
         }
     }

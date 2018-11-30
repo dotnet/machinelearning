@@ -250,12 +250,9 @@ namespace Microsoft.ML.Runtime.Data
                 private LabelNameBindableMapper _bindable;
                 private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
-                public Schema Schema => _outSchema.AsSchema;
-
-                public Schema OutputSchema => Schema;
-
                 public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
                 public Schema InputSchema => _mapper.InputSchema;
+                public Schema OutputSchema => _outSchema.AsSchema;
 
                 public ISchemaBindableMapper Bindable
                 {
@@ -313,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
                 public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
                 {
                     var innerRow = _mapper.GetRow(input, predicate, out disposer);
-                    return new RowImpl(innerRow, Schema);
+                    return new RowImpl(innerRow, OutputSchema);
                 }
 
                 private sealed class SchemaImpl : ISchema
