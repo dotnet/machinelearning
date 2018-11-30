@@ -1234,7 +1234,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return entry;
         }
 
-        private IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        private IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
@@ -1247,7 +1247,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -1255,7 +1255,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -1293,7 +1293,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 get { return 0; }
             }
 
-            public Cursor(BinaryLoader parent, Func<int, bool> predicate, IRandom rand)
+            public Cursor(BinaryLoader parent, Func<int, bool> predicate, Random rand)
                 : base(parent._host)
             {
                 _parent = parent;

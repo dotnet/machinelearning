@@ -391,14 +391,14 @@ namespace Microsoft.ML.Runtime.Data
             return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -446,9 +446,9 @@ namespace Microsoft.ML.Runtime.Data
             private IEnumerator<int> _dataSetEnumerator;
             private IEnumerator<int> _blockEnumerator;
             private IList[] _columnValues;
-            private IRandom _rand;
+            private Random _rand;
 
-            public Cursor(ParquetLoader parent, Func<int, bool> predicate, IRandom rand)
+            public Cursor(ParquetLoader parent, Func<int, bool> predicate, Random rand)
                : base(parent._host)
             {
                 Ch.AssertValue(predicate);

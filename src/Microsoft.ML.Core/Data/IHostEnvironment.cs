@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime
         /// The random number generator issued to this component. Note that random number
         /// generators are NOT thread safe.
         /// </summary>
-        IRandom Rand { get; }
+        Random Rand { get; }
 
         /// <summary>
         /// Signal to stop exection in this host and all its children.

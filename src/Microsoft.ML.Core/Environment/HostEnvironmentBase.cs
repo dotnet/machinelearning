@@ -107,12 +107,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             public override int Depth { get; }
 
-            public IRandom Rand => _rand;
+            public Random Rand => _rand;
 
             // We don't have dispose mechanism for hosts, so to let GC collect children hosts we make them WeakReference.
             private readonly List<WeakReference<IHost>> _children;
 
-            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+            public HostBase(HostEnvironmentBase<TEnv> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
                 : base(source, rand, verbose, conc, shortName, parentFullName)
             {
                 Depth = source.Depth + 1;
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Data
                 IHost host;
                 lock (_cancelLock)
                 {
-                    IRandom rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+                    Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
                     host = RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc ?? _conc);
                     if (!IsCancelled)
                         _children.Add(new WeakReference<IHost>(host));
@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly object _cancelLock;
 
         // The random number generator for this host.
-        private readonly IRandom _rand;
+        private readonly Random _rand;
         // A dictionary mapping the type of message to the Dispatcher that gets the strongly typed dispatch delegate.
         protected readonly ConcurrentDictionary<Type, Dispatcher> ListenerDict;
 
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         ///  The main constructor.
         /// </summary>
-        protected HostEnvironmentBase(IRandom rand, bool verbose, int conc,
+        protected HostEnvironmentBase(Random rand, bool verbose, int conc,
             string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This constructor is for forking.
         /// </summary>
-        protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, IRandom rand, bool verbose,
+        protected HostEnvironmentBase(HostEnvironmentBase<TEnv> source, Random rand, bool verbose,
             int? conc, string shortName = null, string parentFullName = null)
             : base(shortName, parentFullName, verbose)
         {
@@ -433,12 +433,12 @@ namespace Microsoft.ML.Runtime.Data
         public IHost Register(string name, int? seed = null, bool? verbose = null, int? conc = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
-            IRandom rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
+            Random rand = (seed.HasValue) ? RandomUtils.Create(seed.Value) : RandomUtils.Create(_rand);
             return RegisterCore(this, name, Master?.FullName, rand, verbose ?? Verbose, conc);
         }
 
         protected abstract IHost RegisterCore(HostEnvironmentBase<TEnv> source, string shortName,
-            string parentFullName, IRandom rand, bool verbose, int? conc);
+            string parentFullName, Random rand, bool verbose, int? conc);
 
         public IFileHandle OpenInputFile(string path)
         {
