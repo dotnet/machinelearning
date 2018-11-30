@@ -520,7 +520,7 @@ namespace Microsoft.ML.Trainers
             ch.Assert(Args.MaxIterations.HasValue);
             var maxIterations = Args.MaxIterations.Value;
 
-            var rands = new IRandom[maxIterations];
+            var rands = new Random[maxIterations];
             for (int i = 0; i < maxIterations; i++)
                 rands[i] = RandomUtils.Create(Host.Rand.Next());
 
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Trainers
         /// The array holding the pre-computed squared L2-norm of features for each training example. It may be null. It is always null for
         /// binary classification and regression because this quantity is not needed.
         /// </param>
-        protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
+        protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, Random rand,
             IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
@@ -1831,8 +1831,8 @@ namespace Microsoft.ML.Trainers
             //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
             //https://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
-            var trainingTasks = new Action<IRandom, IProgressChannel>[_args.MaxIterations];
-            var rands = new IRandom[_args.MaxIterations];
+            var trainingTasks = new Action<Random, IProgressChannel>[_args.MaxIterations];
+            var rands = new Random[_args.MaxIterations];
             var ilr = _args.InitLearningRate;
             long t = 0;
             for (int epoch = 1; epoch <= _args.MaxIterations; epoch++)

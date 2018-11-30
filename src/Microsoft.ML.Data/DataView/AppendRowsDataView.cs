@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             return sum;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             if (rand == null || !_canShuffle)
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
             return new RandCursor(this, needCol, rand, _counts);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
@@ -301,10 +301,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly IRowCursor[] _cursorSet;
             private readonly MultinomialWithoutReplacementSampler _sampler;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private int _currentSourceIndex;
 
-            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, IRandom rand, int[] counts)
+            public RandCursor(AppendRowsDataView parent, Func<int, bool> needCol, Random rand, int[] counts)
                 : base(parent)
             {
                 Ch.AssertValue(needCol);
@@ -397,7 +397,7 @@ namespace Microsoft.ML.Runtime.Data
             private const int BatchSize = 1000;
 
             private readonly int[] _rowsLeft;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
             private readonly int[] _batch;
             private readonly IExceptionContext _ectx;
 
@@ -405,7 +405,7 @@ namespace Microsoft.ML.Runtime.Data
             private int _batchPos;
             private int _totalLeft;
 
-            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, IRandom rand)
+            public MultinomialWithoutReplacementSampler(IExceptionContext context, int[] counts, Random rand)
             {
                 Contracts.AssertValue(context);
                 _ectx = context;

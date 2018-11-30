@@ -171,7 +171,7 @@ namespace Microsoft.ML.TimeSeries
         {
             List<IStatefulRow> rows = new List<IStatefulRow>();
             IRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows, out disposer);
-            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
+            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
             _pinger = CreatePinger(rows);
             outputRow = cursorable.GetRow(outputRowLocal);
         }
@@ -208,7 +208,7 @@ namespace Microsoft.ML.TimeSeries
                 else
                     mappers[i] = transformers[i].GetRowToRowMapper(schema);
 
-                schema = mappers[i].Schema;
+                schema = mappers[i].OutputSchema;
             }
             return new CompositeRowToRowMapper(inputSchema, mappers);
         }

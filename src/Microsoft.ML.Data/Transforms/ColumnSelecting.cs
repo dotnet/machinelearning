@@ -448,7 +448,7 @@ namespace Microsoft.ML.Transforms
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            return new Mapper(this, inputSchema).Schema;
+            return new Mapper(this, inputSchema).OutputSchema;
         }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Transforms
 
             public ISchema InputSchema => _inputSchema;
 
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
 
             public Mapper(ColumnSelectingTransformer transform, Schema inputSchema)
             {
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Transforms
                                                             transform.KeepColumns,
                                                             transform.KeepHidden,
                                                             _inputSchema);
-                Schema = GenerateOutputSchema(_outputToInputMap, _inputSchema);
+                OutputSchema = GenerateOutputSchema(_outputToInputMap, _inputSchema);
             }
 
             public int GetInputIndex(int outputIndex)
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Transforms
 
             public long Batch => _input.Batch;
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IRow.Schema => _mapper.OutputSchema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
@@ -625,13 +625,15 @@ namespace Microsoft.ML.Transforms
 
             public IDataView Source { get; }
 
-            Schema IRowToRowMapper.InputSchema => Source.Schema;
+            public Schema InputSchema => Source.Schema;
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            Schema IDataView.Schema => OutputSchema;
+
+            public Schema OutputSchema => _mapper.OutputSchema;
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+            public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
             {
                 _host.AssertValue(needCol, nameof(needCol));
                 _host.AssertValueOrNull(rand);
@@ -641,11 +643,11 @@ namespace Microsoft.ML.Transforms
                 var inputRowCursor = Source.GetRowCursor(inputPred, rand);
 
                 // Build the active state for the output
-                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
+                var active = Utils.BuildArray(_mapper.OutputSchema.ColumnCount, needCol);
                 return new RowCursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
@@ -655,7 +657,7 @@ namespace Microsoft.ML.Transforms
                 var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
 
                 // Build out the acitve state for the output
-                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
+                var active = Utils.BuildArray(_mapper.OutputSchema.ColumnCount, needCol);
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
@@ -672,7 +674,7 @@ namespace Microsoft.ML.Transforms
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 var active = new bool[_mapper.InputSchema.ColumnCount];
-                var columnCount = _mapper.Schema.ColumnCount;
+                var columnCount = _mapper.OutputSchema.ColumnCount;
                 for (int colIdx = 0; colIdx < columnCount; ++colIdx)
                 {
                     if (activeOutput(colIdx))
@@ -705,7 +707,7 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            Schema ISchematized.Schema => _mapper.Schema;
+            public Schema Schema => _mapper.OutputSchema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

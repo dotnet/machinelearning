@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests
             Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={basePath}}}" });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(LessThanNetCore30OrNotNetCore))]
         public void TestGeneratedCSharpAPI()
         {
             var dataPath = GetOutputPath("Api.cs");

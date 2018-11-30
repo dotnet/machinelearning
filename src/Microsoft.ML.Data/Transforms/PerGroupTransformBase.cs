@@ -91,7 +91,9 @@ namespace Microsoft.ML.Runtime.Data
         protected readonly string ScoreCol;
         protected readonly string GroupCol;
 
-        public Schema Schema => GetBindings().AsSchema;
+        Schema IDataView.Schema => OutputSchema;
+
+        public Schema OutputSchema => GetBindings().AsSchema;
 
         public IDataView Source { get; }
 
@@ -150,7 +152,7 @@ namespace Microsoft.ML.Runtime.Data
             return Source.GetRowCount();
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -158,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -235,7 +237,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<TLabel> _labelGetter;
             private readonly ValueGetter<TScore> _scoreGetter;
 
-            public Schema Schema => _parent.Schema;
+            public Schema Schema => _parent.OutputSchema;
 
             public override long Batch { get { return 0; } }
 

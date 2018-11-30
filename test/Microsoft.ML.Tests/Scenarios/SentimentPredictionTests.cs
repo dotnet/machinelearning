@@ -189,7 +189,7 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
-        private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetricsSymSGD(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(.8889, metrics.Accuracy, 4);
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Scenarios
 
         }
 
-        private void ValidateBinaryMetricsLightGBM(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetricsLightGBM(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(0.61111111111111116, metrics.Accuracy, 4);
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Scenarios
 
         }
 
-        private void ValidateBinaryMetrics(BinaryClassificationMetrics metrics)
+        private void ValidateBinaryMetrics(Microsoft.ML.Legacy.Models.BinaryClassificationMetrics metrics)
         {
 
             Assert.Equal(0.6111, metrics.Accuracy, 4);

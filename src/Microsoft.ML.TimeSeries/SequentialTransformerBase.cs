@@ -429,7 +429,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool CanShuffle { get { return false; } }
 
-            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
             {
                 var srcCursor = _transform.GetRowCursor(predicate, rand);
                 var clone = (SequentialDataTransform)MemberwiseClone();
@@ -443,14 +443,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return false;
             }
 
-            public override Schema Schema => _bindings.Schema;
-
             public override long? GetRowCount()
             {
                 return _transform.GetRowCount();
             }
 
-            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 consolidator = null;
                 return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
@@ -467,9 +465,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             public Schema InputSchema => Source.Schema;
+
+            public override Schema OutputSchema => _bindings.Schema;
+
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => true;
@@ -542,11 +543,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(IHost host, SequentialDataTransform parent, IRowCursor input)
                 : base(host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public Schema Schema { get { return _parent.OutputSchema; } }
 
             public bool IsColumnActive(int col)
             {
@@ -586,7 +587,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(TimeSeriesRowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema Schema => _bindings.Schema;
+        public override Schema OutputSchema => _bindings.Schema;
+
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
@@ -686,14 +688,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
             return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -753,13 +755,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             using (var ch = Host.Start("GetEntireRow"))
             {
                 Action disp;
-                var activeArr = new bool[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new StatefulRow(input, this, Schema, getters,
+                return new StatefulRow(input, this, OutputSchema, getters,
                     _mapper.CreatePinger(input, pred, out disp));
             }
         }

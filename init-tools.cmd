@@ -46,15 +46,17 @@ if exist "%DotNetBuildToolsDir%" (
 echo Running %0 > "%INIT_TOOLS_LOG%"
 
 set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.txt"
-if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 :Arg_Loop
 if [%1] == [] goto :ArchSet
-if /i [%1] == [x86]         ( set ARCH=x86&&goto ArchSet)
+if /i [%1] == [x86]         ( set ARCH=x86)
+if /i [%1] == [-Debug-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.latest.txt")
+if /i [%1] == [-Release-Intrinsics] ( set /p DOTNET_VERSION=< "%~dp0DotnetCLIVersion.netcoreapp.latest.txt")
 shift
 goto :Arg_Loop
 
 :ArchSet
+if exist "%DOTNET_CMD%" goto :afterdotnetrestore
 
 echo Installing dotnet cli...
 if NOT exist "%DOTNET_PATH%" mkdir "%DOTNET_PATH%"

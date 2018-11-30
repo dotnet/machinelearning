@@ -306,8 +306,8 @@ namespace Microsoft.ML.Runtime.Data
 
             ComponentCatalog.LoadableClassInfo info = null;
             ReadOnlyMemory<char> scoreKind = default;
-            if (mapper.Schema.Count > 0 &&
-                mapper.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
+            if (mapper.OutputSchema.Count > 0 &&
+                mapper.OutputSchema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
                 !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();

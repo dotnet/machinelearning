@@ -12,8 +12,8 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector
     public interface ISubsetSelector
     {
         void Initialize(RoleMappedData data, int size, int batchSize, Single validationDatasetProportion);
-        IEnumerable<Batch> GetBatches(IRandom rand);
-        IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand);
+        IEnumerable<Batch> GetBatches(Random rand);
+        IEnumerable<Subset> GetSubsets(Batch batch, Random rand);
         RoleMappedData GetTestData(Subset subset, Batch batch);
     }
 

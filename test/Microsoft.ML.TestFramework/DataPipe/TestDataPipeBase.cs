@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     var mapper = transformer.GetRowToRowMapper(data.Schema);
                     Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
-                    CheckSameSchemas(schema, mapper.Schema);
+                    CheckSameSchemas(schema, mapper.OutputSchema);
                 }
                 else
                 {
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var newPipe = ApplyTransformUtils.ApplyAllTransformsToData(_env, comp.View, cachedData);
                 if (!newPipe.CanShuffle)
                 {
-                    using (var c1 = newPipe.GetRowCursor(col => true, new SysRandom(123)))
+                    using (var c1 = newPipe.GetRowCursor(col => true, new Random(123)))
                     using (var c2 = newPipe.GetRowCursor(col => true))
                     {
                         if (!CheckSameValues(c1, c2, true, true, true))
