@@ -18,7 +18,7 @@ namespace Microsoft.ML
         /// <remarks>
         /// <para>
         /// Permutation feature importance (PFI) is a technique to determine the global importance of features in a trained
-        /// machine learning model. PFI is a simple yet powerul technique motivated by Breiman in his Random Forest paper, section 10
+        /// machine learning model. PFI is a simple yet powerful technique motivated by Breiman in his Random Forest paper, section 10
         /// (Breiman. <a href='https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'>&quot;Random Forests.&quot;</a> Machine Learning, 2001.)
         /// The advantage of the PFI method is that it is model agnostic -- it works with any model that can be
         /// evaluated -- and it can use any dataset, not just the training set, to compute feature importance metrics.
@@ -90,7 +90,7 @@ namespace Microsoft.ML
         /// <remarks>
         /// <para>
         /// Permutation feature importance (PFI) is a technique to determine the global importance of features in a trained
-        /// machine learning model. PFI is a simple yet powerul technique motivated by Breiman in his Random Forest paper, section 10
+        /// machine learning model. PFI is a simple yet powerful technique motivated by Breiman in his Random Forest paper, section 10
         /// (Breiman. <a href='https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'>&quot;Random Forests.&quot;</a> Machine Learning, 2001.)
         /// The advantage of the PFI method is that it is model agnostic -- it works with any model that can be
         /// evaluated -- and it can use any dataset, not just the training set, to compute feature importance metrics.
