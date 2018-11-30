@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms
             private readonly Value[] _values;
 
             public RowCursor(NAFilter parent, IRowCursor input, bool[] active)
-                : base(parent.Host, input, parent.Schema, active)
+                : base(parent.Host, input, parent.OutputSchema, active)
             {
                 _parent = parent;
                 _values = new Value[_parent._infos.Length];

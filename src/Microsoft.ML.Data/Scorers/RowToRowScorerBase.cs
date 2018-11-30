@@ -232,14 +232,14 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.AssertValue(predicateMapper);
 
                 _bindings = parent.GetBindings();
-                Schema = parent.Schema;
+                Schema = parent.OutputSchema;
                 Ch.Assert(active.Length == _bindings.ColumnCount);
                 _active = active;
 
                 var output = _bindings.RowMapper.GetRow(input, predicateMapper, out _disposer);
                 try
                 {
-                    Ch.Assert(output.Schema == _bindings.RowMapper.Schema);
+                    Ch.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
                     _getters = parent.GetGetters(output, iinfo => active[_bindings.MapIinfoToCol(iinfo)]);
                 }
                 catch (Exception)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValueOrNull(suffix);
             Contracts.AssertValue(namesDerived);
 
-            var schema = mapper.Schema;
+            var schema = mapper.OutputSchema;
             int count = namesDerived.Length + schema.ColumnCount;
             var res = new string[count];
             int dst = 0;
@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override ColumnType GetColumnTypeCore(int iinfo)
         {
             Contracts.Assert(DerivedColumnCount <= iinfo && iinfo < InfoCount);
-            return Mapper.Schema.GetColumnType(iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema.GetColumnType(iinfo - DerivedColumnCount);
         }
 
         protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int iinfo)
@@ -410,7 +410,7 @@ namespace Microsoft.ML.Runtime.Data
             yield return MetadataUtils.ScoreColumnSetIdType.GetPair(MetadataUtils.Kinds.ScoreColumnSetId);
             if (iinfo < DerivedColumnCount)
                 yield break;
-            foreach (var pair in Mapper.Schema.GetMetadataTypes(iinfo - DerivedColumnCount))
+            foreach (var pair in Mapper.OutputSchema.GetMetadataTypes(iinfo - DerivedColumnCount))
                 yield return pair;
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.Data
                 return MetadataUtils.ScoreColumnSetIdType;
             if (iinfo < DerivedColumnCount)
                 return null;
-            return Mapper.Schema.GetMetadataTypeOrNull(kind, iinfo - DerivedColumnCount);
+            return Mapper.OutputSchema.GetMetadataTypeOrNull(kind, iinfo - DerivedColumnCount);
         }
 
         protected override void GetMetadataCore<TValue>(string kind, int iinfo, ref TValue value)
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Runtime.Data
                 default:
                     if (iinfo < DerivedColumnCount)
                         throw MetadataUtils.ExceptGetMetadata();
-                    Mapper.Schema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
+                    Mapper.OutputSchema.GetMetadata<TValue>(kind, iinfo - DerivedColumnCount, ref value);
                     break;
             }
         }
@@ -452,8 +452,8 @@ namespace Microsoft.ML.Runtime.Data
             return
                 col =>
                 {
-                    Contracts.Assert(0 <= col && col < Mapper.Schema.ColumnCount);
-                    return 0 <= col && col < Mapper.Schema.ColumnCount &&
+                    Contracts.Assert(0 <= col && col < Mapper.OutputSchema.ColumnCount);
+                    return 0 <= col && col < Mapper.OutputSchema.ColumnCount &&
                         active[MapIinfoToCol(col + DerivedColumnCount)];
                 };
         }

@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema Schema => _transform.Schema;
+        public override Schema OutputSchema => _transform.Schema;
 
         public override long? GetRowCount()
         {
@@ -381,11 +381,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, IRowCursor input)
                 : base(parent.Host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public Schema Schema { get { return _parent.OutputSchema; } }
 
             public bool IsColumnActive(int col)
             {

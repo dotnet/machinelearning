@@ -241,7 +241,7 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return true; } }
 
-        public override Schema Schema { get { return _subsetInput.Schema; } }
+        public override Schema OutputSchema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {

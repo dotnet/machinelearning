@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
-            ISchema outSchema = mapper.Schema;
+            ISchema outSchema = mapper.OutputSchema;
             int scoreIdx;
             if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
-            Host.Assert(output.Schema == Bindings.RowMapper.Schema);
+            Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
             ValueGetter<Float> mapperScoreGetter = output.GetGetter<Float>(Bindings.ScoreColumnIndex);

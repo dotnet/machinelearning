@@ -269,7 +269,7 @@ namespace Microsoft.ML.Transforms
             private readonly Double _max;
 
             protected RowCursorBase(RangeFilter parent, IRowCursor input, bool[] active)
-                : base(parent.Host, input, parent.Schema, active)
+                : base(parent.Host, input, parent.OutputSchema, active)
             {
                 Parent = parent;
                 _min = Parent._min;

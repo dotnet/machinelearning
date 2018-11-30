@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Data
                         InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
 
-                _outputGenericSchema = _genericRowMapper.Schema;
+                _outputGenericSchema = _genericRowMapper.OutputSchema;
                 Schema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
             }
 

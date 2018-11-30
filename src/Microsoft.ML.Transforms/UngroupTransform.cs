@@ -163,7 +163,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema Schema => _schemaImpl.AsSchema;
+        public override Schema OutputSchema => _schemaImpl.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {

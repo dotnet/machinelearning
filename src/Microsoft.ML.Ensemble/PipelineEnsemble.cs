@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
 
                     // Get the pipeline.

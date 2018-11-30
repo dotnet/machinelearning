@@ -14,7 +14,7 @@ using System.Linq;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class characterizes variables (like an <see cref="IDataView"/> or an <see cref="IRow"/>) produced or consumed by ML.NET operators.
+    /// This class represents the <see cref="Schema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="IRow"/>.
     /// On the high level, the schema is a collection of 'columns'. Each column has the following properties:
     /// - Column name.
     /// - Column type.

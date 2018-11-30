@@ -194,8 +194,8 @@ namespace Microsoft.ML.Transforms
             Host.AssertValueOrNull(rand);
 
             var input = Source.GetRowCursor(predicate);
-            var activeColumns = Utils.BuildArray(Schema.ColumnCount, predicate);
-            return new RowCursor(Host, input, Schema, activeColumns, _skip, _take);
+            var activeColumns = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+            return new RowCursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
