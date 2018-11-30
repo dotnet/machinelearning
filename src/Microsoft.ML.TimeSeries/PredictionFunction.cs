@@ -253,8 +253,8 @@ namespace Microsoft.ML.TimeSeries
     public static class PredictionFunctionExtensions
     {
         /// <summary>
-        /// Creates a prediction function/engine for a time series pipeline. <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/>
-        /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model./>
+        /// <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> creates a prediction function/engine for a time series pipeline
+        /// It updates the state of time series model with observations seen at prediction phase and allows checkpointing the model.
         /// </summary>
         /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
         /// <typeparam name="TDst">Class describing the output schema of the prediction.</typeparam>
