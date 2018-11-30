@@ -173,24 +173,30 @@ namespace Microsoft.ML.Samples.Dynamic
             engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);
 
             // Run predictions on more data.
-            for (int j = 0; j < 6; j++)
+            for (int i = 0; i < 5; i++)
             {
-                for (int i = 0; i < 5; i++)
-                {
-                    var value = (i + 1) * 100;
-                    prediction = engine.Predict(new SsaChangePointData(value));
-                    Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
-                }
+                var value = (i + 1) * 100;
+                prediction = engine.Predict(new SsaChangePointData(value));
+                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
             }
-            for (int j = 0; j < 5; j++)
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    var value = i;
-                    prediction = engine.Predict(new SsaChangePointData(value));
-                    Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
-                }
-            }
+
+            // Output from ChangePoint predictions on new data:
+            // Data    Alert   Score   P-Value Martingale value
+            // 0       0     - 1.01    0.50    0.00
+            // 1       0     - 0.24    0.22    0.00
+            // 2       0     - 0.31    0.30    0.00
+            // 3       0       0.44    0.01    0.00
+            // 4       0       2.16    0.00    0.24
+            // 100     0      86.23    0.00    2076098.24
+            // 200     0     171.38    0.00    809668524.21
+            // 300     1     256.83    0.01    22130423541.93    <-- alert is on, note that delay is expected
+            // 400     0     326.55    0.04    241162710263.29
+            // 500     0     364.82    0.08    597660527041.45
+            // 100     0    - 58.58    0.15    1096021098844.34
+            // 200     0    - 41.24    0.20    97579154688.98
+            // 300     0    - 30.61    0.24    95319753.87
+            // 400     0      58.87    0.38    14.24
+            // 500     0     219.28    0.36    0.05
         }
     }
 }
