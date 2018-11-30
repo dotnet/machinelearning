@@ -57,7 +57,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
                 ChangeHistoryLength = 8,                  // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes.
                 TrainingWindowSize = TrainingSize,        // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time - series."
+                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time series."
 
             };
 
@@ -190,8 +190,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // 200     0     171.38    0.00    809668524.21
             // 300     1     256.83    0.01    22130423541.93    <-- alert is on, note that delay is expected
             // 400     0     326.55    0.04    241162710263.29
-            // 500     0     364.82    0.08    597660527041.45
-            // 100     0    - 58.58    0.15    1096021098844.34
+            // 500     0     364.82    0.08    597660527041.45   <-- saved to disk
+            // 100     0    - 58.58    0.15    1096021098844.34  <-- loaded from disk and running new predictions
             // 200     0    - 41.24    0.20    97579154688.98
             // 300     0    - 30.61    0.24    95319753.87
             // 400     0      58.87    0.38    14.24

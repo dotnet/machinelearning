@@ -199,7 +199,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // 3       0       0.33    0.31
             // 4       0       2.21    0.07
             // 100     1      86.17    0.00   <-- alert is on, predicted spike
-            // 0       0     - 2.74    0.40
+            // 0       0     - 2.74    0.40   <-- saved to disk, re-loaded, and running new predictions
             // 1       0     - 1.47    0.42
             // 2       0    - 17.50    0.24
             // 3       0    - 30.82    0.16
