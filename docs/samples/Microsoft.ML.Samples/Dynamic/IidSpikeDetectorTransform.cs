@@ -58,7 +58,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value
+                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
             };
 
             // The transformed data.
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value
+                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
             };
 
             // The transformed model.
