@@ -191,8 +191,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public Schema Schema { get; }
-            public Schema OutputSchema => Schema;
+            public Schema OutputSchema { get; }
             public ISchemaBindableMapper Bindable => _parent;
 
             public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, Schema outputSchema)
@@ -204,12 +203,12 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = outputSchema;
+                OutputSchema = outputSchema;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => col == InputRoleMappedSchema.Feature.Index;
@@ -233,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (predicate(0))
                     getters[0] = _parent.GetPredictionGetter(input, InputRoleMappedSchema.Feature.Index);
                 disposer = null;
-                return new SimpleRow(Schema, input, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
         }
     }
