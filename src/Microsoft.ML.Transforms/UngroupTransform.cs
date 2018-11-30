@@ -179,7 +179,7 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
-            int n, IRandom rand = null)
+            int n, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursors = Source.GetRowCursorSet(out consolidator, col => activeInput[col], n, null);

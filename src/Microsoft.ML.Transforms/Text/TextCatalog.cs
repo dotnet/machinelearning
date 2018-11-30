@@ -507,6 +507,13 @@ namespace Microsoft.ML
         /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
         /// <param name="numBurninIterations">The number of burn-in iterations.</param>
         /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[LatentDirichletAllocation](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/LdaTransform.cs)]
+        /// ]]>
+        /// </format>
+        /// </example>
         public static LatentDirichletAllocationEstimator LatentDirichletAllocation(this TransformsCatalog.TextTransforms catalog,
             string inputColumn,
             string outputColumn = null,

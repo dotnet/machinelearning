@@ -293,12 +293,12 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private IEnumerator<int> _fileOrder;
 
-            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, IRandom rand)
+            public Cursor(IChannelProvider provider, PartitionedFileLoader parent, IMultiStreamSource files, Func<int, bool> predicate, Random rand)
                 : base(provider)
             {
                 Contracts.AssertValue(parent);
@@ -624,7 +624,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private int SubColumnCount => Schema.Count - _parent._srcDirIndex.Length;
 
-            private IEnumerable<int> CreateFileOrder(IRandom rand)
+            private IEnumerable<int> CreateFileOrder(Random rand)
             {
                 if (rand == null)
                 {

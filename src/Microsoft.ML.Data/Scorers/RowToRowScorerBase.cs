@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract bool WantParallelCursors(Func<int, bool> predicate);
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Contracts.AssertValue(predicate);
             Contracts.AssertValueOrNull(rand);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
             return new RowCursor(Host, this, input, active, predicateMapper);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);

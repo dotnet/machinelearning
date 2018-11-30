@@ -534,40 +534,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return res;
         }
 
-        public static int[] GetRandomPermutation(IRandom rand, int size)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.Assert(size >= 0);
-
-            var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
-            return res;
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
         public static void Shuffle<T>(Random rand, T[] rgv)
         {
             Contracts.AssertValue(rand);
             Contracts.AssertValue(rgv);
 
             Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(IRandom rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
         }
 
         public static void Shuffle<T>(Random rand, T[] rgv, int min, int lim)

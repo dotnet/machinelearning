@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Transforms
             return new RowCursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);

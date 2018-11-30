@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        public static IRowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, IRowCursor cursor, IRandom rand)
+        public static IRowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, IRowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: This is slightly interesting. Our mechanism for inducing
             // randomness in the source cursor is this Random object, but this can change
             // from release to release. The correct solution, it seems, is to instead have
-            // randomness injected into cursor creation by using IRandom (or something akin
+            // randomness injected into cursor creation by using Random (or something akin
             // to it), vs. just a straight system Random.
 
             // The desired functionality is to support some permutations of whether we allow
@@ -275,10 +275,10 @@ namespace Microsoft.ML.Transforms
             bool shouldShuffleMe = _forceShuffle || rand != null;
             bool shouldShuffleSource = _forceShuffleSource || (!_poolOnly && rand != null);
 
-            IRandom myRandom = rand ?? (shouldShuffleMe || shouldShuffleSource ? RandomUtils.Create(_forceShuffleSeed) : null);
+            Random myRandom = rand ?? (shouldShuffleMe || shouldShuffleSource ? RandomUtils.Create(_forceShuffleSeed) : null);
             if (shouldShuffleMe)
                 rand = myRandom;
-            IRandom sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
+            Random sourceRand = shouldShuffleSource ? RandomUtils.Create(myRandom) : null;
 
             var input = _subsetInput.GetRowCursor(predicate, sourceRand);
             // If rand is null (so we're not doing pool shuffling) or number of pool rows is 1
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Transforms
 
             private readonly int _poolRows;
             private readonly IRowCursor _input;
-            private readonly IRandom _rand;
+            private readonly Random _rand;
 
             // This acts as mapping from the "circular" index to the actual index within the pipe.
             private readonly int[] _pipeIndices;
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms
                 get { return 0; }
             }
 
-            public RowCursor(IChannelProvider provider, int poolRows, IRowCursor input, IRandom rand)
+            public RowCursor(IChannelProvider provider, int poolRows, IRowCursor input, Random rand)
                 : base(provider)
             {
                 Ch.AssertValue(input);

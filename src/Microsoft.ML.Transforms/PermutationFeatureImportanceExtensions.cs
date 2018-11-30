@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
@@ -51,7 +52,7 @@ namespace Microsoft.ML
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<RegressionEvaluator.Result>
+        public static ImmutableArray<RegressionMetrics>
             PermutationFeatureImportance(
                 this RegressionContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -61,7 +62,7 @@ namespace Microsoft.ML
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null)
         {
-            return PermutationFeatureImportance<RegressionEvaluator.Result>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<RegressionMetrics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
@@ -72,10 +73,10 @@ namespace Microsoft.ML
                             topExamples);
         }
 
-        private static RegressionEvaluator.Result RegressionDelta(
-            RegressionEvaluator.Result a, RegressionEvaluator.Result b)
+        private static RegressionMetrics RegressionDelta(
+            RegressionMetrics a, RegressionMetrics b)
         {
-            return new RegressionEvaluator.Result(
+            return new RegressionMetrics(
                 l1: a.L1 - b.L1,
                 l2: a.L2 - b.L2,
                 rms: a.Rms - b.Rms,
@@ -96,7 +97,7 @@ namespace Microsoft.ML
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
-        public static ImmutableArray<BinaryClassifierEvaluator.Result>
+        public static ImmutableArray<BinaryClassificationMetrics>
             PermutationFeatureImportance(
                 this BinaryClassificationContext ctx,
                 IPredictionTransformer<IPredictor> model,
@@ -106,7 +107,7 @@ namespace Microsoft.ML
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null)
         {
-            return PermutationFeatureImportance<BinaryClassifierEvaluator.Result>.GetImportanceMetricsMatrix(
+            return PermutationFeatureImportance<BinaryClassificationMetrics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
                             model,
                             data,
@@ -117,10 +118,10 @@ namespace Microsoft.ML
                             topExamples);
         }
 
-        private static BinaryClassifierEvaluator.Result BinaryClassifierDelta(
-            BinaryClassifierEvaluator.Result a, BinaryClassifierEvaluator.Result b)
+        private static BinaryClassificationMetrics BinaryClassifierDelta(
+            BinaryClassificationMetrics a, BinaryClassificationMetrics b)
         {
-            return new BinaryClassifierEvaluator.Result(
+            return new BinaryClassificationMetrics(
                 auc: a.Auc - b.Auc,
                 accuracy: a.Accuracy - b.Accuracy,
                 positivePrecision: a.PositivePrecision - b.PositivePrecision,

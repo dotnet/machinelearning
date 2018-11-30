@@ -52,9 +52,9 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
             ValidationDatasetProportion = validationDatasetProportion;
         }
 
-        public abstract IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand);
+        public abstract IEnumerable<Subset> GetSubsets(Batch batch, Random rand);
 
-        public IEnumerable<Batch> GetBatches(IRandom rand)
+        public IEnumerable<Batch> GetBatches(Random rand)
         {
             Host.Assert(Data != null, "Must call Initialize first!");
             Host.AssertValue(rand);

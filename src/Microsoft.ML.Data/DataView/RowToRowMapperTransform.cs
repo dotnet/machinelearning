@@ -178,14 +178,14 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
             return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);

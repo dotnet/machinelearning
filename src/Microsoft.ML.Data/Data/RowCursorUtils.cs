@@ -519,7 +519,7 @@ namespace Microsoft.ML.Runtime.Data
                 _row = row;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
+            public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);

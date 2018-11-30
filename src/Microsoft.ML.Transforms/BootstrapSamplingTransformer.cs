@@ -164,7 +164,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms
             return cursor;
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             var cursor = GetRowCursorCore(predicate, rand);
             consolidator = null;
@@ -186,13 +186,13 @@ namespace Microsoft.ML.Transforms
         {
             private int _remaining;
             private readonly BootstrapSamplingTransformer _parent;
-            private readonly IRandom _rgen;
+            private readonly Random _rgen;
 
             public override long Batch { get { return 0; } }
 
             public Schema Schema { get { return Input.Schema; } }
 
-            public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, IRandom rgen)
+            public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, Random rgen)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(rgen);
