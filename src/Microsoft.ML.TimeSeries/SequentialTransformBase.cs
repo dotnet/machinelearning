@@ -352,7 +352,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(predicate, rand);
             return new Cursor(this, srcCursor);
@@ -365,7 +365,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return _transform.GetRowCount();
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
             return new IRowCursor[] { GetRowCursorCore(predicate, rand) };

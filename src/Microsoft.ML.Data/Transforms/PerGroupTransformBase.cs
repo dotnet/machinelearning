@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Data
             return Source.GetRowCount();
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
