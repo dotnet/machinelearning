@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
         {
         }
 
-        public override IEnumerable<Subset> GetSubsets(Batch batch, IRandom rand)
+        public override IEnumerable<Subset> GetSubsets(Batch batch, Random rand)
         {
             string name = Data.Data.Schema.GetTempColumnName();
             var args = new GenerateNumberTransform.Arguments();
