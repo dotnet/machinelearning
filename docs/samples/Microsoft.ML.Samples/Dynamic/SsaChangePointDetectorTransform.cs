@@ -1,13 +1,12 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.TimeSeries;
-using Microsoft.ML.Data;
+using System;
+using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Core.Data;
+using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -56,9 +55,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                          // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = 8,                  // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes. 
+                ChangeHistoryLength = 8,                  // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes.
                 TrainingWindowSize = TrainingSize,        // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1, // An upper bound on the largest relevant seasonality in the input time - series."
+                SeasonalWindowSize = SeasonalitySize + 1  // An upper bound on the largest relevant seasonality in the input time - series."
 
             };
 
@@ -99,15 +98,15 @@ namespace Microsoft.ML.Samples.Dynamic
             // 400     0     357.11    0.03    45298370.86
         }
 
-        // This example shows change point detection as above, but demonstrates how to persist the trained model
-        // and then re-load it to predict change points in new data.
+        // This example shows change point detection as above, but demonstrates how to train a model
+        // that can run predictions on streaming data, and how to persist the trained model and then re-load it.
         public static void SsaChangePointDetectorPrediction()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
             var ml = new MLContext();
 
-            // Generate sample series data with a recurring pattern and then a change in trend
+            // Generate sample series data with a recurring pattern
             const int SeasonalitySize = 5;
             const int TrainingSeasons = 3;
             const int TrainingSize = SeasonalitySize * TrainingSeasons;
@@ -126,20 +125,20 @@ namespace Microsoft.ML.Samples.Dynamic
             {
                 Source = inputColumnName,
                 Name = outputColumnName,
-                Confidence = 95,                       // The confidence for spike detection in the range [0, 100]
-                ChangeHistoryLength = 8,              // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes. 
-                TrainingWindowSize = TrainingSize,     // The number of points from the beginning of the sequence used for training.
-                SeasonalWindowSize = SeasonalitySize + 1,  // An upper bound on the largest relevant seasonality in the input time - series."
+                Confidence = 95,                         // The confidence for spike detection in the range [0, 100]
+                ChangeHistoryLength = 8,                 // The length of the window for detecting a change in trend; shorter windows are more sensitive to spikes. 
+                TrainingWindowSize = TrainingSize,       // The number of points from the beginning of the sequence used for training.
+                SeasonalWindowSize = SeasonalitySize + 1 // An upper bound on the largest relevant seasonality in the input time series."
 
             };
 
             // Train the change point detector.
             ITransformer model = new SsaChangePointEstimator(ml, args).Fit(dataView);
 
-            // Create a prediction engine from the model for feeding new data
+            // Create a prediction engine from the model for feeding new data.
             var engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);
 
-            // Start streaming new data points with no change point to the prediction engine
+            // Start streaming new data points with no change point to the prediction engine.
             Console.WriteLine($"Output from ChangePoint predictions on new data:");
             Console.WriteLine("Data\tAlert\tScore\tP-Value\tMartingale value");
             ChangePointPrediction prediction = null;
@@ -150,7 +149,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
             }
 
-            // Now stream data points that reflect a change in trend
+            // Now stream data points that reflect a change in trend.
             for (int i = 0; i < 5; i++)
             {
                 var value = (i + 1) * 100;
@@ -158,7 +157,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}\t{4:0.00}", value, prediction.Prediction[0], prediction.Prediction[1], prediction.Prediction[2], prediction.Prediction[3]);
             }
 
-            // Now we demonstrate saving and loading the model to disk.
+            // Now we demonstrate saving and loading the model.
 
             // Save the model that exists within the prediction engine.
             // The engine has been updating this model with every new data point.
@@ -169,10 +168,10 @@ namespace Microsoft.ML.Samples.Dynamic
             using (var file = File.OpenRead(modelPath))
                 model = TransformerChain.LoadFrom(ml, file);
 
-            // We must create a new prediction engine from the persisted model
+            // We must create a new prediction engine from the persisted model.
             engine = model.CreateTimeSeriesPredictionFunction<SsaChangePointData, ChangePointPrediction>(ml);
 
-            // Run predictions on more data.
+            // Run predictions on the loaded model.
             for (int i = 0; i < 5; i++)
             {
                 var value = (i + 1) * 100;
