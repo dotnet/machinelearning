@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
@@ -207,7 +208,7 @@ namespace Microsoft.ML
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public BinaryClassifierEvaluator.CalibratedResult Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public CalibratedBinaryClassificationMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string probability = DefaultColumnNames.Probability, string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -228,7 +229,7 @@ namespace Microsoft.ML
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
-        public BinaryClassifierEvaluator.Result EvaluateNonCalibrated(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public BinaryClassificationMetrics EvaluateNonCalibrated(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -254,7 +255,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
+        public (BinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -276,7 +277,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (BinaryClassifierEvaluator.CalibratedResult metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public (CalibratedBinaryClassificationMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -318,11 +319,11 @@ namespace Microsoft.ML
         /// <param name="data">The scored data.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="label">The name of the optional label column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringEvaluator.Result.Nmi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.Nmi"/> metric will be computed.</param>
         /// <param name="features">The name of the optional features column in <paramref name="data"/>.
-        /// If present, the <see cref="ClusteringEvaluator.Result.Dbi"/> metric will be computed.</param>
+        /// If present, the <see cref="ClusteringMetrics.Dbi"/> metric will be computed.</param>
         /// <returns>The evaluation result.</returns>
-        public ClusteringEvaluator.Result Evaluate(IDataView data,
+        public ClusteringMetrics Evaluate(IDataView data,
             string label = null,
             string score = DefaultColumnNames.Score,
             string features = null )
@@ -355,7 +356,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (ClusteringEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public (ClusteringMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = null, string featuresColumn = null, string stratificationColumn = null)
         {
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
@@ -394,11 +395,11 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierEvaluator.Result.TopKAccuracy"/> will be filled with
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierMetrics.TopKAccuracy"/> will be filled with
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MultiClassClassifierEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
+        public MultiClassClassifierMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Host.CheckValue(data, nameof(data));
@@ -427,7 +428,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (MultiClassClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public (MultiClassClassifierMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -467,7 +468,7 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RegressionEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
+        public RegressionMetrics Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -491,7 +492,7 @@ namespace Microsoft.ML
         /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
         /// train to the test set.</remarks>
         /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
-        public (RegressionEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+        public (RegressionMetrics metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -532,7 +533,7 @@ namespace Microsoft.ML
         /// <param name="groupId">The name of the groupId column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RankerEvaluator.Result Evaluate(IDataView data, string label, string groupId, string score = DefaultColumnNames.Score)
+        public RankerMetrics Evaluate(IDataView data, string label, string groupId, string score = DefaultColumnNames.Score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));

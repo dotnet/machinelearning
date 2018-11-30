@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
             => base.CreateTempFileCore(env, suffix, "Local_" + prefix);
 
-        protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+        protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
         {
             Contracts.AssertValue(rand);
             Contracts.AssertValueOrNull(parentFullName);
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Host : HostBase
         {
-            public Host(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+            public Host(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
                 : base(source, shortName, parentFullName, rand, verbose, conc)
             {
                 IsCancelled = source.IsCancelled;
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
             }
 
-            protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+            protected override IHost RegisterCore(HostEnvironmentBase<LocalEnvironment> source, string shortName, string parentFullName, Random rand, bool verbose, int? conc)
             {
                 return new Host(source, shortName, parentFullName, rand, verbose, conc);
             }

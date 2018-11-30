@@ -1,15 +1,18 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -306,10 +309,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             protected SequentialAnomalyDetectionTransformBase<TInput, TState> Parent;
 
             // A windowed buffer to cache the update values to the martingale score in the log scale.
-            private FixedSizeQueue<Double> _logMartingaleUpdateBuffer;
+            private FixedSizeQueue<Double> LogMartingaleUpdateBuffer { get; set; }
 
             // A windowed buffer to cache the raw anomaly scores for p-value calculation.
-            private FixedSizeQueue<Single> _rawScoreBuffer;
+            private FixedSizeQueue<Single> RawScoreBuffer { get; set; }
 
             // The current martingale score in the log scale.
             private Double _logMartingaleValue;
@@ -322,14 +325,40 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             protected Double LatestMartingaleScore => Math.Exp(_logMartingaleValue);
 
-            private protected AnomalyDetectionStateBase() : base()
+            private protected AnomalyDetectionStateBase() { }
+
+            private protected override void CloneCore(StateBase state)
             {
+                base.CloneCore(state);
+                Contracts.Assert(state is AnomalyDetectionStateBase);
+                var stateLocal = state as AnomalyDetectionStateBase;
+                stateLocal.LogMartingaleUpdateBuffer = LogMartingaleUpdateBuffer.Clone();
+                stateLocal.RawScoreBuffer = RawScoreBuffer.Clone();
+            }
+
+            private protected AnomalyDetectionStateBase(BinaryReader reader) : base(reader)
+            {
+                LogMartingaleUpdateBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueDouble(reader, Host);
+                RawScoreBuffer = TimeSeriesUtils.DeserializeFixedSizeQueueSingle(reader, Host);
+                _logMartingaleValue = reader.ReadDouble();
+                _sumSquaredDist = reader.ReadDouble();
+                _martingaleAlertCounter = reader.ReadInt32();
+            }
+
+            internal override void Save(BinaryWriter writer)
+            {
+                base.Save(writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(LogMartingaleUpdateBuffer, writer);
+                TimeSeriesUtils.SerializeFixedSizeQueue(RawScoreBuffer, writer);
+                writer.Write(_logMartingaleValue);
+                writer.Write(_sumSquaredDist);
+                writer.Write(_martingaleAlertCounter);
             }
 
             private Double ComputeKernelPValue(Double rawScore)
             {
                 int i;
-                int n = _rawScoreBuffer.Count;
+                int n = RawScoreBuffer.Count;
 
                 if (n == 0)
                     return 0.5;
@@ -341,21 +370,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 Double diff;
                 for (i = 0; i < n; ++i)
                 {
-                    diff = rawScore - _rawScoreBuffer[i];
+                    diff = rawScore - RawScoreBuffer[i];
                     pValue -= ProbabilityFunctions.Erf(diff / bandWidth);
                     _sumSquaredDist += diff * diff;
                 }
 
                 pValue = 0.5 + pValue / (2 * n);
-                if (_rawScoreBuffer.IsFull)
+                if (RawScoreBuffer.IsFull)
                 {
                     for (i = 1; i < n; ++i)
                     {
-                        diff = _rawScoreBuffer[0] - _rawScoreBuffer[i];
+                        diff = RawScoreBuffer[0] - RawScoreBuffer[i];
                         _sumSquaredDist -= diff * diff;
                     }
 
-                    diff = _rawScoreBuffer[0] - rawScore;
+                    diff = RawScoreBuffer[0] - rawScore;
                     _sumSquaredDist -= diff * diff;
                 }
 
@@ -435,7 +464,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                             else if (result.Values[2] > MaxPValue)
                                 result.Values[2] = MaxPValue;
 
-                            _rawScoreBuffer.AddLast(rawScore);
+                            RawScoreBuffer.AddLast(rawScore);
 
                             // Step 3: Computing the martingale value
                             if (Parent.Martingale != MartingaleType.None && Parent.ThresholdScore == AlertingScore.MartingaleScore)
@@ -452,17 +481,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                                         break;
                                 }
 
-                                if (_logMartingaleUpdateBuffer.Count == 0)
+                                if (LogMartingaleUpdateBuffer.Count == 0)
                                 {
-                                    for (int i = 0; i < _logMartingaleUpdateBuffer.Capacity; ++i)
-                                        _logMartingaleUpdateBuffer.AddLast(martingaleUpdate);
-                                    _logMartingaleValue += _logMartingaleUpdateBuffer.Capacity * martingaleUpdate;
+                                    for (int i = 0; i < LogMartingaleUpdateBuffer.Capacity; ++i)
+                                        LogMartingaleUpdateBuffer.AddLast(martingaleUpdate);
+                                    _logMartingaleValue += LogMartingaleUpdateBuffer.Capacity * martingaleUpdate;
                                 }
                                 else
                                 {
                                     _logMartingaleValue += martingaleUpdate;
-                                    _logMartingaleValue -= _logMartingaleUpdateBuffer.PeekFirst();
-                                    _logMartingaleUpdateBuffer.AddLast(martingaleUpdate);
+                                    _logMartingaleValue -= LogMartingaleUpdateBuffer.PeekFirst();
+                                    LogMartingaleUpdateBuffer.AddLast(martingaleUpdate);
                                 }
 
                                 result.Values[3] = Math.Exp(_logMartingaleValue);
@@ -473,7 +502,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     // Generating alert
                     bool alert = false;
 
-                    if (_rawScoreBuffer.IsFull) // No alert until the buffer is completely full.
+                    if (RawScoreBuffer.IsFull) // No alert until the buffer is completely full.
                     {
                         switch (Parent.ThresholdScore)
                         {
@@ -506,17 +535,23 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 dst = result.Commit();
             }
 
-            private protected override sealed void InitializeStateCore()
+            private protected override sealed void InitializeStateCore(bool disk = false)
             {
                 Parent = (SequentialAnomalyDetectionTransformBase<TInput, TState>)ParentTransform;
                 Host.Assert(WindowSize >= 0);
 
-                if (Parent.Martingale != MartingaleType.None)
-                    _logMartingaleUpdateBuffer = new FixedSizeQueue<Double>(WindowSize == 0 ? 1 : WindowSize);
+                if (disk == false)
+                {
+                    if (Parent.Martingale != MartingaleType.None)
+                        LogMartingaleUpdateBuffer = new FixedSizeQueue<Double>(WindowSize == 0 ? 1 : WindowSize);
+                    else
+                        LogMartingaleUpdateBuffer = new FixedSizeQueue<Double>(1);
 
-                _rawScoreBuffer = new FixedSizeQueue<float>(WindowSize == 0 ? 1 : WindowSize);
+                    RawScoreBuffer = new FixedSizeQueue<float>(WindowSize == 0 ? 1 : WindowSize);
 
-                _logMartingaleValue = 0;
+                    _logMartingaleValue = 0;
+                }
+
                 InitializeAnomalyDetector();
             }
 
@@ -536,15 +571,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        private protected override IStatefulRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
 
-        private sealed class Mapper : IRowMapper
+        private sealed class Mapper : IStatefulRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
             private readonly ISchema _parentSchema;
             private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
+            private TState State { get; set; }
 
             public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
@@ -564,6 +600,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parentSchema = inputSchema;
                 _slotNames = new VBuffer<ReadOnlyMemory<char>>(4, new[] { "Alert".AsMemory(), "Raw Score".AsMemory(),
                     "P-Value Score".AsMemory(), "Martingale Score".AsMemory() });
+
+                State = _parent.StateRef;
             }
 
             public Schema.DetachedColumn[] GetOutputColumns()
@@ -592,11 +630,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 disposer = null;
                 var getters = new Delegate[1];
                 if (activeOutput(0))
-                {
-                    TState state = new TState();
-                    state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _host);
-                    getters[0] = MakeGetter(input, state);
-                }
+                    getters[0] = MakeGetter(input, State);
+
                 return getters;
             }
 
@@ -608,14 +643,45 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
                 ProcessData processData = _parent.WindowSize > 0 ?
                     (ProcessData)state.Process : state.ProcessWithoutBuffer;
+
                 ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
-               {
+                {
                    TInput src = default;
                    srcGetter(ref src);
                    processData(ref src, ref dst);
-               };
-
+                };
                 return valueGetter;
+            }
+
+            public Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            {
+                disposer = null;
+                Action<long> pinger = null;
+                if (activeOutput(0))
+                    pinger = MakePinger(input, State);
+
+                return pinger;
+            }
+
+            private Action<long> MakePinger(IRow input, TState state)
+            {
+                _host.AssertValue(input);
+                var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
+                Action<long> pinger = (long rowPosition) =>
+                {
+                    TInput src = default;
+                    srcGetter(ref src);
+                    state.UpdateState(ref src, rowPosition, _parent.WindowSize > 0);
+                };
+                return pinger;
+            }
+
+            public void CloneState()
+            {
+                if (Interlocked.Increment(ref _parent.StateRefCount) > 1)
+                {
+                    State = (TState)_parent.StateRef.Clone();
+                }
             }
         }
     }

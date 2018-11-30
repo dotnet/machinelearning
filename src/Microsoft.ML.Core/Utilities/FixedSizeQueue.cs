@@ -136,5 +136,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             _count = 0;
             AssertValid();
         }
+
+        public FixedSizeQueue<T> Clone()
+        {
+            var q = new FixedSizeQueue<T>(Capacity);
+            for (int index = 0; index < Count; index++)
+                q.AddLast(this[index]);
+
+            return q;
+        }
+
     }
 }

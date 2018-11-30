@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.TimeSeries;
 using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Arguments), typeof(SignatureDataTransform),
@@ -104,6 +105,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(input, nameof(input));
 
             return new IidSpikeDetector(env, args).MakeDataTransform(input);
+        }
+
+        internal override IStatefulTransformer Clone()
+        {
+            var clone = (IidSpikeDetector)MemberwiseClone();
+            clone.StateRef = (State)clone.StateRef.Clone();
+            clone.StateRef.InitState(clone, Host);
+            return clone;
         }
 
         internal IidSpikeDetector(IHostEnvironment env, Arguments args)

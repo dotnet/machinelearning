@@ -229,7 +229,7 @@ namespace Microsoft.ML.Trainers.PCA
         private static float[][] GaussianMatrix(int k, int d, int seed)
         {
             var rv = Zeros(k, d);
-            var rng = new SysRandom(seed);
+            var rng = new Random(seed);
 
             // REVIEW: use a faster Gaussian random matrix generator
             //MKL has a fast vectorized random number generation.

@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         /// the target cardinality of the cursor set.
         /// </summary>
         public static bool TryCreateConsolidatingCursor(out IRowCursor curs,
-            IDataView view, Func<int, bool> predicate, IHost host, IRandom rand)
+            IDataView view, Func<int, bool> predicate, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
             host.CheckValue(view, nameof(view));

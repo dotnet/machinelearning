@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
         /// a getter for an inactive columns will throw. The <paramref name="needCol"/> predicate must be
         /// non-null. To activate all columns, pass "col => true".
         /// </summary>
-        IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null);
+        IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value n is a recommended limit
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
         /// an implementation can return a different number of cursors.
         ///
         /// The cursors should return the same data as returned through
-        /// <see cref="GetRowCursor(Func{int, bool}, IRandom)"/>, except partitioned: no two cursors
+        /// <see cref="GetRowCursor(Func{int, bool}, Random)"/>, except partitioned: no two cursors
         /// should return the "same" row as would have been returned through the regular serial cursor,
         /// but all rows should be returned by exactly one of the cursors returned from this cursor.
         /// The cursors can have their values reconciled downstream through the use of the
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="rand">An instance </param>
         /// <returns></returns>
         IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> needCol, int n, IRandom rand = null);
+            Func<int, bool> needCol, int n, Random rand = null);
     }
 
     /// <summary>

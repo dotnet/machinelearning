@@ -3,7 +3,7 @@
     "Configuration": {
       "description": "Sets the optimization level for the Build Configuration you want to build.",
       "valueType": "property",
-      "values": [ "Debug", "Release" ],
+      "values": [ "Debug", "Release", "Debug-Intrinsics", "Release-Intrinsics" ],
       "defaultValue": "Debug"
     },
     "TargetArchitecture": {
@@ -26,6 +26,12 @@
     },
     "BuildNumberMinor": {
       "description": "Product build minor number.",
+      "valueType": "property",
+      "values": [],
+      "defaultValue": ""
+    },
+    "SkipRIDAgnosticAssets": {
+      "description": "Prevents RID agnostic assets in redist from being built.",
       "valueType": "property",
       "values": [],
       "defaultValue": ""
@@ -94,6 +100,18 @@
             "Configuration": "Release"
           }
         },
+        "debug-intrinsics": {
+          "description": "Sets optimization level to debug for managed build configuration and builds against netcoreapp3.0. (/p:Configuration=Debug-Intrinsics)",
+          "settings": {
+            "Configuration": "Debug-Intrinsics"
+          }
+        },
+        "release-intrinsics": {
+          "description": "Sets optimization level to release for managed build configuration and builds against netcoreapp3.0. (/p:Configuration=Release-Intrinsics)",
+          "settings": {
+            "Configuration": "Release-Intrinsics"
+          }
+        },
         "buildArch": {
           "description": "Sets the architecture for the native build. (/p:TargetArchitecture=[value])",
           "settings": {
@@ -104,6 +122,12 @@
           "description": "Builds the native assets.",
           "settings": {
             "BuildNative": "default"
+          }
+        },
+        "skipRIDAgnosticAssets": {
+          "description": "Avoid building RID agnostic assets in redist.",
+          "settings": {
+            "SkipRIDAgnosticAssets": "default"
           }
         },
         "buildPackages": {

@@ -77,6 +77,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
+    [BestFriend]
     internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
         where TRow : class
     {
@@ -191,7 +192,7 @@ namespace Microsoft.ML.Runtime.Api
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
-            IRandom rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
+            Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
             var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
             return new TypedCursor(this, cursor);
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="n">Number of cursors to create</param>
         /// <param name="rand">Random generator to use</param>
         public IRowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> additionalColumnsPredicate, int n, IRandom rand)
+            Func<int, bool> additionalColumnsPredicate, int n, Random rand)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
             _host.CheckValueOrNull(rand);

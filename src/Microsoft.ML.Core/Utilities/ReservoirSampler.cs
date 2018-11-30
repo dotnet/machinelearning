@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime.Data;
@@ -56,7 +57,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         // This array contains a cache of the elements composing the reservoir.
         private readonly T[] _cache;
 
-        private readonly IRandom _rnd;
+        private readonly Random _rnd;
 
         private long _numSampled;
         private readonly ValueGetter<T> _getter;
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public long NumSampled { get { return _numSampled; } }
 
-        public ReservoirSamplerWithoutReplacement(IRandom rnd, int size, ValueGetter<T> getter)
+        public ReservoirSamplerWithoutReplacement(Random rnd, int size, ValueGetter<T> getter)
         {
             Contracts.CheckValue(rnd, nameof(rnd));
             Contracts.CheckParam(size > 0, nameof(size), "Reservoir size must be positive");
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         private readonly T[] _cache;
         private readonly int[] _counts;
 
-        private readonly IRandom _rnd;
+        private readonly Random _rnd;
 
         private long _numSampled;
         private readonly ValueGetter<T> _getter;
@@ -146,7 +147,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         public long NumSampled { get { return _numSampled; } }
 
-        public ReservoirSamplerWithReplacement(IRandom rnd, int size, ValueGetter<T> getter)
+        public ReservoirSamplerWithReplacement(Random rnd, int size, ValueGetter<T> getter)
         {
             Contracts.CheckValue(rnd, nameof(rnd));
             Contracts.CheckParam(size > 0, nameof(size), "Reservoir size must be positive");
