@@ -218,16 +218,16 @@ namespace Microsoft.ML.TimeSeriesProcessing
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
             : this(env, new SsaSpikeDetector.Arguments
-            {
-                Name = outputColumn,
-                Source = inputColumn,
-                Confidence = confidence,
-                PvalueHistoryLength = pvalueHistoryLength,
-                TrainingWindowSize = trainingWindowSize,
-                SeasonalWindowSize = seasonalityWindowSize,
-                Side = side,
-                ErrorFunction = errorFunction
-            })
+                {
+                    Name = outputColumn,
+                    Source = inputColumn,
+                    Confidence = confidence,
+                    PvalueHistoryLength = pvalueHistoryLength,
+                    TrainingWindowSize = trainingWindowSize,
+                    SeasonalWindowSize = seasonalityWindowSize,
+                    Side = side,
+                    ErrorFunction = errorFunction
+                })
         {
         }
 

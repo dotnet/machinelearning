@@ -239,17 +239,17 @@ namespace Microsoft.ML.TimeSeriesProcessing
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
             : this(env, new SsaChangePointDetector.Arguments
-            {
-                Name = outputColumn,
-                Source = inputColumn,
-                Confidence = confidence,
-                ChangeHistoryLength = changeHistoryLength,
-                TrainingWindowSize = trainingWindowSize,
-                SeasonalWindowSize = seasonalityWindowSize,
-                Martingale = martingale,
-                PowerMartingaleEpsilon = eps,
-                ErrorFunction = errorFunction
-            })
+                {
+                    Name = outputColumn,
+                    Source = inputColumn,
+                    Confidence = confidence,
+                    ChangeHistoryLength = changeHistoryLength,
+                    TrainingWindowSize = trainingWindowSize,
+                    SeasonalWindowSize = seasonalityWindowSize,
+                    Martingale = martingale,
+                    PowerMartingaleEpsilon = eps,
+                    ErrorFunction = errorFunction
+                })
         {
         }
 
