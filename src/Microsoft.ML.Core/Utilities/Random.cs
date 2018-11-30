@@ -13,11 +13,16 @@ namespace Microsoft.ML.Runtime
     {
         public static float NextSingle(this Random random)
         {
-            for (; ;)
+            if (random is TauswortheHybrid tauswortheHybrd)
             {
-                // Since the largest value that NextDouble() can return rounds to 1 when cast to Single,
+                return tauswortheHybrd.NextSingle();
+            }
+
+            for (; ; )
+            {
+                // Since the largest value that NextDouble() can return rounds to 1 when cast to float,
                 // we need to protect against returning 1.
-                var res = (Single)random.NextDouble();
+                var res = (float)random.NextDouble();
                 if (res < 1.0f)
                     return res;
             }
@@ -25,6 +30,11 @@ namespace Microsoft.ML.Runtime
 
         public static int NextSigned(this Random random)
         {
+            if (random is TauswortheHybrid tauswortheHybrd)
+            {
+                return tauswortheHybrd.NextSigned();
+            }
+
             // Note that, according to the documentation for System.Random,
             // this won't ever achieve int.MaxValue, but oh well.
             return random.Next(int.MinValue, int.MaxValue);
@@ -143,12 +153,18 @@ namespace Microsoft.ML.Runtime
 
         private static uint GetSeed(Random rng)
         {
-            for (;;)
+            for (; ; )
             {
                 uint u = GetU(rng);
                 if (u >= 128)
                     return u;
             }
+        }
+
+        public float NextSingle()
+        {
+            NextState();
+            return GetSingle();
         }
 
         public override double NextDouble()
@@ -166,15 +182,33 @@ namespace Microsoft.ML.Runtime
             return n;
         }
 
-        public override int Next(int limit)
+        public override int Next(int maxValue)
         {
-            Contracts.CheckParam(limit >= 0, nameof(limit), "limit must be non-negative");
+            Contracts.CheckParam(maxValue >= 0, nameof(maxValue), "maxValue must be non-negative");
             NextState();
             uint u = GetUint();
-            ulong uu = (ulong)u * (ulong)limit;
+            ulong uu = (ulong)u * (ulong)maxValue;
             int res = (int)(uu >> 32);
-            Contracts.Assert(0 <= res && (res < limit || res == 0));
+            Contracts.Assert(0 <= res && (res < maxValue || res == 0));
             return res;
+        }
+
+        public override int Next(int minValue, int maxValue)
+        {
+            Contracts.CheckParam(minValue <= maxValue, nameof(minValue), "minValue must be less than or equal to maxValue.");
+
+            long range = (long)maxValue - minValue;
+            return (int)((long)(NextDouble() * range) + minValue);
+        }
+
+        public override void NextBytes(byte[] buffer)
+        {
+            Contracts.CheckValue(buffer, nameof(buffer));
+
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = (byte)Next();
+            }
         }
 
         public int NextSigned()
@@ -188,11 +222,23 @@ namespace Microsoft.ML.Runtime
             return _z1 ^ _z2 ^ _z3 ^ _z4;
         }
 
-        private Double GetDouble()
+        private float GetSingle()
         {
-            const Double scale = (Double)1 / (1 << 16) / (1 << 16);
+            const float scale = (float)1 / (1 << 23);
+
+            // Drop the low 9 bits so the conversion to Single is exact. Allowing rounding would cause
+            // issues with biasing values and, worse, the possibility of returning exactly 1.
+            uint u = GetUint() >> 9;
+            Contracts.Assert((uint)(float)u == u);
+
+            return (float)u * scale;
+        }
+
+        private double GetDouble()
+        {
+            const double scale = (double)1 / (1 << 16) / (1 << 16);
             uint u = GetUint();
-            return (Double)u * scale;
+            return (double)u * scale;
         }
 
         private void NextState()
