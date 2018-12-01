@@ -1112,7 +1112,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ICalibrator FinishTraining(IChannel ch)
         {
             ch.Check(Data != null, "Calibrator trained on zero instances.");
-            return CreateCalibrator(ch);
+            var calibrator = CreateCalibrator(ch);
+            Data = null;
+            return calibrator;
         }
 
         public abstract ICalibrator CreateCalibrator(IChannel ch);

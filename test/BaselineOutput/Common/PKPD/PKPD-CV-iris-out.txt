@@ -1,0 +1,70 @@
+maml.exe CV tr=PKPD{p=AvgPer { lr=0.8 }} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Training learner (0,0)
+Training calibrator.
+Training learner (1,0)
+Training calibrator.
+Training learner (1,1)
+Training calibrator.
+Training learner (2,0)
+Training calibrator.
+Training learner (2,1)
+Training calibrator.
+Training learner (2,2)
+Training calibrator.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Training learner (0,0)
+Training calibrator.
+Training learner (1,0)
+Training calibrator.
+Training learner (1,1)
+Training calibrator.
+Training learner (2,0)
+Training calibrator.
+Training learner (2,1)
+Training calibrator.
+Training learner (2,2)
+Training calibrator.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    26 |     4 | 0.8667
+        2 ||     0 |     0 |    28 | 1.0000
+          ||========================
+Precision ||1.0000 |1.0000 |0.8750 |
+Accuracy(micro-avg): 0.949367
+Accuracy(macro-avg): 0.955556
+Log-loss:           0.343967
+Log-loss reduction: 68.371359
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    19 |     1 | 0.9500
+        2 ||     0 |     0 |    22 | 1.0000
+          ||========================
+Precision ||1.0000 |1.0000 |0.9565 |
+Accuracy(micro-avg): 0.985915
+Accuracy(macro-avg): 0.983333
+Log-loss:           0.277101
+Log-loss reduction: 74.475991
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.967641 (0.0183)
+Accuracy(macro-avg): 0.969444 (0.0139)
+Log-loss:           0.310534 (0.0334)
+Log-loss reduction: 71.423675 (3.0523)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

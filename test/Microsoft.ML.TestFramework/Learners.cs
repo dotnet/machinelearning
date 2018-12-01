@@ -130,6 +130,25 @@ namespace Microsoft.ML.Runtime.RunTests
             Tag = "AveragedPerceptron-Reg"
         };
 
+        public static PredictorAndArgs Ova = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=AvgPer{ lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
+        };
+
+        public static PredictorAndArgs OvaWithFastForest = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("OVA", "p=FastForest{ }"),
+            MamlArgs = new[] { "norm=no" },
+            Tag = "OVA-FastForest",
+        };
+
+        public static PredictorAndArgs Pkpd = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PKPD", "p=AvgPer { lr=0.8 }"),
+            MamlArgs = new[] { "norm=no" },
+        };
+
         // Old.
         public static PredictorAndArgs perceptronDefault = new PredictorAndArgs
         {
