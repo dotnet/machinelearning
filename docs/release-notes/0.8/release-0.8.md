@@ -53,7 +53,7 @@ Below are some of the highlights from this release.
     * You can now preview an IDataView by going to the Watch window in the VS
       debugger, entering a variable name you want to preview and calling its
       `Preview()` method. 
-      
+
     ![](dataPreview.gif)
 
 * Enabled a stateful prediction engine for time series problems
@@ -70,6 +70,7 @@ Below are some of the highlights from this release.
       point. This is enabled by using `CreateTimeSeriesPredictionFunction`
       instead of `MakePredictionFunction`. Example usage can be found
       [here](https://github.com/dotnet/machinelearning/blob/3d33e20f33da70cdd3da2ad9e0b2b03df929bef4/test/Microsoft.ML.TimeSeries.Tests/TimeSeriesDirectApi.cs#L141).
+      You'll need to add the Microsoft.ML.TimeSeries NuGet to your project.
 
 * Improved support for recommendation scenarios with implicit feedback
   ([#1664](https://github.com/dotnet/machinelearning/pull/1664))  
@@ -84,6 +85,8 @@ Below are some of the highlights from this release.
       train models for recommendation scenarios. 
     * Example usage can be found
       [here](https://github.com/dotnet/machinelearning/blob/71d58fa83f77abb630d815e5cf8aa9dd3390aa65/test/Microsoft.ML.Tests/TrainerEstimators/MatrixFactorizationTests.cs#L335).
+      You'll need to add the Microsoft.ML.MatrixFactorization NuGet to your
+      project.
 
 * Enabled saving and loading data as a binary file (IDataView/IDV)
   ([#1678](https://github.com/dotnet/machinelearning/pull/1678))
@@ -106,7 +109,7 @@ Below are some of the highlights from this release.
       your model on certain categories of inputs. This can now be done with
       additional filters as shown
       [here](https://github.com/dotnet/machinelearning/blob/71d58fa83f77abb630d815e5cf8aa9dd3390aa65/test/Microsoft.ML.Tests/RangeFilterTests.cs#L30).
-      
+
     * Some estimators iterate over the data multiple times. Instead of always
       reading from file, you can choose to cache the data to potentially speed
       things up. An example can be found
