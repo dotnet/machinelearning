@@ -586,6 +586,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
+        public static void Shuffle<T>(Random rand, Span<T> rgv)
+        {
+            Contracts.AssertValue(rand);
+
+            for (int iv = 0; iv < rgv.Length; iv++)
+                Swap(ref rgv[iv], ref rgv[iv + rand.Next(rgv.Length - iv)]);
+        }
+
         public static bool AreEqual(int[] arr1, int[] arr2)
         {
             if (arr1 == arr2)

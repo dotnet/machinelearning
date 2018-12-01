@@ -36,6 +36,19 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return argMax;
         }
 
+        public static int ArgMax<T>(this ReadOnlySpan<T> span) where T : IComparable<T>
+        {
+            if (span.Length == 0)
+                return -1;
+            int argMax = 0;
+            for (int i = 1; i < span.Length; i++)
+            {
+                if (span[i].CompareTo(span[argMax]) > 0)
+                    argMax = i;
+            }
+            return argMax;
+        }
+
         public static int ArgMin<T>(this T[] arr, int prefix) where T : IComparable<T>
         {
             int length = arr.Length < prefix ? arr.Length : prefix;

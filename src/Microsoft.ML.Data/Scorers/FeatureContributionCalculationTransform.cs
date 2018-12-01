@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.Data
                         contributions.GetValues().CopyTo(values);
                         var count = values.Length;
                         var sb = new StringBuilder();
-                        GenericSpanSortHelper<int, float>.Sort(indices, values, 0, count);
+                        GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
                         for (var i = 0; i < count; i++)
                         {
                             var val = values[i];
