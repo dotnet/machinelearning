@@ -76,7 +76,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         [Fact]
         public void VBufferOpMath()
         {
-            const int tol = 5;
+            const int tol = 4;
             var rgen = RandomUtils.Create(42);
 
             VBuffer<float> a;
