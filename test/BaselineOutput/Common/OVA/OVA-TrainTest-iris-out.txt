@@ -1,0 +1,36 @@
+maml.exe TrainTest test=%Data% tr=OVA{p=AvgPer{ lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Training learner 0
+Training calibrator.
+Training learner 1
+Training calibrator.
+Training learner 2
+Training calibrator.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    48 |     2 | 0.9600
+        2 ||     0 |     0 |    50 | 1.0000
+          ||========================
+Precision ||1.0000 |1.0000 |0.9615 |
+Accuracy(micro-avg): 0.986667
+Accuracy(macro-avg): 0.986667
+Log-loss:           0.246444
+Log-loss reduction: 77.567746
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.986667 (0.0000)
+Accuracy(macro-avg): 0.986667 (0.0000)
+Log-loss:           0.246444 (0.0000)
+Log-loss reduction: 77.567746 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
