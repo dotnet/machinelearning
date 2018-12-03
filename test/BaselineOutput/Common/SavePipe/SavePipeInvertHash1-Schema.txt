@@ -63,7 +63,11 @@
     Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
 ---- SelectColumnsDataTransform ----
 11 columns:
   A: Text
@@ -76,7 +80,11 @@
   _tmp002: Vec<Text>
   _tmp003: Vec<Text>
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
 ---- SelectColumnsDataTransform ----
 7 columns:
   A: Text
@@ -85,7 +93,11 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
 ---- RowToRowMapperTransform ----
 11 columns:
   A: Text
@@ -94,7 +106,11 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   _tmp000: Vec<Text>
   _tmp001: Vec<Text>
   _tmp002: Vec<Text>
@@ -107,7 +123,11 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   _tmp000: Vec<Text>
   _tmp001: Vec<Text>
   _tmp002: Vec<Text>
@@ -132,7 +152,11 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   _tmp000: Vec<Text>
   _tmp001: Vec<Text>
   _tmp002: Vec<Text>
@@ -150,7 +174,11 @@
     Metadata 'KeyValues': Vec<Text, 1073741824>: Length=1073741824, Count=1073741824
       [295457023] 'ant', [521979783] 'annie', [800576372] 'an', [832818636] 'angry', [922722793] 'ate'
   F3: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
   F4: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
 ---- SelectColumnsDataTransform ----
 13 columns:
   A: Text
@@ -159,13 +187,21 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   _tmp000: Vec<Text>
   _tmp001: Vec<Text>
   _tmp002: Vec<Text>
   _tmp003: Vec<Text>
   F3: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
   F4: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
 ---- SelectColumnsDataTransform ----
 9 columns:
   A: Text
@@ -174,14 +210,30 @@
   B: Text
   E: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F3: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
   F4: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
 ---- SelectColumnsDataTransform ----
 6 columns:
   A: Text
   B: Text
   F1: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{A:ate,B:bob,A:an|angry,B:badly}', [3] '{A:ate|an,A:angry|ant}', [4] '{A:an|ant,B:bakes,B:bakes|brownies}', [5] '{A:an,B:bob|bakes,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F2: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] '{A:annie,A:ant,B:bowled}', [1] '{A:annie|ate,B:bob|bowled}', [2] '{B:bob,A:ate,B:badly,A:an|angry}', [3] '{A:ate|an,A:angry|ant}', [4] '{B:bakes,B:bakes|brownies,A:an|ant}', [5] '{B:bob|bakes,A:an,A:angry}', [6] '', [7] '{B:brownies,B:bowled|badly}'
   F3: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'A:ate', [3] 'A:ate|an', [4] 'A:an|ant', [5] 'A:an', [6] '', [7] 'B:brownies'
   F4: Vec<R4, 8>
+    Metadata 'SlotNames': Vec<Text, 8>: Length=8, Count=8
+      [0] 'A:annie', [1] 'A:annie|ate', [2] 'B:bob', [3] 'A:ate|an', [4] 'B:bakes', [5] 'B:bob|bakes', [6] '', [7] 'B:brownies'
