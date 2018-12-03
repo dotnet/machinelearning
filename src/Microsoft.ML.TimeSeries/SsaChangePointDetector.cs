@@ -225,7 +225,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 4.
+        /// The vector contains Alert, Raw Score, P-Value and Martingale score as first four values.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The number of points from the beginning of the sequence used for training.</param>
         /// <param name="changeHistoryLength">The size of the sliding window for computing the p-value.</param>

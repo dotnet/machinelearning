@@ -1,9 +1,13 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.TimeSeries;
 
 namespace Microsoft.ML.Samples.Dynamic
 {
@@ -34,27 +38,27 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Generate sample series data with a spike
-            const int size = 10;
-            var data = new List<IidSpikeData>(size);
-            for (int i = 0; i < size / 2; i++)
+            const int Size = 10;
+            var data = new List<IidSpikeData>(Size);
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidSpikeData(5));
             // This is a spike
             data.Add(new IidSpikeData(10));
-            for (int i = 0; i < size / 2; i++)
+            for (int i = 0; i < Size / 2; i++)
                 data.Add(new IidSpikeData(5));
 
             // Convert data to IDataView.
             var dataView = ml.CreateStreamingDataView(data);
 
             // Setup IidSpikeDetector arguments
-            string outputColumnName = "Prediction";
-            string inputColumnName = "Value";
+            string outputColumnName = nameof(IidSpikePrediction.Prediction);
+            string inputColumnName = nameof(IidSpikeData.Value);
             var args = new IidSpikeDetector.Arguments()
             {
                 Source = inputColumnName,
                 Name = outputColumnName,
                 Confidence = 95,                // The confidence for spike detection in the range [0, 100]
-                PvalueHistoryLength = size / 4  // The size of the sliding window for computing the p-value
+                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
             };
 
             // The transformed data.
@@ -82,6 +86,84 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0       5.00    0.50
             // 0       5.00    0.50
             // 0       5.00    0.50
+        }
+
+        public static void IidSpikeDetectorPrediction()
+        {
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var ml = new MLContext();
+
+            // Generate sample series data with a spike
+            const int Size = 10;
+            var data = new List<IidSpikeData>(Size);
+            for (int i = 0; i < Size / 2; i++)
+                data.Add(new IidSpikeData(5));
+            // This is a spike
+            data.Add(new IidSpikeData(10));
+            for (int i = 0; i < Size / 2; i++)
+                data.Add(new IidSpikeData(5));
+
+            // Convert data to IDataView.
+            var dataView = ml.CreateStreamingDataView(data);
+
+            // Setup IidSpikeDetector arguments
+            string outputColumnName = nameof(IidSpikePrediction.Prediction);
+            string inputColumnName = nameof(IidSpikeData.Value);
+            var args = new IidSpikeDetector.Arguments()
+            {
+                Source = inputColumnName,
+                Name = outputColumnName,
+                Confidence = 95,                // The confidence for spike detection in the range [0, 100]
+                PvalueHistoryLength = Size / 4  // The size of the sliding window for computing the p-value; shorter windows are more sensitive to spikes.
+            };
+
+            // The transformed model.
+            ITransformer model = new IidSpikeEstimator(ml, args).Fit(dataView);
+
+            // Create a time series prediction engine from the model.
+            var engine = model.CreateTimeSeriesPredictionFunction<IidSpikeData, IidSpikePrediction>(ml);
+            for (int index = 0; index < 5; index++)
+            {
+                // Anomaly spike detection.
+                var prediction = engine.Predict(new IidSpikeData(5));
+                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 5, prediction.Prediction[0],
+                    prediction.Prediction[1], prediction.Prediction[2]);
+            }
+
+            // Spike.
+            var spikePrediction = engine.Predict(new IidSpikeData(10));
+            Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 10, spikePrediction.Prediction[0],
+                spikePrediction.Prediction[1], spikePrediction.Prediction[2]);
+
+            // Checkpoint the model.
+            var modelPath = "temp.zip";
+            engine.CheckPoint(ml, modelPath);
+
+            // Load the model.
+            using (var file = File.OpenRead(modelPath))
+                model = TransformerChain.LoadFrom(ml, file);
+
+            for (int index = 0; index < 5; index++)
+            {
+                // Anomaly spike detection.
+                var prediction = engine.Predict(new IidSpikeData(5));
+                Console.WriteLine("{0}\t{1}\t{2:0.00}\t{3:0.00}", 5, prediction.Prediction[0],
+                    prediction.Prediction[1], prediction.Prediction[2]);
+            }
+
+            // Data Alert   Score   P-Value
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 10     1      10.00    0.00  <-- alert is on, predicted spike (check-point model)
+            // 5      0       5.00    0.26  <-- load model from disk.
+            // 5      0       5.00    0.26
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
+            // 5      0       5.00    0.50
         }
     }
 }
