@@ -1,0 +1,69 @@
+---- BoundLoader ----
+5 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KS: Key<U4, 3-10>
+  B: Text
+  E: Text
+---- RowToRowMapperTransform ----
+6 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KS: Key<U4, 3-10>
+  B: Text
+  E: Text
+  AT: Vec<Text>
+---- RowToRowMapperTransform ----
+8 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KS: Key<U4, 3-10>
+  B: Text
+  E: Text
+  AT: Vec<Text>
+  AH: Vec<Key<U4, 0-3>>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+  KH: Vec<Key<U4, 0-3>, 2>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [2] '{5,10}', [3] '{4,3}'
+---- RowToRowMapperTransform ----
+9 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KS: Key<U4, 3-10>
+  B: Text
+  E: Text
+  AT: Vec<Text>
+  AH: Vec<Key<U4, 0-3>>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+  KH: Vec<Key<U4, 0-3>, 2>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [2] '{5,10}', [3] '{4,3}'
+  N3: Vec<R4, 8>
+---- RowToRowMapperTransform ----
+10 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KS: Key<U4, 3-10>
+  B: Text
+  E: Text
+  AT: Vec<Text>
+  AH: Vec<Key<U4, 0-3>>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] '{an,angry}', [1] 'ate', [2] '', [3] '{annie,ant}'
+  KH: Vec<Key<U4, 0-3>, 2>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [2] '{5,10}', [3] '{4,3}'
+  N3: Vec<R4, 8>
+  N10: Vec<R4, 1024>
+---- SelectColumnsDataTransform ----
+5 columns:
+  A: Text
+  K: Vec<Key<U4, 3-10>, 2>
+  KH: Vec<Key<U4, 0-3>, 2>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [2] '{5,10}', [3] '{4,3}'
+  N3: Vec<R4, 8>
+  N10: Vec<R4, 1024>

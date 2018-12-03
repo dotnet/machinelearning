@@ -666,21 +666,21 @@ namespace Microsoft.ML.Runtime.RunTests
                     loader,
                     "xf=WordHashBag{bits=3 ord- col=F1:A,B col=F2:B,A ih=-1 ngram=2}",
                     "xf=WordHashBag{bits=3 ord- col=F3:A,B col=F4:B,A ih=1 ngram=2}",
-                    "xf=ChooseColumns{col=A col=B col=F1 col=F2 col=F3 col=F4}"
+                    "xf=SelectColumns{keepCol=A keepCol=B keepCol=F1 keepCol=F2 keepCol=F3 keepCol=F4}"
                 }, suffix: "1");
             // Same, but using per column overrides, including one column without inversion.
             TestCore(pathData, true,
                 new[] {
                     loader,
                     "xf=WordHashBag{bits=3 ord- col=F1:A,B col=F2:B,A ih=-1 ngram=2 col={name=F3 src=A src=B ih=1}  col={name=F4 src=B src=A ih=1} col={name=F5 src=A src=B ih=0}}",
-                    "xf=ChooseColumns{col=A col=B col=F1 col=F2 col=F3 col=F4 col=F5}"
+                    "xf=SelectColumns{keepCol=A keepCol=B keepCol=F1 keepCol=F2 keepCol=F3 keepCol=F4 keepCol=F5}"
                 }, suffix: "2");
             // Do to the key column.
             TestCore(pathData, true,
                 new[] {
                     loader,
                     "xf=CatHash{ih=-1 col=KH:2:K col={name=KHU bits=2 src=K ordered-}}",
-                    "xf=ChooseColumns{col=K col=KH col=KHU}"
+                    "xf=SelectColumns{keepCol=K keepCol=KH keepCol=KHU}"
                 }, suffix: "3");
             // Do to the key column combining it with the text column.
             TestCore(pathData, true,
@@ -690,14 +690,14 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Hash{bits=2 ih=-1 col=AH:AT col=KH:K}",
                     "xf=NGramHash{bits=3 ih=-1 col=N3:AH,KH seed=2}",
                     "xf=NGramHash{bits=10 ih=-1 col=N10:AH,KH seed=2}",
-                    "xf=ChooseColumns{col=A col=K col=KH col=N3 col=N10}"
+                    "xf=SelectColumns{keepCol=A keepCol=K keepCol=KH keepCol=N3 keepCol=N10}"
                 }, suffix: "4");
             // Do for scalar non-vector columns.
             TestCore(pathData, true,
                 new[] {
                     loader,
                     "xf=CatHash{bits=3 ih=-1 col=AH:A col=KH:KS}",
-                    "xf=ChooseColumns{col=A col=KS col=AH col=KH}"
+                    "xf=SelectColumns{keepCol=A keepCol=KS keepCol=AH keepCol=KH}"
                 }, suffix: "5");
 
             // Do with full-length grams only.
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=WordToken{col=AT:A}",
                     "xf=Hash{col=AH:AT}",
                     "xf=NgramHash{col=AH ngram=3 hashbits=4 all- ih=3}",
-                    "xf=ChooseColumns{col=AH}"
+                    "xf=SelectColumns{keepCol=AH}"
                 }, suffix: "6");
 
             Done();

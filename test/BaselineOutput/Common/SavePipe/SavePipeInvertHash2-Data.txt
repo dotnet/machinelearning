@@ -1,0 +1,15 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=A:TX:0
+#@   col=B:TX:1
+#@   col=F1:R4:2-9
+#@   col=F2:R4:10-17
+#@   col=F3:R4:18-25
+#@   col=F4:R4:26-33
+#@   col=F5:R4:34-41
+#@ }
+A	B	40	0:""
+annie ate an ant	bob bakes brownies	2	1	2	1	3	2	0	1	2	1	2	1	3	2	0	1	2	1	2	1	3	2	0	1	2	1	2	1	3	2	0	1	2	1	2	1	3	2	0	1
+an angry ant	bob bowled badly	2	1	3	1	0	2	0	1	2	1	3	1	0	2	0	1	2	1	3	1	0	2	0	1	2	1	3	1	0	2	0	1	2	1	3	1	0	2	0	1
+42	0:""
