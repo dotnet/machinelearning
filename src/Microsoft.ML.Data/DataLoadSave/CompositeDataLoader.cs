@@ -583,7 +583,7 @@ namespace Microsoft.ML.Runtime.Data
             return View.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
             if (TransposeSchema?.GetSlotType(col) == null)

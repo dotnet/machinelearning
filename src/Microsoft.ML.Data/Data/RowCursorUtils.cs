@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Given the item type, typeDst, and a slot cursor, return a ValueGetter{VBuffer{TDst}} for the
         /// vector-valued column with a conversion to a vector of typeDst, if needed.
         /// </summary>
-        public static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, ISlotCursor cursor)
+        public static ValueGetter<VBuffer<TDst>> GetVecGetterAs<TDst>(PrimitiveType typeDst, SlotCursor cursor)
         {
             Contracts.CheckValue(typeDst, nameof(typeDst));
             Contracts.CheckParam(typeDst.RawType == typeof(TDst), nameof(typeDst));
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new RowImpl(row, col);
             }
 
-            public static GetterFactory Create(ISlotCursor cursor)
+            public static GetterFactory Create(SlotCursor cursor)
             {
                 return new SlotImpl(cursor);
             }
@@ -231,9 +231,9 @@ namespace Microsoft.ML.Runtime.Data
 
             private sealed class SlotImpl : GetterFactory
             {
-                private readonly ISlotCursor _cursor;
+                private readonly SlotCursor _cursor;
 
-                public SlotImpl(ISlotCursor cursor)
+                public SlotImpl(SlotCursor cursor)
                 {
                     _cursor = cursor;
                 }
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        public static ValueGetter<VBuffer<Single>> GetLabelGetter(ISlotCursor cursor)
+        public static ValueGetter<VBuffer<Single>> GetLabelGetter(SlotCursor cursor)
         {
             var type = cursor.GetSlotType().ItemType;
             if (type == NumberType.R4)

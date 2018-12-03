@@ -770,7 +770,7 @@ namespace Microsoft.ML.Runtime.Data
                 OutputSchema[col].Name);
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             Host.CheckParam(0 <= col && col < _bindings.ColumnCount, nameof(col));
 
@@ -795,7 +795,7 @@ namespace Microsoft.ML.Runtime.Data
         /// null for all new columns, and so reaching this is only possible if there is a
         /// bug.
         /// </summary>
-        protected virtual ISlotCursor GetSlotCursorCore(int iinfo)
+        protected virtual SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(false);
             throw Host.ExceptNotImpl("Data view indicated it could transpose a column, but apparently it could not");
