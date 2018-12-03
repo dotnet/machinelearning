@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.Data
                 return sb.ToString();
             }
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
             public override void Dispose()
             {
@@ -301,13 +301,13 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.Infos.Length);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
                 var fn = _getters[col] as ValueGetter<TValue>;

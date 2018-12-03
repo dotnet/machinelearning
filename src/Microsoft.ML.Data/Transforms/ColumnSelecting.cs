@@ -707,15 +707,15 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public Schema Schema => _mapper.OutputSchema;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
                 return _inputCursor.GetGetter<TValue>(index);
             }
 
-            public bool IsColumnActive(int col) => _active[col];
+            public override bool IsColumnActive(int col) => _active[col];
         }
     }
 }

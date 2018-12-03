@@ -248,7 +248,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public Schema Schema => _view.Schema;
+                public override Schema Schema => _view.Schema;
 
                 public override long Batch
                 {
@@ -298,13 +298,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     return _active[col];
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     Ch.Check(_active[col], "column is not active");

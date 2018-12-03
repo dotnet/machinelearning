@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly Action _disposer;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
 
             public RowCursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
@@ -255,13 +255,13 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose();
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 

@@ -385,15 +385,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.OutputSchema; } }
+            public override Schema Schema { get { return _parent.OutputSchema; } }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
                 return Input.IsColumnActive(col);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "col");
                 return Input.GetGetter<TValue>(col);

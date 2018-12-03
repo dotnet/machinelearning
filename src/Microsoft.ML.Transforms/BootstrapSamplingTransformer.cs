@@ -188,9 +188,9 @@ namespace Microsoft.ML.Transforms
             private readonly BootstrapSamplingTransformer _parent;
             private readonly Random _rgen;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
-            public Schema Schema { get { return Input.Schema; } }
+            public override Schema Schema => Input.Schema;
 
             public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, Random rgen)
                 : base(parent.Host, input)
@@ -211,12 +211,12 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 return Input.GetGetter<TValue>(col);
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 return Input.IsColumnActive(col);
             }

@@ -586,11 +586,11 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public ML.Data.Schema Schema => _loader.Schema;
+            public override ML.Data.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
 
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data
                    };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;

@@ -801,7 +801,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly Delegate[] _getters;
             private bool _disposed;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
             public override long Batch { get { return 0; } }
 
@@ -907,13 +907,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return more;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");

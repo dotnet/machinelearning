@@ -1364,7 +1364,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly DataViewSlicer _slicer;
                 private readonly IRow[] _sliceRows;
 
-                public Schema Schema => _slicer.Schema;
+                public override Schema Schema => _slicer.Schema;
 
                 public Cursor(IChannelProvider provider, DataViewSlicer slicer, IRowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
@@ -1392,7 +1392,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
                     int splitInd;
@@ -1401,7 +1401,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _sliceRows[splitInd] != null && _sliceRows[splitInd].IsColumnActive(splitCol);
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.Check(IsColumnActive(col));
                     int splitInd;
@@ -1551,7 +1551,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly SlotCursor _slotCursor;
                 private readonly Delegate _getter;
 
-                public Schema Schema => _parent.Schema;
+                public override Schema Schema => _parent.Schema;
 
                 public override long Batch => throw new NotImplementedException();
 
@@ -1564,13 +1564,13 @@ namespace Microsoft.ML.Runtime.Data
                         _getter = _slotCursor.GetGetter<T>();
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.CheckParam(col == 0, nameof(col));
                     return _getter != null;
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.CheckParam(col == 0, nameof(col));
                     Ch.CheckParam(_getter != null, nameof(col), "requested column not active");
@@ -1599,7 +1599,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly SlotCursor _slotCursor;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
 
             public override long Batch => throw new NotImplementedException();
 
@@ -1614,13 +1614,13 @@ namespace Microsoft.ML.Runtime.Data
                 Schema = builder.GetSchema();
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(col == 0, nameof(col));
                 return true;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(col == 0, nameof(col));
                 return _slotCursor.GetGetterWithVectorType<TValue>(Ch);

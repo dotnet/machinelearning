@@ -1014,12 +1014,9 @@ namespace Microsoft.ML.Runtime.Data
                 private long _batch;
                 private bool _disposed;
 
-                public Schema Schema => _schema;
+                public override Schema Schema => _schema;
 
-                public override long Batch
-                {
-                    get { return _batch; }
-                }
+                public override long Batch => _batch;
 
                 /// <summary>
                 /// Constructs one of the split cursors.
@@ -1114,13 +1111,13 @@ namespace Microsoft.ML.Runtime.Data
                     return true;
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
                     return _colToActive[col] >= 0;
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
                     var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;
@@ -1171,7 +1168,7 @@ namespace Microsoft.ML.Runtime.Data
             // input batch as our own batch. Should we suppress it?
             public override long Batch { get { return _batch; } }
 
-            public Schema Schema => _schema;
+            public override Schema Schema => _schema;
 
             public SynchronousConsolidatingCursor(IChannelProvider provider, IRowCursor[] cursors)
                 : base(provider)
@@ -1291,13 +1288,13 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActive.Length, nameof(col));
                 return _colToActive[col] >= 0;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
                 var getter = _getters[_colToActive[col]] as ValueGetter<TValue>;

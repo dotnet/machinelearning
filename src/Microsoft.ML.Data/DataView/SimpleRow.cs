@@ -11,8 +11,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// An implementation of <see cref="IRow"/> that gets its <see cref="ICounted.Position"/>, <see cref="ICounted.Batch"/>,
-    /// and <see cref="ICounted.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
+    /// An implementation of <see cref="IRow"/> that gets its <see cref="IRow.Position"/>, <see cref="IRow.Batch"/>,
+    /// and <see cref="IRow.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
     /// delegates. A null delegate indicates an inactive column. The delegates are assumed to be of the appropriate type
     /// (this does not validate the type).
     /// REVIEW: Should this validate that the delegates are of the appropriate type? It wouldn't be difficult
@@ -20,22 +20,21 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class SimpleRow : IRow
     {
-        private readonly Schema _schema;
         private readonly IRow _input;
         private readonly Delegate[] _getters;
 
-        public Schema Schema { get { return _schema; } }
+        public Schema Schema { get; }
 
-        public long Position { get { return _input.Position; } }
+        public long Position => _input.Position;
 
-        public long Batch { get { return _input.Batch; } }
+        public long Batch => _input.Batch;
 
         public SimpleRow(Schema schema, IRow input, Delegate[] getters)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(input, nameof(input));
             Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
-            _schema = schema;
+            Schema = schema;
             _input = input;
             _getters = getters ?? new Delegate[0];
         }

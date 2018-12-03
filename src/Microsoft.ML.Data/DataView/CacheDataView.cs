@@ -481,15 +481,9 @@ namespace Microsoft.ML.Data
                 _index = index;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _index.GetIdGetter();
-            }
+            public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
 
-            public ICursor GetRootCursor()
-            {
-                return this;
-            }
+            public IRowCursor GetRootCursor() => this;
 
             public bool MoveNext()
             {
@@ -758,7 +752,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Moves to the next index. Once this or <see cref="MoveMany"/> has returned
             /// false, it should never be called again. (This in constrast to public
-            /// <see cref="ICursor"/> objects, whose move methods are robust to that usage.)
+            /// <see cref="IRowCursor"/> objects, whose move methods are robust to that usage.)
             /// </summary>
             /// <returns>Whether the next index is available.</returns>
             bool MoveNext();

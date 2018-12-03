@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
             public RowCursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
@@ -760,13 +760,13 @@ namespace Microsoft.ML.Transforms.Text
                 return _active == null || _active[_bindings.MapIinfoToCol(iinfo)];
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 

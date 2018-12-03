@@ -240,9 +240,9 @@ namespace Microsoft.ML.Runtime.Api
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public Schema Schema => _parent._bindings.Schema;
+            public override Schema Schema => _parent._bindings.Schema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Runtime.Api
                 return _appendedRow.IsColumnActive(iCol);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;

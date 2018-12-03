@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly bool[] _active;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
             public override long Batch => 0;
 
             public Cursor(IChannelProvider provider, Schema schema, Func<int, bool> needCol)
@@ -71,9 +71,9 @@ namespace Microsoft.ML.Runtime.Data
 
             protected override bool MoveNextCore() => false;
 
-            public bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
+            public override bool IsColumnActive(int col) => 0 <= col && col < _active.Length && _active[col];
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "Can't get getter for inactive column");
                 return

@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.Api
                 /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
                 /// the root cursor will be faster.
                 /// </summary>
-                public ICursor GetRootCursor() => this;
+                public IRowCursor GetRootCursor() => this;
             }
         }
 

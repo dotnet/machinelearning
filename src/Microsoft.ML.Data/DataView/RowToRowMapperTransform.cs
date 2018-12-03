@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
 
-            public Schema Schema => _bindings.Schema;
+            public override Schema Schema => _bindings.Schema;
 
             public RowCursor(IChannelProvider provider, IRowCursor input, RowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
@@ -350,13 +350,13 @@ namespace Microsoft.ML.Runtime.Data
                 _bindings = parent._bindings;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.Schema.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 

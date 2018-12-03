@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Schema Schema { get; }
+            public sealed override Schema Schema { get; }
 
             public CursorBase(AppendRowsDataView parent)
                 : base(parent._host)
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Data
 
             protected abstract ValueGetter<TValue> CreateTypedGetter<TValue>(int col);
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col), "The column must be active against the defined predicate.");
                 if (!(Getters[col] is ValueGetter<TValue>))
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Data
                 return Getters[col] as ValueGetter<TValue>;
             }
 
-            public bool IsColumnActive(int col)
+            public sealed override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.ColumnCount, "Column index is out of range");
                 return Getters[col] != null;

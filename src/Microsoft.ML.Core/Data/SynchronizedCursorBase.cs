@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
@@ -11,12 +13,12 @@ namespace Microsoft.ML.Runtime.Data
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
-    internal abstract class SynchronizedCursorBase<TBase> : ICursor
-        where TBase : class, ICursor
+    internal abstract class SynchronizedCursorBase<TBase> : IRowCursor
+        where TBase : class, IRowCursor
     {
         protected readonly IChannel Ch;
 
-        private readonly ICursor _root;
+        private readonly IRowCursor _root;
         private bool _disposed;
 
         protected TBase Input { get; }
@@ -31,6 +33,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Convenience property for checking whether the current state is CursorState.Good.
         /// </summary>
         protected bool IsGood => _root.State == CursorState.Good;
+
+        public abstract Schema Schema { get; }
 
         protected SynchronizedCursorBase(IChannelProvider provider, TBase input)
         {
@@ -52,24 +56,16 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public bool MoveNext()
-        {
-            return _root.MoveNext();
-        }
+        public bool MoveNext() => _root.MoveNext();
 
-        public bool MoveMany(long count)
-        {
-            return _root.MoveMany(count);
-        }
+        public bool MoveMany(long count) => _root.MoveMany(count);
 
-        public ICursor GetRootCursor()
-        {
-            return _root;
-        }
+        public IRowCursor GetRootCursor() => _root;
 
-        public ValueGetter<UInt128> GetIdGetter()
-        {
-            return Input.GetIdGetter();
-        }
+        public ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
+
+        public abstract bool IsColumnActive(int col);
+
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
     }
 }

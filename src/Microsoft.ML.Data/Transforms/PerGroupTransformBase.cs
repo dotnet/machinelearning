@@ -237,9 +237,9 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<TLabel> _labelGetter;
             private readonly ValueGetter<TScore> _scoreGetter;
 
-            public Schema Schema => _parent.OutputSchema;
+            public override Schema Schema => _parent.OutputSchema;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
             public RowCursor(PerGroupTransformBase<TLabel, TScore, TState> parent, IRowCursor input, IRowCursor groupCursor, bool[] active)
                 : base(parent.Host)
@@ -267,13 +267,13 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter = _parent.GetScoreGetter(_groupCursor);
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _parent.GetBindings().ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Contracts.CheckParam(IsColumnActive(col), nameof(col), "requested column is not active");
 
@@ -324,8 +324,8 @@ namespace Microsoft.ML.Runtime.Data
                 // Read the whole group from the auxiliary cursor.
                 while (_groupCursor.State != CursorState.Done && !_newGroupInGroupCursorDel())
                 {
-                    TLabel label = default(TLabel);
-                    TScore score = default(TScore);
+                    TLabel label = default;
+                    TScore score = default;
                     _labelGetter(ref label);
                     _scoreGetter(ref score);
                     _parent.ProcessExample(_state, label, score);

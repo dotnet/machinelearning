@@ -167,15 +167,15 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public Schema Schema => _compositeSchema.AsSchema;
+            public override Schema Schema => _compositeSchema.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 _compositeSchema.CheckColumnInRange(col);
                 return _isColumnActive[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int dv;
                 int srcCol;

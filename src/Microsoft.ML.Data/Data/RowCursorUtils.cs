@@ -533,7 +533,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly OneRowDataView _parent;
                 private readonly bool[] _active;
 
-                public Schema Schema => _parent.Schema;
+                public override Schema Schema => _parent.Schema;
                 public override long Batch { get { return 0; } }
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Runtime.Data
                     return State == CursorState.NotStarted;
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                     Ch.CheckParam(IsColumnActive(col), nameof(col), "Requested column is not active");
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
                         };
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                     // We present the "illusion" that this column is not active, even though it must be

@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch { get { return 0; } }
 
-            public Schema Schema => _parent.OutputSchema;
+            public override Schema Schema => _parent.OutputSchema;
 
             public Cursor(GroupTransform parent, Func<int, bool> predicate)
                 : base(parent.Host)
@@ -601,7 +601,7 @@ namespace Microsoft.ML.Transforms
                 return _trailingCursor.GetIdGetter();
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 _parent._groupSchema.CheckColumnInRange(col);
                 return _active[col];
@@ -669,7 +669,7 @@ namespace Microsoft.ML.Transforms
                 base.Dispose();
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 _parent._groupSchema.CheckColumnInRange(col);
                 if (!_active[col])

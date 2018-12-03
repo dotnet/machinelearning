@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -18,7 +19,7 @@ namespace Microsoft.ML.Runtime.Data
     /// use <see cref="SynchronizedCursorBase{TBase}"/> .
     /// </summary>
     [BestFriend]
-    internal abstract class RootCursorBase : ICursor
+    internal abstract class RootCursorBase : IRowCursor
     {
         protected readonly IChannel Ch;
 
@@ -38,8 +39,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected bool IsGood => State == CursorState.Good;
 
+        public abstract Schema Schema { get; }
+
         /// <summary>
-        /// Creates an instance of the RootCursorBase class
+        /// Creates an instance of the <see cref="RootCursorBase"/> class
         /// </summary>
         /// <param name="provider">Channel provider</param>
         protected RootCursorBase(IChannelProvider provider)
@@ -137,6 +140,10 @@ namespace Microsoft.ML.Runtime.Data
         /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
         /// the root cursor will be faster.
         /// </summary>
-        public ICursor GetRootCursor() => this;
+        public IRowCursor GetRootCursor() => this;
+
+        public abstract bool IsColumnActive(int col);
+
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
     }
 }

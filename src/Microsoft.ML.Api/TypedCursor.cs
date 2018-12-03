@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
+    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, IRowCursor
         where TRow : class
     {
     }
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Runtime.Api
                 return _input.MoveMany(count);
             }
 
-            public ICursor GetRootCursor()
+            public IRowCursor GetRootCursor()
             {
                 return _input.GetRootCursor();
             }

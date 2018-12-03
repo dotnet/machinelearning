@@ -496,13 +496,10 @@ namespace Microsoft.ML.Transforms
 
             private readonly int[] _colToActivesIndex;
 
-            public Schema Schema { get { return _input.Schema; } }
+            public override Schema Schema => _input.Schema;
 
-            public override long Batch
-            {
-                // REVIEW: Implement cursor set support.
-                get { return 0; }
-            }
+            // REVIEW: Implement cursor set support.
+            public override long Batch => 0;
 
             public RowCursor(IChannelProvider provider, int poolRows, IRowCursor input, Random rand)
                 : base(provider)
@@ -669,7 +666,7 @@ namespace Microsoft.ML.Transforms
                 return true;
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.Assert((_colToActivesIndex[col] >= 0) == _input.IsColumnActive(col));
@@ -706,7 +703,7 @@ namespace Microsoft.ML.Transforms
                 return getter;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");

@@ -397,9 +397,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < Schema.Count);
                 return _active[col];

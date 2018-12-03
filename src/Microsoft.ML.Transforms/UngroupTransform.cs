@@ -582,15 +582,15 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public Schema Schema => _schemaImpl.AsSchema;
+            public override Schema Schema => _schemaImpl.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _schemaImpl.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _schemaImpl.ColumnCount, nameof(col));
 

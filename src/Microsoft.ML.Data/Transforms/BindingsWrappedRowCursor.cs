@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ColumnBindingsBase _bindings;
 
-        public Schema Schema => _bindings.AsSchema;
+        public override Schema Schema => _bindings.AsSchema;
 
         /// <summary>
         /// Creates a wrapped version of the cursor
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings = bindings;
         }
 
-        public bool IsColumnActive(int col)
+        public override bool IsColumnActive(int col)
         {
             Ch.Check(0 <= col & col < _bindings.ColumnCount, "col");
             bool isSrc;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.Data
             return isSrc && Input.IsColumnActive(col);
         }
 
-        public ValueGetter<TValue> GetGetter<TValue>(int col)
+        public override ValueGetter<TValue> GetGetter<TValue>(int col)
         {
             Ch.Check(IsColumnActive(col), "col");
             bool isSrc;

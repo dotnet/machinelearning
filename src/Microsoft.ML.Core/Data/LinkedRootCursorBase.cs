@@ -10,19 +10,19 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     [BestFriend]
     internal abstract class LinkedRootCursorBase<TInput> : RootCursorBase
-        where TInput : class, ICursor
+        where TInput : class, IRowCursor
     {
-        private readonly ICursor _root;
 
         /// <summary>Gets the input cursor.</summary>
         protected TInput Input { get; }
 
         /// <summary>
         /// Returns the root cursor of the input. It should be used to perform MoveNext or MoveMany operations.
-        /// Note that GetRootCursor() returns "this", NOT Root. Root is used to advance our input, not for
-        /// clients of this cursor. That's why it is protected, not public.
+        /// Note that <see cref="IRowCursor.GetRootCursor"/> returns <see langword="this"/>, not <see cref="Root"/>.
+        /// <see cref="Root"/> is used to advance our input, not for clients of this cursor. That is why it is
+        /// protected, not public.
         /// </summary>
-        protected ICursor Root { get { return _root; } }
+        protected IRowCursor Root { get; }
 
         protected LinkedRootCursorBase(IChannelProvider provider, TInput input)
             : base(provider)
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
             Ch.AssertValue(input, nameof(input));
 
             Input = input;
-            _root = Input.GetRootCursor();
+            Root = Input.GetRootCursor();
         }
 
         public override void Dispose()
