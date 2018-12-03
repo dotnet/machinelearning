@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema Schema => _bindings.Schema;
+        public override Schema OutputSchema => _bindings.Schema;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.Data
             return predicateInput;
         }
 
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
+        public Schema InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -245,13 +245,13 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("GetEntireRow"))
             {
                 Action disp;
-                var activeArr = new bool[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new Row(input, this, Schema, getters);
+                return new Row(input, this, OutputSchema, getters);
             }
         }
 

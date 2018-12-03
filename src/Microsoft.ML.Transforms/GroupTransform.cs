@@ -154,7 +154,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        public override Schema Schema => _groupSchema.AsSchema;
+        public override Schema OutputSchema => _groupSchema.AsSchema;
 
         protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Transforms
 
             public override long Batch { get { return 0; } }
 
-            public Schema Schema => _parent.Schema;
+            public Schema Schema => _parent.OutputSchema;
 
             public Cursor(GroupTransform parent, Func<int, bool> predicate)
                 : base(parent.Host)

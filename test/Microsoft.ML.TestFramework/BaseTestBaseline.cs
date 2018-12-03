@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Tools;
@@ -104,6 +105,7 @@ namespace Microsoft.ML.Runtime.RunTests
             _env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
             ML = new MLContext(42);
+            ML.AddStandardComponents();
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -819,10 +821,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// This method is used in unit tests when the output is not baselined.
         /// If the output is to be baselined and compared, the other overload should be used.
         /// </summary>
-        protected static int MainForTest(string args)
+        protected int MainForTest(string args)
         {
-            var env = new MLContext();
-            return Maml.MainCore(env, args, false);
+            return Maml.MainCore(ML, args, false);
         }
     }
 

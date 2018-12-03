@@ -1,0 +1,100 @@
+maml.exe CV tr=OVA{p=FastForest{ }} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Training learner 0
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 71 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 2 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 1
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 71 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 3 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 2
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 71 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 1 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Training learner 0
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 79 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 2 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 1
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 79 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 3 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 2
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 79 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 1 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    25 |     5 | 0.8333
+        2 ||     0 |     1 |    27 | 0.9643
+          ||========================
+Precision ||1.0000 |0.9615 |0.8438 |
+Accuracy(micro-avg): 0.924051
+Accuracy(macro-avg): 0.932540
+Log-loss:           0.197783
+Log-loss reduction: 81.813342
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    19 |     1 | 0.9500
+        2 ||     0 |     2 |    20 | 0.9091
+          ||========================
+Precision ||1.0000 |0.9048 |0.9524 |
+Accuracy(micro-avg): 0.957746
+Accuracy(macro-avg): 0.953030
+Log-loss:           0.103360
+Log-loss reduction: 90.479422
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.940899 (0.0168)
+Accuracy(macro-avg): 0.942785 (0.0102)
+Log-loss:           0.150571 (0.0472)
+Log-loss reduction: 86.146382 (4.3330)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

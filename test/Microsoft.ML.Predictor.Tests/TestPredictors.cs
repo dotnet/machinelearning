@@ -233,6 +233,17 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        [TestCategory("Multiclass")]
+        public void MulticlassReductionTest()
+        {
+            RunOneAllTests(TestLearners.Ova, TestDatasets.iris);
+            RunOneAllTests(TestLearners.OvaWithFastForest, TestDatasets.iris);
+            RunOneAllTests(TestLearners.Pkpd, TestDatasets.iris);
+
+            Done();
+        }
+
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("Clustering")]
         [TestCategory("KMeans")]

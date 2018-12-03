@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         private TInput GetNaValue()
         {
-            var sch = Schema;
+            var sch = OutputSchema;
             int index;
             sch.TryGetColumnIndex(InputColumnName, out index);
             ColumnType col = sch.GetColumnType(index);

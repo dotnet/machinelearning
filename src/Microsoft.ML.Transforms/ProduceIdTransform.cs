@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly Bindings _bindings;
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 

@@ -12,13 +12,13 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Scoring;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using OnnxShape = System.Collections.Generic.List<long>;
+using OnnxShape = System.Collections.Generic.List<int>;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
     typeof(OnnxTransform.Arguments), typeof(SignatureDataTransform), OnnxTransform.UserName, OnnxTransform.ShortName, "OnnxTransform", "OnnxScorer")]
@@ -36,6 +36,22 @@ using OnnxShape = System.Collections.Generic.List<long>;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <summary>
+    /// <p>A transform for scoring ONNX models in the ML.NET framework.</p>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    /// [!code-csharp[MF](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/OnnxTransform.cs)]
+    /// ]]>
+    /// </format>
+    /// </summary>
+    /// <remarks>
+    /// <p>Supports inferencing of models in 1.2 and 1.3 format, using the
+    /// <a href='https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/'>Microsoft.ML.OnnxRuntime</a> library
+    /// </p>
+    /// <p>The inputs and outputs of the onnx models must of of Tensors. Sequence and Maps are not yet supported.</p>
+    /// <p>Visit https://github.com/onnx/models to see a list of readily available models to get started with.</p>
+    /// <p>Refer to http://onnx.ai' for more information about ONNX.</p>
+    /// </remarks>
     public sealed class OnnxTransform : RowToRowTransformerBase
     {
         public sealed class Arguments : TransformInputBase
@@ -73,6 +89,12 @@ namespace Microsoft.ML.Transforms
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
             loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile)
+        {
+            var args = new Arguments { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } };
+            return Create(env, args, input);
         }
 
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string[] inputColumns, string[] outputColumns)
@@ -147,15 +169,15 @@ namespace Microsoft.ML.Transforms
                 Model = OnnxModel.CreateFromBytes(modelBytes);
 
             var modelInfo = Model.ModelInfo;
-            Inputs = args.InputColumns;
-            Outputs = args.OutputColumns;
-            OutputTypes = new ColumnType[args.OutputColumns.Length];
+            Inputs = (args.InputColumns.Count() == 0 ) ? Model.InputNames.ToArray() : args.InputColumns;
+            Outputs = (args.OutputColumns.Count() == 0 ) ? Model.OutputNames.ToArray() : args.OutputColumns;
+            OutputTypes = new ColumnType[Outputs.Length];
             var numModelOutputs = Model.ModelInfo.OutputsInfo.Length;
-            for (int i=0; i < args.OutputColumns.Length; i++)
+            for (int i=0; i < Outputs.Length; i++)
             {
-                var idx = Model.OutputNames.IndexOf(args.OutputColumns[i]);
+                var idx = Model.OutputNames.IndexOf(Outputs[i]);
                 if (idx < 0)
-                    throw Host.Except($"Column {args.OutputColumns[i]} doesn't match output node names of model");
+                    throw Host.Except($"Column {Outputs[i]} doesn't match output node names of model");
 
                 var outputNodeInfo = Model.ModelInfo.OutputsInfo[idx];
                 var shape = outputNodeInfo.Shape;
@@ -163,6 +185,11 @@ namespace Microsoft.ML.Transforms
                 OutputTypes[i] = new VectorType(OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type), dims);
             }
             _args = args;
+        }
+
+        public OnnxTransform(IHostEnvironment env, string modelFile)
+            : this(env, new Arguments() { ModelFile = modelFile, InputColumns = new string[] { }, OutputColumns = new string[] { } })
+        {
         }
 
         public OnnxTransform(IHostEnvironment env, string modelFile, string inputColumn, string outputColumn)
@@ -223,7 +250,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
             private readonly OnnxShape[] _inputTensorShapes;
-            private readonly DataType[] _inputOnnxTypes;
+            private readonly System.Type[] _inputOnnxTypes;
 
             public Mapper(OnnxTransform parent, Schema inputSchema) :
                  base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
@@ -233,7 +260,7 @@ namespace Microsoft.ML.Transforms
                 _inputColIndices = new int[_parent.Inputs.Length];
                 _isInputVector = new bool[_parent.Inputs.Length];
                 _inputTensorShapes = new OnnxShape[_parent.Inputs.Length];
-                _inputOnnxTypes = new DataType[_parent.Inputs.Length];
+                _inputOnnxTypes = new System.Type[_parent.Inputs.Length];
 
                 var model = _parent.Model;
                 for (int i = 0; i <  _parent.Inputs.Length; i++)
@@ -289,36 +316,39 @@ namespace Microsoft.ML.Transforms
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            private interface ITensorValueGetter
+            private interface INamedOnnxValueGetter
             {
-                Tensor GetTensor();
+                NamedOnnxValue GetNamedOnnxValue();
             }
             private class OutputCache
             {
                 public long Position;
-                public Dictionary<string, Tensor> Outputs;
+                public Dictionary<string, NamedOnnxValue> Outputs;
                 public OutputCache()
                 {
                     Position = -1;
-                    Outputs = new Dictionary<string, Tensor>();
+                    Outputs = new Dictionary<string, NamedOnnxValue>();
                 }
             }
 
-            private void UpdateCacheIfNeeded(long position, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private void UpdateCacheIfNeeded(long position, INamedOnnxValueGetter[] srcNamedOnnxValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 if (outputCache.Position != position)
                 {
-                    var inputTensors = new List<Tensor>();
+                    var inputNameOnnxValues = new List<NamedOnnxValue>();
 
                     for (int i = 0; i < _inputColIndices.Length; i++)
-                        inputTensors.Add(srcTensorGetters[i].GetTensor());
+                    {
+                        inputNameOnnxValues.Add(srcNamedOnnxValueGetters[i].GetNamedOnnxValue());
+                    }
 
-                    var outputTensors = _parent.Model.Run(inputTensors);
-                    Contracts.Assert(outputTensors.Count > 0);
+                    var outputNamedOnnxValues = _parent.Model.Run(inputNameOnnxValues);
+                    Contracts.Assert(outputNamedOnnxValues.Count > 0);
 
-                    for (int j = 0; j < outputTensors.Count; j++)
-                        outputCache.Outputs[activeOutputColNames[j]] = outputTensors[j];
-
+                    foreach (var outputNameOnnxValue in outputNamedOnnxValues)
+                    {
+                        outputCache.Outputs[outputNameOnnxValue.Name] = outputNameOnnxValue;
+                    }
                     outputCache.Position = position;
                 }
             }
@@ -333,93 +363,110 @@ namespace Microsoft.ML.Transforms
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
                 var type = OnnxUtils.OnnxToMlNetType(_parent.Model.ModelInfo.OutputsInfo[iinfo].Type).RawType;
                 Host.Assert(type == _parent.OutputTypes[iinfo].ItemType.RawType);
-                var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
-                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
+                var srcNamedValueGetters = GetNamedOnnxValueGetters(input, _parent.Inputs, _inputColIndices, _isInputVector, _inputOnnxTypes, _inputTensorShapes);
+                return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcNamedValueGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(IRow input, int iinfo, INamedOnnxValueGetter[] srcNamedValueGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
-                    UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
-                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
-                    var editor = VBufferEditor.Create(ref dst, tensor.GetSize());
-                    OnnxUtils.CopyTo(tensor, editor.Values);
+                    UpdateCacheIfNeeded(input.Position, srcNamedValueGetters, activeOutputColNames, outputCache);
+                    var namedOnnxValue = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var denseTensor = namedOnnxValue.AsTensor<T>() as System.Numerics.Tensors.DenseTensor<T>;
+                    if (denseTensor == null)
+                        throw Host.Except($"Output column {namedOnnxValue.Name} doesn't contain a DenseTensor of expected type {typeof(T)}");
+                    var editor = VBufferEditor.Create(ref dst, (int) denseTensor.Length);
+                    denseTensor.Buffer.Span.CopyTo(editor.Values);
                     dst = editor.Commit();
                 };
                 return valuegetter;
             }
 
-            private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+            private static INamedOnnxValueGetter[] GetNamedOnnxValueGetters(IRow input,
+                string[] inputColNames,
                 int[] inputColIndices,
                 bool[] isInputVector,
-                DataType[] onnxInputTypes,
+                System.Type[] onnxInputTypes,
                 OnnxShape[] onnxInputShapes)
             {
-                var srcTensorGetters = new ITensorValueGetter[inputColIndices.Length];
+                var srcNamedOnnxValueGetters = new INamedOnnxValueGetter[inputColIndices.Length];
                 for (int i = 0; i < inputColIndices.Length; i++)
                 {
                     int colIndex = inputColIndices[i];
-                    srcTensorGetters[i] = CreateTensorValueGetter(input, onnxInputTypes[i], isInputVector[i], colIndex, onnxInputShapes[i]);
+                    srcNamedOnnxValueGetters[i] = CreateNamedOnnxValueGetter(input, onnxInputTypes[i], isInputVector[i], inputColNames[i], colIndex, onnxInputShapes[i]);
                 }
-                return srcTensorGetters;
+                return srcNamedOnnxValueGetters;
             }
 
-            private static ITensorValueGetter CreateTensorValueGetter(IRow input, DataType onnxType, bool isVector, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNamedOnnxValueGetter(IRow input, System.Type onnxType, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 var type = OnnxUtils.OnnxToMlNetType(onnxType).RawType;
                 Contracts.AssertValue(type);
-                return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, onnxShape);
+                return Utils.MarshalInvoke(CreateNameOnnxValueGetter<int>, type, input, isVector, colName, colIndex, onnxShape);
             }
 
-            private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, OnnxShape onnxShape)
+            private static INamedOnnxValueGetter CreateNameOnnxValueGetter<T>(IRow input, bool isVector, string colName, int colIndex, OnnxShape onnxShape)
             {
                 if (isVector)
-                    return new TensorValueGetterVec<T>(input, colIndex, onnxShape);
-                return new TensorValueGetter<T>(input, colIndex);
+                    return new NamedOnnxValueGetterVec<T>(input, colName, colIndex, onnxShape);
+                return new NameOnnxValueGetter<T>(input, colName, colIndex);
             }
 
-            private class TensorValueGetter<T> : ITensorValueGetter
+            private class NameOnnxValueGetter<T> : INamedOnnxValueGetter
             {
                 private readonly ValueGetter<T> _srcgetter;
+                private readonly string _colName;
 
-                public TensorValueGetter(IRow input, int colIndex)
+                public NameOnnxValueGetter(IRow input, string colName, int colIndex)
                 {
+                    _colName = colName;
                     _srcgetter = input.GetGetter<T>(colIndex);
                 }
-                public Tensor GetTensor()
+                public NamedOnnxValue GetNamedOnnxValue()
                 {
                     var scalar = default(T);
                     _srcgetter(ref scalar);
-                    return OnnxUtils.CreateScalarTensor(scalar);
+                    return OnnxUtils.CreateScalarNamedOnnxValue(_colName, scalar);
                 }
             }
 
-            private class TensorValueGetterVec<T> : ITensorValueGetter
+            private class NamedOnnxValueGetterVec<T> : INamedOnnxValueGetter
             {
                 private readonly ValueGetter<VBuffer<T>> _srcgetter;
                 private readonly OnnxShape _tensorShape;
+                private readonly string _colName;
                 private VBuffer<T> _vBuffer;
                 private VBuffer<T> _vBufferDense;
-                public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
+                public NamedOnnxValueGetterVec(IRow input, string colName, int colIndex, OnnxShape tensorShape)
                 {
                     _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                     _tensorShape = tensorShape;
+                    _colName = colName;
                     _vBuffer = default;
                     _vBufferDense = default;
                 }
-                public Tensor GetTensor()
+                public NamedOnnxValue GetNamedOnnxValue()
                 {
                     _srcgetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
-                    return OnnxUtils.CreateTensor(_vBufferDense.GetValues(), _tensorShape);
+                    return OnnxUtils.CreateNamedOnnxValue(_colName, _vBufferDense.GetValues(), _tensorShape);
                 }
             }
         }
     }
+
+    /// <summary>
+    /// A class implementing the estimator interface of the OnnxTransform.
+    /// </summary>
     public sealed class OnnxScoringEstimator : TrivialEstimator<OnnxTransform>
     {
+        public OnnxScoringEstimator(IHostEnvironment env, string modelFile)
+            : this(env, new OnnxTransform(env, modelFile, new string[] { }, new string[] { }))
+        {
+        }
+
         public OnnxScoringEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
            : this(env, new OnnxTransform(env, modelFile, inputs, outputs))
         {
@@ -459,7 +506,7 @@ namespace Microsoft.ML.Transforms
             {
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
                     Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, NumberType.R4, false);
+                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
             }
             return new SchemaShape(resultDic.Values);
         }
