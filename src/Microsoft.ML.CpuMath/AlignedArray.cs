@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= start && start <= _size - count);
             Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Items.AsSpan(start + _base).CopyTo(dst.Slice(index));
+            Items.AsSpan(start + _base, count).CopyTo(dst.Slice(index));
         }
 
         public void CopyFrom(ReadOnlySpan<Float> src)
