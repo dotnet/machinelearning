@@ -999,7 +999,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <see cref="Batch"/> objects from the input blocking collection, and yields the
             /// values stored therein through the help of <see cref="OutPipe"/> objects.
             /// </summary>
-            private sealed class Cursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly Schema _schema;
                 private readonly int[] _activeToCol;
@@ -1133,7 +1133,7 @@ namespace Microsoft.ML.Runtime.Data
         /// at the cost of being totally synchronous, that is, there is no parallel benefit from
         /// having split the input cursors.
         /// </summary>
-        internal sealed class SynchronousConsolidatingCursor : RootCursorBase, IRowCursor
+        internal sealed class SynchronousConsolidatingCursor : RootCursorBase
         {
             private readonly IRowCursor[] _cursors;
             private readonly Delegate[] _getters;

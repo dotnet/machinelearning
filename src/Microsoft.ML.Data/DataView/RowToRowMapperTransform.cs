@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly Delegate[] _getters;
             private readonly bool[] _active;

@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed partial class TextLoader
     {
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             // Lines are divided into batches and processed a batch at a time. This enables
             // parallel parsing.

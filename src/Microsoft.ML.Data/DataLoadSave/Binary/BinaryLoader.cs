@@ -1263,7 +1263,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
 

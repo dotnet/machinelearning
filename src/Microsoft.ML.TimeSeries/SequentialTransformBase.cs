@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.
         /// </summary>
-        private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly SequentialTransformBase<TInput, TOutput, TState> _parent;
 

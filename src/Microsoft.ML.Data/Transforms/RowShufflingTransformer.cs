@@ -344,7 +344,7 @@ namespace Microsoft.ML.Transforms
         /// The result is something functionally equivalent to but but considerably faster than the
         /// simple implementation described in the first paragraph.
         /// </summary>
-        private sealed class RowCursor : RootCursorBase, IRowCursor
+        private sealed class RowCursor : RootCursorBase
         {
             /// <summary>
             /// Pipes, in addition to column values, will also communicate extra information

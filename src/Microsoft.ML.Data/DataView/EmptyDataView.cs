@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Cursor(_host, Schema, needCol) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly bool[] _active;
 

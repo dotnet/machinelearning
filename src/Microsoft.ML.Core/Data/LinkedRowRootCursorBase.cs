@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.Data
     /// that each input column is exposed as an output column with the same column index.
     /// </summary>
     [BestFriend]
-    internal abstract class LinkedRowRootCursorBase : LinkedRootCursorBase<IRowCursor>, IRowCursor
+    internal abstract class LinkedRowRootCursorBase : LinkedRootCursorBase
     {
         private readonly bool[] _active;
 

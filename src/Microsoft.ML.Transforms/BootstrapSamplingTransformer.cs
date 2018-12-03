@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
             return new IRowCursor[] { cursor };
         }
 
-        private sealed class RowCursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : LinkedRootCursorBase
         {
             private int _remaining;
             private readonly BootstrapSamplingTransformer _parent;

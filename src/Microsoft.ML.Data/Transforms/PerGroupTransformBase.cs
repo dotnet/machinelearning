@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract void UpdateState(TState state);
 
-        private sealed class RowCursor : RootCursorBase, IRowCursor
+        private sealed class RowCursor : RootCursorBase
         {
             private readonly PerGroupTransformBase<TLabel, TScore, TState> _parent;
             private readonly IRowCursor _groupCursor;

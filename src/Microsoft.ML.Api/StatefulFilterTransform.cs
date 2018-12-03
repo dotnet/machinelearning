@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.Api
             return new StatefulFilterTransform<TSrc, TDst, TState>(env, this, newSource);
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly StatefulFilterTransform<TSrc, TDst, TState> _parent;
 

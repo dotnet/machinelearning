@@ -536,7 +536,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// A wrapper around the cursor which replaces the schema.
         /// </summary>
-        private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly SequentialDataTransform _parent;
 
@@ -819,7 +819,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly Delegate[] _getters;
             private readonly bool[] _active;

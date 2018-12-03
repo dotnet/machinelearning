@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        private abstract class CursorBase : RootCursorBase, IRowCursor
+        private abstract class CursorBase : RootCursorBase
         {
             protected readonly IDataView[] Sources;
             protected readonly Delegate[] Getters;

@@ -403,7 +403,7 @@ namespace Microsoft.ML.Transforms
                 VBufferUtils.Resize(ref value, length, 0));
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;

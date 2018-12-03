@@ -792,7 +792,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return _colTransposers[col];
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly TransposeLoader _parent;
             private readonly int[] _actives;

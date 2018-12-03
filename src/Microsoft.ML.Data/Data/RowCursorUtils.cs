@@ -528,7 +528,7 @@ namespace Microsoft.ML.Runtime.Data
                 return 1;
             }
 
-            private sealed class Cursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly OneRowDataView _parent;
                 private readonly bool[] _active;

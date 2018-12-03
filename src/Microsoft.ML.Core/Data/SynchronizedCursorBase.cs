@@ -13,15 +13,14 @@ namespace Microsoft.ML.Runtime.Data
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
-    internal abstract class SynchronizedCursorBase<TBase> : IRowCursor
-        where TBase : class, IRowCursor
+    internal abstract class SynchronizedCursorBase : IRowCursor
     {
         protected readonly IChannel Ch;
 
         private readonly IRowCursor _root;
         private bool _disposed;
 
-        protected TBase Input { get; }
+        protected IRowCursor Input { get; }
 
         public long Position => _root.Position;
 
@@ -36,7 +35,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Schema Schema { get; }
 
-        protected SynchronizedCursorBase(IChannelProvider provider, TBase input)
+        protected SynchronizedCursorBase(IChannelProvider provider, IRowCursor input)
         {
             Contracts.AssertValue(provider, "provider");
             Ch = provider.Start("Cursor");

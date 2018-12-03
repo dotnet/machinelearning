@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly ParquetLoader _loader;
             private readonly Stream _fileStream;

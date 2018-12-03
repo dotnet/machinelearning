@@ -6,15 +6,14 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Base class for a cursor has an input cursor, but still needs to do work on
-    /// MoveNext/MoveMany.
+    /// <see cref="IRowCursor.MoveNext"/> / <see cref="IRowCursor.MoveMany(long)"/>.
     /// </summary>
     [BestFriend]
-    internal abstract class LinkedRootCursorBase<TInput> : RootCursorBase
-        where TInput : class, IRowCursor
+    internal abstract class LinkedRootCursorBase : RootCursorBase
     {
 
         /// <summary>Gets the input cursor.</summary>
-        protected TInput Input { get; }
+        protected IRowCursor Input { get; }
 
         /// <summary>
         /// Returns the root cursor of the input. It should be used to perform MoveNext or MoveMany operations.
@@ -24,7 +23,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected IRowCursor Root { get; }
 
-        protected LinkedRootCursorBase(IChannelProvider provider, TInput input)
+        protected LinkedRootCursorBase(IChannelProvider provider, IRowCursor input)
             : base(provider)
         {
             Ch.AssertValue(input, nameof(input));

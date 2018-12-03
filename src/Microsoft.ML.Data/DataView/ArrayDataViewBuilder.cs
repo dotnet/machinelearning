@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new IRowCursor[] { new RowCursor(_host, this, predicate, rand) };
             }
 
-            private sealed class RowCursor : RootCursorBase, IRowCursor
+            private sealed class RowCursor : RootCursorBase
             {
                 private readonly DataView _view;
                 private readonly BitArray _active;

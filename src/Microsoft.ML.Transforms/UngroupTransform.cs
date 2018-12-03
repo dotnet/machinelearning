@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Cursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private readonly SchemaImpl _schemaImpl;
 

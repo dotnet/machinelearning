@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Data
     /// This cursor base class returns "this" from <see cref="GetRootCursor"/>. That is, all
     /// <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by this cursor. For a cursor
     /// that has an input cursor and does NOT need notification on <see cref="MoveNext"/>/<see cref="MoveMany(long)"/>,
-    /// use <see cref="SynchronizedCursorBase{TBase}"/> .
+    /// use <see cref="SynchronizedCursorBase"/> .
     /// </summary>
     [BestFriend]
     internal abstract class RootCursorBase : IRowCursor

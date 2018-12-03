@@ -694,7 +694,7 @@ namespace Microsoft.ML.Transforms
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
             private readonly IRowCursor _inputCursor;

@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private delegate NgramIdFinder FinderDecorator(int iinfo, NgramIdFinder finder);
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;

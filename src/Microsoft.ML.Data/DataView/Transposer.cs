@@ -1359,7 +1359,7 @@ namespace Microsoft.ML.Runtime.Data
             /// The cursor implementation creates the <see cref="IRow"/>s using <see cref="Splitter.Bind"/>,
             /// then collates the results from those rows as effectively one big row.
             /// </summary>
-            private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+            private sealed class Cursor : SynchronizedCursorBase
             {
                 private readonly DataViewSlicer _slicer;
                 private readonly IRow[] _sliceRows;
@@ -1545,7 +1545,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new IRowCursor[] { GetRowCursor(predicate, rand) };
             }
 
-            private sealed class Cursor<T> : RootCursorBase, IRowCursor
+            private sealed class Cursor<T> : RootCursorBase
             {
                 private readonly SlotDataView _parent;
                 private readonly SlotCursor _slotCursor;
@@ -1595,7 +1595,7 @@ namespace Microsoft.ML.Runtime.Data
 
         // REVIEW: This shim class is very similar to the above shim class, except at the
         // cursor level, not the cursorable level. Is there some non-horrifying way to unify both, somehow?
-        private sealed class SlotRowCursorShim<T> : RootCursorBase, IRowCursor
+        private sealed class SlotRowCursorShim<T> : RootCursorBase
         {
             private readonly SlotCursor _slotCursor;
 

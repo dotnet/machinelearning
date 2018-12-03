@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.Data
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly IRowCursor[] _cursors;
             private readonly CompositeSchema _compositeSchema;

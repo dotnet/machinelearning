@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             return bindings.MapColumnIndex(out isSrc, col);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class RowCursor : SynchronizedCursorBase
         {
             private readonly BindingsBase _bindings;
             private readonly bool[] _active;
