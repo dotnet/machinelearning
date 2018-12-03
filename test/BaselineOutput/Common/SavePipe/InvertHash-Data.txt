@@ -1,3 +1,0 @@
-annie ate an ant	5	4		bob bakes brownies
-an angry ant	3	3		bob bowled badly
-	10			""

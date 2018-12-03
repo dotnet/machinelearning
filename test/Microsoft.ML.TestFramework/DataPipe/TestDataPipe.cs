@@ -610,7 +610,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{header+ col=One:TX:4 col=Two:TX:3 rows=101}",
                     "xf=WordHashBag{bits=5 ord=- col=F1:One col=F2:One,One}",
-                    "xf=ChooseColumns{col=F1 col=F2}",
+                    "xf=SelectColumns{keepcol=F1 keepcol=F2}",
                 },
                 (pipe) =>
                 {
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "  col=F11:One col={name=F12 src=One ngram=4 max=3 max=4 max=5} col={name=F13 src=One ngram=3 skips=2}",
                     "  col=F21:Vec col={name=F22 src=Vec max=20 ngram=4}}",
                     "xf=WordBag{col={name=F23 src=Vec max=10 ngram=3 skips=2}}",
-                    "xf=ChooseColumns{col=Label col=F21 col=F22 col=F23 col=F11 col=F12 col=F13}",
+                    "xf=SelectColumns{keepCol=Label keepCol=F21 keepCol=F22 keepCol=F23 keepCol=F11 keepCol=F12 keepCol=F13}",
                 });
 
             Done();
@@ -750,7 +750,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{header=+ col=Text:TX:0}",
                     "xf=WordBag{col={name=TfIdf src=Text max=5 ngram=3 weighting=TfIdf}}",
-                    "xf=ChooseColumns{col=TfIdf}",
+                    "xf=SelectColumns{keepCol=TfIdf}",
                 });
 
             Done();
@@ -764,7 +764,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[] {
                     "loader=Text{header+ col=One:TX:4 col=Vec:TX:3,4 rows=101}",
                     "xf=WordBag{col={name=WB1 src=One max=10 ngram=3 skips=2} col={name=WB2 src=One src=One max=10 ngram=3 skips=2}}",
-                    "xf=ChooseColumns{col=WB1 col=WB2}"
+                    "xf=SelectColumns{keepCol=WB1 keepCol=WB2}"
                 },
                 (pipe) =>
                 {
