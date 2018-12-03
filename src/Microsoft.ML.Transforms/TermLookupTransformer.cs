@@ -19,9 +19,6 @@ using System.Text;
 [assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), typeof(TermLookupTransformer.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
 
-[assembly: LoadableClass(TermLookupTransformer.Summary, typeof(TermLookupTransformer), null, typeof(SignatureLoadDataTransform),
-    "Term Lookup Transform", TermLookupTransformer.LoaderSignature)]
-
 namespace Microsoft.ML.Transforms.Categorical
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
@@ -269,7 +266,7 @@ namespace Microsoft.ML.Transforms.Categorical
         public const string LoaderSignature = "TermLookupTransform";
 
         internal const string Summary = "Maps text values columns to new columns using a map dataset.";
-
+/*
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -281,7 +278,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(TermLookupTransformer).Assembly.FullName);
         }
-
+*/
         // This is the byte array containing the binary .idv file contents for the lookup data.
         // This is persisted; the _termMap and _valueMap are constructed from it.
         private readonly byte[] _bytes;
@@ -629,7 +626,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
             return rgb;
         }
-
+        /*
         public static TermLookupTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -639,9 +636,11 @@ namespace Microsoft.ML.Transforms.Categorical
             h.CheckValue(input, nameof(input));
             return h.Apply("Loading Model", ch => new TermLookupTransformer(ch, ctx, h, input));
         }
+        */
 
         public override void Save(ModelSaveContext ctx)
         {
+            /*
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
@@ -656,6 +655,7 @@ namespace Microsoft.ML.Transforms.Categorical
             Host.AssertValue(_bytes);
             DebugValidateLoader(_ldr);
             ctx.SaveBinaryStream(DefaultMapName, w => w.Write(_bytes));
+            */
         }
 
         [Conditional("DEBUG")]
