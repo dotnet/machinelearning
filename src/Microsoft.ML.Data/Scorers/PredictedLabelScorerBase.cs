@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
-            private readonly IRow _predColMetadata;
+            private readonly Schema.Metadata _predColMetadata;
             private BindingsImpl(Schema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
                 bool user, int scoreColIndex, ColumnType predColType)
                 : base(input, mapper, suffix, user, DefaultColumnNames.PredictedLabel)
@@ -59,42 +59,39 @@ namespace Microsoft.ML.Runtime.Data
                 // REVIEW: This logic is very specific to multiclass, which is deeply
                 // regrettable, but the class structure as designed and the status of this schema
                 // bearing object makes pushing the logic into the multiclass scorer almost impossible.
-                if (predColType.IsKey)
+                if (predColType is KeyType predColKeyType && predColKeyType.Count > 0)
                 {
-                    ColumnType scoreSlotsType = mapper.OutputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreColIndex);
-                    if (scoreSlotsType != null && scoreSlotsType.IsKnownSizeVector &&
-                        scoreSlotsType.VectorSize == predColType.KeyCount)
+                    var scoreColMetadata = mapper.OutputSchema[scoreColIndex].Metadata;
+
+                    var slotColumn = scoreColMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames);
+                    if (slotColumn?.Type is VectorType slotColVecType && slotColVecType.Size == predColKeyType.Count)
                     {
-                        Contracts.Assert(scoreSlotsType.VectorSize > 0);
-                        IColumn col = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>,
-                            scoreSlotsType.RawType, mapper.OutputSchema, scoreColIndex, MetadataUtils.Kinds.SlotNames);
-                        _predColMetadata = RowColumnUtils.GetRow(null, col);
+                        Contracts.Assert(slotColVecType.Size > 0);
+                        _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, slotColVecType.RawType,
+                            scoreColMetadata, slotColumn.Value);
                     }
                     else
                     {
-                        scoreSlotsType = mapper.OutputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.TrainingLabelValues, scoreColIndex);
-                        if (scoreSlotsType != null && scoreSlotsType.IsKnownSizeVector &&
-                            scoreSlotsType.VectorSize == predColType.KeyCount)
+                        var trainLabelColumn = scoreColMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.TrainingLabelValues);
+                        if (trainLabelColumn?.Type is VectorType trainLabelColVecType && trainLabelColVecType.Size == predColKeyType.Count)
                         {
-                            Contracts.Assert(scoreSlotsType.VectorSize > 0);
-                            IColumn col = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>,
-                                scoreSlotsType.RawType, mapper.OutputSchema, scoreColIndex, MetadataUtils.Kinds.TrainingLabelValues);
-                            _predColMetadata = RowColumnUtils.GetRow(null, col);
+                            Contracts.Assert(trainLabelColVecType.Size > 0);
+                            _predColMetadata = Utils.MarshalInvoke(KeyValueMetadataFromMetadata<int>, trainLabelColVecType.RawType,
+                                scoreColMetadata, trainLabelColumn.Value);
                         }
                     }
                 }
             }
 
-            private static IColumn KeyValueMetadataFromMetadata<T>(ISchema schema, int col, string metadataName)
+            private static Schema.Metadata KeyValueMetadataFromMetadata<T>(Schema.Metadata meta, Schema.Column metaCol)
             {
-                Contracts.AssertValue(schema);
-                Contracts.Assert(0 <= col && col < schema.ColumnCount);
-                var type = schema.GetMetadataTypeOrNull(metadataName, col);
-                Contracts.AssertValue(type);
-                Contracts.Assert(type.RawType == typeof(T));
-
-                ValueGetter<T> getter = (ref T val) => schema.GetMetadata(metadataName, col, ref val);
-                return RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, type, getter);
+                Contracts.AssertValue(meta);
+                Contracts.Assert(0 <= metaCol.Index && metaCol.Index < meta.Schema.ColumnCount);
+                Contracts.Assert(metaCol.Type.RawType == typeof(T));
+                var getter = meta.GetGetter<T>(metaCol.Index);
+                var builder = new MetadataBuilder();
+                builder.Add(MetadataUtils.Kinds.KeyValues, metaCol.Type, meta.GetGetter<T>(metaCol.Index));
+                return builder.GetMetadata();
             }
 
             public static BindingsImpl Create(Schema input, ISchemaBoundRowMapper mapper, string suffix,

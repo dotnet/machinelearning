@@ -326,7 +326,10 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
 
-        public static Func<bool> GetIsNewBatchDelegate(IRow cursor, int batchSize)
+        [Obsolete("The usages of this appear to be based on a total misunderstanding of what Batch actually is. It is a mechanism " +
+            "to enable sharding and recovery of parallelized data, and has nothing to do with actual data.")]
+        [BestFriend]
+        internal static Func<bool> GetIsNewBatchDelegate(IRow cursor, int batchSize)
         {
             Contracts.CheckParam(batchSize > 0, nameof(batchSize), "Batch size must be > 0");
             long lastNewBatchPosition = -1;
@@ -455,20 +458,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Returns a row that is a deep in-memory copy of an input row. Note that inactive
-        /// columns are allowed in this row, and their activity or inactivity will be reflected
-        /// in the output row. Note that the deep copy includes a copy of the metadata as well.
-        /// </summary>
-        /// <param name="row">The input row</param>
-        /// <returns>A deep in-memory copy of the input row</returns>
-        public static IRow CloneRow(IRow row)
-        {
-            Contracts.CheckValue(row, nameof(row));
-            return RowColumnUtils.GetRow(null,
-                Utils.BuildArray(row.Schema.ColumnCount, c => RowColumnUtils.GetColumn(row, c)));
-        }
-
-        /// <summary>
         /// Fetches the value of the column by name, in the given row.
         /// Used by the evaluators to retrieve the metrics from the results IDataView.
         /// </summary>
@@ -487,8 +476,7 @@ namespace Microsoft.ML.Runtime.Data
         /// but want to save it somewhere using a <see cref="Microsoft.ML.Runtime.Data.IO.BinarySaver"/>.)
         /// Note that it is not possible for this method to ensure that the input <paramref name="row"/> does not
         /// change, so users of this convenience must take care of what they do with the input row or the data
-        /// source it came from, while the returned dataview is potentially being used; if this is somehow
-        /// difficult it may be wise to use <see cref="CloneRow"/> to first have a deep copy of the resulting row.
+        /// source it came from, while the returned dataview is potentially being used.
         /// </summary>
         /// <param name="env">An environment used to create the host for the resulting data view</param>
         /// <param name="row">A row, whose columns must all be active</param>
@@ -507,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHost _host; // A channel provider is required for creating the cursor.
 
             public Schema Schema => _row.Schema;
-            public bool CanShuffle { get { return true; } } // The shuffling is even uniformly IID!! :)
+            public bool CanShuffle => true; // The shuffling is even uniformly IID!! :)
 
             public OneRowDataView(IHostEnvironment env, IRow row)
             {
