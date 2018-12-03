@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -15,14 +17,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+//[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+//    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+//[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+//    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
-    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
+//[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
+//    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -41,12 +43,8 @@ namespace Microsoft.ML.Runtime.Data
     /// ]]>
     /// </format>
     /// </example>
-    public sealed class FeatureContributionCalculationTransform
+    public sealed class FeatureContributionCalculationTransform : ITransformer, ICanSaveModel
     {
-        // Apparently, loader signature is limited in length to 24 characters.
-        internal const string MapperLoaderSignature = "WTFBindable";
-        private const int MaxTopBottom = 1000;
-
         public sealed class Arguments : ScorerArgumentsBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
@@ -64,16 +62,87 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
         }
 
-        [BestFriend]
-        internal static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        // Apparently, loader signature is limited in length to 24 characters.
+        internal const string MapperLoaderSignature = "WTFBindable";
+        private const int MaxTopBottom = 1000;
+
+        public bool IsRowToRowMapper => true;
+
+        private readonly IHost _host;
+        private readonly BindableMapper _mapper;
+        private readonly string _features;
+
+        // TODO factory methods
+
+        // TODO: Only thing that we need to do here is store the args, and predictor, change order of params + mew arguments object
+        public FeatureContributionCalculationTransform(IHostEnvironment env, Arguments args, string features, IPredictor predictor)
         {
+            // TODO checks that they are not empty --> features
+            // TODO change the arguments to something else --> advanced arguemnts + accessible settings
             Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(data, nameof(data));
-            env.CheckValue(mapper, nameof(mapper));
+            _host = env.Register(nameof(FeatureContributionCalculationTransform));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(predictor, nameof(predictor));
             if (args.Top <= 0 || args.Top > MaxTopBottom)
                 throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
             if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
                 throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
+
+            _mapper = Create(env, args, predictor);
+            _features = features;
+        }
+
+        public FeatureContributionCalculationTransform(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            _mapper = new BindableMapper(env, ctx);
+        }
+
+        // TODO: we might need to save features as well..
+        public void Save(ModelSaveContext ctx)
+        {
+            _mapper.Save(ctx);
+        }
+
+        public Schema GetOutputSchema(Schema inputSchema)
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _features));
+            var schema = new RoleMappedSchema(inputSchema, roles);
+
+            var boundMapper = _mapper.Bind(_host, schema);
+            var rowMapper =  boundMapper as RowMapper;
+            return rowMapper.Schema;
+        }
+
+        // TODO: .Transform() should be easy to implement -> just use the code inside create.
+        public IDataView Transform(IDataView input)
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _features));
+            var schema = new RoleMappedSchema(input.Schema, roles);
+
+            var boundMapper = _mapper.Bind(_host, schema);
+            return Create(_host, input, boundMapper, null);
+        }
+
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _features));
+            var schema = new RoleMappedSchema(inputSchema, roles);
+
+            var boundMapper = _mapper.Bind(_host, schema);
+            return boundMapper as RowMapper;
+        }
+
+        private static IDataScorerTransform Create(IHostEnvironment env, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(data, nameof(data));
+            env.CheckValue(mapper, nameof(mapper));
 
             var contributionMapper = mapper as RowMapper;
             env.CheckParam(mapper != null, nameof(mapper), "Unexpected mapper");
@@ -83,8 +152,7 @@ namespace Microsoft.ML.Runtime.Data
             return scoredPipe;
         }
 
-        [BestFriend]
-        internal static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        private static BindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -99,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
             return new BindableMapper(env, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
         }
 
-        public static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, IPredictor predictor, string features = DefaultColumnNames.Features)
+        private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, IPredictor predictor, string features = DefaultColumnNames.Features)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -115,17 +183,10 @@ namespace Microsoft.ML.Runtime.Data
 
             var mapper = Create(env, args, predictor);
             var boundMapper = mapper.Bind(env, schema);
-            return Create(env, args, data, boundMapper, null);
+            return Create(env, data, boundMapper, null);
         }
 
-        /// <summary>
-        /// Create method corresponding to <see cref="SignatureLoadModel"/>.
-        /// </summary>
-        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            return new BindableMapper(env, ctx);
-        }
-
+        // TODO documentation... what is this? Can I put everything that is in here in the transformer, and eliminate this thing?
         private sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
             private readonly int _topContributionsCount;
@@ -222,8 +283,8 @@ namespace Microsoft.ML.Runtime.Data
             public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
-                var typeSrc = input.Schema[colSrc].Type;
+                Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
+                var typeSrc = input.Schema.GetColumnType(colSrc);
 
                 Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
@@ -233,9 +294,9 @@ namespace Microsoft.ML.Runtime.Data
             public Delegate GetContributionGetter(Row input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Check(0 <= colSrc && colSrc < input.Schema.Count);
+                Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
 
-                var typeSrc = input.Schema[colSrc].Type;
+                var typeSrc = input.Schema.GetColumnType(colSrc);
                 Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
@@ -339,7 +400,6 @@ namespace Microsoft.ML.Runtime.Data
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
             public Schema InputSchema => InputRoleMappedSchema.Schema;
-            private Schema.Column FeatureColumn => InputRoleMappedSchema.Feature.Value;
 
             public Schema OutputSchema { get; }
 
@@ -351,7 +411,7 @@ namespace Microsoft.ML.Runtime.Data
                 _env = env;
                 _env.AssertValue(schema);
                 _env.AssertValue(parent);
-                _env.Assert(schema.Feature.HasValue);
+                _env.AssertValue(schema.Feature);
                 _parent = parent;
                 InputRoleMappedSchema = schema;
                 var genericMapper = parent.GenericMapper.Bind(_env, schema);
@@ -362,16 +422,17 @@ namespace Microsoft.ML.Runtime.Data
                     var builder = new SchemaBuilder();
                     builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
                     _outputSchema = builder.GetSchema();
-                    if (FeatureColumn.HasSlotNames(FeatureColumn.Type.VectorSize))
-                        FeatureColumn.Metadata.GetValue(MetadataUtils.Kinds.SlotNames, ref _slotNames);
+                    if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
+                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
+                            ref _slotNames);
                     else
-                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(FeatureColumn.Type.VectorSize);
+                        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
                 }
                 else
                 {
                     _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, FeatureColumn.Type as VectorType),
-                        InputSchema, FeatureColumn.Index));
+                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
+                        InputSchema, InputRoleMappedSchema.Feature.Index));
                 }
 
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
@@ -383,10 +444,10 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.Count; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => col == FeatureColumn.Index;
+                        return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;
             }
@@ -395,18 +456,18 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(active);
-                var totalColumnsCount = 1 + _outputGenericSchema.Count;
+                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
                 var getters = new Delegate[totalColumnsCount];
 
                 if (active(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
-                        ? _parent.GetTextContributionGetter(input, FeatureColumn.Index, _slotNames)
-                        : _parent.GetContributionGetter(input, FeatureColumn.Index);
+                        ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
+                        : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
-                for (var i = 0; i < _outputGenericSchema.Count; i++)
+                for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
                 {
                     if (genericRow.IsColumnActive(i))
                         getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
@@ -422,7 +483,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(FeatureColumn.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
         }
 
@@ -447,8 +508,8 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx.CheckNonEmpty(columnName, nameof(columnName));
                 _parentSchema = parentSchema;
                 _featureCol = featureCol;
-                _featureVectorSize = _parentSchema[_featureCol].Type.VectorSize;
-                _hasSlotNames = _parentSchema[_featureCol].HasSlotNames(_featureVectorSize);
+                _featureVectorSize = _parentSchema.GetColumnType(_featureCol).VectorSize;
+                _hasSlotNames = _parentSchema.HasSlotNames(_featureCol, _featureVectorSize);
 
                 _names = new string[] { columnName };
                 _types = new ColumnType[] { columnType };
@@ -492,10 +553,61 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _ectx.CheckParam(col == 0, nameof(col));
                 if (kind == MetadataUtils.Kinds.SlotNames && _hasSlotNames)
-                    _parentSchema[_featureCol].Metadata.GetValue(kind, ref value);
+                    _parentSchema.GetMetadata(kind, _featureCol, ref value);
                 else
                     throw MetadataUtils.ExceptGetMetadata();
             }
+        }
+    }
+
+    public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculationTransform>
+    {
+        private readonly FeatureContributionCalculationTransform.Arguments _arguments;
+
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, FeatureContributionCalculationTransform.Arguments arguments, string features, IPredictor predictor)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculationTransform)), new FeatureContributionCalculationTransform(env, arguments, features, predictor))
+        {
+            // TODO argcheck?
+            _arguments = arguments;
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToList();
+            //foreach (var colPair in Transformer.Columns)
+            //{
+            //    if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+            //        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+            //    var metadata = new List<SchemaShape.Column>();
+            //    if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+            //        metadata.Add(slotMeta);
+            //    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+            //    ColumnType type = !col.ItemType.IsVector ? (ColumnType)BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
+            //    result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+            //}
+
+            //if (parent.Stringify)
+            //{
+            //    _outputSchema = new SimpleSchema(_env,
+            //        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
+            //    if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
+            //        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
+            //            ref _slotNames);
+            //    else
+            //        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
+            //}
+            //else
+            //{
+            //    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+            //        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
+            //        InputSchema, InputRoleMappedSchema.Feature.Index);
+            //}
+
+            // add score column
+            result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, schem));
+            // add feature contribution column (float array)
+            return new SchemaShape(result.ToArray());
         }
     }
 }

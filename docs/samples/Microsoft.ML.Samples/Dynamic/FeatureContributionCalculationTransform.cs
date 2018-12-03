@@ -63,7 +63,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 Top = 11,
                 Normalize = false
             };
-            var featureContributionCalculator = FeatureContributionCalculationTransform.Create(mlContext, args, transformedData, model.Model, model.FeatureColumn);
+            var featureContributionCalculator = new FeatureContributionCalculationTransform(mlContext, args, model.FeatureColumn, model.Model);
+
+            var outputData = featureContributionCalculator.Transform(transformedData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
@@ -71,7 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             // Let's now walk through the first ten reconds and see which feature drove the values the most
             // Get prediction scores and contributions
-            var scoringEnumerator = featureContributionCalculator.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
+            var scoringEnumerator = outputData.AsEnumerable<HousingRegressionScoreAndContribution>(mlContext, true).GetEnumerator();
             int index = 0;
             Console.WriteLine("Label\tScore\tBiggestFeature\tValue\tWeight\tContribution\tPercent");
             while (scoringEnumerator.MoveNext() && index < 10)
@@ -101,9 +103,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 index++;
             }
 
-            // For bulk scoring, the ApplyToData API can also be used
-            var scoredData = featureContributionCalculator.ApplyToData(mlContext, transformedData);
-            var preview = scoredData.Preview(100);
+            //// For bulk scoring, the ApplyToData API can also be used
+            //var scoredData = featureContributionCalculator.(mlContext, transformedData);
+            //var preview = scoredData.Preview(100);
         }
 
         private static int GetMostContributingFeature(float[] featureContributions)
