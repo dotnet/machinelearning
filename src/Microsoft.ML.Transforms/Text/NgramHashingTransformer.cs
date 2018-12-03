@@ -496,7 +496,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var builder = new MetadataBuilder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Output, _types[i]);
+                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
