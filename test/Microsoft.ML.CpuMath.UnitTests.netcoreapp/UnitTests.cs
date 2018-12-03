@@ -96,7 +96,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(4, 9)]
         [InlineData(5, 7)]
         [InlineData(5, 9)]
-
         private void MatMulAnyDimensionTest(int col, int row)
         {
             Random rand = new Random(DefaultSeed);
