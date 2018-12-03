@@ -494,5 +494,34 @@ namespace Microsoft.ML.Runtime.Data
             cols.AddRange(GetTrainerOutputMetadata());
             return cols;
         }
+
+        private sealed class MetadataRow : IRow
+        {
+            private readonly Schema.Metadata _metadata;
+
+            public MetadataRow(Schema.Metadata metadata)
+            {
+                Contracts.AssertValue(metadata);
+                _metadata = metadata;
+            }
+
+            public Schema Schema => _metadata.Schema;
+            public long Position => 0;
+            public long Batch => 0;
+            public ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
+            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
+            public bool IsColumnActive(int col) => true;
+        }
+
+        /// <summary>
+        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="IRow"/>.
+        /// </summary>
+        /// <param name="metadata">The metadata to wrap.</param>
+        /// <returns>A row that wraps an input metadata.</returns>
+        public static IRow MetadataAsRow(Schema.Metadata metadata)
+        {
+            Contracts.CheckValue(metadata, nameof(metadata));
+            return new MetadataRow(metadata);
+        }
     }
 }

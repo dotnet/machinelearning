@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(Host, ctx);
         }
 
-        public override Schema Schema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {

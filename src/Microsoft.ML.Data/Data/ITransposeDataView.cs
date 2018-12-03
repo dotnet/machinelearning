@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// An enhanced schema, containing information on the transposition properties, if any,
         /// of each column. Note that there is no contract or suggestion that this property
-        /// should be equal to <see cref="ISchematized.Schema"/>.
+        /// should be equal to <see cref="IDataView.Schema"/>.
         /// </summary>
         ITransposeSchema TransposeSchema { get; }
 

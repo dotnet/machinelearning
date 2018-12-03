@@ -14,7 +14,7 @@ using System.Linq;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// This class represents the schema of an <see cref="ISchematized"/> object (like an <see cref="IDataView"/> or an <see cref="IRow"/>).
+    /// This class represents the <see cref="Schema"/> of an object like, for interstance, an <see cref="IDataView"/> or an <see cref="IRow"/>.
     /// On the high level, the schema is a collection of 'columns'. Each column has the following properties:
     /// - Column name.
     /// - Column type.
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Data
             /// </summary>
             public Schema Schema { get; }
 
-            public static Metadata Empty { get; } = new Metadata(new Schema(Enumerable.Empty<Column>()), new Delegate[0]);
+            public static Metadata Empty { get; } = new Metadata(new Schema(new Column[0]), new Delegate[0]);
 
             /// <summary>
             /// Create a metadata row by supplying the schema columns and the getter delegates for all the values.
@@ -256,11 +256,12 @@ namespace Microsoft.ML.Data
         /// <summary>
         /// This constructor should only be called by <see cref="SchemaBuilder"/>.
         /// </summary>
-        internal Schema(IEnumerable<Column> columns)
+        /// <param name="columns">The input columns. The constructed instance takes ownership of the array.</param>
+        internal Schema(Column[] columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
 
-            _columns = columns.ToArray();
+            _columns = columns;
             _nameMap = new Dictionary<string, int>();
             for (int i = 0; i < _columns.Length; i++)
             {

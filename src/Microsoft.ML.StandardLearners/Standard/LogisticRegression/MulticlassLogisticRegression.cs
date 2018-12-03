@@ -440,9 +440,9 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Contracts.CheckValue(weights, nameof(weights));
             Contracts.CheckValue(bias, nameof(bias));
-            Contracts.Check(numClasses >= 2, "numClasses must be at least 2.");
+            Contracts.CheckParam(numClasses >= 2, nameof(numClasses), "Must be at least 2.");
             _numClasses = numClasses;
-            Contracts.Check(numFeatures >= 1, "numFeatures must be positive.");
+            Contracts.CheckParam(numFeatures >= 1, nameof(numFeatures), "Must be positive.");
             _numFeatures = numFeatures;
             Contracts.Check(Utils.Size(weights) == _numClasses);
             Contracts.Check(Utils.Size(bias) == _numClasses);
@@ -992,10 +992,9 @@ namespace Microsoft.ML.Runtime.Learners
             if (_stats == null)
                 return null;
 
-            var cols = new List<IColumn>();
-            var names = default(VBuffer<ReadOnlyMemory<char>>);
-            _stats.AddStatsColumns(cols, null, schema, in names);
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            VBuffer<ReadOnlyMemory<char>> names = default;
+            var meta = _stats.MakeStatisticsMetadata(null, schema, in names);
+            return MetadataUtils.MetadataAsRow(meta);
         }
     }
 

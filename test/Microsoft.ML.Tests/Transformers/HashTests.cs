@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -133,25 +134,19 @@ namespace Microsoft.ML.Tests.Transformers
             }
         }
 
-        private sealed class Counted : ICounted
-        {
-            public long Position => 0;
-            public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 val) => val = default;
-        }
-
         private void HashTestCore<T>(T val, PrimitiveType type, uint expected, uint expectedOrdered, uint expectedOrdered3)
         {
             const int bits = 10;
 
-            var col = RowColumnUtils.GetColumn("Foo", type, ref val);
-            var inRow = RowColumnUtils.GetRow(new Counted(), col);
+            var builder = new MetadataBuilder();
+            builder.AddPrimitiveValue("Foo", type, val);
+            var inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             // First do an unordered hash.
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits);
             var xf = new HashingTransformer(Env, new[] { info });
             var mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out int outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
             var outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
 
             var getter = outRow.GetGetter<uint>(outCol);
@@ -163,7 +158,7 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
 
             getter = outRow.GetGetter<uint>(outCol);
@@ -174,13 +169,14 @@ namespace Microsoft.ML.Tests.Transformers
             // at least in the first position, and in the unordered case, the last position.
             const int vecLen = 5;
             var denseVec = new VBuffer<T>(vecLen, Utils.CreateArray(vecLen, val));
-            col = RowColumnUtils.GetColumn("Foo", new VectorType(type, vecLen), ref denseVec);
-            inRow = RowColumnUtils.GetRow(new Counted(), col);
+            builder = new MetadataBuilder();
+            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => denseVec.CopyTo(ref dst));
+            inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
 
             var vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
@@ -195,7 +191,7 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
@@ -207,13 +203,14 @@ namespace Microsoft.ML.Tests.Transformers
 
             // Let's now do a sparse vector.
             var sparseVec = new VBuffer<T>(10, 3, Utils.CreateArray(3, val), new[] { 0, 3, 7 });
-            col = RowColumnUtils.GetColumn("Foo", new VectorType(type, vecLen), ref sparseVec);
-            inRow = RowColumnUtils.GetRow(new Counted(), col);
+            builder = new MetadataBuilder();
+            builder.Add("Foo", new VectorType(type, vecLen), (ref VBuffer<T> dst) => sparseVec.CopyTo(ref dst));
+            inRow = MetadataUtils.MetadataAsRow(builder.GetMetadata());
 
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: false);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);
@@ -226,7 +223,7 @@ namespace Microsoft.ML.Tests.Transformers
             info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: bits, ordered: true);
             xf = new HashingTransformer(Env, new[] { info });
             mapper = xf.GetRowToRowMapper(inRow.Schema);
-            mapper.Schema.TryGetColumnIndex("Bar", out outCol);
+            mapper.OutputSchema.TryGetColumnIndex("Bar", out outCol);
             outRow = mapper.GetRow(inRow, c => c == outCol, out var _);
             vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             vecGetter(ref vecResult);

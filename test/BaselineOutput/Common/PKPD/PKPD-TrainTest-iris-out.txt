@@ -1,0 +1,42 @@
+maml.exe TrainTest test=%Data% tr=PKPD{p=AvgPer { lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Training learner (0,0)
+Training calibrator.
+Training learner (1,0)
+Training calibrator.
+Training learner (1,1)
+Training calibrator.
+Training learner (2,0)
+Training calibrator.
+Training learner (2,1)
+Training calibrator.
+Training learner (2,2)
+Training calibrator.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    45 |     5 | 0.9000
+        2 ||     0 |     1 |    49 | 0.9800
+          ||========================
+Precision ||1.0000 |0.9783 |0.9074 |
+Accuracy(micro-avg): 0.960000
+Accuracy(macro-avg): 0.960000
+Log-loss:           0.293938
+Log-loss reduction: 73.244600
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.960000 (0.0000)
+Accuracy(macro-avg): 0.960000 (0.0000)
+Log-loss:           0.293938 (0.0000)
+Log-loss reduction: 73.244600 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

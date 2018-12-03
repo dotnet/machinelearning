@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     var mapper = transformer.GetRowToRowMapper(data.Schema);
                     Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
-                    CheckSameSchemas(schema, mapper.Schema);
+                    CheckSameSchemas(schema, mapper.OutputSchema);
                 }
                 else
                 {

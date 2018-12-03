@@ -61,21 +61,10 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Base interface for schematized information. IDataView and IRowCursor both derive from this.
-    /// </summary>
-    public interface ISchematized
-    {
-        /// <summary>
-        /// Gets an instance of Schema.
-        /// </summary>
-        Schema Schema { get; }
-    }
-
-    /// <summary>
     /// The input and output of Query Operators (Transforms). This is the fundamental data pipeline
     /// type, comparable to IEnumerable for LINQ.
     /// </summary>
-    public interface IDataView : ISchematized
+    public interface IDataView
     {
         /// <summary>
         /// Whether this IDataView supports shuffling of rows, to any degree.
@@ -124,6 +113,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns></returns>
         IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> needCol, int n, Random rand = null);
+
+        /// <summary>
+        /// Gets an instance of Schema.
+        /// </summary>
+        Schema Schema { get; }
     }
 
     /// <summary>
@@ -148,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
     /// A logical row. May be a row of an IDataView or a stand-alone row. If/when its contents
     /// change, its ICounted.Counter value is incremented.
     /// </summary>
-    public interface IRow : ISchematized, ICounted
+    public interface IRow : ICounted
     {
         /// <summary>
         /// Returns whether the given column is active in this row.
@@ -161,6 +155,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
         ValueGetter<TValue> GetGetter<TValue>(int col);
+
+        /// <summary>
+        /// Gets a <see cref="Schema"/>, which provides name and type information for variables
+        /// (i.e., columns in ML.NET's type system) stored in this row.
+        /// </summary>
+        Schema Schema { get; }
+
     }
 
     /// <summary>

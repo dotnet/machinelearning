@@ -23,14 +23,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
             return argMin;
         }
 
-        public static int ArgMax<T>(this T[] arr) where T : IComparable<T>
+        public static int ArgMax<T>(this ReadOnlySpan<T> span) where T : IComparable<T>
         {
-            if (arr.Length == 0)
+            if (span.Length == 0)
                 return -1;
             int argMax = 0;
-            for (int i = 1; i < arr.Length; i++)
+            for (int i = 1; i < span.Length; i++)
             {
-                if (arr[i].CompareTo(arr[argMax]) > 0)
+                if (span[i].CompareTo(span[argMax]) > 0)
                     argMax = i;
             }
             return argMax;

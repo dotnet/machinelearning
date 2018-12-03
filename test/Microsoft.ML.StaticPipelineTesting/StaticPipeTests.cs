@@ -254,44 +254,37 @@ namespace Microsoft.ML.StaticPipelineTesting
                     hello: c.Text.Scalar)));
         }
 
-        private sealed class MetaCounted : ICounted
-        {
-            public long Position => 0;
-            public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 v) => v = default;
-        }
-
         [Fact]
         public void AssertStaticKeys()
         {
             var env = new MLContext(0);
-            var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
             var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
-            var meta1 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, 3), ref metaValues1);
-            uint value1 = 2;
-            var col1 = RowColumnUtils.GetColumn("stay", new KeyType(typeof(uint), 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
+            var metaBuilder = new MetadataBuilder();
+            metaBuilder.AddKeyValues<ReadOnlyMemory<char>>(3, TextType.Instance, metaValues1.CopyTo);
+
+            var builder = new MetadataBuilder();
+            builder.AddPrimitiveValue("stay", new KeyType(typeof(uint), 0, 3), 2u, metaBuilder.GetMetadata());
 
             // Next the case where those values are ints.
             var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
-            var meta2 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(NumberType.I4, 4), ref metaValues2);
+            metaBuilder = new MetadataBuilder();
+            metaBuilder.AddKeyValues<int>(3, NumberType.I4, metaValues2.CopyTo);
             var value2 = new VBuffer<byte>(2, 0, null, null);
-            var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(typeof(byte), 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));
+            builder.Add<VBuffer<byte>>("awhile", new VectorType(new KeyType(typeof(byte), 2, 3), 2), value2.CopyTo, metaBuilder.GetMetadata());
 
             // Then the case where a value of that kind exists, but is of not of the right kind, in which case it should not be identified as containing that metadata.
-            var metaValues3 = (float)2;
-            var meta3 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, NumberType.R4, ref metaValues3);
-            var value3 = (ushort)1;
-            var col3 = RowColumnUtils.GetColumn("and", new KeyType(typeof(ushort), 0, 2), ref value3, RowColumnUtils.GetRow(counted, meta3));
+            metaBuilder = new MetadataBuilder();
+            metaBuilder.AddPrimitiveValue(MetadataUtils.Kinds.KeyValues, NumberType.R4, 2f);
+            builder.AddPrimitiveValue("and", new KeyType(typeof(ushort), 0, 2), (ushort)1, metaBuilder.GetMetadata());
 
             // Then a final case where metadata of that kind is actaully simply altogether absent.
             var value4 = new VBuffer<uint>(5, 0, null, null);
-            var col4 = RowColumnUtils.GetColumn("listen", new VectorType(new KeyType(typeof(uint), 0, 2)), ref value4);
+            builder.Add<VBuffer<uint>>("listen", new VectorType(new KeyType(typeof(uint), 0, 2)), value4.CopyTo);
 
             // Finally compose a trivial data view out of all this.
-            var row = RowColumnUtils.GetRow(counted, col1, col2, col3, col4);
-            var view = RowCursorUtils.RowAsDataView(env, row);
+            var view = RowCursorUtils.RowAsDataView(env, MetadataUtils.MetadataAsRow(builder.GetMetadata()));
 
             // Whew! I'm glad that's over with. Let us start running the test in ernest.
             // First let's do a direct match of the types to ensure that works.

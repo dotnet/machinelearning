@@ -98,7 +98,9 @@ namespace Microsoft.ML.Runtime.Api
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _bindings.Schema;
+        Schema IDataView.Schema => OutputSchema;
+
+        public Schema OutputSchema => _bindings.Schema;
 
         public long? GetRowCount()
         {

@@ -15,7 +15,7 @@
   <PropertyGroup>
     <GoogleProtobufPackageVersion>3.5.1</GoogleProtobufPackageVersion>
     <LightGBMPackageVersion>2.2.1.1</LightGBMPackageVersion>
-    <MicrosoftMLScoring>1.1.0</MicrosoftMLScoring>
+    <MicrosoftMLOnnxRuntimePackageVersion>0.1.5</MicrosoftMLOnnxRuntimePackageVersion>
     <MlNetMklDepsPackageVersion>0.0.0.7</MlNetMklDepsPackageVersion>
     <ParquetDotNetPackageVersion>2.1.3</ParquetDotNetPackageVersion>
     <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
