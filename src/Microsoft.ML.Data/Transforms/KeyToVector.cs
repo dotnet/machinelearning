@@ -478,7 +478,7 @@ namespace Microsoft.ML.Transforms.Conversions
                             return;
                         }
 
-                        var editor = VBufferEditor.Create(ref dst, size, 1);
+                        var editor = VBufferEditor.Create(ref dst, size, 1, requireIndicesOnDense: true);
                         editor.Values[0] = 1;
                         editor.Indices[0] = (int)src - 1;
 

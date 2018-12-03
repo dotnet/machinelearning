@@ -1322,7 +1322,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // REVIEW: Worth optimizing the newCount == a.Length case?
             // Probably not...
 
-            editor = VBufferEditor.Create(ref dst, a.Length, newCount);
+            editor = VBufferEditor.Create(ref dst, a.Length, newCount, requireIndicesOnDense: true);
             Span<int> indices = editor.Indices;
 
             if (newCount == bValues.Length)

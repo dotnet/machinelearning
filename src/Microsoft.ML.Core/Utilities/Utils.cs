@@ -530,26 +530,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Assert(size >= 0);
 
             var res = GetIdentityPermutation(size);
-            Shuffle(rand, res);
+            Shuffle<int>(rand, res);
             return res;
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-
-            Shuffle(rand, rgv, 0, rgv.Length);
-        }
-
-        public static void Shuffle<T>(Random rand, T[] rgv, int min, int lim)
-        {
-            Contracts.AssertValue(rand);
-            Contracts.AssertValue(rgv);
-            Contracts.Check(0 <= min & min <= lim & lim <= rgv.Length);
-
-            for (int iv = min; iv < lim; iv++)
-                Swap(ref rgv[iv], ref rgv[iv + rand.Next(lim - iv)]);
         }
 
         public static bool AreEqual(Single[] arr1, Single[] arr2)
@@ -584,6 +566,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     return false;
             }
             return true;
+        }
+
+        public static void Shuffle<T>(Random rand, Span<T> rgv)
+        {
+            Contracts.AssertValue(rand);
+
+            for (int iv = 0; iv < rgv.Length; iv++)
+                Swap(ref rgv[iv], ref rgv[iv + rand.Next(rgv.Length - iv)]);
         }
 
         public static bool AreEqual(int[] arr1, int[] arr2)

@@ -726,7 +726,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return (src[iv - 1] + src[iv]) / 2;
         }
 
-        public static Double CosineSimilarity(Float[] a, Float[] b, int aIdx, int bIdx, int len)
+        public static Double CosineSimilarity(ReadOnlySpan<Float> a, ReadOnlySpan<Float> b, int aIdx, int bIdx, int len)
         {
             const Double epsilon = 1e-12f;
             Contracts.Assert(len > 0);

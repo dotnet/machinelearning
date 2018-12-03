@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
                     _batchEnd = newEnd;
                 }
                 _totalLeft -= _batchEnd;
-                Utils.Shuffle(_rand, _batch, 0, _batchEnd);
+                Utils.Shuffle(_rand, _batch.AsSpan(0, _batchEnd));
             }
 
             public int Next()
