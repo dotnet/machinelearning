@@ -191,7 +191,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the output column. Column is a vector of type double and size 3.
+        /// The vector contains Alert, Raw Score, P-Value as first three values.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
