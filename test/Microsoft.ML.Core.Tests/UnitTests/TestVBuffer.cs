@@ -10,11 +10,13 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Core.Tests.UnitTests
 {
-    public sealed class TestVBuffer
+    public sealed class TestVBuffer : BaseTestBaseline
     {
         // How many random trials to perform per test.
         private const int _trials = 1000;
@@ -22,6 +24,11 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         // small enough so that among _trials trials, there will be a few
         // likely to have zero counts.
         private const int _maxLen = 20;
+
+        public TestVBuffer(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public void TestApplyAt()
@@ -93,11 +100,11 @@ namespace Microsoft.ML.Core.Tests.UnitTests
 
                 float infNorm = a.GetValues().Length == 0 ? 0 : a.Items().Max(iv => Math.Abs(iv.Value));
 
-                AssertAreEqual(sum, VectorUtils.Sum(in a), tol);
-                AssertAreEqual(l1, VectorUtils.L1Norm(in a), tol);
-                AssertAreEqual(l2Squared, VectorUtils.NormSquared(a), tol);
-                AssertAreEqual(l2, VectorUtils.Norm(a), tol);
-                AssertAreEqual(infNorm, VectorUtils.MaxNorm(in a), tol);
+                Assert.True(CompareNumbersWithTolerance(sum, VectorUtils.Sum(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(l1, VectorUtils.L1Norm(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(l2Squared, VectorUtils.NormSquared(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(l2, VectorUtils.Norm(in a), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(infNorm, VectorUtils.MaxNorm(in a), digitsOfPrecision: tol));
 
                 float d = 0;
                 switch (trial % 3)
@@ -208,7 +215,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
-        public void SparsifyNormalizeTopSparce()
+        public void SparsifyNormalizeTopSparse()
         {
             for (var i = 0; i < 2; i++)
             {
@@ -237,7 +244,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
         }
 
         [Fact]
-        public void SparsifyNormalizeTopSparce2()
+        public void SparsifyNormalizeTopSparse2()
         {
             for (var i = 0; i < 2; i++)
             {
@@ -260,6 +267,54 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 VectorUtils.SparsifyNormalize(ref b, 2, 2, normalize: norm);
                 TestSame(ref vbufMultExpected, ref b, 1e-5);
             }
+        }
+
+        /// <summary>
+        /// Tests SparsifyNormalize works correctly.
+        /// </summary>
+        [Theory]
+        [InlineData(1, true, new[] { 0.8f, 0.9f, 1f }, new[] { 7, 8, 9 })]
+        [InlineData(1, false, new[] { 8f, 9f, 10f }, new[] { 7, 8, 9 })]
+        [InlineData(-4, true, new[] { -0.8f, -0.6f, -0.4f, 0.6f, 0.8f, 1f }, new[] { 0, 1, 2, 7, 8, 9 })]
+        [InlineData(-4, false, new[] { -4f, -3f, -2f, 3f, 4f, 5f }, new[] { 0, 1, 2, 7, 8, 9 })]
+        [InlineData(-10, true, new[] { -1f, -0.9f, -0.8f }, new[] { 0, 1, 2 })]
+        [InlineData(-10, false, new[] { -10f, -9f, -8f }, new[] { 0, 1, 2 })]
+        public void TestSparsifyNormalize(int startRange, bool normalize, float[] expectedValues, int[] expectedIndices)
+        {
+            float[] values = Enumerable.Range(startRange, 10).Select(i => (float)i).ToArray();
+            var a = new VBuffer<float>(10, values);
+
+            VectorUtils.SparsifyNormalize(ref a, 3, 3, normalize);
+
+            Assert.False(a.IsDense);
+            Assert.Equal(10, a.Length);
+            Assert.Equal(expectedIndices, a.GetIndices().ToArray());
+
+            var actualValues = a.GetValues().ToArray();
+            Assert.Equal(expectedValues.Length, actualValues.Length);
+            for (int i = 0; i < expectedValues.Length; i++)
+                Assert.Equal(expectedValues[i], actualValues[i], precision: 6);
+        }
+
+        /// <summary>
+        /// Tests SparsifyNormalize works when asked for all values.
+        /// </summary>
+        [Theory]
+        [InlineData(10, 0)]
+        [InlineData(10, 10)]
+        [InlineData(20, 20)]
+        public void TestSparsifyNormalizeReturnsDense(int top, int bottom)
+        {
+            float[] values = Enumerable.Range(1, 10).Select(i => (float)i).ToArray();
+            var a = new VBuffer<float>(10, values);
+
+            VectorUtils.SparsifyNormalize(ref a, top, bottom, false);
+
+            Assert.True(a.IsDense);
+            Assert.Equal(10, a.Length);
+            Assert.True(a.GetIndices().IsEmpty);
+
+            Assert.Equal(values, a.GetValues().ToArray());
         }
 
         /// <summary>
@@ -532,7 +587,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 FullCopy(ref b, ref actualDst);
                 NaiveAddMult(ref a, c, ref dst, 0);
                 VectorUtils.AddMult(in a, c, ref actualDst);
-                TestSame(ref dst, ref actualDst);
+                TestSame(ref dst, ref actualDst, 1e-4);
                 if (c == 1)
                 {
                     // While we're at it, test Add.
@@ -561,7 +616,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 FullCopy(ref b, ref dst);
                 NaiveAddMult(ref a, c, ref dst, 0);
                 VectorUtils.AddMult(in a, c, ref b, ref actualDst);
-                TestEquivalent(ref dst, ref actualDst);
+                TestEquivalent(ref dst, ref actualDst, 1e-4);
             }
         }
 
@@ -586,7 +641,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 FullCopy(ref b, ref actualDst);
                 NaiveAddMult(ref a, c, ref dst, offset);
                 VectorUtils.AddMultWithOffset(in a, c, ref actualDst, offset);
-                TestSame(ref dst, ref actualDst);
+                TestSame(ref dst, ref actualDst, 1e-4);
             }
         }
 
@@ -778,10 +833,10 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 var dot = a.Items(all: true).Zip(b.Items(all: true), (av, bv) => av.Value * bv.Value).Sum();
 
                 const int tol = 4;
-                AssertAreEqual(l1Dist, VectorUtils.L1Distance(in a, in b), tol);
-                AssertAreEqual(l2Dist2, VectorUtils.L2DistSquared(in a, in b), tol);
-                AssertAreEqual(l2Dist, VectorUtils.Distance(in a, in b), tol);
-                AssertAreEqual(dot, VectorUtils.DotProduct(in a, in b), tol);
+                Assert.True(CompareNumbersWithTolerance(l1Dist, VectorUtils.L1Distance(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(l2Dist2, VectorUtils.L2DistSquared(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(l2Dist, VectorUtils.Distance(in a, in b), digitsOfPrecision: tol));
+                Assert.True(CompareNumbersWithTolerance(dot, VectorUtils.DotProduct(in a, in b), digitsOfPrecision: tol));
             }
         }
 
@@ -945,7 +1000,7 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             Array.Sort(indices, 0, count);
             for (int i = 0; i < count; ++i)
                 indices[i] += i;
-            Contracts.Assert(Utils.IsIncreasing(0, indices, count, len));
+            Assert.True(Utils.IsIncreasing(0, indices, count, len));
         }
 
         /// <summary>
@@ -982,8 +1037,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
             for (int i = 0; i < expected.GetValues().Length; ++i)
             {
                 var result = equalityFunc(expected.GetValues()[i], actual.GetValues()[i]);
-                if (!result)
-                    Console.WriteLine("Friendly debug here");
                 Assert.True(result, $"Value [{i}] mismatch on expected {expected.GetValues()[i]} vs. actual {actual.GetValues()[i]}");
             }
         }
@@ -1000,14 +1053,6 @@ namespace Microsoft.ML.Core.Tests.UnitTests
                 float comp = Math.Abs(i - j) / (Math.Abs(i) + Math.Abs(j));
                 return comp <= tol;
             };
-        }
-
-        private void AssertAreEqual(float expected, float actual, int tol)
-        {
-            if (expected == 0)
-                Assert.Equal(0, actual);
-            else
-                Assert.Equal(1, actual / expected, tol);
         }
 
         /// <summary>
