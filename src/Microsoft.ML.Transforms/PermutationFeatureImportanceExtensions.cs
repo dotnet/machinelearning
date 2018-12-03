@@ -43,7 +43,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
+        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PFIRegressionExample.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -120,7 +120,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
+        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance/PfiBinaryClassificationExample.cs)]
         /// ]]>
         /// </format>
         /// </example>
@@ -198,13 +198,6 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         /// <param name="ctx">The clustering context.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
@@ -284,13 +277,6 @@ namespace Microsoft.ML
         /// example of working with these results to analyze the feature importance of a model.
         /// </para>
         /// </remarks>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        /// [!code-csharp[PFI](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/PermutationFeatureImportance.cs)]
-        /// ]]>
-        /// </format>
-        /// </example>
         /// <param name="ctx">The clustering context.</param>
         /// <param name="model">The model to evaluate.</param>
         /// <param name="data">The evaluation data set.</param>
