@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     using SsaBase = Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<float, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
     /// <summary>
-    /// IidChangePoint static API extension methods.
+    /// Static API extension methods for <see cref="IidChangePointEstimator"/>.
     /// </summary>
     public static class IidChangePointStaticExtensions
     {
@@ -71,6 +71,9 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
+        /// <summary>
+        /// Perform IID change point detection over a column of time series data. See <see cref="IidChangePointEstimator"/>.
+        /// </summary>
         public static Vector<double> IidChangePointDetect(
             this Scalar<float> input,
             int confidence,
@@ -80,7 +83,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// Static API extension methods for <see cref="IidSpikeEstimator"/>.
     /// </summary>
     public static class IidSpikeDetectorStaticExtensions
     {
@@ -130,6 +133,10 @@ namespace Microsoft.ML.StaticPipe
                     _side);
             }
         }
+
+        /// <summary>
+        /// Perform IID spike detection over a column of time series data. See <see cref="IidSpikeEstimator"/>.
+        /// </summary>
         public static Vector<double> IidSpikeDetect(
             this Scalar<float> input,
             int confidence,
@@ -137,8 +144,9 @@ namespace Microsoft.ML.StaticPipe
             IidBase.AnomalySide side = IidBase.AnomalySide.TwoSided
             ) => new OutColumn(input, confidence, pvalueHistoryLength, side);
     }
+
     /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// Static API extension methods for <see cref="SsaChangePointEstimator"/>.
     /// </summary>
     public static class SsaChangePointStaticExtensions
     {
@@ -209,6 +217,9 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
+        /// <summary>
+        /// Perform SSA change point detection over a column of time series data. See <see cref="SsaChangePointEstimator"/>.
+        /// </summary>
         public static Vector<double> SsaChangePointDetect(
             this Scalar<float> input,
             int confidence,
@@ -221,7 +232,7 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// Static API extension methods for <see cref="SsaSpikeEstimator"/>.
     /// </summary>
     public static class SsaSpikeDetecotStaticExtensions
     {
@@ -287,15 +298,18 @@ namespace Microsoft.ML.StaticPipe
             }
         }
 
-    public static Vector<double> SsaSpikeDetect(
-        this Scalar<float> input,
-        int confidence,
-        int changeHistoryLength,
-        int trainingWindowSize,
-        int seasonalityWindowSize,
-        SsaBase.AnomalySide side = SsaBase.AnomalySide.TwoSided,
-        ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference
-        ) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
+        /// <summary>
+        /// Perform SSA spike detection over a column of time series data. See <see cref="SsaSpikeEstimator"/>.
+        /// </summary>
+        public static Vector<double> SsaSpikeDetect(
+            this Scalar<float> input,
+            int confidence,
+            int changeHistoryLength,
+            int trainingWindowSize,
+            int seasonalityWindowSize,
+            SsaBase.AnomalySide side = SsaBase.AnomalySide.TwoSided,
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference
+            ) => new OutColumn(input, confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize, side, errorFunction);
 
     }
 }
