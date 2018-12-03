@@ -1,13 +1,13 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.TimeSeries;
-using System.IO;
-using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

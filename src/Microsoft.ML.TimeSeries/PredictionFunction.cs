@@ -57,7 +57,7 @@ namespace Microsoft.ML.TimeSeries
         /// Checkpoints <see cref="TimeSeriesPredictionFunction{TSrc, TDst}"/> to disk with the updated
         /// state.
         /// </summary>
-        /// <param name="env">Usually <see cref="MLContext"/></param>
+        /// <param name="env">Usually <see cref="MLContext"/>.</param>
         /// <param name="modelPath">Path to file on disk where the updated model needs to be saved.</param>
         public void CheckPoint(IHostEnvironment env, string modelPath)
         {
@@ -258,12 +258,11 @@ namespace Microsoft.ML.TimeSeries
         /// </summary>
         /// <typeparam name="TSrc">Class describing input schema to the model.</typeparam>
         /// <typeparam name="TDst">Class describing the output schema of the prediction.</typeparam>
-        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/></param>
+        /// <param name="transformer">The time series pipeline in the form of a <see cref="ITransformer"/>.</param>
         /// <param name="env">Usually <see cref="MLContext"/></param>
-        /// <param name="ignoreMissingColumns"></param>
-        /// <param name="inputSchemaDefinition"></param>
-        /// <param name="outputSchemaDefinition"></param>
-        /// <returns></returns>
+        /// <param name="ignoreMissingColumns">To ignore missing columns. Default is false.</param>
+        /// <param name="inputSchemaDefinition">Input schema definition. Default is null.</param>
+        /// <param name="outputSchemaDefinition">Output schema definition. Default is null.</param>
         /// <p>Example code can be found by searching for <i>TimeSeriesPredictionFunction</i> in <a href='https://github.com/dotnet/machinelearning'>ML.NET.</a></p>
         /// <example>
         /// <format type="text/markdown">
