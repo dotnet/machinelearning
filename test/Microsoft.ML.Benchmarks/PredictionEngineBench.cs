@@ -104,7 +104,7 @@ namespace Microsoft.ML.Benchmarks
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("Features", DataKind.R4, new[] { new TextLoader.Range(1, 9) })
                         }, 
-                        false
+                        hasHeader: false
                     );
 
             IDataView data = reader.Read(_breastCancerDataPath);

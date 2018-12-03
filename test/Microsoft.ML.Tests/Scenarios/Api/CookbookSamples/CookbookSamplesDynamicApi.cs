@@ -99,9 +99,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("Target", DataKind.R4, 11),
                 },
                 // First line of the file is a header, not a data row.
-                true,
+                hasHeader: true,
                 // Default separator is tab, but we need a semicolon.
-                new[] { ';' }
+                separatorChar: ';'
             );
 
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("Label", DataKind.TX, 4),
                 },
                 // Default separator is tab, but the dataset has comma.
-                separatorChars: new[] { ',' }
+                separatorChar: ','
             );
 
             // Retrieve the training data.
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("Label", DataKind.TX, 4),
                 },
                 // Default separator is tab, but the dataset has comma.
-                separatorChars: new[] { ',' }
+                separatorChar: ','
             );
 
             // Read the training data.
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("IsToxic", DataKind.BL, 0),
                     new TextLoader.Column("Message", DataKind.TX, 1),
                 },
-                true
+                hasHeader: true
             );
 
             // Read the data.
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // Let's also separately load the 'Workclass' column.
                     new TextLoader.Column("Workclass", DataKind.TX, 1),
                 },
-                true
+                hasHeader: true
             );
 
             // Read the data.
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("Label", DataKind.TX, 4),
                 },
                 // Default separator is tab, but the dataset has comma.
-                separatorChars: new[] { ',' }
+                separatorChar: ','
             );
 
             // Read the data.
@@ -494,7 +494,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     new TextLoader.Column("Target", DataKind.R4, 10)
                 },
                 // Default separator is tab, but we need a comma.
-                separatorChars: new[] { ',' });
+                separatorChar: ',' );
 
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var data = reader.Read(dataPath);
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             {
                 new TextLoader.Column("Income", DataKind.R4, 10),
                 new TextLoader.Column("Features", DataKind.R4, 12, 14)
-            }, true);
+            }, hasHeader: true);
 
             PrepareData(mlContext, data);
             TrainModel(mlContext, data);

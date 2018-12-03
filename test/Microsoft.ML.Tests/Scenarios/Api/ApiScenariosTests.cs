@@ -64,11 +64,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 };
         }
 
-        private static char[] MakeIrisSeparator()
-        {
-            return new[] { ',' };
-        }
-
         private static TextLoader.Column[] MakeSentimentColumns()
         {
             return new[]

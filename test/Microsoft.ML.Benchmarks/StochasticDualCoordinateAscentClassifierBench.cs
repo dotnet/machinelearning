@@ -64,26 +64,29 @@ namespace Microsoft.ML.Benchmarks
         {
             var env = new MLContext(seed: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env, new MultiFileSource(_sentimentDataPath),
-                columns: new[]
+            var arguemnts = new TextLoader.Arguments()
+            {
+                Column = new TextLoader.Column[]
                 {
                     new TextLoader.Column()
                     {
                         Name = "Label",
-                        Source = new [] { new TextLoader.Range() { Min=0, Max=0} },
+                        Source = new[] { new TextLoader.Range() { Min = 0, Max = 0 } },
                         Type = DataKind.Num
                     },
 
                     new TextLoader.Column()
                     {
                         Name = "SentimentText",
-                        Source = new [] { new TextLoader.Range() { Min=1, Max=1} },
+                        Source = new[] { new TextLoader.Range() { Min = 1, Max = 1 } },
                         Type = DataKind.Text
                     }
                 },
-                hasHeader: true,
-                advancedSettings: s => { s.AllowQuoting = false; s.AllowSparse = false; }
-                );
+                HasHeader = true,
+                AllowQuoting = false,
+                AllowSparse = false
+            };
+            var loader = TextLoader.ReadFile(env, new MultiFileSource(_sentimentDataPath), arguemnts);
 
             var text = TextFeaturizingEstimator.Create(env,
                 new TextFeaturizingEstimator.Arguments()

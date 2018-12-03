@@ -67,7 +67,7 @@ namespace Microsoft.ML.TestFramework
                     new Runtime.Data.TextLoader.Column("SqftLot15", Runtime.Data.DataKind.R4, 20)
                 }, 
                 hasHeader: true,
-                separatorChars: new[] { ',' }
+                separatorChar: ','
             );
         }
 

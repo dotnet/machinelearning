@@ -606,7 +606,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), null);
+            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), new TextLoader.Arguments());
 
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), null);
+            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), new TextLoader.Arguments());
 
             var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
@@ -729,7 +729,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), null);
+            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), new TextLoader.Arguments());
 
             var predictors = new IPredictorModel[]
             {
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), null);
+            var dataView = TextLoader.ReadFile(Env, new MultiFileSource(dataPath), new TextLoader.Arguments());
 
             var predictors = new IPredictorModel[]
             {

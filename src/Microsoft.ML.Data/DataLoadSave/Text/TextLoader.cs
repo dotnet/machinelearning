@@ -1013,23 +1013,27 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
-            : this(env, MakeArgs(columns, hasHeader, separatorChars, advancedSettings), dataSample)
+        public TextLoader(IHostEnvironment env, Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, hasHeader, new[] { separatorChar }), dataSample)
         {
         }
 
-        private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars, Action<Arguments> advancedSettings)
+        private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
             separatorChars = separatorChars ?? new[] { '\t' };
             var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
-            advancedSettings?.Invoke(result);
             return result;
         }
 
-        internal TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -1317,11 +1321,19 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="fileSource">Specifies a file from which to read.</param>
-        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null)
-            => new TextLoader(env, columns, hasHeader, separatorChars, advancedSettings, fileSource).Read(fileSource);
+        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Column[] columns, bool hasHeader = false, char separatorChar = '\t')
+            => new TextLoader(env, columns, hasHeader, separatorChar, fileSource).Read(fileSource);
+
+        /// <summary>
+        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="fileSource">Specifies a file from which to read.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Arguments args)
+            => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
         {

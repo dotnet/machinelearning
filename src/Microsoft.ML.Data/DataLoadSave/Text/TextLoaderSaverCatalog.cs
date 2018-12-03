@@ -14,17 +14,25 @@ namespace Microsoft.ML
     public static class TextLoaderSaverCatalog
     {
         /// <summary>
-        /// Create a text reader.
+        /// Create a text reader <see cref="TextLoader"/>.
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
-        /// <param name="advancedSettings">The delegate to set additional settings.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataOperations catalog,
-            Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
-            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChars, advancedSettings, dataSample);
+            Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
+
+        /// <summary>
+        /// Create a text reader <see cref="TextLoader"/>.
+        /// </summary>
+        /// <param name="catalog">The catalog.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
+        public static TextLoader TextReader(this DataOperations catalog, Arguments args, IMultiStreamSource dataSample = null)
+            => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
 
         /// <summary>
         /// Read a data view from a text file using <see cref="TextLoader"/>.
@@ -32,12 +40,11 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChars">Defines the characters used as separators between data points in a row. By default the tab character is taken as separator.</param>
-        /// <param name="advancedSettings">The delegate to set additional settings.</param>
+        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperations catalog,
-            string path, Column[] columns, bool hasHeader = false, char[] separatorChars = null, Action<Arguments> advancedSettings = null)
+            string path, Column[] columns, bool hasHeader = false, char separatorChar = '\t')
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 
@@ -45,7 +52,25 @@ namespace Microsoft.ML
 
             // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
             // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, columns, hasHeader, separatorChars, advancedSettings, dataSample: null);
+            var reader = new TextLoader(env, columns, hasHeader, separatorChar, dataSample: null);
+            return reader.Read(new MultiFileSource(path));
+        }
+
+        /// <summary>
+        /// Read a data view from a text file using <see cref="TextLoader"/>.
+        /// </summary>
+        /// <param name="catalog">The catalog.</param>
+        /// <param name="path">Specifies a file from which to read.</param>
+        /// <param name="args">Defines the settings of the load operation.</param>
+        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, Arguments args)
+        {
+            Contracts.CheckNonEmpty(path, nameof(path));
+
+            var env = catalog.GetEnvironment();
+
+            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
+            // Therefore, we are going to disallow data sample.
+            var reader = new TextLoader(env, args, dataSample: null);
             return reader.Read(new MultiFileSource(path));
         }
 
