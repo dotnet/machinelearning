@@ -139,13 +139,13 @@ namespace Microsoft.ML.Runtime.Data
     public delegate void ValueGetter<TValue>(ref TValue value);
 
     /// <summary>
-    /// A logical row. May be a row of an IDataView or a stand-alone row. If/when its contents
-    /// change, its ICounted.Counter value is incremented.
+    /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
+    /// change, its <see cref="Position"/> value is changed.
     /// </summary>
-    public interface IRow
+    public abstract class IRow
     {
         /// <summary>
-        /// This is incremented for ICursor when the underlying contents changes, giving clients a way to detect change.
+        /// This is incremented when the underlying contents changes, giving clients a way to detect change.
         /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
         /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
         ///
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's
         /// first valid entry would always have position 0.
         /// </summary>
-        long Position { get; }
+        public abstract long Position { get; }
 
         /// <summary>
         /// This provides a means for reconciling multiple streams of counted things. Generally, in each stream,
@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
         /// entry could have different batch numbers from one cursoring to another. There is also no requirement
         /// that any given batch number must appear, at all.
         /// </summary>
-        long Batch { get; }
+        public abstract long Batch { get; }
 
         /// <summary>
         /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="IRow"/>
@@ -182,25 +182,25 @@ namespace Microsoft.ML.Runtime.Data
         /// all that if the "same" data were presented in a different data view (as by, say, being transformed,
         /// cached, saved, or whatever), that the IDs between the two different data views would have any
         /// discernable relationship.</summary>
-        ValueGetter<UInt128> GetIdGetter();
+        public abstract ValueGetter<UInt128> GetIdGetter();
 
         /// <summary>
         /// Returns whether the given column is active in this row.
         /// </summary>
-        bool IsColumnActive(int col);
+        public abstract bool IsColumnActive(int col);
 
         /// <summary>
         /// Returns a value getter delegate to fetch the given column value from the row.
         /// This throws if the column is not active in this row, or if the type
         /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
-        ValueGetter<TValue> GetGetter<TValue>(int col);
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
 
         /// <summary>
         /// Gets a <see cref="Schema"/>, which provides name and type information for variables
         /// (i.e., columns in ML.NET's type system) stored in this row.
         /// </summary>
-        Schema Schema { get; }
+        public abstract Schema Schema { get; }
 
     }
 
@@ -230,9 +230,6 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="CursorState.Good"/>,
         /// </summary>
         public abstract CursorState State { get; }
-        public abstract long Position { get; }
-        public abstract long Batch { get; }
-        public abstract Schema Schema { get; }
 
         /// <summary>
         /// Advance to the next row. When the cursor is first created, this method should be called to
@@ -255,9 +252,6 @@ namespace Microsoft.ML.Runtime.Data
         /// values from <see cref="IRow.GetIdGetter"/>.
         /// </summary>
         public abstract RowCursor GetRootCursor();
-        public abstract ValueGetter<UInt128> GetIdGetter();
-        public abstract bool IsColumnActive(int col);
-        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
         public abstract void Dispose();
     }
 }

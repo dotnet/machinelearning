@@ -19,24 +19,24 @@ namespace Microsoft.ML.Benchmarks
     {
         private sealed class Row : IRow
         {
-            public Schema Schema { get; }
+            public long PositionValue;
 
-            public long Position { get; set; }
-
-            public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter()
+            public override Schema Schema { get; }
+            public override long Position => PositionValue;
+            public override long Batch => 0;
+            public override ValueGetter<UInt128> GetIdGetter()
                 => (ref UInt128 val) => val = new UInt128((ulong)Position, 0);
 
             private readonly Delegate _getter;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 if (col != 0)
                     throw new Exception();
                 return true;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 if (col != 0)
                     throw new Exception();
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _getter(ref val);
-                ++_inRow.Position;
+                ++_inRow.PositionValue;
             }
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _vecGetter(ref val);
-                ++_inRow.Position;
+                ++_inRow.PositionValue;
             }
         }
 

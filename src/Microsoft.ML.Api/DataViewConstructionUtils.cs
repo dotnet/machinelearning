@@ -136,11 +136,9 @@ namespace Microsoft.ML.Runtime.Api
             private readonly Delegate[] _getters;
             protected readonly IHost Host;
 
-            public long Batch => 0;
+            public override long Batch => 0;
 
-            public Schema Schema { get; }
-
-            public abstract long Position { get; }
+            public override Schema Schema { get; }
 
             public InputRowBase(IHostEnvironment env, Schema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
             {
@@ -332,7 +330,7 @@ namespace Microsoft.ML.Runtime.Api
 
             protected abstract TRow GetCurrentRowObject();
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 CheckColumnInRange(col);
                 return _getters[col] != null;
@@ -344,7 +342,7 @@ namespace Microsoft.ML.Runtime.Api
                     throw Host.Except("Column index must be between 0 and {0}", _colCount);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 if (!IsColumnActive(col))
                     throw Host.Except("Column {0} is not active in the cursor", col);
@@ -355,8 +353,6 @@ namespace Microsoft.ML.Runtime.Api
                     throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", col, typeof(TValue));
                 return fn;
             }
-
-            public abstract ValueGetter<UInt128> GetIdGetter();
         }
 
         /// <summary>
@@ -690,7 +686,7 @@ namespace Microsoft.ML.Runtime.Api
                 _data = data;
             }
 
-            private class Cursor : DataViewCursorBase
+            private sealed class Cursor : DataViewCursorBase
             {
                 private readonly IEnumerator<TRow> _enumerator;
                 private TRow _currentRow;

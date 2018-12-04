@@ -25,9 +25,9 @@ namespace Microsoft.ML.TimeSeries
         IStatefulTransformer Clone();
     }
 
-    internal interface IStatefulRow : IRow
+    internal abstract class IStatefulRow : IRow
     {
-        Action<long> GetPinger();
+        public abstract Action<long> GetPinger();
     }
 
     internal interface IStatefulRowMapper : IRowMapper
@@ -123,8 +123,8 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 var row = mapper.GetRow(input, active, out disposer);
-                if (row is IStatefulRow)
-                    rows.Add((IStatefulRow)row);
+                if (row is IStatefulRow statefulRow)
+                    rows.Add(statefulRow);
 
                 return row;
             }
@@ -142,8 +142,8 @@ namespace Microsoft.ML.TimeSeries
             {
                 Action localDisp;
                 result = GetStatefulRows(result, innerMappers[i], deps[i], rows, out localDisp);
-                if (result is IStatefulRow)
-                    rows.Add((IStatefulRow)result);
+                if (result is IStatefulRow statefulResult)
+                    rows.Add(statefulResult);
 
                 if (localDisp != null)
                 {
@@ -160,16 +160,12 @@ namespace Microsoft.ML.TimeSeries
 
         private Action<long> CreatePinger(List<IStatefulRow> rows)
         {
-            Action<long>[] pingers = new Action<long>[rows.Count];
-            int index = 0;
+            if (rows.Count == 0)
+                return position => { };
+            Action<long> pinger = null;
             foreach (var row in rows)
-                pingers[index++] = row.GetPinger();
-
-            return (long position) =>
-            {
-                foreach (var ping in pingers)
-                    ping(position);
-            };
+                pinger += row.GetPinger();
+            return pinger;
         }
 
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,

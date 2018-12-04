@@ -391,10 +391,10 @@ namespace Microsoft.ML.Runtime.Data
                     private readonly IRow _row;
                     private readonly Schema _schema;
 
-                    public long Batch { get { return _row.Batch; } }
-                    public long Position { get { return _row.Position; } }
+                    public override long Batch => _row.Batch;
+                    public override long Position => _row.Position;
                     // The schema is of course the only difference from _row.
-                    public Schema Schema => _schema;
+                    public override Schema Schema => _schema;
 
                     public RowImpl(IRow row, Schema schema)
                     {
@@ -405,17 +405,17 @@ namespace Microsoft.ML.Runtime.Data
                         _schema = schema;
                     }
 
-                    public bool IsColumnActive(int col)
+                    public override bool IsColumnActive(int col)
                     {
                         return _row.IsColumnActive(col);
                     }
 
-                    public ValueGetter<TValue> GetGetter<TValue>(int col)
+                    public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     {
                         return _row.GetGetter<TValue>(col);
                     }
 
-                    public ValueGetter<UInt128> GetIdGetter()
+                    public override ValueGetter<UInt128> GetIdGetter()
                     {
                         return _row.GetIdGetter();
                     }

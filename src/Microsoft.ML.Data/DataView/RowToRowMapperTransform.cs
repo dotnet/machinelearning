@@ -292,11 +292,11 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly RowToRowMapperTransform _parent;
 
-            public long Batch { get { return _input.Batch; } }
+            public override long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public override long Position => _input.Position;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
 
             public Row(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
             {
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Runtime.Data
                 _getters = getters;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
@@ -320,9 +320,9 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+            public override ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);

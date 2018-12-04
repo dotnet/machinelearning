@@ -23,11 +23,11 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IRow _input;
         private readonly Delegate[] _getters;
 
-        public Schema Schema { get; }
+        public override Schema Schema { get; }
 
-        public long Position => _input.Position;
+        public override long Position => _input.Position;
 
-        public long Batch => _input.Batch;
+        public override long Batch => _input.Batch;
 
         public SimpleRow(Schema schema, IRow input, Delegate[] getters)
         {
@@ -39,12 +39,12 @@ namespace Microsoft.ML.Runtime.Data
             _getters = getters ?? new Delegate[0];
         }
 
-        public ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<UInt128> GetIdGetter()
         {
             return _input.GetIdGetter();
         }
 
-        public ValueGetter<T> GetGetter<T>(int col)
+        public override ValueGetter<T> GetGetter<T>(int col)
         {
             Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
             Contracts.Check(IsColumnActive(col));
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
             return fn;
         }
 
-        public bool IsColumnActive(int col)
+        public override bool IsColumnActive(int col)
         {
             Contracts.Check(0 <= col && col < _getters.Length);
             return _getters[col] != null;

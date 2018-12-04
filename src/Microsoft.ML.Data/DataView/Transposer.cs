@@ -1092,9 +1092,9 @@ namespace Microsoft.ML.Runtime.Data
                     protected readonly TSplitter Parent;
                     protected readonly IRow Input;
 
-                    public Schema Schema => Parent.AsSchema;
-                    public long Position => Input.Position;
-                    public long Batch => Input.Batch;
+                    public sealed override Schema Schema => Parent.AsSchema;
+                    public sealed override long Position => Input.Position;
+                    public sealed override long Batch => Input.Batch;
 
                     public RowBase(TSplitter parent, IRow input)
                     {
@@ -1105,14 +1105,10 @@ namespace Microsoft.ML.Runtime.Data
                         Input = input;
                     }
 
-                    public ValueGetter<UInt128> GetIdGetter()
+                    public sealed override ValueGetter<UInt128> GetIdGetter()
                     {
                         return Input.GetIdGetter();
                     }
-
-                    public abstract bool IsColumnActive(int col);
-
-                    public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
                 }
 
                 /// <summary>

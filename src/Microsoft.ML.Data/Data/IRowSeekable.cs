@@ -26,14 +26,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public abstract class RowSeeker : IRow, IDisposable
     {
-        public abstract long Position { get; }
-        public abstract long Batch { get; }
-        public abstract Schema Schema { get; }
-
         public abstract void Dispose();
-        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
-        public abstract ValueGetter<UInt128> GetIdGetter();
-        public abstract bool IsColumnActive(int col);
 
         /// <summary>
         /// Moves the seeker to a row at a specific row index.

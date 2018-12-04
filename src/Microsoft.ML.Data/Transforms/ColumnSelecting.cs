@@ -589,22 +589,22 @@ namespace Microsoft.ML.Transforms
                 _input = input;
             }
 
-            public long Position => _input.Position;
+            public override long Position => _input.Position;
 
-            public long Batch => _input.Batch;
+            public override long Batch => _input.Batch;
 
-            Schema IRow.Schema => _mapper.OutputSchema;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
                 return _input.GetGetter<TValue>(index);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<UInt128> GetIdGetter()
                 => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col) => true;
+            public override bool IsColumnActive(int col) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate

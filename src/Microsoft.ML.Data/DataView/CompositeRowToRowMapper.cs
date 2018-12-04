@@ -103,12 +103,12 @@ namespace Microsoft.ML.Runtime.Data
                 _pred = pred;
             }
 
-            public Schema Schema => _row.Schema;
-            public long Position => _row.Position;
-            public long Batch => _row.Batch;
-            public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
-            public bool IsColumnActive(int col) => _pred(col);
+            public override Schema Schema => _row.Schema;
+            public override long Position => _row.Position;
+            public override long Batch => _row.Batch;
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public override bool IsColumnActive(int col) => _pred(col);
         }
     }
 }

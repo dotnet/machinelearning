@@ -505,12 +505,12 @@ namespace Microsoft.ML.Runtime.Data
                 _metadata = metadata;
             }
 
-            public Schema Schema => _metadata.Schema;
-            public long Position => 0;
-            public long Batch => 0;
-            public ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
-            public bool IsColumnActive(int col) => true;
+            public override Schema Schema => _metadata.Schema;
+            public override long Position => 0;
+            public override long Batch => 0;
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
+            public override bool IsColumnActive(int col) => true;
         }
 
         /// <summary>

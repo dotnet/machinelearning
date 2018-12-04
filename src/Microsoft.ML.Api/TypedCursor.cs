@@ -17,7 +17,8 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowReadableAs<TRow> : IRow
+    [BestFriend]
+    internal interface IRowReadableAs<TRow>
         where TRow : class
     {
         /// <summary>
@@ -32,7 +33,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
-    public interface IRowBackedBy<TRow> : IRow
+    internal interface IRowBackedBy<TRow>
         where TRow : class
     {
         /// <summary>

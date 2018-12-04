@@ -491,11 +491,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
 
-            public Schema Schema { get { return _schema; } }
+            public override Schema Schema => _schema;
 
-            public long Position { get { return _input.Position; } }
+            public override long Position => _input.Position;
 
-            public long Batch { get { return _input.Batch; } }
+            public override long Batch => _input.Batch;
 
             public Row(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
             {
@@ -508,12 +508,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _pinger = pinger;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<UInt128> GetIdGetter()
             {
                 return _input.GetIdGetter();
             }
 
-            public ValueGetter<T> GetGetter<T>(int col)
+            public override ValueGetter<T> GetGetter<T>(int col)
             {
                 Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
                 Contracts.Check(IsColumnActive(col));
@@ -523,10 +523,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public Action<long> GetPinger() =>
+            public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Contracts.Check(0 <= col && col < _getters.Length);
                 return _getters[col] != null;
@@ -774,11 +774,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
 
-            public long Batch { get { return _input.Batch; } }
+            public override long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public override long Position => _input.Position;
 
-            public Schema Schema { get; }
+            public override Schema Schema { get; }
 
             public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent,
                 Schema schema, Delegate[] getters, Action<long> pinger)
@@ -790,7 +790,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _pinger = pinger;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
@@ -804,12 +804,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return fn;
             }
 
-            public Action<long> GetPinger() =>
+            public override Action<long> GetPinger() =>
                 _pinger as Action<long> ?? throw Contracts.Except("Invalid TValue in GetPinger: '{0}'", typeof(long));
 
-            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
+            public override ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
