@@ -79,8 +79,8 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Cache data produced in memory by this estimator. It may append an extra estimator the this estimator
-        /// for caching and return the new one.
+        /// Cache data produced in memory by this estimator. It may append an extra estimator to the this estimator
+        /// for caching. The newly added estimator would be returned.
         /// </summary>
         public Estimator<TInShape, TOutShape, ITransformer> AppendCacheCheckpoint()
         {
