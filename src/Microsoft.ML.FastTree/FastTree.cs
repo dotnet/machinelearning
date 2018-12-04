@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -3305,13 +3306,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, NumFeatures), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var metaBuilder = new MetadataBuilder();
+            metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             GetFeatureWeights(ref weights);
-            return RowColumnUtils.GetRow(null, RowColumnUtils.GetColumn("Gains", new VectorType(NumberType.R4, NumFeatures), ref weights, slotNamesRow));
+            var builder = new MetadataBuilder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+
+            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
         public IRow GetStatsIRowOrNull(RoleMappedSchema schema)

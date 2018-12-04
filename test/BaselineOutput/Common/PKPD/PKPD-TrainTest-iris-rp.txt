@@ -1,0 +1,4 @@
+PKPD
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/p	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.96	0.96	0.293938	73.2446	AvgPer{lr=0.8}	PKPD	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=PKPD{p=AvgPer { lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1	/p:AvgPer{lr=0.8}	
+

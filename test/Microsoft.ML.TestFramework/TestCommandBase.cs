@@ -672,16 +672,15 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat)]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandShowSchemaModel()
         {
-            string trainDataPath = GetDataPath(@"..\UCI", "adult.test.tiny");
+            string trainDataPath = GetDataPath("adult.tiny.with-schema.txt");
             string modelPath = ModelPath().Path;
             string args =
                 string.Format(
                     @"train data={{{0}}}
                      loader=Text{{
-                        sep=, 
                         header=+ 
                         col=NumFeatures:Num:9-14 
                         col=CatFeaturesText:TX:0~* 
@@ -922,29 +921,27 @@ namespace Microsoft.ML.Runtime.RunTests
         // multiple different FastTree (Ranking and Classification for example) instances in different threads.
         // FastTree internally fails if we try to run it simultaneously and if this happens we wouldn't get model file for training.
         [TestCategory(Cat)]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainFastTreeInDifferentThreads()
         {
-            var dataPath = GetDataPath("vw.dat");
-            var firstModelOutPath = CreateOutputPath("TreeTransform-model2.zip");
-            var secondModelOutPath = CreateOutputPath("TreeTransform-model1.zip");
-            var trainArgs = "Train tr=SDCA loader=TextLoader{sep=space col=Label:R4:0 col=Features:R4:1 col=Name:TX:2,5-17 col=Cat:TX:3 col=Cat01:TX:4}" + "xf=CategoricalTransform{col=Cat col=Cat01} xf=Concat{col=Features:Features,Cat,Cat01} xf=TreeFeat{tr=FastTreeBinaryClassification} xf=TreeFeat" + "{tr=FastTreeRanking} xf=Concat{col=Features:Features,Leaves,Paths,Trees}";
+            var dataPath = GetDataPath(TestDatasets.adult.testFilename);
+            var firstModelOutPath = DeleteOutputPath("TreeTransform-model2.zip");
+            var secondModelOutPath = DeleteOutputPath("TreeTransform-model1.zip");
+            var trainArgs = $"Train tr=SDCA {TestDatasets.adult.loaderSettings} {TestDatasets.adult.mamlExtraSettings[0]} {TestDatasets.adult.mamlExtraSettings[1]}" +
+                " xf=TreeFeat{tr=FastTreeBinaryClassification} xf=TreeFeat{tr=FastTreeRanking} xf=Concat{col=Features:Features,Leaves,Paths,Trees}";
 
-            var firsttrainArgs = string.Format("{0} data={1} out={2}", trainArgs, dataPath, firstModelOutPath.Path);
-            var secondTrainArgs = string.Format("{0} data={1} out={2}", trainArgs, dataPath, secondModelOutPath.Path);
+            var firsttrainArgs = $"{trainArgs} data={dataPath} out={firstModelOutPath}";
+            var secondTrainArgs = $"{trainArgs} data={dataPath} out={secondModelOutPath}";
 
-            var t = new Task[2];
-            t[0] = new Task(() => { MainForTest(firsttrainArgs); });
-            t[1] = new Task(() => { MainForTest(secondTrainArgs); });
+            var t = new Task<int>[2];
+            t[0] = new Task<int>(() => MainForTest(firsttrainArgs));
+            t[1] = new Task<int>(() => MainForTest(secondTrainArgs));
             t[0].Start();
             t[1].Start();
             Task.WaitAll(t);
 
-            if (!File.Exists(firstModelOutPath.Path))
-                Fail("First model doesn't exist");
-            if (!File.Exists(secondModelOutPath.Path))
-                Fail("Second model doesn't exist");
-            Done();
+            Assert.Equal(0, t[0].Result);
+            Assert.Equal(0, t[1].Result);
         }
 
         [TestCategory(Cat), TestCategory("FastTree")]
@@ -2094,6 +2091,33 @@ namespace Microsoft.ML.Runtime.RunTests
             TestCore("savedata", idvPath, "loader=binary", "saver=binary", intermediateData.ArgOnly("dout"));
             _step++;
             TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
+            Done();
+        }
+
+        [Fact]
+        public void CommandCodeGen()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
+            // REVIEW: this tests that the generated output matches the baseline. This does NOT baseline
+            // the console output. Currently, there's no console output either, but if some is added, a baseline test
+            // will be in order.
+
+            // First, train a model on breast-cancer.
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var modelOutPath = DeleteOutputPath("Command", "codegen-model.zip");
+            var csOutPath = DeleteOutputPath("Command", "codegen-out.cs");
+
+            var trainArgs = string.Format(
+                "train data={{{0}}} loader=Text{{col=Label:0 col=F!1:1-5 col=F2:6-9}} xf=Concat{{col=Features:F!1,F2}} tr=lr out={{{1}}}",
+                dataPath, modelOutPath);
+            MainForTest(trainArgs);
+
+            // Now, generate the prediction code.
+            MainForTest(string.Format("codegen in={{{0}}} cs={{{1}}} modelNameOverride=model.zip", modelOutPath, csOutPath));
+            CheckEquality("Command", "codegen-out.cs");
+
             Done();
         }
     }

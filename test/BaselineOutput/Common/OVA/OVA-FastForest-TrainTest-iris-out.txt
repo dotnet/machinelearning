@@ -1,0 +1,57 @@
+maml.exe TrainTest test=%Data% tr=OVA{p=FastForest{ }} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Training learner 0
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 150 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 2 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 1
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 150 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 3 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Training learner 2
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Processed 150 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: %Number% bytes
+Starting to train ...
+Warning: 1 of the boosting iterations failed to grow a tree. This is commonly because the minimum documents in leaf hyperparameter was set too high for this dataset.
+Training calibrator.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    48 |     2 | 0.9600
+        2 ||     0 |     2 |    48 | 0.9600
+          ||========================
+Precision ||1.0000 |0.9600 |0.9600 |
+Accuracy(micro-avg): 0.973333
+Accuracy(macro-avg): 0.973333
+Log-loss:           0.088201
+Log-loss reduction: 91.971614
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.973333 (0.0000)
+Accuracy(macro-avg): 0.973333 (0.0000)
+Log-loss:           0.088201 (0.0000)
+Log-loss reduction: 91.971614 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

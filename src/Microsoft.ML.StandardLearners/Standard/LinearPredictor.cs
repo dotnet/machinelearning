@@ -20,6 +20,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Numeric;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Data;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(LinearBinaryPredictor), null, typeof(SignatureLoadModel),
@@ -347,27 +348,18 @@ namespace Microsoft.ML.Runtime.Learners
 
         public virtual IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
-            var cols = new List<IColumn>();
-
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var subBuilder = new MetadataBuilder();
+            subBuilder.AddSlotNames(Weight.Length, (ref VBuffer<ReadOnlyMemory<char>> dst) => names.CopyTo(ref dst));
             var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            var builder = new MetadataBuilder();
+            builder.AddPrimitiveValue("Bias", NumberType.R4, Bias);
+            builder.Add("Weights", colType, (ref VBuffer<float> dst) => Weight.CopyTo(ref dst), subBuilder.GetMetadata());
+            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema)
-        {
-            return null;
-        }
+        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
@@ -514,13 +506,10 @@ namespace Microsoft.ML.Runtime.Learners
         {
             if (_stats == null)
                 return null;
-            var cols = new List<IColumn>();
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-
-            // Add the stat columns.
-            _stats.AddStatsColumns(cols, this, schema, in names);
-            return RowColumnUtils.GetRow(null, cols.ToArray());
+            var meta = _stats.MakeStatisticsMetadata(this, schema, in names);
+            return MetadataUtils.MetadataAsRow(meta);
         }
 
         public override void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
