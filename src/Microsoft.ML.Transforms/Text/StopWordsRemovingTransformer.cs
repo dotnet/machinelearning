@@ -184,7 +184,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <summary>
         /// Describes how the transformer handles one column pair.
         /// </summary>
-        public class ColumnInfo
+        public sealed class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;

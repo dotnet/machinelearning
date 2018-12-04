@@ -168,7 +168,10 @@ namespace Microsoft.ML.Transforms.Text
                 loaderAssemblyName: typeof(NgramHashingTransformer).Assembly.FullName);
         }
 
-        public class ColumnInfo
+        /// <summary>
+        /// Describes how the transformer handles one pair of mulitple inputs - singular output columns.
+        /// </summary>
+        public sealed class ColumnInfo
         {
             public readonly string[] Inputs;
             public readonly string Output;
@@ -184,6 +187,19 @@ namespace Microsoft.ML.Transforms.Text
             // column names instead of the real column names.
             internal string[] FriendlyNames;
 
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="inputs">Name of inputs column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="ngramLength">Maximum ngram length.</param>
+            /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
+            /// <param name="allLengths">"Whether to store all ngram lengths up to ngramLength, or only ngramLength.</param>
+            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="seed">Hashing seed.</param>
+            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
+            /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
+            /// <param name="rehashUnigrams">Whether to rehash unigrams.</param>
             public ColumnInfo(string[] inputs, string output,
                 int ngramLength = NgramHashingEstimator.Defaults.NgramLength,
                 int skipLength = NgramHashingEstimator.Defaults.SkipLength,
@@ -194,6 +210,9 @@ namespace Microsoft.ML.Transforms.Text
                 int invertHash = NgramHashingEstimator.Defaults.InvertHash,
                 bool rehashUnigrams = NgramHashingEstimator.Defaults.RehashUnigrams)
             {
+                Contracts.CheckValue(inputs, nameof(inputs));
+                Contracts.CheckParam(!inputs.Any(r => string.IsNullOrWhiteSpace(r)), nameof(inputs),
+                    "Contained some null or empty items");
                 if (invertHash < -1)
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
                 if (invertHash != 0 && hashBits >= 31)
@@ -473,46 +492,6 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
-            {
-                var active = new bool[InputSchema.ColumnCount];
-                for (int i = 0; i < _srcIndices.Length; i++)
-                {
-                    if (activeOutput(i))
-                    {
-                        foreach (var src in _srcIndices[i])
-                            active[src] = true;
-                    }
-                }
-                return col => active[col];
-            }
-
-            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
-
-            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
-            {
-                var result = new Schema.DetachedColumn[_parent._columns.Length];
-                for (int i = 0; i < _parent._columns.Length; i++)
-                {
-                    var builder = new MetadataBuilder();
-                    AddMetadata(i, builder);
-                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Output, _types[i], builder.GetMetadata());
-                }
-                return result;
-            }
-
-            private void AddMetadata(int i, MetadataBuilder builder)
-            {
-                if (_parent._slotNamesTypes != null && _parent._slotNamesTypes[i] != null)
-                {
-                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
-                    {
-                        _parent._slotNames[i].CopyTo(ref dst);
-                    };
-                    builder.Add(MetadataUtils.Kinds.SlotNames, _parent._slotNamesTypes[i], getter);
-                }
-            }
-
             private NgramIdFinder GetNgramIdFinder(int iinfo)
             {
                 uint mask = (1U << _parent._columns[iinfo].HashBits) - 1;
@@ -690,6 +669,46 @@ namespace Microsoft.ML.Transforms.Text
                     };
                 return del;
             }
+
+            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            {
+                var active = new bool[InputSchema.ColumnCount];
+                for (int i = 0; i < _srcIndices.Length; i++)
+                {
+                    if (activeOutput(i))
+                    {
+                        foreach (var src in _srcIndices[i])
+                            active[src] = true;
+                    }
+                }
+                return col => active[col];
+            }
+
+            public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+
+            protected override Schema.DetachedColumn[] GetOutputColumnsCore()
+            {
+                var result = new Schema.DetachedColumn[_parent._columns.Length];
+                for (int i = 0; i < _parent._columns.Length; i++)
+                {
+                    var builder = new MetadataBuilder();
+                    AddMetadata(i, builder);
+                    result[i] = new Schema.DetachedColumn(_parent._columns[i].Output, _types[i], builder.GetMetadata());
+                }
+                return result;
+            }
+
+            private void AddMetadata(int i, MetadataBuilder builder)
+            {
+                if (_parent._slotNamesTypes != null && _parent._slotNamesTypes[i] != null)
+                {
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                    {
+                        _parent._slotNames[i].CopyTo(ref dst);
+                    };
+                    builder.Add(MetadataUtils.Kinds.SlotNames, _parent._slotNamesTypes[i], getter);
+                }
+            }
         }
 
         private delegate NgramIdFinder FinderDecorator(int iinfo, NgramIdFinder finder);
@@ -707,7 +726,6 @@ namespace Microsoft.ML.Transforms.Text
             private readonly string[][] _friendlyNames;
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
-            private readonly Schema _inputSchema;
 
             public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
             {
@@ -718,7 +736,6 @@ namespace Microsoft.ML.Transforms.Text
                 Contracts.AssertValue(invertHashMaxCounts);
                 Contracts.Assert(invertHashMaxCounts.Length == parent._columns.Length);
                 _parent = parent;
-                _inputSchema = inputSchema;
                 // One per iinfo (some may be null).
                 _iinfoToCollector = new InvertHashCollector<NGram>[_parent._columns.Length];
                 // One per source column (some may be null).
@@ -925,15 +942,15 @@ namespace Microsoft.ML.Transforms.Text
                         Contracts.Assert(0 <= icol && icol < srcIndices.Length);
                         Contracts.AssertValue(_srcTextGetters[srcIndices[icol]]);
                         var result = finder(ngram, lim, icol, ref more);
-                // For the hashing NgramIdFinder, a result of -1 indicates that
-                // a slot does not exist for the given ngram. We do not pass ngrams
-                // that do not have a slot to the InvertHash collector.
-                if (result != -1)
+                        // For the hashing NgramIdFinder, a result of -1 indicates that
+                        // a slot does not exist for the given ngram. We do not pass ngrams
+                        // that do not have a slot to the InvertHash collector.
+                        if (result != -1)
                         {
-                    // The following ngram is "unsafe", in that the ngram array is actually
-                    // re-used. The collector will utilize its copier to make it safe, in
-                    // the event that this is a key it needs to keep.
-                    var ngramObj = new NGram(ngram, lim, icol);
+                            // The following ngram is "unsafe", in that the ngram array is actually
+                            // re-used. The collector will utilize its copier to make it safe, in
+                            // the event that this is a key it needs to keep.
+                            var ngramObj = new NGram(ngram, lim, icol);
                             collector.Add(result, ngramObj);
                         }
                         return result;
@@ -1138,5 +1155,4 @@ namespace Microsoft.ML.Transforms.Text
 
         public NgramHashingTransformer Fit(IDataView input) => new NgramHashingTransformer(_host, input, _columns);
     }
-
 }

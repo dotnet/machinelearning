@@ -119,9 +119,9 @@ namespace Microsoft.ML.Transforms.Categorical
         internal const string Summary = "Converts the categorical value into an indicator array by building a dictionary of categories based on the "
             + "data and using the id in the dictionary as the index in the array.";
 
-        public const string UserName = "Categorical Transform";
+        internal const string UserName = "Categorical Transform";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
@@ -175,10 +175,24 @@ namespace Microsoft.ML.Transforms.Categorical
             public const OneHotEncodingTransformer.OutputKind OutKind = OneHotEncodingTransformer.OutputKind.Ind;
         }
 
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
         public class ColumnInfo : ValueToKeyMappingTransformer.ColumnInfo
         {
             public readonly OneHotEncodingTransformer.OutputKind OutputKind;
-            public ColumnInfo(string input, string output, OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
+            /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+            /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
+            /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+            /// <param name="term">List of terms.</param>
+            public ColumnInfo(string input, string output=null,
+                OneHotEncodingTransformer.OutputKind outputKind = Defaults.OutKind,
                 int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, ValueToKeyMappingTransformer.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)

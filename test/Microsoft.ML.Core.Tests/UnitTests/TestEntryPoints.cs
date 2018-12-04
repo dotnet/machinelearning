@@ -1370,11 +1370,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = OneHotEncodingTransformer.Create(Env,
-                    new OneHotEncodingTransformer.Arguments()
-                    {
-                        Column = new[] { new OneHotEncodingTransformer.Column() { Name = "Cat", Source = "Cat" } }
-                    }, data);
+                data = new OneHotEncodingEstimator(Env,"Cat").Fit(data).Transform(data);
                 data = new ColumnConcatenatingTransformer(Env, new ColumnConcatenatingTransformer.ColumnInfo("Features", i % 2 == 0 ? new[] { "Features", "Cat" } : new[] { "Cat", "Features" })).Transform(data);
                 if (i % 2 == 0)
                 {
