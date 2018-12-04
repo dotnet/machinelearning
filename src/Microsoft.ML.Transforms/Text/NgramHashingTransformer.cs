@@ -355,7 +355,7 @@ namespace Microsoft.ML.Transforms.Text
                         if (!input.Schema.TryGetColumnIndex(_columns[i].Inputs[j], out int srcCol))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j]);
                         var columnType = input.Schema.GetColumnType(srcCol);
-                        if (NgramHashingEstimator.IsColumnTypeValid(input.Schema.GetColumnType(srcCol)))
+                        if (!NgramHashingEstimator.IsColumnTypeValid(input.Schema.GetColumnType(srcCol)))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j], NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
                         sourceColumnsForInvertHash.Add(srcCol);
                     }
