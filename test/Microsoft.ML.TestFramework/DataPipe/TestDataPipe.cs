@@ -786,6 +786,35 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeDropNAs()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "DropNAs.txt");
+            File.WriteAllLines(pathData,
+                new[]
+                {
+                    "2,0,|,Hello World!",
+                    "3,4,|,",
+                    "0,nan,|,Bye all",
+                    "7,8,|,Good bye",
+                    "?,nan,|,this is a"
+                });
+
+            TestCore(pathData, false,
+                new[]
+                {
+                    "loader=Text{header- sep=, col=Num:R4:0-1 col=Sep:TX:2 col=Text:TX:3}",
+                    "xf=NADrop{col=NumNAsDropped:Num}",
+                    "xf=Token{col=Text}",
+                    "xf=Term{col=Text2:Text terms=Hello,all,Good,Bye}",
+                    "xf=NADrop{col=TextNAsDropped:Text2}",
+                    "xf=Copy{col=Sep2:Sep col=Sep3:Sep}",
+                    "xf=Select{keepcol=Num keepcol=Sep keepcol=NumNAsDropped keepcol=Sep2 keepcol=Text keepcol=Sep3 keepcol=TextNAsDropped}"
+                }, baselineSchema: false, roundTripText: false);
+
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
