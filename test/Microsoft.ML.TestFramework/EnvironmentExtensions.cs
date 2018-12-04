@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Learners;
@@ -28,6 +29,7 @@ namespace Microsoft.ML.TestFramework
 #pragma warning disable 612
             env.ComponentCatalog.RegisterAssembly(typeof(Experiment).Assembly); // ML.Legacy
 #pragma warning restore 612
+            env.ComponentCatalog.RegisterAssembly(typeof(ComponentCreation).Assembly); // ML.Api
             return env;
         }
     }

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
@@ -408,54 +409,50 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public void AddStatsColumns(List<IColumn> list, LinearBinaryPredictor parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
+        internal Schema.Metadata MakeStatisticsMetadata(LinearBinaryPredictor parent, RoleMappedSchema schema, in VBuffer<ReadOnlyMemory<char>> names)
         {
-            _env.AssertValue(list);
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            long count = _trainingExampleCount;
-            list.Add(RowColumnUtils.GetColumn("Count of training examples", NumberType.I8, ref count));
-            var dev = _deviance;
-            list.Add(RowColumnUtils.GetColumn("Residual Deviance", NumberType.R4, ref dev));
-            var nullDev = _nullDeviance;
-            list.Add(RowColumnUtils.GetColumn("Null Deviance", NumberType.R4, ref nullDev));
-            var aic = 2 * _paramCount + _deviance;
-            list.Add(RowColumnUtils.GetColumn("AIC", NumberType.R4, ref aic));
+            var builder = new MetadataBuilder();
+
+            builder.AddPrimitiveValue("Count of training examples", NumberType.I8, _trainingExampleCount);
+            builder.AddPrimitiveValue("Residual Deviance", NumberType.R4, _deviance);
+            builder.AddPrimitiveValue("Null Deviance", NumberType.R4, _nullDeviance);
+            builder.AddPrimitiveValue("AIC", NumberType.R4, 2 * _paramCount + _deviance);
 
             if (parent == null)
-                return;
+                return builder.GetMetadata();
 
-            Single biasStdErr;
-            Single biasZScore;
-            Single biasPValue;
-            if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out biasStdErr, out biasZScore, out biasPValue))
-                return;
+            if (!TryGetBiasStatistics(parent.Statistics, parent.Bias, out float biasStdErr, out float biasZScore, out float biasPValue))
+                return builder.GetMetadata();
 
             var biasEstimate = parent.Bias;
-            list.Add(RowColumnUtils.GetColumn("BiasEstimate", NumberType.R4, ref biasEstimate));
-            list.Add(RowColumnUtils.GetColumn("BiasStandardError", NumberType.R4, ref biasStdErr));
-            list.Add(RowColumnUtils.GetColumn("BiasZScore", NumberType.R4, ref biasZScore));
-            list.Add(RowColumnUtils.GetColumn("BiasPValue", NumberType.R4, ref biasPValue));
+            builder.AddPrimitiveValue("BiasEstimate", NumberType.R4, biasEstimate);
+            builder.AddPrimitiveValue("BiasStandardError", NumberType.R4, biasStdErr);
+            builder.AddPrimitiveValue("BiasZScore", NumberType.R4, biasZScore);
+            builder.AddPrimitiveValue("BiasPValue", NumberType.R4, biasPValue);
 
-            var weights = default(VBuffer<Single>);
+            var weights = default(VBuffer<float>);
             parent.GetFeatureWeights(ref weights);
-            var estimate = default(VBuffer<Single>);
-            var stdErr = default(VBuffer<Single>);
-            var zScore = default(VBuffer<Single>);
-            var pValue = default(VBuffer<Single>);
+            var estimate = default(VBuffer<float>);
+            var stdErr = default(VBuffer<float>);
+            var zScore = default(VBuffer<float>);
+            var pValue = default(VBuffer<float>);
             ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
             GetUnorderedCoefficientStatistics(parent.Statistics, in weights, in names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, stdErr.Length), getSlotNames);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var subMetaBuilder = new MetadataBuilder();
+            subMetaBuilder.AddSlotNames(stdErr.Length, getSlotNames);
+            var subMeta = subMetaBuilder.GetMetadata();
             var colType = new VectorType(NumberType.R4, stdErr.Length);
 
-            list.Add(RowColumnUtils.GetColumn("Estimate", colType, ref estimate, slotNamesRow));
-            list.Add(RowColumnUtils.GetColumn("StandardError", colType, ref stdErr, slotNamesRow));
-            list.Add(RowColumnUtils.GetColumn("ZScore", colType, ref zScore, slotNamesRow));
-            list.Add(RowColumnUtils.GetColumn("PValue", colType, ref pValue, slotNamesRow));
+            builder.Add("Estimate", colType, (ref VBuffer<float> dst) => estimate.CopyTo(ref dst), subMeta);
+            builder.Add("StandardError", colType, (ref VBuffer<float> dst) => stdErr.CopyTo(ref dst), subMeta);
+            builder.Add("ZScore", colType, (ref VBuffer<float> dst) => zScore.CopyTo(ref dst), subMeta);
+            builder.Add("PValue", colType, (ref VBuffer<float> dst) => pValue.CopyTo(ref dst), subMeta);
+
+            return builder.GetMetadata();
         }
 
         private string DecorateProbabilityString(Single probZ)

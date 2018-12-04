@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -2804,7 +2805,7 @@ namespace Microsoft.ML.Trainers.FastTree
         ICanGetSummaryInKeyValuePairs,
         ITreeEnsemble,
         IPredictorWithFeatureWeights<Float>,
-        IWhatTheFeatureValueMapper,
+        IFeatureContributionMapper,
         ICanGetSummaryAsIRow,
         ISingleCanSavePfa,
         ISingleCanSaveOnnx
@@ -2925,7 +2926,7 @@ namespace Microsoft.ML.Trainers.FastTree
             dst = (Float)TrainedEnsemble.GetOutput(in src);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Host.Check(typeof(TDst) == typeof(VBuffer<Float>));
@@ -2936,13 +2937,13 @@ namespace Microsoft.ML.Trainers.FastTree
             ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
                 (in VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
-                    WhatTheFeatureMap(in src, ref dst, ref builder);
+                    FeatureContributionMap(in src, ref dst, ref builder);
                     Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }
 
-        private void WhatTheFeatureMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
+        private void FeatureContributionMap(in VBuffer<Float> src, ref VBuffer<Float> dst, ref BufferBuilder<Float> builder)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
@@ -3305,13 +3306,15 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, NumFeatures), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var metaBuilder = new MetadataBuilder();
+            metaBuilder.AddSlotNames(NumFeatures, names.CopyTo);
 
             var weights = default(VBuffer<Single>);
             GetFeatureWeights(ref weights);
-            return RowColumnUtils.GetRow(null, RowColumnUtils.GetColumn("Gains", new VectorType(NumberType.R4, NumFeatures), ref weights, slotNamesRow));
+            var builder = new MetadataBuilder();
+            builder.Add<VBuffer<float>>("Gains", new VectorType(NumberType.R4, NumFeatures), weights.CopyTo, metaBuilder.GetMetadata());
+
+            return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
         public IRow GetStatsIRowOrNull(RoleMappedSchema schema)

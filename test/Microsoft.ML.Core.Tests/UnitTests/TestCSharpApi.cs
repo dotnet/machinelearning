@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);

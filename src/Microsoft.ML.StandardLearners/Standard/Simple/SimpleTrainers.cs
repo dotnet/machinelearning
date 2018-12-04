@@ -126,7 +126,7 @@ namespace Microsoft.ML.Trainers
         // Keep all the serializable state here.
         private readonly int _seed;
         private readonly object _instanceLock;
-        private readonly IRandom _random;
+        private readonly Random _random;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         public ColumnType InputType { get; }

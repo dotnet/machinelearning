@@ -98,7 +98,9 @@ namespace Microsoft.ML.Runtime.Api
 
         public bool CanShuffle { get { return false; } }
 
-        public Schema Schema => _bindings.Schema;
+        Schema IDataView.Schema => OutputSchema;
+
+        public Schema OutputSchema => _bindings.Schema;
 
         public long? GetRowCount()
         {
@@ -106,7 +108,7 @@ namespace Microsoft.ML.Runtime.Api
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -118,7 +120,7 @@ namespace Microsoft.ML.Runtime.Api
             return new Cursor(this, input, predicate);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Contracts.CheckValue(predicate, nameof(predicate));
             Contracts.CheckParam(n >= 0, nameof(n));

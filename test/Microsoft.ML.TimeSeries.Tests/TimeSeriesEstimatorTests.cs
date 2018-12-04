@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;

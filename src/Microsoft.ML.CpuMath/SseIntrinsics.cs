@@ -13,6 +13,7 @@
 // * D suffix means convolution matrix, with implicit source padding.
 // * Tran means the matrix is transposed.
 
+using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -122,9 +123,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MatMul(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
-            Contracts.Assert(crow % 4 == 0);
-            Contracts.Assert(ccol % 4 == 0);
-
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             fixed (float* pmat = &MemoryMarshal.GetReference(mat))
@@ -285,9 +283,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static unsafe void MatMulP(ReadOnlySpan<float> mat, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> src,
                                         int posMin, int iposMin, int iposEnd, Span<float> dst, int crow, int ccol)
         {
-            Contracts.Assert(crow % 4 == 0);
-            Contracts.Assert(ccol % 4 == 0);
-
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
@@ -448,9 +443,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MatMulTran(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
-            Contracts.Assert(crow % 4 == 0);
-            Contracts.Assert(ccol % 4 == 0);
-
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             fixed (float* pmat = &MemoryMarshal.GetReference(mat))
@@ -893,8 +885,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void ScaleSrcU(float scale, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
@@ -963,8 +955,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleU(float scale, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
@@ -1004,8 +996,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleCopyU(float scale, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> result, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
+            Contracts.Assert(count <= result.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             fixed (float* pres = &MemoryMarshal.GetReference(result))
@@ -1047,8 +1040,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleSU(float scale, ReadOnlySpan<float> src, ReadOnlySpan<int> idx, Span<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
+            Contracts.Assert(count <= idx.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (int* pidx = &MemoryMarshal.GetReference(idx))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
@@ -1085,8 +1079,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddU(ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
@@ -1122,8 +1116,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddSU(ReadOnlySpan<float> src, ReadOnlySpan<int> idx, Span<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
+            Contracts.Assert(count <= idx.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (int* pidx = &MemoryMarshal.GetReference(idx))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
@@ -1157,9 +1152,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MulElementWiseU(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
         {
-            Contracts.Assert(src1.Length == dst.Length);
-            Contracts.Assert(src2.Length == dst.Length);
-
+            Contracts.Assert(count <= src1.Length);
+            Contracts.Assert(count <= src2.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc1 = &MemoryMarshal.GetReference(src1))
             fixed (float* psrc2 = &MemoryMarshal.GetReference(src2))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
@@ -1494,8 +1489,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float DotU(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
@@ -1535,8 +1530,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float DotSU(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, ReadOnlySpan<int> idx, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
+            Contracts.Assert(count <= idx.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             fixed (int* pidx = &MemoryMarshal.GetReference(idx))
@@ -1578,8 +1574,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float Dist2(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, int count)
         {
-            Contracts.Assert(src.Length == dst.Length);
-
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= dst.Length);
             fixed (float* psrc = &MemoryMarshal.GetReference(src))
             fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {

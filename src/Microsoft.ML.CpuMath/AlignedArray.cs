@@ -110,21 +110,21 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public void CopyTo(Float[] dst, int index, int count)
+        public void CopyTo(Span<Float> dst, int index, int count)
         {
             Contracts.Assert(0 <= count && count <= _size);
             Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, _base, dst, index, count);
+            Items.AsSpan(_base, count).CopyTo(dst.Slice(index));
         }
 
-        public void CopyTo(int start, Float[] dst, int index, int count)
+        public void CopyTo(int start, Span<Float> dst, int index, int count)
         {
             Contracts.Assert(0 <= count);
             Contracts.Assert(0 <= start && start <= _size - count);
             Contracts.Assert(dst != null);
             Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, start + _base, dst, index, count);
+            Items.AsSpan(start + _base, count).CopyTo(dst.Slice(index));
         }
 
         public void CopyFrom(ReadOnlySpan<Float> src)

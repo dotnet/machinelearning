@@ -741,7 +741,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             // First get the cursor.
             HashSet<int> active = new HashSet<int>(actives.Select(cc => cc.SourceIndex));
-            IRandom rand = data.CanShuffle ? new TauswortheHybrid(_host.Rand) : null;
+            Random rand = data.CanShuffle ? new TauswortheHybrid(_host.Rand) : null;
             // Get the estimators.
             EstimatorDelegate del = EstimatorCore<int>;
             MethodInfo methInfo = del.GetMethodInfo().GetGenericMethodDefinition();

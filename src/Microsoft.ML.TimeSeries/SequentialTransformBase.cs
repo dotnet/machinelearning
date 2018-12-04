@@ -352,20 +352,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(predicate, rand);
             return new Cursor(this, srcCursor);
         }
 
-        public override Schema Schema => _transform.Schema;
+        public override Schema OutputSchema => _transform.Schema;
 
         public override long? GetRowCount()
         {
             return _transform.GetRowCount();
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
             return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
@@ -381,11 +381,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, IRowCursor input)
                 : base(parent.Host, input)
             {
-                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
                 _parent = parent;
             }
 
-            public Schema Schema { get { return _parent.Schema; } }
+            public Schema Schema { get { return _parent.OutputSchema; } }
 
             public bool IsColumnActive(int col)
             {

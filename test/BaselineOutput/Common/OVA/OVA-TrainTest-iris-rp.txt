@@ -1,0 +1,4 @@
+OVA
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/p	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.986667	0.986667	0.246444	77.56775	AvgPer{lr=0.8}	OVA	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=OVA{p=AvgPer{ lr=0.8 }} norm=No dout=%Output% data=%Data% out=%Output% seed=1	/p:AvgPer{lr=0.8}	
+

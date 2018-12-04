@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Bindings _bindings;
         protected override BindingsBase GetBindings() => _bindings;
 
-        public override Schema Schema { get; }
+        public override Schema OutputSchema { get; }
 
         bool ICanSavePfa.CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             var rowMapper = mapper as ISchemaBoundRowMapper;
             Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = Schema.Create(_bindings);
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, data, RegistrationName, transform.Bindable)
         {
             _bindings = transform._bindings.ApplyToSchema(env, data.Schema);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = Schema.Create(_bindings);
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(ctx);
             _bindings = Bindings.Create(ctx, host, Bindable, input.Schema);
-            Schema = Schema.Create(_bindings);
+            OutputSchema = Schema.Create(_bindings);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(_bindings.DerivedColumnCount == 0);
             Host.AssertValue(output);
             Host.AssertValue(predicate);
-            Host.Assert(output.Schema == _bindings.RowMapper.Schema);
+            Host.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
 
             return GetGettersFromRow(output, predicate);
         }

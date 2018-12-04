@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override Schema Schema => _bindings.Schema;
+        public override Schema OutputSchema => _bindings.Schema;
 
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
@@ -178,14 +178,14 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
             return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.Data
             return predicateInput;
         }
 
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
+        public Schema InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -245,13 +245,13 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("GetEntireRow"))
             {
                 Action disp;
-                var activeArr = new bool[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                var activeArr = new bool[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new Row(input, this, Schema, getters);
+                return new Row(input, this, OutputSchema, getters);
             }
         }
 

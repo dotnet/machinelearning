@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Data
         /// Returns a permutation or null. This function will return null if either <paramref name="rand"/>
         /// is null, or if the row count of this cache exceeds the maximum array size.
         /// </summary>
-        private int[] GetPermutationOrNull(IRandom rand)
+        private int[] GetPermutationOrNull(Random rand)
         {
             if (rand == null)
                 return null;
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Data
             return Utils.GetRandomPermutation(rand, (int)_rowCount);
         }
 
-        private IRowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, IRandom rand)
+        private IRowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -248,7 +248,7 @@ namespace Microsoft.ML.Data
         }
 
         public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private IRowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, IRandom rand)
+        private IRowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);

@@ -49,9 +49,18 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanShuffle { get { return Source.CanShuffle; } }
 
-        public abstract Schema Schema { get; }
+        /// <summary>
+        /// The field is the type information of the produced IDataView of this transformer.
+        ///
+        /// Explicit interface implementation hides <see cref="IDataView.Schema"/> in all derived classes. The reason
+        /// is that a transformer should know the type it will produce but shouldn't contain the type of the data it produces.
+        /// Thus, this field will be eventually removed while legacy code can still access <see cref="IDataView.Schema"/> for now.
+        /// </summary>
+        Schema IDataView.Schema => OutputSchema;
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public abstract Schema OutputSchema { get; }
+
+        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -84,10 +93,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null);
+        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
 
         public abstract IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null);
+            Func<int, bool> predicate, int n, Random rand = null);
     }
 
     /// <summary>
@@ -127,7 +136,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override long? GetRowCount() => null;
 
-        public sealed override Schema Schema => Source.Schema;
+        public override Schema OutputSchema => Source.Schema;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -157,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
+        public Schema InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -171,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
                 Action disp;
                 var getters = CreateGetters(input, active, out disp);
                 disposer += disp;
-                return new Row(input, this, Schema, getters);
+                return new Row(input, this, OutputSchema, getters);
             }
         }
 
@@ -601,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
-                    ctx.AddIntermediateVariable(Schema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
+                    ctx.AddIntermediateVariable(OutputSchema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
                 {
                     ctx.RemoveColumn(info.Name, true);
                 }
@@ -635,7 +644,7 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override Schema Schema => _bindings.AsSchema;
+        public sealed override Schema OutputSchema => _bindings.AsSchema;
 
         public ITransposeSchema TransposeSchema => _bindings;
 
@@ -718,7 +727,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -730,7 +739,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
+            Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -758,7 +767,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.Assert(0 <= col && col < _bindings.ColumnCount);
             return Host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                Schema[col].Name);
+                OutputSchema[col].Name);
         }
 
         public ISlotCursor GetSlotCursor(int col)

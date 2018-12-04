@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Numeric
             }
 
             if (!aEditor.Indices.IsEmpty)
-                GenericSpanSortHelper<int, float>.Sort(aEditor.Indices, aEditor.Values, 0, newCount);
+                GenericSpanSortHelper<int>.Sort(aEditor.Indices, aEditor.Values, 0, newCount);
             a = aEditor.Commit();
         }
 

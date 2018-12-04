@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,9 @@ namespace Microsoft.ML.Data
         /// <param name="metadata">The column metadata.</param>
         public void AddColumn(string name, ColumnType type, Schema.Metadata metadata)
         {
+            Contracts.CheckNonEmpty(name, nameof(name));
+            Contracts.CheckValue(type, nameof(type));
+            Contracts.CheckValueOrNull(metadata);
             _items.Add((name, type, metadata));
         }
 

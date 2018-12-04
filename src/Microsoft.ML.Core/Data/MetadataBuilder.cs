@@ -16,11 +16,11 @@ namespace Microsoft.ML.Data
     /// </summary>
     public sealed class MetadataBuilder
     {
-        private readonly List<(string Name, ColumnType Type, Delegate Getter)> _items;
+        private readonly List<(string Name, ColumnType Type, Delegate Getter, Schema.Metadata Metadata)> _items;
 
         public MetadataBuilder()
         {
-            _items = new List<(string Name, ColumnType Type, Delegate Getter)>();
+            _items = new List<(string Name, ColumnType Type, Delegate Getter, Schema.Metadata Metadata)>();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Data
             foreach (var column in metadata.Schema)
             {
                 if (selector(column.Name))
-                    _items.Add((column.Name, column.Type, metadata.Getters[column.Index]));
+                    _items.Add((column.Name, column.Type, metadata.Getters[column.Index], column.Metadata));
             }
         }
 
@@ -51,13 +51,17 @@ namespace Microsoft.ML.Data
         /// <param name="name">The metadata name.</param>
         /// <param name="type">The metadata type.</param>
         /// <param name="getter">The getter delegate.</param>
-        public void Add<TValue>(string name, ColumnType type, ValueGetter<TValue> getter)
+        /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+        /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+        public void Add<TValue>(string name, ColumnType type, ValueGetter<TValue> getter, Schema.Metadata metadata = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValue(type, nameof(type));
             Contracts.CheckValue(getter, nameof(getter));
-            Contracts.CheckParam(type.RawType == typeof(TValue), nameof(getter));
-            _items.Add((name, type, getter));
+            Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type));
+            Contracts.CheckValueOrNull(metadata);
+
+            _items.Add((name, type, getter, metadata));
         }
 
         /// <summary>
@@ -67,11 +71,31 @@ namespace Microsoft.ML.Data
         /// <param name="type">The metadata type.</param>
         /// <param name="getter">The getter delegate that provides the value. Note that the type of the getter is still checked
         /// inside this method.</param>
-        public void Add(string name, ColumnType type, Delegate getter)
+        /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+        /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+        public void Add(string name, ColumnType type, Delegate getter, Schema.Metadata metadata = null)
         {
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckValue(type, nameof(type));
-            Utils.MarshalActionInvoke(AddDelegate<int>, type.RawType, name, type, getter);
+            Contracts.CheckValueOrNull(metadata);
+            Utils.MarshalActionInvoke(AddDelegate<int>, type.RawType, name, type, getter, metadata);
+        }
+
+        /// <summary>
+        /// Add one metadata column for a primitive value type.
+        /// </summary>
+        /// <param name="name">The metadata name.</param>
+        /// <param name="type">The metadata type.</param>
+        /// <param name="value">The value of the metadata.</param>
+        /// <param name="metadata">Metadata of the input column. Note that metadata on a metadata column is somewhat rare
+        /// except for certain types (for example, slot names for a vector, key values for something of key type).</param>
+        public void AddPrimitiveValue<TValue>(string name, PrimitiveType type, TValue value, Schema.Metadata metadata = null)
+        {
+            Contracts.CheckNonEmpty(name, nameof(name));
+            Contracts.CheckValue(type, nameof(type));
+            Contracts.CheckParam(type.RawType == typeof(TValue), nameof(type));
+            Contracts.CheckValueOrNull(metadata);
+            Add(name, type, (ref TValue dst) => dst = value, metadata);
         }
 
         /// <summary>
@@ -100,11 +124,11 @@ namespace Microsoft.ML.Data
         {
             var builder = new SchemaBuilder();
             foreach (var item in _items)
-                builder.AddColumn(item.Name, item.Type, null);
+                builder.AddColumn(item.Name, item.Type, item.Metadata);
             return new Schema.Metadata(builder.GetSchema(), _items.Select(x => x.Getter).ToArray());
         }
 
-        private void AddDelegate<TValue>(string name, ColumnType type, Delegate getter)
+        private void AddDelegate<TValue>(string name, ColumnType type, Delegate getter, Schema.Metadata metadata)
         {
             Contracts.AssertNonEmpty(name);
             Contracts.AssertValue(type);
@@ -112,7 +136,7 @@ namespace Microsoft.ML.Data
 
             var typedGetter = getter as ValueGetter<TValue>;
             Contracts.CheckParam(typedGetter != null, nameof(getter));
-            _items.Add((name, type, typedGetter));
+            _items.Add((name, type, typedGetter, metadata));
         }
     }
 }

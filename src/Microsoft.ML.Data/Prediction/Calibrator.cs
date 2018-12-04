@@ -215,11 +215,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
     }
 
-    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IWhatTheFeatureValueMapper,
+    public abstract class ValueMapperCalibratedPredictorBase : CalibratedPredictorBase, IValueMapperDist, IFeatureContributionMapper,
         IDistCanSavePfa, IDistCanSaveOnnx
     {
         private readonly IValueMapper _mapper;
-        private readonly IWhatTheFeatureValueMapper _whatTheFeature;
+        private readonly IFeatureContributionMapper _featureContribution;
 
         public ColumnType InputType => _mapper.InputType;
         public ColumnType OutputType => _mapper.OutputType;
@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.Check(_mapper != null, "The predictor does not implement IValueMapper");
             Host.Check(_mapper.OutputType == NumberType.Float, "The output type of the predictor is expected to be Float");
 
-            _whatTheFeature = predictor as IWhatTheFeatureValueMapper;
+            _featureContribution = predictor as IFeatureContributionMapper;
         }
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
@@ -258,11 +258,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_whatTheFeature != null, "Predictor does not implement IWhatTheFeatureValueMapper");
-            return _whatTheFeature.GetWhatTheFeatureMapper<TSrc, TDst>(top, bottom, normalize);
+            Host.Check(_featureContribution != null, "Predictor does not implement IFeatureContributionMapper");
+            return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     }
 
     public sealed class SchemaBindableCalibratedPredictor : CalibratedPredictorBase, ISchemaBindableMapper, ICanSaveModel,
-        IBindableCanSavePfa, IBindableCanSaveOnnx, IWhatTheFeatureValueMapper
+        IBindableCanSavePfa, IBindableCanSaveOnnx, IFeatureContributionMapper
     {
         private sealed class Bound : ISchemaBoundRowMapper
         {
@@ -528,7 +528,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public ISchemaBindableMapper Bindable => _parent;
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
             public Schema InputSchema => _predictor.InputSchema;
-            public Schema Schema { get; }
+            public Schema OutputSchema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -537,16 +537,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
-                if (!_predictor.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
+                if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                Schema = Schema.Create(new BinaryClassifierSchema());
+                OutputSchema = Schema.Create(new BinaryClassifierSchema());
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -562,7 +562,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < Schema.ColumnCount; i++)
+                for (int i = 0; i < OutputSchema.ColumnCount; i++)
                 {
                     if (predicate(i))
                     {
@@ -571,17 +571,17 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     }
                 }
                 var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
-                var getters = new Delegate[Schema.ColumnCount];
-                for (int i = 0; i < Schema.ColumnCount - 1; i++)
+                var getters = new Delegate[OutputSchema.ColumnCount];
+                for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(Schema.ColumnCount - 1))
-                    getters[Schema.ColumnCount - 1] = GetProbGetter(predictorRow);
-                return new SimpleRow(Schema, predictorRow, getters);
+                if (predicate(OutputSchema.ColumnCount - 1))
+                    getters[OutputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(IRow input, int col)
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
 
         private readonly ISchemaBindableMapper _bindable;
-        private readonly IWhatTheFeatureValueMapper _whatTheFeature;
+        private readonly IFeatureContributionMapper _featureContribution;
 
         public const string LoaderSignature = "SchemaBindableCalibrated";
 
@@ -631,14 +631,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             : base(env, LoaderSignature, predictor, calibrator)
         {
             _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
+            _featureContribution = SubPredictor as IFeatureContributionMapper;
         }
 
         private SchemaBindableCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
             _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
-            _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
+            _featureContribution = SubPredictor as IFeatureContributionMapper;
         }
 
         public static SchemaBindableCalibratedPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -682,11 +682,11 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             return new Bound(Host, this, schema);
         }
 
-        public ValueMapper<TSrc, VBuffer<float>> GetWhatTheFeatureMapper<TSrc, TDst>(int top, int bottom, bool normalize)
+        public ValueMapper<TSrc, VBuffer<float>> GetFeatureContributionMapper<TSrc, TDst>(int top, int bottom, bool normalize)
         {
             // REVIEW: checking this a bit too late.
-            Host.Check(_whatTheFeature != null, "Predictor does not implement IWhatTheFeatureValueMapper");
-            return _whatTheFeature.GetWhatTheFeatureMapper<TSrc, TDst>(top, bottom, normalize);
+            Host.Check(_featureContribution != null, "Predictor does not implement " + nameof(IFeatureContributionMapper));
+            return _featureContribution.GetFeatureContributionMapper<TSrc, TDst>(top, bottom, normalize);
         }
     }
 
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor);
             var bound = bindable.Bind(env, schema);
-            var outputSchema = bound.Schema;
+            var outputSchema = bound.OutputSchema;
             int scoreCol;
             if (!outputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
             {
@@ -1112,7 +1112,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ICalibrator FinishTraining(IChannel ch)
         {
             ch.Check(Data != null, "Calibrator trained on zero instances.");
-            return CreateCalibrator(ch);
+            var calibrator = CreateCalibrator(ch);
+            Data = null;
+            return calibrator;
         }
 
         public abstract ICalibrator CreateCalibrator(IChannel ch);

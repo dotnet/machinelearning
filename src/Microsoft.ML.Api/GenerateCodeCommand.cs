@@ -121,7 +121,6 @@ namespace Microsoft.ML.Runtime.Api
                     bool isScoreColumn = scorer.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnSetId, i) != null;
 
                     var sb = isScoreColumn ? scoreSb : nonScoreSb;
-
                     if (sb.Length > 0)
                         sb.AppendLine();
 

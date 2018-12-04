@@ -180,7 +180,7 @@ namespace Microsoft.ML.Transforms
 
                         int nextValuesIndex = 0;
 
-                        Utils.Shuffle(RandomUtils.Create(shuffleSeed), featureValuesBuffer);
+                        Utils.Shuffle<float>(RandomUtils.Create(shuffleSeed), featureValuesBuffer);
 
                         Action<FeaturesBuffer, FeaturesBuffer, PermuterState> permuter =
                             (src, dst, state) =>

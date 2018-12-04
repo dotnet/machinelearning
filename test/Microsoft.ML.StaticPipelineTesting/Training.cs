@@ -961,7 +961,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
+        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCoreAnd64BitProcess))] // netcore3.0 and x86 output differs from Baseline. This test is being fixed as part of issue #1441.
         public void MatrixFactorization()
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging,
