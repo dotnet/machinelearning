@@ -55,13 +55,13 @@ namespace Microsoft.ML.Runtime.Training
         private protected TrainerEstimatorBase(IHost host,
             SchemaShape.Column feature,
             SchemaShape.Column label,
-            SchemaShape.Column weight = null)
+            SchemaShape.Column weight = default)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.CheckValue(feature, nameof(feature));
-            Host.CheckValueOrNull(label);
-            Host.CheckValueOrNull(weight);
+            Host.CheckStruct(feature, nameof(feature));
+            Host.CheckValueOrDefault(label);
+            Host.CheckValueOrDefault(weight);
 
             FeatureColumn = feature;
             LabelColumn = label;
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Training
             if (!FeatureColumn.IsCompatibleWith(featureCol))
                 throw Host.Except($"Feature column '{FeatureColumn.Name}' is not compatible");
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(WeightColumn.Name, out var weightCol))
                     throw Host.Except($"Weight column '{WeightColumn.Name}' is not found");
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Training
 
             // Special treatment for label column: we allow different types of labels, so the trainers
             // may define their own requirements on the label column.
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.Except($"Label column '{LabelColumn.Name}' is not found");
@@ -122,8 +122,8 @@ namespace Microsoft.ML.Runtime.Training
 
         protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.CheckValue(labelCol, nameof(labelCol));
-            Contracts.AssertValue(LabelColumn);
+            Contracts.Check(labelCol.IsValid, nameof(labelCol));
+            Contracts.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))
                 throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Training
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         protected virtual RoleMappedData MakeRoles(IDataView data) =>
-            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
+            new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
         IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
     }
@@ -178,16 +178,16 @@ namespace Microsoft.ML.Runtime.Training
         public TrainerEstimatorBaseWithGroupId(IHost host,
                 SchemaShape.Column feature,
                 SchemaShape.Column label,
-                SchemaShape.Column weight = null,
-                SchemaShape.Column groupId = null)
+                SchemaShape.Column weight = default,
+                SchemaShape.Column groupId = default)
             :base(host, feature, label, weight)
         {
-            Host.CheckValueOrNull(groupId);
+            Host.CheckValueOrDefault(groupId);
             GroupIdColumn = groupId;
         }
 
         protected override RoleMappedData MakeRoles(IDataView data) =>
-            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, group: GroupIdColumn?.Name, weight: WeightColumn?.Name);
+            new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, group: GroupIdColumn.Name, weight: WeightColumn.Name);
 
     }
 }

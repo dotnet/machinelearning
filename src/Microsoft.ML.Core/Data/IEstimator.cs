@@ -22,7 +22,7 @@ namespace Microsoft.ML.Core.Data
 
         private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
 
-        public sealed class Column
+        public struct Column
         {
             public enum VectorKind
             {
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Core.Data
             /// </summary>
             public bool IsCompatibleWith(Column inputColumn)
             {
-                Contracts.CheckValue(inputColumn, nameof(inputColumn));
+                Contracts.Check(inputColumn.IsValid, nameof(inputColumn));
                 if (Name != inputColumn.Name)
                     return false;
                 if (Kind != inputColumn.Kind)
@@ -112,13 +112,19 @@ namespace Microsoft.ML.Core.Data
                     result = $"VarVector<{result}>";
                 return result;
             }
+
+            /// <summary>
+            /// Return if this structure is not identical to the default value of <see cref="Column"/>. If true,
+            /// it means this structure is initialized properly and therefore considered as valid.
+            /// </summary>
+            public bool IsValid => !Equals(default);
         }
 
         public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
             Columns = columns.ToArray();
-            Contracts.CheckParam(columns.All(c => c != null), nameof(columns), "No items should be null.");
+            Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "No items should be null.");
         }
 
         /// <summary>
@@ -183,7 +189,7 @@ namespace Microsoft.ML.Core.Data
         {
             Contracts.CheckValue(name, nameof(name));
             column = Columns.FirstOrDefault(x => x.Name == name);
-            return column != null;
+            return column.IsValid;
         }
 
         // REVIEW: I think we should have an IsCompatible method to check if it's OK to use one schema shape

@@ -121,7 +121,7 @@ namespace Microsoft.ML.Trainers.KMeans
         }
 
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 

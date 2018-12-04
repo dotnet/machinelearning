@@ -584,6 +584,11 @@ namespace Microsoft.ML.Runtime
             if (object.ReferenceEquals(val, null))
                 throw ExceptValue(ctx, paramName);
         }
+        public static void CheckStruct<T>(this IExceptionContext ctx, T val, string paramName) where T : struct
+        {
+            if (val.Equals(default))
+                throw ExceptValue(ctx, paramName);
+        }
         public static T CheckValue<T>(T val, string paramName, string msg) where T : class
         {
             if (object.ReferenceEquals(val, null))
@@ -758,8 +763,25 @@ namespace Microsoft.ML.Runtime
         public static void CheckValueOrNull<T>(T val) where T : class
         {
         }
+        /// <summary>
+        /// This documents that the parameter can legally be null.
+        /// </summary>
         [Conditional("INVARIANT_CHECKS")]
         public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
+        {
+        }
+        /// <summary>
+        /// This documents that the parameter can not legally be null because it is struct.
+        /// </summary>
+        [Conditional("INVARIANT_CHECKS")]
+        public static void CheckValueOrDefault<T>(T val) where T : struct
+        {
+        }
+        /// <summary>
+        /// This documents that the parameter can not legally be null because it is struct.
+        /// </summary>
+        [Conditional("INVARIANT_CHECKS")]
+        public static void CheckValueOrDefault<T>(this IExceptionContext ctx, T val) where T : struct
         {
         }
 

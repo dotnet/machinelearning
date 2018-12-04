@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
                 Contracts.Assert(success);

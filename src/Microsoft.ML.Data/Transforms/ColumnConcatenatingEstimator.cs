@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
 
         private bool HasCategoricals(SchemaShape.Column col)
         {
-            _host.AssertValue(col);
+            _host.Assert(col.IsValid, nameof(col));
             if (!col.Metadata.TryFindColumn(MetadataUtils.Kinds.CategoricalSlotRanges, out var mcol))
                 return false;
             // The indices must be ints and of a definite size vector type. (Definite becuase
