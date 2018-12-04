@@ -7,8 +7,8 @@ using Microsoft.ML.Data;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// A base class for a <see cref="IRowCursor"/> that has an input cursor, but still needs
-    /// to do work on <see cref="IRowCursor.MoveNext"/>/<see cref="IRowCursor.MoveMany(long)"/>. Note
+    /// A base class for a <see cref="RowCursor"/> that has an input cursor, but still needs
+    /// to do work on <see cref="RowCursor.MoveNext"/>/<see cref="RowCursor.MoveMany(long)"/>. Note
     /// that the default <see cref="LinkedRowRootCursorBase.GetGetter{TValue}(int)"/> assumes
     /// that each input column is exposed as an output column with the same column index.
     /// </summary>
@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>Gets row's schema.</summary>
         public sealed override Schema Schema { get; }
 
-        protected LinkedRowRootCursorBase(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active)
+        protected LinkedRowRootCursorBase(IChannelProvider provider, RowCursor input, Schema schema, bool[] active)
             : base(provider, input)
         {
             Ch.CheckValue(schema, nameof(schema));

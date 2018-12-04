@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
             return cursors;
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Bindings _bindings;
             private readonly bool[] _active;
 
-            public Cursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.AssertValue(bindings);

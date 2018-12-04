@@ -13,14 +13,14 @@ namespace Microsoft.ML.Runtime.Data
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
-    internal abstract class SynchronizedCursorBase : IRowCursor
+    internal abstract class SynchronizedCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
 
-        private readonly IRowCursor _root;
+        private readonly RowCursor _root;
         private bool _disposed;
 
-        protected IRowCursor Input { get; }
+        protected RowCursor Input { get; }
 
         public sealed override long Position => _root.Position;
 
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected bool IsGood => _root.State == CursorState.Good;
 
-        protected SynchronizedCursorBase(IChannelProvider provider, IRowCursor input)
+        protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {
             Contracts.AssertValue(provider, "provider");
             Ch = provider.Start("Cursor");
@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed override bool MoveMany(long count) => _root.MoveMany(count);
 
-        public sealed override IRowCursor GetRootCursor() => _root;
+        public sealed override RowCursor GetRootCursor() => _root;
 
         public sealed override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
     }

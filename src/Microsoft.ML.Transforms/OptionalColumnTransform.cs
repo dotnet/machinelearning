@@ -297,7 +297,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _bindings, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Transforms
 
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
-            IRowCursor input;
+            RowCursor input;
 
             if (n > 1 && ShouldUseParallelCursors(predicate) != false)
             {
@@ -325,7 +325,7 @@ namespace Microsoft.ML.Transforms
 
                 if (inputs.Length != 1)
                 {
-                    var cursors = new IRowCursor[inputs.Length];
+                    var cursors = new RowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
                         cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Transforms
                 input = Source.GetRowCursor(inputPred);
 
             consolidator = null;
-            return new IRowCursor[] { new Cursor(Host, _bindings, input, active) };
+            return new RowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
         protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public Cursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));

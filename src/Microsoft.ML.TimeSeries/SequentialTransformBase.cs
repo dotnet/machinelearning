@@ -352,7 +352,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var srcCursor = _transform.GetRowCursor(predicate, rand);
             return new Cursor(this, srcCursor);
@@ -365,10 +365,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return _transform.GetRowCount();
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private readonly SequentialTransformBase<TInput, TOutput, TState> _parent;
 
-            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, IRowCursor input)
+            public Cursor(SequentialTransformBase<TInput, TOutput, TState> parent, RowCursor input)
                 : base(parent.Host, input)
             {
                 Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);

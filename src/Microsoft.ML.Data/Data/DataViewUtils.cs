@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Try to create a cursor set from upstream and consolidate it here. The host determines
         /// the target cardinality of the cursor set.
         /// </summary>
-        public static bool TryCreateConsolidatingCursor(out IRowCursor curs,
+        public static bool TryCreateConsolidatingCursor(out RowCursor curs,
             IDataView view, Func<int, bool> predicate, IHost host, Random rand)
         {
             Contracts.CheckValue(host, nameof(host));
@@ -146,19 +146,19 @@ namespace Microsoft.ML.Runtime.Data
         /// cardinality. If not all the active columns are cachable, this will only
         /// produce the given input cursor.
         /// </summary>
-        public static IRowCursor[] CreateSplitCursors(out IRowCursorConsolidator consolidator,
-            IChannelProvider provider, IRowCursor input, int num)
+        public static RowCursor[] CreateSplitCursors(out IRowCursorConsolidator consolidator,
+            IChannelProvider provider, RowCursor input, int num)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(input, nameof(input));
 
             consolidator = null;
             if (num <= 1)
-                return new IRowCursor[1] { input };
+                return new RowCursor[1] { input };
 
             // If any active columns are not cachable, we can't split.
             if (!AllCachable(input.Schema, input.IsColumnActive))
-                return new IRowCursor[1] { input };
+                return new RowCursor[1] { input };
 
             // REVIEW: Should we limit the cardinality to some reasonable size?
 
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
         /// that is, they all are non-null, have the same schemas, and the same
         /// set of columns are active.
         /// </summary>
-        public static bool SameSchemaAndActivity(IRowCursor[] cursors)
+        public static bool SameSchemaAndActivity(RowCursor[] cursors)
         {
             // There must be something to actually consolidate.
             if (Utils.Size(cursors) == 0)
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Given a parallel cursor set, this consolidates them into a single cursor. The batchSize
         /// is a hint used for efficiency.
         /// </summary>
-        public static IRowCursor ConsolidateGeneric(IChannelProvider provider, IRowCursor[] inputs, int batchSize)
+        public static RowCursor ConsolidateGeneric(IChannelProvider provider, RowCursor[] inputs, int batchSize)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckNonEmpty(inputs, nameof(inputs));
@@ -309,12 +309,12 @@ namespace Microsoft.ML.Runtime.Data
                     _splitter = splitter;
                 }
 
-                public IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs)
+                public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
                 {
                     return Consolidate(provider, inputs, 128, ref _splitter._consolidateCachePools);
                 }
 
-                public static IRowCursor Consolidate(IChannelProvider provider, IRowCursor[] inputs, int batchSize, ref object[] ourPools)
+                public static RowCursor Consolidate(IChannelProvider provider, RowCursor[] inputs, int batchSize, ref object[] ourPools)
                 {
                     Contracts.AssertValue(provider);
                     using (var ch = provider.Start("Consolidate"))
@@ -323,14 +323,14 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private static IRowCursor ConsolidateCore(IChannelProvider provider, IRowCursor[] inputs, ref object[] ourPools, IChannel ch)
+                private static RowCursor ConsolidateCore(IChannelProvider provider, RowCursor[] inputs, ref object[] ourPools, IChannel ch)
                 {
                     ch.CheckNonEmpty(inputs, nameof(inputs));
                     if (inputs.Length == 1)
                         return inputs[0];
                     ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
 
-                    IRowCursor cursor = inputs[0];
+                    RowCursor cursor = inputs[0];
                     var schema = cursor.Schema;
                     ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
 
@@ -494,7 +494,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static IRowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, Schema schema, IRowCursor input, int cthd)
+            public static RowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, Schema schema, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(provider, "provider");
 
@@ -506,7 +506,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private IRowCursor[] SplitCore(out IRowCursorConsolidator consolidator, IChannelProvider ch, IRowCursor input, int cthd)
+            private RowCursor[] SplitCore(out IRowCursorConsolidator consolidator, IChannelProvider ch, RowCursor input, int cthd)
             {
                 Contracts.AssertValue(ch);
                 ch.AssertValue(input);
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Runtime.Data
                 int[] colToActive;
                 Utils.BuildSubsetMaps(_schema.ColumnCount, input.IsColumnActive, out activeToCol, out colToActive);
 
-                Func<IRowCursor, int, InPipe> createFunc = CreateInPipe<int>;
+                Func<RowCursor, int, InPipe> createFunc = CreateInPipe<int>;
                 var inGenMethod = createFunc.GetMethodInfo().GetGenericMethodDefinition();
                 object[] arguments = new object[] { input, 0 };
                 // Only one set of in-pipes, one per column, as well as for extra side information.
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal sealed class SynchronousConsolidatingCursor : RootCursorBase
         {
-            private readonly IRowCursor[] _cursors;
+            private readonly RowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
             private readonly Schema _schema;
@@ -1149,7 +1149,7 @@ namespace Microsoft.ML.Runtime.Data
             // Index into _cursors array pointing to the current cursor, or -1 if this cursor is not in Good state.
             private int _icursor;
             // If this cursor is in Good state then this should equal _cursors[_icursor], else null.
-            private IRowCursor _currentCursor;
+            private RowCursor _currentCursor;
             private bool _disposed;
 
             private readonly struct CursorStats
@@ -1170,7 +1170,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema => _schema;
 
-            public SynchronousConsolidatingCursor(IChannelProvider provider, IRowCursor[] cursors)
+            public SynchronousConsolidatingCursor(IChannelProvider provider, RowCursor[] cursors)
                 : base(provider)
             {
                 Ch.CheckNonEmpty(cursors, nameof(cursors));
@@ -1196,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 for (int i = 0; i < _cursors.Length; ++i)
                 {
-                    IRowCursor cursor = _cursors[i];
+                    RowCursor cursor = _cursors[i];
                     Ch.Assert(cursor.State == CursorState.NotStarted);
                     if (cursor.MoveNext())
                         _mins.Add(new CursorStats(cursor.Batch, i));
@@ -1304,7 +1304,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static ValueGetter<ReadOnlyMemory<char>>[] PopulateGetterArray(IRowCursor cursor, List<int> colIndices)
+        public static ValueGetter<ReadOnlyMemory<char>>[] PopulateGetterArray(RowCursor cursor, List<int> colIndices)
         {
             var n = colIndices.Count;
             var getters = new ValueGetter<ReadOnlyMemory<char>>[n];

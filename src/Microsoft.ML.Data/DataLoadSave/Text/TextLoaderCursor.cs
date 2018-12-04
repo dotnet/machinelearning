@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static IRowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
+            public static RowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
-            public static IRowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
+            public static RowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
                 TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
@@ -168,11 +168,11 @@ namespace Microsoft.ML.Runtime.Data
                 if (cthd <= 1)
                 {
                     consolidator = null;
-                    return new IRowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
+                    return new RowCursor[1] { new Cursor(parent, stats, active, reader, srcNeeded, 1) };
                 }
 
                 consolidator = new Consolidator(cthd);
-                var cursors = new IRowCursor[cthd];
+                var cursors = new RowCursor[cthd];
                 try
                 {
                     for (int i = 0; i < cursors.Length; i++)
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Runtime.Data
                     _cthd = cthd;
                 }
 
-                public IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs)
+                public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
                 {
                     Contracts.AssertValue(provider);
                     int cthd = Interlocked.Exchange(ref _cthd, 0);

@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.Data
     /// A view of data where columns can optionally be accessed slot by slot, as opposed to row
     /// by row in a typical dataview. A slot-accessible column can be accessed with a slot-by-slot
     /// cursor via an <see cref="SlotCursor"/> (naturally, as opposed to row-by-row through an
-    /// <see cref="IRowCursor"/>). This interface is intended to be implemented by classes that
+    /// <see cref="RowCursor"/>). This interface is intended to be implemented by classes that
     /// want to provide an option for an alternate way of accessing the data stored in a
     /// <see cref="IDataView"/>.
     ///
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// Analogous to <see cref="ISchema.GetColumnType"/>, except instead of returning the type of value
-        /// accessible through the <see cref="IRowCursor"/>, returns the item type of value accessible
+        /// accessible through the <see cref="RowCursor"/>, returns the item type of value accessible
         /// through the <see cref="SlotCursor"/>. This will return <c>null</c> iff this particular
         /// column is not transposable, that is, it cannot be viewed in a slotwise fashion. Observe from
         /// the return type that this will always be a vector type. This vector type should be of fixed

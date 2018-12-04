@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public abstract Schema OutputSchema { get; }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
             // When the input wants to be split, this puts the consolidation after this transform
             // instead of before. This is likely to produce better performance, for example, when
             // this is RangeFilter.
-            IRowCursor curs;
+            RowCursor curs;
             if (useParallel != false &&
                 DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rng))
             {
@@ -93,9 +93,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a single (non-parallel) row cursor.
         /// </summary>
-        protected abstract IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
+        protected abstract RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null);
 
-        public abstract IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public abstract RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null);
     }
 
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -738,7 +738,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, this, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -753,7 +753,7 @@ namespace Microsoft.ML.Runtime.Data
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, this, inputs[i], active);
             return cursors;
@@ -844,7 +844,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly Action[] _disposers;
 
-            public Cursor(IChannelProvider provider, OneToOneTransformBase parent, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, OneToOneTransformBase parent, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.AssertValue(parent);

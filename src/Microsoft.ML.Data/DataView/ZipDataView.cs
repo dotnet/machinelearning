@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Data
             return min;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -89,31 +89,31 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create an <see cref="IRowCursor"/> with no requested columns on a data view.
+        /// Create an <see cref="RowCursor"/> with no requested columns on a data view.
         /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known,
         /// wrapping around GetCursor().
         /// </summary>
-        private IRowCursor GetMinimumCursor(IDataView dv)
+        private RowCursor GetMinimumCursor(IDataView dv)
         {
             _host.AssertValue(dv);
             return dv.GetRowCursor(x => false);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
         private sealed class Cursor : RootCursorBase
         {
-            private readonly IRowCursor[] _cursors;
+            private readonly RowCursor[] _cursors;
             private readonly CompositeSchema _compositeSchema;
             private readonly bool[] _isColumnActive;
 
             public override long Batch { get { return 0; } }
 
-            public Cursor(ZipDataView parent, IRowCursor[] srcCursors, Func<int, bool> predicate)
+            public Cursor(ZipDataView parent, RowCursor[] srcCursors, Func<int, bool> predicate)
                 : base(parent._host)
             {
                 Ch.AssertNonEmpty(srcCursors);

@@ -429,7 +429,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override bool CanShuffle { get { return false; } }
 
-            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+            protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
             {
                 var srcCursor = _transform.GetRowCursor(predicate, rand);
                 var clone = (SequentialDataTransform)MemberwiseClone();
@@ -448,10 +448,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return _transform.GetRowCount();
             }
 
-            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 consolidator = null;
-                return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+                return new RowCursor[] { GetRowCursorCore(predicate, rand) };
             }
 
             public override void Save(ModelSaveContext ctx)
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private readonly SequentialDataTransform _parent;
 
-            public Cursor(IHost host, SequentialDataTransform parent, IRowCursor input)
+            public Cursor(IHost host, SequentialDataTransform parent, RowCursor input)
                 : base(host, input)
             {
                 Ch.Assert(input.Schema.ColumnCount == parent.OutputSchema.ColumnCount);
@@ -688,14 +688,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
             return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -710,7 +710,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, inputs[i], this, active);
             return cursors;
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema => _bindings.Schema;
 
-            public Cursor(IChannelProvider provider, IRowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
+            public Cursor(IChannelProvider provider, RowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
             {
                 var pred = parent.GetActiveOutputColumns(active);

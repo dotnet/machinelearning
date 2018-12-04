@@ -633,7 +633,7 @@ namespace Microsoft.ML.Transforms
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
             {
                 _host.AssertValue(needCol, nameof(needCol));
                 _host.AssertValueOrNull(rand);
@@ -647,7 +647,7 @@ namespace Microsoft.ML.Transforms
                 return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
@@ -661,7 +661,7 @@ namespace Microsoft.ML.Transforms
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new IRowCursor[inputs.Length];
+                var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                 {
                     cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
@@ -697,9 +697,9 @@ namespace Microsoft.ML.Transforms
         private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
-            private readonly IRowCursor _inputCursor;
+            private readonly RowCursor _inputCursor;
             private readonly bool[] _active;
-            public Cursor(IChannelProvider provider, Mapper mapper, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Mapper mapper, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 _mapper = mapper;

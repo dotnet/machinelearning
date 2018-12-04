@@ -8,7 +8,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// A cursor that allows slot-by-slot access of data. This is to <see cref="ITransposeDataView"/>
-    /// what <see cref="IRowCursor"/> is to <see cref="IDataView"/>.
+    /// what <see cref="RowCursor"/> is to <see cref="IDataView"/>.
     /// </summary>
     public abstract class SlotCursor : IDisposable
     {

@@ -378,7 +378,7 @@ namespace Microsoft.ML.Transforms.Text
                 string[][] friendlyNames = args.Column.Select(c => c.FriendlyNames).ToArray();
                 var helper = new InvertHashHelper(this, friendlyNames, inputPred, invertHashMaxCounts);
 
-                using (IRowCursor srcCursor = input.GetRowCursor(inputPred))
+                using (RowCursor srcCursor = input.GetRowCursor(inputPred))
                 using (var dstCursor = new Cursor(this, srcCursor, active, helper.Decorate))
                 {
                     var allGetters = InvertHashHelper.CallAllGetters(dstCursor);
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Transforms.Text
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -639,7 +639,7 @@ namespace Microsoft.ML.Transforms.Text
             return new Cursor(this, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Transforms.Text
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public override Schema Schema => _bindings.AsSchema;
 
-            public Cursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
+            public Cursor(NgramHashingTransformer parent, RowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(parent);

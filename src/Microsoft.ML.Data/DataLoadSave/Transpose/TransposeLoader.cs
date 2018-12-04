@@ -668,7 +668,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return _header.RowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -677,13 +677,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursorSet(out consolidator, predicate, n, rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
         public SlotCursor GetSlotCursor(int col)
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
             ColumnType cursorType = TransposeSchema.GetSlotType(col).ItemType;
-            IRowCursor inputCursor = view.GetRowCursor(c => true);
+            RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
                 return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private SlotCursor GetSlotCursorCore<T>(IRowCursor inputCursor)
+        private SlotCursor GetSlotCursorCore<T>(RowCursor inputCursor)
         {
             return new SlotCursor<T>(this, inputCursor);
         }
@@ -723,9 +723,9 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             private readonly TransposeLoader _parent;
             private readonly ValueGetter<VBuffer<T>> _getter;
-            private readonly IRowCursor _rowCursor;
+            private readonly RowCursor _rowCursor;
 
-            public SlotCursor(TransposeLoader parent, IRowCursor cursor)
+            public SlotCursor(TransposeLoader parent, RowCursor cursor)
                 : base(parent._host)
             {
                 _parent = parent;

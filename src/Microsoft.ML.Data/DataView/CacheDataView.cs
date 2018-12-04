@@ -203,7 +203,7 @@ namespace Microsoft.ML.Data
             return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Data
             return Utils.GetRandomPermutation(rand, (int)_rowCount);
         }
 
-        private IRowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, Random rand)
+        private RowCursor GetRowCursorWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Data
             return CreateCursor(predicate, RandomIndex<TWaiter>.Create(waiter, perm));
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Data
             if (n <= 1)
             {
                 consolidator = null;
-                return new IRowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(predicate, rand) };
             }
 
             consolidator = new Consolidator();
@@ -273,13 +273,13 @@ namespace Microsoft.ML.Data
         /// </summary>
         private sealed class Consolidator : IRowCursorConsolidator
         {
-            public IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs)
+            public RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs)
             {
                 return DataViewUtils.ConsolidateGeneric(provider, inputs, _batchSize);
             }
         }
 
-        private IRowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
+        private RowCursor[] GetRowCursorSetWaiterCore<TWaiter>(TWaiter waiter, Func<int, bool> predicate, int n, Random rand)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Data
             _host.AssertValueOrNull(rand);
 
             var scheduler = new JobScheduler(n);
-            IRowCursor[] cursors = new IRowCursor[n];
+            RowCursor[] cursors = new RowCursor[n];
             int[] perm = GetPermutationOrNull(rand);
             for (int i = 0; i < n; ++i)
             {
@@ -300,14 +300,14 @@ namespace Microsoft.ML.Data
             return cursors;
         }
 
-        private IRowCursor CreateCursor<TIndex>(Func<int, bool> predicate, TIndex index)
+        private RowCursor CreateCursor<TIndex>(Func<int, bool> predicate, TIndex index)
             where TIndex : struct, IIndex
         {
             Contracts.AssertValue(predicate);
             return new RowCursor<TIndex>(this, predicate, index);
         }
 
-        public IRowSeeker GetSeeker(Func<int, bool> predicate)
+        public RowSeeker GetSeeker(Func<int, bool> predicate)
         {
             _host.CheckValue(predicate, nameof(predicate));
             // The seeker needs to know the row count when it validates the row index to move to.
@@ -320,7 +320,7 @@ namespace Microsoft.ML.Data
             return GetSeeker(predicate, waiter);
         }
 
-        private IRowSeeker GetSeeker<TWaiter>(Func<int, bool> predicate, TWaiter waiter)
+        private RowSeeker GetSeeker<TWaiter>(Func<int, bool> predicate, TWaiter waiter)
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Data
             _host.AssertValue(columns);
 
             HashSet<int> taskColumns = null;
-            IRowCursor cursor;
+            RowCursor cursor;
             ColumnCache[] caches;
             OrderedWaiter waiter;
             lock (_cacheLock)
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Data
         /// <param name="caches">The caches we must fill and, at the end of the cursor, freeze</param>
         /// <param name="waiter">The waiter to increment as we cache each additional row</param>
         /// </summary>
-        private void Filler(IRowCursor cursor, ColumnCache[] caches, OrderedWaiter waiter)
+        private void Filler(RowCursor cursor, ColumnCache[] caches, OrderedWaiter waiter)
         {
             _host.AssertValue(cursor);
             _host.AssertValue(caches);
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Data
 
             public override ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
 
-            public override IRowCursor GetRootCursor() => this;
+            public override RowCursor GetRootCursor() => this;
 
             public override bool MoveNext()
             {
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private sealed class RowSeeker<TWaiter> : IRowSeeker
+        private sealed class RowSeeker<TWaiter> : RowSeeker
     where TWaiter : struct, IWaiter
         {
             private readonly RowSeekerCore<TWaiter> _internal;
@@ -625,7 +625,7 @@ namespace Microsoft.ML.Data
 
             public override bool MoveNext() => throw Ch.ExceptNotSupp();
             public override bool MoveMany(long count) => throw Ch.ExceptNotSupp();
-            public override IRowCursor GetRootCursor() => throw Ch.ExceptNotSupp();
+            public override RowCursor GetRootCursor() => throw Ch.ExceptNotSupp();
         }
 
         private interface IWaiter
@@ -783,7 +783,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// Moves to the next index. Once this or <see cref="MoveMany"/> has returned
             /// false, it should never be called again. (This in constrast to public
-            /// <see cref="IRowCursor"/> objects, whose move methods are robust to that usage.)
+            /// <see cref="RowCursor"/> objects, whose move methods are robust to that usage.)
             /// </summary>
             /// <returns>Whether the next index is available.</returns>
             bool MoveNext();
@@ -1244,7 +1244,7 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private abstract class RowCursorSeekerBase : IRowCursor
+        private abstract class RowCursorSeekerBase : RowCursor
         {
             protected readonly CacheDataView Parent;
             protected readonly IChannel Ch;
@@ -1374,7 +1374,7 @@ namespace Microsoft.ML.Data
             /// <param name="srcCol">The column of the cursor we are wrapping.</param>
             /// <param name="waiter">The waiter for the filler associated with this column</param>
             /// <returns></returns>
-            public static ColumnCache Create(CacheDataView parent, IRowCursor input, int srcCol, OrderedWaiter waiter)
+            public static ColumnCache Create(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
             {
                 Contracts.AssertValue(parent);
                 var host = parent._host;
@@ -1394,7 +1394,7 @@ namespace Microsoft.ML.Data
                 if (_pipeConstructorTypes == null)
                 {
                     Interlocked.CompareExchange(ref _pipeConstructorTypes,
-                        new Type[] { typeof(CacheDataView), typeof(IRowCursor), typeof(int), typeof(OrderedWaiter) }, null);
+                        new Type[] { typeof(CacheDataView), typeof(RowCursor), typeof(int), typeof(OrderedWaiter) }, null);
                 }
                 var constructor = pipeType.GetConstructor(_pipeConstructorTypes);
                 return (ColumnCache)constructor.Invoke(new object[] { parent, input, srcCol, waiter });
@@ -1442,7 +1442,7 @@ namespace Microsoft.ML.Data
                 // Temporary working reusable storage for caching the source data.
                 private VBuffer<T> _temp;
 
-                public ImplVec(CacheDataView parent, IRowCursor input, int srcCol, OrderedWaiter waiter)
+                public ImplVec(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
                     var type = input.Schema.GetColumnType(srcCol);
@@ -1525,7 +1525,7 @@ namespace Microsoft.ML.Data
                 private T[] _values;
                 private ValueGetter<T> _getter;
 
-                public ImplOne(CacheDataView parent, IRowCursor input, int srcCol, OrderedWaiter waiter)
+                public ImplOne(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
                     : base(parent, input, srcCol, waiter)
                 {
                     _getter = input.GetGetter<T>(srcCol);
@@ -1560,7 +1560,7 @@ namespace Microsoft.ML.Data
 
         private abstract class ColumnCache<T> : ColumnCache
         {
-            public ColumnCache(CacheDataView parent, IRowCursor input, int srcCol, OrderedWaiter waiter)
+            public ColumnCache(CacheDataView parent, RowCursor input, int srcCol, OrderedWaiter waiter)
                 : base(parent._host, waiter)
             {
                 Contracts.AssertValue(input);

@@ -14,17 +14,17 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public interface IRowSeekable
     {
-        IRowSeeker GetSeeker(Func<int, bool> predicate);
+        RowSeeker GetSeeker(Func<int, bool> predicate);
 
         Schema Schema { get; }
     }
 
     /// <summary>
     /// Represents a row seeker with random access that can retrieve a specific row by the row index.
-    /// For IRowSeeker, when the state is valid (that is when MoveTo() returns true), it returns the
-    /// current row index. Otherwise it's -1.
+    /// For <see cref="RowSeeker"/>, when the state is valid (that is when <see cref="MoveTo(long)"/>
+    /// returns <see langword="true"/>), it returns the current row index. Otherwise it's -1.
     /// </summary>
-    public abstract class IRowSeeker : IRow, IDisposable
+    public abstract class RowSeeker : IRow, IDisposable
     {
         public abstract long Position { get; }
         public abstract long Batch { get; }

@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             return sum;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             _host.CheckValue(needCol, nameof(needCol));
             if (rand == null || !_canShuffle)
@@ -154,10 +154,10 @@ namespace Microsoft.ML.Runtime.Data
             return new RandCursor(this, needCol, rand, _counts);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
         private abstract class CursorBase : RootCursorBase
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class Cursor : CursorBase
         {
-            private IRowCursor _currentCursor;
+            private RowCursor _currentCursor;
             private ValueGetter<UInt128> _currentIdGetter;
             private int _currentSourceIndex;
 
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class RandCursor : CursorBase
         {
-            private readonly IRowCursor[] _cursorSet;
+            private readonly RowCursor[] _cursorSet;
             private readonly MultinomialWithoutReplacementSampler _sampler;
             private readonly Random _rand;
             private int _currentSourceIndex;
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
                 _rand = rand;
                 Ch.AssertValue(counts);
                 Ch.Assert(Sources.Length == counts.Length);
-                _cursorSet = new IRowCursor[counts.Length];
+                _cursorSet = new RowCursor[counts.Length];
                 for (int i = 0; i < counts.Length; i++)
                 {
                     Ch.Assert(counts[i] >= 0);
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (State != CursorState.Done)
                 {
                     Ch.Dispose();
-                    foreach (IRowCursor c in _cursorSet)
+                    foreach (RowCursor c in _cursorSet)
                         c.Dispose();
                     base.Dispose();
                 }

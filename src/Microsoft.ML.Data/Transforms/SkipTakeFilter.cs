@@ -188,7 +188,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate);
             Host.AssertValueOrNull(rand);
@@ -198,13 +198,13 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(predicate) };
         }
 
         private sealed class Cursor : LinkedRowRootCursorBase
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms
                 get { return 0; }
             }
 
-            public Cursor(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, RowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);

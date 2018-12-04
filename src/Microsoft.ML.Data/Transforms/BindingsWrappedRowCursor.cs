@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="provider">Channel provider</param>
         /// <param name="input">The input cursor</param>
         /// <param name="bindings">The bindings object, </param>
-        public BindingsWrappedRowCursor(IChannelProvider provider, IRowCursor input, ColumnBindingsBase bindings)
+        public BindingsWrappedRowCursor(IChannelProvider provider, RowCursor input, ColumnBindingsBase bindings)
             : base(provider, input)
         {
             Ch.CheckValue(input, nameof(input));

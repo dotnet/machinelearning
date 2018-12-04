@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Data
     /// use <see cref="SynchronizedCursorBase"/> .
     /// </summary>
     [BestFriend]
-    internal abstract class RootCursorBase : IRowCursor
+    internal abstract class RootCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
         private CursorState _state;
@@ -136,6 +136,6 @@ namespace Microsoft.ML.Runtime.Data
         /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
         /// the root cursor will be faster.
         /// </summary>
-        public override IRowCursor GetRootCursor() => this;
+        public override RowCursor GetRootCursor() => this;
     }
 }

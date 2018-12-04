@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract bool WantParallelCursors(Func<int, bool> predicate);
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Contracts.AssertValue(predicate);
             Contracts.AssertValueOrNull(rand);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Cursor(Host, this, input, active, predicateMapper);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Contracts.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = new Cursor(Host, this, inputs[i], active, predicateMapper);
             return cursors;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema { get; }
 
-            public Cursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
+            public Cursor(IChannelProvider provider, RowToRowScorerBase parent, RowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
             {
                 Ch.AssertValue(parent);

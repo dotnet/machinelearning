@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to take a cursor, and get a shuffled version of this cursor.
         /// </summary>
-        public static IRowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, IRowCursor cursor, Random rand)
+        public static RowCursor GetShuffledCursor(IChannelProvider provider, int poolRows, RowCursor cursor, Random rand)
         {
             Contracts.CheckValue(provider, nameof(provider));
 
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Transforms
             return false;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -289,13 +289,13 @@ namespace Microsoft.ML.Transforms
             return new Cursor(Host, _poolRows, input, rand);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
         /// <summary>
@@ -465,7 +465,7 @@ namespace Microsoft.ML.Transforms
             private const int _bufferDepth = 3;
 
             private readonly int _poolRows;
-            private readonly IRowCursor _input;
+            private readonly RowCursor _input;
             private readonly Random _rand;
 
             // This acts as mapping from the "circular" index to the actual index within the pipe.
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Implement cursor set support.
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, int poolRows, IRowCursor input, Random rand)
+            public Cursor(IChannelProvider provider, int poolRows, RowCursor input, Random rand)
                 : base(provider)
             {
                 Ch.AssertValue(input);

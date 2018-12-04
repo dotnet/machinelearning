@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public abstract class IRowCursor<TRow> : IRowCursor, IRowReadableAs<TRow>
+    public abstract class RowCursor<TRow> : RowCursor, IRowReadableAs<TRow>
         where TRow : class
     {
         public abstract void FillValues(TRow row);
@@ -64,13 +64,13 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Get a new cursor.
         /// </summary>
-        IRowCursor<TRow> GetCursor();
+        RowCursor<TRow> GetCursor();
 
         /// <summary>
         /// Get a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        IRowCursor<TRow> GetRandomizedCursor(int randomSeed);
+        RowCursor<TRow> GetRandomizedCursor(int randomSeed);
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create and return a new cursor.
         /// </summary>
-        public IRowCursor<TRow> GetCursor()
+        public RowCursor<TRow> GetCursor()
         {
             return GetCursor(x => false);
         }
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.Api
         /// Create and return a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        public IRowCursor<TRow> GetRandomizedCursor(int randomSeed)
+        public RowCursor<TRow> GetRandomizedCursor(int randomSeed)
         {
             return GetCursor(x => false, randomSeed);
         }
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="randomSeed">The random seed to use. If <c>null</c>, the cursor will be non-randomized.</param>
-        public IRowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
+        public RowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Api
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="n">Number of cursors to create</param>
         /// <param name="rand">Random generator to use</param>
-        public IRowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
+        public RowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> additionalColumnsPredicate, int n, Random rand)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.Api
             _host.AssertNonEmpty(inputs);
 
             return inputs
-                 .Select(rc => (IRowCursor<TRow>)(new RowCursorImplementation(new TypedCursor(this, rc))))
+                 .Select(rc => (RowCursor<TRow>)(new RowCursorImplementation(new TypedCursor(this, rc))))
                  .ToArray();
         }
 
@@ -492,7 +492,7 @@ namespace Microsoft.ML.Runtime.Api
             public bool IsColumnActive(int col) => _row.IsColumnActive(col);
         }
 
-        private sealed class RowCursorImplementation : IRowCursor<TRow>
+        private sealed class RowCursorImplementation : RowCursor<TRow>
         {
             private readonly TypedCursor _cursor;
 
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.Api
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
             public override ValueGetter<UInt128> GetIdGetter() => _cursor.GetIdGetter();
-            public override IRowCursor GetRootCursor() => _cursor.GetRootCursor();
+            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
             public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
             public override bool MoveMany(long count) => _cursor.MoveMany(count);
             public override bool MoveNext() => _cursor.MoveNext();
@@ -516,10 +516,10 @@ namespace Microsoft.ML.Runtime.Api
 
         private sealed class TypedCursor : TypedRowBase
         {
-            private readonly IRowCursor _input;
+            private readonly RowCursor _input;
             private bool _disposed;
 
-            public TypedCursor(TypedCursorable<TRow> parent, IRowCursor input)
+            public TypedCursor(TypedCursorable<TRow> parent, RowCursor input)
                 : base(parent, input, "Cursor")
             {
                 _input = input;
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public bool MoveNext() => _input.MoveNext();
             public bool MoveMany(long count) => _input.MoveMany(count);
-            public IRowCursor GetRootCursor() => _input.GetRootCursor();
+            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

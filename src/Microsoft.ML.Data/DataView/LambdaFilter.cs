@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+            protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
             {
                 Host.AssertValue(predicate, "predicate");
                 Host.AssertValueOrNull(rand);
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(this, input, active);
             }
 
-            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
                 Func<int, bool> predicate, int n, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new IRowCursor[inputs.Length];
+                var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                     cursors[i] = new Cursor(this, inputs[i], active);
                 return cursors;
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly InPredicate<T1> _pred;
                 private T1 _src;
 
-                public Cursor(Impl<T1, T2> parent, IRowCursor input, bool[] active)
+                public Cursor(Impl<T1, T2> parent, RowCursor input, bool[] active)
                     : base(parent.Host, input, parent.OutputSchema, active)
                 {
                     _getSrc = Input.GetGetter<T1>(parent._colSrc);

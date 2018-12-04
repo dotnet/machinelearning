@@ -226,20 +226,20 @@ namespace Microsoft.ML.Runtime.Data
                 _rowCount = rowCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 return new Cursor(_host, this, predicate, rand);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
                 Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 consolidator = null;
-                return new IRowCursor[] { new Cursor(_host, this, predicate, rand) };
+                return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
             private sealed class Cursor : RootCursorBase

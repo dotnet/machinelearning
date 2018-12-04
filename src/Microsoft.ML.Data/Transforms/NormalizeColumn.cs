@@ -899,7 +899,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class MinMaxUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(MinMaxArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -912,7 +912,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 if (srcType.IsNumber)
                 {
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class MeanVarUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(MeanVarArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -949,7 +949,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
 
@@ -975,7 +975,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class LogMeanVarUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(LogMeanVarArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -988,7 +988,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(column);
@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static partial class BinUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(BinArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
@@ -1028,7 +1028,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             }
 
             public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumn column, IHost host,
-                int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
 
@@ -1053,7 +1053,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         internal static class SupervisedBinUtils
         {
             public static IColumnFunctionBuilder CreateBuilder(SupervisedBinArguments args, IHost host,
-                int icol, int srcIndex, ColumnType srcType, IRowCursor cursor)
+                int icol, int srcIndex, ColumnType srcType, RowCursor cursor)
             {
                 Contracts.AssertValue(host);
                 host.AssertValue(args);

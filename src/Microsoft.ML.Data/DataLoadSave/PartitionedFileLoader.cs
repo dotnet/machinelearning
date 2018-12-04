@@ -293,16 +293,16 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return new Cursor(_host, this, _files, needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             consolidator = null;
             var cursor = new Cursor(_host, this, _files, needCol, rand);
-            return new IRowCursor[] { cursor };
+            return new RowCursor[] { cursor };
         }
 
         /// <summary>
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate[] _subGetters; // Cached getters of the sub-cursor.
 
             private ReadOnlyMemory<char>[] _colValues; // Column values cached from the file path.
-            private IRowCursor _subCursor; // Sub cursor of the current file.
+            private RowCursor _subCursor; // Sub cursor of the current file.
 
             private IEnumerator<int> _fileOrder;
 

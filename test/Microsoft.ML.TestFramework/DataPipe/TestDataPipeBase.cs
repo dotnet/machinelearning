@@ -865,7 +865,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return all;
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IRowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
+        protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
             Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
 
@@ -946,13 +946,13 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
+        protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
             Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
 
             // Get a cursor for each column.
             int colLim = curs1.Schema.ColumnCount;
-            var cursors = new IRowCursor[colLim];
+            var cursors = new RowCursor[colLim];
             try
             {
                 for (int col = 0; col < colLim; col++)

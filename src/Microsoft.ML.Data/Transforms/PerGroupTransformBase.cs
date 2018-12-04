@@ -152,15 +152,15 @@ namespace Microsoft.ML.Runtime.Data
             return Source.GetRowCount();
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
             return GetRowCursorCore(predicate);
         }
 
-        private IRowCursor GetRowCursorCore(Func<int, bool> predicate)
+        private RowCursor GetRowCursorCore(Func<int, bool> predicate)
         {
             var bindings = GetBindings();
             var active = bindings.GetActive(predicate);
@@ -225,8 +225,8 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Cursor : RootCursorBase
         {
             private readonly PerGroupTransformBase<TLabel, TScore, TState> _parent;
-            private readonly IRowCursor _groupCursor;
-            private readonly IRowCursor _input;
+            private readonly RowCursor _groupCursor;
+            private readonly RowCursor _input;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, IRowCursor input, IRowCursor groupCursor, bool[] active)
+            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, RowCursor input, RowCursor groupCursor, bool[] active)
                 : base(parent.Host)
             {
                 Ch.AssertValue(parent);

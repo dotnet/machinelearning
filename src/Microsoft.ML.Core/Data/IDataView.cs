@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
         /// a getter for an inactive columns will throw. The <paramref name="needCol"/> predicate must be
         /// non-null. To activate all columns, pass "col => true".
         /// </summary>
-        IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
+        RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value n is a recommended limit
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="n">The suggested degree of parallelism.</param>
         /// <param name="rand">An instance </param>
         /// <returns></returns>
-        IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> needCol, int n, Random rand = null);
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a consolidated cursor from the given parallel cursor set.
         /// </summary>
-        IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs);
+        RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs);
     }
 
     /// <summary>
@@ -146,8 +146,8 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// This is incremented for ICursor when the underlying contents changes, giving clients a way to detect change.
-        /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="IRowCursor"/>, this is -1
-        /// when the <see cref="IRowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
+        /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
+        /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
         ///
         /// Note that this position is not position within the underlying data, but position of this cursor only.
         /// If one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's
@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <see cref="CursorState.Done"/>, <see cref="IRow.Position"/> is <c>-1</c>. Otherwise,
     /// <see cref="IRow.Position"/> >= 0.
     /// </summary>
-    public abstract class IRowCursor : IRow, IDisposable
+    public abstract class RowCursor : IRow, IDisposable
     {
         /// <summary>
         /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
         /// root cursor will be faster. As an aside, note that this is not necessarily the case of
         /// values from <see cref="IRow.GetIdGetter"/>.
         /// </summary>
-        public abstract IRowCursor GetRootCursor();
+        public abstract RowCursor GetRootCursor();
         public abstract ValueGetter<UInt128> GetIdGetter();
         public abstract bool IsColumnActive(int col);
         public abstract ValueGetter<TValue> GetGetter<TValue>(int col);

@@ -15,10 +15,10 @@ namespace Microsoft.ML.Benchmarks
         // Global.
         private IDataView _cacheDataView;
         // Per iteration.
-        private IRowCursor _cursor;
+        private RowCursor _cursor;
         private ValueGetter<int> _getter;
 
-        private IRowSeeker _seeker;
+        private RowSeeker _seeker;
         private long[] _positions;
 
         [GlobalSetup(Targets = new[] { nameof(CacheWithCursor), nameof(CacheWithSeeker) })]

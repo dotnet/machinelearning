@@ -400,16 +400,16 @@ namespace Microsoft.ML.Runtime.Api
 
             public abstract long? GetRowCount();
 
-            public abstract IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
+            public abstract RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null);
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
                 int n, Random rand = null)
             {
                 consolidator = null;
                 return new[] { GetRowCursor(predicate, rand) };
             }
 
-            public sealed class WrappedCursor : IRowCursor
+            public sealed class WrappedCursor : RowCursor
             {
                 private readonly DataViewCursorBase _toWrap;
 
@@ -424,7 +424,7 @@ namespace Microsoft.ML.Runtime.Api
                 public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     => _toWrap.GetGetter<TValue>(col);
                 public override ValueGetter<UInt128> GetIdGetter() => _toWrap.GetIdGetter();
-                public override IRowCursor GetRootCursor() => this;
+                public override RowCursor GetRootCursor() => this;
                 public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
                 public override bool MoveMany(long count) => _toWrap.MoveMany(count);
                 public override bool MoveNext() => _toWrap.MoveNext();
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Runtime.Api
                 return _data.Count;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
                 return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
@@ -673,7 +673,7 @@ namespace Microsoft.ML.Runtime.Api
                 return (_data as ICollection<TRow>)?.Count;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 return new WrappedCursor (new Cursor(Host, this, predicate));
             }
@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.Api
                 _current = value;
             }
 
-            public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public override RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
                 return new WrappedCursor (new Cursor(Host, this, predicate));

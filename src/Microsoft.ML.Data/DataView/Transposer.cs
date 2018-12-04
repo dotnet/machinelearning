@@ -265,12 +265,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             return _view.GetRowCursor(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 bool[] activeSplitters;
@@ -864,7 +864,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
@@ -1366,7 +1366,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override Schema Schema => _slicer.Schema;
 
-                public Cursor(IChannelProvider provider, DataViewSlicer slicer, IRowCursor input, Func<int, bool> pred, bool[] activeSplitters)
+                public Cursor(IChannelProvider provider, DataViewSlicer slicer, RowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
                 {
                     Ch.AssertValue(slicer);
@@ -1467,7 +1467,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a slot cursor, construct a single-column equivalent row cursor, with the single column
         /// active and having the same type. This is useful to exploit the many utility methods that exist
-        /// to handle <see cref="IRowCursor"/> and <see cref="IRow"/> but that know nothing about
+        /// to handle <see cref="RowCursor"/> and <see cref="IRow"/> but that know nothing about
         /// <see cref="SlotCursor"/>, without having to rewrite all of them. This is, however, rather
         /// something of a hack; whenever possible or reasonable the slot cursor should be used directly.
         /// The name of this column is always "Waffles".
@@ -1475,7 +1475,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="provider">The channel provider used in creating the wrapping row cursor</param>
         /// <param name="cursor">The slot cursor to wrap</param>
         /// <returns>A row cursor with a single active column with the same type as the slot type</returns>
-        public static IRowCursor GetRowCursorShim(IChannelProvider provider, SlotCursor cursor)
+        public static RowCursor GetRowCursorShim(IChannelProvider provider, SlotCursor cursor)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(cursor, nameof(cursor));
@@ -1483,7 +1483,7 @@ namespace Microsoft.ML.Runtime.Data
             return Utils.MarshalInvoke(GetRowCursorShimCore<int>, cursor.GetSlotType().ItemType.RawType, provider, cursor);
         }
 
-        private static IRowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
+        private static RowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
         {
             return new SlotRowCursorShim<T>(provider, cursor);
         }
@@ -1527,22 +1527,22 @@ namespace Microsoft.ML.Runtime.Data
                 return valueCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.ItemType.RawType, predicate(0));
             }
 
-            private IRowCursor GetRowCursor<T>(bool active)
+            private RowCursor GetRowCursor<T>(bool active)
             {
                 return new Cursor<T>(this, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 consolidator = null;
-                return new IRowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(predicate, rand) };
             }
 
             private sealed class Cursor<T> : RootCursorBase

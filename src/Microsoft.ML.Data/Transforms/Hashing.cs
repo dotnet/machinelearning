@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             if (Utils.Size(sourceColumnsForInvertHash) > 0)
             {
-                using (IRowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
                 {
                     using (var ch = Host.Start("Invert hash building"))
                     {

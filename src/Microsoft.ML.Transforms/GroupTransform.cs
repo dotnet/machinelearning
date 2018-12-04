@@ -156,7 +156,7 @@ namespace Microsoft.ML.Transforms
 
         public override Schema OutputSchema => _groupSchema.AsSchema;
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -173,12 +173,12 @@ namespace Microsoft.ML.Transforms
 
         public override bool CanShuffle { get { return false; } }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate) };
+            return new RowCursor[] { GetRowCursorCore(predicate) };
         }
 
         /// <summary>
@@ -546,8 +546,8 @@ namespace Microsoft.ML.Transforms
             private readonly bool[] _active;
             private readonly int _groupCount;
 
-            private readonly IRowCursor _leadingCursor;
-            private readonly IRowCursor _trailingCursor;
+            private readonly RowCursor _leadingCursor;
+            private readonly RowCursor _trailingCursor;
 
             private readonly GroupKeyColumnChecker[] _groupCheckers;
             private readonly KeepColumnAggregator[] _aggregators;
