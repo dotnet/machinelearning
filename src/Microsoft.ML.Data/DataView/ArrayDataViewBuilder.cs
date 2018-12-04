@@ -226,29 +226,29 @@ namespace Microsoft.ML.Runtime.Data
                 _rowCount = rowCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor(_host, this, predicate, rand);
+                return new Cursor(_host, this, predicate, rand);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
                 Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 consolidator = null;
-                return new IRowCursor[] { new RowCursor(_host, this, predicate, rand) };
+                return new RowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
-            private sealed class RowCursor : RootCursorBase, IRowCursor
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly DataView _view;
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public Schema Schema => _view.Schema;
+                public override Schema Schema => _view.Schema;
 
                 public override long Batch
                 {
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.Data
                     get { return 0; }
                 }
 
-                public RowCursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
+                public Cursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
                     : base(provider)
                 {
                     Ch.AssertValue(view);
@@ -298,13 +298,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     return _active[col];
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.Check(0 <= col & col < Schema.ColumnCount);
                     Ch.Check(_active[col], "column is not active");

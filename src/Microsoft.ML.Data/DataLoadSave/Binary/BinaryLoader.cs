@@ -1234,7 +1234,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return entry;
         }
 
-        private IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        private RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             if (rand != null && _randomShufflePoolRows > 0)
             {
@@ -1247,23 +1247,23 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return GetRowCursorCore(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            return new RowCursor[] { GetRowCursorCore(predicate, rand) };
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private const string _badCursorState = "cursor is either not started or is ended, and cannot get values";
 
@@ -1285,7 +1285,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private volatile bool _disposed;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -2009,7 +2009,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
@@ -2070,7 +2070,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return more;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(_colToActivesIndex[col] >= 0, nameof(col), "requested column not active");

@@ -446,7 +446,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 dst = new VBuffer<int>(ranges.Length, ranges);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -464,7 +464,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// This is for the singleton case. This should be equivalent to both Bag and Ord over
             /// a vector of size one.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterOne(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterOne(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsKey);
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the bagging case - vector input and outputs should be added.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterBag(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterBag(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the indicator (non-bagging) case - vector input and outputs should be concatenated.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterInd(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterInd(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);

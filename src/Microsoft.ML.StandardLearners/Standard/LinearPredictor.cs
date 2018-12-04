@@ -346,7 +346,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
-        public virtual IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public virtual Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Runtime.Learners
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema) => null;
+        public virtual Row GetStatsIRowOrNull(RoleMappedSchema schema) => null;
 
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.Learners
             return results;
         }
 
-        public override IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public override Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

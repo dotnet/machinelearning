@@ -74,7 +74,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 MaxTrainingExamples = maxTrainingExamples;
             }
 
-            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor);
+            internal abstract IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor);
 
             internal static ColumnBase Create(string input, string output, NormalizerMode mode)
             {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             {
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
                 => NormalizeTransform.MinMaxUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 UseCdf = useCdf;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
                 => NormalizeTransform.MeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 UseCdf = useCdf;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
                 => NormalizeTransform.LogMeanVarUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 NumBins = numBins;
             }
 
-            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, IRowCursor cursor)
+            internal override IColumnFunctionBuilder MakeBuilder(IHost host, int srcIndex, ColumnType srcType, RowCursor cursor)
                 => NormalizeTransform.BinUtils.CreateBuilder(this, host, srcIndex, srcType, cursor);
         }
 
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 dst = true;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 return _parent.Columns[iinfo].ColumnFunction.GetGetter(input, ColMapNewToOld[iinfo]);

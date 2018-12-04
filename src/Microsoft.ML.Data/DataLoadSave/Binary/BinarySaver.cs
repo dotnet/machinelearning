@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// <summary>
             /// Returns an appropriate generic <c>WritePipe{T}</c> for the given column.
             /// </summary>
-            public static WritePipe Create(BinarySaver parent, IRowCursor cursor, ColumnCodec col)
+            public static WritePipe Create(BinarySaver parent, RowCursor cursor, ColumnCodec col)
             {
                 Type writePipeType = typeof(WritePipe<>).MakeGenericType(col.Codec.Type.RawType);
                 return (WritePipe)Activator.CreateInstance(writePipeType, parent, cursor, col);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private MemoryStream _currentStream;
             private T _value;
 
-            public WritePipe(BinarySaver parent, IRowCursor cursor, ColumnCodec col)
+            public WritePipe(BinarySaver parent, RowCursor cursor, ColumnCodec col)
                 : base(parent)
             {
                 var codec = col.Codec as IValueCodec<T>;
@@ -581,7 +581,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 HashSet<int> activeSet = new HashSet<int>(activeColumns.Select(col => col.SourceIndex));
                 long blockIndex = 0;
                 int remainingInBlock = rowsPerBlock;
-                using (IRowCursor cursor = data.GetRowCursor(activeSet.Contains))
+                using (RowCursor cursor = data.GetRowCursor(activeSet.Contains))
                 {
                     WritePipe[] pipes = new WritePipe[activeColumns.Length];
                     for (int c = 0; c < activeColumns.Length; ++c)
@@ -746,7 +746,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             EstimatorDelegate del = EstimatorCore<int>;
             MethodInfo methInfo = del.GetMethodInfo().GetGenericMethodDefinition();
 
-            using (IRowCursor cursor = data.GetRowCursor(active.Contains, rand))
+            using (RowCursor cursor = data.GetRowCursor(active.Contains, rand))
             {
                 object[] args = new object[] { cursor, null, null, null };
                 var writers = new IValueWriter[actives.Length];
@@ -776,10 +776,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private delegate void EstimatorDelegate(IRowCursor cursor, ColumnCodec col,
+        private delegate void EstimatorDelegate(RowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer);
 
-        private void EstimatorCore<T>(IRowCursor cursor, ColumnCodec col,
+        private void EstimatorCore<T>(RowCursor cursor, ColumnCodec col,
             out Func<long> fetchWriteEstimator, out IValueWriter writer)
         {
             ValueGetter<T> getter = cursor.GetGetter<T>(col.SourceIndex);

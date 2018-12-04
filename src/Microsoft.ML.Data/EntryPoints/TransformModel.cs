@@ -236,7 +236,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             public Schema InputSchema => _rootSchema;
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);

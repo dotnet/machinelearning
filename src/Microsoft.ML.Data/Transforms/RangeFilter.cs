@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Transforms
             return CreateCursorCore(input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -227,13 +227,13 @@ namespace Microsoft.ML.Transforms
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
                 cursors[i] = CreateCursorCore(inputs[i], active);
             return cursors;
         }
 
-        private IRowCursor CreateCursorCore(IRowCursor input, bool[] active)
+        private RowCursor CreateCursorCore(RowCursor input, bool[] active)
         {
             if (_type == NumberType.R4)
                 return new SingleRowCursor(this, input, active);
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms
             private readonly Double _min;
             private readonly Double _max;
 
-            protected RowCursorBase(RangeFilter parent, IRowCursor input, bool[] active)
+            protected RowCursorBase(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent.Host, input, parent.OutputSchema, active)
             {
                 Parent = parent;
@@ -319,15 +319,15 @@ namespace Microsoft.ML.Transforms
                 return fn;
             }
 
-            public static IRowCursor CreateKeyRowCursor(RangeFilter filter, IRowCursor input, bool[] active)
+            public static RowCursor CreateKeyRowCursor(RangeFilter filter, RowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type.IsKey);
-                Func<RangeFilter, IRowCursor, bool[], IRowCursor> del = CreateKeyRowCursor<int>;
+                Func<RangeFilter, RowCursor, bool[], RowCursor> del = CreateKeyRowCursor<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(filter._type.RawType);
-                return (IRowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
+                return (RowCursor)methodInfo.Invoke(null, new object[] { filter, input, active });
             }
 
-            private static IRowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, IRowCursor input, bool[] active)
+            private static RowCursor CreateKeyRowCursor<TSrc>(RangeFilter filter, RowCursor input, bool[] active)
             {
                 Contracts.Assert(filter._type.IsKey);
                 return new KeyRowCursor<TSrc>(filter, input, active);
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Single> _getter;
             private Single _value;
 
-            public SingleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public SingleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R4);
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueGetter<Double> _getter;
             private Double _value;
 
-            public DoubleRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public DoubleRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type == NumberType.R8);
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Transforms
             private readonly ValueMapper<T, ulong> _conv;
             private readonly int _count;
 
-            public KeyRowCursor(RangeFilter parent, IRowCursor input, bool[] active)
+            public KeyRowCursor(RangeFilter parent, RowCursor input, bool[] active)
                 : base(parent, input, active)
             {
                 Ch.Assert(Parent._type.KeyCount > 0);

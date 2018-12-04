@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);

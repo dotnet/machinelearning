@@ -11,41 +11,40 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// An implementation of <see cref="IRow"/> that gets its <see cref="ICounted.Position"/>, <see cref="ICounted.Batch"/>,
-    /// and <see cref="ICounted.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
+    /// An implementation of <see cref="Row"/> that gets its <see cref="Row.Position"/>, <see cref="Row.Batch"/>,
+    /// and <see cref="Row.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
     /// delegates. A null delegate indicates an inactive column. The delegates are assumed to be of the appropriate type
     /// (this does not validate the type).
     /// REVIEW: Should this validate that the delegates are of the appropriate type? It wouldn't be difficult
     /// to do so.
     /// </summary>
-    public sealed class SimpleRow : IRow
+    public sealed class SimpleRow : Row
     {
-        private readonly Schema _schema;
-        private readonly IRow _input;
+        private readonly Row _input;
         private readonly Delegate[] _getters;
 
-        public Schema Schema { get { return _schema; } }
+        public override Schema Schema { get; }
 
-        public long Position { get { return _input.Position; } }
+        public override long Position => _input.Position;
 
-        public long Batch { get { return _input.Batch; } }
+        public override long Batch => _input.Batch;
 
-        public SimpleRow(Schema schema, IRow input, Delegate[] getters)
+        public SimpleRow(Schema schema, Row input, Delegate[] getters)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(input, nameof(input));
             Contracts.Check(Utils.Size(getters) == schema.ColumnCount);
-            _schema = schema;
+            Schema = schema;
             _input = input;
             _getters = getters ?? new Delegate[0];
         }
 
-        public ValueGetter<UInt128> GetIdGetter()
+        public override ValueGetter<UInt128> GetIdGetter()
         {
             return _input.GetIdGetter();
         }
 
-        public ValueGetter<T> GetGetter<T>(int col)
+        public override ValueGetter<T> GetGetter<T>(int col)
         {
             Contracts.CheckParam(0 <= col && col < _getters.Length, nameof(col), "Invalid col value in GetGetter");
             Contracts.Check(IsColumnActive(col));
@@ -55,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
             return fn;
         }
 
-        public bool IsColumnActive(int col)
+        public override bool IsColumnActive(int col)
         {
             Contracts.Check(0 <= col && col < _getters.Length);
             return _getters[col] != null;

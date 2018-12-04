@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             public readonly int Source;
 
-            public static ValueWriter Create(IRowCursor cursor, int col, char sep)
+            public static ValueWriter Create(RowCursor cursor, int col, char sep)
             {
                 Contracts.AssertValue(cursor);
 
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
-            public VecValueWriter(IRowCursor cursor, VectorType type, int source, char sep)
+            public VecValueWriter(RowCursor cursor, VectorType type, int source, char sep)
                 : base(type.ItemType, source, sep)
             {
                 _getSrc = cursor.GetGetter<VBuffer<T>>(source);
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             private T _src;
             private string _columnName;
 
-            public ValueWriter(IRowCursor cursor, PrimitiveType type, int source, char sep)
+            public ValueWriter(RowCursor cursor, PrimitiveType type, int source, char sep)
                 : base(type, source, sep)
             {
                 _getSrc = cursor.GetGetter<T>(source);
@@ -573,7 +573,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _mpslotichLim = new int[128];
             }
 
-            public void Run(IRowCursor cursor, ref long count, out int minLen, out int maxLen)
+            public void Run(RowCursor cursor, ref long count, out int minLen, out int maxLen)
             {
                 minLen = int.MaxValue;
                 maxLen = 0;

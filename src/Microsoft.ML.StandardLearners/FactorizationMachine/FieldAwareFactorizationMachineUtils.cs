@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public IRow GetRow(IRow input, Func<int, bool> predicate, out Action action)
+        public Row GetRow(Row input, Func<int, bool> predicate, out Action action)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();

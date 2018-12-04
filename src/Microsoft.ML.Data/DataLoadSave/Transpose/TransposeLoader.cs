@@ -668,7 +668,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             return _header.RowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
@@ -677,16 +677,16 @@ namespace Microsoft.ML.Runtime.Data.IO
             return new Cursor(this, predicate);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             if (HasRowData)
                 return _schemaEntry.GetView().GetRowCursorSet(out consolidator, predicate, n, rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < _header.ColumnCount, nameof(col));
             var view = _entries[col].GetViewOrNull();
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             // We don't want the type error, if there is one, to be handled by the get-getter, because
             // at the point we've gotten the interior cursor, but not yet constructed the slot cursor.
             ColumnType cursorType = TransposeSchema.GetSlotType(col).ItemType;
-            IRowCursor inputCursor = view.GetRowCursor(c => true);
+            RowCursor inputCursor = view.GetRowCursor(c => true);
             try
             {
                 return Utils.MarshalInvoke(GetSlotCursorCore<int>, cursorType.RawType, inputCursor);
@@ -714,41 +714,56 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private ISlotCursor GetSlotCursorCore<T>(IRowCursor inputCursor)
+        private SlotCursor GetSlotCursorCore<T>(RowCursor inputCursor)
         {
             return new SlotCursor<T>(this, inputCursor);
         }
 
-        private sealed class SlotCursor<T> : SynchronizedCursorBase<IRowCursor>, ISlotCursor
+        private sealed class SlotCursor<T> : SlotCursor
         {
             private readonly TransposeLoader _parent;
             private readonly ValueGetter<VBuffer<T>> _getter;
+            private readonly RowCursor _rowCursor;
 
-            private IHost Host { get { return _parent._host; } }
-
-            public SlotCursor(TransposeLoader parent, IRowCursor cursor)
-                : base(parent._host, cursor)
+            public SlotCursor(TransposeLoader parent, RowCursor cursor)
+                : base(parent._host)
             {
                 _parent = parent;
-                Ch.Assert(cursor.Schema.ColumnCount == 1);
-                Ch.Assert(cursor.Schema.GetColumnType(0).RawType == typeof(VBuffer<T>));
-                _getter = Input.GetGetter<VBuffer<T>>(0);
+                Ch.AssertValue(cursor);
+                Ch.Assert(cursor.Schema.Count == 1);
+                Ch.Assert(cursor.Schema[0].Type.RawType == typeof(VBuffer<T>));
+                Ch.Assert(cursor.Schema[0].Type is VectorType);
+                _rowCursor = cursor;
+
+                _getter = _rowCursor.GetGetter<VBuffer<T>>(0);
             }
 
-            public VectorType GetSlotType()
-            {
-                var type = Input.Schema.GetColumnType(0).AsVector;
-                Ch.AssertValue(type);
-                return type;
-            }
+            public override VectorType GetSlotType()
+                => (VectorType)_rowCursor.Schema[0].Type;
 
-            public ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
+            public override ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)
                     throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return getter;
             }
+
+            public override bool MoveNext()
+            {
+                return _rowCursor.MoveNext();
+            }
+
+            public override int SlotIndex
+            {
+                get
+                {
+                    long pos = _rowCursor.Position;
+                    Contracts.Assert(pos <= int.MaxValue);
+                    return (int)pos;
+                }
+            }
+
         }
 
         private Transposer EnsureAndGetTransposer(int col)
@@ -777,16 +792,16 @@ namespace Microsoft.ML.Runtime.Data.IO
             return _colTransposers[col];
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly TransposeLoader _parent;
             private readonly int[] _actives;
             private readonly int[] _colToActivesIndex;
-            private readonly ICursor[] _transCursors;
+            private readonly SlotCursor[] _transCursors;
             private readonly Delegate[] _getters;
             private bool _disposed;
 
-            public Schema Schema => _parent.Schema;
+            public override Schema Schema => _parent.Schema;
 
             public override long Batch { get { return 0; } }
 
@@ -802,7 +817,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Ch.Assert(!_parent.HasRowData);
 
                 Utils.BuildSubsetMaps(_parent._header.ColumnCount, pred, out _actives, out _colToActivesIndex);
-                _transCursors = new ICursor[_actives.Length];
+                _transCursors = new SlotCursor[_actives.Length];
                 _getters = new Delegate[_actives.Length];
                 // The following will fill in both the _transCursors and _getters arrays.
                 for (int i = 0; i < _actives.Length; ++i)
@@ -841,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 var type = Schema.GetColumnType(col);
                 Ch.Assert(typeof(T) == type.RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
-                ISlotCursor cursor = trans.GetSlotCursor(0);
+                SlotCursor cursor = trans.GetSlotCursor(0);
                 ValueGetter<VBuffer<T>> getter = cursor.GetGetter<T>();
                 VBuffer<T> buff = default(VBuffer<T>);
                 ValueGetter<T> oneGetter =
@@ -862,7 +877,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Ch.Assert(type.IsVector);
                 Ch.Assert(typeof(T) == type.ItemType.RawType);
                 var trans = _parent.EnsureAndGetTransposer(col);
-                ISlotCursor cursor = trans.GetSlotCursor(0);
+                SlotCursor cursor = trans.GetSlotCursor(0);
                 ValueGetter<VBuffer<T>> getter = cursor.GetGetter<T>();
                 int i = _colToActivesIndex[col];
                 _getters[i] = getter;
@@ -892,25 +907,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 return more;
             }
 
-            protected override bool MoveManyCore(long count)
-            {
-                Ch.Assert(State != CursorState.Done);
-                bool more = Position < _parent._header.RowCount - count;
-                for (int i = 0; i < _transCursors.Length; ++i)
-                {
-                    bool cMore = _transCursors[i].MoveMany(count);
-                    Ch.Assert(cMore == more);
-                }
-                return more;
-            }
-
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col <= _colToActivesIndex.Length, nameof(col));
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");

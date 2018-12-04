@@ -397,7 +397,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Transforms.Text
                 return MakeGetterVec(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<ushort>> MakeGetterOne(IRow input, int iinfo)
+            private ValueGetter<VBuffer<ushort>> MakeGetterOne(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private ValueGetter<VBuffer<ushort>> MakeGetterVec(IRow input, int iinfo)
+            private ValueGetter<VBuffer<ushort>> MakeGetterVec(Row input, int iinfo)
             {
                 Host.AssertValue(input);
 

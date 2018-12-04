@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Api
             return null;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.Api
             return new Cursor(this, input, predicate);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Contracts.CheckValue(predicate, nameof(predicate));
             Contracts.CheckParam(n >= 0, nameof(n));
@@ -144,13 +144,13 @@ namespace Microsoft.ML.Runtime.Api
             return new StatefulFilterTransform<TSrc, TDst, TState>(env, this, newSource);
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly StatefulFilterTransform<TSrc, TDst, TState> _parent;
 
-            private readonly IRowCursor<TSrc> _input;
+            private readonly RowCursor<TSrc> _input;
             // This is used to serve getters for the columns we produce.
-            private readonly IRow _appendedRow;
+            private readonly Row _appendedRow;
 
             private readonly TSrc _src;
             private readonly TDst _dst;
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.Api
                 get { return _input.Batch; }
             }
 
-            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, IRowCursor<TSrc> input, Func<int, bool> predicate)
+            public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, Func<int, bool> predicate)
                 : base(parent.Host)
             {
                 Ch.AssertValue(input);
@@ -240,9 +240,9 @@ namespace Microsoft.ML.Runtime.Api
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public Schema Schema => _parent._bindings.Schema;
+            public override Schema Schema => _parent._bindings.Schema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Runtime.Api
                 return _appendedRow.IsColumnActive(iCol);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Contracts.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
                 bool isSrc;

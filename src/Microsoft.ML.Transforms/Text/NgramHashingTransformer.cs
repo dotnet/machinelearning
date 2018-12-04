@@ -660,7 +660,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(icol >= 0);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 int srcCount = _srcIndices[iinfo].Length;
@@ -780,42 +780,6 @@ namespace Microsoft.ML.Transforms.Text
                     }
                 }
                 _friendlyNames = friendlyNames;
-            }
-
-            /// <summary>
-            /// Construct an action that calls all the getters for a row, so as to easily force computation
-            /// of lazily computed values. This will have the side effect of calling the decorator.
-            /// </summary>
-            public static Action CallAllGetters(IRow row)
-            {
-                var colCount = row.Schema.ColumnCount;
-                List<Action> getters = new List<Action>();
-                for (int c = 0; c < colCount; ++c)
-                {
-                    if (row.IsColumnActive(c))
-                        getters.Add(GetNoOpGetter(row, c));
-                }
-                var gettersArray = getters.ToArray();
-                return
-                    () =>
-                    {
-                        for (int i = 0; i < gettersArray.Length; ++i)
-                            gettersArray[i]();
-                    };
-            }
-
-            private static Action GetNoOpGetter(IRow row, int col)
-            {
-                Func<IRow, int, Action> func = GetNoOpGetter<int>;
-                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(row.Schema.GetColumnType(col).RawType);
-                return (Action)meth.Invoke(null, new object[] { row, col });
-            }
-
-            private static Action GetNoOpGetter<T>(IRow row, int col)
-            {
-                T value = default(T);
-                var getter = row.GetGetter<T>(col);
-                return () => getter(ref value);
             }
 
             private sealed class NGram : IEquatable<NGram>

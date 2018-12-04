@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -15,23 +16,21 @@ namespace Microsoft.ML.Runtime.Data
     /// This cursor base class returns "this" from <see cref="GetRootCursor"/>. That is, all
     /// <see cref="MoveNext"/>/<see cref="MoveMany(long)"/> calls will be seen by this cursor. For a cursor
     /// that has an input cursor and does NOT need notification on <see cref="MoveNext"/>/<see cref="MoveMany(long)"/>,
-    /// use <see cref="SynchronizedCursorBase{TBase}"/> .
+    /// use <see cref="SynchronizedCursorBase"/> .
     /// </summary>
     [BestFriend]
-    internal abstract class RootCursorBase : ICursor
+    internal abstract class RootCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
+        private CursorState _state;
+        private long _position;
 
         /// <summary>
         /// Zero-based position of the cursor.
         /// </summary>
-        public long Position { get; private set; }
+        public sealed override long Position => _position;
 
-        public abstract long Batch { get; }
-
-        public abstract ValueGetter<UInt128> GetIdGetter();
-
-        public CursorState State { get; private set; }
+        public sealed override CursorState State => _state;
 
         /// <summary>
         /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
@@ -39,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
         protected bool IsGood => State == CursorState.Good;
 
         /// <summary>
-        /// Creates an instance of the RootCursorBase class
+        /// Creates an instance of the <see cref="RootCursorBase"/> class
         /// </summary>
         /// <param name="provider">Channel provider</param>
         protected RootCursorBase(IChannelProvider provider)
@@ -47,21 +46,21 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(provider, nameof(provider));
             Ch = provider.Start("Cursor");
 
-            Position = -1;
-            State = CursorState.NotStarted;
+            _position = -1;
+            _state = CursorState.NotStarted;
         }
 
-        public virtual void Dispose()
+        public override void Dispose()
         {
             if (State != CursorState.Done)
             {
                 Ch.Dispose();
-                Position = -1;
-                State = CursorState.Done;
+                _position = -1;
+                _state = CursorState.Done;
             }
         }
 
-        public bool MoveNext()
+        public sealed override bool MoveNext()
         {
             if (State == CursorState.Done)
                 return false;
@@ -71,8 +70,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
 
-                Position++;
-                State = CursorState.Good;
+                _position++;
+                _state = CursorState.Good;
                 return true;
             }
 
@@ -80,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public bool MoveMany(long count)
+        public sealed override bool MoveMany(long count)
         {
             // Note: If we decide to allow count == 0, then we need to special case
             // that MoveNext() has never been called. It's not entirely clear what the return
@@ -95,8 +94,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
 
-                Position += count;
-                State = CursorState.Good;
+                _position += count;
+                _state = CursorState.Good;
                 return true;
             }
 
@@ -137,6 +136,6 @@ namespace Microsoft.ML.Runtime.Data
         /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
         /// the root cursor will be faster.
         /// </summary>
-        public ICursor GetRootCursor() => this;
+        public override RowCursor GetRootCursor() => this;
     }
 }

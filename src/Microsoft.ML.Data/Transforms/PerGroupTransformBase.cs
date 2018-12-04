@@ -152,15 +152,15 @@ namespace Microsoft.ML.Runtime.Data
             return Source.GetRowCount();
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
@@ -178,14 +178,14 @@ namespace Microsoft.ML.Runtime.Data
             return GetRowCursorCore(predicate);
         }
 
-        private IRowCursor GetRowCursorCore(Func<int, bool> predicate)
+        private RowCursor GetRowCursorCore(Func<int, bool> predicate)
         {
             var bindings = GetBindings();
             var active = bindings.GetActive(predicate);
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
             var predInput = bindings.GetDependencies(predicate);
-            return new RowCursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
+            return new Cursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
         }
 
         /// <summary>
@@ -199,17 +199,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Get the getter for the first input column.
         /// </summary>
-        protected abstract ValueGetter<TLabel> GetLabelGetter(IRow row);
+        protected abstract ValueGetter<TLabel> GetLabelGetter(Row row);
 
         /// <summary>
         /// Get the getter for the second input column.
         /// </summary>
-        protected abstract ValueGetter<TScore> GetScoreGetter(IRow row);
+        protected abstract ValueGetter<TScore> GetScoreGetter(Row row);
 
         /// <summary>
         /// Return a new state object.
         /// </summary>
-        protected abstract TState InitializeState(IRow input);
+        protected abstract TState InitializeState(Row input);
 
         /// <summary>
         /// Update the state object with one example.
@@ -222,11 +222,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract void UpdateState(TState state);
 
-        private sealed class RowCursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly PerGroupTransformBase<TLabel, TScore, TState> _parent;
-            private readonly IRowCursor _groupCursor;
-            private readonly IRowCursor _input;
+            private readonly RowCursor _groupCursor;
+            private readonly RowCursor _input;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
@@ -237,11 +237,11 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ValueGetter<TLabel> _labelGetter;
             private readonly ValueGetter<TScore> _scoreGetter;
 
-            public Schema Schema => _parent.OutputSchema;
+            public override Schema Schema => _parent.OutputSchema;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
-            public RowCursor(PerGroupTransformBase<TLabel, TScore, TState> parent, IRowCursor input, IRowCursor groupCursor, bool[] active)
+            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, RowCursor input, RowCursor groupCursor, bool[] active)
                 : base(parent.Host)
             {
                 Ch.AssertValue(parent);
@@ -267,13 +267,13 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter = _parent.GetScoreGetter(_groupCursor);
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _parent.GetBindings().ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Contracts.CheckParam(IsColumnActive(col), nameof(col), "requested column is not active");
 
@@ -324,8 +324,8 @@ namespace Microsoft.ML.Runtime.Data
                 // Read the whole group from the auxiliary cursor.
                 while (_groupCursor.State != CursorState.Done && !_newGroupInGroupCursorDel())
                 {
-                    TLabel label = default(TLabel);
-                    TScore score = default(TScore);
+                    TLabel label = default;
+                    TScore score = default;
                     _labelGetter(ref label);
                     _scoreGetter(ref score);
                     _parent.ProcessExample(_state, label, score);

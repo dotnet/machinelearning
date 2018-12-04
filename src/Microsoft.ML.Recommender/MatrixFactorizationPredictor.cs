@@ -339,7 +339,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
             }
 
-            private Delegate[] CreateGetter(IRow input, bool[] active)
+            private Delegate[] CreateGetter(Row input, bool[] active)
             {
                 _env.CheckValue(input, nameof(input));
                 _env.Assert(Utils.Size(active) == OutputSchema.ColumnCount);
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
             {
                 var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
                 var getters = CreateGetter(input, active);

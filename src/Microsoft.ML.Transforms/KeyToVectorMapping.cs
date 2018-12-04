@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 dst = editor.Commit();
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the scalar case.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterOne(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterOne(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsKey);
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <summary>
             /// This is for the indicator case - vector input and outputs should be concatenated.
             /// </summary>
-            private ValueGetter<VBuffer<float>> MakeGetterInd(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> MakeGetterInd(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(_infos[iinfo].TypeSrc.IsVector);

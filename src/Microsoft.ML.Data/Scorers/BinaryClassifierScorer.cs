@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Data
             return new BinaryClassifierScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);

@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
         /// a getter for an inactive columns will throw. The <paramref name="needCol"/> predicate must be
         /// non-null. To activate all columns, pass "col => true".
         /// </summary>
-        IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
+        RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null);
 
         /// <summary>
         /// This constructs a set of parallel batch cursors. The value n is a recommended limit
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Data
         /// should return the "same" row as would have been returned through the regular serial cursor,
         /// but all rows should be returned by exactly one of the cursors returned from this cursor.
         /// The cursors can have their values reconciled downstream through the use of the
-        /// <see cref="ICounted.Batch"/> property.
+        /// <see cref="Row.Batch"/> property.
         /// </summary>
         /// <param name="consolidator">This is an object that can be used to reconcile the
         /// returned array of cursors. When the array of cursors is of length 1, it is legal,
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="n">The suggested degree of parallelism.</param>
         /// <param name="rand">An instance </param>
         /// <returns></returns>
-        IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> needCol, int n, Random rand = null);
 
         /// <summary>
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Create a consolidated cursor from the given parallel cursor set.
         /// </summary>
-        IRowCursor CreateCursor(IChannelProvider provider, IRowCursor[] inputs);
+        RowCursor CreateCursor(IChannelProvider provider, RowCursor[] inputs);
     }
 
     /// <summary>
@@ -139,36 +139,119 @@ namespace Microsoft.ML.Runtime.Data
     public delegate void ValueGetter<TValue>(ref TValue value);
 
     /// <summary>
-    /// A logical row. May be a row of an IDataView or a stand-alone row. If/when its contents
-    /// change, its ICounted.Counter value is incremented.
+    /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
+    /// change, its <see cref="Position"/> value is changed.
     /// </summary>
-    public interface IRow : ICounted
+    public abstract class Row
     {
+        /// <summary>
+        /// This is incremented when the underlying contents changes, giving clients a way to detect change.
+        /// Generally it's -1 when the object is in an invalid state. In particular, for an <see cref="RowCursor"/>, this is -1
+        /// when the <see cref="RowCursor.State"/> is <see cref="CursorState.NotStarted"/> or <see cref="CursorState.Done"/>.
+        ///
+        /// Note that this position is not position within the underlying data, but position of this cursor only.
+        /// If one, for example, opened a set of parallel streaming cursors, or a shuffled cursor, each such cursor's
+        /// first valid entry would always have position 0.
+        /// </summary>
+        public abstract long Position { get; }
+
+        /// <summary>
+        /// This provides a means for reconciling multiple streams of counted things. Generally, in each stream,
+        /// batch numbers should be non-decreasing. Furthermore, any given batch number should only appear in one
+        /// of the streams. Order is determined by batch number. The reconciler ensures that each stream (that is
+        /// still active) has at least one item available, then takes the item with the smallest batch number.
+        ///
+        /// Note that there is no suggestion that the batches for a particular entry will be consistent from
+        /// cursoring to cursoring, except for the consistency in resulting in the same overall ordering. The same
+        /// entry could have different batch numbers from one cursoring to another. There is also no requirement
+        /// that any given batch number must appear, at all.
+        /// </summary>
+        public abstract long Batch { get; }
+
+        /// <summary>
+        /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="Row"/>
+        /// instances to iterate over what is supposed to be the same data, for example, in a <see cref="IDataView"/>
+        /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor
+        /// will produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID
+        /// exists for applications that need to reconcile which entry is actually which. Ideally this ID should
+        /// be unique, but for practical reasons, it suffices if collisions are simply extremely improbable.
+        ///
+        /// Note that this ID, while it must be consistent for multiple streams according to the semantics
+        /// above, is not considered part of the data per se. So, to take the example of a data view specifically,
+        /// a single data view must render consistent IDs across all cursorings, but there is no suggestion at
+        /// all that if the "same" data were presented in a different data view (as by, say, being transformed,
+        /// cached, saved, or whatever), that the IDs between the two different data views would have any
+        /// discernable relationship.</summary>
+        public abstract ValueGetter<UInt128> GetIdGetter();
+
         /// <summary>
         /// Returns whether the given column is active in this row.
         /// </summary>
-        bool IsColumnActive(int col);
+        public abstract bool IsColumnActive(int col);
 
         /// <summary>
         /// Returns a value getter delegate to fetch the given column value from the row.
         /// This throws if the column is not active in this row, or if the type
         /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
-        ValueGetter<TValue> GetGetter<TValue>(int col);
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
 
         /// <summary>
         /// Gets a <see cref="Schema"/>, which provides name and type information for variables
         /// (i.e., columns in ML.NET's type system) stored in this row.
         /// </summary>
-        Schema Schema { get; }
+        public abstract Schema Schema { get; }
 
     }
 
     /// <summary>
-    /// A cursor through rows of an <see cref="IDataView"/>. Note that this includes/is an
-    /// <see cref="IRow"/>, as well as an <see cref="ICursor"/>.
+    /// Defines the possible states of a cursor.
     /// </summary>
-    public interface IRowCursor : ICursor, IRow
+    public enum CursorState
     {
+        NotStarted,
+        Good,
+        Done
+    }
+
+    /// <summary>
+    /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
+    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>
+    /// and <see cref="MoveMany"/>. When the cursor state is <see cref="CursorState.NotStarted"/> or
+    /// <see cref="CursorState.Done"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise,
+    /// <see cref="Row.Position"/> >= 0.
+    /// </summary>
+    public abstract class RowCursor : Row, IDisposable
+    {
+        /// <summary>
+        /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
+        /// <see cref="MoveMany(long)"/> this should be <see cref="CursorState.NotStarted"/>. After
+        /// any call those move functions that returns <see langword="true"/>, this should return
+        /// <see cref="CursorState.Good"/>,
+        /// </summary>
+        public abstract CursorState State { get; }
+
+        /// <summary>
+        /// Advance to the next row. When the cursor is first created, this method should be called to
+        /// move to the first row. Returns <c>false</c> if there are no more rows.
+        /// </summary>
+        public abstract bool MoveNext();
+
+        /// <summary>
+        /// Logically equivalent to calling <see cref="MoveNext"/> the given number of times. The
+        /// <paramref name="count"/> parameter must be positive. Note that cursor implementations may be
+        /// able to optimize this.
+        /// </summary>
+        public abstract bool MoveMany(long count);
+
+        /// <summary>
+        /// Returns a cursor that can be used for invoking <see cref="Row.Position"/>, <see cref="State"/>,
+        /// <see cref="MoveNext"/>, and <see cref="MoveMany"/>, with results identical to calling those
+        /// on this cursor. Generally, if the root cursor is not the same as this cursor, using the
+        /// root cursor will be faster. As an aside, note that this is not necessarily the case of
+        /// values from <see cref="Row.GetIdGetter"/>.
+        /// </summary>
+        public abstract RowCursor GetRootCursor();
+        public abstract void Dispose();
     }
 }
