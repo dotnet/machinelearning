@@ -21,6 +21,12 @@ using System.Collections.Generic;
 
 namespace Microsoft.ML.KMeansClustering
 {
+    /// <example>
+    /// <format type="text/markdown">
+    /// <![CDATA[
+    ///  [!code-csharp[KMeans](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/KMeans.cs)]
+    /// ]]></format>
+    /// </example>
     public sealed class KMeansModelParameters :
         PredictorBase<VBuffer<Float>>,
         IValueMapper,

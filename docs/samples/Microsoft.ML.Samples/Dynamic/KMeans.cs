@@ -14,7 +14,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
-            IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
+            var data = SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = ml.CreateStreamingDataView(data);
 
             // Preview of the data.
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             var model = pipeline.Fit(trainData);
 
-            // Get centroids and k from KMeansModelParameters.
+            // Get cluster centroids and the number of clusters k from KMeansModelParameters.
             VBuffer<float>[] centroids = default;
             int k;
 
