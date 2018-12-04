@@ -60,7 +60,8 @@ namespace Microsoft.ML.Core.Data
             /// </summary>
             public readonly SchemaShape Metadata;
 
-            public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
+            [BestFriend]
+            internal Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValueOrNull(metadata);
@@ -85,7 +86,8 @@ namespace Microsoft.ML.Core.Data
             ///  - The columns of <see cref="Metadata"/> of <paramref name="inputColumn"/> is a superset of our <see cref="Metadata"/> columns.
             ///  - Each such metadata column is itself compatible with the input metadata column.
             /// </summary>
-            public bool IsCompatibleWith(Column inputColumn)
+            [BestFriend]
+            internal bool IsCompatibleWith(Column inputColumn)
             {
                 Contracts.Check(inputColumn.IsValid, nameof(inputColumn));
                 if (Name != inputColumn.Name)
@@ -106,7 +108,8 @@ namespace Microsoft.ML.Core.Data
                 return true;
             }
 
-            public string GetTypeString()
+            [BestFriend]
+            internal string GetTypeString()
             {
                 string result = ItemType.ToString();
                 if (IsKey)
@@ -122,7 +125,8 @@ namespace Microsoft.ML.Core.Data
             /// Return if this structure is not identical to the default value of <see cref="Column"/>. If true,
             /// it means this structure is initialized properly and therefore considered as valid.
             /// </summary>
-            public bool IsValid => Name != null;
+            [BestFriend]
+            internal bool IsValid => Name != null;
         }
 
         public SchemaShape(IEnumerable<Column> columns)
