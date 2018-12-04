@@ -311,6 +311,11 @@ namespace Microsoft.ML.Transforms.Text
         private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
         private readonly ColumnType[] _slotNamesTypes;
 
+                /// <summary>
+        /// Constructor for case where you don't need to 'train' transform on data, for example, InvertHash for all columns set to zero.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="columns">Description of dataset columns and how to process them.</param>
         public NgramHashingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashingTransformer)))
         {
@@ -382,7 +387,7 @@ namespace Microsoft.ML.Transforms.Text
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int  amount of columns
+            // int number of columns
             // columns
             ctx.Writer.Write(_columns.Length);
             foreach (var column in _columns)
@@ -407,7 +412,7 @@ namespace Microsoft.ML.Transforms.Text
             var columns = new ColumnInfo[columnsLength];
 
             // *** Binary format ***
-            // int  amount of columns
+            // int number of columns
             // columns
             for (int i = 0; i < columnsLength; i++)
                 columns[i] = new ColumnInfo(ctx);
@@ -1011,8 +1016,8 @@ namespace Microsoft.ML.Transforms.Text
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="inputColumn">Name of input column containing tokenized text.</param>
+        /// <param name="outputColumn">Name of output column, will contain the ngram vector. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -1042,8 +1047,8 @@ namespace Microsoft.ML.Transforms.Text
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="inputColumns">The columns containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing output tokens.</param>
+        /// <param name="inputColumns">Name of input columns containing tokenized text.</param>
+        /// <param name="outputColumn">Name of output column, will contain the ngram vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -1103,7 +1108,7 @@ namespace Microsoft.ML.Transforms.Text
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="columns">Array of columns with information how to transform data.</param>
+        /// <param name="columns">Array of columns which specifies the behavior of the transformation.</param>
         public NgramHashingEstimator(IHostEnvironment env, params NgramHashingTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
