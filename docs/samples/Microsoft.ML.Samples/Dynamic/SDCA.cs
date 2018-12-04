@@ -44,7 +44,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // cache step in a pipeline is also possible, please see the construction of pipeline below.
             data = mlContext.Data.Cache(data);
 
-
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
             // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
