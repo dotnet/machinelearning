@@ -552,8 +552,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Default separator is tab, but the dataset has comma.
                 separator: ',');
 
-            // Read the data.
-            var data = reader.Read(dataPath);
+            // Read the data and cache it in-memory to avoid accessing data on disk many times in training phase.
+            var data = reader.Read(dataPath).Cache();
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()

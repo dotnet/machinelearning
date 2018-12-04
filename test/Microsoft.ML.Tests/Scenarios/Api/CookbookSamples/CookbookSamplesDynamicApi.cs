@@ -440,6 +440,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in memory so that SDCA trainer will be able to randomly access training examples without disk operation.
+                .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
