@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
             var pipeline = new Ova(
