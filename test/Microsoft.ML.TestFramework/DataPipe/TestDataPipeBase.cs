@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -774,7 +775,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
-
         public class SentimentData
         {
             [ColumnName("Label")]
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var comp = comps[col];
                     if (comp != null && !comp())
                     {
-                        Fail("Different values in column {0} of row {1}", col, curs1.Position);
+                        Fail($"Different values in column {col} of row {curs1.Position}");
                         return Failed();
                     }
                     if (idComp != null && !idComp())
@@ -1158,12 +1158,10 @@ namespace Microsoft.ML.Runtime.RunTests
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
         }
 
-        private const Double DoubleEps = 1e-9;
-
-        private static bool EqualWithEpsDouble(Double x, Double y)
+        private bool EqualWithEpsDouble(Double x, Double y)
         {
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
-            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < DoubleEps;
+            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || CompareNumbersWithTolerance(x, y, null, 3);
         }
 
         private const float SingleEps = 1e-6f;
