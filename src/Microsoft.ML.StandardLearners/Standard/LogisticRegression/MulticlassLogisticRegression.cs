@@ -982,12 +982,12 @@ namespace Microsoft.ML.Runtime.Learners
             return bldr.GetDataView();
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

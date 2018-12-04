@@ -35,7 +35,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double Dbi { get; }
 
-        internal ClusteringMetrics(IExceptionContext ectx, IRow overallResult, bool calculateDbi)
+        internal ClusteringMetrics(IExceptionContext ectx, Row overallResult, bool calculateDbi)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
 

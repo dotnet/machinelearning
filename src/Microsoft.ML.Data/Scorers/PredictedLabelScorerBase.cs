@@ -400,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
             return Bindings.AnyNewColumnsActive(predicate);
         }
 
-        protected override Delegate[] GetGetters(IRow output, Func<int, bool> predicate)
+        protected override Delegate[] GetGetters(Row output, Func<int, bool> predicate)
         {
             Host.Assert(Bindings.DerivedColumnCount == 1);
             Host.AssertValue(output);
@@ -432,10 +432,10 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        protected abstract Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter);
+        protected abstract Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter);
 
         protected void EnsureCachedPosition<TScore>(ref long cachedPosition, ref TScore score,
-            IRow boundRow, ValueGetter<TScore> scoreGetter)
+            Row boundRow, ValueGetter<TScore> scoreGetter)
         {
             if (cachedPosition != boundRow.Position)
             {

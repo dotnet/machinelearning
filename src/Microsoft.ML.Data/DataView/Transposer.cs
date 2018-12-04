@@ -229,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
             return columns;
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < _tschema.ColumnCount, nameof(col));
             if (_inputToTransposed[col] == -1)
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
             return Utils.MarshalInvoke(GetSlotCursorCore<int>, type, col);
         }
 
-        private ISlotCursor GetSlotCursorCore<T>(int col)
+        private SlotCursor GetSlotCursorCore<T>(int col)
         {
             if (_tschema.GetColumnType(col).IsVector)
                 return new SlotCursorVec<T>(this, col);
@@ -265,12 +265,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             return _view.GetRowCursor(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             return _view.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
@@ -357,13 +357,11 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private abstract class SlotCursor<T> : RootCursorBase, ISlotCursor
+        private abstract class SlotCursor<T> : SlotCursor.RootSlotCursor
         {
             private readonly Transposer _parent;
             private readonly int _col;
             private ValueGetter<VBuffer<T>> _getter;
-
-            public override long Batch { get { return 0; } }
 
             protected SlotCursor(Transposer parent, int col)
                 : base(parent._host)
@@ -373,17 +371,7 @@ namespace Microsoft.ML.Runtime.Data
                 _col = col;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter()
-            {
-                return
-                    (ref UInt128 val) =>
-                    {
-                        Ch.Check(IsGood, "Cannot call ID getter in current state");
-                        val = new UInt128((ulong)Position, 0);
-                    };
-            }
-
-            public ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
+            public override ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
             {
                 if (_getter == null)
                     _getter = GetGetterCore();
@@ -393,7 +381,7 @@ namespace Microsoft.ML.Runtime.Data
                 return getter;
             }
 
-            public VectorType GetSlotType()
+            public override VectorType GetSlotType()
             {
                 return _parent.TransposeSchema.GetSlotType(_col);
             }
@@ -406,6 +394,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IDataView _view;
             private readonly int _col;
             private readonly int _len;
+            private bool _moved;
 
             public SlotCursorOne(Transposer parent, int col)
                 : base(parent, col)
@@ -435,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
             protected override bool MoveNextCore()
             {
                 // We only can move next on one slot, since this is a scalar column.
-                return State == CursorState.NotStarted;
+                return _moved = !_moved;
             }
 
             protected override ValueGetter<VBuffer<T>> GetGetterCore()
@@ -577,7 +566,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private void EnsureValid()
             {
-                Ch.Check(State == CursorState.Good, "Cursor is not in good state, cannot get values");
+                Ch.Check(IsGood, "Cursor is not in good state, cannot get values");
                 Ch.Assert(_slotCurr >= 0);
                 if (_colStored == _colCurr)
                     return;
@@ -867,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
                 splitCol = _colToSplitCol[col];
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 bool[] activeSplitters;
@@ -875,7 +864,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Cursor(_host, this, _input.GetRowCursor(srcPred, rand), predicate, activeSplitters);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
@@ -1000,7 +989,7 @@ namespace Microsoft.ML.Runtime.Data
             /// There is one instance of these per column, implementing the possible splitting
             /// of one column from a <see cref="IDataView"/> into multiple columns. The instance
             /// describes the resulting split columns through its implementation of
-            /// <see cref="ISchema"/>, and then can be bound to an <see cref="IRow"/> to provide
+            /// <see cref="ISchema"/>, and then can be bound to an <see cref="Row"/> to provide
             /// that splitting functionality.
             /// </summary>
             private abstract class Splitter : NoMetadataSchema
@@ -1059,10 +1048,10 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 /// <summary>
-                /// Given an input <see cref="IRow"/>, create the <see cref="IRow"/> containing the split
+                /// Given an input <see cref="Row"/>, create the <see cref="Row"/> containing the split
                 /// version of the columns.
                 /// </summary>
-                public abstract IRow Bind(IRow row, Func<int, bool> pred);
+                public abstract Row Bind(Row row, Func<int, bool> pred);
 
                 private static Splitter CreateCore<T>(IDataView view, int col)
                 {
@@ -1097,17 +1086,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 #endregion
 
-                private abstract class RowBase<TSplitter> : IRow
+                private abstract class RowBase<TSplitter> : Row
                     where TSplitter : Splitter
                 {
                     protected readonly TSplitter Parent;
-                    protected readonly IRow Input;
+                    protected readonly Row Input;
 
-                    public Schema Schema => Parent.AsSchema;
-                    public long Position => Input.Position;
-                    public long Batch => Input.Batch;
+                    public sealed override Schema Schema => Parent.AsSchema;
+                    public sealed override long Position => Input.Position;
+                    public sealed override long Batch => Input.Batch;
 
-                    public RowBase(TSplitter parent, IRow input)
+                    public RowBase(TSplitter parent, Row input)
                     {
                         Contracts.AssertValue(parent);
                         Contracts.AssertValue(input);
@@ -1116,14 +1105,10 @@ namespace Microsoft.ML.Runtime.Data
                         Input = input;
                     }
 
-                    public ValueGetter<UInt128> GetIdGetter()
+                    public sealed override ValueGetter<UInt128> GetIdGetter()
                     {
                         return Input.GetIdGetter();
                     }
-
-                    public abstract bool IsColumnActive(int col);
-
-                    public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
                 }
 
                 /// <summary>
@@ -1150,20 +1135,20 @@ namespace Microsoft.ML.Runtime.Data
                         return _view.Schema.GetColumnType(SrcCol);
                     }
 
-                    public override IRow Bind(IRow row, Func<int, bool> pred)
+                    public override Row Bind(Row row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
                         Contracts.Assert(row.IsColumnActive(SrcCol));
-                        return new Row(this, row, pred(0));
+                        return new RowImpl(this, row, pred(0));
                     }
 
-                    private sealed class Row : RowBase<NoSplitter<T>>
+                    private sealed class RowImpl : RowBase<NoSplitter<T>>
                     {
                         private readonly bool _isActive;
 
-                        public Row(NoSplitter<T> parent, IRow input, bool isActive)
+                        public RowImpl(NoSplitter<T> parent, Row input, bool isActive)
                             : base(parent, input)
                         {
                             Contracts.Assert(Parent.ColumnCount == 1);
@@ -1236,16 +1221,16 @@ namespace Microsoft.ML.Runtime.Data
                         return _types[col];
                     }
 
-                    public override IRow Bind(IRow row, Func<int, bool> pred)
+                    public override Row Bind(Row row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
                         Contracts.Assert(row.IsColumnActive(SrcCol));
-                        return new Row(this, row, pred);
+                        return new RowImpl(this, row, pred);
                     }
 
-                    private sealed class Row : RowBase<ColumnSplitter<T>>
+                    private sealed class RowImpl : RowBase<ColumnSplitter<T>>
                     {
                         // Counter of the last valid input, updated by EnsureValid.
                         private long _lastValid;
@@ -1260,7 +1245,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Getters.
                         private readonly ValueGetter<VBuffer<T>>[] _getters;
 
-                        public Row(ColumnSplitter<T> parent, IRow input, Func<int, bool> pred)
+                        public RowImpl(ColumnSplitter<T> parent, Row input, Func<int, bool> pred)
                             : base(parent, input)
                         {
                             _inputGetter = input.GetGetter<VBuffer<T>>(Parent.SrcCol);
@@ -1367,17 +1352,17 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// The cursor implementation creates the <see cref="IRow"/>s using <see cref="Splitter.Bind"/>,
+            /// The cursor implementation creates the <see cref="Row"/>s using <see cref="Splitter.Bind"/>,
             /// then collates the results from those rows as effectively one big row.
             /// </summary>
-            private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+            private sealed class Cursor : SynchronizedCursorBase
             {
                 private readonly DataViewSlicer _slicer;
-                private readonly IRow[] _sliceRows;
+                private readonly Row[] _sliceRows;
 
-                public Schema Schema => _slicer.Schema;
+                public override Schema Schema => _slicer.Schema;
 
-                public Cursor(IChannelProvider provider, DataViewSlicer slicer, IRowCursor input, Func<int, bool> pred, bool[] activeSplitters)
+                public Cursor(IChannelProvider provider, DataViewSlicer slicer, RowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
                 {
                     Ch.AssertValue(slicer);
@@ -1385,7 +1370,7 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.Assert(Utils.Size(activeSplitters) == slicer._splitters.Length);
 
                     _slicer = slicer;
-                    _sliceRows = new IRow[_slicer._splitters.Length];
+                    _sliceRows = new Row[_slicer._splitters.Length];
                     var activeSrc = new bool[slicer._splitters.Length];
                     var activeSrcSet = new HashSet<int>();
                     int offset = 0;
@@ -1403,7 +1388,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
                     int splitInd;
@@ -1412,7 +1397,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _sliceRows[splitInd] != null && _sliceRows[splitInd].IsColumnActive(splitCol);
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.Check(IsColumnActive(col));
                     int splitInd;
@@ -1446,7 +1431,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The <see cref="ISlotCursor.GetGetter{TValue}"/> is parameterized by a type that becomes the
+        /// The <see cref="SlotCursor.GetGetter{TValue}"/> is parameterized by a type that becomes the
         /// type parameter for a <see cref="VBuffer{T}"/>, and this is generally preferable and more
         /// sensible but for various reasons it's often a lot simpler to have a get-getter be over
         /// the actual type returned by the getter, that is, parameterize this by the actual
@@ -1457,7 +1442,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="cursor">The cursor to get the getter for</param>
         /// <param name="ctx">The exception contxt</param>
         /// <returns>The value getter</returns>
-        public static ValueGetter<TValue> GetGetterWithVectorType<TValue>(this ISlotCursor cursor, IExceptionContext ctx = null)
+        public static ValueGetter<TValue> GetGetterWithVectorType<TValue>(this SlotCursor cursor, IExceptionContext ctx = null)
         {
             Contracts.CheckValueOrNull(ctx);
             ctx.CheckValue(cursor, nameof(cursor));
@@ -1478,15 +1463,15 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a slot cursor, construct a single-column equivalent row cursor, with the single column
         /// active and having the same type. This is useful to exploit the many utility methods that exist
-        /// to handle <see cref="IRowCursor"/> and <see cref="IRow"/> but that know nothing about
-        /// <see cref="ISlotCursor"/>, without having to rewrite all of them. This is, however, rather
+        /// to handle <see cref="RowCursor"/> and <see cref="Row"/> but that know nothing about
+        /// <see cref="SlotCursor"/>, without having to rewrite all of them. This is, however, rather
         /// something of a hack; whenever possible or reasonable the slot cursor should be used directly.
         /// The name of this column is always "Waffles".
         /// </summary>
         /// <param name="provider">The channel provider used in creating the wrapping row cursor</param>
         /// <param name="cursor">The slot cursor to wrap</param>
         /// <returns>A row cursor with a single active column with the same type as the slot type</returns>
-        public static IRowCursor GetRowCursorShim(IChannelProvider provider, ISlotCursor cursor)
+        public static RowCursor GetRowCursorShim(IChannelProvider provider, SlotCursor cursor)
         {
             Contracts.CheckValue(provider, nameof(provider));
             provider.CheckValue(cursor, nameof(cursor));
@@ -1494,7 +1479,7 @@ namespace Microsoft.ML.Runtime.Data
             return Utils.MarshalInvoke(GetRowCursorShimCore<int>, cursor.GetSlotType().ItemType.RawType, provider, cursor);
         }
 
-        private static IRowCursor GetRowCursorShimCore<T>(IChannelProvider provider, ISlotCursor cursor)
+        private static RowCursor GetRowCursorShimCore<T>(IChannelProvider provider, SlotCursor cursor)
         {
             return new SlotRowCursorShim<T>(provider, cursor);
         }
@@ -1508,11 +1493,10 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ITransposeDataView _data;
             private readonly int _col;
             private readonly ColumnType _type;
-            private readonly SchemaImpl _schemaImpl;
 
-            public Schema Schema => _schemaImpl.AsSchema;
+            public Schema Schema { get; }
 
-            public bool CanShuffle { get { return false; } }
+            public bool CanShuffle => false;
 
             public SlotDataView(IHostEnvironment env, ITransposeDataView data, int col)
             {
@@ -1525,7 +1509,10 @@ namespace Microsoft.ML.Runtime.Data
 
                 _data = data;
                 _col = col;
-                _schemaImpl = new SchemaImpl(this);
+
+                var builder = new SchemaBuilder();
+                builder.AddColumn(_data.Schema[_col].Name, _type, null);
+                Schema = builder.GetSchema();
             }
 
             public long? GetRowCount()
@@ -1536,113 +1523,50 @@ namespace Microsoft.ML.Runtime.Data
                 return valueCount;
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 return Utils.MarshalInvoke(GetRowCursor<int>, _type.ItemType.RawType, predicate(0));
             }
 
-            private IRowCursor GetRowCursor<T>(bool active)
+            private RowCursor GetRowCursor<T>(bool active)
             {
                 return new Cursor<T>(this, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 consolidator = null;
-                return new IRowCursor[] { GetRowCursor(predicate, rand) };
+                return new RowCursor[] { GetRowCursor(predicate, rand) };
             }
 
-            private sealed class SchemaImpl : ISchema
+            private sealed class Cursor<T> : RootCursorBase
             {
                 private readonly SlotDataView _parent;
-
-                private IHost Host { get { return _parent._host; } }
-
-                public Schema AsSchema { get; }
-
-                public int ColumnCount { get { return 1; } }
-
-                public SchemaImpl(SlotDataView parent)
-                {
-                    Contracts.AssertValue(parent);
-                    _parent = parent;
-                    AsSchema = Schema.Create(this);
-                }
-
-                public ColumnType GetColumnType(int col)
-                {
-                    Host.CheckParam(col == 0, nameof(col));
-                    return _parent._type;
-                }
-
-                public string GetColumnName(int col)
-                {
-                    Host.CheckParam(col == 0, nameof(col));
-                    // There is no real need for this to have the real name as the internal IDV
-                    // substream does not have its name accessed, but we'll save it just the same.
-                    // I am tempted though to just have this thing always claim its name is 'Pancakes'.
-                    return _parent._data.Schema.GetColumnName(_parent._col);
-                }
-
-                public bool TryGetColumnIndex(string name, out int col)
-                {
-                    if (name == GetColumnName(0))
-                    {
-                        col = 0;
-                        return true;
-                    }
-                    col = -1;
-                    return false;
-                }
-
-                // No metadata. The top level IDV will hold the schema information, including metadata.
-                // This per-column dataview schema information is just minimally functional.
-
-                public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-                {
-                    Host.CheckParam(col == 0, nameof(col));
-                    return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-                }
-
-                public ColumnType GetMetadataTypeOrNull(string kind, int col)
-                {
-                    Host.CheckNonEmpty(kind, nameof(kind));
-                    Host.CheckParam(col == 0, nameof(col));
-                    return null;
-                }
-
-                public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-                {
-                    Host.CheckNonEmpty(kind, nameof(kind));
-                    Host.CheckParam(col == 0, nameof(col));
-                    throw MetadataUtils.ExceptGetMetadata();
-                }
-            }
-
-            private sealed class Cursor<T> : SynchronizedCursorBase<ISlotCursor>, IRowCursor
-            {
-                private readonly SlotDataView _parent;
+                private readonly SlotCursor _slotCursor;
                 private readonly Delegate _getter;
 
-                public Schema Schema => _parent.Schema;
+                public override Schema Schema => _parent.Schema;
+
+                public override long Batch => 0;
 
                 public Cursor(SlotDataView parent, bool active)
-                    : base(parent._host, parent._data.GetSlotCursor(parent._col))
+                    : base(parent._host)
                 {
                     _parent = parent;
+                    _slotCursor = _parent._data.GetSlotCursor(parent._col);
                     if (active)
-                        _getter = Input.GetGetter<T>();
+                        _getter = _slotCursor.GetGetter<T>();
                 }
 
-                public bool IsColumnActive(int col)
+                public override bool IsColumnActive(int col)
                 {
                     Ch.CheckParam(col == 0, nameof(col));
                     return _getter != null;
                 }
 
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
                 {
                     Ch.CheckParam(col == 0, nameof(col));
                     Ch.CheckParam(_getter != null, nameof(col), "requested column not active");
@@ -1652,98 +1576,61 @@ namespace Microsoft.ML.Runtime.Data
                         throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
                     return getter;
                 }
+
+                public override ValueGetter<UInt128> GetIdGetter() => GetId;
+
+                private void GetId(ref UInt128 id)
+                {
+                    Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                    id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+                }
+
+                protected override bool MoveNextCore() => _slotCursor.MoveNext();
             }
         }
 
         // REVIEW: This shim class is very similar to the above shim class, except at the
         // cursor level, not the cursorable level. Is there some non-horrifying way to unify both, somehow?
-        private sealed class SlotRowCursorShim<T> : SynchronizedCursorBase<ISlotCursor>, IRowCursor
+        private sealed class SlotRowCursorShim<T> : RootCursorBase
         {
-            private readonly SchemaImpl _schema;
+            private readonly SlotCursor _slotCursor;
 
-            public Schema Schema => _schema.AsSchema;
+            public override Schema Schema { get; }
 
-            private sealed class SchemaImpl : ISchema
+            public override long Batch => 0;
+
+            public SlotRowCursorShim(IChannelProvider provider, SlotCursor cursor)
+                : base(provider)
             {
-                private readonly SlotRowCursorShim<T> _parent;
-                private readonly VectorType _type;
+                Contracts.AssertValue(cursor);
 
-                private IChannel Ch { get { return _parent.Ch; } }
-
-                public Schema AsSchema { get; }
-
-                public int ColumnCount { get { return 1; } }
-
-                public SchemaImpl(SlotRowCursorShim<T> parent, VectorType slotType)
-                {
-                    Contracts.AssertValue(parent);
-                    _parent = parent;
-                    Ch.AssertValue(slotType);
-                    _type = slotType;
-                    AsSchema = Schema.Create(this);
-                }
-
-                public ColumnType GetColumnType(int col)
-                {
-                    Ch.CheckParam(col == 0, nameof(col));
-                    return _type;
-                }
-
-                public string GetColumnName(int col)
-                {
-                    Ch.CheckParam(col == 0, nameof(col));
-                    return "Waffles";
-                }
-
-                public bool TryGetColumnIndex(string name, out int col)
-                {
-                    if (name == GetColumnName(0))
-                    {
-                        col = 0;
-                        return true;
-                    }
-                    col = -1;
-                    return false;
-                }
-
-                public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-                {
-                    Ch.CheckParam(col == 0, nameof(col));
-                    return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
-                }
-
-                public ColumnType GetMetadataTypeOrNull(string kind, int col)
-                {
-                    Ch.CheckNonEmpty(kind, nameof(kind));
-                    Ch.CheckParam(col == 0, nameof(col));
-                    return null;
-                }
-
-                public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-                {
-                    Ch.CheckNonEmpty(kind, nameof(kind));
-                    Ch.CheckParam(col == 0, nameof(col));
-                    throw MetadataUtils.ExceptGetMetadata();
-                }
+                _slotCursor = cursor;
+                var builder = new SchemaBuilder();
+                builder.AddColumn("Waffles", cursor.GetSlotType(), null);
+                Schema = builder.GetSchema();
             }
 
-            public SlotRowCursorShim(IChannelProvider provider, ISlotCursor cursor)
-                : base(provider, cursor)
-            {
-                _schema = new SchemaImpl(this, Input.GetSlotType());
-            }
-
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(col == 0, nameof(col));
                 return true;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(col == 0, nameof(col));
-                return Input.GetGetterWithVectorType<TValue>(Ch);
+                return _slotCursor.GetGetterWithVectorType<TValue>(Ch);
             }
+
+            public override ValueGetter<UInt128> GetIdGetter() => GetId;
+
+            private void GetId(ref UInt128 id)
+            {
+                Ch.Check(_slotCursor.SlotIndex >= 0, "Cannot get ID with cursor in current state.");
+                id = new UInt128((ulong)_slotCursor.SlotIndex, 0);
+            }
+
+            protected override bool MoveNextCore() => _slotCursor.MoveNext();
         }
 
         /// <summary>

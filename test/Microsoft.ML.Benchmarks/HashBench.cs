@@ -17,26 +17,26 @@ namespace Microsoft.ML.Benchmarks
 {
     public class HashBench
     {
-        private sealed class Row : IRow
+        private sealed class RowImpl : Row
         {
-            public Schema Schema { get; }
+            public long PositionValue;
 
-            public long Position { get; set; }
-
-            public long Batch => 0;
-            public ValueGetter<UInt128> GetIdGetter()
+            public override Schema Schema { get; }
+            public override long Position => PositionValue;
+            public override long Batch => 0;
+            public override ValueGetter<UInt128> GetIdGetter()
                 => (ref UInt128 val) => val = new UInt128((ulong)Position, 0);
 
             private readonly Delegate _getter;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 if (col != 0)
                     throw new Exception();
                 return true;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 if (col != 0)
                     throw new Exception();
@@ -45,14 +45,14 @@ namespace Microsoft.ML.Benchmarks
                 throw new Exception();
             }
 
-            public static Row Create<T>(ColumnType type, ValueGetter<T> getter)
+            public static RowImpl Create<T>(ColumnType type, ValueGetter<T> getter)
             {
                 if (type.RawType != typeof(T))
                     throw new Exception();
-                return new Row(type, getter);
+                return new RowImpl(type, getter);
             }
 
-            private Row(ColumnType type, Delegate getter)
+            private RowImpl(ColumnType type, Delegate getter)
             {
                 var builder = new SchemaBuilder();
                 builder.AddColumn("Foo", type, null);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Benchmarks
 
         private readonly IHostEnvironment _env = new MLContext();
 
-        private Row _inRow;
+        private RowImpl _inRow;
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
         {
             if (getter == null)
                 getter = (ref T dst) => dst = val;
-            _inRow = Row.Create(type, getter);
+            _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _getter(ref val);
-                ++_inRow.Position;
+                ++_inRow.PositionValue;
             }
         }
 
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Benchmarks
             for (int i = 0; i < Count; ++i)
             {
                 _vecGetter(ref val);
-                ++_inRow.Position;
+                ++_inRow.PositionValue;
             }
         }
 

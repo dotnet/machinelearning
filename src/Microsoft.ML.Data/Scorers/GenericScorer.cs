@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.Data
             return new GenericScorer(env, this, newSource);
         }
 
-        protected override Delegate[] GetGetters(IRow output, Func<int, bool> predicate)
+        protected override Delegate[] GetGetters(Row output, Func<int, bool> predicate)
         {
             Host.Assert(_bindings.DerivedColumnCount == 0);
             Host.AssertValue(output);

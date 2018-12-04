@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
                 WeightedCounters = Weighted ? new Counters(lossFunction, _size) : null;
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);

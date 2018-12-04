@@ -456,7 +456,7 @@ namespace Microsoft.ML.Transforms.Conversions
         private static MethodInfo _methGetterVecToVec;
         private static MethodInfo _methGetterVecToOne;
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
@@ -466,17 +466,17 @@ namespace Microsoft.ML.Transforms.Conversions
             // Construct MethodInfos templates that we need for the generic methods.
             if (_methGetterOneToOne == null)
             {
-                Func<IRow, int, ValueGetter<uint>> del = ComposeGetterOneToOne<int>;
+                Func<Row, int, ValueGetter<uint>> del = ComposeGetterOneToOne<int>;
                 Interlocked.CompareExchange(ref _methGetterOneToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
             if (_methGetterVecToVec == null)
             {
-                Func<IRow, int, ValueGetter<VBuffer<uint>>> del = ComposeGetterVecToVec<int>;
+                Func<Row, int, ValueGetter<VBuffer<uint>>> del = ComposeGetterVecToVec<int>;
                 Interlocked.CompareExchange(ref _methGetterVecToVec, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
             if (_methGetterVecToOne == null)
             {
-                Func<IRow, int, ValueGetter<uint>> del = ComposeGetterVecToOne<int>;
+                Func<Row, int, ValueGetter<uint>> del = ComposeGetterVecToOne<int>;
                 Interlocked.CompareExchange(ref _methGetterVecToOne, del.GetMethodInfo().GetGenericMethodDefinition(), null);
             }
 
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a non-vector</typeparam>
         /// <param name="input">Row inout</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(IRow input, int iinfo)
+        private ValueGetter<uint> ComposeGetterOneToOne<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(!Infos[iinfo].TypeSrc.IsVector);
@@ -526,7 +526,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a vector</typeparam>
         /// <param name="input">Row input</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(IRow input, int iinfo)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecToVec<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Transforms.Conversions
         /// <typeparam name="TSrc">Input type. Must be a vector</typeparam>
         /// <param name="input">Row input</param>
         /// <param name="iinfo">Index of the getter</param>
-        private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(IRow input, int iinfo)
+        private ValueGetter<uint> ComposeGetterVecToOne<TSrc>(Row input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);

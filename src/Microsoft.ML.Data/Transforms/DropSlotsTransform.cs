@@ -692,7 +692,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 newRangeMax = maxRange2;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return MakeVecGetter(input, iinfo);
             }
 
-            private Delegate MakeOneTrivialGetter(IRow input, int iinfo)
+            private Delegate MakeOneTrivialGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 value = default(TDst);
             }
 
-            private Delegate MakeVecTrivialGetter(IRow input, int iinfo)
+            private Delegate MakeVecTrivialGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -757,19 +757,19 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 VBufferUtils.Resize(ref value, 1, 0);
             }
 
-            private Delegate MakeVecGetter(IRow input, int iinfo)
+            private Delegate MakeVecGetter(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 Host.Assert(_srcTypes[iinfo].IsVector);
                 Host.Assert(!_suppressed[iinfo]);
 
-                Func<IRow, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
+                Func<Row, int, ValueGetter<VBuffer<int>>> del = MakeVecGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_srcTypes[iinfo].ItemType.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { input, iinfo });
             }
 
-            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(IRow input, int iinfo)
+            private ValueGetter<VBuffer<TDst>> MakeVecGetter<TDst>(Row input, int iinfo)
             {
                 var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
                 var typeDst = _dstTypes[iinfo];
@@ -786,7 +786,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                     };
             }
 
-            private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+            private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -795,12 +795,12 @@ namespace Microsoft.ML.Transforms.FeatureSelection
                 return input.GetGetter<T>(src);
             }
 
-            private Delegate GetSrcGetter(ColumnType typeDst, IRow row, int iinfo)
+            private Delegate GetSrcGetter(ColumnType typeDst, Row row, int iinfo)
             {
                 Host.CheckValue(typeDst, nameof(typeDst));
                 Host.CheckValue(row, nameof(row));
 
-                Func<IRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
+                Func<Row, int, ValueGetter<int>> del = GetSrcGetter<int>;
                 var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
                 return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
             }

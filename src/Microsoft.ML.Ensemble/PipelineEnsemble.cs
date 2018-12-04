@@ -103,12 +103,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                 yield break;
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
             {
                 return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
             }
 
-            public abstract Delegate CreateScoreGetter(IRow input, Func<int, bool> mapperPredicate, out Action disposer);
+            public abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                public override Delegate CreateScoreGetter(IRow input, Func<int, bool> mapperPredicate, out Action disposer)
+                public override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
                 {
                     disposer = null;
 
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     return scoreGetter;
                 }
 
-                public ValueGetter<Single> GetLabelGetter(IRow input, int i, out Action disposer)
+                public ValueGetter<Single> GetLabelGetter(Row input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
                     Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
                 }
 
-                public ValueGetter<Single> GetWeightGetter(IRow input, int i, out Action disposer)
+                public ValueGetter<Single> GetWeightGetter(Row input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
 

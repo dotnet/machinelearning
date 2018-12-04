@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.Data
             return new ClusteringScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
             Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);

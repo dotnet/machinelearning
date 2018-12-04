@@ -63,7 +63,7 @@ namespace Microsoft.ML.Data
         public override string ToString()
             => $"{Schema.Count} columns, {RowView.Length} rows";
 
-        private Action<RowInfo, List<object>> MakeSetter<T>(IRow row, int col)
+        private Action<RowInfo, List<object>> MakeSetter<T>(Row row, int col)
         {
             var getter = row.GetGetter<T>(col);
             string name = row.Schema[col].Name;

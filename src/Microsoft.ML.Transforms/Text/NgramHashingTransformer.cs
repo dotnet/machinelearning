@@ -378,8 +378,8 @@ namespace Microsoft.ML.Transforms.Text
                 string[][] friendlyNames = args.Column.Select(c => c.FriendlyNames).ToArray();
                 var helper = new InvertHashHelper(this, friendlyNames, inputPred, invertHashMaxCounts);
 
-                using (IRowCursor srcCursor = input.GetRowCursor(inputPred))
-                using (var dstCursor = new RowCursor(this, srcCursor, active, helper.Decorate))
+                using (RowCursor srcCursor = input.GetRowCursor(inputPred))
+                using (var dstCursor = new Cursor(this, srcCursor, active, helper.Decorate))
                 {
                     var allGetters = InvertHashHelper.CallAllGetters(dstCursor);
                     while (dstCursor.MoveNext())
@@ -628,7 +628,7 @@ namespace Microsoft.ML.Transforms.Text
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -636,10 +636,10 @@ namespace Microsoft.ML.Transforms.Text
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(this, input, active);
+            return new Cursor(this, input, active);
         }
 
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public sealed override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -654,9 +654,9 @@ namespace Microsoft.ML.Transforms.Text
                 inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
             Host.AssertNonEmpty(inputs);
 
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(this, inputs[i], active);
+                cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
         }
 
@@ -665,7 +665,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.GetDependencies(predicate);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        private Delegate MakeGetter(IChannel ch, IRow input, int iinfo, FinderDecorator decorator = null)
+        private Delegate MakeGetter(IChannel ch, Row input, int iinfo, FinderDecorator decorator = null)
         {
             ch.Assert(_bindings.Infos[iinfo].SrcTypes.All(t => t.IsVector && t.ItemType.IsKey));
 
@@ -728,15 +728,15 @@ namespace Microsoft.ML.Transforms.Text
 
         private delegate NgramIdFinder FinderDecorator(int iinfo, NgramIdFinder finder);
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
+            public Cursor(NgramHashingTransformer parent, RowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(parent);
@@ -760,13 +760,13 @@ namespace Microsoft.ML.Transforms.Text
                 return _active == null || _active[_bindings.MapIinfoToCol(iinfo)];
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _bindings.ColumnCount);
                 return _active == null || _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.Check(IsColumnActive(col));
 
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Construct an action that calls all the getters for a row, so as to easily force computation
             /// of lazily computed values. This will have the side effect of calling the decorator.
             /// </summary>
-            public static Action CallAllGetters(IRow row)
+            public static Action CallAllGetters(Row row)
             {
                 var colCount = row.Schema.ColumnCount;
                 List<Action> getters = new List<Action>();
@@ -845,14 +845,14 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private static Action GetNoOpGetter(IRow row, int col)
+            private static Action GetNoOpGetter(Row row, int col)
             {
-                Func<IRow, int, Action> func = GetNoOpGetter<int>;
+                Func<Row, int, Action> func = GetNoOpGetter<int>;
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(row.Schema.GetColumnType(col).RawType);
                 return (Action)meth.Invoke(null, new object[] { row, col });
             }
 
-            private static Action GetNoOpGetter<T>(IRow row, int col)
+            private static Action GetNoOpGetter<T>(Row row, int col)
             {
                 T value = default(T);
                 var getter = row.GetGetter<T>(col);
