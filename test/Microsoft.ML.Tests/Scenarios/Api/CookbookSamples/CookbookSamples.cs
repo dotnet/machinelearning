@@ -552,8 +552,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // Default separator is tab, but the dataset has comma.
                 separator: ',');
 
-            // Read the data and cache it in-memory to avoid accessing data on disk many times in training phase.
-            var data = reader.Read(dataPath).Cache();
+            // Read the data.
+            var data = reader.Read(dataPath);
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -562,6 +562,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     Label: r.Label.ToKey(),
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // Add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
