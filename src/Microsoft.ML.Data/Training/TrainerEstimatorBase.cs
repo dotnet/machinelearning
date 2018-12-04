@@ -60,8 +60,7 @@ namespace Microsoft.ML.Runtime.Training
             Contracts.CheckValue(host, nameof(host));
             Host = host;
             Host.Check(feature.IsValid, nameof(feature));
-            Host.CheckValueOrDefault(label);
-            Host.CheckValueOrDefault(weight);
+            Host.Check(label.IsValid, nameof(label));
 
             FeatureColumn = feature;
             LabelColumn = label;
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Runtime.Training
                 SchemaShape.Column groupId = default)
             :base(host, feature, label, weight)
         {
-            Host.CheckValueOrDefault(groupId);
+            Host.CheckParam(groupId.IsValid, nameof(groupId), "struct not initialized properly.");
             GroupIdColumn = groupId;
         }
 

@@ -5,7 +5,6 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,7 +66,6 @@ namespace Microsoft.ML.Core.Data
                 Contracts.CheckValueOrNull(metadata);
                 Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
                 Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
-
                 Contracts.CheckParam(!isKey || KeyType.IsValidDataKind(itemType.RawKind), nameof(itemType), "The item type must be valid for a key");
 
                 Name = name;
@@ -133,7 +131,7 @@ namespace Microsoft.ML.Core.Data
         {
             Contracts.CheckValue(columns, nameof(columns));
             Columns = columns.ToArray();
-            Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "No items should be null.");
+            Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "Some items are not initialized properly.");
         }
 
         /// <summary>

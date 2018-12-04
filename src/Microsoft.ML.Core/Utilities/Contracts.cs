@@ -765,20 +765,6 @@ namespace Microsoft.ML.Runtime
         public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
         {
         }
-        /// <summary>
-        /// This documents that the parameter can not legally be null because it is struct.
-        /// </summary>
-        [Conditional("INVARIANT_CHECKS")]
-        public static void CheckValueOrDefault<T>(T val) where T : struct
-        {
-        }
-        /// <summary>
-        /// This documents that the parameter can not legally be null because it is struct.
-        /// </summary>
-        [Conditional("INVARIANT_CHECKS")]
-        public static void CheckValueOrDefault<T>(this IExceptionContext ctx, T val) where T : struct
-        {
-        }
 
         // Assert
 
