@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[GAM](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// [!code-csharp[GAM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
     /// ]]>
     /// </format>
     /// </example>
