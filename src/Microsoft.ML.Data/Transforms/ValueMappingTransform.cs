@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             var vectorKind = Transformer.ValueColumnType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar;
             var isKey = Transformer.ValueColumnType.IsKey;
-            var columnType = (isKey) ? Transformer.ValueColumnType.ItemType :
+            var columnType = (isKey) ? PrimitiveType.FromKind(DataKind.U4) :
                                     Transformer.ValueColumnType;
             foreach (var (Input, Output) in _columns)
             {
@@ -171,11 +171,42 @@ namespace Microsoft.ML.Transforms
 
             var dataViewBuilder = new ArrayDataViewBuilder(env);
             dataViewBuilder.AddColumn(ValueMappingTransform.KeyColumnName, keyType, keys.ToArray());
-            var valuesArr = values.ToArray();
+            var valuesArray = values.ToArray();
             if (treatValuesAsKeyValue)
             {
-                uint[] indices = Enumerable.Range(0, count: values.Count()).Select(i => (uint)i).ToArray();
-                dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, GetKeyValueGetter(valuesArr), 0, indices.Length, indices);
+                // If the values are key values, there are two different ways in which they are handled:
+                // 1) If the values are of type uint, then it is assumed that these values are the
+                // key values. In this case, the values are used for the key values.
+                // 2) If the values are not of type uint. Then key type values are generated as a number range starting at 0.
+                if (valueType.RawKind == DataKind.U4)
+                {
+                    IEnumerable<uint> indices = values.Select((x) => Convert.ToUInt32(x));
+                    var min = indices.Min();
+                    dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, GetKeyValueGetter(valuesArray), min, indices.Count(), indices.ToArray());
+                }
+                else
+                {
+                    // When generating the indices, treat each value as being unique, i.e. two values that are the same will
+                    // be assigned the same index. The dictionary is used to maintain uniqueness, indices will contain
+                    // the full list of indices (equal to the same length of values).
+                    Dictionary<TValueType, uint> keyTypeValueMapping = new Dictionary<TValueType, uint>();
+                    uint[] indices  = new uint[values.Count()];
+                    uint index = 0;
+                    for(int i = 0; i < values.Count(); ++i)
+                    {
+                        TValueType value = values.ElementAt(i);
+                        if(!keyTypeValueMapping.ContainsKey(value))
+                        {
+                            keyTypeValueMapping.Add(value, index);
+                            index++;
+                        }
+
+                        var keyValue = keyTypeValueMapping[value];
+                        indices[i] = keyValue;
+                    }
+
+                    dataViewBuilder.AddColumn(ValueMappingTransform.ValueColumnName, GetKeyValueGetter(valuesArray), 0, indices.Count(), indices);
+                }
             }
             else
             {
@@ -337,8 +368,10 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
-            env.Check(CheckModelVersion(ctx, GetVersionInfo()) ||
-                        CheckModelVersion(ctx, GetTermLookupVersionInfo()));
+
+            // Checks for both the TermLookup for backwards compatibility
+            var termLookupModel = CheckModelVersion(ctx, GetTermLookupVersionInfo());
+            env.Check(termLookupModel || CheckModelVersion(ctx, GetVersionInfo()));
 
             // *** Binary format ***
             // int: number of added columns
@@ -362,7 +395,8 @@ namespace Microsoft.ML.Transforms
                 throw env.ExceptDecode();
 
             var binaryLoader = GetLoader(env, rgb);
-            return new ValueMappingTransform(env, binaryLoader, KeyColumnName, ValueColumnName, columns);
+            var keyColumnName = (termLookupModel) ? "Term" : KeyColumnName;
+            return new ValueMappingTransform(env, binaryLoader, keyColumnName, ValueColumnName, columns);
         }
 
         private static byte[] ReadAllBytes(IExceptionContext ectx, BinaryReader rdr)
@@ -414,9 +448,9 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Holds the values that the terms map to.
+        /// Base class that contains the mapping of keys to values.
         /// </summary>
-        protected abstract class ValueMap
+        private abstract class ValueMap
         {
             public readonly ColumnType KeyType;
             public readonly ColumnType ValueType;
@@ -446,15 +480,25 @@ namespace Microsoft.ML.Transforms
             public abstract IDataView GetDataView(IHostEnvironment env);
         }
 
+        /// <summary>
+        /// Implementation mapping class that maps a key of TKeyType to a specified value of TValueType.
+        /// </summary>
         private class ValueMap<TKeyType, TValueType> : ValueMap
         {
             private Dictionary<TKeyType, TValueType> _mapping;
             private TValueType _missingValue;
 
+            private Dictionary<TKeyType, TValueType> CreateDictionary()
+            {
+                if (typeof(TKeyType) == typeof(ReadOnlyMemory<char>))
+                    return new Dictionary<ReadOnlyMemory<char>, TValueType>(new ReadOnlyMemoryUtils.ReadonlyMemoryCharComparer()) as Dictionary<TKeyType, TValueType>;
+                return new Dictionary<TKeyType, TValueType>();
+            }
+
             public ValueMap(ColumnType keyType, ColumnType valueType)
                 : base(keyType, valueType)
             {
-                _mapping = new Dictionary<TKeyType, TValueType>();
+                _mapping = CreateDictionary();
             }
 
             public override void Train(IHostEnvironment env, IRowCursor cursor)
@@ -476,11 +520,11 @@ namespace Microsoft.ML.Transforms
                                                                         ValueType,
                                                                         out conv,
                                                                         out identity))
-                        {
-                            TValueType value = default;
-                            conv(string.Empty.AsMemory(), ref value);
-                            _missingValue = value;
-                        }
+                    {
+                        TValueType value = default;
+                        conv(string.Empty.AsMemory(), ref value);
+                        _missingValue = value;
+                    }
                 }
 
                 var keyGetter = cursor.GetGetter<TKeyType>(0);

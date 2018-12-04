@@ -4,13 +4,17 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -34,6 +38,16 @@ namespace Microsoft.ML.Tests.Transformers
             public string A;
             public float B;
         }
+
+        public class TestTermLookup
+        {
+            public string Label;
+            public int GroupId; 
+
+            [VectorType(2107)]
+            public float[] Features;
+        };
+
 
         [Fact]
         public void ValueMapOneValueTest()
@@ -154,7 +168,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(typeof(int), fColumn.ItemType.RawType);
             Assert.False(fColumn.IsKey);
         }
-/*
+
         [Fact]
         public void ValueMappingWithValuesAsKeyTypesOutputSchema()
         {
@@ -171,26 +185,27 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(outputSchema.TryFindColumn("E", out SchemaShape.Column eColumn));
             Assert.True(outputSchema.TryFindColumn("F", out SchemaShape.Column fColumn));
 
-            Assert.Equal(typeof(int), dColumn.ItemType.RawType);
+            Assert.Equal(typeof(uint), dColumn.ItemType.RawType);
             Assert.True(dColumn.IsKey);
 
-            Assert.Equal(typeof(int), eColumn.ItemType.RawType);
+            Assert.Equal(typeof(uint), eColumn.ItemType.RawType);
             Assert.True(eColumn.IsKey);
             
-            Assert.Equal(typeof(int), fColumn.ItemType.RawType);
+            Assert.Equal(typeof(uint), fColumn.ItemType.RawType);
             Assert.True(fColumn.IsKey);
 
             var t = estimator.Fit(dataView);
         }
-        */
 
         [Fact]
-        public void ValueMappingValuesAsKeyTypes()
+        public void ValueMappingValuesAsUintKeyTypes()
         {
             var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
 
             IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+
+            // These are the expected key type values
             IEnumerable<uint> values = new List<uint>() { 51, 25, 42, 61 };
 
             var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, uint>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
@@ -203,18 +218,52 @@ namespace Microsoft.ML.Tests.Transformers
             var getterE = cursor.GetGetter<uint>(4);
             var getterF = cursor.GetGetter<uint>(5);
             cursor.MoveNext();
+            
+            // The expected values will contain the actual uints and are not generated.
+            uint dValue = 1;
+            getterD(ref dValue);
+            Assert.Equal<uint>(25, dValue);
+            uint eValue = 0;
+            getterE(ref eValue);
+            Assert.Equal<uint>(42, eValue);
+            uint fValue = 0;
+            getterF(ref fValue);
+            Assert.Equal<uint>(51, fValue);
+        }
 
+
+        [Fact]
+        public void ValueMappingValuesAsStringKeyTypes()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "test", C = "foo" } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+
+            IEnumerable<ReadOnlyMemory<char>> keys = new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory(), "wahoo".AsMemory() };
+
+            // Generating the list of strings for the key type values, note that foo1 is duplicated as intended to test that the same index value is returned
+            IEnumerable<ReadOnlyMemory<char>> values = new List<ReadOnlyMemory<char>>() { "foo1".AsMemory(), "foo2".AsMemory(), "foo1".AsMemory(), "foo3".AsMemory() };
+
+            var estimator = new ValueMappingEstimator<ReadOnlyMemory<char>, ReadOnlyMemory<char>>(Env, keys, values, true, new[] { ("A", "D"), ("B", "E"), ("C", "F") });
+            var t = estimator.Fit(dataView);
+
+            var result = t.Transform(dataView);
+            var cursor = result.GetRowCursor((col) => true);
+            var getterD = cursor.GetGetter<uint>(3);
+            var getterE = cursor.GetGetter<uint>(4);
+            var getterF = cursor.GetGetter<uint>(5);
+            cursor.MoveNext();
+
+            // The expected values will contain the generated key type values.
             uint dValue = 1;
             getterD(ref dValue);
             Assert.Equal<uint>(1, dValue);
             uint eValue = 0;
             getterE(ref eValue);
-            Assert.Equal<uint>(2, eValue);
+            Assert.Equal<uint>(0, eValue);
             uint fValue = 0;
             getterF(ref fValue);
             Assert.Equal<uint>(0, fValue);
         }
-
 
         [Fact]
         public void ValueMappingWorkout()
@@ -239,6 +288,71 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=valuemap{key=ID value=Text data="
                                     + dataFile
                                     + @" col=A:B loader=Text{col=ID:U8:0 col=Text:TX:1 sep=, header=+} } in=f:\1.txt" }), (int)0);
+        }
+
+        [Fact]
+        void TestSavingAndLoading()
+        {
+            var data = new[] { new TestClass() { A = "bar", B = "foo", C = "test", } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var est = new ValueMappingEstimator<ReadOnlyMemory<char>, int>(Env, 
+                                                new List<ReadOnlyMemory<char>>() { "foo".AsMemory(), "bar".AsMemory(), "test".AsMemory() }, 
+                                                new List<int>() { 2, 43, 56 }, 
+                                                new [] {("A","D"), ("B", "E")});
+            var transformer = est.Fit(dataView);
+            using (var ms = new MemoryStream())
+            {
+                transformer.SaveTo(Env, ms);
+                ms.Position = 0;
+                var loadedTransformer = TransformerChain.LoadFrom(Env, ms);
+                var result = loadedTransformer.Transform(dataView);
+                Assert.Equal(5, result.Schema.ColumnCount);
+                Assert.True(result.Schema.TryGetColumnIndex("D", out int col));
+                Assert.True(result.Schema.TryGetColumnIndex("E", out col));
+            }
+        }
+
+        [Fact]
+        void TestValueMapBackCompatTermLookup()
+        {
+            // Model generated with: xf=drop{col=A} 
+            // Expected output: Features Label B C
+            var data = new[] { new TestTermLookup() { Label = "good", GroupId=1 } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            string termLookupModelPath = GetDataPath("backcompat/termlookup.zip");
+            using (FileStream fs = File.OpenRead(termLookupModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                Assert.True(result.Schema.TryGetColumnIndex("Features", out int featureIdx));
+                Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
+                Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
+            }
+        }
+
+        [Fact]
+        void TestValueMapBackCompatTermLookupKeyTypeValue()
+        {
+            // Model generated with: xf=drop{col=A} 
+            // Expected output: Features Label B C
+            var data = new[] { new TestTermLookup() { Label = "Good", GroupId=1 } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            string termLookupModelPath = GetDataPath("backcompat/termlookup_with_key.zip");
+            using (FileStream fs = File.OpenRead(termLookupModelPath))
+            {
+                var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                Assert.True(result.Schema.TryGetColumnIndex("Features", out int featureIdx));
+                Assert.True(result.Schema.TryGetColumnIndex("Label", out int labelIdx));
+                Assert.True(result.Schema.TryGetColumnIndex("GroupId", out int groupIdx));
+                
+                Assert.True(result.Schema[labelIdx].Type.IsKey);
+                var keyType = result.Schema[labelIdx].Type.AsKey;
+                Assert.Equal((ulong)0, keyType.Min);
+                Assert.Equal(5, keyType.KeyCount);
+
+                var t = result.GetColumn<uint>(Env, "Label");
+                uint s = t.First();
+                Assert.Equal((uint)3, s);
+            }
         }
     }
 }
