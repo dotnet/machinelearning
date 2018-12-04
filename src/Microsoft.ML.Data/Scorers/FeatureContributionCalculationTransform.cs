@@ -393,8 +393,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHostEnvironment _env;
             private readonly ISchemaBoundRowMapper _genericRowMapper;
             private readonly BindableMapper _parent;
-            private readonly Schema _outputSchema;
-            private readonly Schema _outputGenericSchema;
+            private readonly ISchema _outputSchema;
+            private readonly ISchema _outputGenericSchema;
             private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
@@ -419,9 +419,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (parent.Stringify)
                 {
-                    var builder = new SchemaBuilder();
-                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
-                    _outputSchema = builder.GetSchema();
+                    _outputSchema = new SimpleSchema(_env,
+                        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
                     if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
                             ref _slotNames);
@@ -430,13 +429,18 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    _outputSchema = Schema.Create(new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-                        new VectorType(NumberType.R4, schema.Feature.Type as VectorType),
-                        InputSchema, InputRoleMappedSchema.Feature.Index));
+                    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
+                        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
+                        InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
 
+<<<<<<< HEAD
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
-                OutputSchema = new CompositeSchema(new Schema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+                OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
+=======
+                _outputGenericSchema = _genericRowMapper.Schema;
+                Schema = new CompositeSchema(new ISchema[] { schema.Schema, _outputGenericSchema, _outputSchema }).AsSchema;
+>>>>>>> conitnuing work on fcc
             }
 
             /// <summary>
@@ -452,28 +456,34 @@ namespace Microsoft.ML.Runtime.Data
                 return col => false;
             }
 
-            public Row GetRow(Row input, Func<int, bool> active)
+            public Row GetOutputRow(Row input, Func<int, bool> predicate, out Action disposer)
             {
                 Contracts.AssertValue(input);
-                Contracts.AssertValue(active);
-                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
+                Contracts.AssertValue(predicate);
+                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount + Schema.ColumnCount;
                 var getters = new Delegate[totalColumnsCount];
 
-                if (active(totalColumnsCount - 1))
+                for (int i = 0; i < input.Schema.ColumnCount; i++)
+                {
+                    if (input.IsColumnActive(i))
+                        getters[i] = RowCursorUtils.GetGetterAsDelegate(input, i);
+                }
+
+                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
+                for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
+                {
+                    if (genericRow.IsColumnActive(i))
+                        getters[input.Schema.ColumnCount + i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
+                }
+
+                if (predicate(totalColumnsCount - 1))
                 {
                     getters[totalColumnsCount - 1] = _parent.Stringify
                         ? _parent.GetTextContributionGetter(input, InputRoleMappedSchema.Feature.Index, _slotNames)
                         : _parent.GetContributionGetter(input, InputRoleMappedSchema.Feature.Index);
                 }
 
-                var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(active));
-                for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
-                {
-                    if (genericRow.IsColumnActive(i))
-                        getters[i] = RowCursorUtils.GetGetterAsDelegate(genericRow, i);
-                }
-
-                return new SimpleRow(OutputSchema, genericRow, getters);
+                return new SimpleRow(OutputSchema, input, getters);
             }
 
             public Func<int, bool> GetGenericPredicate(Func<int, bool> predicate)
@@ -484,6 +494,11 @@ namespace Microsoft.ML.Runtime.Data
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
+            }
+
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+            {
+                return GetOutputRow(input, active, out disposer);
             }
         }
 
@@ -563,12 +578,14 @@ namespace Microsoft.ML.Runtime.Data
     public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculationTransform>
     {
         private readonly FeatureContributionCalculationTransform.Arguments _arguments;
+        private readonly string _features;
 
         public FeatureContributionCalculatingEstimator(IHostEnvironment env, FeatureContributionCalculationTransform.Arguments arguments, string features, IPredictor predictor)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculationTransform)), new FeatureContributionCalculationTransform(env, arguments, features, predictor))
         {
             // TODO argcheck?
             _arguments = arguments;
+            _features = features;
         }
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -604,9 +621,27 @@ namespace Microsoft.ML.Runtime.Data
             //        InputSchema, InputRoleMappedSchema.Feature.Index);
             //}
 
-            // add score column
-            result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, schem));
-            // add feature contribution column (float array)
+            if (!inputSchema.TryFindColumn(_features, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _features);
+            var metadata = new List<SchemaShape.Column>();
+            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                metadata.Add(slotMeta);
+
+            //public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
+            // TODO: add score column
+
+            // Add FeatureContributions column.
+            if (_arguments.Stringify)
+            {
+                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
+                    TextType.Instance, false, new SchemaShape(metadata.ToArray())));
+            }
+            else
+            {
+                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
+                    col.ItemType, false, new SchemaShape(metadata.ToArray())));
+            }
+
             return new SchemaShape(result.ToArray());
         }
     }
