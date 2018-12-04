@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.ML.Core.Data
@@ -18,11 +19,11 @@ namespace Microsoft.ML.Core.Data
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
-        public readonly Column[] Columns;
+        public readonly ImmutableList<Column> Columns;
 
         private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
 
-        public int Count => Columns.Length;
+        public int Count => Columns.Count;
 
         public Column this[int index] => Columns[index];
 
@@ -130,7 +131,7 @@ namespace Microsoft.ML.Core.Data
         public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            Columns = columns.ToArray();
+            Columns = columns.ToImmutableList();
             Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "Some items are not initialized properly.");
         }
 
@@ -200,7 +201,7 @@ namespace Microsoft.ML.Core.Data
             return column.IsValid;
         }
 
-        public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)Columns).GetEnumerator();
+        public IEnumerator<Column> GetEnumerator() => Columns.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

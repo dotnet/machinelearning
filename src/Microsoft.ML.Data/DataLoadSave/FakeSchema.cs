@@ -30,11 +30,11 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             _env = env;
             _shape = inputShape;
-            _colMap = Enumerable.Range(0, _shape.Columns.Length)
+            _colMap = Enumerable.Range(0, _shape.Count)
                 .ToDictionary(idx => _shape.Columns[idx].Name, idx => idx);
         }
 
-        public int ColumnCount => _shape.Columns.Length;
+        public int ColumnCount => _shape.Count;
 
         public string GetColumnName(int col)
         {
