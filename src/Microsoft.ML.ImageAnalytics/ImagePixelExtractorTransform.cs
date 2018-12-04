@@ -502,7 +502,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         bool needScale = offset != 0 || scale != 1;
                         Contracts.Assert(!needScale || !vf.IsEmpty);
 
-                        bool hasAlpha = src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb;
                         bool a = ex.Alpha;
                         bool r = ex.Red;
                         bool g = ex.Green;
@@ -520,21 +519,21 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                     var pb = src.GetPixel(x, y);
                                     if (!vb.IsEmpty)
                                     {
-                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
+                                        if (a) { vb[idst++] = pb.A; }
                                         if (r) { vb[idst++] = pb.R; }
                                         if (g) { vb[idst++] = pb.G; }
                                         if (b) { vb[idst++] = pb.B; }
                                     }
                                     else if (!needScale)
                                     {
-                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
+                                        if (a) { vf[idst++] = pb.A; }
                                         if (r) { vf[idst++] = pb.R; }
                                         if (g) { vf[idst++] = pb.G; }
                                         if (b) { vf[idst++] = pb.B; }
                                     }
                                     else
                                     {
-                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
+                                        if (a) { vf[idst++] = (pb.A - offset) * scale; }
                                         if (r) { vf[idst++] = (pb.R - offset) * scale; }
                                         if (g) { vf[idst++] = (pb.G - offset) * scale; }
                                         if (b) { vf[idst++] = (pb.B - offset) * scale; }
@@ -545,28 +544,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         else
                         {
                             int idstMin = 0;
-                            if (ex.Alpha)
-                            {
-                                // The image only has rgb but we need to supply alpha as well, so fake it up,
-                                // assuming that it is 0xFF.
-                                if (!vf.IsEmpty)
-                                {
-                                    Single v = (0xFF - offset) * scale;
-                                    for (int i = 0; i < cpix; i++)
-                                        vf[i] = v;
-                                }
-                                else
-                                {
-                                    for (int i = 0; i < cpix; i++)
-                                        vb[i] = 0xFF;
-                                }
-                                idstMin = cpix;
-
-                                // We've preprocessed alpha, avoid it in the
-                                // scan operation below.
-                                a = false;
-                            }
-
                             for (int y = 0; y < h; ++y)
                             {
                                 int idstBase = idstMin + y * w;
