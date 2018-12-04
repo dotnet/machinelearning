@@ -63,9 +63,12 @@ namespace Microsoft.ML.Samples.Dynamic
                 Top = 11,
                 Normalize = false
             };
-            var featureContributionCalculator = new FeatureContributionCalculationTransform(mlContext, args, model.FeatureColumn, model.Model);
 
-            var outputData = featureContributionCalculator.Transform(transformedData);
+            var featureContributionCalculator = new FeatureContributionCalculatingEstimator(mlContext, args, model.FeatureColumn, model.Model);
+            var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
+
+            //var featureContributionCalculator = new FeatureContributionCalculationTransform(mlContext, args, model.FeatureColumn, model.Model);
+            //var outputData = featureContributionCalculator.Transform(transformedData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
@@ -106,6 +109,7 @@ namespace Microsoft.ML.Samples.Dynamic
             //// For bulk scoring, the ApplyToData API can also be used
             //var scoredData = featureContributionCalculator.(mlContext, transformedData);
             //var preview = scoredData.Preview(100);
+            Console.ReadLine();
         }
 
         private static int GetMostContributingFeature(float[] featureContributions)
