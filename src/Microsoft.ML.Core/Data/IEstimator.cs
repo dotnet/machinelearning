@@ -122,7 +122,7 @@ namespace Microsoft.ML.Core.Data
             /// Return if this structure is not identical to the default value of <see cref="Column"/>. If true,
             /// it means this structure is initialized properly and therefore considered as valid.
             /// </summary>
-            public bool IsValid => !Equals(default);
+            public bool IsValid => Name != null;
         }
 
         public SchemaShape(IEnumerable<Column> columns)

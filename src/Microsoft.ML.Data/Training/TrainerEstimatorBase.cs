@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.CheckStruct(feature, nameof(feature));
+            Host.Check(feature.IsValid, nameof(feature));
             Host.CheckValueOrDefault(label);
             Host.CheckValueOrDefault(weight);
 

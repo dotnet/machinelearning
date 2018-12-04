@@ -584,11 +584,6 @@ namespace Microsoft.ML.Runtime
             if (object.ReferenceEquals(val, null))
                 throw ExceptValue(ctx, paramName);
         }
-        public static void CheckStruct<T>(this IExceptionContext ctx, T val, string paramName) where T : struct
-        {
-            if (val.Equals(default))
-                throw ExceptValue(ctx, paramName);
-        }
         public static T CheckValue<T>(T val, string paramName, string msg) where T : class
         {
             if (object.ReferenceEquals(val, null))
