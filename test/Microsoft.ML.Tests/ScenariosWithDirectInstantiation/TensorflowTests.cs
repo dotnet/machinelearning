@@ -653,7 +653,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
@@ -717,7 +717,7 @@ namespace Microsoft.ML.Scenarios
                     Assert.Equal(10, buffer.Length);
                     numRows += 1;
                 }
-                Assert.Equal(3, numRows);
+                Assert.Equal(4, numRows);
             }
         }
 
