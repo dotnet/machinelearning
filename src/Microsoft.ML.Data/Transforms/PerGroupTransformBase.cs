@@ -199,17 +199,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Get the getter for the first input column.
         /// </summary>
-        protected abstract ValueGetter<TLabel> GetLabelGetter(IRow row);
+        protected abstract ValueGetter<TLabel> GetLabelGetter(Row row);
 
         /// <summary>
         /// Get the getter for the second input column.
         /// </summary>
-        protected abstract ValueGetter<TScore> GetScoreGetter(IRow row);
+        protected abstract ValueGetter<TScore> GetScoreGetter(Row row);
 
         /// <summary>
         /// Return a new state object.
         /// </summary>
-        protected abstract TState InitializeState(IRow input);
+        protected abstract TState InitializeState(Row input);
 
         /// <summary>
         /// Update the state object with one example.

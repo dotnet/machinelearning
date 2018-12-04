@@ -11,16 +11,16 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// An implementation of <see cref="IRow"/> that gets its <see cref="IRow.Position"/>, <see cref="IRow.Batch"/>,
-    /// and <see cref="IRow.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
+    /// An implementation of <see cref="Row"/> that gets its <see cref="Row.Position"/>, <see cref="Row.Batch"/>,
+    /// and <see cref="Row.GetIdGetter"/> from an input row. The constructor requires a schema and array of getter
     /// delegates. A null delegate indicates an inactive column. The delegates are assumed to be of the appropriate type
     /// (this does not validate the type).
     /// REVIEW: Should this validate that the delegates are of the appropriate type? It wouldn't be difficult
     /// to do so.
     /// </summary>
-    public sealed class SimpleRow : IRow
+    public sealed class SimpleRow : Row
     {
-        private readonly IRow _input;
+        private readonly Row _input;
         private readonly Delegate[] _getters;
 
         public override Schema Schema { get; }
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override long Batch => _input.Batch;
 
-        public SimpleRow(Schema schema, IRow input, Delegate[] getters)
+        public SimpleRow(Schema schema, Row input, Delegate[] getters)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(input, nameof(input));

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
         /// array should be equal to the number of columns added by the IRowMapper. It should contain the getter for the
         /// i'th output column if activeOutput(i) is true, and null otherwise.
         /// </summary>
-        Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer);
+        Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer);
 
         /// <summary>
         /// Returns information about the output columns, including their name, type and any metadata information.
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema => Source.Schema;
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
@@ -285,9 +285,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class RowImpl : IRow
+        private sealed class RowImpl : Row
         {
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
 
             private readonly RowToRowMapperTransform _parent;
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema { get; }
 
-            public RowImpl(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
+            public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;

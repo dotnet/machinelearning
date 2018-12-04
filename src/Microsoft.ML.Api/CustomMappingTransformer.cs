@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            private Delegate GetDstGetter<T>(IRow input, int colIndex, Action refreshAction)
+            private Delegate GetDstGetter<T>(Row input, int colIndex, Action refreshAction)
             {
                 var getter = input.GetGetter<T>(colIndex);
                 ValueGetter<T> combinedGetter = (ref T dst) =>

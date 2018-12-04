@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
             return predicate;
         }
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));

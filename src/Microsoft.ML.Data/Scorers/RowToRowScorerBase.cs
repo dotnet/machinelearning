@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Data
             return cursors;
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp)
         {
             var bindings = GetBindings();
             Func<int, bool> predicateInput;
@@ -173,9 +173,9 @@ namespace Microsoft.ML.Runtime.Data
         /// Create and fill an array of getters of size InfoCount. The indices of the non-null entries in the
         /// result should be exactly those for which predicate(iinfo) is true.
         /// </summary>
-        protected abstract Delegate[] GetGetters(IRow output, Func<int, bool> predicate);
+        protected abstract Delegate[] GetGetters(Row output, Func<int, bool> predicate);
 
-        protected static Delegate[] GetGettersFromRow(IRow row, Func<int, bool> predicate)
+        protected static Delegate[] GetGettersFromRow(Row row, Func<int, bool> predicate)
         {
             Contracts.AssertValue(row);
             Contracts.AssertValue(predicate);
@@ -189,19 +189,19 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        protected static Delegate GetGetterFromRow(IRow row, int col)
+        protected static Delegate GetGetterFromRow(Row row, int col)
         {
             Contracts.AssertValue(row);
             Contracts.Assert(0 <= col && col < row.Schema.ColumnCount);
             Contracts.Assert(row.IsColumnActive(col));
 
             var type = row.Schema.GetColumnType(col);
-            Func<IRow, int, ValueGetter<int>> del = GetGetterFromRow<int>;
+            Func<Row, int, ValueGetter<int>> del = GetGetterFromRow<int>;
             var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.RawType);
             return (Delegate)meth.Invoke(null, new object[] { row, col });
         }
 
-        protected static ValueGetter<T> GetGetterFromRow<T>(IRow output, int col)
+        protected static ValueGetter<T> GetGetterFromRow<T>(Row output, int col)
         {
             Contracts.AssertValue(output);
             Contracts.Assert(0 <= col && col < output.Schema.ColumnCount);

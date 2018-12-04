@@ -128,9 +128,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
     public interface ICanGetSummaryAsIRow
     {
-        IRow GetSummaryIRowOrNull(RoleMappedSchema schema);
+        Row GetSummaryIRowOrNull(RoleMappedSchema schema);
 
-        IRow GetStatsIRowOrNull(RoleMappedSchema schema);
+        Row GetStatsIRowOrNull(RoleMappedSchema schema);
     }
 
     public interface ICanGetSummaryAsIDataView

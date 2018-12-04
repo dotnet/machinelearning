@@ -989,7 +989,7 @@ namespace Microsoft.ML.Runtime.Data
             /// There is one instance of these per column, implementing the possible splitting
             /// of one column from a <see cref="IDataView"/> into multiple columns. The instance
             /// describes the resulting split columns through its implementation of
-            /// <see cref="ISchema"/>, and then can be bound to an <see cref="IRow"/> to provide
+            /// <see cref="ISchema"/>, and then can be bound to an <see cref="Row"/> to provide
             /// that splitting functionality.
             /// </summary>
             private abstract class Splitter : NoMetadataSchema
@@ -1048,10 +1048,10 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 /// <summary>
-                /// Given an input <see cref="IRow"/>, create the <see cref="IRow"/> containing the split
+                /// Given an input <see cref="Row"/>, create the <see cref="Row"/> containing the split
                 /// version of the columns.
                 /// </summary>
-                public abstract IRow Bind(IRow row, Func<int, bool> pred);
+                public abstract Row Bind(Row row, Func<int, bool> pred);
 
                 private static Splitter CreateCore<T>(IDataView view, int col)
                 {
@@ -1086,17 +1086,17 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 #endregion
 
-                private abstract class RowBase<TSplitter> : IRow
+                private abstract class RowBase<TSplitter> : Row
                     where TSplitter : Splitter
                 {
                     protected readonly TSplitter Parent;
-                    protected readonly IRow Input;
+                    protected readonly Row Input;
 
                     public sealed override Schema Schema => Parent.AsSchema;
                     public sealed override long Position => Input.Position;
                     public sealed override long Batch => Input.Batch;
 
-                    public RowBase(TSplitter parent, IRow input)
+                    public RowBase(TSplitter parent, Row input)
                     {
                         Contracts.AssertValue(parent);
                         Contracts.AssertValue(input);
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML.Runtime.Data
                         return _view.Schema.GetColumnType(SrcCol);
                     }
 
-                    public override IRow Bind(IRow row, Func<int, bool> pred)
+                    public override Row Bind(Row row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
@@ -1148,7 +1148,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         private readonly bool _isActive;
 
-                        public RowImpl(NoSplitter<T> parent, IRow input, bool isActive)
+                        public RowImpl(NoSplitter<T> parent, Row input, bool isActive)
                             : base(parent, input)
                         {
                             Contracts.Assert(Parent.ColumnCount == 1);
@@ -1221,7 +1221,7 @@ namespace Microsoft.ML.Runtime.Data
                         return _types[col];
                     }
 
-                    public override IRow Bind(IRow row, Func<int, bool> pred)
+                    public override Row Bind(Row row, Func<int, bool> pred)
                     {
                         Contracts.AssertValue(row);
                         Contracts.Assert(row.Schema == _view.Schema);
@@ -1245,7 +1245,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Getters.
                         private readonly ValueGetter<VBuffer<T>>[] _getters;
 
-                        public RowImpl(ColumnSplitter<T> parent, IRow input, Func<int, bool> pred)
+                        public RowImpl(ColumnSplitter<T> parent, Row input, Func<int, bool> pred)
                             : base(parent, input)
                         {
                             _inputGetter = input.GetGetter<VBuffer<T>>(Parent.SrcCol);
@@ -1352,13 +1352,13 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// The cursor implementation creates the <see cref="IRow"/>s using <see cref="Splitter.Bind"/>,
+            /// The cursor implementation creates the <see cref="Row"/>s using <see cref="Splitter.Bind"/>,
             /// then collates the results from those rows as effectively one big row.
             /// </summary>
             private sealed class Cursor : SynchronizedCursorBase
             {
                 private readonly DataViewSlicer _slicer;
-                private readonly IRow[] _sliceRows;
+                private readonly Row[] _sliceRows;
 
                 public override Schema Schema => _slicer.Schema;
 
@@ -1370,7 +1370,7 @@ namespace Microsoft.ML.Runtime.Data
                     Ch.Assert(Utils.Size(activeSplitters) == slicer._splitters.Length);
 
                     _slicer = slicer;
-                    _sliceRows = new IRow[_slicer._splitters.Length];
+                    _sliceRows = new Row[_slicer._splitters.Length];
                     var activeSrc = new bool[slicer._splitters.Length];
                     var activeSrcSet = new HashSet<int>();
                     int offset = 0;
@@ -1463,7 +1463,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Given a slot cursor, construct a single-column equivalent row cursor, with the single column
         /// active and having the same type. This is useful to exploit the many utility methods that exist
-        /// to handle <see cref="RowCursor"/> and <see cref="IRow"/> but that know nothing about
+        /// to handle <see cref="RowCursor"/> and <see cref="Row"/> but that know nothing about
         /// <see cref="SlotCursor"/>, without having to rewrite all of them. This is, however, rather
         /// something of a hack; whenever possible or reasonable the slot cursor should be used directly.
         /// The name of this column is always "Waffles".

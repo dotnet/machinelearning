@@ -25,7 +25,7 @@ namespace Microsoft.ML.TimeSeries
         IStatefulTransformer Clone();
     }
 
-    internal abstract class IStatefulRow : IRow
+    internal abstract class StatefulRow : Row
     {
         public abstract Action<long> GetPinger();
     }
@@ -34,7 +34,7 @@ namespace Microsoft.ML.TimeSeries
     {
         void CloneState();
 
-        Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer);
+        Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer);
     }
 
     /// <summary>
@@ -98,8 +98,8 @@ namespace Microsoft.ML.TimeSeries
         {
         }
 
-        internal IRow GetStatefulRows(IRow input, IRowToRowMapper mapper, Func<int, bool> active,
-            List<IStatefulRow> rows, out Action disposer)
+        internal Row GetStatefulRows(Row input, IRowToRowMapper mapper, Func<int, bool> active,
+            List<StatefulRow> rows, out Action disposer)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
@@ -123,7 +123,7 @@ namespace Microsoft.ML.TimeSeries
                 }
 
                 var row = mapper.GetRow(input, active, out disposer);
-                if (row is IStatefulRow statefulRow)
+                if (row is StatefulRow statefulRow)
                     rows.Add(statefulRow);
 
                 return row;
@@ -137,12 +137,12 @@ namespace Microsoft.ML.TimeSeries
             for (int i = deps.Length - 1; i >= 1; --i)
                 deps[i - 1] = innerMappers[i].GetDependencies(deps[i]);
 
-            IRow result = input;
+            Row result = input;
             for (int i = 0; i < innerMappers.Length; ++i)
             {
                 Action localDisp;
                 result = GetStatefulRows(result, innerMappers[i], deps[i], rows, out localDisp);
-                if (result is IStatefulRow statefulResult)
+                if (result is StatefulRow statefulResult)
                     rows.Add(statefulResult);
 
                 if (localDisp != null)
@@ -158,7 +158,7 @@ namespace Microsoft.ML.TimeSeries
             return result;
         }
 
-        private Action<long> CreatePinger(List<IStatefulRow> rows)
+        private Action<long> CreatePinger(List<StatefulRow> rows)
         {
             if (rows.Count == 0)
                 return position => { };
@@ -171,8 +171,8 @@ namespace Microsoft.ML.TimeSeries
         internal override void PredictionEngineCore(IHostEnvironment env, DataViewConstructionUtils.InputRow<TSrc> inputRow, IRowToRowMapper mapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition, out Action disposer, out IRowReadableAs<TDst> outputRow)
         {
-            List<IStatefulRow> rows = new List<IStatefulRow>();
-            IRow outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows, out disposer);
+            List<StatefulRow> rows = new List<StatefulRow>();
+            Row outputRowLocal = outputRowLocal = GetStatefulRows(inputRow, mapper, col => true, rows, out disposer);
             var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.OutputSchema), ignoreMissingColumns, outputSchemaDefinition);
             _pinger = CreatePinger(rows);
             outputRow = cursorable.GetRow(outputRowLocal);

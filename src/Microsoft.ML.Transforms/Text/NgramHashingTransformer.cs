@@ -665,7 +665,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.GetDependencies(predicate);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -693,7 +693,7 @@ namespace Microsoft.ML.Transforms.Text
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        private Delegate MakeGetter(IChannel ch, IRow input, int iinfo, FinderDecorator decorator = null)
+        private Delegate MakeGetter(IChannel ch, Row input, int iinfo, FinderDecorator decorator = null)
         {
             ch.Assert(_bindings.Infos[iinfo].SrcTypes.All(t => t.IsVector && t.ItemType.IsKey));
 
@@ -827,7 +827,7 @@ namespace Microsoft.ML.Transforms.Text
             /// Construct an action that calls all the getters for a row, so as to easily force computation
             /// of lazily computed values. This will have the side effect of calling the decorator.
             /// </summary>
-            public static Action CallAllGetters(IRow row)
+            public static Action CallAllGetters(Row row)
             {
                 var colCount = row.Schema.ColumnCount;
                 List<Action> getters = new List<Action>();
@@ -845,14 +845,14 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private static Action GetNoOpGetter(IRow row, int col)
+            private static Action GetNoOpGetter(Row row, int col)
             {
-                Func<IRow, int, Action> func = GetNoOpGetter<int>;
+                Func<Row, int, Action> func = GetNoOpGetter<int>;
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(row.Schema.GetColumnType(col).RawType);
                 return (Action)meth.Invoke(null, new object[] { row, col });
             }
 
-            private static Action GetNoOpGetter<T>(IRow row, int col)
+            private static Action GetNoOpGetter<T>(Row row, int col)
             {
                 T value = default(T);
                 var getter = row.GetGetter<T>(col);

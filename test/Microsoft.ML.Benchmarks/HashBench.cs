@@ -17,7 +17,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class HashBench
     {
-        private sealed class RowImpl : IRow
+        private sealed class RowImpl : Row
         {
             public long PositionValue;
 

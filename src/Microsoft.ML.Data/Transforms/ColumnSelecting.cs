@@ -579,11 +579,11 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class RowImpl : IRow
+        private sealed class RowImpl : Row
         {
             private readonly Mapper _mapper;
-            private readonly IRow _input;
-            public RowImpl(IRow input, Mapper mapper)
+            private readonly Row _input;
+            public RowImpl(Row input, Mapper mapper)
             {
                 _mapper = mapper;
                 _input = input;
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
                 return new RowImpl(input, _mapper);

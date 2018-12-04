@@ -349,7 +349,7 @@ namespace Microsoft.ML.Transforms
             return _bindings.MapColumnIndex(out isSrc, col);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Transforms
                         getters[iinfo] = MakeGetter(iinfo);
                     else
                     {
-                        Func<IRow, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
+                        Func<Row, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
                         var meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_bindings.ColumnTypes[iinfo].ItemType.RawType);
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
@@ -379,7 +379,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+        private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
         {
             return input.GetGetter<T>(_bindings.SrcCols[iinfo]);
         }

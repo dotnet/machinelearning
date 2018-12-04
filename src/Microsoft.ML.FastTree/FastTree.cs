@@ -3302,7 +3302,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
@@ -3317,7 +3317,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }

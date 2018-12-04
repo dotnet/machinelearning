@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
 
     internal interface IColumnFunction : ICanSaveModel
     {
-        Delegate GetGetter(IRow input, int icol);
+        Delegate GetGetter(Row input, int icol);
 
         void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 

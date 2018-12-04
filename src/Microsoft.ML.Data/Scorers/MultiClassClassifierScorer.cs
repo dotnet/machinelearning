@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _mapper.GetInputColumnRoles();
                 }
 
-                public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+                public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
                 {
                     var innerRow = _mapper.GetRow(input, predicate, out disposer);
                     return new RowImpl(innerRow, OutputSchema);
@@ -386,9 +386,9 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private sealed class RowImpl : IRow
+                private sealed class RowImpl : Row
                 {
-                    private readonly IRow _row;
+                    private readonly Row _row;
                     private readonly Schema _schema;
 
                     public override long Batch => _row.Batch;
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Runtime.Data
                     // The schema is of course the only difference from _row.
                     public override Schema Schema => _schema;
 
-                    public RowImpl(IRow row, Schema schema)
+                    public RowImpl(Row row, Schema schema)
                     {
                         Contracts.AssertValue(row);
                         Contracts.AssertValue(schema);
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Runtime.Data
             return new MultiClassClassifierScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);

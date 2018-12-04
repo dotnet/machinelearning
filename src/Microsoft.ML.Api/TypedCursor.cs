@@ -13,7 +13,7 @@ using System.Reflection;
 namespace Microsoft.ML.Runtime.Api
 {
     /// <summary>
-    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
     /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Api
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRowReadableAs<TRow> GetRow(IRow input)
+        public IRowReadableAs<TRow> GetRow(Row input)
         {
             return new RowImplementation(new TypedRow(this, input));
         }
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.Api
         private abstract class TypedRowBase
         {
             protected readonly IChannel Ch;
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Action<TRow>[] _setters;
 
             public long Batch => _input.Batch;
@@ -265,7 +265,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public Schema Schema => _input.Schema;
 
-            public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
+            public TypedRowBase(TypedCursorable<TRow> parent, Row input, string channelMessage)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(parent._host);
@@ -284,12 +284,12 @@ namespace Microsoft.ML.Runtime.Api
 
             public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
-            private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
+            private Action<TRow> GenerateSetter(Row input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema.GetColumnType(index);
                 var fieldType = column.OutputType;
                 var genericType = fieldType;
-                Func<IRow, int, Delegate, Delegate, Action<TRow>> del;
+                Func<Row, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Api
             // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
             // than the 'direct' getter. We don't have good indication of this to the user, and the selection
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
-            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
+            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(Row input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<VBuffer<TSrc>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private Action<TRow> CreateDirectVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateDirectVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
+            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(Row input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<TSrc>(col);
                 var typedPoke = poke as Poke<TRow, TDst>;
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateDirectSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private static Action<TRow> CreateDirectSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 // Awkward to have a parameter that's always null, but slightly more convenient for generalizing the setter.
                 Contracts.Assert(peek == null);
@@ -437,7 +437,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, VBuffer<TDst>>;
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Runtime.Api
 
         private sealed class TypedRow : TypedRowBase
         {
-            public TypedRow(TypedCursorable<TRow> parent, IRow input)
+            public TypedRow(TypedCursorable<TRow> parent, Row input)
                 : base(parent, input, "Row")
             {
             }

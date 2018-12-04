@@ -361,7 +361,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public abstract bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
 
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
 
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
             public abstract void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc);
             public abstract NormalizingTransformer.NormalizerModelParametersBase GetNormalizerModelParams();
 
@@ -609,7 +609,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             public bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount)
                 => throw Host.ExceptNotSupp();
 
-            public abstract Delegate GetGetter(IRow input, int icol);
+            public abstract Delegate GetGetter(Row input, int icol);
 
             public void AttachMetadata(MetadataDispatcher.Builder bldr, ColumnType typeSrc)
             {
@@ -732,7 +732,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly int LabelCardinality;
             private readonly ValueGetter<int> _labelGetterSrc;
 
-            protected SupervisedBinFunctionBuilderBase(IHost host, long lim, int labelColId, IRow dataRow)
+            protected SupervisedBinFunctionBuilderBase(IHost host, long lim, int labelColId, Row dataRow)
             {
                 Contracts.CheckValue(host, nameof(host));
                 Host = host;
@@ -742,7 +742,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 _labelGetterSrc = GetLabelGetter(dataRow, labelColId, out LabelCardinality);
             }
 
-            private ValueGetter<int> GetLabelGetter(IRow row, int col, out int labelCardinality)
+            private ValueGetter<int> GetLabelGetter(Row row, int col, out int labelCardinality)
             {
                 // The label column type is checked as part of args validation.
                 var type = row.Schema.GetColumnType(col);
@@ -816,7 +816,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly List<TFloat> ColValues;
 
             protected OneColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId,
-                IRow dataRow)
+                Row dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
                 _colGetterSrc = dataRow.GetGetter<TFloat>(valueColId);
@@ -844,7 +844,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             protected readonly List<TFloat>[] ColValues;
             protected readonly int ColumnSlotCount;
 
-            protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, IRow dataRow)
+            protected VecColumnSupervisedBinFunctionBuilderBase(IHost host, long lim, int valueColId, int labelColId, Row dataRow)
                 : base(host, lim, labelColId, dataRow)
             {
                 _colValueGetter = dataRow.GetGetter<VBuffer<TFloat>>(valueColId);

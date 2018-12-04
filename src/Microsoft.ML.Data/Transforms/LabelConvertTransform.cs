@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
             return kind != MetadataUtils.Kinds.KeyValues;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Contracts.AssertValueOrNull(ch);
             Contracts.AssertValue(input);

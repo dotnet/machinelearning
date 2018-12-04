@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             return !exactTypes && type1 is VectorType vt1 && type2 is VectorType vt2 && vt1.ItemType.Equals(vt2.ItemType) && vt1.Size == vt2.Size;
         }
 
-        protected Func<bool> GetIdComparer(IRow r1, IRow r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<UInt128> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                 };
         }
 
-        protected Func<bool> GetComparerOne<T>(IRow r1, IRow r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < DoubleEps;
         }
-        protected Func<bool> GetComparerVec<T>(IRow r1, IRow r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);
@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                     return false;
             }
         }
-        protected Func<bool> GetColumnComparer(IRow r1, IRow r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
             if (type is VectorType vecType)
             {

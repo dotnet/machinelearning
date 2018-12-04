@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetFeatureFloatVectorGetter(row, data.Schema);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Runtime.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetLabelFloatGetter(row, data.Schema);
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the weight column, or null if there is no weight column.
         /// </summary>
-        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Training
             return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Index);
         }
 
-        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptWeightFloatGetter(row, data.Schema);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the group column, or null if there is no group column.
         /// </summary>
-        public static ValueGetter<ulong> GetOptGroupGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.Training
             return RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col.Index);
         }
 
-        public static ValueGetter<ulong> GetOptGroupGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptGroupGetter(row, data.Schema);
@@ -404,7 +404,7 @@ namespace Microsoft.ML.Runtime.Training
     /// </summary>
     public abstract class TrainingCursorBase : IDisposable
     {
-        public IRow Row { get { return _cursor; } }
+        public Row Row { get { return _cursor; } }
 
         private readonly RowCursor _cursor;
         private readonly Action<CursOpt> _signal;

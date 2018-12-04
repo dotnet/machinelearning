@@ -1029,7 +1029,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected Func<bool> GetIdComparer(IRow r1, IRow r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<UInt128> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetColumnComparer(IRow r1, IRow r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
             if (!type.IsVector)
             {
@@ -1174,7 +1174,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
-        protected Func<bool> GetComparerOne<T>(IRow r1, IRow r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -1191,7 +1191,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetComparerVec<T>(IRow r1, IRow r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);

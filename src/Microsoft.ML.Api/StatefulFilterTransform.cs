@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Api
 
             private readonly RowCursor<TSrc> _input;
             // This is used to serve getters for the columns we produce.
-            private readonly IRow _appendedRow;
+            private readonly Row _appendedRow;
 
             private readonly TSrc _src;
             private readonly TDst _dst;

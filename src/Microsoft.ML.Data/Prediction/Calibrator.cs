@@ -559,7 +559,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return _predictor.GetInputColumnRoles();
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
                 for (int i = 0; i < OutputSchema.ColumnCount; i++)
@@ -584,12 +584,12 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return new SimpleRow(OutputSchema, predictorRow, getters);
             }
 
-            private Delegate GetPredictorGetter<T>(IRow input, int col)
+            private Delegate GetPredictorGetter<T>(Row input, int col)
             {
                 return input.GetGetter<T>(col);
             }
 
-            private Delegate GetProbGetter(IRow input)
+            private Delegate GetProbGetter(Row input)
             {
                 var scoreGetter = RowCursorUtils.GetGetterAs<Single>(NumberType.R4, input, _scoreCol);
                 ValueGetter<Single> probGetter =

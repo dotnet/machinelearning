@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
             return cols;
         }
 
-        private sealed class MetadataRow : IRow
+        private sealed class MetadataRow : Row
         {
             private readonly Schema.Metadata _metadata;
 
@@ -514,11 +514,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="IRow"/>.
+        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="Row"/>.
         /// </summary>
         /// <param name="metadata">The metadata to wrap.</param>
         /// <returns>A row that wraps an input metadata.</returns>
-        public static IRow MetadataAsRow(Schema.Metadata metadata)
+        public static Row MetadataAsRow(Schema.Metadata metadata)
         {
             Contracts.CheckValue(metadata, nameof(metadata));
             return new MetadataRow(metadata);

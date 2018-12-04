@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema => Source.Schema;
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
@@ -184,14 +184,14 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        protected abstract Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disp);
+        protected abstract Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disp);
 
         protected abstract int MapColumnIndex(out bool isSrc, int col);
 
-        private sealed class RowImpl : IRow
+        private sealed class RowImpl : Row
         {
             private readonly Schema _schema;
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
 
             private readonly RowToRowMapperTransformBase _parent;
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema => _schema;
 
-            public RowImpl(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
+            public RowImpl(Row input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
@@ -683,9 +683,9 @@ namespace Microsoft.ML.Runtime.Data
         /// otherwise it should be set to a delegate to be invoked by the cursor's Dispose method. It's best
         /// for this action to be idempotent - calling it multiple times should be equivalent to calling it once.
         /// </summary>
-        protected abstract Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer);
+        protected abstract Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer);
 
-        protected ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+        protected ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
@@ -694,12 +694,12 @@ namespace Microsoft.ML.Runtime.Data
             return input.GetGetter<T>(src);
         }
 
-        protected Delegate GetSrcGetter(ColumnType typeDst, IRow row, int iinfo)
+        protected Delegate GetSrcGetter(ColumnType typeDst, Row row, int iinfo)
         {
             Host.CheckValue(typeDst, nameof(typeDst));
             Host.CheckValue(row, nameof(row));
 
-            Func<IRow, int, ValueGetter<int>> del = GetSrcGetter<int>;
+            Func<Row, int, ValueGetter<int>> del = GetSrcGetter<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeDst.RawType);
             return (Delegate)methodInfo.Invoke(this, new object[] { row, iinfo });
         }
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Runtime.Data
             return _bindings.GetDependencies(predicate);
         }
 
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disposer)
+        protected override Delegate[] CreateGetters(Row input, Func<int, bool> active, out Action disposer)
         {
             Func<int, bool> activeInfos =
                 iinfo =>

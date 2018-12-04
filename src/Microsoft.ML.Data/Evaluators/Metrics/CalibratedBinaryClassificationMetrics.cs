@@ -42,7 +42,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double Entropy { get; }
 
-        internal CalibratedBinaryClassificationMetrics(IExceptionContext ectx, IRow overallResult)
+        internal CalibratedBinaryClassificationMetrics(IExceptionContext ectx, Row overallResult)
             : base(ectx, overallResult)
         {
             double Fetch(string name) => Fetch<double>(ectx, overallResult, name);

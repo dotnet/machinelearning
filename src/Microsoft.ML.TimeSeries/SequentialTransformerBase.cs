@@ -478,16 +478,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return col => false;
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer) =>
                 new RowImpl(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
                     _mapper.CreatePinger(input, active, out disposer));
 
         }
 
-        private sealed class RowImpl : IStatefulRow
+        private sealed class RowImpl : StatefulRow
         {
             private readonly Schema _schema;
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
 
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override long Batch => _input.Batch;
 
-            public RowImpl(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
+            public RowImpl(Schema schema, Row input, Delegate[] getters, Action<long> pinger)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
@@ -745,7 +745,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
@@ -766,9 +766,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private sealed class StatefulRow : IStatefulRow
+        private sealed class StatefulRow : TimeSeries.StatefulRow
         {
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
 
@@ -780,7 +780,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema { get; }
 
-            public StatefulRow(IRow input, TimeSeriesRowToRowMapperTransform parent,
+            public StatefulRow(Row input, TimeSeriesRowToRowMapperTransform parent,
                 Schema schema, Delegate[] getters, Action<long> pinger)
             {
                 _input = input;

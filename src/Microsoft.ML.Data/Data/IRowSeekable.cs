@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     /// For <see cref="RowSeeker"/>, when the state is valid (that is when <see cref="MoveTo(long)"/>
     /// returns <see langword="true"/>), it returns the current row index. Otherwise it's -1.
     /// </summary>
-    public abstract class RowSeeker : IRow, IDisposable
+    public abstract class RowSeeker : Row, IDisposable
     {
         public abstract void Dispose();
 

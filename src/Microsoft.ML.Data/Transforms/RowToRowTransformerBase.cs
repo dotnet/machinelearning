@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema.DetachedColumn[] GetOutputColumns() => _outputColumns.Value;
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
                 // of the input row.
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            protected abstract Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
+            protected abstract Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer);
 
             public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
 

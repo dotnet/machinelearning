@@ -644,7 +644,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// An in pipe creator intended to be used from the splitter only.
             /// </summary>
-            private InPipe CreateInPipe<T>(IRow input, int col)
+            private InPipe CreateInPipe<T>(Row input, int col)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= col && col < _schema.ColumnCount);
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// An in pipe creator intended to be used from the splitter only.
             /// </summary>
-            private InPipe CreateIdInPipe(IRow input)
+            private InPipe CreateIdInPipe(Row input)
             {
                 Contracts.AssertValue(input);
                 return CreateInPipeCore(_schema.ColumnCount + (int)ExtraIndex.Id, input.GetIdGetter());
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// This helps a cursor present the results of a <see cref="BatchColumn"/>. Practically its role
-            /// really is to just provide a stable delegate for the <see cref="IRow.GetGetter{T}(int)"/>.
+            /// really is to just provide a stable delegate for the <see cref="Row.GetGetter{T}(int)"/>.
             /// There is one of these created per column, per output cursor, i.e., in splitting
             /// there are <c>n</c> of these created per column, and when consolidating only one of these
             /// is created per column.
@@ -1332,7 +1332,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(IRow cursor, int i, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(Row cursor, int i, ColumnType colType)
         {
             var floatGetter = cursor.GetGetter<T>(i);
             T v = default(T);
@@ -1362,7 +1362,7 @@ namespace Microsoft.ML.Runtime.Data
             return getter;
         }
 
-        public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(IRow cursor, int colIndex, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(Row cursor, int colIndex, ColumnType colType)
         {
             var vecGetter = cursor.GetGetter<VBuffer<T>>(colIndex);
             var vbuf = default(VBuffer<T>);

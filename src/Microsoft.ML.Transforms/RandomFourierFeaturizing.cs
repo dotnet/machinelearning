@@ -540,7 +540,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return GetterFromFloatType(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromVectorType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromVectorType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms.Projections
 
             }
 
-            private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetterFromFloatType(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);

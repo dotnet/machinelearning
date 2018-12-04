@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             return toReturn;
         }
 
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = deps.Length - 1; i >= 1; --i)
                 deps[i - 1] = InnerMappers[i].GetDependencies(deps[i]);
 
-            IRow result = input;
+            Row result = input;
             for (int i = 0; i < InnerMappers.Length; ++i)
             {
                 result = InnerMappers[i].GetRow(result, deps[i], out var localDisp);
@@ -90,12 +90,12 @@ namespace Microsoft.ML.Runtime.Data
             return result;
         }
 
-        private sealed class SubsetActive : IRow
+        private sealed class SubsetActive : Row
         {
-            private readonly IRow _row;
+            private readonly Row _row;
             private Func<int, bool> _pred;
 
-            public SubsetActive(IRow row, Func<int, bool> pred)
+            public SubsetActive(Row row, Func<int, bool> pred)
             {
                 Contracts.AssertValue(row);
                 Contracts.AssertValue(pred);

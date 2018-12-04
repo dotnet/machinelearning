@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Data
         /// should return the "same" row as would have been returned through the regular serial cursor,
         /// but all rows should be returned by exactly one of the cursors returned from this cursor.
         /// The cursors can have their values reconciled downstream through the use of the
-        /// <see cref="IRow.Batch"/> property.
+        /// <see cref="Row.Batch"/> property.
         /// </summary>
         /// <param name="consolidator">This is an object that can be used to reconcile the
         /// returned array of cursors. When the array of cursors is of length 1, it is legal,
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
     /// A logical row. May be a row of an <see cref="IDataView"/> or a stand-alone row. If/when its contents
     /// change, its <see cref="Position"/> value is changed.
     /// </summary>
-    public abstract class IRow
+    public abstract class Row
     {
         /// <summary>
         /// This is incremented when the underlying contents changes, giving clients a way to detect change.
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
         public abstract long Batch { get; }
 
         /// <summary>
-        /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="IRow"/>
+        /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="Row"/>
         /// instances to iterate over what is supposed to be the same data, for example, in a <see cref="IDataView"/>
         /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor
         /// will produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID
@@ -216,12 +216,12 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
-    /// this is also an <see cref="IRow"/>. The <see cref="IRow.Position"/> is incremented by <see cref="MoveNext"/>
+    /// this is also an <see cref="Row"/>. The <see cref="Row.Position"/> is incremented by <see cref="MoveNext"/>
     /// and <see cref="MoveMany"/>. When the cursor state is <see cref="CursorState.NotStarted"/> or
-    /// <see cref="CursorState.Done"/>, <see cref="IRow.Position"/> is <c>-1</c>. Otherwise,
-    /// <see cref="IRow.Position"/> >= 0.
+    /// <see cref="CursorState.Done"/>, <see cref="Row.Position"/> is <c>-1</c>. Otherwise,
+    /// <see cref="Row.Position"/> >= 0.
     /// </summary>
-    public abstract class RowCursor : IRow, IDisposable
+    public abstract class RowCursor : Row, IDisposable
     {
         /// <summary>
         /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
@@ -245,11 +245,11 @@ namespace Microsoft.ML.Runtime.Data
         public abstract bool MoveMany(long count);
 
         /// <summary>
-        /// Returns a cursor that can be used for invoking <see cref="IRow.Position"/>, <see cref="State"/>,
+        /// Returns a cursor that can be used for invoking <see cref="Row.Position"/>, <see cref="State"/>,
         /// <see cref="MoveNext"/>, and <see cref="MoveMany"/>, with results identical to calling those
         /// on this cursor. Generally, if the root cursor is not the same as this cursor, using the
         /// root cursor will be faster. As an aside, note that this is not necessarily the case of
-        /// values from <see cref="IRow.GetIdGetter"/>.
+        /// values from <see cref="Row.GetIdGetter"/>.
         /// </summary>
         public abstract RowCursor GetRootCursor();
         public abstract void Dispose();

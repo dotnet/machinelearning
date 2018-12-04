@@ -125,11 +125,11 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// A row that consumes items of type <typeparamref name="TRow"/>, and provides an <see cref="IRow"/>. This
+        /// A row that consumes items of type <typeparamref name="TRow"/>, and provides an <see cref="Row"/>. This
         /// is in contrast to <see cref="IRowReadableAs{TRow}"/> which consumes a data view row and publishes them as the output type.
         /// </summary>
         /// <typeparam name="TRow">The input data type.</typeparam>
-        public abstract class InputRowBase<TRow> : IRow
+        public abstract class InputRowBase<TRow> : Row
             where TRow : class
         {
             private readonly int _colCount;
