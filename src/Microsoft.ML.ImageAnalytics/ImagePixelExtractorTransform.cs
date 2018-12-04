@@ -483,7 +483,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             return;
                         }
 
-                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb
+                            || src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format24bppRgb,
+                            "Transform only supports pixel formats Format24bppRgb and Format32bppArgb");
                         Host.Check(src.Height == height && src.Width == width);
 
                         var editor = VBufferEditor.Create(ref dst, size);
@@ -500,6 +502,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         bool needScale = offset != 0 || scale != 1;
                         Contracts.Assert(!needScale || !vf.IsEmpty);
 
+                        bool hasAlpha = src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb;
                         bool a = ex.Alpha;
                         bool r = ex.Red;
                         bool g = ex.Green;
@@ -517,21 +520,21 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                     var pb = src.GetPixel(x, y);
                                     if (!vb.IsEmpty)
                                     {
-                                        if (a) { vb[idst++] = pb.A; }
+                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
                                         if (r) { vb[idst++] = pb.R; }
                                         if (g) { vb[idst++] = pb.G; }
                                         if (b) { vb[idst++] = pb.B; }
                                     }
                                     else if (!needScale)
                                     {
-                                        if (a) { vf[idst++] = pb.A; }
+                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
                                         if (r) { vf[idst++] = pb.R; }
                                         if (g) { vf[idst++] = pb.G; }
                                         if (b) { vf[idst++] = pb.B; }
                                     }
                                     else
                                     {
-                                        if (a) { vf[idst++] = (pb.A - offset) * scale; }
+                                        if (a) { vb[idst++] = hasAlpha ? pb.A : (byte)0; }
                                         if (r) { vf[idst++] = (pb.R - offset) * scale; }
                                         if (g) { vf[idst++] = (pb.G - offset) * scale; }
                                         if (b) { vf[idst++] = (pb.B - offset) * scale; }
