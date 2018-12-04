@@ -861,7 +861,7 @@ namespace Microsoft.ML.Transforms.Text
             return true;
         }
 
-        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertable to U4";
+        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

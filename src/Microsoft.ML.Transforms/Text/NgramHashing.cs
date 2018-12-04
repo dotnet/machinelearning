@@ -18,17 +18,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: LoadableClass(NgramHashingTransformer.Summary, typeof(IDataTransform), typeof(NgramHashingTransformer), typeof(NgramHashingTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(NgramHashing.Summary, typeof(IDataTransform), typeof(NgramHashing), typeof(NgramHashing.Arguments), typeof(SignatureDataTransform),
     "Ngram Hash Transform", "NgramHashTransform", "NgramHash")]
 
-[assembly: LoadableClass(NgramHashingTransformer.Summary, typeof(IDataTransform), typeof(NgramHashingTransformer), null, typeof(SignatureLoadDataTransform),
-    "Ngram Hash Transform", NgramHashingTransformer.LoaderSignature)]
+[assembly: LoadableClass(NgramHashing.Summary, typeof(IDataTransform), typeof(NgramHashing), null, typeof(SignatureLoadDataTransform),
+    "Ngram Hash Transform", NgramHashing.LoaderSignature)]
 
-[assembly: LoadableClass(NgramHashingTransformer.Summary, typeof(NgramHashingTransformer), null, typeof(SignatureLoadModel),
-    "Ngram Hash Transform", NgramHashingTransformer.LoaderSignature)]
+[assembly: LoadableClass(NgramHashing.Summary, typeof(NgramHashing), null, typeof(SignatureLoadModel),
+    "Ngram Hash Transform", NgramHashing.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(NgramHashingTransformer), null, typeof(SignatureLoadRowMapper),
-    "Ngram Hash Transform", NgramHashingTransformer.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NgramHashing), null, typeof(SignatureLoadRowMapper),
+    "Ngram Hash Transform", NgramHashing.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Transforms.Text
     /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
     /// It does so by hashing each ngram and using the hash value as the index in the bag.
     /// </summary>
-    public sealed class NgramHashingTransformer : RowToRowTransformerBase
+    public sealed class NgramHashing : RowToRowTransformerBase
     {
         public sealed class Column : ManyToOneColumn
         {
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(NgramHashingTransformer).Assembly.FullName);
+                loaderAssemblyName: typeof(NgramHashing).Assembly.FullName);
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Transforms.Text
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
-            /// <param name="inputs">Name of inputs column.</param>
+            /// <param name="inputs">Name of input columns.</param>
             /// <param name="output">Name of output column.</param>
             /// <param name="ngramLength">Maximum ngram length.</param>
             /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -219,6 +219,8 @@ namespace Microsoft.ML.Transforms.Text
                     "Contained some null or empty items");
                 if (invertHash < -1)
                     throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
+                // If the bits is 31 or higher, we can't declare a KeyValues of the appropriate length,
+                // this requiring a VBuffer of length 1u << 31 which exceeds int.MaxValue.
                 if (invertHash != 0 && hashBits >= 31)
                     throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
 
@@ -311,13 +313,13 @@ namespace Microsoft.ML.Transforms.Text
         private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
         private readonly ColumnType[] _slotNamesTypes;
 
-                /// <summary>
+        /// <summary>
         /// Constructor for case where you don't need to 'train' transform on data, for example, InvertHash for all columns set to zero.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
-        public NgramHashingTransformer(IHostEnvironment env, params ColumnInfo[] columns) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashingTransformer)))
+        public NgramHashing(IHostEnvironment env, params ColumnInfo[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashing)))
         {
             _columns = columns.ToImmutableArray();
             foreach (var column in _columns)
@@ -327,12 +329,13 @@ namespace Microsoft.ML.Transforms.Text
             }
         }
 
-        internal NgramHashingTransformer(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashingTransformer)))
+        internal NgramHashing(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashing)))
         {
             Contracts.CheckValue(columns, nameof(columns));
             _columns = columns.ToImmutableArray();
 
+            // Let's validate input schema and check which columns requried invertHash.
             int[] invertHashMaxCounts = new int[_columns.Length];
             HashSet<int> columnWithInvertHash = new HashSet<int>();
             HashSet<int> sourceColumnsForInvertHash = new HashSet<int>();
@@ -351,30 +354,39 @@ namespace Microsoft.ML.Transforms.Text
                     {
                         if (!input.Schema.TryGetColumnIndex(_columns[i].Inputs[j], out int srcCol))
                             throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j]);
+                        var columnType = input.Schema.GetColumnType(srcCol);
+                        if (NgramHashingEstimator.IsColumnTypeValid(input.Schema.GetColumnType(srcCol)))
+                            throw Host.ExceptSchemaMismatch(nameof(input), "input", _columns[i].Inputs[j], NgramHashingEstimator.ExpectedColumnType, columnType.ToString());
                         sourceColumnsForInvertHash.Add(srcCol);
                     }
                 }
             }
-
+            // In case of invertHash set to non zero value for at least one column.
             if (Utils.Size(columnWithInvertHash) > 0)
             {
                 var active = new bool[1];
                 string[][] friendlyNames = _columns.Select(c => c.FriendlyNames).ToArray();
+                // We will create invert hash helper class, which would store in itself all original ngrams and their mapping into hash values.
                 var helper = new InvertHashHelper(this, input.Schema, friendlyNames, sourceColumnsForInvertHash.Contains, invertHashMaxCounts);
+                // in order to get all original ngrams we have to go data in same way as we would process it, so let's create mapper with decorate function.
                 var mapper = new Mapper(this, input.Schema, helper.Decorate);
+                // Let's create cursor to iterate over input data.
                 using (var rowCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
                 {
                     Action disp;
+                    // We create mapper getters on top of input cursor
                     var del = mapper.CreateGetters(rowCursor, columnWithInvertHash.Contains, out disp);
                     var valueGetters = new ValueGetter<VBuffer<float>>[columnWithInvertHash.Count];
                     for (int i = 0; i < columnWithInvertHash.Count; i++)
                         valueGetters[i] = del[i] as ValueGetter<VBuffer<float>>;
                     VBuffer<float> value = default;
+                    // and invoke each getter for each row.
                     while (rowCursor.MoveNext())
                     {
                         for (int i = 0; i < columnWithInvertHash.Count; i++)
                             valueGetters[i](ref value);
                     }
+                    // decorate function of helper object captured all encountered ngrams so, we ask it to give us metadata information for slot names.
                     _slotNames = helper.SlotNamesMetadata(out _slotNamesTypes);
                 }
             }
@@ -403,8 +415,8 @@ namespace Microsoft.ML.Transforms.Text
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        private NgramHashingTransformer(IHostEnvironment env, ModelLoadContext ctx) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashingTransformer)))
+        private NgramHashing(IHostEnvironment env, ModelLoadContext ctx) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NgramHashing)))
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -421,7 +433,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -448,31 +460,31 @@ namespace Microsoft.ML.Transforms.Text
                         );
                 };
             }
-            return new NgramHashingTransformer(env, input, cols).MakeDataTransform(input);
+            return new NgramHashing(env, input, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
-        private static NgramHashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static NgramHashing Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(nameof(NgramHashingTransformer));
+            var host = env.Register(nameof(NgramHashing));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new NgramHashingTransformer(host, ctx);
+            return new NgramHashing(host, ctx);
         }
 
         protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
-            private readonly NgramHashingTransformer _parent;
+            private readonly NgramHashing _parent;
             private readonly ColumnType[] _types;
             private readonly int[][] _srcIndices;
             private readonly ColumnType[][] _srcTypes;
             private readonly FinderDecorator _decorator;
 
-            public Mapper(NgramHashingTransformer parent, Schema inputSchema, FinderDecorator decorator = null) :
+            public Mapper(NgramHashing parent, Schema inputSchema, FinderDecorator decorator = null) :
                 base(Contracts.CheckRef(parent, nameof(parent)).Host.Register(nameof(Mapper)), inputSchema)
             {
                 _parent = parent;
@@ -724,7 +736,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class InvertHashHelper
         {
-            private readonly NgramHashingTransformer _parent;
+            private readonly NgramHashing _parent;
             // One per output column (will be null if invert hashing is not specified for
             // this column).
             private readonly InvertHashCollector<NGram>[] _iinfoToCollector;
@@ -736,7 +748,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly int[] _invertHashMaxCounts;
             private readonly int[][] _srcIndices;
 
-            public InvertHashHelper(NgramHashingTransformer parent, Schema inputSchema, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
+            public InvertHashHelper(NgramHashing parent, Schema inputSchema, string[][] friendlyNames, Func<int, bool> inputPred, int[] invertHashMaxCounts)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(friendlyNames);
@@ -991,7 +1003,7 @@ namespace Microsoft.ML.Transforms.Text
     /// <see cref="NgramHashingEstimator"/> is different from <see cref="WordHashBagEstimator"/> in a way that <see cref="NgramHashingEstimator"/>
     /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
     /// </summary>
-    public sealed class NgramHashingEstimator : IEstimator<NgramHashingTransformer>
+    public sealed class NgramHashingEstimator : IEstimator<NgramHashing>
     {
         internal static class Defaults
         {
@@ -1006,7 +1018,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private readonly IHost _host;
-        private readonly NgramHashingTransformer.ColumnInfo[] _columns;
+        private readonly NgramHashing.ColumnInfo[] _columns;
 
         /// <summary>
         /// Produces a bag of counts of hashed ngrams in <paramref name="inputColumn"/>
@@ -1078,7 +1090,7 @@ namespace Microsoft.ML.Transforms.Text
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to compute bag of word vector.</param>
+        /// <param name="columns">Pairs of input columns to output column mappings on which to compute ngram vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -1095,7 +1107,7 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0)
-             : this(env, columns.Select(x => new NgramHashingTransformer.ColumnInfo(x.inputs, x.output, ngramLength, skipLength, allLengths, hashBits, seed, ordered, invertHash)).ToArray())
+             : this(env, columns.Select(x => new NgramHashing.ColumnInfo(x.inputs, x.output, ngramLength, skipLength, allLengths, hashBits, seed, ordered, invertHash)).ToArray())
         {
 
         }
@@ -1109,7 +1121,7 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Array of columns which specifies the behavior of the transformation.</param>
-        public NgramHashingEstimator(IHostEnvironment env, params NgramHashingTransformer.ColumnInfo[] columns)
+        public NgramHashingEstimator(IHostEnvironment env, params NgramHashing.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(NgramHashingEstimator));
@@ -1140,7 +1152,7 @@ namespace Microsoft.ML.Transforms.Text
             return true;
         }
 
-        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertable to U4";
+        internal const string ExpectedColumnType = "Expected vector of Key type, and Key is convertible to U4";
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -1162,6 +1174,6 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
 
-        public NgramHashingTransformer Fit(IDataView input) => new NgramHashingTransformer(_host, input, _columns);
+        public NgramHashing Fit(IDataView input) => new NgramHashing(_host, input, _columns);
     }
 }

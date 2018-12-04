@@ -18,12 +18,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(OneHotHashEncodingTransformer.Summary, typeof(IDataTransform), typeof(OneHotHashEncodingTransformer), typeof(OneHotHashEncodingTransformer.Arguments), typeof(SignatureDataTransform),
-    OneHotHashEncodingTransformer.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
+[assembly: LoadableClass(OneHotHashEncoding.Summary, typeof(IDataTransform), typeof(OneHotHashEncoding), typeof(OneHotHashEncoding.Arguments), typeof(SignatureDataTransform),
+    OneHotHashEncoding.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
 
 namespace Microsoft.ML.Transforms.Categorical
 {
-    public sealed class OneHotHashEncodingTransformer : ITransformer, ICanSaveModel
+    public sealed class OneHotHashEncoding : ITransformer, ICanSaveModel
     {
         public sealed class Column : OneToOneColumn
         {
@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms.Categorical
         public const string UserName = "Categorical Hash Transform";
 
         /// <summary>
-        /// A helper method to create <see cref="OneHotHashEncodingTransformer"/>.
+        /// A helper method to create <see cref="OneHotHashEncoding"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        internal OneHotHashEncodingTransformer(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
+        internal OneHotHashEncoding(HashingEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             var chain = hash.Append(keyToVector);
             _transformer = chain.Fit(input);
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms.Categorical
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array. Use hashing to determine indicator position.
     /// </summary>
-    public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncodingTransformer>
+    public sealed class OneHotHashEncodingEstimator : IEstimator<OneHotHashEncoding>
     {
         internal static class Defaults
         {
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Categorical
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_toSomething).GetOutputSchema(inputSchema);
 
-        public OneHotHashEncodingTransformer Fit(IDataView input) => new OneHotHashEncodingTransformer(_hash, _toSomething, input);
+        public OneHotHashEncoding Fit(IDataView input) => new OneHotHashEncoding(_hash, _toSomething, input);
     }
 
     public static class CategoricalHashStaticExtensions

@@ -174,8 +174,8 @@ namespace Microsoft.ML
         /// and outputs bag of word vector as <paramref name="outputColumn"/>
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="inputColumn">Name of input column containing tokenized text.</param>
+        /// <param name="outputColumn">Name of output column, will contain the ngram vector. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
@@ -409,8 +409,8 @@ namespace Microsoft.ML
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="inputColumn">The column containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing bag of word vector. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="inputColumn">Name of input column containing tokenized text.</param>
+        /// <param name="outputColumn">Name of output column, will contain the ngram vector. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>
@@ -439,8 +439,8 @@ namespace Microsoft.ML
         /// takes tokenized text as input while <see cref="WordHashBagEstimator"/> tokenizes text internally.
         /// </summary>
         /// <param name="catalog">The text-related transform's catalog.</param>
-        /// <param name="inputColumns">The columns containing text to compute bag of word vector.</param>
-        /// <param name="outputColumn">The column containing output tokens.</param>
+        /// <param name="inputColumns">Name of input columns containing tokenized text.</param>
+        /// <param name="outputColumn">Name of output column, will contain the ngram vector.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
         /// <param name="ngramLength">Ngram length.</param>
         /// <param name="skipLength">Maximum number of tokens to skip when constructing an ngram.</param>

@@ -444,7 +444,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashingTransformer"/> or <see cref="NgramHashingTransformer"/>, for example).
+        /// (by using <see cref="HashingTransformer"/> or <see cref="NgramHashing"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 

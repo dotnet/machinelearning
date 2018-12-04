@@ -299,18 +299,18 @@ namespace Microsoft.ML.Transforms.Categorical
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
-            Desc = OneHotHashEncodingTransformer.Summary,
-            UserName = OneHotHashEncodingTransformer.UserName,
+            Desc = OneHotHashEncoding.Summary,
+            UserName = OneHotHashEncoding.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
-        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncodingTransformer.Arguments input)
+        public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, OneHotHashEncoding.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("CatTransformDict");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = OneHotHashEncodingTransformer.Create(host, input, input.Data);
+            var xf = OneHotHashEncoding.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

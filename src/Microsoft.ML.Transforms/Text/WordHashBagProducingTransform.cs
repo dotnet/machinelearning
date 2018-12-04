@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms.Text
 
         /// <summary>
         /// This class is a merger of <see cref="HashingTransformer.Arguments"/> and
-        /// <see cref="NgramHashingTransformer.Arguments"/>, with the ordered option,
+        /// <see cref="NgramHashing.Arguments"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms.Text
             if (termLoaderArgs != null)
                 termCols = new List<ValueToKeyMappingTransformer.Column>();
             var hashColumns = new List<HashingTransformer.Column>();
-            var ngramHashColumns = new NgramHashingTransformer.ColumnInfo[args.Column.Length];
+            var ngramHashColumns = new NgramHashing.ColumnInfo[args.Column.Length];
 
             var colCount = args.Column.Length;
             // The NGramHashExtractor has a ManyToOne column type. To avoid stepping over the source
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Transforms.Text
                 }
 
                 ngramHashColumns[iinfo] =
-                    new NgramHashingTransformer.ColumnInfo(tmpColNames[iinfo], column.Name,
+                    new NgramHashing.ColumnInfo(tmpColNames[iinfo], column.Name,
                     column.NgramLength ?? args.NgramLength,
                     column.SkipLength ?? args.SkipLength,
                     column.AllLengths ?? args.AllLengths,
