@@ -14,12 +14,12 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Trainers.Recommender;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {

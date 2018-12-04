@@ -550,17 +550,17 @@ namespace Microsoft.ML.Trainers.PCA
             return bldr.GetDataView();
         }
 
-        public ColumnType InputType
+        ColumnType IValueMapper.InputType
         {
             get { return _inputType; }
         }
 
-        public ColumnType OutputType
+        ColumnType IValueMapper.OutputType
         {
             get { return NumberType.Float; }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(float));

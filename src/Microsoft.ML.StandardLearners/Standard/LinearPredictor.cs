@@ -97,9 +97,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary> The predictor's bias term.</summary>
         public Float Bias { get; protected set; }
 
-        public ColumnType InputType { get; }
-
-        public ColumnType OutputType => NumberType.Float;
+        private readonly ColumnType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -121,7 +119,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Weight = weights;
             Bias = bias;
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -176,7 +174,7 @@ namespace Microsoft.ML.Runtime.Learners
             else
                 Weight = new VBuffer<Float>(len, Utils.Size(weights), weights, indices);
 
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -282,6 +280,16 @@ namespace Microsoft.ML.Runtime.Learners
                         Weight.CopyToDense(ref _weightsDense);
                 }
             }
+        }
+
+        ColumnType IValueMapper.InputType
+        {
+            get { return _inputType; }
+        }
+
+        ColumnType IValueMapper.OutputType
+        {
+            get { return NumberType.Float; }
         }
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()

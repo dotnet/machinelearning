@@ -394,8 +394,11 @@ namespace Microsoft.ML.Runtime.Learners
         private volatile VBuffer<float>[] _weightsDense;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
+        internal readonly ColumnType InputType;
+        internal readonly ColumnType OutputType;
+        ColumnType IValueMapper.InputType => InputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -710,7 +713,7 @@ namespace Microsoft.ML.Runtime.Learners
             return count;
         }
 
-        public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
+        ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Invalid source type in GetMapper");
             Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");

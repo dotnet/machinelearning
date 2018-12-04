@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             saver?.SaveAsIni(writer, schema, Calibrator);
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanSaveInTextFormat;
