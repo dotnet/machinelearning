@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Data
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                return new Row(input, this, OutputSchema, getters);
+                return new RowImpl(input, this, OutputSchema, getters);
             }
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : IRow
         {
             private readonly IRow _input;
             private readonly Delegate[] _getters;
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema { get; }
 
-            public Row(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
+            public RowImpl(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;

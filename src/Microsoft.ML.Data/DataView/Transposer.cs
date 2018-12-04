@@ -1141,14 +1141,14 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
                         Contracts.Assert(row.IsColumnActive(SrcCol));
-                        return new Row(this, row, pred(0));
+                        return new RowImpl(this, row, pred(0));
                     }
 
-                    private sealed class Row : RowBase<NoSplitter<T>>
+                    private sealed class RowImpl : RowBase<NoSplitter<T>>
                     {
                         private readonly bool _isActive;
 
-                        public Row(NoSplitter<T> parent, IRow input, bool isActive)
+                        public RowImpl(NoSplitter<T> parent, IRow input, bool isActive)
                             : base(parent, input)
                         {
                             Contracts.Assert(Parent.ColumnCount == 1);
@@ -1227,10 +1227,10 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(row.Schema == _view.Schema);
                         Contracts.AssertValue(pred);
                         Contracts.Assert(row.IsColumnActive(SrcCol));
-                        return new Row(this, row, pred);
+                        return new RowImpl(this, row, pred);
                     }
 
-                    private sealed class Row : RowBase<ColumnSplitter<T>>
+                    private sealed class RowImpl : RowBase<ColumnSplitter<T>>
                     {
                         // Counter of the last valid input, updated by EnsureValid.
                         private long _lastValid;
@@ -1245,7 +1245,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Getters.
                         private readonly ValueGetter<VBuffer<T>>[] _getters;
 
-                        public Row(ColumnSplitter<T> parent, IRow input, Func<int, bool> pred)
+                        public RowImpl(ColumnSplitter<T> parent, IRow input, Func<int, bool> pred)
                             : base(parent, input)
                         {
                             _inputGetter = input.GetGetter<VBuffer<T>>(Parent.SrcCol);

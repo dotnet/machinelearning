@@ -579,11 +579,11 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : IRow
         {
             private readonly Mapper _mapper;
             private readonly IRow _input;
-            public Row(IRow input, Mapper mapper)
+            public RowImpl(IRow input, Mapper mapper)
             {
                 _mapper = mapper;
                 _input = input;
@@ -687,7 +687,7 @@ namespace Microsoft.ML.Transforms
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
-                return new Row(input, _mapper);
+                return new RowImpl(input, _mapper);
             }
 
             public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)

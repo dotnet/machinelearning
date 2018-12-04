@@ -479,12 +479,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer) =>
-                new Row(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
+                new RowImpl(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
                     _mapper.CreatePinger(input, active, out disposer));
 
         }
 
-        private sealed class Row : IStatefulRow
+        private sealed class RowImpl : IStatefulRow
         {
             private readonly Schema _schema;
             private readonly IRow _input;
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override long Batch => _input.Batch;
 
-            public Row(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
+            public RowImpl(Schema schema, IRow input, Delegate[] getters, Action<long> pinger)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));

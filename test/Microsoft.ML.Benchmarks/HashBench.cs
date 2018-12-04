@@ -17,7 +17,7 @@ namespace Microsoft.ML.Benchmarks
 {
     public class HashBench
     {
-        private sealed class Row : IRow
+        private sealed class RowImpl : IRow
         {
             public long PositionValue;
 
@@ -45,14 +45,14 @@ namespace Microsoft.ML.Benchmarks
                 throw new Exception();
             }
 
-            public static Row Create<T>(ColumnType type, ValueGetter<T> getter)
+            public static RowImpl Create<T>(ColumnType type, ValueGetter<T> getter)
             {
                 if (type.RawType != typeof(T))
                     throw new Exception();
-                return new Row(type, getter);
+                return new RowImpl(type, getter);
             }
 
-            private Row(ColumnType type, Delegate getter)
+            private RowImpl(ColumnType type, Delegate getter)
             {
                 var builder = new SchemaBuilder();
                 builder.AddColumn("Foo", type, null);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Benchmarks
 
         private readonly IHostEnvironment _env = new MLContext();
 
-        private Row _inRow;
+        private RowImpl _inRow;
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Benchmarks
         {
             if (getter == null)
                 getter = (ref T dst) => dst = val;
-            _inRow = Row.Create(type, getter);
+            _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
             var info = new HashingTransformer.ColumnInfo("Foo", "Bar", hashBits: hashBits);
             var xf = new HashingTransformer(_env, new[] { info });

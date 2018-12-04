@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
                 Action disp;
                 var getters = CreateGetters(input, active, out disp);
                 disposer += disp;
-                return new Row(input, this, OutputSchema, getters);
+                return new RowImpl(input, this, OutputSchema, getters);
             }
         }
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract int MapColumnIndex(out bool isSrc, int col);
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : IRow
         {
             private readonly Schema _schema;
             private readonly IRow _input;
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema => _schema;
 
-            public Row(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
+            public RowImpl(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
