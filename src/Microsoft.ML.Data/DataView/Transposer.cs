@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private abstract class SlotCursor<T> : SlotCursor.RootBase
+        private abstract class SlotCursor<T> : SlotCursor.RootSlotCursor
         {
             private readonly Transposer _parent;
             private readonly int _col;
@@ -1549,7 +1549,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public override Schema Schema => _parent.Schema;
 
-                public override long Batch => throw new NotImplementedException();
+                public override long Batch => 0;
 
                 public Cursor(SlotDataView parent, bool active)
                     : base(parent._host)
@@ -1597,7 +1597,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema { get; }
 
-            public override long Batch => throw new NotImplementedException();
+            public override long Batch => 0;
 
             public SlotRowCursorShim(IChannelProvider provider, SlotCursor cursor)
                 : base(provider)

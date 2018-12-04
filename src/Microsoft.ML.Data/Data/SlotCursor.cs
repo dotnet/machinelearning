@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
         public abstract int SlotIndex { get; }
 
         /// <summary>
-        /// Advance to the next row. When the cursor is first created, this method should be called to
+        /// Advance to the next slot. When the cursor is first created, this method should be called to
         /// move to the first slot. Returns <see langword="false"/> if there are no more slots.
         /// </summary>
         public abstract bool MoveNext();
@@ -67,20 +67,21 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// For wrapping another slot cursor from which we get <see cref="SlotIndex"/> and <see cref="MoveNext"/>,
-        /// but not the data or type accesors.
+        /// but not the data or type accesors. Somewhat analogous to the <see cref="SynchronizedCursorBase"/>
+        /// for <see cref="RowCursor"/>s.
         /// </summary>
         [BestFriend]
-        internal abstract class SyncBase : SlotCursor
+        internal abstract class SynchronizedSlotCursor : SlotCursor
         {
             private readonly SlotCursor _root;
 
-            public SyncBase(IChannelProvider provider, SlotCursor cursor)
+            public SynchronizedSlotCursor(IChannelProvider provider, SlotCursor cursor)
                 : base(provider)
             {
                 Contracts.AssertValue(cursor);
                 // If the input is itself a sync-base, we can walk up the chain to get its root,
                 // thereby making things more efficient.
-                _root = cursor is SyncBase sync ? sync._root : cursor;
+                _root = cursor is SynchronizedSlotCursor sync ? sync._root : cursor;
             }
 
             public override bool MoveNext()
@@ -90,14 +91,15 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// A useful base class for common <see cref="SlotCursor"/> implementations.
+        /// A useful base class for common <see cref="SlotCursor"/> implementations, somewhat
+        /// analogous to the <see cref="RootCursorBase"/> for <see cref="RowCursor"/>s.
         /// </summary>
         [BestFriend]
-        internal abstract class RootBase : SlotCursor
+        internal abstract class RootSlotCursor : SlotCursor
         {
             private int _slotIndex;
 
-            public RootBase(IChannelProvider provider)
+            public RootSlotCursor(IChannelProvider provider)
                 : base(provider)
             {
                 _slotIndex = -1;

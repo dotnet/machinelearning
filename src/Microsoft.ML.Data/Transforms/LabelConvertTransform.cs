@@ -199,7 +199,7 @@ namespace Microsoft.ML.Transforms
             return new SlotCursorImpl(Host, cursor, GetSlotTypeCore(iinfo));
         }
 
-        private sealed class SlotCursorImpl : SlotCursor.SyncBase
+        private sealed class SlotCursorImpl : SlotCursor.SynchronizedSlotCursor
         {
             private readonly Delegate _getter;
             private readonly VectorType _type;
