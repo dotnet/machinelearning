@@ -12,11 +12,11 @@ namespace Microsoft.ML.Samples.Dynamic
     class TensorFlowTransformExample
     {
         /// <summary>
-        /// Example use of TensorFlowEstimator in a ML.NET pipeline
+        /// Example use of the TensorFlowEstimator in a ML.NET pipeline.
         /// </summary>
         public static void TensorFlowScoringSample()
         {
-            // Download the ResNet 101 model from the location below
+            // Download the ResNet 101 model from the location below.
             // https://storage.googleapis.com/download.tensorflow.org/models/tflite_11_05_08/resnet_v2_101.tgz
             var modelLocation = @"resnet_v2_101/resnet_v2_101_299_frozen.pb";
 
@@ -24,17 +24,17 @@ namespace Microsoft.ML.Samples.Dynamic
             var data = GetTensorData();
             var idv = mlContext.CreateStreamingDataView(data);
 
-            // Create a ML pipeline to score the data using TensorFlowEstimator
+            // Create a ML pipeline.
             var pipeline = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "input" }, new[] { "output" });
 
-            // Run the pipeline and get the transformed values
+            // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
             var transformedValues = estimator.Transform(idv);
 
-            // Retrieve model scores into OutputScores class
+            // Retrieve model scores.
             var outScores = transformedValues.AsEnumerable<OutputScores>(mlContext, reuseRowObject: false);
 
-            // Iterate rows
+            // Display scores. (for the sake of brevity we display scores of the first 3 classes)
             foreach (var prediction in outScores)
             {
                 int numClasses = 0;
@@ -56,14 +56,14 @@ namespace Microsoft.ML.Samples.Dynamic
             //----------
         }
 
-        private const int imageHeight = 224;
+        private const int imageHeight = 224; 
         private const int imageWidth = 224;
         private const int numChannels = 3;
         private const int inputSize = imageHeight * imageWidth * numChannels;
 
         /// <summary>
-        /// A class to hold sample tensor data. Member name should match  
-        /// the inputs that the model expects (in this case, input)
+        /// A class to hold sample tensor data. 
+        /// Member name should match the inputs that the model expects (in this case, input).
         /// </summary>
         public class TensorData
         {
@@ -84,7 +84,6 @@ namespace Microsoft.ML.Samples.Dynamic
 
         /// <summary>
         /// Class to contain the output values from the transformation.
-        /// This model generates a vector of 1000 floats.
         /// </summary>
         class OutputScores
         {
