@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,11 +17,15 @@ namespace Microsoft.ML.Core.Data
     /// This is more relaxed than the proper <see cref="ISchema"/>, since it's only a subset of the columns,
     /// and also since it doesn't specify exact <see cref="ColumnType"/>'s for vectors and keys.
     /// </summary>
-    public sealed class SchemaShape
+    public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
         public readonly Column[] Columns;
 
         private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
+
+        public int Count => Columns.Length;
+
+        public Column this[int index] => Columns[index];
 
         public struct Column
         {
@@ -192,16 +197,13 @@ namespace Microsoft.ML.Core.Data
             return column.IsValid;
         }
 
+        public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)Columns).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         // REVIEW: I think we should have an IsCompatible method to check if it's OK to use one schema shape
         // as an input to another schema shape. I started writing, but realized that there's more than one way to check for
         // the 'compatibility': as in, 'CAN be compatible' vs. 'WILL be compatible'.
-    }
-
-    /// <summary>
-    /// Exception class for schema validation errors.
-    /// </summary>
-    public class SchemaException : Exception
-    {
     }
 
     /// <summary>
@@ -252,7 +254,6 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
-        /// Throws <see cref="SchemaException"/> if the input schema is not valid for the transformer.
         /// </summary>
         Schema GetOutputSchema(Schema inputSchema);
 
@@ -294,7 +295,6 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Schema propagation for estimators.
         /// Returns the output schema shape of the estimator, if the input schema shape is like the one provided.
-        /// Throws <see cref="SchemaException"/> iff the input schema is not valid for the estimator.
         /// </summary>
         SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }
