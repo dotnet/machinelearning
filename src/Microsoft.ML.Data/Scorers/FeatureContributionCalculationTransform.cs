@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[FCT](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+    /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
     /// ]]>
     /// </format>
     /// </example>
