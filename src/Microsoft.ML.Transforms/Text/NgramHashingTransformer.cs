@@ -32,6 +32,10 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
+    /// <summary>
+    /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
+    /// It does so by hashing each ngram and using the hash value as the index in the bag.
+    /// </summary>
     public sealed class NgramHashingTransformer : RowToRowTransformerBase
     {
         public sealed class Column : ManyToOneColumn
@@ -399,16 +403,16 @@ namespace Microsoft.ML.Transforms.Text
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            var columnsLenght = ctx.Reader.ReadInt32();
-            var columns = new ColumnInfo[columnsLenght];
+            var columnsLength = ctx.Reader.ReadInt32();
+            var columns = new ColumnInfo[columnsLength];
 
             // *** Binary format ***
             // int  amount of columns
             // columns
-            for (int i = 0; i < columnsLenght; i++)
+            for (int i = 0; i < columnsLength; i++)
                 columns[i] = new ColumnInfo(ctx);
             _columns = columns.ToImmutableArray();
-            TextModelHelper.LoadAll(Host, ctx, columnsLenght, out _slotNames, out _slotNamesTypes);
+            TextModelHelper.LoadAll(Host, ctx, columnsLength, out _slotNames, out _slotNamesTypes);
         }
 
         // Factory method for SignatureDataTransform.

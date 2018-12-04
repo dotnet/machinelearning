@@ -777,6 +777,4 @@ namespace Microsoft.ML.Transforms.Conversions
             return new SchemaShape(result.Values);
         }
     }
-
-    
 }
