@@ -77,5 +77,14 @@ namespace Microsoft.ML.StaticPipe
                 return new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, newOut);
             }
         }
+
+        /// <summary>
+        /// Cache data produced in memory by this estimator. It may append an extra estimator the this estimator
+        /// for caching and return the new one.
+        /// </summary>
+        public Estimator<TInShape, TOutShape, ITransformer> AppendCacheCheckpoint()
+        {
+            return new Estimator<TInShape, TOutShape, ITransformer>(Env, AsDynamic.AppendCacheCheckpoint(Env), _inShape, Shape);
+        }
     }
 }
