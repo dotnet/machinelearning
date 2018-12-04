@@ -324,7 +324,7 @@ namespace Microsoft.ML.Data
             where TWaiter : struct, IWaiter
         {
             _host.AssertValue(predicate);
-            return new RowSeeker<TWaiter>(this, predicate, waiter);
+            return new RowSeeker<TWaiter>(new RowSeekerCore<TWaiter>(this, predicate, waiter));
         }
 
         /// <summary>
@@ -464,15 +464,15 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private sealed class RowCursor<TIndex> : RowCursorSeekerBase, IRowCursor
+        private sealed class RowCursor<TIndex> : RowCursorSeekerBase
             where TIndex : struct, IIndex
         {
             private CursorState _state;
             private readonly TIndex _index;
 
-            public CursorState State { get { return _state; } }
+            public override CursorState State => _state;
 
-            public long Batch { get { return _index.Batch; } }
+            public override long Batch => _index.Batch;
 
             public RowCursor(CacheDataView parent, Func<int, bool> predicate, TIndex index)
                 : base(parent, predicate)
@@ -481,11 +481,11 @@ namespace Microsoft.ML.Data
                 _index = index;
             }
 
-            public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+            public override ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
 
-            public IRowCursor GetRootCursor() => this;
+            public override IRowCursor GetRootCursor() => this;
 
-            public bool MoveNext()
+            public override bool MoveNext()
             {
                 if (_state == CursorState.Done)
                 {
@@ -496,7 +496,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
                 if (_index.MoveNext())
                 {
-                    Position++;
+                    PositionCore++;
                     Ch.Assert(Position >= 0);
                     _state = CursorState.Good;
                     return true;
@@ -507,7 +507,7 @@ namespace Microsoft.ML.Data
                 return false;
             }
 
-            public bool MoveMany(long count)
+            public override bool MoveMany(long count)
             {
                 // Note: If we decide to allow count == 0, then we need to special case
                 // that MoveNext() has never been called. It's not entirely clear what the return
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Data
                 Ch.Assert(_state == CursorState.NotStarted || _state == CursorState.Good);
                 if (_index.MoveMany(count))
                 {
-                    Position += count;
+                    PositionCore += count;
                     _state = CursorState.Good;
                     Ch.Assert(Position >= 0);
                     return true;
@@ -550,14 +550,41 @@ namespace Microsoft.ML.Data
             }
         }
 
-        private sealed class RowSeeker<TWaiter> : RowCursorSeekerBase, IRowSeeker
-            where TWaiter : struct, IWaiter
+        private sealed class RowSeeker<TWaiter> : IRowSeeker
+    where TWaiter : struct, IWaiter
+        {
+            private readonly RowSeekerCore<TWaiter> _internal;
+
+            public RowSeeker(RowSeekerCore<TWaiter> toWrap)
+            {
+                Contracts.AssertValue(toWrap);
+                _internal = toWrap;
+            }
+
+            public override long Position => _internal.Position;
+            public override long Batch => _internal.Batch;
+            public override Schema Schema => _internal.Schema;
+
+            public override void Dispose()
+            {
+            }
+
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _internal.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => _internal.GetIdGetter();
+            public override bool IsColumnActive(int col) => _internal.IsColumnActive(col);
+            public override bool MoveTo(long rowIndex) => _internal.MoveTo(rowIndex);
+        }
+
+        private sealed class RowSeekerCore<TWaiter> : RowCursorSeekerBase
+                where TWaiter : struct, IWaiter
         {
             private readonly TWaiter _waiter;
 
-            public long Batch { get { return 0; } }
+            public override long Batch => 0;
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public override CursorState State => throw new NotImplementedException();
+
+            public override ValueGetter<UInt128> GetIdGetter()
             {
                 return
                     (ref UInt128 val) =>
@@ -567,7 +594,7 @@ namespace Microsoft.ML.Data
                     };
             }
 
-            public RowSeeker(CacheDataView parent, Func<int, bool> predicate, TWaiter waiter)
+            public RowSeekerCore(CacheDataView parent, Func<int, bool> predicate, TWaiter waiter)
                 : base(parent, predicate)
             {
                 _waiter = waiter;
@@ -579,11 +606,11 @@ namespace Microsoft.ML.Data
                 {
                     // If requested row index is out of range, the row seeker
                     // returns false and sets its position to -1.
-                    Position = -1;
+                    PositionCore = -1;
                     return false;
                 }
 
-                Position = rowIndex;
+                PositionCore = rowIndex;
                 return true;
             }
 
@@ -595,6 +622,10 @@ namespace Microsoft.ML.Data
             {
                 return (ref TValue value) => cache.Fetch((int)Position, ref value);
             }
+
+            public override bool MoveNext() => throw Ch.ExceptNotSupp();
+            public override bool MoveMany(long count) => throw Ch.ExceptNotSupp();
+            public override IRowCursor GetRootCursor() => throw Ch.ExceptNotSupp();
         }
 
         private interface IWaiter
@@ -669,7 +700,7 @@ namespace Microsoft.ML.Data
             /// <summary>
             /// If this is true, then a <see cref="TrivialWaiter"/> could be used instead.
             /// </summary>
-            public bool IsTrivial { get { return _waiters.Length == 0; } }
+            public bool IsTrivial => _waiters.Length == 0;
 
             private WaiterWaiter(CacheDataView parent, Func<int, bool> pred)
             {
@@ -716,7 +747,7 @@ namespace Microsoft.ML.Data
             {
                 private readonly WaiterWaiter _waiter;
 
-                public bool IsTrivial { get { return _waiter.IsTrivial; } }
+                public bool IsTrivial => _waiter.IsTrivial;
 
                 public Wrapper(WaiterWaiter waiter)
                 {
@@ -724,7 +755,7 @@ namespace Microsoft.ML.Data
                     _waiter = waiter;
                 }
 
-                public bool Wait(long pos) { return _waiter.Wait(pos); }
+                public bool Wait(long pos) => _waiter.Wait(pos);
             }
         }
 
@@ -836,11 +867,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<UInt128> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
+                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
@@ -927,11 +958,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<UInt128> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
+                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
@@ -1097,11 +1128,11 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<UInt128> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
+                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
@@ -1205,34 +1236,35 @@ namespace Microsoft.ML.Data
                     _index = index;
                 }
 
-                public long Batch { get { return _index.Batch; } }
-                public long GetIndex() { return _index.GetIndex(); }
-                public ValueGetter<UInt128> GetIdGetter() { return _index.GetIdGetter(); }
-                public bool MoveNext() { return _index.MoveNext(); }
-                public bool MoveMany(long count) { return _index.MoveMany(count); }
+                public long Batch => _index.Batch;
+                public long GetIndex() => _index.GetIndex();
+                public ValueGetter<UInt128> GetIdGetter() => _index.GetIdGetter();
+                public bool MoveNext() => _index.MoveNext();
+                public bool MoveMany(long count) => _index.MoveMany(count);
             }
         }
 
-        private abstract class RowCursorSeekerBase : IDisposable
+        private abstract class RowCursorSeekerBase : IRowCursor
         {
             protected readonly CacheDataView Parent;
             protected readonly IChannel Ch;
+            protected long PositionCore;
 
             private readonly int[] _colToActivesIndex;
             private readonly Delegate[] _getters;
 
             private bool _disposed;
 
-            public Schema Schema => Parent.Schema;
+            public sealed override Schema Schema => Parent.Schema;
 
-            public long Position { get; protected set; }
+            public sealed override long Position => PositionCore;
 
             protected RowCursorSeekerBase(CacheDataView parent, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(parent);
                 Parent = parent;
                 Ch = parent._host.Start("Cursor");
-                Position = -1;
+                PositionCore = -1;
 
                 // Set up the mapping from active columns.
                 int colLim = Schema.ColumnCount;
@@ -1253,24 +1285,24 @@ namespace Microsoft.ML.Data
                 }
             }
 
-            public bool IsColumnActive(int col)
+            public sealed override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;
             }
 
-            public void Dispose()
+            public sealed override void Dispose()
             {
                 if (!_disposed)
                 {
                     DisposeCore();
-                    Position = -1;
+                    PositionCore = -1;
                     Ch.Dispose();
                     _disposed = true;
                 }
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public sealed override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 if (!IsColumnActive(col))
                     throw Ch.Except("Column #{0} is requested but not active in the cursor", col);

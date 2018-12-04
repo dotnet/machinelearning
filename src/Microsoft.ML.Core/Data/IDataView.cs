@@ -215,13 +215,13 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// The basic cursor interface to cursor through rows of an <see cref="IDataView"/>. Note that
+    /// The basic cursor base class to cursor through rows of an <see cref="IDataView"/>. Note that
     /// this is also an <see cref="IRow"/>. The <see cref="IRow.Position"/> is incremented by <see cref="MoveNext"/>
     /// and <see cref="MoveMany"/>. When the cursor state is <see cref="CursorState.NotStarted"/> or
     /// <see cref="CursorState.Done"/>, <see cref="IRow.Position"/> is <c>-1</c>. Otherwise,
     /// <see cref="IRow.Position"/> >= 0.
     /// </summary>
-    public interface IRowCursor : IRow, IDisposable
+    public abstract class IRowCursor : IRow, IDisposable
     {
         /// <summary>
         /// Returns the state of the cursor. Before the first call to <see cref="MoveNext"/> or
@@ -229,20 +229,23 @@ namespace Microsoft.ML.Runtime.Data
         /// any call those move functions that returns <see langword="true"/>, this should return
         /// <see cref="CursorState.Good"/>,
         /// </summary>
-        CursorState State { get; }
+        public abstract CursorState State { get; }
+        public abstract long Position { get; }
+        public abstract long Batch { get; }
+        public abstract Schema Schema { get; }
 
         /// <summary>
         /// Advance to the next row. When the cursor is first created, this method should be called to
         /// move to the first row. Returns <c>false</c> if there are no more rows.
         /// </summary>
-        bool MoveNext();
+        public abstract bool MoveNext();
 
         /// <summary>
         /// Logically equivalent to calling <see cref="MoveNext"/> the given number of times. The
         /// <paramref name="count"/> parameter must be positive. Note that cursor implementations may be
         /// able to optimize this.
         /// </summary>
-        bool MoveMany(long count);
+        public abstract bool MoveMany(long count);
 
         /// <summary>
         /// Returns a cursor that can be used for invoking <see cref="IRow.Position"/>, <see cref="State"/>,
@@ -251,6 +254,10 @@ namespace Microsoft.ML.Runtime.Data
         /// root cursor will be faster. As an aside, note that this is not necessarily the case of
         /// values from <see cref="IRow.GetIdGetter"/>.
         /// </summary>
-        IRowCursor GetRootCursor();
+        public abstract IRowCursor GetRootCursor();
+        public abstract ValueGetter<UInt128> GetIdGetter();
+        public abstract bool IsColumnActive(int col);
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
+        public abstract void Dispose();
     }
 }

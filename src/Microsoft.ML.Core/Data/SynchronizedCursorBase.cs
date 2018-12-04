@@ -22,18 +22,16 @@ namespace Microsoft.ML.Runtime.Data
 
         protected IRowCursor Input { get; }
 
-        public long Position => _root.Position;
+        public sealed override long Position => _root.Position;
 
-        public long Batch => _root.Batch;
+        public sealed override long Batch => _root.Batch;
 
-        public CursorState State => _root.State;
+        public sealed override CursorState State => _root.State;
 
         /// <summary>
         /// Convenience property for checking whether the current state is CursorState.Good.
         /// </summary>
         protected bool IsGood => _root.State == CursorState.Good;
-
-        public abstract Schema Schema { get; }
 
         protected SynchronizedCursorBase(IChannelProvider provider, IRowCursor input)
         {
@@ -45,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             _root = Input.GetRootCursor();
         }
 
-        public virtual void Dispose()
+        public override void Dispose()
         {
             if (!_disposed)
             {
@@ -55,16 +53,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public bool MoveNext() => _root.MoveNext();
+        public sealed override bool MoveNext() => _root.MoveNext();
 
-        public bool MoveMany(long count) => _root.MoveMany(count);
+        public sealed override bool MoveMany(long count) => _root.MoveMany(count);
 
-        public IRowCursor GetRootCursor() => _root;
+        public sealed override IRowCursor GetRootCursor() => _root;
 
-        public ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
-
-        public abstract bool IsColumnActive(int col);
-
-        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
+        public sealed override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
     }
 }

@@ -48,9 +48,10 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, IRowCursor
+    public abstract class IRowCursor<TRow> : IRowCursor, IRowReadableAs<TRow>
         where TRow : class
     {
+        public abstract void FillValues(TRow row);
     }
 
     /// <summary>
@@ -179,7 +180,7 @@ namespace Microsoft.ML.Runtime.Api
 
         public IRowReadableAs<TRow> GetRow(IRow input)
         {
-            return new TypedRow(this, input);
+            return new RowImplementation(new TypedRow(this, input));
         }
 
         /// <summary>
@@ -195,7 +196,7 @@ namespace Microsoft.ML.Runtime.Api
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
             var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
-            return new TypedCursor(this, cursor);
+            return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> additionalColumnsPredicate)
@@ -226,8 +227,8 @@ namespace Microsoft.ML.Runtime.Api
             _host.AssertNonEmpty(inputs);
 
             return inputs
-                .Select(rc => (IRowCursor<TRow>)(new TypedCursor(this, rc)))
-                .ToArray();
+                 .Select(rc => (IRowCursor<TRow>)(new RowCursorImplementation(new TypedCursor(this, rc))))
+                 .ToArray();
         }
 
         /// <summary>
@@ -251,7 +252,7 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRowReadableAs<TRow>
+        private abstract class TypedRowBase
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
@@ -280,10 +281,7 @@ namespace Microsoft.ML.Runtime.Api
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
+            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
             private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
@@ -479,7 +477,44 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        private sealed class RowImplementation : IRowReadableAs<TRow>
+        {
+            private readonly TypedRow _row;
+
+            public RowImplementation(TypedRow row) => _row = row;
+
+            public long Position => _row.Position;
+            public long Batch => _row.Batch;
+            public Schema Schema => _row.Schema;
+            public void FillValues(TRow row) => _row.FillValues(row);
+            public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public bool IsColumnActive(int col) => _row.IsColumnActive(col);
+        }
+
+        private sealed class RowCursorImplementation : IRowCursor<TRow>
+        {
+            private readonly TypedCursor _cursor;
+
+            public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
+
+            public override CursorState State => _cursor.State;
+            public override long Position => _cursor.Position;
+            public override long Batch => _cursor.Batch;
+            public override Schema Schema => _cursor.Schema;
+
+            public override void Dispose() { }
+
+            public override void FillValues(TRow row) => _cursor.FillValues(row);
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => _cursor.GetIdGetter();
+            public override IRowCursor GetRootCursor() => _cursor.GetRootCursor();
+            public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
+            public override bool MoveMany(long count) => _cursor.MoveMany(count);
+            public override bool MoveNext() => _cursor.MoveNext();
+        }
+
+        private sealed class TypedCursor : TypedRowBase
         {
             private readonly IRowCursor _input;
             private bool _disposed;
@@ -496,7 +531,7 @@ namespace Microsoft.ML.Runtime.Api
                 base.FillValues(row);
             }
 
-            public CursorState State { get { return _input.State; } }
+            public CursorState State => _input.State;
 
             public void Dispose()
             {
@@ -508,20 +543,9 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public bool MoveNext()
-            {
-                return _input.MoveNext();
-            }
-
-            public bool MoveMany(long count)
-            {
-                return _input.MoveMany(count);
-            }
-
-            public IRowCursor GetRootCursor()
-            {
-                return _input.GetRootCursor();
-            }
+            public bool MoveNext() => _input.MoveNext();
+            public bool MoveMany(long count) => _input.MoveMany(count);
+            public IRowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

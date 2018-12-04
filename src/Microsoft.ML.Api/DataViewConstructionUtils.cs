@@ -409,7 +409,28 @@ namespace Microsoft.ML.Runtime.Api
                 return new[] { GetRowCursor(predicate, rand) };
             }
 
-            public abstract class DataViewCursorBase : InputRowBase<TRow>, IRowCursor
+            public sealed class WrappedCursor : IRowCursor
+            {
+                private readonly DataViewCursorBase _toWrap;
+
+                public WrappedCursor(DataViewCursorBase toWrap) => _toWrap = toWrap;
+
+                public override CursorState State => _toWrap.State;
+                public override long Position => _toWrap.Position;
+                public override long Batch => _toWrap.Batch;
+                public override Schema Schema => _toWrap.Schema;
+
+                public override void Dispose() => _toWrap.Dispose();
+                public override ValueGetter<TValue> GetGetter<TValue>(int col)
+                    => _toWrap.GetGetter<TValue>(col);
+                public override ValueGetter<UInt128> GetIdGetter() => _toWrap.GetIdGetter();
+                public override IRowCursor GetRootCursor() => this;
+                public override bool IsColumnActive(int col) => _toWrap.IsColumnActive(col);
+                public override bool MoveMany(long count) => _toWrap.MoveMany(count);
+                public override bool MoveNext() => _toWrap.MoveNext();
+            }
+
+            public abstract class DataViewCursorBase : InputRowBase<TRow>
             {
                 // There is no real concept of multiple inheritance and for various reasons it was better to
                 // descend from the row class as opposed to wrapping it, so much of this class is regrettably
@@ -524,14 +545,6 @@ namespace Microsoft.ML.Runtime.Api
                 /// <see cref="CursorState.Done"/>.
                 /// </summary>
                 protected abstract bool MoveNextCore();
-
-                /// <summary>
-                /// Returns a cursor that can be used for invoking <see cref="Position"/>, <see cref="State"/>,
-                /// <see cref="MoveNext"/>, and <see cref="MoveMany(long)"/>, with results identical to calling
-                /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
-                /// the root cursor will be faster.
-                /// </summary>
-                public IRowCursor GetRootCursor() => this;
             }
         }
 
@@ -564,7 +577,7 @@ namespace Microsoft.ML.Runtime.Api
             public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Host.CheckValue(predicate, nameof(predicate));
-                return new Cursor(Host, "ListDataView", this, predicate, rand);
+                return new WrappedCursor(new Cursor(Host, "ListDataView", this, predicate, rand));
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -662,7 +675,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
-                return new Cursor(Host, this, predicate);
+                return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
             /// <summary>
@@ -731,15 +744,9 @@ namespace Microsoft.ML.Runtime.Api
             {
             }
 
-            public override bool CanShuffle
-            {
-                get { return false; }
-            }
+            public override bool CanShuffle => false;
 
-            public override long? GetRowCount()
-            {
-                return null;
-            }
+            public override long? GetRowCount() => null;
 
             public void SetCurrentRowObject(TRow value)
             {
@@ -750,7 +757,7 @@ namespace Microsoft.ML.Runtime.Api
             public override IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 Contracts.Assert(_current != null, "The current object must be set prior to cursoring");
-                return new Cursor(Host, this, predicate);
+                return new WrappedCursor (new Cursor(Host, this, predicate));
             }
 
             private sealed class Cursor : DataViewCursorBase
@@ -773,10 +780,7 @@ namespace Microsoft.ML.Runtime.Api
                         };
                 }
 
-                protected override TRow GetCurrentRowObject()
-                {
-                    return _currentRow;
-                }
+                protected override TRow GetCurrentRowObject() => _currentRow;
 
                 protected override bool MoveNextCore()
                 {

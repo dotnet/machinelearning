@@ -24,8 +24,17 @@ namespace Microsoft.ML.Runtime.Data
     /// For IRowSeeker, when the state is valid (that is when MoveTo() returns true), it returns the
     /// current row index. Otherwise it's -1.
     /// </summary>
-    public interface IRowSeeker : IRow, IDisposable
+    public abstract class IRowSeeker : IRow, IDisposable
     {
+        public abstract long Position { get; }
+        public abstract long Batch { get; }
+        public abstract Schema Schema { get; }
+
+        public abstract void Dispose();
+        public abstract ValueGetter<TValue> GetGetter<TValue>(int col);
+        public abstract ValueGetter<UInt128> GetIdGetter();
+        public abstract bool IsColumnActive(int col);
+
         /// <summary>
         /// Moves the seeker to a row at a specific row index.
         /// If the row index specified is out of range (less than zero or not less than the
@@ -33,6 +42,6 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="rowIndex">The row index to move to.</param>
         /// <returns>True if a row with specified index is found; false otherwise.</returns>
-        bool MoveTo(long rowIndex);
+        public abstract bool MoveTo(long rowIndex);
     }
 }
