@@ -692,7 +692,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             Func<int, bool> predicateInput;
             var active = GetActive(predicate, out predicateInput);
-            return new RowCursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
+            return new Cursor(Host, Source.GetRowCursor(predicateInput, rand), this, active);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
@@ -712,7 +712,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             var cursors = new IRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, inputs[i], this, active);
+                cursors[i] = new Cursor(Host, inputs[i], this, active);
             return cursors;
         }
 
@@ -819,7 +819,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Delegate[] _getters;
             private readonly bool[] _active;
@@ -828,7 +828,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema => _bindings.Schema;
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
+            public Cursor(IChannelProvider provider, IRowCursor input, TimeSeriesRowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)
             {
                 var pred = parent.GetActiveOutputColumns(active);

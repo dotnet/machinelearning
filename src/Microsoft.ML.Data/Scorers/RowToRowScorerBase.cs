@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, bool> predicateMapper;
             var active = GetActive(bindings, predicate, out predicateInput, out predicateMapper);
             var input = Source.GetRowCursor(predicateInput, rand);
-            return new RowCursor(Host, this, input, active, predicateMapper);
+            return new Cursor(Host, this, input, active, predicateMapper);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var cursors = new IRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, this, inputs[i], active, predicateMapper);
+                cursors[i] = new Cursor(Host, this, inputs[i], active, predicateMapper);
             return cursors;
         }
 
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
             return bindings.MapColumnIndex(out isSrc, col);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly BindingsBase _bindings;
             private readonly bool[] _active;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema { get; }
 
-            public RowCursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
+            public Cursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
             {
                 Ch.AssertValue(parent);

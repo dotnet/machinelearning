@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
                 bool[] active;
                 Func<int, bool> inputPred = GetActive(predicate, out active);
                 var input = Source.GetRowCursor(inputPred, rand);
-                return new RowCursor(this, input, active);
+                return new Cursor(this, input, active);
             }
 
             public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Data
                 // No need to split if this is given 1 input cursor.
                 var cursors = new IRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
-                    cursors[i] = new RowCursor(this, inputs[i], active);
+                    cursors[i] = new Cursor(this, inputs[i], active);
                 return cursors;
             }
 
@@ -147,13 +147,13 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // REVIEW: Should this cache the source value like MissingValueFilter does?
-            private sealed class RowCursor : LinkedRowFilterCursorBase
+            private sealed class Cursor : LinkedRowFilterCursorBase
             {
                 private readonly ValueGetter<T1> _getSrc;
                 private readonly InPredicate<T1> _pred;
                 private T1 _src;
 
-                public RowCursor(Impl<T1, T2> parent, IRowCursor input, bool[] active)
+                public Cursor(Impl<T1, T2> parent, IRowCursor input, bool[] active)
                     : base(parent.Host, input, parent.OutputSchema, active)
                 {
                     _getSrc = Input.GetGetter<T1>(parent._colSrc);

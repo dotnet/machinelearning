@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms
             // We do not use the input random because this cursor does not support shuffling.
             var rgen = new TauswortheHybrid(_state);
             var input = Source.GetRowCursor(predicate, _shuffleInput ? new TauswortheHybrid(rgen) : null);
-            IRowCursor cursor = new RowCursor(this, input, rgen);
+            IRowCursor cursor = new Cursor(this, input, rgen);
             if (_poolSize > 1)
                 cursor = RowShufflingTransformer.GetShuffledCursor(Host, _poolSize, cursor, new TauswortheHybrid(rgen));
             return cursor;
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Transforms
             return new IRowCursor[] { cursor };
         }
 
-        private sealed class RowCursor : LinkedRootCursorBase
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private int _remaining;
             private readonly BootstrapSamplingTransformer _parent;
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Transforms
 
             public override Schema Schema => Input.Schema;
 
-            public RowCursor(BootstrapSamplingTransformer parent, IRowCursor input, Random rgen)
+            public Cursor(BootstrapSamplingTransformer parent, IRowCursor input, Random rgen)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(rgen);

@@ -236,7 +236,7 @@ namespace Microsoft.ML.Transforms
 
             if (poolRows == 1)
                 return cursor;
-            return new RowCursor(provider, poolRows, cursor, rand);
+            return new Cursor(provider, poolRows, cursor, rand);
         }
 
         public override bool CanShuffle { get { return true; } }
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Transforms
             // source cursor.
             if (rand == null || _poolRows == 1)
                 return input;
-            return new RowCursor(Host, _poolRows, input, rand);
+            return new Cursor(Host, _poolRows, input, rand);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Transforms
         /// The result is something functionally equivalent to but but considerably faster than the
         /// simple implementation described in the first paragraph.
         /// </summary>
-        private sealed class RowCursor : RootCursorBase
+        private sealed class Cursor : RootCursorBase
         {
             /// <summary>
             /// Pipes, in addition to column values, will also communicate extra information
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Transforms
             // REVIEW: Implement cursor set support.
             public override long Batch => 0;
 
-            public RowCursor(IChannelProvider provider, int poolRows, IRowCursor input, Random rand)
+            public Cursor(IChannelProvider provider, int poolRows, IRowCursor input, Random rand)
                 : base(provider)
             {
                 Ch.AssertValue(input);

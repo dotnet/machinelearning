@@ -379,7 +379,7 @@ namespace Microsoft.ML.Transforms.Text
                 var helper = new InvertHashHelper(this, friendlyNames, inputPred, invertHashMaxCounts);
 
                 using (IRowCursor srcCursor = input.GetRowCursor(inputPred))
-                using (var dstCursor = new RowCursor(this, srcCursor, active, helper.Decorate))
+                using (var dstCursor = new Cursor(this, srcCursor, active, helper.Decorate))
                 {
                     var allGetters = InvertHashHelper.CallAllGetters(dstCursor);
                     while (dstCursor.MoveNext())
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Transforms.Text
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(this, input, active);
+            return new Cursor(this, input, active);
         }
 
         public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -656,7 +656,7 @@ namespace Microsoft.ML.Transforms.Text
 
             var cursors = new IRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(this, inputs[i], active);
+                cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
         }
 
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private delegate NgramIdFinder FinderDecorator(int iinfo, NgramIdFinder finder);
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
@@ -736,7 +736,7 @@ namespace Microsoft.ML.Transforms.Text
 
             public override Schema Schema => _bindings.AsSchema;
 
-            public RowCursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
+            public Cursor(NgramHashingTransformer parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
             {
                 Ch.AssertValue(parent);

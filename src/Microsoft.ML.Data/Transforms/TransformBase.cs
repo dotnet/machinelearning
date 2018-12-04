@@ -735,7 +735,7 @@ namespace Microsoft.ML.Runtime.Data
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(Host, this, input, active);
+            return new Cursor(Host, this, input, active);
         }
 
         public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -755,7 +755,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var cursors = new IRowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, this, inputs[i], active);
+                cursors[i] = new Cursor(Host, this, inputs[i], active);
             return cursors;
         }
 
@@ -836,7 +836,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
@@ -844,7 +844,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly Action[] _disposers;
 
-            public RowCursor(IChannelProvider provider, OneToOneTransformBase parent, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, OneToOneTransformBase parent, IRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.AssertValue(parent);

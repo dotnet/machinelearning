@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
-                return new RowCursor(_host, this, predicate, rand);
+                return new Cursor(_host, this, predicate, rand);
             }
 
             public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -239,10 +239,10 @@ namespace Microsoft.ML.Runtime.Data
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
                 consolidator = null;
-                return new IRowCursor[] { new RowCursor(_host, this, predicate, rand) };
+                return new IRowCursor[] { new Cursor(_host, this, predicate, rand) };
             }
 
-            private sealed class RowCursor : RootCursorBase
+            private sealed class Cursor : RootCursorBase
             {
                 private readonly DataView _view;
                 private readonly BitArray _active;
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.Data
                     get { return 0; }
                 }
 
-                public RowCursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
+                public Cursor(IChannelProvider provider, DataView view, Func<int, bool> predicate, Random rand)
                     : base(provider)
                 {
                     Ch.AssertValue(view);

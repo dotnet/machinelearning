@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
 
             var input = Source.GetRowCursor(predicate);
             var activeColumns = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
-            return new RowCursor(Host, input, OutputSchema, activeColumns, _skip, _take);
+            return new Cursor(Host, input, OutputSchema, activeColumns, _skip, _take);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Transforms
             return new IRowCursor[] { GetRowCursorCore(predicate) };
         }
 
-        private sealed class RowCursor : LinkedRowRootCursorBase
+        private sealed class Cursor : LinkedRowRootCursorBase
         {
             private readonly long _skip;
             private readonly long _take;
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Transforms
                 get { return 0; }
             }
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active, long skip, long take)
+            public Cursor(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);

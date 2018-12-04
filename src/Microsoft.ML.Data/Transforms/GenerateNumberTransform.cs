@@ -340,7 +340,7 @@ namespace Microsoft.ML.Transforms
             var inputPred = _bindings.GetDependencies(predicate);
             var active = _bindings.GetActive(predicate);
             var input = Source.GetRowCursor(inputPred);
-            return new RowCursor(Host, _bindings, input, active);
+            return new Cursor(Host, _bindings, input, active);
         }
 
         public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Transforms
                 {
                     var cursors = new IRowCursor[inputs.Length];
                     for (int i = 0; i < inputs.Length; i++)
-                        cursors[i] = new RowCursor(Host, _bindings, inputs[i], active);
+                        cursors[i] = new Cursor(Host, _bindings, inputs[i], active);
                     return cursors;
                 }
                 input = inputs[0];
@@ -371,10 +371,10 @@ namespace Microsoft.ML.Transforms
                 input = Source.GetRowCursor(inputPred);
 
             consolidator = null;
-            return new IRowCursor[] { new RowCursor(Host, _bindings, input, active) };
+            return new IRowCursor[] { new Cursor(Host, _bindings, input, active) };
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Bindings _bindings;
             private readonly bool[] _active;
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Transforms
             private readonly TauswortheHybrid[] _rngs;
             private readonly long[] _lastCounters;
 
-            public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 Ch.CheckValue(bindings, nameof(bindings));

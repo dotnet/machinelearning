@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(active.Length == bindings.ColumnCount);
 
             var predInput = bindings.GetDependencies(predicate);
-            return new RowCursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
+            return new Cursor(this, Source.GetRowCursor(predInput, null), Source.GetRowCursor(predInput, null), active);
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract void UpdateState(TState state);
 
-        private sealed class RowCursor : RootCursorBase
+        private sealed class Cursor : RootCursorBase
         {
             private readonly PerGroupTransformBase<TLabel, TScore, TState> _parent;
             private readonly IRowCursor _groupCursor;
@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public RowCursor(PerGroupTransformBase<TLabel, TScore, TState> parent, IRowCursor input, IRowCursor groupCursor, bool[] active)
+            public Cursor(PerGroupTransformBase<TLabel, TScore, TState> parent, IRowCursor input, IRowCursor groupCursor, bool[] active)
                 : base(parent.Host)
             {
                 Ch.AssertValue(parent);

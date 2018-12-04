@@ -644,7 +644,7 @@ namespace Microsoft.ML.Transforms
 
                 // Build the active state for the output
                 var active = Utils.BuildArray(_mapper.OutputSchema.ColumnCount, needCol);
-                return new RowCursor(_host, _mapper, inputRowCursor, active);
+                return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
             public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
@@ -664,7 +664,7 @@ namespace Microsoft.ML.Transforms
                 var cursors = new IRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                 {
-                    cursors[i] = new RowCursor(_host, _mapper, inputs[i], active);
+                    cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
                 }
                 return cursors;
             }
@@ -694,12 +694,12 @@ namespace Microsoft.ML.Transforms
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
             private readonly IRowCursor _inputCursor;
             private readonly bool[] _active;
-            public RowCursor(IChannelProvider provider, Mapper mapper, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Mapper mapper, IRowCursor input, bool[] active)
                 : base(provider, input)
             {
                 _mapper = mapper;
