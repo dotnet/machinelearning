@@ -977,7 +977,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return featureWeights;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -1020,7 +1020,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
         /// <summary>

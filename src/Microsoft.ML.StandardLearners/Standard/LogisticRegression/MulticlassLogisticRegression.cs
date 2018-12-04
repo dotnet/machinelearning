@@ -784,7 +784,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the text model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
 
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)

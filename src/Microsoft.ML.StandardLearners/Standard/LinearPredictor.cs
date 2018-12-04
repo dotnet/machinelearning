@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime.Learners
             get { return NumberType.Float; }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TOut) == typeof(Float));
@@ -335,7 +335,7 @@ namespace Microsoft.ML.Runtime.Learners
             bias /= models.Count;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));

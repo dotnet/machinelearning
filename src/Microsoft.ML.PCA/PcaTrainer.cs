@@ -500,10 +500,10 @@ namespace Microsoft.ML.Trainers.PCA
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("Dimension: {0}", _dimension);
             writer.WriteLine("Rank: {0}", _rank);
