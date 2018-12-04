@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
@@ -444,7 +443,7 @@ namespace Microsoft.ML.Transforms.Text
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashingTransformer"/> or <see cref="NgramHashing"/>, for example).
+        /// (by using <see cref="HashingTransformer"/> or <see cref="NgramHashingTransformer"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 

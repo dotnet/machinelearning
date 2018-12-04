@@ -557,9 +557,9 @@ namespace Microsoft.ML.StaticPipe
                 IReadOnlyCollection<string> usedNames)
             {
                 Contracts.Assert(toOutput.Length == 1);
-                var columns = new List<NgramHashing.ColumnInfo>();
+                var columns = new List<NgramHashingTransformer.ColumnInfo>();
                 foreach (var outCol in toOutput)
-                    columns.Add(new NgramHashing.ColumnInfo(new[] { inputNames[((OutPipelineColumn)outCol).Input] }, outputNames[outCol],
+                    columns.Add(new NgramHashingTransformer.ColumnInfo(new[] { inputNames[((OutPipelineColumn)outCol).Input] }, outputNames[outCol],
                           _ngramLength, _skipLength, _allLengths, _hashBits, _seed, _ordered, _invertHash));
 
                 return new NgramHashingEstimator(env, columns.ToArray());
