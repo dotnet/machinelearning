@@ -70,8 +70,6 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void KeyToVectorStatic()
         {
-            ReadOnlyMemoryUtils.ReadonlyMemoryCharComparer();
-
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoader.CreateReader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),

@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.FeatureSelection;
@@ -923,7 +924,6 @@ namespace Microsoft.ML.StaticPipe
             return new OutVectorColumn<TKey>(input);
         }
     }
-
 
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
