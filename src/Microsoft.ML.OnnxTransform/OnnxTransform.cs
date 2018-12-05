@@ -221,7 +221,7 @@ namespace Microsoft.ML.Transforms
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
         }
-        protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema) => new Mapper(this, inputSchema);
 
         private static int[] AdjustDimensions(OnnxShape shape)
         {
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Transforms
                 return info;
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }

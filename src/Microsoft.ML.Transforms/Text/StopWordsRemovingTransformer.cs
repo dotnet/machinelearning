@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Text
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
         private void CheckResources()
         {
@@ -491,7 +491,7 @@ namespace Microsoft.ML.Transforms.Text
                     (_resourcesExist[langVal] ?? (_resourcesExist[langVal] = GetResourceFileStreamOrNull(lang) != null).Value);
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 foreach (var pair in _colMapNewToOld)
@@ -966,7 +966,7 @@ namespace Microsoft.ML.Transforms.Text
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : OneToOneMapperBase
         {

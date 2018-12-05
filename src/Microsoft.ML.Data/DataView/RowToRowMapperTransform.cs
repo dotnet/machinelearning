@@ -26,7 +26,8 @@ namespace Microsoft.ML.Runtime.Data
     /// ctor or Create method with <see cref="SignatureLoadRowMapper"/>, along with a corresponding
     /// <see cref="LoadableClassAttribute"/>.
     /// </summary>
-    public interface IRowMapper : ICanSaveModel
+    [BestFriend]
+    internal interface IRowMapper : ICanSaveModel
     {
         /// <summary>
         /// Returns the input columns needed for the requested output columns.
@@ -81,7 +82,8 @@ namespace Microsoft.ML.Runtime.Data
 
         bool ICanSavePfa.CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
-        public RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
+        [BestFriend]
+        internal RowToRowMapperTransform(IHostEnvironment env, IDataView input, IRowMapper mapper, Func<Schema, IRowMapper> mapperFactory)
             : base(env, RegistrationName, input)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
@@ -91,7 +93,8 @@ namespace Microsoft.ML.Runtime.Data
             _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
         }
 
-        public static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        [BestFriend]
+        internal static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));

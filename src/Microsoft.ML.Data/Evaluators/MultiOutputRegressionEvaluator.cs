@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label != null, nameof(schema), "Could not find the label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Runtime.Data
             base.Save(ctx);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -446,7 +446,7 @@ namespace Microsoft.ML.Runtime.Data
                     (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[5];
             infos[LabelOutput] = new Schema.DetachedColumn(LabelCol, _labelType, _labelMetadata);
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
             return infos;
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);

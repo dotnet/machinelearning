@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Data
             return names;
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             Host.CheckParam(schema.Label != null, nameof(schema), "Schema must contain a label column");
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.SaveNonEmptyString(_classNames[i].ToString());
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             Host.Assert(ScoreIndex >= 0);
             Host.Assert(LabelIndex >= 0);
@@ -662,13 +662,13 @@ namespace Microsoft.ML.Runtime.Data
                     activeOutput(SortedClassesCol) || activeOutput(LogLossCol));
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
             var getters = new Delegate[4];
 
-            if (!activeOutput(AssignedCol) && !activeOutput(SortedClassesCol) && !activeOutput(SortedScoresCol) && !activeOutput(LogLossCol))
+            if (!activeCols(AssignedCol) && !activeCols(SortedClassesCol) && !activeCols(SortedScoresCol) && !activeCols(LogLossCol))
                 return getters;
 
             long cachedPosition = -1;
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Runtime.Data
             var scoresArr = new float[_numClasses];
             int[] sortedIndices = new int[_numClasses];
 
-            var labelGetter = activeOutput(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
+            var labelGetter = activeCols(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
                 (ref float dst) => dst = float.NaN;
             var scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
             Action updateCacheIfNeeded =
@@ -695,7 +695,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            if (activeOutput(AssignedCol))
+            if (activeCols(AssignedCol))
             {
                 ValueGetter<uint> assignedFn =
                     (ref uint dst) =>
@@ -706,7 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[AssignedCol] = assignedFn;
             }
 
-            if (activeOutput(SortedScoresCol))
+            if (activeCols(SortedScoresCol))
             {
                 ValueGetter<VBuffer<float>> topKScoresFn =
                     (ref VBuffer<float> dst) =>
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedScoresCol] = topKScoresFn;
             }
 
-            if (activeOutput(SortedClassesCol))
+            if (activeCols(SortedClassesCol))
             {
                 ValueGetter<VBuffer<uint>> topKClassesFn =
                     (ref VBuffer<uint> dst) =>
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedClassesCol] = topKClassesFn;
             }
 
-            if (activeOutput(LogLossCol))
+            if (activeCols(LogLossCol))
             {
                 ValueGetter<double> logLossFn =
                     (ref double dst) =>
@@ -761,7 +761,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[4];
 
