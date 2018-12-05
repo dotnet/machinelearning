@@ -758,6 +758,7 @@ namespace Microsoft.ML.Runtime
         public static void CheckValueOrNull<T>(T val) where T : class
         {
         }
+
         /// <summary>
         /// This documents that the parameter can legally be null.
         /// </summary>

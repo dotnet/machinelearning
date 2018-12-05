@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.Check(feature.IsValid, nameof(feature));
+            Host.CheckParam(feature.IsValid, nameof(feature), "not initialized properly");
 
             FeatureColumn = feature;
             LabelColumn = label;
@@ -120,8 +120,8 @@ namespace Microsoft.ML.Runtime.Training
 
         protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.Check(labelCol.IsValid, nameof(labelCol));
-            Contracts.Assert(LabelColumn.IsValid);
+            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
+            Host.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))
                 throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
@@ -131,20 +131,12 @@ namespace Microsoft.ML.Runtime.Training
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var cachedTrain = Info.WantCaching ? new CacheDataView(Host, trainSet, prefetch: null) : trainSet;
+            var cachedValid = Info.WantCaching && validationSet != null ? new CacheDataView(Host, validationSet, prefetch: null) : validationSet;
 
-            var trainRoles = MakeRoles(cachedTrain);
+            var trainRoleMapped = MakeRoles(cachedTrain);
+            var validRoleMapped = validationSet == null ? null : MakeRoles(cachedValid);
 
-            RoleMappedData validRoles;
-
-            if (validationSet == null)
-                validRoles = null;
-            else
-            {
-                var cachedValid = Info.WantCaching ? new CacheDataView(Host, validationSet, prefetch: null) : validationSet;
-                validRoles = MakeRoles(cachedValid);
-            }
-
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
