@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .Fit(data);
 
             var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: (s) => s.NumThreads = 1);
-            var trainData = pipeline.Transform(data);
+            var trainData = ml.Data.Cache(pipeline.Transform(data)); // Cache the data right before the trainer to boost the training speed.
             var model = trainer.Fit(trainData);
 
             var scoredTest = model.Transform(pipeline.Transform(testData));

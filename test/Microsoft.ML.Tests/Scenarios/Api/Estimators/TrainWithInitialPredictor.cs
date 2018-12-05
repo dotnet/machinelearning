@@ -27,8 +27,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
-            // Train the pipeline, prepare train set.
-            var trainData = pipeline.Fit(data).Transform(data);
+            // Train the pipeline, prepare train set. Since it will be scanned multiple times in the subsequent trainer, we cache the 
+            // transformed data in memory.
+            var trainData = ml.Data.Cache(pipeline.Fit(data).Transform(data));
 
             // Train the first predictor.
             var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features",advancedSettings: s => s.NumThreads = 1);

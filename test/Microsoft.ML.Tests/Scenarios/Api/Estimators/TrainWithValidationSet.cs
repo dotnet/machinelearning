@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             // Train model with validation set.
             var trainer = ml.BinaryClassification.Trainers.FastTree("Label","Features");
-            var model = trainer.Train(trainData, validData);
+            var model = trainer.Train(ml.Data.Cache(trainData), ml.Data.Cache(validData));
         }
     }
 }

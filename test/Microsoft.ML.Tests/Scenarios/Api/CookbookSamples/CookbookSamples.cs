@@ -185,6 +185,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // Cache data in memory because the following step is an iterative algorithm which
+                // scans through some columns multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -267,6 +270,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                         // When the normalizer is trained, the below delegate is going to be called.
                         // We use it to memorize the scales.
                         onFit: (scales, offsets) => normScales = scales)))
+                .AppendCacheCheckpoint() // Cache data used in memory because the subsequently trainer needs to access the data multiple times.
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -432,6 +436,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Apply various kinds of text operations supported by ML.NET.
             var learningPipeline = reader.MakeNewEstimator()
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     // One-stop shop to run the full text featurization.
                     TextFeatures: r.Message.FeaturizeText(),
@@ -495,6 +500,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Build several alternative featurization pipelines.
             var learningPipeline = reader.MakeNewEstimator()
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     r.NumericalFeatures,
@@ -557,6 +563,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     // Convert string label to a key.
                     Label: r.Label.ToKey(),

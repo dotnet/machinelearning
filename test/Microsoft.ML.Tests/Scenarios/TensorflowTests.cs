@@ -41,6 +41,7 @@ namespace Microsoft.ML.Scenarios
                     .Append(new TensorFlowEstimator(mlContext, model_location, new[] { "Input" }, new[] { "Output" }))
                     .Append(new ColumnConcatenatingEstimator(mlContext, "Features", "Output"))
                     .Append(new ValueToKeyMappingEstimator(mlContext, "Label"))
+                    .AppendCacheCheckpoint(mlContext)
                     .Append(new SdcaMultiClassTrainer(mlContext));
 
 
