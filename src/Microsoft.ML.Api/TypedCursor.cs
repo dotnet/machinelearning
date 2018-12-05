@@ -496,6 +496,7 @@ namespace Microsoft.ML.Runtime.Api
         private sealed class RowCursorImplementation : RowCursor<TRow>
         {
             private readonly TypedCursor _cursor;
+            private bool _disposed;
 
             public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
 
@@ -504,7 +505,15 @@ namespace Microsoft.ML.Runtime.Api
             public override long Batch => _cursor.Batch;
             public override Schema Schema => _cursor.Schema;
 
-            public override void Dispose() { }
+            protected override void Dispose(bool disposing)
+            {
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _cursor.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
+            }
 
             public override void FillValues(TRow row) => _cursor.FillValues(row);
             public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);

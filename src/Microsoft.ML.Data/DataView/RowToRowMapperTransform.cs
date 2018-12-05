@@ -285,22 +285,17 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class RowImpl : Row
+        private sealed class RowImpl : WrappingRow
         {
-            private readonly Row _input;
             private readonly Delegate[] _getters;
 
             private readonly RowToRowMapperTransform _parent;
 
-            public override long Batch => _input.Batch;
-
-            public override long Position => _input.Position;
-
             public override Schema Schema { get; }
 
             public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
+                : base(input)
             {
-                _input = input;
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
@@ -311,7 +306,7 @@ namespace Microsoft.ML.Runtime.Data
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.GetGetter<TValue>(index);
+                    return Input.GetGetter<TValue>(index);
 
                 Contracts.Assert(_getters[index] != null);
                 var fn = _getters[index] as ValueGetter<TValue>;
@@ -320,14 +315,12 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public override ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
-
             public override bool IsColumnActive(int col)
             {
                 bool isSrc;
                 int index = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
-                    return _input.IsColumnActive((index));
+                    return Input.IsColumnActive((index));
                 return _getters[index] != null;
             }
         }
@@ -338,6 +331,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
+            private bool _disposed;
 
             public override Schema Schema => _bindings.Schema;
 
@@ -374,10 +368,14 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
     }

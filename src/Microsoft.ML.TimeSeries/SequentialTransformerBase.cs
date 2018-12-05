@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public bool IsRowToRowMapper => false;
 
-        public TState StateRef{ get; set; }
+        public TState StateRef { get; set; }
 
         public int StateRefCount;
 
@@ -825,6 +825,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly bool[] _active;
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
+            private bool _disposed;
 
             public override Schema Schema => _bindings.Schema;
 
@@ -854,19 +855,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];
-                Ch.Assert(getter != null);
-                var fn = getter as ValueGetter<TValue>;
-                if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                return fn;
+                Ch.AssertValue(getter);
+                if (getter is ValueGetter<TValue> fn)
+                    return fn;
+                throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
     }
-
 }

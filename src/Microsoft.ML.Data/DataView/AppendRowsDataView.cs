@@ -280,15 +280,16 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
-                    if (_currentCursor != null)
-                        _currentCursor.Dispose();
-                    base.Dispose();
+                    _currentCursor?.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 
@@ -369,15 +370,17 @@ namespace Microsoft.ML.Runtime.Data
                 return true;
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (State != CursorState.Done)
+                if (State == CursorState.Done)
+                    return;
+                if (disposing)
                 {
                     Ch.Dispose();
                     foreach (RowCursor c in _cursorSet)
                         c.Dispose();
-                    base.Dispose();
                 }
+                base.Dispose(disposing);
             }
         }
 

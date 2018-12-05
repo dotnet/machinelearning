@@ -43,14 +43,17 @@ namespace Microsoft.ML.Runtime.Data
             _root = Input.GetRootCursor();
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (!_disposed)
+            if (_disposed)
+                return;
+            if (disposing)
             {
                 Input.Dispose();
                 Ch.Dispose();
-                _disposed = true;
             }
+            base.Dispose(disposing);
+            _disposed = true;
         }
 
         public sealed override bool MoveNext() => _root.MoveNext();

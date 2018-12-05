@@ -275,16 +275,18 @@ namespace Microsoft.ML.Runtime.Data
 
             public override Schema Schema => _bindings.AsSchema;
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 if (_disposed)
                     return;
-
+                if (disposing)
+                {
+                    _ator.Dispose();
+                    _reader.Release();
+                    _stats.Release();
+                }
                 _disposed = true;
-                _ator.Dispose();
-                _reader.Release();
-                _stats.Release();
-                base.Dispose();
+                base.Dispose(disposing);
             }
 
             protected override bool MoveNextCore()

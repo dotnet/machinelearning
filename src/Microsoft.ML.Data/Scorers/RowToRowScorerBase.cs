@@ -221,6 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
             private readonly Action _disposer;
+            private bool _disposed;
 
             public override Schema Schema { get; }
 
@@ -249,10 +250,14 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override bool IsColumnActive(int col)

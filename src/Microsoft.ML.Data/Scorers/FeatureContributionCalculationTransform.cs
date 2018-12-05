@@ -353,8 +353,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (parent.Stringify)
                 {
-                    _outputSchema = new SimpleSchema(_env,
-                        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
+                    var builder = new SchemaBuilder();
+                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
+                    _outputSchema = builder.GetSchema();
                     if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
                             ref _slotNames);

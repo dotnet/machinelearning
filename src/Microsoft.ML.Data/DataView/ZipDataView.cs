@@ -110,6 +110,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly RowCursor[] _cursors;
             private readonly CompositeSchema _compositeSchema;
             private readonly bool[] _isColumnActive;
+            private bool _disposed;
 
             public override long Batch { get { return 0; } }
 
@@ -124,11 +125,17 @@ namespace Microsoft.ML.Runtime.Data
                 _isColumnActive = Utils.BuildArray(_compositeSchema.ColumnCount, predicate);
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                for (int i = _cursors.Length - 1; i >= 0; i--)
-                    _cursors[i].Dispose();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    for (int i = _cursors.Length - 1; i >= 0; i--)
+                        _cursors[i].Dispose();
+                }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override ValueGetter<UInt128> GetIdGetter()
