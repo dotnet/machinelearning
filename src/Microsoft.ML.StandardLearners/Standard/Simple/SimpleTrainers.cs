@@ -173,7 +173,7 @@ namespace Microsoft.ML.Trainers
         /// Save the predictor in the binary format.
         /// </summary>
         /// <param name="ctx"></param>
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Trainers
             return new PriorPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

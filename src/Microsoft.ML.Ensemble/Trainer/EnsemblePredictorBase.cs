@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.LoadModel<IOutputCombiner<TOutput>, SignatureLoadModel>(Host, out Combiner, @"Combiner");
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             using (var ch = Host.Start("SaveAsText"))
             {

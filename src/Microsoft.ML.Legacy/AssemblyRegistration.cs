@@ -4,11 +4,11 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Sweeper;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Trainers.PCA;
-using Microsoft.ML.Runtime.Sweeper;
-using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Reflection;
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime
             _ = typeof(TextLoader).Assembly; // ML.Data
             //_ = typeof(EnsemblePredictor).Assembly); // ML.Ensemble BUG https://github.com/dotnet/machinelearning/issues/1078 Ensemble isn't in a NuGet package
             _ = typeof(FastTreeBinaryPredictor).Assembly; // ML.FastTree
-            _ = typeof(KMeansPredictor).Assembly; // ML.KMeansClustering
+            _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
             _ = typeof(SweepCommand).Assembly; // ML.Sweeper

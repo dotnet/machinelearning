@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
         // ValueMapper or FloatPredictor is non-null (or both). With these guarantees,
         // the score value type (_scoreType) can be determined.
         protected readonly IPredictor Predictor;
-        protected readonly IValueMapper ValueMapper;
+        private protected readonly IValueMapper ValueMapper;
         protected readonly ColumnType ScoreType;
 
         bool ICanSavePfa.CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;

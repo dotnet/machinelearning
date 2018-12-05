@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             Host.AssertValue(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

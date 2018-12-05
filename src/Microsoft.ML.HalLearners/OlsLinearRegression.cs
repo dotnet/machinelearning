@@ -299,7 +299,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             Double tss = 0; // total sum of squares
             using (var cursor = cursorFactory.Create())
             {
-                var lrPredictor = new LinearRegressionPredictor(Host, in weights, bias);
+                IValueMapper lrPredictor = new LinearRegressionPredictor(Host, in weights, bias);
                 var lrMap = lrPredictor.GetMapper<VBuffer<float>, float>();
                 float yh = default;
                 while (cursor.MoveNext())
@@ -685,7 +685,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 ProbCheckDecode(_pValues[i]);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
