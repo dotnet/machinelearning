@@ -55,13 +55,11 @@ namespace Microsoft.ML.Runtime.Training
         private protected TrainerEstimatorBase(IHost host,
             SchemaShape.Column feature,
             SchemaShape.Column label,
-            SchemaShape.Column weight = null)
+            SchemaShape.Column weight = default)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
-            Host.CheckValue(feature, nameof(feature));
-            Host.CheckValueOrNull(label);
-            Host.CheckValueOrNull(weight);
+            Host.CheckParam(feature.IsValid, nameof(feature), "not initialized properly");
 
             FeatureColumn = feature;
             LabelColumn = label;
@@ -76,7 +74,7 @@ namespace Microsoft.ML.Runtime.Training
 
             CheckInputSchema(inputSchema);
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
@@ -102,7 +100,7 @@ namespace Microsoft.ML.Runtime.Training
             if (!FeatureColumn.IsCompatibleWith(featureCol))
                 throw Host.Except($"Feature column '{FeatureColumn.Name}' is not compatible");
 
-            if (WeightColumn != null)
+            if (WeightColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(WeightColumn.Name, out var weightCol))
                     throw Host.Except($"Weight column '{WeightColumn.Name}' is not found");
@@ -112,7 +110,7 @@ namespace Microsoft.ML.Runtime.Training
 
             // Special treatment for label column: we allow different types of labels, so the trainers
             // may define their own requirements on the label column.
-            if (LabelColumn != null)
+            if (LabelColumn.IsValid)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
                     throw Host.Except($"Label column '{LabelColumn.Name}' is not found");
@@ -122,8 +120,8 @@ namespace Microsoft.ML.Runtime.Training
 
         protected virtual void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.CheckValue(labelCol, nameof(labelCol));
-            Contracts.AssertValue(LabelColumn);
+            Contracts.CheckParam(labelCol.IsValid, nameof(labelCol), "not initialized properly");
+            Host.Assert(LabelColumn.IsValid);
 
             if (!LabelColumn.IsCompatibleWith(labelCol))
                 throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
@@ -133,20 +131,12 @@ namespace Microsoft.ML.Runtime.Training
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
             var cachedTrain = Info.WantCaching ? new CacheDataView(Host, trainSet, prefetch: null) : trainSet;
+            var cachedValid = Info.WantCaching && validationSet != null ? new CacheDataView(Host, validationSet, prefetch: null) : validationSet;
 
-            var trainRoles = MakeRoles(cachedTrain);
+            var trainRoleMapped = MakeRoles(cachedTrain);
+            var validRoleMapped = validationSet == null ? null : MakeRoles(cachedValid);
 
-            RoleMappedData validRoles;
-
-            if (validationSet == null)
-                validRoles = null;
-            else
-            {
-                var cachedValid = Info.WantCaching ? new CacheDataView(Host, validationSet, prefetch: null) : validationSet;
-                validRoles = MakeRoles(cachedValid);
-            }
-
-            var pred = TrainModelCore(new TrainContext(trainRoles, validRoles, null, initPredictor));
+            var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);
         }
 
@@ -156,7 +146,7 @@ namespace Microsoft.ML.Runtime.Training
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         protected virtual RoleMappedData MakeRoles(IDataView data) =>
-            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
+            new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, weight: WeightColumn.Name);
 
         IPredictor ITrainer.Train(TrainContext context) => ((ITrainer<TModel>)this).Train(context);
     }
@@ -178,16 +168,15 @@ namespace Microsoft.ML.Runtime.Training
         public TrainerEstimatorBaseWithGroupId(IHost host,
                 SchemaShape.Column feature,
                 SchemaShape.Column label,
-                SchemaShape.Column weight = null,
-                SchemaShape.Column groupId = null)
+                SchemaShape.Column weight = default,
+                SchemaShape.Column groupId = default)
             :base(host, feature, label, weight)
         {
-            Host.CheckValueOrNull(groupId);
             GroupIdColumn = groupId;
         }
 
         protected override RoleMappedData MakeRoles(IDataView data) =>
-            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, group: GroupIdColumn?.Name, weight: WeightColumn?.Name);
+            new RoleMappedData(data, label: LabelColumn.Name, feature: FeatureColumn.Name, group: GroupIdColumn.Name, weight: WeightColumn.Name);
 
     }
 }

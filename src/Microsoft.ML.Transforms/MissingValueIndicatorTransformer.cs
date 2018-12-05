@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))

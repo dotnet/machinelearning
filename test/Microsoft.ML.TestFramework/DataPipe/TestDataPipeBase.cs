@@ -152,9 +152,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(promised.Columns.Length == delivered.Columns.Length);
-            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Count == delivered.Count);
+            var sortedCols1 = promised.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {

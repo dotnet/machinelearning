@@ -472,7 +472,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var srcName in _inputColumns)
             {
                 if (!inputSchema.TryFindColumn(srcName, out var col))

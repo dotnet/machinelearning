@@ -795,7 +795,7 @@ namespace Microsoft.ML.Transforms.Projections
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))

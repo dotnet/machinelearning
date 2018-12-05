@@ -98,14 +98,14 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
+            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Select(x => x.Name),
                                                                                     Transformer.SelectColumns,
                                                                                     out IEnumerable<string> invalidColumns))
             {
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            var columns = inputSchema.Columns.Where(c => _selectPredicate(c.Name));
+            var columns = inputSchema.Where(c => _selectPredicate(c.Name));
             return new SchemaShape(columns);
         }
     }

@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {

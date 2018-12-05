@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var (input, output) in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(input, out var col))
