@@ -4,7 +4,6 @@
 
 using Float = System.Single;
 
-using Microsoft.ML.KMeansClustering;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -12,6 +11,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Trainers.KMeans;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ using System.Collections.Generic;
 [assembly: LoadableClass(typeof(KMeansModelParameters), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansModelParameters.LoaderSignature)]
 
-namespace Microsoft.ML.KMeansClustering
+namespace Microsoft.ML.Trainers.KMeans
 {
     /// <example>
     /// <format type="text/markdown">
