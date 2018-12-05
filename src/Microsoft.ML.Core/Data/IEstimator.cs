@@ -19,11 +19,11 @@ namespace Microsoft.ML.Core.Data
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
-        private readonly List<Column> _columns;
+        private readonly Column[] _columns;
 
         private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
 
-        public int Count => _columns.Count;
+        public int Count => _columns.Count();
 
         public Column this[int index] => _columns[index];
 
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Core.Data
         public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            _columns = columns.ToList();
+            _columns = columns.ToArray();
             Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "Some items are not initialized properly.");
         }
 
@@ -194,14 +194,15 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Returns if there is a column with a specified <paramref name="name"/> and if so stores it in <paramref name="column"/>.
         /// </summary>
-        public bool TryFindColumn(string name, out Column column)
+        [BestFriend]
+        internal bool TryFindColumn(string name, out Column column)
         {
             Contracts.CheckValue(name, nameof(name));
             column = _columns.FirstOrDefault(x => x.Name == name);
             return column.IsValid;
         }
 
-        public IEnumerator<Column> GetEnumerator() => _columns.GetEnumerator();
+        public IEnumerator<Column> GetEnumerator() => ((IEnumerable<Column>)_columns).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
