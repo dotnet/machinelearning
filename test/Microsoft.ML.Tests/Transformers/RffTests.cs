@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
             public int A;
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))] // netcore3.0 output differs from Baseline
+        [Fact]
         public void RffWorkout()
         {
             Random rand = new Random();

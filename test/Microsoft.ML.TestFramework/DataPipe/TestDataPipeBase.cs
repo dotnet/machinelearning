@@ -1164,12 +1164,10 @@ namespace Microsoft.ML.Runtime.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || CompareNumbersWithTolerance(x, y, null, 3);
         }
 
-        private const float SingleEps = 1e-6f;
-
-        private static bool EqualWithEpsSingle(float x, float y)
+        private bool EqualWithEpsSingle(float x, float y)
         {
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
-            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
+            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || CompareNumbersWithTolerance(x, y, null, 3);
         }
 
         protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
