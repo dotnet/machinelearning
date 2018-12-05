@@ -1033,11 +1033,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
+        public TextLoader(IHostEnvironment env, Arguments args = null, IMultiStreamSource dataSample = null)
         {
+            args = args ?? new Arguments();
+
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-
             _host.CheckValue(args, nameof(args));
             _host.CheckValueOrNull(dataSample);
 
@@ -1332,7 +1333,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="env">The environment to use.</param>
         /// <param name="fileSource">Specifies a file from which to read.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Arguments args)
+        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Arguments args = null)
             => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)

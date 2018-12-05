@@ -361,9 +361,6 @@ namespace Microsoft.ML.Transforms.Categorical
             ulong max = ulong.MinValue;
             try
             {
-                var txtArgs = new TextLoader.Arguments();
-                bool parsed = CmdParser.ParseArguments(host, "col=Term:TX:0 col=Value:TX:1", txtArgs);
-                host.Assert(parsed);
                 var data = TextLoader.ReadFile(host, new MultiFileSource(filename), new[]
                     {
                         new TextLoader.Column("Term", DataKind.TX, 0),

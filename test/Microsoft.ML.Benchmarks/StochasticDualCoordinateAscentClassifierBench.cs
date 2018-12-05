@@ -64,7 +64,7 @@ namespace Microsoft.ML.Benchmarks
         {
             var env = new MLContext(seed: 1);
             // Pipeline
-            var arguemnts = new TextLoader.Arguments()
+            var arguments = new TextLoader.Arguments()
             {
                 Column = new TextLoader.Column[]
                 {
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowQuoting = false,
                 AllowSparse = false
             };
-            var loader = TextLoader.ReadFile(env, new MultiFileSource(_sentimentDataPath), arguemnts);
+            var loader = TextLoader.ReadFile(env, new MultiFileSource(_sentimentDataPath), arguments);
 
             var text = TextFeaturizingEstimator.Create(env,
                 new TextFeaturizingEstimator.Arguments()

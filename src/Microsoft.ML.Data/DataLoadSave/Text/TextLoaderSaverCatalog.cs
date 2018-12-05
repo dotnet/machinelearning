@@ -19,7 +19,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataOperations catalog,
             Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
@@ -40,7 +40,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
         /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
+        /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="path">The path to the file.</param>
         /// <returns>The data view.</returns>
         public static IDataView ReadFromTextFile(this DataOperations catalog,
