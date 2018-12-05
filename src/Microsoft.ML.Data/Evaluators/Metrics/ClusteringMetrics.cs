@@ -45,5 +45,12 @@ namespace Microsoft.ML.Data
             if (calculateDbi)
                 Dbi = Fetch(ClusteringEvaluator.Dbi);
         }
+
+        internal ClusteringMetrics(double nmi, double avgMinScore, double dbi)
+        {
+            Nmi = nmi;
+            AvgMinScore = avgMinScore;
+            Dbi = dbi;
+        }
     }
 }
