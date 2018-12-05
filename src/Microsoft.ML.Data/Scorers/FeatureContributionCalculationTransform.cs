@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
             var schema = new RoleMappedSchema(input.Schema, roles);
 
             var boundMapper = _mapper.Bind(_host, schema);
-            return Create(_host, input, boundMapper, null);
+            return Create(_host, null, input, boundMapper, null);
             //.ApplyToData(_host, input);
         }
 
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             return boundMapper as RowMapper;
         }
 
-        private static IDataScorerTransform Create(IHostEnvironment env, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
+        private static IDataScorerTransform Create(IHostEnvironment env, Arguments args, IDataView data, ISchemaBoundMapper mapper, RoleMappedSchema trainSchema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var mapper = Create(env, args, predictor);
             var boundMapper = mapper.Bind(env, schema);
-            return Create(env, data, boundMapper, null);
+            return Create(env, null, data, boundMapper, null);
         }
 
         // TODO documentation... what is this? Can I put everything that is in here in the transformer, and eliminate this thing?
