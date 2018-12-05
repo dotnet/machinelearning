@@ -568,14 +568,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public ITransposeSchema TransposeSchema { get; }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return View.GetRowCursor(predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
@@ -583,7 +583,7 @@ namespace Microsoft.ML.Runtime.Data
             return View.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
-        public ISlotCursor GetSlotCursor(int col)
+        public SlotCursor GetSlotCursor(int col)
         {
             _host.CheckParam(0 <= col && col < Schema.ColumnCount, nameof(col));
             if (TransposeSchema?.GetSlotType(col) == null)

@@ -645,7 +645,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -659,13 +659,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private Delegate ComposeGetterOne(IRow input, int iinfo)
+            private Delegate ComposeGetterOne(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for scalars.
             /// </summary>
-            private Delegate ComposeGetterOne<T>(IRow input, int iinfo)
+            private Delegate ComposeGetterOne<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -685,13 +685,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private Delegate ComposeGetterVec(IRow input, int iinfo)
+            private Delegate ComposeGetterVec(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
 
             /// <summary>
             ///  Replaces NA values for vectors.
             /// </summary>
-            private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
+            private Delegate ComposeGetterVec<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_isNAs[iinfo];

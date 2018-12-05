@@ -81,7 +81,7 @@ namespace Microsoft.ML.Data
         /// </remarks>
         public double[] PerClassLogLoss { get; }
 
-        internal MultiClassClassifierMetrics(IExceptionContext ectx, IRow overallResult, int topK)
+        internal MultiClassClassifierMetrics(IExceptionContext ectx, Row overallResult, int topK)
         {
             double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);

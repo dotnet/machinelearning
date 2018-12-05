@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return _types[iinfo];
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         }
 
-        private ValueGetter<Bitmap> GetterFromType<TValue>(IRow input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
+        private ValueGetter<Bitmap> GetterFromType<TValue>(Row input, int iinfo, ColInfoEx ex, bool needScale) where TValue : IConvertible
         {
             var getSrc = GetSrcGetter<VBuffer<TValue>>(input, iinfo);
             var src = default(VBuffer<TValue>);

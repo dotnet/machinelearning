@@ -179,19 +179,19 @@ namespace Microsoft.ML.Transforms
             get { return false; }
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursor = Source.GetRowCursor(col => activeInput[col], null);
             return new Cursor(Host, inputCursor, _schemaImpl, predicate);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate,
             int n, Random rand = null)
         {
             var activeInput = _schemaImpl.GetActiveInput(predicate);
             var inputCursors = Source.GetRowCursorSet(out consolidator, col => activeInput[col], n, null);
-            return Utils.BuildArray<IRowCursor>(inputCursors.Length,
+            return Utils.BuildArray<RowCursor>(inputCursors.Length,
                 x => new Cursor(Host, inputCursors[x], _schemaImpl, predicate));
         }
 
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Cursor : LinkedRootCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : LinkedRootCursorBase
         {
             private readonly SchemaImpl _schemaImpl;
 
@@ -467,7 +467,7 @@ namespace Microsoft.ML.Transforms
             // Parallel to columns.
             private int[] _colSizes;
 
-            public Cursor(IChannelProvider provider, IRowCursor input, SchemaImpl schema, Func<int, bool> predicate)
+            public Cursor(IChannelProvider provider, RowCursor input, SchemaImpl schema, Func<int, bool> predicate)
                 : base(provider, input)
             {
                 _schemaImpl = schema;
@@ -582,15 +582,15 @@ namespace Microsoft.ML.Transforms
                     };
             }
 
-            public Schema Schema => _schemaImpl.AsSchema;
+            public override Schema Schema => _schemaImpl.AsSchema;
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.Check(0 <= col && col < _schemaImpl.ColumnCount);
                 return _active[col];
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(0 <= col && col < _schemaImpl.ColumnCount, nameof(col));
 

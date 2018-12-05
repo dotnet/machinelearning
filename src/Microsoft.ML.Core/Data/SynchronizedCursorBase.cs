@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
@@ -11,28 +13,27 @@ namespace Microsoft.ML.Runtime.Data
     /// Dispose is virtual with the default implementation delegating to the input cursor.
     /// </summary>
     [BestFriend]
-    internal abstract class SynchronizedCursorBase<TBase> : ICursor
-        where TBase : class, ICursor
+    internal abstract class SynchronizedCursorBase : RowCursor
     {
         protected readonly IChannel Ch;
 
-        private readonly ICursor _root;
+        private readonly RowCursor _root;
         private bool _disposed;
 
-        protected TBase Input { get; }
+        protected RowCursor Input { get; }
 
-        public long Position => _root.Position;
+        public sealed override long Position => _root.Position;
 
-        public long Batch => _root.Batch;
+        public sealed override long Batch => _root.Batch;
 
-        public CursorState State => _root.State;
+        public sealed override CursorState State => _root.State;
 
         /// <summary>
         /// Convenience property for checking whether the current state is CursorState.Good.
         /// </summary>
         protected bool IsGood => _root.State == CursorState.Good;
 
-        protected SynchronizedCursorBase(IChannelProvider provider, TBase input)
+        protected SynchronizedCursorBase(IChannelProvider provider, RowCursor input)
         {
             Contracts.AssertValue(provider, "provider");
             Ch = provider.Start("Cursor");
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             _root = Input.GetRootCursor();
         }
 
-        public virtual void Dispose()
+        public override void Dispose()
         {
             if (!_disposed)
             {
@@ -52,24 +53,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public bool MoveNext()
-        {
-            return _root.MoveNext();
-        }
+        public sealed override bool MoveNext() => _root.MoveNext();
 
-        public bool MoveMany(long count)
-        {
-            return _root.MoveMany(count);
-        }
+        public sealed override bool MoveMany(long count) => _root.MoveMany(count);
 
-        public ICursor GetRootCursor()
-        {
-            return _root;
-        }
+        public sealed override RowCursor GetRootCursor() => _root;
 
-        public ValueGetter<UInt128> GetIdGetter()
-        {
-            return Input.GetIdGetter();
-        }
+        public sealed override ValueGetter<UInt128> GetIdGetter() => Input.GetIdGetter();
     }
 }

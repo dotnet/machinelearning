@@ -609,7 +609,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.AssertValue(schema.Label);
                 Host.Assert(PassNum < 1);
@@ -981,7 +981,7 @@ namespace Microsoft.ML.Runtime.Data
             return col => activeOutput(AssignedCol) && col == ScoreIndex;
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeCols, out Action disposer)
+        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             Host.Assert(LabelIndex >= 0);
             Host.Assert(ScoreIndex >= 0);

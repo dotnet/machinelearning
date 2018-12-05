@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
             return cols;
         }
 
-        private sealed class MetadataRow : IRow
+        private sealed class MetadataRow : Row
         {
             private readonly Schema.Metadata _metadata;
 
@@ -505,20 +505,20 @@ namespace Microsoft.ML.Runtime.Data
                 _metadata = metadata;
             }
 
-            public Schema Schema => _metadata.Schema;
-            public long Position => 0;
-            public long Batch => 0;
-            public ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
-            public ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
-            public bool IsColumnActive(int col) => true;
+            public override Schema Schema => _metadata.Schema;
+            public override long Position => 0;
+            public override long Batch => 0;
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _metadata.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => (ref UInt128 dst) => dst = default;
+            public override bool IsColumnActive(int col) => true;
         }
 
         /// <summary>
-        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="IRow"/>.
+        /// Presents a <see cref="Schema.Metadata"/> as a an <see cref="Row"/>.
         /// </summary>
         /// <param name="metadata">The metadata to wrap.</param>
         /// <returns>A row that wraps an input metadata.</returns>
-        public static IRow MetadataAsRow(Schema.Metadata metadata)
+        public static Row MetadataAsRow(Schema.Metadata metadata)
         {
             Contracts.CheckValue(metadata, nameof(metadata));
             return new MetadataRow(metadata);

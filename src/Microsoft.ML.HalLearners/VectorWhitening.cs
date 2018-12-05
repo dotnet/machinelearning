@@ -689,7 +689,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return result;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Transforms.Projections
                 return del;
             }
 
-            private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo)
+            private ValueGetter<T> GetSrcGetter<T>(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);

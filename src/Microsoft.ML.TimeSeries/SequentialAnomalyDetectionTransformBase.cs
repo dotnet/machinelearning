@@ -625,7 +625,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 var getters = new Delegate[1];
@@ -637,7 +637,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
 
-            private Delegate MakeGetter(IRow input, TState state)
+            private Delegate MakeGetter(Row input, TState state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
@@ -653,7 +653,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return valueGetter;
             }
 
-            public Action<long> CreatePinger(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Action<long> CreatePinger(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Action<long> pinger = null;
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return pinger;
             }
 
-            private Action<long> MakePinger(IRow input, TState state)
+            private Action<long> MakePinger(Row input, TState state)
             {
                 _host.AssertValue(input);
                 var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);

@@ -4,8 +4,8 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers.KMeans;
 using System;
 
 namespace Microsoft.ML.StaticPipe
@@ -33,7 +33,7 @@ namespace Microsoft.ML.StaticPipe
            Vector<float> features, Scalar<float> weights = null,
            int clustersCount = KMeansPlusPlusTrainer.Defaults.K,
            Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null,
-           Action<KMeansPredictor> onFit = null)
+           Action<KMeansModelParameters> onFit = null)
         {
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);

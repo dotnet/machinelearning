@@ -5,22 +5,22 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.KMeans;
+using Microsoft.ML.Trainers.Recommender;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Trainers.Recommender;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
@@ -713,7 +713,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
 
-            KMeansPredictor pred = null;
+            KMeansModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
                  .Append(r => (label: r.label.ToKey(), r.features))

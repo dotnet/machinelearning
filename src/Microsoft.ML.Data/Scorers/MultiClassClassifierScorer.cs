@@ -307,7 +307,7 @@ namespace Microsoft.ML.Runtime.Data
                     return _mapper.GetInputColumnRoles();
                 }
 
-                public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
+                public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
                 {
                     var innerRow = _mapper.GetRow(input, predicate, out disposer);
                     return new RowImpl(innerRow, OutputSchema);
@@ -386,17 +386,17 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private sealed class RowImpl : IRow
+                private sealed class RowImpl : Row
                 {
-                    private readonly IRow _row;
+                    private readonly Row _row;
                     private readonly Schema _schema;
 
-                    public long Batch { get { return _row.Batch; } }
-                    public long Position { get { return _row.Position; } }
+                    public override long Batch => _row.Batch;
+                    public override long Position => _row.Position;
                     // The schema is of course the only difference from _row.
-                    public Schema Schema => _schema;
+                    public override Schema Schema => _schema;
 
-                    public RowImpl(IRow row, Schema schema)
+                    public RowImpl(Row row, Schema schema)
                     {
                         Contracts.AssertValue(row);
                         Contracts.AssertValue(schema);
@@ -405,17 +405,17 @@ namespace Microsoft.ML.Runtime.Data
                         _schema = schema;
                     }
 
-                    public bool IsColumnActive(int col)
+                    public override bool IsColumnActive(int col)
                     {
                         return _row.IsColumnActive(col);
                     }
 
-                    public ValueGetter<TValue> GetGetter<TValue>(int col)
+                    public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     {
                         return _row.GetGetter<TValue>(col);
                     }
 
-                    public ValueGetter<UInt128> GetIdGetter()
+                    public override ValueGetter<UInt128> GetIdGetter()
                     {
                         return _row.GetIdGetter();
                     }
@@ -551,7 +551,7 @@ namespace Microsoft.ML.Runtime.Data
             return new MultiClassClassifierScorer(env, this, newSource);
         }
 
-        protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
+        protected override Delegate GetPredictedLabelGetter(Row output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
             Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);

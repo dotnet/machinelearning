@@ -13,11 +13,12 @@ using System.Reflection;
 namespace Microsoft.ML.Runtime.Api
 {
     /// <summary>
-    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowReadableAs<TRow> : IRow
+    [BestFriend]
+    internal interface IRowReadableAs<TRow>
         where TRow : class
     {
         /// <summary>
@@ -28,11 +29,11 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// This interface is an <see cref="Row"/> with 'strongly typed' binding.
     /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
-    public interface IRowBackedBy<TRow> : IRow
+    internal interface IRowBackedBy<TRow>
         where TRow : class
     {
         /// <summary>
@@ -48,9 +49,10 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
+    public abstract class RowCursor<TRow> : RowCursor, IRowReadableAs<TRow>
         where TRow : class
     {
+        public abstract void FillValues(TRow row);
     }
 
     /// <summary>
@@ -63,13 +65,13 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Get a new cursor.
         /// </summary>
-        IRowCursor<TRow> GetCursor();
+        RowCursor<TRow> GetCursor();
 
         /// <summary>
         /// Get a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        IRowCursor<TRow> GetRandomizedCursor(int randomSeed);
+        RowCursor<TRow> GetRandomizedCursor(int randomSeed);
     }
 
     /// <summary>
@@ -163,7 +165,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create and return a new cursor.
         /// </summary>
-        public IRowCursor<TRow> GetCursor()
+        public RowCursor<TRow> GetCursor()
         {
             return GetCursor(x => false);
         }
@@ -172,14 +174,14 @@ namespace Microsoft.ML.Runtime.Api
         /// Create and return a new randomized cursor.
         /// </summary>
         /// <param name="randomSeed">The random seed to use.</param>
-        public IRowCursor<TRow> GetRandomizedCursor(int randomSeed)
+        public RowCursor<TRow> GetRandomizedCursor(int randomSeed)
         {
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRowReadableAs<TRow> GetRow(IRow input)
+        public IRowReadableAs<TRow> GetRow(Row input)
         {
-            return new TypedRow(this, input);
+            return new RowImplementation(new TypedRow(this, input));
         }
 
         /// <summary>
@@ -188,14 +190,14 @@ namespace Microsoft.ML.Runtime.Api
         /// <param name="additionalColumnsPredicate">Predicate that denotes which additional columns to include in the cursor,
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="randomSeed">The random seed to use. If <c>null</c>, the cursor will be non-randomized.</param>
-        public IRowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
+        public RowCursor<TRow> GetCursor(Func<int, bool> additionalColumnsPredicate, int? randomSeed = null)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
 
             Random rand = randomSeed.HasValue ? RandomUtils.Create(randomSeed.Value) : null;
 
             var cursor = _data.GetRowCursor(GetDependencies(additionalColumnsPredicate), rand);
-            return new TypedCursor(this, cursor);
+            return new RowCursorImplementation(new TypedCursor(this, cursor));
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> additionalColumnsPredicate)
@@ -211,7 +213,7 @@ namespace Microsoft.ML.Runtime.Api
         /// in addition to the columns that are needed for populating the <typeparamref name="TRow"/> object.</param>
         /// <param name="n">Number of cursors to create</param>
         /// <param name="rand">Random generator to use</param>
-        public IRowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
+        public RowCursor<TRow>[] GetCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> additionalColumnsPredicate, int n, Random rand)
         {
             _host.CheckValue(additionalColumnsPredicate, nameof(additionalColumnsPredicate));
@@ -226,8 +228,8 @@ namespace Microsoft.ML.Runtime.Api
             _host.AssertNonEmpty(inputs);
 
             return inputs
-                .Select(rc => (IRowCursor<TRow>)(new TypedCursor(this, rc)))
-                .ToArray();
+                 .Select(rc => (RowCursor<TRow>)(new RowCursorImplementation(new TypedCursor(this, rc))))
+                 .ToArray();
         }
 
         /// <summary>
@@ -251,10 +253,10 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRowReadableAs<TRow>
+        private abstract class TypedRowBase
         {
             protected readonly IChannel Ch;
-            private readonly IRow _input;
+            private readonly Row _input;
             private readonly Action<TRow>[] _setters;
 
             public long Batch => _input.Batch;
@@ -263,7 +265,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public Schema Schema => _input.Schema;
 
-            public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
+            public TypedRowBase(TypedCursorable<TRow> parent, Row input, string channelMessage)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(parent._host);
@@ -280,17 +282,14 @@ namespace Microsoft.ML.Runtime.Api
                     _setters[i] = GenerateSetter(_input, parent._columnIndices[i], parent._columns[i], parent._pokes[i], parent._peeks[i]);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
+            public ValueGetter<UInt128> GetIdGetter() => _input.GetIdGetter();
 
-            private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
+            private Action<TRow> GenerateSetter(Row input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema.GetColumnType(index);
                 var fieldType = column.OutputType;
                 var genericType = fieldType;
-                Func<IRow, int, Delegate, Delegate, Action<TRow>> del;
+                Func<Row, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
@@ -349,7 +348,7 @@ namespace Microsoft.ML.Runtime.Api
             // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
             // than the 'direct' getter. We don't have good indication of this to the user, and the selection
             // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
-            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
+            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(Row input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<VBuffer<TSrc>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -371,7 +370,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private Action<TRow> CreateDirectVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateDirectVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -409,7 +408,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
+            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(Row input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
                 var getter = input.GetGetter<TSrc>(col);
                 var typedPoke = poke as Poke<TRow, TDst>;
@@ -423,7 +422,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateDirectSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private static Action<TRow> CreateDirectSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 // Awkward to have a parameter that's always null, but slightly more convenient for generalizing the setter.
                 Contracts.Assert(peek == null);
@@ -438,7 +437,7 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateVBufferToVBufferSetter<TDst>(Row input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, VBuffer<TDst>>;
@@ -473,18 +472,55 @@ namespace Microsoft.ML.Runtime.Api
 
         private sealed class TypedRow : TypedRowBase
         {
-            public TypedRow(TypedCursorable<TRow> parent, IRow input)
+            public TypedRow(TypedCursorable<TRow> parent, Row input)
                 : base(parent, input, "Row")
             {
             }
         }
 
-        private sealed class TypedCursor : TypedRowBase, IRowCursor<TRow>
+        private sealed class RowImplementation : IRowReadableAs<TRow>
         {
-            private readonly IRowCursor _input;
+            private readonly TypedRow _row;
+
+            public RowImplementation(TypedRow row) => _row = row;
+
+            public long Position => _row.Position;
+            public long Batch => _row.Batch;
+            public Schema Schema => _row.Schema;
+            public void FillValues(TRow row) => _row.FillValues(row);
+            public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);
+            public ValueGetter<UInt128> GetIdGetter() => _row.GetIdGetter();
+            public bool IsColumnActive(int col) => _row.IsColumnActive(col);
+        }
+
+        private sealed class RowCursorImplementation : RowCursor<TRow>
+        {
+            private readonly TypedCursor _cursor;
+
+            public RowCursorImplementation(TypedCursor cursor) => _cursor = cursor;
+
+            public override CursorState State => _cursor.State;
+            public override long Position => _cursor.Position;
+            public override long Batch => _cursor.Batch;
+            public override Schema Schema => _cursor.Schema;
+
+            public override void Dispose() { }
+
+            public override void FillValues(TRow row) => _cursor.FillValues(row);
+            public override ValueGetter<TValue> GetGetter<TValue>(int col) => _cursor.GetGetter<TValue>(col);
+            public override ValueGetter<UInt128> GetIdGetter() => _cursor.GetIdGetter();
+            public override RowCursor GetRootCursor() => _cursor.GetRootCursor();
+            public override bool IsColumnActive(int col) => _cursor.IsColumnActive(col);
+            public override bool MoveMany(long count) => _cursor.MoveMany(count);
+            public override bool MoveNext() => _cursor.MoveNext();
+        }
+
+        private sealed class TypedCursor : TypedRowBase
+        {
+            private readonly RowCursor _input;
             private bool _disposed;
 
-            public TypedCursor(TypedCursorable<TRow> parent, IRowCursor input)
+            public TypedCursor(TypedCursorable<TRow> parent, RowCursor input)
                 : base(parent, input, "Cursor")
             {
                 _input = input;
@@ -496,7 +532,7 @@ namespace Microsoft.ML.Runtime.Api
                 base.FillValues(row);
             }
 
-            public CursorState State { get { return _input.State; } }
+            public CursorState State => _input.State;
 
             public void Dispose()
             {
@@ -508,20 +544,9 @@ namespace Microsoft.ML.Runtime.Api
                 }
             }
 
-            public bool MoveNext()
-            {
-                return _input.MoveNext();
-            }
-
-            public bool MoveMany(long count)
-            {
-                return _input.MoveMany(count);
-            }
-
-            public ICursor GetRootCursor()
-            {
-                return _input.GetRootCursor();
-            }
+            public bool MoveNext() => _input.MoveNext();
+            public bool MoveMany(long count) => _input.MoveMany(count);
+            public RowCursor GetRootCursor() => _input.GetRootCursor();
         }
     }
 

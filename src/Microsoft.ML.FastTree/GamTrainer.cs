@@ -57,7 +57,7 @@ namespace Microsoft.ML.Trainers.FastTree
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[GAM](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
+    /// [!code-csharp[GAM](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/GeneralizedAdditiveModels.cs)]
     /// ]]>
     /// </format>
     /// </example>
@@ -656,6 +656,7 @@ namespace Microsoft.ML.Trainers.FastTree
         public readonly double Intercept;
         private readonly int _numFeatures;
         private readonly ColumnType _inputType;
+        private readonly ColumnType _outputType;
         // These would be the bins for a totally sparse input.
         private readonly int[] _binsAtAllZero;
         // The output value for all zeros
@@ -665,9 +666,8 @@ namespace Microsoft.ML.Trainers.FastTree
         private readonly int _inputLength;
         private readonly Dictionary<int, int> _inputFeatureToDatasetFeatureMap;
 
-        public ColumnType InputType => _inputType;
-
-        public ColumnType OutputType => NumberType.Float;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         private protected GamPredictorBase(IHostEnvironment env, string name,
             int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
@@ -683,6 +683,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
+            _outputType = NumberType.Float;
             _featureMap = featureMap;
 
             Intercept = meanEffect;
@@ -787,6 +788,7 @@ namespace Microsoft.ML.Trainers.FastTree
             }
 
             _inputType = new VectorType(NumberType.Float, _inputLength);
+            _outputType = NumberType.Float;
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -1000,7 +1002,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return featureWeights;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -1043,7 +1045,7 @@ namespace Microsoft.ML.Trainers.FastTree
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
         /// <summary>
@@ -1122,7 +1124,7 @@ namespace Microsoft.ML.Trainers.FastTree
                 /// These are the number of input features, as opposed to the number of features used within GAM
                 /// which may be lower.
                 /// </summary>
-                public int NumFeatures => _pred.InputType.VectorSize;
+                public int NumFeatures => _pred._inputType.VectorSize;
 
                 public Context(IChannel ch, GamPredictorBase pred, RoleMappedData data, IEvaluator eval)
                 {
@@ -1342,7 +1344,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     public static FeatureInfo GetInfoForIndex(Context context, int index)
                     {
                         Contracts.AssertValue(context);
-                        Contracts.Assert(0 <= index && index < context._pred.InputType.ValueCount);
+                        Contracts.Assert(0 <= index && index < context._pred._inputType.ValueCount);
                         lock (context._pred)
                         {
                             int internalIndex;

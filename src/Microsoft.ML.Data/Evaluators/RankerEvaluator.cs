@@ -440,7 +440,7 @@ namespace Microsoft.ML.Runtime.Data
                     GroupId = new List<ReadOnlyMemory<char>>();
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);
@@ -610,12 +610,12 @@ namespace Microsoft.ML.Runtime.Data
             return _transform.GetRowCount();
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
         {
             return _transform.GetRowCursor(needCol, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
         {
             return _transform.GetRowCursorSet(out consolidator, needCol, n, rand);
         }
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Runtime.Data
                 dst = editor.Commit();
             }
 
-            protected override ValueGetter<short> GetLabelGetter(IRow row)
+            protected override ValueGetter<short> GetLabelGetter(Row row)
             {
                 var lb = RowCursorUtils.GetLabelGetter(row, _bindings.LabelIndex);
                 return
@@ -787,12 +787,12 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            protected override ValueGetter<Single> GetScoreGetter(IRow row)
+            protected override ValueGetter<Single> GetScoreGetter(Row row)
             {
                 return row.GetGetter<Single>(_bindings.ScoreIndex);
             }
 
-            protected override RowCursorState InitializeState(IRow input)
+            protected override RowCursorState InitializeState(Row input)
             {
                 return new RowCursorState(_truncationLevel);
             }

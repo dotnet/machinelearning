@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <example>
     /// <format type="text/markdown">
     /// <![CDATA[
-    /// [!code-csharp[FCT](~/../docs/samples/doc/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
+    /// [!code-csharp[FCT](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/FeatureContributionCalculationTransform.cs)]
     /// ]]>
     /// </format>
     /// </example>
@@ -214,24 +214,24 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.WriteBoolByte(Stringify);
             }
 
-            public Delegate GetTextContributionGetter(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            public Delegate GetTextContributionGetter(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
                 var typeSrc = input.Schema.GetColumnType(colSrc);
 
-                Func<IRow, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
+                Func<Row, int, VBuffer<ReadOnlyMemory<char>>, ValueGetter<ReadOnlyMemory<char>>> del = GetTextValueGetter<int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(typeSrc.RawType);
                 return (Delegate)meth.Invoke(this, new object[] { input, colSrc, slotNames });
             }
 
-            public Delegate GetContributionGetter(IRow input, int colSrc)
+            public Delegate GetContributionGetter(Row input, int colSrc)
             {
                 Contracts.CheckValue(input, nameof(input));
                 Contracts.Check(0 <= colSrc && colSrc < input.Schema.ColumnCount);
 
                 var typeSrc = input.Schema.GetColumnType(colSrc);
-                Func<IRow, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
+                Func<Row, int, ValueGetter<VBuffer<float>>> del = GetValueGetter<int>;
 
                 // REVIEW: Assuming Feature contributions will be VBuffer<float>.
                 // For multiclass LR it needs to be(VBuffer<float>[].
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
                     : slotName;
             }
 
-            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(IRow input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
+            private ValueGetter<ReadOnlyMemory<char>> GetTextValueGetter<TSrc>(Row input, int colSrc, VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -273,7 +273,7 @@ namespace Microsoft.ML.Runtime.Data
                         contributions.GetValues().CopyTo(values);
                         var count = values.Length;
                         var sb = new StringBuilder();
-                        GenericSpanSortHelper<int, float>.Sort(indices, values, 0, count);
+                        GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
                         for (var i = 0; i < count; i++)
                         {
                             var val = values[i];
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(IRow input, int colSrc)
+            private ValueGetter<VBuffer<float>> GetValueGetter<TSrc>(Row input, int colSrc)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(Predictor);
@@ -385,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                 return col => false;
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public Row GetOutputRow(Row input, Func<int, bool> predicate, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(predicate);
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
             {
                 return GetOutputRow(input, active, out disposer);
             }

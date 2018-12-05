@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.Assert(!_streaming && PassNum < 2 || PassNum < 1);
                 Host.AssertValue(schema.Label);

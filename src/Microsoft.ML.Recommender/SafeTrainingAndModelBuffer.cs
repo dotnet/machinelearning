@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             }
         }
 
-        private MFNode[] ConstructLabeledNodesFrom(IChannel ch, ICursor cursor, ValueGetter<float> labGetter,
+        private MFNode[] ConstructLabeledNodesFrom(IChannel ch, RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter,
             int rowCount, int colCount)
         {
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         }
 
         public unsafe void Train(IChannel ch, int rowCount, int colCount,
-            ICursor cursor, ValueGetter<float> labGetter,
+            RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter)
         {
             if (_pMFModel != null)
@@ -333,9 +333,9 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
         }
 
         public unsafe void TrainWithValidation(IChannel ch, int rowCount, int colCount,
-            ICursor cursor, ValueGetter<float> labGetter,
+            RowCursor cursor, ValueGetter<float> labGetter,
             ValueGetter<uint> rowGetter, ValueGetter<uint> colGetter,
-            ICursor validCursor, ValueGetter<float> validLabGetter,
+            RowCursor validCursor, ValueGetter<float> validLabGetter,
             ValueGetter<uint> validRowGetter, ValueGetter<uint> validColGetter)
         {
             if (_pMFModel != null)

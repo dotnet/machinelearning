@@ -15,74 +15,53 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     [BestFriend]
     internal static class SseUtils
     {
-        public const int CbAlign = 16;
-
-        private static bool Compat(AlignedArray a)
+        public static void MatTimesSrc(bool tran, ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crun)
         {
-            Contracts.AssertValue(a);
-            Contracts.Assert(a.Size > 0);
-            return a.CbAlign == CbAlign;
-        }
-
-        private static unsafe float* Ptr(AlignedArray a, float* p)
-        {
-            Contracts.AssertValue(a);
-            float* q = p + a.GetBase((long)p);
-            Contracts.Assert(((long)q & (CbAlign - 1)) == 0);
-            return q;
-        }
-
-        public static void MatTimesSrc(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
-        {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(src));
-            Contracts.Assert(Compat(dst));
-            Contracts.Assert(mat.Size == dst.Size * src.Size);
+            Contracts.Assert(mat.Length == dst.Length * src.Length);
 
             unsafe
             {
-                fixed (float* pmat = &mat.Items[0])
-                fixed (float* psrc = &src.Items[0])
-                fixed (float* pdst = &dst.Items[0])
+                fixed (float* pmat = &mat[0])
+                fixed (float* psrc = &src[0])
+                fixed (float* pdst = &dst[0])
                 {
                     if (!tran)
                     {
-                        Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        Thunk.MatMul(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), crun, src.Size);
+                        Contracts.Assert(0 <= crun && crun <= dst.Length);
+                        Thunk.MatMul(pmat, psrc, pdst, crun, src.Length);
                     }
                     else
                     {
-                        Contracts.Assert(0 <= crun && crun <= src.Size);
-                        Thunk.MatMulTran(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), dst.Size, crun);
+                        Contracts.Assert(0 <= crun && crun <= src.Length);
+                        Thunk.MatMulTran(pmat, psrc, pdst, dst.Length, crun);
                     }
                 }
             }
         }
 
-        public static void MatTimesSrc(AlignedArray mat, ReadOnlySpan<int> rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
+        public static void MatTimesSrc(ReadOnlySpan<float> mat, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> srcValues,
+            int posMin, int iposMin, int iposLim, Span<float> dst, int crun)
         {
-            Contracts.Assert(Compat(mat));
-            Contracts.Assert(Compat(srcValues));
-            Contracts.Assert(Compat(dst));
             Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
-            Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
+            Contracts.Assert(mat.Length == dst.Length * srcValues.Length);
 
             if (iposMin >= iposLim)
             {
-                dst.ZeroItems();
+                dst.Clear();
                 return;
             }
+
             Contracts.AssertNonEmpty(rgposSrc);
+
             unsafe
             {
-                fixed (float* pdst = &dst.Items[0])
-                fixed (float* pmat = &mat.Items[0])
-                fixed (float* psrc = &srcValues.Items[0])
+                fixed (float* pdst = &dst[0])
+                fixed (float* pmat = &mat[0])
+                fixed (float* psrc = &srcValues[0])
                 fixed (int* ppossrc = &rgposSrc[0])
                 {
-                    Contracts.Assert(0 <= crun && crun <= dst.Size);
-                    Thunk.MatMulP(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
+                    Contracts.Assert(0 <= crun && crun <= dst.Length);
+                    Thunk.MatMulP(pmat, ppossrc, psrc, posMin, iposMin, iposLim, pdst, crun, srcValues.Length);
                 }
             }
         }
@@ -363,23 +342,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 fixed (float* pa = &MemoryMarshal.GetReference(a))
                 fixed (float* pb = &MemoryMarshal.GetReference(b))
                     return Thunk.Dist2(pa, pb, count);
-            }
-        }
-
-        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices)
-        {
-            Contracts.Assert(0 < ccol && ccol <= cfltRow);
-
-            unsafe
-            {
-                fixed (float* pdst = &dst.Items[0])
-                fixed (int* pi = &indices[0])
-                {
-                    if (ccol == cfltRow)
-                        Thunk.ZeroItemsU(Ptr(dst, pdst), dst.Size, pi, indices.Length);
-                    else
-                        Thunk.ZeroMatrixItemsCore(Ptr(dst, pdst), dst.Size, ccol, cfltRow, pi, indices.Length);
-                }
             }
         }
 

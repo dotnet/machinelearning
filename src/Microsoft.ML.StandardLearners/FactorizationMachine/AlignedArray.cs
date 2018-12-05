@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime.Internal.CpuMath.Core;
 using System;
 
-namespace Microsoft.ML.Runtime.Internal.CpuMath
+namespace Microsoft.ML.Runtime.FactorizationMachine
 {
     using Float = System.Single;
 
@@ -17,7 +17,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     ///
     /// The ctor takes an alignment value, which must be a power of two at least sizeof(Float).
     /// </summary>
-    [BestFriend]
     internal sealed class AlignedArray
     {
         // Items includes "head" items filled with NaN, followed by _size entries, followed by "tail"
@@ -110,102 +109,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public void CopyTo(Float[] dst, int index, int count)
-        {
-            Contracts.Assert(0 <= count && count <= _size);
-            Contracts.Assert(dst != null);
-            Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, _base, dst, index, count);
-        }
-
-        public void CopyTo(int start, Float[] dst, int index, int count)
-        {
-            Contracts.Assert(0 <= count);
-            Contracts.Assert(0 <= start && start <= _size - count);
-            Contracts.Assert(dst != null);
-            Contracts.Assert(0 <= index && index <= dst.Length - count);
-            Array.Copy(Items, start + _base, dst, index, count);
-        }
-
-        public void CopyFrom(ReadOnlySpan<Float> src)
-        {
-            Contracts.Assert(src.Length <= _size);
-            src.CopyTo(Items.AsSpan(_base));
-        }
-
-        public void CopyFrom(int start, ReadOnlySpan<Float> src)
-        {
-            Contracts.Assert(0 <= start && start <= _size - src.Length);
-            src.CopyTo(Items.AsSpan(start + _base));
-        }
-
-        // Copies values from a sparse vector.
-        // valuesSrc contains only the non-zero entries. Those are copied into their logical positions in the dense array.
-        // rgposSrc contains the logical positions + offset of the non-zero entries in the dense array.
-        // rgposSrc runs parallel to the valuesSrc array.
-        public void CopyFrom(ReadOnlySpan<int> rgposSrc, ReadOnlySpan<Float> valuesSrc, int posMin, int iposMin, int iposLim, bool zeroItems)
-        {
-            Contracts.Assert(rgposSrc != null);
-            Contracts.Assert(valuesSrc != null);
-            Contracts.Assert(rgposSrc.Length <= valuesSrc.Length);
-            Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
-
-            // Zeroing-out and setting the values in one-pass does not seem to give any perf benefit.
-            // So explicitly zeroing and then setting the values.
-            if (zeroItems)
-                ZeroItems();
-
-            for (int ipos = iposMin; ipos < iposLim; ++ipos)
-            {
-                Contracts.Assert(posMin <= rgposSrc[ipos]);
-                int iv = _base + rgposSrc[ipos] - posMin;
-                Contracts.Assert(iv < _size + _base);
-                Items[iv] = valuesSrc[ipos];
-            }
-        }
-
         public void CopyFrom(AlignedArray src)
         {
             Contracts.Assert(src != null);
             Contracts.Assert(src._size == _size);
             Contracts.Assert(src._cbAlign == _cbAlign);
             Array.Copy(src.Items, src._base, Items, _base, _size);
-        }
-
-        public void ZeroItems()
-        {
-            Array.Clear(Items, _base, _size);
-        }
-
-        public void ZeroItems(int[] rgposSrc, int posMin, int iposMin, int iposLim)
-        {
-            Contracts.Assert(rgposSrc != null);
-            Contracts.Assert(0 <= iposMin && iposMin <= iposLim && iposLim <= rgposSrc.Length);
-            Contracts.Assert(iposLim - iposMin <= _size);
-
-            int ivCur = 0;
-            for (int ipos = iposMin; ipos < iposLim; ++ipos)
-            {
-                int ivNextNonZero = rgposSrc[ipos] - posMin;
-                Contracts.Assert(ivCur <= ivNextNonZero && ivNextNonZero < _size);
-                while (ivCur < ivNextNonZero)
-                    Items[_base + ivCur++] = 0;
-                Contracts.Assert(ivCur == ivNextNonZero);
-                // Skip the non-zero element at ivNextNonZero.
-                ivCur++;
-            }
-
-            while (ivCur < _size)
-                Items[_base + ivCur++] = 0;
-        }
-
-        // REVIEW: This is hackish and slightly dangerous. Perhaps we should wrap this in an
-        // IDisposable that "locks" this, prohibiting GetBase from being called, while the buffer
-        // is "checked out".
-        public void GetRawBuffer(out Float[] items, out int offset)
-        {
-            items = Items;
-            offset = _base;
         }
     }
 }

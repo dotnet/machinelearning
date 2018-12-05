@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Data
                 Weighted = weighted;
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Contracts.Assert(PassNum < 1);
                 Contracts.AssertValue(schema.Label);

@@ -53,7 +53,7 @@ namespace Microsoft.ML.Data
         /// </summary>
         public double RSquared { get; }
 
-        internal RegressionMetrics(IExceptionContext ectx, IRow overallResult)
+        internal RegressionMetrics(IExceptionContext ectx, Row overallResult)
         {
             double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
             L1 = Fetch(RegressionEvaluator.L1);

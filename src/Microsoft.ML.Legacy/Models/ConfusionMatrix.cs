@@ -52,7 +52,7 @@ namespace Microsoft.ML.Legacy.Models
                 throw env.Except($"ConfusionMatrix data view did not contain a {nameof(MetricKinds.ColumnNames.Count)} column.");
             }
 
-            IRowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
+            RowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
             var slots = default(VBuffer<ReadOnlyMemory<char>>);
             confusionMatrix.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countColumn, ref slots);
             var slotsValues = slots.GetValues();
