@@ -676,9 +676,8 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                disposer = null;
                 return new RowImpl(input, _mapper);
             }
 

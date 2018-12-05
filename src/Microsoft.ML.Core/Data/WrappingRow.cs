@@ -42,9 +42,11 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (_disposed)
                 return;
+            // Since the input was created first, and this instance may depend on it, we should
+            // dispose local resources first before potentially disposing the input row resources.
+            DisposeCore(disposing);
             if (disposing)
                 Input.Dispose();
-            DisposeCore(disposing);
             _disposed = true;
         }
 

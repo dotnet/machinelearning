@@ -559,7 +559,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return _predictor.GetInputColumnRoles();
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
                 Func<int, bool> predictorPredicate = col => false;
                 for (int i = 0; i < OutputSchema.ColumnCount; i++)
@@ -570,7 +570,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                         break;
                     }
                 }
-                var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
+                var predictorRow = _predictor.GetRow(input, predictorPredicate);
                 var getters = new Delegate[OutputSchema.ColumnCount];
                 for (int i = 0; i < OutputSchema.ColumnCount - 1; i++)
                 {

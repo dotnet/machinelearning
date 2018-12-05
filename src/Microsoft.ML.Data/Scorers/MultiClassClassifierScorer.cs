@@ -307,9 +307,9 @@ namespace Microsoft.ML.Runtime.Data
                     return _mapper.GetInputColumnRoles();
                 }
 
-                public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+                public Row GetRow(Row input, Func<int, bool> predicate)
                 {
-                    var innerRow = _mapper.GetRow(input, predicate, out disposer);
+                    var innerRow = _mapper.GetRow(input, predicate);
                     return new RowImpl(innerRow, OutputSchema);
                 }
 

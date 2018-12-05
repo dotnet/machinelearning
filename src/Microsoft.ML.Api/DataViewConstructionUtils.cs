@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.Api
             return pipe;
         }
 
-        public sealed class InputRow<TRow> : InputRowBase<TRow>, IRowBackedBy<TRow>
+        public sealed class InputRow<TRow> : InputRowBase<TRow>
             where TRow : class
         {
             private TRow _value;

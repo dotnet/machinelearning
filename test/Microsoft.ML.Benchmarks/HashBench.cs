@@ -79,7 +79,7 @@ namespace Microsoft.ML.Benchmarks
             var xf = new HashingTransformer(_env, new[] { info });
             var mapper = xf.GetRowToRowMapper(_inRow.Schema);
             mapper.OutputSchema.TryGetColumnIndex("Bar", out int outCol);
-            var outRow = mapper.GetRow(_inRow, c => c == outCol, out var _);
+            var outRow = mapper.GetRow(_inRow, c => c == outCol);
             if (type is VectorType)
                 _vecGetter = outRow.GetGetter<VBuffer<uint>>(outCol);
             else

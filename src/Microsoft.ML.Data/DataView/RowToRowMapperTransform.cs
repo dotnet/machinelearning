@@ -37,7 +37,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Returns the getters for the output columns given an active set of output columns. The length of the getters
         /// array should be equal to the number of columns added by the IRowMapper. It should contain the getter for the
-        /// i'th output column if activeOutput(i) is true, and null otherwise.
+        /// i'th output column if activeOutput(i) is true, and null otherwise. If creating a <see cref="Row"/> or
+        /// <see cref="RowCursor"/> out of this, the <paramref name="disposer"/> delegate (if non-null) should be called
+        /// from the dispose of either of those instances.
         /// </summary>
         Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer);
 
@@ -238,23 +240,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public Schema InputSchema => Source.Schema;
 
-        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-            disposer = null;
             using (var ch = Host.Start("GetEntireRow"))
             {
-                Action disp;
                 var activeArr = new bool[OutputSchema.ColumnCount];
                 for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
-                var getters = _mapper.CreateGetters(input, pred, out disp);
-                disposer += disp;
-                return new RowImpl(input, this, OutputSchema, getters);
+                var getters = _mapper.CreateGetters(input, pred, out Action disp);
+                return new RowImpl(input, this, OutputSchema, getters, disp);
             }
         }
 
@@ -291,17 +290,24 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class RowImpl : WrappingRow
         {
             private readonly Delegate[] _getters;
-
             private readonly RowToRowMapperTransform _parent;
+            private readonly Action _disposer;
 
             public override Schema Schema { get; }
 
-            public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
+            public RowImpl(Row input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters, Action disposer)
                 : base(input)
             {
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
+                _disposer = disposer;
+            }
+
+            protected override void DisposeCore(bool disposing)
+            {
+                if (disposing)
+                    _disposer?.Invoke();
             }
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
