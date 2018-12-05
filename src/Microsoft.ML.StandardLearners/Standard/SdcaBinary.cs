@@ -1520,7 +1520,7 @@ namespace Microsoft.ML.Trainers
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.Assert(labelCol.IsValid, nameof(labelCol));
+            Contracts.Assert(labelCol.IsValid);
 
             Action error =
                 () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
