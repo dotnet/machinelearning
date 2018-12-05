@@ -503,7 +503,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             if (WeightColumn.IsValid)
                 CheckColumnsCompatible(WeightColumn, DefaultColumnNames.Weight);
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 

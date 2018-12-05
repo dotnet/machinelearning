@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             result[_name] = CheckInputsAndMakeColumn(inputSchema, _name, _source);
             return new SchemaShape(result.Values);
         }

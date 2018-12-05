@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
             var addedSchemaShape = SchemaShape.Create(SchemaBuilder.MakeSchema(addedCols));
 
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
             foreach (var col in inputDef.Columns)
             {
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            foreach (var addedCol in addedSchemaShape.Columns)
+            foreach (var addedCol in addedSchemaShape)
                 result[addedCol.Name] = addedCol;
 
             return new SchemaShape(result.Values);

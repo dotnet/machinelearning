@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Training
 
             CheckInputSchema(inputSchema);
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 

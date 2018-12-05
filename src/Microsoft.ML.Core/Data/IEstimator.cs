@@ -19,13 +19,13 @@ namespace Microsoft.ML.Core.Data
     /// </summary>
     public sealed class SchemaShape : IReadOnlyList<SchemaShape.Column>
     {
-        public readonly ImmutableList<Column> Columns;
+        private readonly List<Column> _columns;
 
         private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
 
-        public int Count => Columns.Count;
+        public int Count => _columns.Count;
 
-        public Column this[int index] => Columns[index];
+        public Column this[int index] => _columns[index];
 
         public struct Column
         {
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Core.Data
                     return false;
                 if (IsKey != inputColumn.IsKey)
                     return false;
-                foreach (var metaCol in Metadata.Columns)
+                foreach (var metaCol in Metadata)
                 {
                     if (!inputColumn.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
                         return false;
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Core.Data
         public SchemaShape(IEnumerable<Column> columns)
         {
             Contracts.CheckValue(columns, nameof(columns));
-            Columns = columns.ToImmutableList();
+            _columns = columns.ToList();
             Contracts.CheckParam(columns.All(c => c.IsValid), nameof(columns), "Some items are not initialized properly.");
         }
 
@@ -197,11 +197,11 @@ namespace Microsoft.ML.Core.Data
         public bool TryFindColumn(string name, out Column column)
         {
             Contracts.CheckValue(name, nameof(name));
-            column = Columns.FirstOrDefault(x => x.Name == name);
+            column = _columns.FirstOrDefault(x => x.Name == name);
             return column.IsValid;
         }
 
-        public IEnumerator<Column> GetEnumerator() => Columns.GetEnumerator();
+        public IEnumerator<Column> GetEnumerator() => _columns.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
