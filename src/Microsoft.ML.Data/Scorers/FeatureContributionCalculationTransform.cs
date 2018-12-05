@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
 
-            _mapper = Create(env, args, predictor);
+            _mapper = CreateBindableMapper(env, args, predictor);
             _features = features;
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Data
             return scoredPipe;
         }
 
-        private static BindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+        private static BindableMapper CreateBindableMapper(IHostEnvironment env, Arguments args, IPredictor predictor)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -213,10 +213,16 @@ namespace Microsoft.ML.Runtime.Data
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
             var schema = new RoleMappedSchema(data.Schema, roles);
 
-            var mapper = Create(env, args, predictor);
+            var mapper = CreateBindableMapper(env, args, predictor);
             var boundMapper = mapper.Bind(env, schema);
             return Create(env, null, data, boundMapper, null);
         }
+
+        private static ISchemaBindableMapper Create(IHostEnvironment env, Arguments args, IPredictor predictor)
+            => CreateBindableMapper(env, args, predictor);
+
+        private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new BindableMapper(env, ctx);
 
         // TODO documentation... what is this? Can I put everything that is in here in the transformer, and eliminate this thing?
         private sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
