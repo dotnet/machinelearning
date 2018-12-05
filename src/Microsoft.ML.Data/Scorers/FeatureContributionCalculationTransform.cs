@@ -17,14 +17,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-//[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-//    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+    typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-//[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
-//    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), typeof(FeatureContributionCalculationTransform.Arguments),
+    typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-//[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
-//    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculationTransform), null, typeof(SignatureLoadModel),
+    "Feature Contribution Mapper", FeatureContributionCalculationTransform.MapperLoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -63,6 +63,10 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Apparently, loader signature is limited in length to 24 characters.
+        //internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
+        //internal const string FriendlyName = "Feature Contribution Transform";
+        internal const string LoaderSignature = "FeatureContributionTransform";
+
         internal const string MapperLoaderSignature = "WTFBindable";
         private const int MaxTopBottom = 1000;
 
@@ -72,7 +76,24 @@ namespace Microsoft.ML.Runtime.Data
         private readonly BindableMapper _mapper;
         private readonly string _features;
 
-        // TODO factory methods
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "FCC",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FeatureContributionCalculationTransform).Assembly.FullName);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static FeatureContributionCalculationTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            ctx.CheckAtModel(GetVersionInfo());
+            return new FeatureContributionCalculationTransform(env, ctx);
+        }
 
         // TODO: Only thing that we need to do here is store the args, and predictor, change order of params + mew arguments object
         public FeatureContributionCalculationTransform(IHostEnvironment env, Arguments args, string features, IPredictor predictor)
@@ -97,25 +118,35 @@ namespace Microsoft.ML.Runtime.Data
 
         public FeatureContributionCalculationTransform(IHostEnvironment env, ModelLoadContext ctx)
         {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(FeatureContributionCalculationTransform));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            // *** Binary format ***
+            // string features
+            // BindableMapper mapper
+
+            _features = ctx.LoadNonEmptyString();
             _mapper = new BindableMapper(env, ctx);
         }
 
         // TODO: we might need to save features as well..
         public void Save(ModelSaveContext ctx)
         {
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // string features
+            // BindableMapper mapper
+
+            ctx.SaveNonEmptyString(_features);
             _mapper.Save(ctx);
         }
 
         public Schema GetOutputSchema(Schema inputSchema)
-        {
-            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _features));
-            var schema = new RoleMappedSchema(inputSchema, roles);
-
-            var boundMapper = _mapper.Bind(_host, schema);
-            var rowMapper =  boundMapper as RowMapper;
-            return rowMapper.Schema;
-        }
+            => Transform(new EmptyDataView(_host, inputSchema)).Schema;
 
         // TODO: .Transform() should be easy to implement -> just use the code inside create.
         public IDataView Transform(IDataView input)
@@ -126,6 +157,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var boundMapper = _mapper.Bind(_host, schema);
             return Create(_host, input, boundMapper, null);
+            //.ApplyToData(_host, input);
         }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
@@ -433,14 +465,8 @@ namespace Microsoft.ML.Runtime.Data
                         new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
                         InputSchema, InputRoleMappedSchema.Feature.Index);
                 }
-
-<<<<<<< HEAD
                 _outputGenericSchema = _genericRowMapper.OutputSchema;
                 OutputSchema = new CompositeSchema(new ISchema[] { _outputGenericSchema, _outputSchema, }).AsSchema;
-=======
-                _outputGenericSchema = _genericRowMapper.Schema;
-                Schema = new CompositeSchema(new ISchema[] { schema.Schema, _outputGenericSchema, _outputSchema }).AsSchema;
->>>>>>> conitnuing work on fcc
             }
 
             /// <summary>
@@ -460,14 +486,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(predicate);
-                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount + Schema.ColumnCount;
+                var totalColumnsCount = 1 + _outputGenericSchema.ColumnCount;
                 var getters = new Delegate[totalColumnsCount];
-
-                for (int i = 0; i < input.Schema.ColumnCount; i++)
-                {
-                    if (input.IsColumnActive(i))
-                        getters[i] = RowCursorUtils.GetGetterAsDelegate(input, i);
-                }
 
                 var genericRow = _genericRowMapper.GetRow(input, GetGenericPredicate(predicate), out disposer);
                 for (var i = 0; i < _outputGenericSchema.ColumnCount; i++)
