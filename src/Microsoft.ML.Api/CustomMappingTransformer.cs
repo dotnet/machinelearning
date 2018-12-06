@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
-            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+            Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms
                 return combinedGetter;
             }
 
-            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
             {
                 if (Enumerable.Range(0, _parent.AddedSchema.Columns.Length).Any(activeOutput))
                 {
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Transforms
                 return col => false;
             }
 
-            public Schema.DetachedColumn[] GetOutputColumns()
+            Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
             {
                 var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent.AddedSchema);
                 // All the output columns of dstRow are our outputs.

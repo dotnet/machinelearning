@@ -1068,10 +1068,8 @@ namespace Microsoft.ML.Transforms.Text
             return columnMappings;
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
-        {
-            return new Mapper(this, schema);
-        }
+        private protected override IRowMapper MakeRowMapper(Schema schema)
+            => new Mapper(this, schema);
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />

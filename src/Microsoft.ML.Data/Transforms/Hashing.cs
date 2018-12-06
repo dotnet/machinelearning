@@ -319,7 +319,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return ComposeGetterVec(input, iinfo, srcCol, srcType);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
         private static HashingTransformer Create(IHostEnvironment env, ModelLoadContext ctx)

@@ -579,30 +579,22 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class RowImpl : Row
+        private sealed class RowImpl : WrappingRow
         {
             private readonly Mapper _mapper;
-            private readonly Row _input;
             public RowImpl(Row input, Mapper mapper)
+                : base(input)
             {
                 _mapper = mapper;
-                _input = input;
             }
-
-            public override long Position => _input.Position;
-
-            public override long Batch => _input.Batch;
 
             public override Schema Schema => _mapper.OutputSchema;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
-                return _input.GetGetter<TValue>(index);
+                return Input.GetGetter<TValue>(index);
             }
-
-            public override ValueGetter<UInt128> GetIdGetter()
-                => _input.GetIdGetter();
 
             public override bool IsColumnActive(int col) => true;
         }
@@ -684,9 +676,8 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                disposer = null;
                 return new RowImpl(input, _mapper);
             }
 

@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public Row GetRow(Row input, Func<int, bool> predicate, out Action action)
+        public Row GetRow(Row input, Func<int, bool> predicate)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -111,7 +111,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                     inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
             }
 
-            action = null;
             var getters = new Delegate[2];
             if (predicate(0))
             {
