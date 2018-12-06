@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// Note that <paramref name="lo"/> comes before <paramref name="hi"/>.
         /// </summary>
 #if !CORECLR
-        [DllImport(Thunk.NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(Thunk.NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern ulong Div64(ulong lo, ulong hi, ulong den, out ulong rem);
 #else
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <summary>
         /// Multiple the two 64-bit values to produce 128 bit result.
         /// </summary>
-        [DllImport(Thunk.NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(Thunk.NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern ulong Mul64(ulong a, ulong b, out ulong hi);
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// returning the quotient and placing the remainder in <paramref name="rem"/>. Throws on overflow.
         /// </summary>
 #if !CORECLR
-        [DllImport(Thunk.NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(Thunk.NativePath, CallingConvention =CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern ulong MulDiv64Core(ulong a, ulong b, ulong den, out ulong rem);
 
         public static ulong MulDiv64(ulong a, ulong b, ulong den, out ulong rem)
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// placing the quotient in <paramref name="quo"/> and the remainder in <paramref name="rem"/>.
         /// Returns true on success. On overflow, places zero in the out parameters and returns false.
         /// </summary>
-        [DllImport(Thunk.NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(Thunk.NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         private static extern bool TryMulDiv64Core(ulong a, ulong b, ulong den, out ulong quo, out ulong rem);
 
         public static bool TryMulDiv64(ulong a, ulong b, ulong den, out ulong quo, out ulong rem)

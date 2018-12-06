@@ -491,29 +491,29 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
 #pragma warning disable TLC_GeneralName // Externs follow their own rules.
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern unsafe void C_SegmentFindOptimalPath21(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern unsafe void C_SegmentFindOptimalPath15(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern unsafe void C_SegmentFindOptimalPath7(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern unsafe void C_SegmentFindOptimalCost15(uint* valv, int valc, long* pBits);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern unsafe void C_SegmentFindOptimalCost31(uint* valv, int valc, long* pBits);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int C_SumupSegment_float(
             uint* pData, byte* pSegType, int* pSegLength, int* pIndices,
             float* pSampleOutputs, double* pSampleOutputWeights,
             float* pSumTargetsByBin, double* pSumWeightsByBin,
             int* pCountByBin, int totalCount, double totalSampleOutputs);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.StdCall)]
+        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl)]
         private static extern unsafe int C_SumupSegment_double(
             uint* pData, byte* pSegType, int* pSegLength, int* pIndices,
             double* pSampleOutputs, double* pSampleOutputWeights,

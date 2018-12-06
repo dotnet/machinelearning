@@ -20,70 +20,72 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     internal static class CpuMathNativeUtils
     {
-        [DllImport("CpuMathNative", EntryPoint = "AddScalarU"), SuppressUnmanagedCodeSecurity]
+        internal const string NativePath = "CpuMathNative";
+
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddScalarU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float AddScalarU(float a, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "Scale"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Scale"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void Scale(float a, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "ScaleSrcU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ScaleSrcU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void ScaleSrcU(float a, /*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "ScaleAddU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ScaleAddU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void ScaleAddU(float a, float b, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "AddScaleU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddScaleU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void AddScaleU(float a, /*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "AddScaleSU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddScaleSU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void AddScaleSU(float a, /*_In_ const*/ float* ps, /*_In_ const*/ int* pi, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "AddScaleCopyU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddScaleCopyU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void AddScaleCopyU(float a, /*_In_ const*/ float* ps, /*_In_ const*/ float* pd, /*_Inout_*/ float* pr, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "AddU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void AddU(/*_In_ const*/ float* ps, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "AddSU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "AddSU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void AddSU(/*_In_ const*/ float* ps, /*_In_ const*/ int* pi, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "MulElementWiseU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "MulElementWiseU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void MulElementWiseU(/*_In_ const*/ float* ps1, /*_In_ const*/ float* ps2, /*_Inout_*/ float* pd, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "Sum"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Sum"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float Sum(/*const*/ float* pValues, int length);
 
-        [DllImport("CpuMathNative", EntryPoint = "SumSqU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SumSqU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float SumSqU(/*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SumSqDiffU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SumSqDiffU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float SumSqDiffU(float mean, /*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SumAbsU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SumAbsU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float SumAbsU(/*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SumAbsDiffU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SumAbsDiffU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float SumAbsDiffU(float mean, /*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "MaxAbsU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "MaxAbsU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float MaxAbsU(/*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "MaxAbsDiffU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "MaxAbsDiffU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float MaxAbsDiffU(float mean, /*const*/ float* ps, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "DotU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DotU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float DotU(/*const*/ float* pa, /*const*/ float* pb, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "DotSU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DotSU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float DotSU(/*const*/ float* pa, /*const*/ float* pb, /*const*/ int* pi, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "Dist2"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Dist2"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe float Dist2(/*const*/ float* px, /*const*/ float* py, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SdcaL1UpdateU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SdcaL1UpdateU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void SdcaL1UpdateU(float primalUpdate, /*_In_ const*/ float* ps, float threshold, /*_Inout_*/ float* pd1, /*_Inout_*/ float* pd2, int c);
 
-        [DllImport("CpuMathNative", EntryPoint = "SdcaL1UpdateSU"), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "SdcaL1UpdateSU"), SuppressUnmanagedCodeSecurity]
         internal static extern unsafe void SdcaL1UpdateSU(float primalUpdate, /*_In_ const*/ float* ps, /*_In_ const*/ int* pi, float threshold, /*_Inout_*/ float* pd1, /*_Inout_*/ float* pd2, int c);
     }
 }

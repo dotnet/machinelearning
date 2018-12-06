@@ -760,9 +760,9 @@ namespace Microsoft.ML.Trainers.SymSgd
             //To triger the loading of MKL library since SymSGD native library depends on it.
             static Native() => ErrorMessage(0);
 
-            internal const string DllName = "SymSgdNative";
+            internal const string NativePath = "SymSgdNative";
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
                 int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, State* state);
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 }
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern void MapBackWeightVector(float* weightVector, State* state);
 
             /// <summary>
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     MapBackWeightVector(pweightVector, (State*)stateGCHandle.AddrOfPinnedObject());
             }
 
-            [DllImport(DllName), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             private static extern void DeallocateSequentially(State* state);
 
             public static void DeallocateSequentially(GCHandle stateGCHandle)

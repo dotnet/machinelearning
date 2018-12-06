@@ -624,17 +624,17 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             // See: https://software.intel.com/en-us/node/520750
-            [DllImport(DllName, EntryPoint = "cblas_sgemv")]
+            [DllImport(DllName , CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv")]
             private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
-            [DllImport(DllName, EntryPoint = "cblas_sgemm")]
+            [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemm")]
             public static extern void Gemm(Layout layout, Transpose transA, Transpose transB, int m, int n, int k, float alpha,
                 float[] a, int lda, float[] b, int ldb, float beta, float[] c, int ldc);
 
             // See: https://software.intel.com/en-us/node/521150
-            [DllImport(DllName, EntryPoint = "LAPACKE_sgesvd")]
+            [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_sgesvd")]
             public static extern int Svd(Layout layout, SvdJob jobu, SvdJob jobvt,
                 int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }

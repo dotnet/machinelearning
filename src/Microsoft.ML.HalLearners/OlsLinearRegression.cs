@@ -394,7 +394,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 Lo = (byte)'L'
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptrf")]
+            [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrf")]
             private static extern int PptrfInternal(Layout layout, UpLo uplo, int n, Double[] ap);
 
             /// <summary>

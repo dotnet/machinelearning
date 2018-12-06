@@ -29,11 +29,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return q;
         }
 
-        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern void CalculateIntermediateVariablesNative(int fieldCount, int latentDim, int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices,
             float* /*const*/ featureValues, float* /*const*/ linearWeights, float* /*const*/ latentWeights, float* latentSum, float* response);
 
-        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
+        [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern void CalculateGradientAndUpdateNative(float lambdaLinear, float lambdaLatent, float learningRate, int fieldCount, int latentDim, float weight,
             int count, int* /*const*/ fieldIndices, int* /*const*/ featureIndices, float* /*const*/ featureValues, float* /*const*/ latentSum, float slope,
             float* linearWeights, float* latentWeights, float* linearAccumulatedSquaredGrads, float* latentAccumulatedSquaredGrads);
