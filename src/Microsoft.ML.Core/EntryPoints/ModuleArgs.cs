@@ -602,11 +602,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             /// optionally, a set of parameters, unique to each component. Example: "BinaryClassifierEvaluator{threshold=0.5}".
             /// The C# representation is <see cref="IComponentFactory"/>.
             /// </summary>
-            Component,
-            /// <summary>
-            /// An C# object that represents state, such as <see cref="IMlState"/>.
-            /// </summary>
-            State
+            Component
         }
 
         public static DataKind GetDataType(Type type)
@@ -649,8 +645,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             if (typeof(IComponentFactory).IsAssignableFrom(type))
                 return DataKind.Component;
-            if (typeof(IMlState).IsAssignableFrom(type))
-                return DataKind.State;
 
             return DataKind.Unknown;
         }
@@ -673,7 +667,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
         public abstract object GetValue();
 
-        protected Optional(bool isExplicit)
+        private protected Optional(bool isExplicit)
         {
             IsExplicit = isExplicit;
         }

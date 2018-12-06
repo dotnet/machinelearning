@@ -203,8 +203,6 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                 if (type == typeof(CommonOutputs.IEvaluatorOutput))
                     continue;
                 var typeEnum = TlcModule.GetDataType(type);
-                if (typeEnum == TlcModule.DataKind.State)
-                    continue;
                 if (typeEnum != TlcModule.DataKind.Unknown)
                     continue;
 

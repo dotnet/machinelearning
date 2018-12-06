@@ -80,8 +80,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 type == typeof(IPredictorModel) ||
                 type == typeof(ITransformModel) ||
                 type == typeof(CommonInputs.IEvaluatorInput) ||
-                type == typeof(CommonOutputs.IEvaluatorOutput) ||
-                type == typeof(IMlState);
+                type == typeof(CommonOutputs.IEvaluatorOutput);
         }
     }
 
@@ -185,8 +184,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (variableType == typeof(CommonInputs.IEvaluatorInput))
                 return true;
             if (variableType == typeof(CommonOutputs.IEvaluatorOutput))
-                return true;
-            if (variableType == typeof(IMlState))
                 return true;
 
             var kind = TlcModule.GetDataType(variableType);

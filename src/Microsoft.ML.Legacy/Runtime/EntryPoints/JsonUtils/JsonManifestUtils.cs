@@ -366,12 +366,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     jo[FieldNames.Kind] = typeEnum.ToString();
                     jo[FieldNames.ComponentKind] = kind;
                     return jo;
-                case TlcModule.DataKind.State:
-                    jo = new JObject();
-                    var typeString = $"{type}".Replace("Microsoft.ML.Runtime.Interfaces.", "");
-                    jo[FieldNames.Kind] = "C# Object";
-                    jo[FieldNames.ItemType] = typeString;
-                    return jo;
                 default:
                     ectx.Assert(false);
                     throw ectx.ExceptNotSupp();
