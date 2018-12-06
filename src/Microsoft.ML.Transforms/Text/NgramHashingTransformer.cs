@@ -166,14 +166,14 @@ namespace Microsoft.ML.Transforms.Text
             public readonly VectorType[] Types;
             private readonly NgramHashingTransformer _parent;
 
-            public Bindings(Arguments args, ISchema schemaInput, NgramHashingTransformer parent)
+            public Bindings(Arguments args, Schema schemaInput, NgramHashingTransformer parent)
                 : base(args.Column, schemaInput, TestTypes)
             {
                 Types = new VectorType[args.Column.Length];
                 _parent = parent;
             }
 
-            public Bindings(ModelLoadContext ctx, ISchema schemaInput, NgramHashingTransformer parent)
+            public Bindings(ModelLoadContext ctx, Schema schemaInput, NgramHashingTransformer parent)
                 : base(ctx, schemaInput, TestTypes)
             {
                 Types = new VectorType[Infos.Length];

@@ -893,7 +893,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool _useRaw;
         private readonly ColumnType[] _types;
 
-        public BinaryPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
+        public BinaryPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol, string probCol, string labelCol, Single threshold, bool useRaw)
             : base(env, schema, scoreCol, labelCol)
         {
             _threshold = threshold;
@@ -913,7 +913,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private BinaryPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             // *** Binary format **
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
             _types[AssignedCol] = BoolType.Instance;
         }
 
-        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        public static BinaryPerInstanceEvaluator Create(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -1091,7 +1091,7 @@ namespace Microsoft.ML.Runtime.Data
             return new[] { new Schema.DetachedColumn(Assigned, _types[AssignedCol], null), };
         }
 
-        private void CheckInputColumnTypes(ISchema schema)
+        private void CheckInputColumnTypes(Schema schema)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertValueOrNull(_probCol);
@@ -1541,7 +1541,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static void MatchColumns(IHost host, MamlEvaluatorBase.ArgumentsBase input, out string label, out string weight, out string name)
         {
-            ISchema schema = input.Data.Schema;
+            var schema = input.Data.Schema;
             label = TrainUtils.MatchNameOrDefaultOrNull(host, schema,
                 nameof(BinaryClassifierMamlEvaluator.Arguments.LabelColumn),
                 input.LabelColumn, DefaultColumnNames.Label);

@@ -248,7 +248,7 @@ namespace Microsoft.ML.Transforms.Conversions
             return "standard type or a vector of standard type";
         }
 
-        private ColInfo[] CreateInfos(ISchema inputSchema)
+        private ColInfo[] CreateInfos(Schema inputSchema)
         {
             Host.AssertValue(inputSchema);
             var infos = new ColInfo[ColumnPairs.Length];
@@ -388,8 +388,8 @@ namespace Microsoft.ML.Transforms.Conversions
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
-            => Create(env, ctx).MakeRowMapper(Schema.Create(inputSchema));
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, Schema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Initializes a new instance of <see cref="ValueToKeyMappingTransformer"/>.

@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             using (var ch = host.Start("Training"))
             {
-                ISchema schema = input.TrainingData.Schema;
+                var schema = input.TrainingData.Schema;
                 var feature = FindColumn(ch, schema, input.FeatureColumn);
                 var label = getLabel?.Invoke();
                 var weight = getWeight?.Invoke();

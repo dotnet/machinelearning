@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private bool SchemasMatch(ISchema schema1, ISchema schema2)
+            private bool SchemasMatch(Schema schema1, Schema schema2)
             {
                 if (schema1.ColumnCount != schema2.ColumnCount)
                 {

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Data
         Schema.DetachedColumn[] GetOutputColumns();
     }
 
-    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, ISchema schema);
+    public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, Schema schema);
 
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.

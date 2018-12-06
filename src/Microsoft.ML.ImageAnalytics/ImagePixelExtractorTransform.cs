@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inputColName = _columns[col].Input;
             var imageType = inputSchema.GetColumnType(srcCol) as ImageType;

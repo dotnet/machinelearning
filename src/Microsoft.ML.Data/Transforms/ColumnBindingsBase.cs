@@ -808,7 +808,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public readonly ColInfo[] Infos;
 
-        protected ManyToOneColumnBindingsBase(ManyToOneColumn[] column, ISchema input, Func<ColumnType[], string> testTypes)
+        protected ManyToOneColumnBindingsBase(ManyToOneColumn[] column, Schema input, Func<ColumnType[], string> testTypes)
             : base(input, true, GetNamesAndSanitize(column))
         {
             Contracts.AssertNonEmpty(column);
@@ -886,7 +886,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Read everything into a new Contents object and pass it to the constructor below.
-        protected ManyToOneColumnBindingsBase(ModelLoadContext ctx, ISchema input, Func<ColumnType[], string> testTypes)
+        protected ManyToOneColumnBindingsBase(ModelLoadContext ctx, Schema input, Func<ColumnType[], string> testTypes)
             : this(new Contents(ctx, input, testTypes))
         {
         }
@@ -904,11 +904,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class Contents
         {
-            public ISchema Input;
+            public Schema Input;
             public ColInfo[] Infos;
             public string[] Names;
 
-            public Contents(ModelLoadContext ctx, ISchema input, Func<ColumnType[], string> testTypes)
+            public Contents(ModelLoadContext ctx, Schema input, Func<ColumnType[], string> testTypes)
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(input, nameof(input));

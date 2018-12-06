@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Utility to check whether all types in an input schema are shufflable.
         /// </summary>
-        internal static bool CanShuffleAll(ISchema schema)
+        internal static bool CanShuffleAll(Schema schema)
         {
             for (int c = 0; c < schema.ColumnCount; ++c)
             {

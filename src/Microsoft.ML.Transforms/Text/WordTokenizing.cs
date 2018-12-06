@@ -145,7 +145,7 @@ namespace Microsoft.ML.Transforms.Text
             _columns = columns.ToArray();
         }
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!WordTokenizingEstimator.IsColumnTypeValid(type))

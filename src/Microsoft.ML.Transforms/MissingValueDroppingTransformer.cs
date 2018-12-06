@@ -101,7 +101,7 @@ namespace Microsoft.ML.Transforms
         private static (string input, string output)[] GetColumnPairs(Column[] columns)
             => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
 
-        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        protected override void CheckInputColumn(Schema inputSchema, int col, int srcCol)
         {
             var inType = inputSchema.GetColumnType(srcCol);
             if (!inType.IsVector)
