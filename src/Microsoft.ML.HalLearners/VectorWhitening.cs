@@ -639,7 +639,7 @@ namespace Microsoft.ML.Transforms.Projections
                 int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
         private sealed class Mapper : OneToOneMapperBase
@@ -806,7 +806,7 @@ namespace Microsoft.ML.Transforms.Projections
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _infos)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))

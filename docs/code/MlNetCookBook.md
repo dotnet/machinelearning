@@ -443,10 +443,24 @@ var reader = mlContext.Data.TextReader(ctx => (
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var trainData = reader.Read(trainDataPath);
 
+// Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+// several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+// User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+// a caching step, which provides the same caching function, will be inserted in the considered "learningPipeline."
+var cachedTrainData = trainData.Cache();
+
 // Step two: define the learning pipeline. 
 
 // We 'start' the pipeline with the output of the reader.
 var learningPipeline = reader.MakeNewEstimator()
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+    // data set.
+    .AppendCacheCheckpoint()
     // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
     .Append(r => (
@@ -486,6 +500,12 @@ var reader = mlContext.Data.TextReader(new TextLoader.Arguments
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var trainData = reader.Read(trainDataPath);
 
+// Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+// several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+// User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+// a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+var cachedTrainData = mlContext.Data.Cache(trainData);
+
 // Step two: define the learning pipeline. 
 
 // We 'start' the pipeline with the output of the reader.
@@ -493,6 +513,15 @@ var dynamicPipeline =
     // First 'normalize' the data (rescale to be
     // between -1 and 1 for all examples)
     mlContext.Transforms.Normalize("FeatureVector")
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+    // data set. Notice that in the upstream Transforms.Normalize step, we only scan through the data 
+    // once so adding a caching step before it is not helpful.
+    .AppendCacheCheckpoint(mlContext)
     // Add the SDCA regression trainer.
     .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(label: "Target", features: "FeatureVector"));
 
@@ -595,6 +624,13 @@ var learningPipeline = reader.MakeNewEstimator()
         r.Label,
         // Concatenate all the features together into one column 'Features'.
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    // We add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+    // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+    // The data accessed in any downstream step will be cached since its first use. In general, you only
+    // need to add a caching step before trainable step, because caching is not helpful if the data is
+    // only scanned once.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -640,6 +676,8 @@ var dynamicPipeline =
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
     .Append(mlContext.Transforms.Categorical.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Cache data in moemory for steps after the cache check point stage.
+    .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
     // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -741,6 +779,7 @@ var trainData = mlContext.CreateStreamingDataView(churnData);
 
 var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
     .Append(mlContext.Transforms.Concatenate("Features", "DemographicCategory", "LastVisits"))
+    .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
     .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
 var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -757,6 +796,7 @@ var staticLearningPipeline = staticData.MakeNewEstimator()
     .Append(r => (
         r.HasChurned,
         Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
+    .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
     .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
 var staticModel = staticLearningPipeline.Fit(staticData);
@@ -813,6 +853,8 @@ var learningPipeline = reader.MakeNewEstimator()
             // When the normalizer is trained, the below delegate is going to be called.
             // We use it to memorize the scales.
             onFit: (scales, offsets) => normScales = scales)))
+    // Cache data used in memory because the subsequently trainer needs to access the data multiple times.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -987,6 +1029,10 @@ var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 
 // Build several alternative featurization pipelines.
 var learningPipeline = reader.MakeNewEstimator()
+    // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+    // cached in memory at their first uses. This step can be removed if user's machine doesn't
+    // have enough memory.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         r.NumericalFeatures,
@@ -1070,6 +1116,9 @@ var workclasses = transformedData.GetColumn<float[]>(mlContext, "WorkclassOneHot
 var fullLearningPipeline = dynamicPipeline
     // Concatenate two of the 3 categorical pipelines, and the numeric features.
     .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+    // Cache data in memory so that the following trainer will be able to access training examples without
+    // reading them from disk multiple times.
+    .AppendCacheCheckpoint(mlContext)
     // Now we're ready to train. We chose our FastTree trainer for this classification task.
     .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
 
@@ -1121,6 +1170,10 @@ var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
 
 // Apply various kinds of text operations supported by ML.NET.
 var learningPipeline = reader.MakeNewEstimator()
+    // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+    // cached in memory at their first uses. This step can be removed if user's machine doesn't
+    // have enough memory.
+    .AppendCacheCheckpoint()
     .Append(r => (
         // One-stop shop to run the full text featurization.
         TextFeatures: r.Message.FeaturizeText(),
@@ -1243,6 +1296,9 @@ var learningPipeline = reader.MakeNewEstimator()
         Label: r.Label.ToKey(),
         // Concatenate all the features together into one column 'Features'.
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    // Add a step for caching data in memory so that the downstream iterative training
+    // algorithm can efficiently scan through the data multiple times.
+    .AppendCacheCheckpoint()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
@@ -1298,6 +1354,10 @@ var dynamicPipeline =
     mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     // Note that the label is text, so it needs to be converted to key.
     .Append(mlContext.Transforms.Conversions.MapValueToKey("Label"), TransformerScope.TrainTest)
+    // Cache data in memory so that SDCA trainer will be able to randomly access training examples without
+    // reading data from disk multiple times. Data will be cached at its first use in any downstream step.
+    // Notice that unused part in the data may not be cached.
+    .AppendCacheCheckpoint(mlContext)
     // Use the multi-class SDCA model to predict the label using features.
     .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
@@ -1439,6 +1499,7 @@ public static ITransformer TrainModel(MLContext mlContext, IDataView trainData)
     Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
     // Construct the learning pipeline.
     var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+        .AppendCacheCheckpoint(mlContext)
         .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
 
     return estimator.Fit(trainData);
@@ -1480,8 +1541,12 @@ public class CustomMappings
 var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
     .Append(mlContext.BinaryClassification.Trainers.FastTree(label: "Label"));
 
+// If memory is enough, we can cache the data in-memory to avoid reading them from file
+// when it will be accessed multiple times. 
+var cachedTrainData = mlContext.Data.Cache(trainData);
+
 // Train the model.
-var model = estimator.Fit(trainData);
+var model = estimator.Fit(cachedTrainData);
 
 // Save the model.
 using (var fs = File.Create(modelPath))

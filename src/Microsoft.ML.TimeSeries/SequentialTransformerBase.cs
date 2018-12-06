@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public bool IsRowToRowMapper => false;
 
-        public TState StateRef{ get; set; }
+        public TState StateRef { get; set; }
 
         public int StateRefCount;
 
@@ -478,10 +478,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return col => false;
             }
 
-            public Row GetRow(Row input, Func<int, bool> active, out Action disposer) =>
-                new RowImpl(_bindings.Schema, input, _mapper.CreateGetters(input, active, out disposer),
-                    _mapper.CreatePinger(input, active, out disposer));
-
+            public Row GetRow(Row input, Func<int, bool> active)
+            {
+                var getters = _mapper.CreateGetters(input, active, out Action disposer);
+                var pingers = _mapper.CreatePinger(input, active, out Action pingerDisposer);
+                return new RowImpl(_bindings.Schema, input, getters, pingers, disposer + pingerDisposer);
+            }
         }
 
         private sealed class RowImpl : StatefulRow
@@ -490,6 +492,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
+            private readonly Action _disposer;
+            private bool _disposed;
 
             public override Schema Schema => _schema;
 
@@ -497,7 +501,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override long Batch => _input.Batch;
 
-            public RowImpl(Schema schema, Row input, Delegate[] getters, Action<long> pinger)
+            public RowImpl(Schema schema, Row input, Delegate[] getters, Action<long> pinger, Action disposer)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckValue(input, nameof(input));
@@ -506,12 +510,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _input = input;
                 _getters = getters ?? new Delegate[0];
                 _pinger = pinger;
+                _disposer = disposer;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override ValueGetter<UInt128> GetIdGetter()
-            {
-                return _input.GetIdGetter();
-            }
+                => _input.GetIdGetter();
 
             public override ValueGetter<T> GetGetter<T>(int col)
             {
@@ -745,32 +758,30 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-        public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
+        public Row GetRow(Row input, Func<int, bool> active)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
             Host.Check(input.Schema == Source.Schema, "Schema of input row must be the same as the schema the mapper is bound to");
 
-            disposer = null;
             using (var ch = Host.Start("GetEntireRow"))
             {
-                Action disp;
                 var activeArr = new bool[OutputSchema.ColumnCount];
                 for (int i = 0; i < OutputSchema.ColumnCount; i++)
                     activeArr[i] = active(i);
                 var pred = GetActiveOutputColumns(activeArr);
-                var getters = _mapper.CreateGetters(input, pred, out disp);
-                disposer += disp;
-                return new StatefulRow(input, this, OutputSchema, getters,
-                    _mapper.CreatePinger(input, pred, out disp));
+                var getters = _mapper.CreateGetters(input, pred, out Action disp);
+                var pingers = _mapper.CreatePinger(input, pred, out Action pingerDisp);
+                return new StatefulRowImpl(input, this, OutputSchema, getters, pingers, disp + pingerDisp);
             }
         }
 
-        private sealed class StatefulRow : TimeSeries.StatefulRow
+        private sealed class StatefulRowImpl : StatefulRow
         {
             private readonly Row _input;
             private readonly Delegate[] _getters;
             private readonly Action<long> _pinger;
+            private readonly Action _disposer;
 
             private readonly TimeSeriesRowToRowMapperTransform _parent;
 
@@ -780,14 +791,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public override Schema Schema { get; }
 
-            public StatefulRow(Row input, TimeSeriesRowToRowMapperTransform parent,
-                Schema schema, Delegate[] getters, Action<long> pinger)
+            public StatefulRowImpl(Row input, TimeSeriesRowToRowMapperTransform parent,
+                Schema schema, Delegate[] getters, Action<long> pinger, Action disposer)
             {
                 _input = input;
                 _parent = parent;
                 Schema = schema;
                 _getters = getters;
                 _pinger = pinger;
+                _disposer = disposer;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    _disposer?.Invoke();
             }
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
@@ -825,6 +843,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly bool[] _active;
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
+            private bool _disposed;
 
             public override Schema Schema => _bindings.Schema;
 
@@ -854,19 +873,21 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 Ch.AssertValue(_getters);
                 var getter = _getters[index];
-                Ch.Assert(getter != null);
-                var fn = getter as ValueGetter<TValue>;
-                if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                return fn;
+                Ch.AssertValue(getter);
+                if (getter is ValueGetter<TValue> fn)
+                    return fn;
+                throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _disposer?.Invoke();
+                _disposed = true;
+                base.Dispose(disposing);
             }
         }
     }
-
 }

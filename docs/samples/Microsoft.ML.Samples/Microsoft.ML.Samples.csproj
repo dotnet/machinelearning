@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.FastTree\Microsoft.ML.FastTree.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.LightGBM\Microsoft.ML.LightGBM.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
 
@@ -20,6 +21,7 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="MatrixFactorizationNative" />
     <NativeAssemblyReference Include="LdaNative" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.Redist" Version="0.7.0" />
     
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

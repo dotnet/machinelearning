@@ -358,15 +358,14 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
-                var getters = CreateGetter(input, active);
-                disposer = null;
+                var activeArray = Utils.BuildArray(OutputSchema.ColumnCount, active);
+                var getters = CreateGetter(input, activeArray);
                 return new SimpleRow(OutputSchema, input, getters);
             }
 
-            public ISchemaBindableMapper Bindable { get { return _parent; } }
+            public ISchemaBindableMapper Bindable => _parent;
         }
     }
 

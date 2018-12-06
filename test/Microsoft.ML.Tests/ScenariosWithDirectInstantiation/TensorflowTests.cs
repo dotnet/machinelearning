@@ -455,6 +455,7 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     }))
                     .Append(mlContext.Transforms.Concatenate("Features", "Prediction"))
+                    .AppendCacheCheckpoint(mlContext)
                     .Append(mlContext.MulticlassClassification.Trainers.LightGbm("Label", "Features"));
 
                 var trainedModel = pipe.Fit(preprocessedTrainData);

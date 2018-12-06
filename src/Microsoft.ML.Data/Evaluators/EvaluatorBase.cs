@@ -446,7 +446,8 @@ namespace Microsoft.ML.Runtime.Data
             return new RowToRowMapperTransform(Host, data.Data, mapper, null);
         }
 
-        protected abstract IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema);
+        [BestFriend]
+        private protected abstract IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema);
     }
 
     /// <summary>
@@ -501,10 +502,22 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveStringOrNull(LabelCol);
         }
 
-        public abstract Func<int, bool> GetDependencies(Func<int, bool> activeOutput);
+        Func<int, bool> IRowMapper.GetDependencies(Func<int, bool> activeOutput)
+            => GetDependenciesCore(activeOutput);
 
-        public abstract Schema.DetachedColumn[] GetOutputColumns();
+        [BestFriend]
+        private protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput);
 
-        public abstract Delegate[] CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer);
+        Schema.DetachedColumn[] IRowMapper.GetOutputColumns()
+            => GetOutputColumnsCore();
+
+        [BestFriend]
+        private protected abstract Schema.DetachedColumn[] GetOutputColumnsCore();
+
+        Delegate[] IRowMapper.CreateGetters(Row input, Func<int, bool> activeCols, out Action disposer)
+            => CreateGettersCore(input, activeCols, out disposer);
+
+        [BestFriend]
+        private protected abstract Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer);
     }
 }

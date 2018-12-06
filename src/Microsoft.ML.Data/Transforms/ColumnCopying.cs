@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             foreach (var (Source, Name) in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(Source, out var originalColumn))
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Transforms
             SaveColumns(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema inputSchema)
+        private protected override IRowMapper MakeRowMapper(Schema inputSchema)
             => new Mapper(this, inputSchema, ColumnPairs);
 
         private sealed class Mapper : OneToOneMapperBase, ISaveAsOnnx

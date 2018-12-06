@@ -41,6 +41,7 @@ namespace Microsoft.ML.Scenarios
 
             var pipe = mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(mlContext.Transforms.Normalize("Features"))
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Read training and test data sets

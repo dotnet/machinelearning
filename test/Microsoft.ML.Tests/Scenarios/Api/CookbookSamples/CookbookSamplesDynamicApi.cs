@@ -111,6 +111,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var trainData = reader.Read(trainDataPath);
 
+            // Sometime, caching data in-memory after its first access can save some loading time when the data is going to be used
+            // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+            // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+            // a caching step, which provides the same caching function, will be inserted in the considered "dynamicPipeline."
+            var cachedTrainData = mlContext.Data.Cache(trainData);
+
             // Step two: define the learning pipeline. 
 
             // We 'start' the pipeline with the output of the reader.
@@ -118,6 +124,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 // First 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
                 mlContext.Transforms.Normalize("FeatureVector")
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+                // data set. Notice that in the upstream Transforms.Normalize step, we only scan through the data
+                // once so adding a caching step before it is not helpful.
+                .AppendCacheCheckpoint(mlContext)
                 // Add the SDCA regression trainer.
                 .Append(mlContext.Regression.Trainers.StochasticDualCoordinateAscent(labelColumn: "Target", featureColumn: "FeatureVector"));
 
@@ -179,6 +194,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in moemory for steps after the cache check point stage.
+                .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent())
                 // Apply the inverse conversion from 'PredictedLabel' column back to string value.
@@ -397,6 +414,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var fullLearningPipeline = dynamicPipeline
                 // Concatenate two of the 3 categorical pipelines, and the numeric features.
                 .Append(mlContext.Transforms.Concatenate("Features", "NumericalFeatures", "CategoricalBag", "WorkclassOneHotTrimmed"))
+                // Cache data in memory so that the following trainer will be able to access training examples without
+                // reading them from disk multiple times.
+                .AppendCacheCheckpoint(mlContext)
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(numTrees: 50));
 
@@ -440,6 +460,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 mlContext.Transforms.Concatenate("Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 // Note that the label is text, so it needs to be converted to key.
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"), TransformerScope.TrainTest)
+                // Cache data in memory so that SDCA trainer will be able to randomly access training examples without
+                // reading data from disk multiple times. Data will be cached at its first use in any downstream step.
+                // Notice that unused part in the data may not be cached.
+                .AppendCacheCheckpoint(mlContext)
                 // Use the multi-class SDCA model to predict the label using features.
                 .Append(mlContext.MulticlassClassification.Trainers.StochasticDualCoordinateAscent());
 
@@ -541,8 +565,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var estimator = mlContext.Transforms.CustomMapping<InputRow, OutputRow>(CustomMappings.IncomeMapping, nameof(CustomMappings.IncomeMapping))
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
 
+            // If memory is enough, we can cache the data in-memory to avoid reading them from file
+            // when it will be accessed multiple times. 
+            var cachedTrainData = mlContext.Data.Cache(trainData);
+
             // Train the model.
-            var model = estimator.Fit(trainData);
+            var model = estimator.Fit(cachedTrainData);
 
             // Save the model.
             using (var fs = File.Create(modelPath))
@@ -575,6 +603,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             Action<InputRow, OutputRow> mapping = (input, output) => output.Label = input.Income > 50000;
             // Construct the learning pipeline.
             var estimator = mlContext.Transforms.CustomMapping(mapping, null)
+                .AppendCacheCheckpoint(mlContext)
                 .Append(mlContext.BinaryClassification.Trainers.FastTree(labelColumn: "Label"));
 
             return estimator.Fit(trainData);

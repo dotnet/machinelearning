@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
         /// of a scalar <see cref="BoolType"/> type, which we assume, if set, should be <c>true</c>.</returns>
         public static bool IsNormalized(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
                 && metaCol.ItemType == BoolType.Instance;
@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <see cref="Kinds.SlotNames"/> metadata of definite sized vectors of text.</returns>
         public static bool HasSlotNames(this SchemaShape.Column col)
         {
-            Contracts.CheckValue(col, nameof(col));
+            Contracts.CheckParam(col.IsValid, nameof(col), "struct not initialized properly");
             return col.Kind == SchemaShape.Column.VectorKind.Vector
                 && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
                 && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey

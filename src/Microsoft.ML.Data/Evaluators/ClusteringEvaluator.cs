@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, schema.Feature, numClusters, _calculateDbi, schema.Weight != null, stratName);
         }
 
-        protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
+        private protected override IRowMapper CreatePerInstanceRowMapper(RoleMappedSchema schema)
         {
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             int numClusters = scoreInfo.Type.VectorSize;
@@ -638,7 +638,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.Write(_numClusters);
         }
 
-        public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+        private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
         {
             return
                 col =>
@@ -646,13 +646,13 @@ namespace Microsoft.ML.Runtime.Data
                     (activeOutput(ClusterIdCol) || activeOutput(SortedClusterCol) || activeOutput(SortedClusterScoreCol));
         }
 
-        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
+        private protected override Delegate[] CreateGettersCore(Row input, Func<int, bool> activeCols, out Action disposer)
         {
             disposer = null;
 
             var getters = new Delegate[3];
 
-            if (!activeOutput(ClusterIdCol) && !activeOutput(SortedClusterCol) && !activeOutput(SortedClusterScoreCol))
+            if (!activeCols(ClusterIdCol) && !activeCols(SortedClusterCol) && !activeCols(SortedClusterScoreCol))
                 return getters;
 
             long cachedPosition = -1;
@@ -675,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 };
 
-            if (activeOutput(ClusterIdCol))
+            if (activeCols(ClusterIdCol))
             {
                 ValueGetter<uint> assignedFn =
                     (ref uint dst) =>
@@ -686,7 +686,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[ClusterIdCol] = assignedFn;
             }
 
-            if (activeOutput(SortedClusterScoreCol))
+            if (activeCols(SortedClusterScoreCol))
             {
                 ValueGetter<VBuffer<Single>> topKScoresFn =
                     (ref VBuffer<Single> dst) =>
@@ -700,7 +700,7 @@ namespace Microsoft.ML.Runtime.Data
                 getters[SortedClusterScoreCol] = topKScoresFn;
             }
 
-            if (activeOutput(SortedClusterCol))
+            if (activeCols(SortedClusterCol))
             {
                 ValueGetter<VBuffer<uint>> topKClassesFn =
                     (ref VBuffer<uint> dst) =>
@@ -716,7 +716,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override Schema.DetachedColumn[] GetOutputColumns()
+        private protected override Schema.DetachedColumn[] GetOutputColumnsCore()
         {
             var infos = new Schema.DetachedColumn[3];
             infos[ClusterIdCol] = new Schema.DetachedColumn(ClusterId, _types[ClusterIdCol], null);

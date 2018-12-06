@@ -421,7 +421,7 @@ namespace Microsoft.ML.Transforms.Projections
                 col.Save(ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : OneToOneMapperBase
         {
@@ -795,7 +795,7 @@ namespace Microsoft.ML.Transforms.Projections
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))

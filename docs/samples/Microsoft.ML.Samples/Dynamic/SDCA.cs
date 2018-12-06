@@ -38,11 +38,18 @@ namespace Microsoft.ML.Samples.Dynamic
             // Read the data
             var data = reader.Read(dataFile);
 
+            // ML.NET doesn't cache data set by default. Therefore, if one reads a data set from a file and accesses it many times, it can be slow due to
+            // expensive featurization and disk operations. When the considered data can fit into memory, a solution is to cache the data in memory. Caching is especially
+            // helpful when working with iterative algorithms which needs many data passes. Since SDCA is the case, we cache. Inserting a
+            // cache step in a pipeline is also possible, please see the construction of pipeline below.
+            data = mlContext.Data.Cache(data);
+
             // Step 2: Pipeline 
             // Featurize the text column through the FeaturizeText API. 
             // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
-            // the "Features" column produced by FeaturizeText as the features column. 
+            // the "Features" column produced by FeaturizeText as the features column.
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                    .AppendCacheCheckpoint(mlContext) // Add a data-cache step within a pipeline.
                     .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(labelColumn: "Sentiment", featureColumn: "Features", l2Const: 0.001f));
 
             // Step 3: Run Cross-Validation on this pipeline.

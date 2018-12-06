@@ -114,10 +114,24 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
             var trainData = reader.Read(trainDataPath);
 
+            // Sometime, caching data in-memory after its first access can save some loading time when the data is going to used
+            // several times somewhere. The caching mechanism is also lazy; it only caches things after being used.
+            // User can replace all the subsequently uses of "trainData" with "cachedTrainData". We still use "trainData" because
+            // a caching step, which provides the same caching function, will be inserted in the considered "learningPipeline."
+            var cachedTrainData = trainData.Cache();
+
             // Step two: define the learning pipeline. 
 
             // We 'start' the pipeline with the output of the reader.
             var learningPipeline = reader.MakeNewEstimator()
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once. This step can be removed if user doesn't have enough memory to store the whole
+                // data set.
+                .AppendCacheCheckpoint()
                 // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
                 // between -1 and 1 for all examples), and then train the model.
                 .Append(r => (
@@ -185,6 +199,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // We add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times. Otherwise, the following
+                // trainer will read data from disk multiple times. The caching mechanism uses an on-demand strategy.
+                // The data accessed in any downstream step will be cached since its first use. In general, you only
+                // need to add a caching step before trainable step, because caching is not helpful if the data is
+                // only scanned once.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -267,6 +288,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                         // When the normalizer is trained, the below delegate is going to be called.
                         // We use it to memorize the scales.
                         onFit: (scales, offsets) => normScales = scales)))
+                // Cache data used in memory because the subsequently trainer needs to access the data multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -386,6 +409,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
                 .Append(new ColumnConcatenatingEstimator (mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .AppendCacheCheckpoint(mlContext) // FastTree will benefit from caching data in memory.
                 .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
             var dynamicModel = dynamicLearningPipeline.Fit(trainData);
@@ -402,6 +426,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => (
                     r.HasChurned,
                     Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
+                .AppendCacheCheckpoint() // FastTree will benefit from caching data in memory.
                 .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
             var staticModel = staticLearningPipeline.Fit(staticData);
@@ -432,6 +457,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Apply various kinds of text operations supported by ML.NET.
             var learningPipeline = reader.MakeNewEstimator()
+                // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+                // cached in memory at their first uses. This step can be removed if user's machine doesn't
+                // have enough memory.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     // One-stop shop to run the full text featurization.
                     TextFeatures: r.Message.FeaturizeText(),
@@ -495,6 +524,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Build several alternative featurization pipelines.
             var learningPipeline = reader.MakeNewEstimator()
+                // Cache data in memory in an on-demand manner. Columns used in any downstream step will be
+                // cached in memory at their first uses. This step can be removed if user's machine doesn't
+                // have enough memory.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     r.NumericalFeatures,
@@ -562,6 +595,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     Label: r.Label.ToKey(),
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                // Add a step for caching data in memory so that the downstream iterative training
+                // algorithm can efficiently scan through the data multiple times.
+                .AppendCacheCheckpoint()
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
