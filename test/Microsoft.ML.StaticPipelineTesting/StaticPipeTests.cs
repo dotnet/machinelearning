@@ -882,7 +882,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                + "1 1 2 4 15";
             var dataSource = new BytesStreamSource(content);
 
-            var text = ml.Data.TextReader(ctx => (
+            var text = ml.Data.CreateTextReader(ctx => (
                label: ctx.LoadBool(0),
                text: ctx.LoadText(1),
                numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
