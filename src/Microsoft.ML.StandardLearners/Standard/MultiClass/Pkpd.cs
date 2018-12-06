@@ -244,8 +244,10 @@ namespace Microsoft.ML.Trainers
         private readonly IValueMapperDist[] _mappers;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
+        private readonly ColumnType _inputType;
+        private readonly ColumnType _outputType;
+        ColumnType IValueMapper.InputType => _inputType;
+        ColumnType IValueMapper.OutputType => _outputType;
 
         internal PkpdPredictor(IHostEnvironment env, TDistPredictor[][] predictors) :
             base(env, RegistrationName)
@@ -267,8 +269,8 @@ namespace Microsoft.ML.Trainers
             }
             Host.Assert(index == _predictors.Length);
 
-            InputType = InitializeMappers(out _mappers);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            _inputType = InitializeMappers(out _mappers);
+            _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
         private PkpdPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -295,8 +297,8 @@ namespace Microsoft.ML.Trainers
                 Host.Assert(index == GetIndex(i, i));
                 ctx.LoadModel<TDistPredictor, SignatureLoadModel>(Host, out _predictors[index++], string.Format(SubPredictorFmt, i));
             }
-            InputType = InitializeMappers(out _mappers);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            _inputType = InitializeMappers(out _mappers);
+            _outputType = new VectorType(NumberType.Float, _numClasses);
         }
 
         private ColumnType InitializeMappers(out IValueMapperDist[] mappers)
@@ -337,7 +339,7 @@ namespace Microsoft.ML.Trainers
             return new PkpdPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -442,7 +444,7 @@ namespace Microsoft.ML.Trainers
             return i * (i + 1) / 2 + j;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(VBuffer<float>));
@@ -455,8 +457,8 @@ namespace Microsoft.ML.Trainers
             ValueMapper<VBuffer<float>, VBuffer<float>> del =
                 (in VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
-                    if (InputType.VectorSize > 0)
-                        Host.Check(src.Length == InputType.VectorSize);
+                    if (_inputType.VectorSize > 0)
+                        Host.Check(src.Length == _inputType.VectorSize);
 
                     var tmp = src;
                     Parallel.For(0, maps.Length, parallelOptions, i =>

@@ -237,14 +237,14 @@ namespace Microsoft.ML.Runtime.Training
         /// Create a row cursor for the RoleMappedData with the indicated standard columns active.
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
-        public static IRowCursor CreateRowCursor(this RoleMappedData data, CursOpt opt, Random rand, IEnumerable<int> extraCols = null)
+        public static RowCursor CreateRowCursor(this RoleMappedData data, CursOpt opt, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursor(CreatePredicate(data, opt, extraCols), rand);
 
         /// <summary>
         /// Create a row cursor set for the RoleMappedData with the indicated standard columns active.
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
-        public static IRowCursor[] CreateRowCursorSet(this RoleMappedData data, out IRowCursorConsolidator consolidator,
+        public static RowCursor[] CreateRowCursorSet(this RoleMappedData data, out IRowCursorConsolidator consolidator,
             CursOpt opt, int n, Random rand, IEnumerable<int> extraCols = null)
             => data.Data.GetRowCursorSet(out consolidator, CreatePredicate(data, opt, extraCols), n, rand);
 
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetFeatureFloatVectorGetter(row, data.Schema);
@@ -281,7 +281,7 @@ namespace Microsoft.ML.Runtime.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Training
         /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetLabelFloatGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetLabelFloatGetter(row, data.Schema);
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the weight column, or null if there is no weight column.
         /// </summary>
-        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Training
             return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Index);
         }
 
-        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptWeightFloatGetter(row, data.Schema);
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the group column, or null if there is no group column.
         /// </summary>
-        public static ValueGetter<ulong> GetOptGroupGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.Training
             return RowCursorUtils.GetGetterAs<ulong>(NumberType.U8, row, col.Index);
         }
 
-        public static ValueGetter<ulong> GetOptGroupGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<ulong> GetOptGroupGetter(this Row row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptGroupGetter(row, data.Schema);
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Runtime.Training
         public static SchemaShape.Column MakeU4ScalarColumn(string columnName)
         {
             if (columnName == null)
-                return null;
+                return default;
 
             return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
         }
@@ -386,14 +386,14 @@ namespace Microsoft.ML.Runtime.Training
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
         {
             if (weightColumn == null || !isExplicit)
-                return null;
+                return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
     }
 
     /// <summary>
     /// This is the base class for a data cursor. Data cursors are specially typed
-    /// "convenience" cursor-like objects, less general than a <see cref="IRowCursor"/> but
+    /// "convenience" cursor-like objects, less general than a <see cref="RowCursor"/> but
     /// more convenient for common access patterns that occur in machine learning. For
     /// example, the common idiom of iterating over features/labels/weights while skipping
     /// "bad" features, labels, and weights. There will be two typical access patterns for
@@ -404,9 +404,9 @@ namespace Microsoft.ML.Runtime.Training
     /// </summary>
     public abstract class TrainingCursorBase : IDisposable
     {
-        public IRow Row { get { return _cursor; } }
+        public Row Row { get { return _cursor; } }
 
-        private readonly IRowCursor _cursor;
+        private readonly RowCursor _cursor;
         private readonly Action<CursOpt> _signal;
 
         private long _skipCount;
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         /// <param name="input"></param>
         /// <param name="signal">This method is called </param>
-        protected TrainingCursorBase(IRowCursor input, Action<CursOpt> signal)
+        protected TrainingCursorBase(RowCursor input, Action<CursOpt> signal)
         {
             Contracts.AssertValue(input);
             Contracts.AssertValueOrNull(signal);
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Runtime.Training
             _signal = signal;
         }
 
-        protected static IRowCursor CreateCursor(RoleMappedData data, CursOpt opt, Random rand, params int[] extraCols)
+        protected static RowCursor CreateCursor(RoleMappedData data, CursOpt opt, Random rand, params int[] extraCols)
         {
             Contracts.AssertValue(data);
             Contracts.AssertValueOrNull(rand);
@@ -596,7 +596,7 @@ namespace Microsoft.ML.Runtime.Training
             /// <see cref="TrainingCursorBase.CursoringCompleteFlags"/>, whose return value is used to call
             /// this action.</param>
             /// <returns></returns>
-            protected abstract TCurs CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal);
+            protected abstract TCurs CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal);
 
             /// <summary>
             /// Accumulates signals from cursors, anding them together. Once it has
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.Training
         {
         }
 
-        protected StandardScalarCursor(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected StandardScalarCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, signal)
         {
             Contracts.AssertValue(data);
@@ -723,7 +723,7 @@ namespace Microsoft.ML.Runtime.Training
             {
             }
 
-            protected override StandardScalarCursor CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override StandardScalarCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
                 => new StandardScalarCursor(input, data, opt, signal);
         }
     }
@@ -748,7 +748,7 @@ namespace Microsoft.ML.Runtime.Training
         {
         }
 
-        protected FeatureFloatVectorCursor(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected FeatureFloatVectorCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             if ((opt & CursOpt.Features) != 0 && data.Schema.Feature != null)
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Runtime.Training
             {
             }
 
-            protected override FeatureFloatVectorCursor CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override FeatureFloatVectorCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new FeatureFloatVectorCursor(input, data, opt, signal);
             }
@@ -816,7 +816,7 @@ namespace Microsoft.ML.Runtime.Training
         {
         }
 
-        protected FloatLabelCursor(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected FloatLabelCursor(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             if ((opt & CursOpt.Label) != 0 && data.Schema.Label != null)
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Training
             {
             }
 
-            protected override FloatLabelCursor CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override FloatLabelCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new FloatLabelCursor(input, data, opt, signal);
             }
@@ -885,7 +885,7 @@ namespace Microsoft.ML.Runtime.Training
         {
         }
 
-        protected MultiClassLabelCursor(int classCount, IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
+        protected MultiClassLabelCursor(int classCount, RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal = null)
             : base(input, data, opt, signal)
         {
             Contracts.Assert(classCount >= 0);
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.Training
                 _classCount = classCount;
             }
 
-            protected override MultiClassLabelCursor CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
+            protected override MultiClassLabelCursor CreateCursorCore(RowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
             {
                 return new MultiClassLabelCursor(_classCount, input, data, opt, signal);
             }

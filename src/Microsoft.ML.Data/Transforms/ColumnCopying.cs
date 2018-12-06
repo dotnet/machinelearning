@@ -49,7 +49,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             foreach (var (Source, Name) in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(Source, out var originalColumn))
@@ -175,13 +175,13 @@ namespace Microsoft.ML.Transforms
                 _columns = columns;
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _columns.Length);
                 disposer = null;
 
-                Delegate MakeGetter<T>(IRow row, int index)
+                Delegate MakeGetter<T>(Row row, int index)
                     => input.GetGetter<T>(index);
 
                 input.Schema.TryGetColumnIndex(_columns[iinfo].Source, out int colIndex);

@@ -559,7 +559,7 @@ namespace Microsoft.ML.Transforms.Text
                 nodeP.AddAttribute("axis", 1);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Transforms.Text
                 return GetGetterVec(input, iinfo);
             }
 
-            private ValueGetter<VBuffer<float>> GetGetterVec(IRow input, int iinfo)
+            private ValueGetter<VBuffer<float>> GetGetterVec(Row input, int iinfo)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
@@ -846,7 +846,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

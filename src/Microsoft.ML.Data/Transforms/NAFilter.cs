@@ -204,7 +204,7 @@ namespace Microsoft.ML.Transforms
             return null;
         }
 
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
+        protected override RowCursor GetRowCursorCore(Func<int, bool> predicate, Random rand = null)
         {
             Host.AssertValue(predicate, "predicate");
             Host.AssertValueOrNull(rand);
@@ -212,10 +212,10 @@ namespace Microsoft.ML.Transforms
             bool[] active;
             Func<int, bool> inputPred = GetActive(predicate, out active);
             var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(this, input, active);
+            return new Cursor(this, input, active);
         }
 
-        public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+        public override RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
             Func<int, bool> predicate, int n, Random rand = null)
         {
             Host.CheckValue(predicate, nameof(predicate));
@@ -227,9 +227,9 @@ namespace Microsoft.ML.Transforms
             Host.AssertNonEmpty(inputs);
 
             // No need to split if this is given 1 input cursor.
-            var cursors = new IRowCursor[inputs.Length];
+            var cursors = new RowCursor[inputs.Length];
             for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(this, inputs[i], active);
+                cursors[i] = new Cursor(this, inputs[i], active);
             return cursors;
         }
 
@@ -245,13 +245,13 @@ namespace Microsoft.ML.Transforms
             return col => activeInput[col];
         }
 
-        private sealed class RowCursor : LinkedRowFilterCursorBase
+        private sealed class Cursor : LinkedRowFilterCursorBase
         {
             private abstract class Value
             {
-                protected readonly RowCursor Cursor;
+                protected readonly Cursor Cursor;
 
-                protected Value(RowCursor cursor)
+                protected Value(Cursor cursor)
                 {
                     Contracts.AssertValue(cursor);
                     Cursor = cursor;
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Transforms
 
                 public abstract Delegate GetGetter();
 
-                public static Value Create(RowCursor cursor, ColInfo info)
+                public static Value Create(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
@@ -269,18 +269,18 @@ namespace Microsoft.ML.Transforms
                     MethodInfo meth;
                     if (info.Type is VectorType vecType)
                     {
-                        Func<RowCursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
+                        Func<Cursor, ColInfo, ValueVec<int>> d = CreateVec<int>;
                         meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(vecType.ItemType.RawType);
                     }
                     else
                     {
-                        Func<RowCursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
+                        Func<Cursor, ColInfo, ValueOne<int>> d = CreateOne<int>;
                         meth = d.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.Type.RawType);
                     }
                     return (Value)meth.Invoke(null, new object[] { cursor, info });
                 }
 
-                private static ValueOne<T> CreateOne<T>(RowCursor cursor, ColInfo info)
+                private static ValueOne<T> CreateOne<T>(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
@@ -292,7 +292,7 @@ namespace Microsoft.ML.Transforms
                     return new ValueOne<T>(cursor, getSrc, hasBad);
                 }
 
-                private static ValueVec<T> CreateVec<T>(RowCursor cursor, ColInfo info)
+                private static ValueVec<T> CreateVec<T>(Cursor cursor, ColInfo info)
                 {
                     Contracts.AssertValue(cursor);
                     Contracts.AssertValue(info);
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Transforms
                     private readonly InPredicate<T> _hasBad;
                     public T Src;
 
-                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
+                    protected TypedValue(Cursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor)
                     {
                         Contracts.AssertValue(getSrc);
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Transforms
                 {
                     private readonly ValueGetter<T> _getter;
 
-                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
+                    public ValueOne(Cursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Transforms
                 {
                     private readonly ValueGetter<VBuffer<T>> _getter;
 
-                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, InPredicate<VBuffer<T>> hasBad)
+                    public ValueVec(Cursor cursor, ValueGetter<VBuffer<T>> getSrc, InPredicate<VBuffer<T>> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Transforms
             private readonly NAFilter _parent;
             private readonly Value[] _values;
 
-            public RowCursor(NAFilter parent, IRowCursor input, bool[] active)
+            public Cursor(NAFilter parent, RowCursor input, bool[] active)
                 : base(parent.Host, input, parent.OutputSchema, active)
             {
                 _parent = parent;

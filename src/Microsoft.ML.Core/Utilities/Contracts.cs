@@ -758,6 +758,10 @@ namespace Microsoft.ML.Runtime
         public static void CheckValueOrNull<T>(T val) where T : class
         {
         }
+
+        /// <summary>
+        /// This documents that the parameter can legally be null.
+        /// </summary>
         [Conditional("INVARIANT_CHECKS")]
         public static void CheckValueOrNull<T>(this IExceptionContext ctx, T val) where T : class
         {

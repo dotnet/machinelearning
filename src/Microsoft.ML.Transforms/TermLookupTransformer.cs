@@ -114,7 +114,7 @@ namespace Microsoft.ML.Transforms.Categorical
                 return new VecValueMap<TVal>(type);
             }
 
-            public abstract void Train(IExceptionContext ectx, IRowCursor cursor, int colTerm, int colValue);
+            public abstract void Train(IExceptionContext ectx, RowCursor cursor, int colTerm, int colValue);
 
             public abstract Delegate GetGetter(ValueGetter<ReadOnlyMemory<char>> getSrc);
         }
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// <summary>
             /// Bind this value map to the given cursor for "training".
             /// </summary>
-            public override void Train(IExceptionContext ectx, IRowCursor cursor, int colTerm, int colValue)
+            public override void Train(IExceptionContext ectx, RowCursor cursor, int colTerm, int colValue)
             {
                 Contracts.AssertValue(ectx);
                 ectx.Assert(_terms == null);
@@ -694,7 +694,7 @@ namespace Microsoft.ML.Transforms.Categorical
             md.Seal();
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);

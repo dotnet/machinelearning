@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
             return kind != MetadataUtils.Kinds.KeyValues;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        protected override Delegate GetGetterCore(IChannel ch, Row input, int iinfo, out Action disposer)
         {
             Contracts.AssertValueOrNull(ch);
             Contracts.AssertValue(input);
@@ -190,34 +190,34 @@ namespace Microsoft.ML.Transforms
             return _slotType;
         }
 
-        protected override ISlotCursor GetSlotCursorCore(int iinfo)
+        protected override SlotCursor GetSlotCursorCore(int iinfo)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.AssertValue(Infos[iinfo].SlotTypeSrc);
 
-            ISlotCursor cursor = InputTranspose.GetSlotCursor(Infos[iinfo].Source);
-            return new SlotCursor(Host, cursor, GetSlotTypeCore(iinfo));
+            var cursor = InputTranspose.GetSlotCursor(Infos[iinfo].Source);
+            return new SlotCursorImpl(Host, cursor, GetSlotTypeCore(iinfo));
         }
 
-        private sealed class SlotCursor : SynchronizedCursorBase<ISlotCursor>, ISlotCursor
+        private sealed class SlotCursorImpl : SlotCursor.SynchronizedSlotCursor
         {
             private readonly Delegate _getter;
             private readonly VectorType _type;
 
-            public SlotCursor(IChannelProvider provider, ISlotCursor cursor, VectorType typeDst)
+            public SlotCursorImpl(IChannelProvider provider, SlotCursor cursor, VectorType typeDst)
                 : base(provider, cursor)
             {
                 Ch.AssertValue(typeDst);
-                _getter = RowCursorUtils.GetLabelGetter(Input);
+                _getter = RowCursorUtils.GetLabelGetter(cursor);
                 _type = typeDst;
             }
 
-            public VectorType GetSlotType()
+            public override VectorType GetSlotType()
             {
                 return _type;
             }
 
-            public ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
+            public override ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
             {
                 ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
                 if (getter == null)

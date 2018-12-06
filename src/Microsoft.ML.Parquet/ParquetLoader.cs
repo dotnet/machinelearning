@@ -391,19 +391,19 @@ namespace Microsoft.ML.Runtime.Data
             return _rowCount;
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+        public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             return new Cursor(this, predicate, rand);
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
+        public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, Random rand = null)
         {
             _host.CheckValue(predicate, nameof(predicate));
             _host.CheckValueOrNull(rand);
             consolidator = null;
-            return new IRowCursor[] { GetRowCursor(predicate, rand) };
+            return new RowCursor[] { GetRowCursor(predicate, rand) };
         }
 
         public void Save(ModelSaveContext ctx)
@@ -433,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class Cursor : RootCursorBase, IRowCursor
+        private sealed class Cursor : RootCursorBase
         {
             private readonly ParquetLoader _loader;
             private readonly Stream _fileStream;
@@ -586,11 +586,11 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            public ML.Data.Schema Schema => _loader.Schema;
+            public override ML.Data.Schema Schema => _loader.Schema;
 
             public override long Batch => 0;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Ch.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
 
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.Data
                    };
             }
 
-            public bool IsColumnActive(int col)
+            public override bool IsColumnActive(int col)
             {
                 Ch.CheckParam(0 <= col && col < _colToActivesIndex.Length, nameof(col));
                 return _colToActivesIndex[col] >= 0;

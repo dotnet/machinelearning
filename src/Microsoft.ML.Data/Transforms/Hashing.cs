@@ -273,7 +273,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
             if (Utils.Size(sourceColumnsForInvertHash) > 0)
             {
-                using (IRowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
+                using (RowCursor srcCursor = input.GetRowCursor(sourceColumnsForInvertHash.Contains))
                 {
                     using (var ch = Host.Start("Invert hash building"))
                     {
@@ -307,7 +307,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private Delegate GetGetterCore(IRow input, int iinfo, out Action disposer)
+        private Delegate GetGetterCore(Row input, int iinfo, out Action disposer)
         {
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < _columns.Length);
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Transforms.Conversions
         }
 
         #region Getters
-        private ValueGetter<uint> ComposeGetterOne(IRow input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<uint> ComposeGetterOne(Row input, int iinfo, int srcCol, ColumnType srcType)
         {
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType));
 
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVec(IRow input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVec(Row input, int iinfo, int srcCol, ColumnType srcType)
         {
             Host.Assert(srcType.IsVector);
             Host.Assert(HashingEstimator.IsColumnTypeValid(srcType.ItemType));
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(IRow input, int iinfo, int srcCol, ColumnType srcType)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(Row input, int iinfo, int srcCol, ColumnType srcType)
             where THash : struct, IHasher<T>
         {
             Host.Assert(srcType.IsVector);
@@ -709,7 +709,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(IRow input, int srcCol, uint seed, uint mask)
+        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(Row input, int srcCol, uint seed, uint mask)
             where THash : struct, IHasher<T>
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
@@ -914,18 +914,18 @@ namespace Microsoft.ML.Transforms.Conversions
                 builder.AddKeyValues(_parent._kvTypes[i].VectorSize, _parent._kvTypes[i].ItemType.AsPrimitive, getter);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);
         }
 
         private abstract class InvertHashHelper
         {
-            protected readonly IRow Row;
+            protected readonly Row Row;
             private readonly bool _includeSlot;
             private readonly ColumnInfo _ex;
             private readonly ColumnType _srcType;
             private readonly int _srcCol;
 
-            private InvertHashHelper(IRow row, ColumnInfo ex)
+            private InvertHashHelper(Row row, ColumnInfo ex)
             {
                 Contracts.AssertValue(row);
                 Row = row;
@@ -946,13 +946,13 @@ namespace Microsoft.ML.Transforms.Conversions
             /// <param name="ex">The extra column info</param>
             /// <param name="invertHashMaxCount">The number of input hashed valuPres to accumulate per output hash value</param>
             /// <param name="dstGetter">A hash getter, built on top of <paramref name="row"/>.</param>
-            public static InvertHashHelper Create(IRow row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+            public static InvertHashHelper Create(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
             {
                 row.Schema.TryGetColumnIndex(ex.Input, out int srcCol);
                 ColumnType typeSrc = row.Schema.GetColumnType(srcCol);
                 Type t = typeSrc.IsVector ? (ex.Ordered ? typeof(ImplVecOrdered<>) : typeof(ImplVec<>)) : typeof(ImplOne<>);
                 t = t.MakeGenericType(typeSrc.ItemType.RawType);
-                var consTypes = new Type[] { typeof(IRow), typeof(ColumnInfo), typeof(int), typeof(Delegate) };
+                var consTypes = new Type[] { typeof(Row), typeof(ColumnInfo), typeof(int), typeof(Delegate) };
                 var constructorInfo = t.GetConstructor(consTypes);
                 return (InvertHashHelper)constructorInfo.Invoke(new object[] { row, ex, invertHashMaxCount, dstGetter });
             }
@@ -1029,7 +1029,7 @@ namespace Microsoft.ML.Transforms.Conversions
             {
                 protected readonly InvertHashCollector<T> Collector;
 
-                protected Impl(IRow row, ColumnInfo ex, int invertHashMaxCount)
+                protected Impl(Row row, ColumnInfo ex, int invertHashMaxCount)
                     : base(row, ex)
                 {
                     Contracts.AssertValue(row);
@@ -1062,7 +1062,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private T _value;
                 private uint _hash;
 
-                public ImplOne(IRow row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplOne(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<T>(_srcCol);
@@ -1096,7 +1096,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVec(IRow row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVec(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
@@ -1130,7 +1130,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 private VBuffer<T> _value;
                 private VBuffer<uint> _hash;
 
-                public ImplVecOrdered(IRow row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
+                public ImplVecOrdered(Row row, ColumnInfo ex, int invertHashMaxCount, Delegate dstGetter)
                     : base(row, ex, invertHashMaxCount)
                 {
                     _srcGetter = Row.GetGetter<VBuffer<T>>(_srcCol);
@@ -1235,7 +1235,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))

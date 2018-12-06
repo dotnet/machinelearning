@@ -60,7 +60,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
                         colInfo.TextKeyValues ? TextType.Instance : col.ItemType, col.IsKey);
                 }
-                Contracts.AssertValue(kv);
+                Contracts.Assert(kv.IsValid);
 
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata = new SchemaShape(new[] { slotMeta, kv });

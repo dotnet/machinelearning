@@ -650,7 +650,7 @@ namespace Microsoft.ML.Runtime.Data
                     bldr.GetResult(ref dst);
                 }
 
-                public Delegate MakeGetter(IRow input)
+                public Delegate MakeGetter(Row input)
                 {
                     if (_isIdentity)
                         return Utils.MarshalInvoke(MakeIdentityGetter<int>, OutputType.RawType, input);
@@ -658,13 +658,13 @@ namespace Microsoft.ML.Runtime.Data
                     return Utils.MarshalInvoke(MakeGetter<int>, OutputType.ItemType.RawType, input);
                 }
 
-                private Delegate MakeIdentityGetter<T>(IRow input)
+                private Delegate MakeIdentityGetter<T>(Row input)
                 {
                     Contracts.Assert(SrcIndices.Length == 1);
                     return input.GetGetter<T>(SrcIndices[0]);
                 }
 
-                private Delegate MakeGetter<T>(IRow input)
+                private Delegate MakeGetter<T>(Row input)
                 {
                     var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 return _columns[iinfo].MakeGetter(input);

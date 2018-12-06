@@ -387,7 +387,7 @@ namespace Microsoft.ML.Runtime.Data
                 ClassNames = classNames;
             }
 
-            public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
+            public override void InitializeNextPass(Row row, RoleMappedSchema schema)
             {
                 Host.Assert(PassNum < 1);
                 Host.AssertValue(schema.Label);
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Runtime.Data
                     activeOutput(SortedClassesCol) || activeOutput(LogLossCol));
         }
 
-        public override Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+        public override Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
         {
             disposer = null;
 

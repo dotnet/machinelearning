@@ -540,21 +540,21 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter<T>(Row input, bool isVector, int colIndex, TFShape tfShape)
         {
             if (isVector)
                 return new TensorValueGetterVec<T>(input, colIndex, tfShape);
             return new TensorValueGetter<T>(input, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
+        private static ITensorValueGetter CreateTensorValueGetter(Row input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
         {
             var type = TFTensor.TypeFromTensorType(tfType);
             Contracts.AssertValue(type);
             return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, tfShape);
         }
 
-        private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+        private static ITensorValueGetter[] GetTensorValueGetters(Row input,
             int[] inputColIndices,
             bool[] isInputVector,
             TFDataType[] tfInputTypes,
@@ -861,7 +861,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 Host.AssertValue(input);
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type, input, iinfo, srcTensorGetters, activeOutputColNames, outputCache);
             }
 
-            private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
+            private Delegate MakeGetter<T>(Row input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
             {
                 Host.AssertValue(input);
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
@@ -964,7 +964,7 @@ namespace Microsoft.ML.Transforms
             private readonly TFShape _tfShape;
             private int _position;
 
-            public TensorValueGetter(IRow input, int colIndex, TFShape tfShape)
+            public TensorValueGetter(Row input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<T>(colIndex);
                 _tfShape = tfShape;
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.Transforms
             private readonly T[] _bufferedData;
             private int _position;
 
-            public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
+            public TensorValueGetterVec(Row input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
                 _tfShape = tfShape;
@@ -1101,8 +1101,8 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
+            var resultDic = inputSchema.ToDictionary(x => x.Name);
             for (var i = 0; i < _args.InputColumns.Length; i++)
             {
                 var input = _args.InputColumns[i];

@@ -98,14 +98,14 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Columns.Select(x => x.Name),
+            if (!Transformer.IgnoreMissing && !ColumnSelectingTransformer.IsSchemaValid(inputSchema.Select(x => x.Name),
                                                                                     Transformer.SelectColumns,
                                                                                     out IEnumerable<string> invalidColumns))
             {
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
             }
 
-            var columns = inputSchema.Columns.Where(c => _selectPredicate(c.Name));
+            var columns = inputSchema.Where(c => _selectPredicate(c.Name));
             return new SchemaShape(columns);
         }
     }
@@ -579,32 +579,32 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private sealed class Row : IRow
+        private sealed class RowImpl : Row
         {
             private readonly Mapper _mapper;
-            private readonly IRow _input;
-            public Row(IRow input, Mapper mapper)
+            private readonly Row _input;
+            public RowImpl(Row input, Mapper mapper)
             {
                 _mapper = mapper;
                 _input = input;
             }
 
-            public long Position => _input.Position;
+            public override long Position => _input.Position;
 
-            public long Batch => _input.Batch;
+            public override long Batch => _input.Batch;
 
-            Schema IRow.Schema => _mapper.OutputSchema;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
                 return _input.GetGetter<TValue>(index);
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            public override ValueGetter<UInt128> GetIdGetter()
                 => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col) => true;
+            public override bool IsColumnActive(int col) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper, ITransformTemplate
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Transforms
 
             public long? GetRowCount() => Source.GetRowCount();
 
-            public IRowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> needCol, Random rand = null)
             {
                 _host.AssertValue(needCol, nameof(needCol));
                 _host.AssertValueOrNull(rand);
@@ -644,10 +644,10 @@ namespace Microsoft.ML.Transforms
 
                 // Build the active state for the output
                 var active = Utils.BuildArray(_mapper.OutputSchema.ColumnCount, needCol);
-                return new RowCursor(_host, _mapper, inputRowCursor, active);
+                return new Cursor(_host, _mapper, inputRowCursor, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, Random rand = null)
             {
                 _host.CheckValue(needCol, nameof(needCol));
                 _host.CheckValueOrNull(rand);
@@ -661,10 +661,10 @@ namespace Microsoft.ML.Transforms
                 _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
-                var cursors = new IRowCursor[inputs.Length];
+                var cursors = new RowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                 {
-                    cursors[i] = new RowCursor(_host, _mapper, inputs[i], active);
+                    cursors[i] = new Cursor(_host, _mapper, inputs[i], active);
                 }
                 return cursors;
             }
@@ -684,22 +684,22 @@ namespace Microsoft.ML.Transforms
                 return col => active[col];
             }
 
-            public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
-                return new Row(input, _mapper);
+                return new RowImpl(input, _mapper);
             }
 
             public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
                 => new SelectColumnsDataTransform(env, _transform, new Mapper(_transform, newSource.Schema), newSource);
         }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        private sealed class Cursor : SynchronizedCursorBase
         {
             private readonly Mapper _mapper;
-            private readonly IRowCursor _inputCursor;
+            private readonly RowCursor _inputCursor;
             private readonly bool[] _active;
-            public RowCursor(IChannelProvider provider, Mapper mapper, IRowCursor input, bool[] active)
+            public Cursor(IChannelProvider provider, Mapper mapper, RowCursor input, bool[] active)
                 : base(provider, input)
             {
                 _mapper = mapper;
@@ -707,15 +707,15 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public Schema Schema => _mapper.OutputSchema;
+            public override Schema Schema => _mapper.OutputSchema;
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 int index = _mapper.GetInputIndex(col);
                 return _inputCursor.GetGetter<TValue>(index);
             }
 
-            public bool IsColumnActive(int col) => _active[col];
+            public override bool IsColumnActive(int col) => _active[col];
         }
     }
 }

@@ -111,7 +111,7 @@ namespace Microsoft.ML.Transforms
                 _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent.InputSchemaDefinition);
             }
 
-            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
+            public Delegate[] CreateGetters(Row input, Func<int, bool> activeOutput, out Action disposer)
             {
                 disposer = null;
                 // If no outputs are active, we short-circuit to empty array of getters.
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            private Delegate GetDstGetter<T>(IRow input, int colIndex, Action refreshAction)
+            private Delegate GetDstGetter<T>(Row input, int colIndex, Action refreshAction)
             {
                 var getter = input.GetGetter<T>(colIndex);
                 ValueGetter<T> combinedGetter = (ref T dst) =>
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Transforms
             var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
             var addedSchemaShape = SchemaShape.Create(SchemaBuilder.MakeSchema(addedCols));
 
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             var inputDef = InternalSchemaDefinition.Create(typeof(TSrc), Transformer.InputSchemaDefinition);
             foreach (var col in inputDef.Columns)
             {
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            foreach (var addedCol in addedSchemaShape.Columns)
+            foreach (var addedCol in addedSchemaShape)
                 result[addedCol.Name] = addedCol;
 
             return new SchemaShape(result.Values);

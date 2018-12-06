@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms
                 return Runtime.Data.Conversion.Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
@@ -238,10 +238,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for single valued inputs.
             /// </summary>
-            private ValueGetter<bool> ComposeGetterOne(IRow input, int iinfo)
+            private ValueGetter<bool> ComposeGetterOne(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].InputType.RawType, input, iinfo);
 
-            private ValueGetter<bool> ComposeGetterOne<T>(IRow input, int iinfo)
+            private ValueGetter<bool> ComposeGetterOne<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
@@ -260,10 +260,10 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Getter generator for vector valued inputs.
             /// </summary>
-            private ValueGetter<VBuffer<bool>> ComposeGetterVec(IRow input, int iinfo)
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec(Row input, int iinfo)
                 => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.ItemType.RawType, input, iinfo);
 
-            private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(Row input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
@@ -460,7 +460,7 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))

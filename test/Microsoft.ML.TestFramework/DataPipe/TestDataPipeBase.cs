@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -151,9 +152,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(promised.Columns.Length == delivered.Columns.Length);
-            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Count == delivered.Count);
+            var sortedCols1 = promised.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
@@ -774,7 +775,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
-
         public class SentimentData
         {
             [ColumnName("Label")]
@@ -865,7 +865,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return all;
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IRowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
+        protected bool CheckSameValues(RowCursor curs1, RowCursor curs2, bool exactTypes, bool exactDoubles, bool checkId, bool checkIdCollisions = true)
         {
             Contracts.Assert(curs1.Schema.ColumnCount == curs2.Schema.ColumnCount);
 
@@ -934,7 +934,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     var comp = comps[col];
                     if (comp != null && !comp())
                     {
-                        Fail("Different values in column {0} of row {1}", col, curs1.Position);
+                        Fail($"Different values in column {col} of row {curs1.Position}");
                         return Failed();
                     }
                     if (idComp != null && !idComp())
@@ -946,13 +946,13 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckSameValues(IRowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
+        protected bool CheckSameValues(RowCursor curs1, IDataView view2, bool exactTypes = true, bool exactDoubles = true, bool checkId = true)
         {
             Contracts.Assert(curs1.Schema.ColumnCount == view2.Schema.ColumnCount);
 
             // Get a cursor for each column.
             int colLim = curs1.Schema.ColumnCount;
-            var cursors = new IRowCursor[colLim];
+            var cursors = new RowCursor[colLim];
             try
             {
                 for (int col = 0; col < colLim; col++)
@@ -1029,7 +1029,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected Func<bool> GetIdComparer(IRow r1, IRow r2, out ValueGetter<UInt128> idGetter)
+        protected Func<bool> GetIdComparer(Row r1, Row r2, out ValueGetter<UInt128> idGetter)
         {
             var g1 = r1.GetIdGetter();
             idGetter = g1;
@@ -1045,7 +1045,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetColumnComparer(IRow r1, IRow r2, int col, ColumnType type, bool exactDoubles)
+        protected Func<bool> GetColumnComparer(Row r1, Row r2, int col, ColumnType type, bool exactDoubles)
         {
             if (!type.IsVector)
             {
@@ -1158,12 +1158,10 @@ namespace Microsoft.ML.Runtime.RunTests
             throw Contracts.Except("Unknown type in GetColumnComparer: '{0}'", type);
         }
 
-        private const Double DoubleEps = 1e-9;
-
-        private static bool EqualWithEpsDouble(Double x, Double y)
+        private bool EqualWithEpsDouble(Double x, Double y)
         {
             // bitwise comparison is needed because Abs(Inf-Inf) and Abs(NaN-NaN) are not 0s.
-            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < DoubleEps;
+            return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || CompareNumbersWithTolerance(x, y, null, 3);
         }
 
         private const float SingleEps = 1e-6f;
@@ -1174,7 +1172,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return FloatUtils.GetBits(x) == FloatUtils.GetBits(y) || Math.Abs(x - y) < SingleEps;
         }
 
-        protected Func<bool> GetComparerOne<T>(IRow r1, IRow r2, int col, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerOne<T>(Row r1, Row r2, int col, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<T>(col);
             var g2 = r2.GetGetter<T>(col);
@@ -1191,7 +1189,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
         }
 
-        protected Func<bool> GetComparerVec<T>(IRow r1, IRow r2, int col, int size, Func<T, T, bool> fn)
+        protected Func<bool> GetComparerVec<T>(Row r1, Row r2, int col, int size, Func<T, T, bool> fn)
         {
             var g1 = r1.GetGetter<VBuffer<T>>(col);
             var g2 = r2.GetGetter<VBuffer<T>>(col);

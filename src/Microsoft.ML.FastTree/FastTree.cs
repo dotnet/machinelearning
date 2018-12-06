@@ -1441,7 +1441,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                     pch.SetHeader(new ProgressHeader("features"), e => e.SetProgress(0, iFeature, features.Length));
                                     while (cursor.MoveNext())
                                     {
-                                        iFeature = checked((int)cursor.Position);
+                                        iFeature = cursor.SlotIndex;
                                         if (!localConstructBinFeatures[iFeature])
                                             continue;
 
@@ -1670,19 +1670,19 @@ namespace Microsoft.ML.Trainers.FastTree
                 return result;
             }
 
-            private void GetFeatureValues(ISlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
+            private void GetFeatureValues(SlotCursor cursor, int iFeature, ValueGetter<VBuffer<float>> getter,
                 ref VBuffer<float> temp, ref VBuffer<double> doubleTemp, ValueMapper<VBuffer<float>, VBuffer<double>> copier)
             {
                 while (cursor.MoveNext())
                 {
 
-                    Contracts.Assert(iFeature >= checked((int)cursor.Position));
+                    Contracts.Assert(iFeature >= cursor.SlotIndex);
 
-                    if (iFeature == checked((int)cursor.Position))
+                    if (iFeature == cursor.SlotIndex)
                         break;
                 }
 
-                Contracts.Assert(cursor.Position == iFeature);
+                Contracts.Assert(cursor.SlotIndex == iFeature);
 
                 getter(ref temp);
                 copier(in temp, ref doubleTemp);
@@ -1700,13 +1700,13 @@ namespace Microsoft.ML.Trainers.FastTree
             /// Returns a slot dropper object that has ranges of slots to be dropped,
             /// based on an examination of the feature values.
             /// </summary>
-            private static SlotDropper ConstructDropSlotRanges(ISlotCursor cursor,
+            private static SlotDropper ConstructDropSlotRanges(SlotCursor cursor,
                 ValueGetter<VBuffer<float>> getter, ref VBuffer<float> temp)
             {
                 // The iteration here is slightly differently from a usual cursor iteration. Here, temp
                 // already holds the value of the cursor's current position, and we don't really want
                 // to re-fetch it, and the cursor is necessarily advanced.
-                Contracts.Assert(cursor.State == CursorState.Good);
+                Contracts.Assert(cursor.SlotIndex >= 0);
                 BitArray rowHasMissing = new BitArray(temp.Length);
                 for (; ; )
                 {
@@ -2830,8 +2830,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
+        protected internal readonly ColumnType InputType;
+        ColumnType IValueMapper.InputType => InputType;
+
+        protected readonly ColumnType OutputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -2853,6 +2857,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
@@ -2890,9 +2895,11 @@ namespace Microsoft.ML.Trainers.FastTree
             // tricks.
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -2907,7 +2914,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(NumFeatures);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Host.Check(typeof(TOut) == typeof(Float));
@@ -2965,7 +2972,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -3302,7 +3309,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
@@ -3317,7 +3324,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }

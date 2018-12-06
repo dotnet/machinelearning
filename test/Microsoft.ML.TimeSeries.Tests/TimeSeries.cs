@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(BaseTestBaseline), nameof(BaseTestBaseline.LessThanNetCore30OrNotNetCore))]  // netcore3.0 output differs from Baseline
+        [Fact]
         public void SavePipeSsaSpikeNoData()
         {
             string pathData = DeleteOutputPath("SavePipe", "SsaSpikeNoData.txt");

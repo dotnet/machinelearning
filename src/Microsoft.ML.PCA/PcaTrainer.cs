@@ -111,7 +111,7 @@ namespace Microsoft.ML.Trainers.PCA
 
         private RandomizedPcaTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), default, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
             if (args != null)
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Trainers.PCA
         private static SchemaShape.Column MakeWeightColumn(string weightColumn)
         {
             if (weightColumn == null)
-                return null;
+                return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Trainers.PCA
             _inputType = new VectorType(NumberType.Float, _dimension);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -500,10 +500,10 @@ namespace Microsoft.ML.Trainers.PCA
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("Dimension: {0}", _dimension);
             writer.WriteLine("Rank: {0}", _rank);
@@ -550,17 +550,17 @@ namespace Microsoft.ML.Trainers.PCA
             return bldr.GetDataView();
         }
 
-        public ColumnType InputType
+        ColumnType IValueMapper.InputType
         {
             get { return _inputType; }
         }
 
-        public ColumnType OutputType
+        ColumnType IValueMapper.OutputType
         {
             get { return NumberType.Float; }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<float>));
             Host.Check(typeof(TOut) == typeof(float));

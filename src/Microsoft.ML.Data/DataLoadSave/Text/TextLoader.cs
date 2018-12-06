@@ -1364,7 +1364,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Schema Schema => _reader._bindings.AsSchema;
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
+            public RowCursor GetRowCursor(Func<int, bool> predicate, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));
                 _host.CheckValueOrNull(rand);
@@ -1372,7 +1372,7 @@ namespace Microsoft.ML.Runtime.Data
                 return Cursor.Create(_reader, _files, active);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
+            public RowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
                 Func<int, bool> predicate, int n, Random rand = null)
             {
                 _host.CheckValue(predicate, nameof(predicate));

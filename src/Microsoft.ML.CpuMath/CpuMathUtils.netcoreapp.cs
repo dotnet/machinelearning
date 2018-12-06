@@ -11,76 +11,62 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     internal static partial class CpuMathUtils
     {
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        private const int Vector128Alignment = 16;
-
-        // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
-        private const int Vector256Alignment = 32;
-
-        // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
-        private const int FloatAlignment = 4;
-
-        // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        public static int GetVectorAlignment()
-            => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
-
-        public static void MatrixTimesSource(bool transpose, AlignedArray matrix, AlignedArray source, AlignedArray destination, int stride)
+        public static void MatrixTimesSource(bool transpose, ReadOnlySpan<float> matrix, ReadOnlySpan<float> source, Span<float> destination, int stride)
         {
-            Contracts.Assert(matrix.Size == destination.Size * source.Size);
+            Contracts.AssertNonEmpty(matrix);
+            Contracts.AssertNonEmpty(source);
+            Contracts.AssertNonEmpty(destination);
+            Contracts.Assert(matrix.Length == destination.Length * source.Length);
             Contracts.Assert(stride >= 0);
 
-            if (Avx.IsSupported)
+            if (!transpose)
             {
-                if (!transpose)
+                if (Avx.IsSupported && source.Length >= 8)
                 {
-                    Contracts.Assert(stride <= destination.Size);
-                    AvxIntrinsics.MatMul(matrix, source, destination, stride, source.Size);
+                    Contracts.Assert(stride <= destination.Length);
+                    AvxIntrinsics.MatMul(matrix, source, destination, stride, source.Length);
+                }
+                else if (Sse.IsSupported && source.Length >= 4)
+                {
+                    Contracts.Assert(stride <= destination.Length);
+                    SseIntrinsics.MatMul(matrix, source, destination, stride, source.Length);
                 }
                 else
                 {
-                    Contracts.Assert(stride <= source.Size);
-                    AvxIntrinsics.MatMulTran(matrix, source, destination, destination.Size, stride);
-                }
-            }
-            else if (Sse.IsSupported)
-            {
-                if (!transpose)
-                {
-                    Contracts.Assert(stride <= destination.Size);
-                    SseIntrinsics.MatMul(matrix, source, destination, stride, source.Size);
-                }
-                else
-                {
-                    Contracts.Assert(stride <= source.Size);
-                    SseIntrinsics.MatMulTran(matrix, source, destination, destination.Size, stride);
-                }
-            }
-            else
-            {
-                if (!transpose)
-                {
-                    Contracts.Assert(stride <= destination.Size);
+                    Contracts.Assert(stride <= destination.Length);
                     for (int i = 0; i < stride; i++)
                     {
                         float dotProduct = 0;
-                        for (int j = 0; j < source.Size; j++)
+                        for (int j = 0; j < source.Length; j++)
                         {
-                            dotProduct += matrix[i * source.Size + j] * source[j];
+                            dotProduct += matrix[i * source.Length + j] * source[j];
                         }
 
                         destination[i] = dotProduct;
                     }
                 }
+            }
+            else
+            {
+                if (Avx.IsSupported && destination.Length >= 8)
+                {
+                    Contracts.Assert(stride <= source.Length);
+                    AvxIntrinsics.MatMulTran(matrix, source, destination, destination.Length, stride);
+                }
+                else if (Sse.IsSupported && destination.Length >=4)
+                {
+                    Contracts.Assert(stride <= source.Length);
+                    SseIntrinsics.MatMulTran(matrix, source, destination, destination.Length, stride);
+                }
                 else
                 {
-                    Contracts.Assert(stride <= source.Size);
-                    for (int i = 0; i < destination.Size; i++)
+                    Contracts.Assert(stride <= source.Length);
+                    for (int i = 0; i < destination.Length; i++)
                     {
                         float dotProduct = 0;
                         for (int j = 0; j < stride; j++)
                         {
-                            dotProduct += matrix[j * source.Size + i] * source[j];
+                            dotProduct += matrix[j * destination.Length + i] * source[j];
                         }
 
                         destination[i] = dotProduct;
@@ -89,17 +75,22 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatrixTimesSource(AlignedArray matrix, ReadOnlySpan<int> rgposSrc, AlignedArray sourceValues,
-            int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
+        public static void MatrixTimesSource(ReadOnlySpan<float> matrix, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> sourceValues,
+            int posMin, int iposMin, int iposLimit, Span<float> destination, int stride)
         {
             Contracts.Assert(iposMin >= 0);
             Contracts.Assert(iposMin <= iposLimit);
             Contracts.Assert(iposLimit <= rgposSrc.Length);
-            Contracts.Assert(matrix.Size == destination.Size * sourceValues.Size);
+            Contracts.AssertNonEmpty(matrix);
+            Contracts.AssertNonEmpty(sourceValues);
+            Contracts.AssertNonEmpty(destination);
+            Contracts.AssertNonEmpty(rgposSrc);
+            Contracts.Assert(stride > 0);
+            Contracts.Assert(matrix.Length == destination.Length * sourceValues.Length);
 
             if (iposMin >= iposLimit)
             {
-                destination.ZeroItems();
+                destination.Clear();
                 return;
             }
 
@@ -108,24 +99,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                Contracts.Assert(stride <= destination.Size);
-                AvxIntrinsics.MatMulP(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride, sourceValues.Size);
+                Contracts.Assert(stride <= destination.Length);
+                AvxIntrinsics.MatMulP(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride, sourceValues.Length);
             }
             else if (Sse.IsSupported)
             {
-                Contracts.Assert(stride <= destination.Size);
-                SseIntrinsics.MatMulP(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride, sourceValues.Size);
+                Contracts.Assert(stride <= destination.Length);
+                SseIntrinsics.MatMulP(matrix, rgposSrc, sourceValues, posMin, iposMin, iposLimit, destination, stride, sourceValues.Length);
             }
             else
             {
-                Contracts.Assert(stride <= destination.Size);
+                Contracts.Assert(stride <= destination.Length);
                 for (int i = 0; i < stride; i++)
                 {
                     float dotProduct = 0;
                     for (int j = iposMin; j < iposLimit; j++)
                     {
                         int col = rgposSrc[j] - posMin;
-                        dotProduct += matrix[i * sourceValues.Size + col] * sourceValues[col];
+                        dotProduct += matrix[i * sourceValues.Length + col] * sourceValues[col];
                     }
                     destination[i] = dotProduct;
                 }
@@ -633,71 +624,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     norm += distance * distance;
                 }
                 return norm;
-            }
-        }
-
-        public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices)
-        {
-            Contracts.Assert(ccol > 0);
-            Contracts.Assert(ccol <= cfltRow);
-
-            if (ccol == cfltRow)
-            {
-                ZeroItemsU(destination, destination.Size, indices, indices.Length);
-            }
-            else
-            {
-                ZeroMatrixItemsCore(destination, destination.Size, ccol, cfltRow, indices, indices.Length);
-            }
-        }
-
-        private static unsafe void ZeroItemsU(AlignedArray destination, int c, int[] indices, int cindices)
-        {
-            fixed (float* pdst = &destination.Items[0])
-            fixed (int* pidx = &indices[0])
-            {
-                for (int i = 0; i < cindices; ++i)
-                {
-                    int index = pidx[i];
-                    Contracts.Assert(index >= 0);
-                    Contracts.Assert(index < c);
-                    pdst[index] = 0;
-                }
-            }
-        }
-
-        private static unsafe void ZeroMatrixItemsCore(AlignedArray destination, int c, int ccol, int cfltRow, int[] indices, int cindices)
-        {
-            fixed (float* pdst = &destination.Items[0])
-            fixed (int* pidx = &indices[0])
-            {
-                int ivLogMin = 0;
-                int ivLogLim = ccol;
-                int ivPhyMin = 0;
-
-                for (int i = 0; i < cindices; ++i)
-                {
-                    int index = pidx[i];
-                    Contracts.Assert(index >= 0);
-                    Contracts.Assert(index < c);
-
-                    int col = index - ivLogMin;
-                    if ((uint)col >= (uint)ccol)
-                    {
-                        Contracts.Assert(ivLogMin > index || index >= ivLogLim);
-
-                        int row = index / ccol;
-                        ivLogMin = row * ccol;
-                        ivLogLim = ivLogMin + ccol;
-                        ivPhyMin = row * cfltRow;
-
-                        Contracts.Assert(index >= ivLogMin);
-                        Contracts.Assert(index < ivLogLim);
-                        col = index - ivLogMin;
-                    }
-
-                    pdst[ivPhyMin + col] = 0;
-                }
             }
         }
 

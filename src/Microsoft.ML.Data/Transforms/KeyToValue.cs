@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms.Conversions
                 ctx.DeclareVar(toDeclare.ToArray());
             }
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _types.Length);
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms.Conversions
                     InfoIndex = iinfo;
                 }
 
-                public abstract Delegate GetMappingGetter(IRow input);
+                public abstract Delegate GetMappingGetter(Row input);
 
                 public abstract JToken SavePfa(BoundPfaContext ctx, JToken srcToken);
             }
@@ -346,7 +346,7 @@ namespace Microsoft.ML.Transforms.Conversions
                         dst = _na;
                 }
 
-                public override Delegate GetMappingGetter(IRow input)
+                public override Delegate GetMappingGetter(Row input)
                 {
                     // When constructing the getter, there are a few cases we have to consider:
                     // If scalar then it's just a straightforward mapping.
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Transforms.Conversions
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colInfo.input, out var col))

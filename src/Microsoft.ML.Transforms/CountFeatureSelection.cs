@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colPair in _columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.Input, out var col))
@@ -285,26 +285,26 @@ namespace Microsoft.ML.Transforms.FeatureSelection
         public static bool IsValidColumnType(ColumnType type)
             => type == NumberType.R4 || type == NumberType.R8 || type.IsText;
 
-        private static CountAggregator GetOneAggregator(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator(Row row, ColumnType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
+            Func<Row, ColumnType, int, CountAggregator> del = GetOneAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetOneAggregator<T>(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetOneAggregator<T>(Row row, ColumnType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
 
-        private static CountAggregator GetVecAggregator(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator(Row row, ColumnType colType, int colSrc)
         {
-            Func<IRow, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
+            Func<Row, ColumnType, int, CountAggregator> del = GetVecAggregator<int>;
             var methodInfo = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
             return (CountAggregator)methodInfo.Invoke(null, new object[] { row, colType, colSrc });
         }
 
-        private static CountAggregator GetVecAggregator<T>(IRow row, ColumnType colType, int colSrc)
+        private static CountAggregator GetVecAggregator<T>(Row row, ColumnType colType, int colSrc)
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }

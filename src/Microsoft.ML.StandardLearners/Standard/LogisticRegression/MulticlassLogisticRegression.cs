@@ -321,7 +321,7 @@ namespace Microsoft.ML.Runtime.Learners
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-            var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+            var metadata = new SchemaShape(labelCol.Metadata.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
                 .Concat(MetadataUtils.GetTrainerOutputMetadata()));
             return new[]
             {
@@ -387,8 +387,11 @@ namespace Microsoft.ML.Runtime.Learners
         private volatile VBuffer<float>[] _weightsDense;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-        public ColumnType InputType { get; }
-        public ColumnType OutputType { get; }
+        internal readonly ColumnType InputType;
+        internal readonly ColumnType OutputType;
+        ColumnType IValueMapper.InputType => InputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -560,7 +563,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new MulticlassLogisticRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -703,7 +706,7 @@ namespace Microsoft.ML.Runtime.Learners
             return count;
         }
 
-        public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
+        ValueMapper<TSrc, TDst> IValueMapper.GetMapper<TSrc, TDst>()
         {
             Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Invalid source type in GetMapper");
             Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");
@@ -774,7 +777,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the text model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
 
@@ -850,7 +853,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
-            SaveAsText(writer, schema);
+            ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
 
         JToken ISingleCanSavePfa.SaveAsPfa(BoundPfaContext ctx, JToken input)
@@ -982,12 +985,12 @@ namespace Microsoft.ML.Runtime.Learners
             return bldr.GetDataView();
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

@@ -13,11 +13,11 @@ namespace Microsoft.ML.Runtime.Data
     /// inconvenient or inefficient to handle the "no output selected" case in their
     /// own implementation.
     /// </summary>
-    internal sealed class BindingsWrappedRowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+    internal sealed class BindingsWrappedRowCursor : SynchronizedCursorBase
     {
         private readonly ColumnBindingsBase _bindings;
 
-        public Schema Schema => _bindings.AsSchema;
+        public override Schema Schema => _bindings.AsSchema;
 
         /// <summary>
         /// Creates a wrapped version of the cursor
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="provider">Channel provider</param>
         /// <param name="input">The input cursor</param>
         /// <param name="bindings">The bindings object, </param>
-        public BindingsWrappedRowCursor(IChannelProvider provider, IRowCursor input, ColumnBindingsBase bindings)
+        public BindingsWrappedRowCursor(IChannelProvider provider, RowCursor input, ColumnBindingsBase bindings)
             : base(provider, input)
         {
             Ch.CheckValue(input, nameof(input));
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings = bindings;
         }
 
-        public bool IsColumnActive(int col)
+        public override bool IsColumnActive(int col)
         {
             Ch.Check(0 <= col & col < _bindings.ColumnCount, "col");
             bool isSrc;
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.Data
             return isSrc && Input.IsColumnActive(col);
         }
 
-        public ValueGetter<TValue> GetGetter<TValue>(int col)
+        public override ValueGetter<TValue> GetGetter<TValue>(int col)
         {
             Ch.Check(IsColumnActive(col), "col");
             bool isSrc;

@@ -92,7 +92,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// <summary>
     /// Predictors that can output themselves in a human-readable text format
     /// </summary>
-    public interface ICanSaveInTextFormat
+    [BestFriend]
+    internal interface ICanSaveInTextFormat
     {
         void SaveAsText(TextWriter writer, RoleMappedSchema schema);
     }
@@ -128,9 +129,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
     public interface ICanGetSummaryAsIRow
     {
-        IRow GetSummaryIRowOrNull(RoleMappedSchema schema);
+        Row GetSummaryIRowOrNull(RoleMappedSchema schema);
 
-        IRow GetStatsIRowOrNull(RoleMappedSchema schema);
+        Row GetStatsIRowOrNull(RoleMappedSchema schema);
     }
 
     public interface ICanGetSummaryAsIDataView
