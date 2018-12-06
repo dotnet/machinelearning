@@ -15,12 +15,18 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         private const int ExponentMin = 0;
         private const int ExponentRange = ExponentMax / 8;
 
-        protected const int IndexLength = 1000003;
-        protected const int Length = 1000003;
-        protected const int MatrixIndexLength = 100;
+        protected const int IndexLength = 1000000;
+        protected const int Length = 1048576;
+        protected const int MatrixIndexLength = 1024;
 
         private const int DefaultSeed = 253421;
         protected const float DefaultScale = 1.11f;
+        protected int matrixLength = 1024;
+        protected virtual int allign { get; set; } = 16;
+
+        internal AlignedArray testMatrixAligned;
+        internal AlignedArray testSrcVectorAligned;
+        internal AlignedArray testDstVectorAligned;
 
         protected float[] src, dst, original, src1, src2, result;
         protected int[] idx;
@@ -93,6 +99,15 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             {
                 matrixIdx[i] = rand.Next(0, 1000);
             }
+
+            testMatrixAligned = new AlignedArray(matrixLength * matrixLength, allign);
+            testMatrixAligned.CopyFrom(src.AsSpan(0, matrixLength * matrixLength));
+
+            testSrcVectorAligned = new AlignedArray(matrixLength, allign);
+            testSrcVectorAligned.CopyFrom(src1.AsSpan(0, matrixLength));
+
+            testDstVectorAligned = new AlignedArray(matrixLength, allign);
+            testDstVectorAligned.CopyFrom(dst.AsSpan(0, matrixLength));
         }
 
         [GlobalCleanup]

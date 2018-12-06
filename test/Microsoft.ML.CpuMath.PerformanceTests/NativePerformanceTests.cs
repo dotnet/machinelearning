@@ -19,7 +19,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddScalarU(DefaultScale, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void Scale()
         {
@@ -28,7 +28,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.Scale(DefaultScale, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void ScaleSrcU()
         {
@@ -38,7 +38,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.ScaleSrcU(DefaultScale, psrc, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void ScaleAddU()
         {
@@ -47,7 +47,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.ScaleAddU(DefaultScale, DefaultScale, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void AddScaleU()
         {
@@ -57,7 +57,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddScaleU(DefaultScale, psrc, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void AddScaleSU()
         {
@@ -68,7 +68,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddScaleSU(DefaultScale, psrc, pidx, pdst, IndexLength);
             }
         }
-        
+
         [Benchmark]
         public unsafe void AddScaleCopyU()
         {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddScaleCopyU(DefaultScale, psrc, pdst, pres, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void AddU()
         {
@@ -89,7 +89,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddU(psrc, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe void AddSU()
         {
@@ -100,7 +100,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.AddSU(psrc, pidx, pdst, IndexLength);
             }
         }
-        
+
         [Benchmark]
         public unsafe void MulElementWiseU()
         {
@@ -111,7 +111,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.MulElementWiseU(psrc1, psrc2, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float Sum()
         {
@@ -120,7 +120,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.Sum(psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float SumSqU()
         {
@@ -129,7 +129,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.SumSqU(psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float SumSqDiffU()
         {
@@ -138,7 +138,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.SumSqDiffU(DefaultScale, psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float SumAbsU()
         {
@@ -147,7 +147,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.SumAbsU(psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float SumAbsDiffU()
         {
@@ -156,7 +156,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.SumAbsDiffU(DefaultScale, psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float MaxAbsU()
         {
@@ -165,7 +165,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.MaxAbsU(psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float MaxAbsDiffU()
         {
@@ -174,7 +174,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.MaxAbsDiffU(DefaultScale, psrc, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float DotU()
         {
@@ -184,7 +184,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 return CpuMathNativeUtils.DotU(psrc, pdst, Length);
             }
         }
-        
+
         [Benchmark]
         public unsafe float DotSU()
         {
@@ -230,37 +230,15 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public unsafe void MatMul()
-        {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* psrc1 = &src1[0])
-            {
-                Thunk.MatMul(psrc1, psrc, pdst, 1000, 1000);
-            }
-        }
-            
+        public void MatMul()
+            =>  SseUtils.MatTimesSrc(false, testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength);
+        
         [Benchmark]
-        public unsafe void MatMulTran()
-        {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* psrc1 = &src1[0])
-            {
-                Thunk.MatMulTran(psrc1, psrc, pdst, 1000, 1000);
-            }
-        }
+        public void MatMulTran()
+            =>  SseUtils.MatTimesSrc(true, testMatrixAligned, testSrcVectorAligned, testDstVectorAligned, matrixLength);     
 
         [Benchmark]
         public unsafe void MatMulP()
-        {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* psrc1 = &src1[0])
-            fixed (int* pidx = &matrixIdx[0])
-            {
-                Thunk.MatMulP(psrc1, pidx, psrc, 0, 0, MatrixIndexLength, pdst, 1000, 1000);
-            }
-        }
+            =>  SseUtils.MatTimesSrc(testMatrixAligned, matrixIdx, testSrcVectorAligned, 0, 0, MatrixIndexLength, testDstVectorAligned, matrixLength);     
     }
 }
