@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return result;
         }
 
-        public static JObject BuildEntryPointManifest(IExceptionContext ectx, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
+        private static JObject BuildEntryPointManifest(IExceptionContext ectx, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(entryPointInfo, nameof(entryPointInfo));

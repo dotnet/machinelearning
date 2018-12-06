@@ -661,7 +661,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             };
         }
 
-        public static bool ParseCommandArguments(IHostEnvironment env, string commandline, out object commandArgs, out ComponentCatalog.LoadableClassInfo commandClass, bool trimExe = true)
+        private static bool ParseCommandArguments(IHostEnvironment env, string commandline, out object commandArgs, out ComponentCatalog.LoadableClassInfo commandClass, bool trimExe = true)
         {
             string args = commandline;
             if (trimExe)
