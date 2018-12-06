@@ -118,7 +118,8 @@ namespace Microsoft.ML.Transforms.Conversions
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        public ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
+        [BestFriend]
+        internal ToKeyFitResult(ValueToKeyMappingTransformer.TermMap map)
         {
         }
     }

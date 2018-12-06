@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
         /// </summary>
-        internal void CombineParameters(IList<IParameterMixer<float>> models, out VBuffer<float> weights, out float bias)
+        private protected void CombineParameters(IList<IParameterMixer<float>> models, out VBuffer<float> weights, out float bias)
         {
             Type type = GetType();
 

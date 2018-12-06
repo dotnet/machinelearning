@@ -32,7 +32,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     using U8 = UInt64;
     using UG = RowId;
 
-    public delegate bool TryParseMapper<T>(in TX src, out T dst);
+    [BestFriend]
+    internal delegate bool TryParseMapper<T>(in TX src, out T dst);
 
     /// <summary>
     /// This type exists to provide efficient delegates for conversion between standard ColumnTypes,
@@ -44,7 +45,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
     /// text (and StringBuilder). These are needed by the standard TextSaver, which handles
     /// differences between sparse and dense inputs in a semantically invariant way.
     /// </summary>
-    public sealed class Conversions
+    [BestFriend]
+    internal sealed class Conversions
     {
         // REVIEW: Reconcile implementations with TypeUtils, and clarify the distinction.
 

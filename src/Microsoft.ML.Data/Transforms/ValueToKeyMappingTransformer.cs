@@ -685,7 +685,8 @@ namespace Microsoft.ML.Transforms.Conversions
                 });
         }
 
-        public TermMap GetTermMap(int iinfo)
+        [BestFriend]
+        internal TermMap GetTermMap(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
             return _unboundMaps[iinfo];

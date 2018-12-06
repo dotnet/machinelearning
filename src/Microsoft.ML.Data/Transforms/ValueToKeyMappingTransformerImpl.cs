@@ -474,7 +474,8 @@ namespace Microsoft.ML.Transforms.Conversions
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        public abstract class TermMap
+        [BestFriend]
+        internal abstract class TermMap
         {
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
@@ -757,7 +758,7 @@ namespace Microsoft.ML.Transforms.Conversions
             }
         }
 
-        public abstract class TermMap<T> : TermMap
+        internal abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)

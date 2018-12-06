@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             ctx.Writer.Write((int)PredictionKind);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Single>));
             Host.Check(typeof(TOut) == typeof(Single));
