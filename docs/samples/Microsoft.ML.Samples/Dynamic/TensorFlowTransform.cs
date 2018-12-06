@@ -25,7 +25,10 @@ namespace Microsoft.ML.Samples.Dynamic
             var idv = mlContext.CreateStreamingDataView(data);
 
             // Create a ML pipeline.
-            var pipeline = mlContext.Transforms.ScoreTensorFlowModel(modelLocation, new[] { "input" }, new[] { "output" });
+            var pipeline = mlContext.Transforms.ScoreTensorFlowModel(
+                modelLocation, 
+                new[] { nameof(TensorData.input) }, 
+                new[] { nameof(OutputScores.output) });
 
             // Run the pipeline and get the transformed values.
             var estimator = pipeline.Fit(idv);
