@@ -67,11 +67,9 @@ namespace Microsoft.ML
             Contracts.CheckNonEmpty(path, nameof(path));
 
             var env = catalog.GetEnvironment();
+            var source = new MultiFileSource(path);
 
-            // REVIEW: it is almost always a mistake to have a 'trainable' text loader here.
-            // Therefore, we are going to disallow data sample.
-            var reader = new TextLoader(env, args, dataSample: null);
-            return reader.Read(new MultiFileSource(path));
+            return new TextLoader(env, args, source).Read(source);
         }
 
         /// <summary>
