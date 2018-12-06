@@ -257,7 +257,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(
+            var reader = mlContext.Data.CreateTextReader(
                     columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Scenarios
             try
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
-                var reader = mlContext.Data.TextReader(columns: new[]
+                var reader = mlContext.Data.CreateTextReader(columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Scenarios
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
 
-                var reader = mlContext.Data.TextReader(new[]
+                var reader = mlContext.Data.CreateTextReader(new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Scenarios
             // of predicted label of a single in-memory example.
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(columns: new[]
+            var reader = mlContext.Data.CreateTextReader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.ReadFile(mlContext, new MultiFileSource(dataFile),
+            var data = mlContext.Data.ReadFromTextFile(dataFile,
                     columns: new[]
                     {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
@@ -657,7 +657,7 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.ReadFile(mlContext, new MultiFileSource(dataFile), columns: new[]
+            var data = mlContext.Data.ReadFromTextFile(dataFile, columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
@@ -714,7 +714,7 @@ namespace Microsoft.ML.Scenarios
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.ReadFile(mlContext, new MultiFileSource(dataFile), 
+            var data = mlContext.Data.ReadFromTextFile(dataFile, 
                 columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),

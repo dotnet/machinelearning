@@ -86,7 +86,7 @@ namespace Microsoft.ML.Benchmarks
                 AllowQuoting = false,
                 AllowSparse = false
             };
-            var loader = TextLoader.ReadFile(env, new MultiFileSource(_sentimentDataPath), arguments);
+            var loader = env.Data.ReadFromTextFile(_sentimentDataPath, arguments);
 
             var text = TextFeaturizingEstimator.Create(env,
                 new TextFeaturizingEstimator.Arguments()

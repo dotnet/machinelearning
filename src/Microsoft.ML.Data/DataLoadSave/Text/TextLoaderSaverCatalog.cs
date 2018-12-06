@@ -21,7 +21,7 @@ namespace Microsoft.ML
         /// <param name="hasHeader">Whether the file has a header.</param>
         /// <param name="separatorChar">The character used as separator between data points in a row. By default the tab character is used as separator.</param>
         /// <param name="dataSample">The optional location of a data sample.</param>
-        public static TextLoader TextReader(this DataOperations catalog,
+        public static TextLoader CreateTextReader(this DataOperations catalog,
             Column[] columns, bool hasHeader = false, char separatorChar = '\t', IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, hasHeader, separatorChar, dataSample);
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
         /// <param name="dataSample">Allows to expose items that can be used for reading.</param>
-        public static TextLoader TextReader(this DataOperations catalog, Arguments args, IMultiStreamSource dataSample = null)
+        public static TextLoader CreateTextReader(this DataOperations catalog, Arguments args, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The catalog.</param>
         /// <param name="path">Specifies a file from which to read.</param>
         /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, Arguments args)
+        public static IDataView ReadFromTextFile(this DataOperations catalog, string path, Arguments args = null)
         {
             Contracts.CheckNonEmpty(path, nameof(path));
 

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env, new MultiFileSource(dataPath),
+            var loader = env.Data.ReadFromTextFile(dataPath,
                 columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.Num, 0),
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Scenarios
 
             var env = new MLContext(seed: 1, conc: 1);
             // Pipeline
-            var loader = TextLoader.ReadFile(env, new MultiFileSource(dataPath),
+            var loader = env.Data.ReadFromTextFile(dataPath,
                 columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.Num, 0),

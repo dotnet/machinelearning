@@ -361,11 +361,14 @@ namespace Microsoft.ML.Transforms.Categorical
             ulong max = ulong.MinValue;
             try
             {
-                var data = TextLoader.ReadFile(host, new MultiFileSource(filename), new[]
+                var data = new TextLoader(host, new[]
                     {
                         new TextLoader.Column("Term", DataKind.TX, 0),
                         new TextLoader.Column("Value", DataKind.TX, 1)
-                    });
+                    },
+                    dataSample: new MultiFileSource(filename)
+                ).Read(new MultiFileSource(filename));
+
                 using (var cursor = data.GetRowCursor(c => true))
                 {
                     var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(0);

@@ -14,7 +14,7 @@ namespace Microsoft.ML.TestFramework
 #pragma warning disable 612, 618
     public static class ModelHelper
     {
-        private static IHostEnvironment s_environment = new MLContext(seed: 1);
+        private static MLContext s_environment = new MLContext(seed: 1);
         private static ITransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)
@@ -41,7 +41,7 @@ namespace Microsoft.ML.TestFramework
 
         public static IDataView GetKcHouseDataView(string dataPath)
         {
-            return Runtime.Data.TextLoader.ReadFile(s_environment, new MultiFileSource(dataPath), 
+            return s_environment.Data.ReadFromTextFile(dataPath, 
                 columns: new[]
                 {
                     new Runtime.Data.TextLoader.Column("Id", Runtime.Data.DataKind.TX, 0),

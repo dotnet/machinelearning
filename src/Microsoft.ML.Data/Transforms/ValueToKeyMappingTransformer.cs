@@ -483,9 +483,10 @@ namespace Microsoft.ML.Transforms.Conversions
                             "{0} should not be specified when default loader is TextLoader. Ignoring {0}={1}",
                             nameof(Arguments.TermsColumn), src);
                     }
-                    termData = TextLoader.ReadFile(env, fileSource,
-                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) }
-                        );
+                    termData = new TextLoader(env,
+                        columns: new[] { new TextLoader.Column("Term", DataKind.TX, 0) },
+                        dataSample: fileSource)
+                        .Read(fileSource);
                     src = "Term";
                     autoConvert = true;
                 }

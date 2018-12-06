@@ -1316,26 +1316,6 @@ namespace Microsoft.ML.Runtime.Data
         internal static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
             => (IDataLoader)new TextLoader(env, args, files).Read(files);
 
-        /// <summary>
-        /// Creates a <see cref="TextLoader"/> and uses it to read a specified file.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="columns">Defines a mapping between input columns in the file and IDataView columns.</param>
-        /// <param name="hasHeader">Whether the file has a header.</param>
-        /// <param name="separatorChar"> The character used as separator between data points in a row. By default the tab character is used as separator.</param>
-        /// <param name="fileSource">Specifies a file from which to read.</param>
-        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Column[] columns, bool hasHeader = false, char separatorChar = '\t')
-            => new TextLoader(env, columns, hasHeader, separatorChar, fileSource).Read(fileSource);
-
-        /// <summary>
-        /// Loads a text file into an <see cref="IDataView"/>. Supports basic mapping from input columns to IDataView columns.
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="fileSource">Specifies a file from which to read.</param>
-        /// <param name="args">Defines the settings of the load operation.</param>
-        public static IDataView ReadFile(IHostEnvironment env, IMultiStreamSource fileSource, Arguments args = null)
-            => new TextLoader(env, args, fileSource).Read(fileSource);
-
         public void Save(ModelSaveContext ctx)
         {
             _host.CheckValue(ctx, nameof(ctx));

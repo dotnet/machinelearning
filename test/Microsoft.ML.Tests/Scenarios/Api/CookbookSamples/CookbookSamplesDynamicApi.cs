@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] {
                     // A boolean column depicting the 'label'.
                     new TextLoader.Column("IsOver50K", DataKind.BL, 0),
                     // Three text columns.
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] {
                     // We read the first 11 values as a single float vector.
                     new TextLoader.Column("FeatureVector", DataKind.R4, 0, 10),
 
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] {
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
                     new TextLoader.Column("SepalWidth", DataKind.R4, 1),
                     new TextLoader.Column("PetalLength", DataKind.R4, 2),
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] {
                     // The four features of the Iris dataset will be grouped together as one Features column.
                     new TextLoader.Column("Features", DataKind.R4, 0, 3),
                     // Label: kind of iris.
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] 
+            var reader = mlContext.Data.CreateTextReader(new[] 
                 {
                     new TextLoader.Column("IsToxic", DataKind.BL, 0),
                     new TextLoader.Column("Message", DataKind.TX, 1),
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] 
+            var reader = mlContext.Data.CreateTextReader(new[] 
                 {
                     new TextLoader.Column("Label", DataKind.BL, 0),
                     // We will load all the categorical features into one vector column of size 8.
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] 
+            var reader = mlContext.Data.CreateTextReader(new[] 
                 {
                     // We read the first 11 values as a single float vector.
                     new TextLoader.Column("SepalLength", DataKind.R4, 0),
@@ -487,7 +487,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var mlContext = new MLContext();
 
             // Create the reader: define the data columns and where to find them in the text file.
-            var reader = mlContext.Data.TextReader(new[] {
+            var reader = mlContext.Data.CreateTextReader(new[] {
 	                // We read the first 10 values as a single float vector.
                     new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
                     // Separately, read the target variable.
