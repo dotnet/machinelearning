@@ -4,6 +4,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Security;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Float = System.Single;
 
@@ -442,7 +443,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return 0;
         }
 
-        private const string DllName = "MklImports";
+        private const string MklPath = "MklImports";
 
         public enum Layout
         {
@@ -470,41 +471,41 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         // See: https://software.intel.com/en-us/node/521087#4C9F4214-70BC-4483-A814-1E7F927B30CF
-        [DllImport(DllName, EntryPoint = "LAPACKE_shseqr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_shseqr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Shseqr(Layout matrixLayout, Job job, Compz compz, int n, int ilo, int ihi,
             [In] float[] h, int idh, [Out] float[] wr, [Out] float[] wi, [Out] float[] z, int ldz);
 
         // See: https://software.intel.com/en-us/node/521087#4C9F4214-70BC-4483-A814-1E7F927B30CF
-        [DllImport(DllName, EntryPoint = "LAPACKE_dhseqr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_dhseqr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Dhseqr(Layout matrixLayout, Job job, Compz compz, int n, int ilo, int ihi,
             [In] double[] h, int idh, [Out] double[] wr, [Out] double[] wi, [Out] double[] z, int ldz);
 
         // See: https://software.intel.com/en-us/node/521046#7EF85A82-423A-4ABC-A208-88326CD0B887
-        [DllImport(DllName, EntryPoint = "LAPACKE_ssytrd", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_ssytrd", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Ssytrd(Layout matrixLayout, Uplo uplo, int n, float[] a, int lda, float[] d,
             float[] e, float[] tau);
 
         // See: https://software.intel.com/en-us/node/521046#7EF85A82-423A-4ABC-A208-88326CD0B887
-        [DllImport(DllName, EntryPoint = "LAPACKE_dsytrd", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_dsytrd", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Dsytrd(Layout matrixLayout, Uplo uplo, int n, double[] a, int lda, double[] d,
             double[] e, double[] tau);
 
         // See: https://software.intel.com/en-us/node/521067#E2C5B8B3-D275-4000-821D-1ABF245D2E30
-        [DllImport(DllName, EntryPoint = "LAPACKE_ssteqr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_ssteqr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Ssteqr(Layout matrixLayout, Compz compz, int n, float[] d, float[] e, float[] z,
             int ldz);
 
         // See: https://software.intel.com/en-us/node/521067#E2C5B8B3-D275-4000-821D-1ABF245D2E30
-        [DllImport(DllName, EntryPoint = "LAPACKE_dsteqr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_dsteqr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Dsteqr(Layout matrixLayout, Compz compz, int n, double[] d, double[] e, double[] z,
             int ldz);
 
         // See: https://software.intel.com/en-us/node/521049#106F8646-1C99-4A9D-8604-D60DAAF7BE0C
-        [DllImport(DllName, EntryPoint = "LAPACKE_sorgtr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_sorgtr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Sorgtr(Layout matrixLayout, Uplo uplo, int n, float[] a, int lda, float[] tau);
 
         // See: https://software.intel.com/en-us/node/521049#106F8646-1C99-4A9D-8604-D60DAAF7BE0C
-        [DllImport(DllName, EntryPoint = "LAPACKE_dorgtr", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(MklPath, EntryPoint = "LAPACKE_dorgtr", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
         public static extern int Dorgtr(Layout matrixLayout, Uplo uplo, int n, double[] a, int lda, double[] tau);
 
         public static bool MklSymmetricEigenDecomposition(Single[] input, int size, out Single[] eigenValues, out Single[] eigenVectors)

@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Microsoft.ML.Trainers.FastTree.Internal
 {
@@ -491,19 +492,19 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
         internal const string NativePath = "FastTreeNative";
 #pragma warning disable TLC_GeneralName // Externs follow their own rules.
-        [DllImport(NativePath, CharSet = CharSet.Ansi)]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         private static extern unsafe void C_SegmentFindOptimalPath21(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport(NativePath, CharSet = CharSet.Ansi)]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         private static extern unsafe void C_SegmentFindOptimalPath15(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport(NativePath, CharSet = CharSet.Ansi)]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         private static extern unsafe void C_SegmentFindOptimalPath7(uint* valv, int valc, long* pBits, int* pTransitions);
 
-        [DllImport(NativePath, CharSet = CharSet.Ansi)]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         private static extern unsafe void C_SegmentFindOptimalCost15(uint* valv, int valc, long* pBits);
 
-        [DllImport(NativePath, CharSet = CharSet.Ansi)]
+        [DllImport(NativePath, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
         private static extern unsafe void C_SegmentFindOptimalCost31(uint* valv, int valc, long* pBits);
 
         [DllImport(NativePath)]

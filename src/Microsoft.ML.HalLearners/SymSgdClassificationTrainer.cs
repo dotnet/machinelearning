@@ -761,7 +761,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             static Native() => ErrorMessage(0);
 
             internal const string NativePath = "SymSgdNative";
-
+            internal const string MklPath = "MklImports";
             [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
@@ -833,7 +833,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                 }
             }
 
-            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void MapBackWeightVector(float* weightVector, State* state);
 
             /// <summary>
@@ -856,8 +856,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             }
 
             // See: https://software.intel.com/en-us/node/521990
-            [System.Security.SuppressUnmanagedCodeSecurity]
-            [DllImport("MklImports", EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+            [DllImport(MklPath, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto), SuppressUnmanagedCodeSecurity]
             private static extern IntPtr ErrorMessage(int status);
         }
 

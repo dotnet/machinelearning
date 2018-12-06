@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// returning the quotient and placing the remainder in <paramref name="rem"/>. Throws on overflow.
         /// </summary>
 #if !CORECLR
-        [DllImport(Thunk.NativePath, CallingConvention =CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+        [DllImport(Thunk.NativePath), SuppressUnmanagedCodeSecurity]
         private static extern ulong MulDiv64Core(ulong a, ulong b, ulong den, out ulong rem);
 
         public static ulong MulDiv64(ulong a, ulong b, ulong den, out ulong rem)
