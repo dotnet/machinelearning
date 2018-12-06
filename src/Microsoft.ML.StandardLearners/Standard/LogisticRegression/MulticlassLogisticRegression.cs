@@ -781,7 +781,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
 
-            foreach (var namedValues in GetSummaryInKeyValuePairs(schema))
+            foreach (var namedValues in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
                 Host.Assert(namedValues.Value is float);
                 writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
@@ -792,7 +792,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
 
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Output the text model to a given writer
         /// </summary>
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
@@ -851,7 +851,7 @@ namespace Microsoft.ML.Runtime.Learners
                 writer.WriteLine("output[{0}] = Math.Exp(scores[{0}] - softmax);", c);
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             ((ICanSaveInTextFormat)this).SaveAsText(writer, schema);
         }
@@ -985,12 +985,12 @@ namespace Microsoft.ML.Runtime.Learners
             return bldr.GetDataView();
         }
 
-        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }
 
-        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;

@@ -2963,7 +2963,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// write out a C# representation of the ensemble
         /// </summary>
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValueOrNull(schema);
             SaveEnsembleAsCode(writer, schema);
@@ -2976,13 +2976,13 @@ namespace Microsoft.ML.Trainers.FastTree
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
-            SaveAsIni(writer, schema);
+            ((ICanSaveInIniFormat)this).SaveAsIni(writer, schema);
         }
 
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -3156,12 +3156,12 @@ namespace Microsoft.ML.Trainers.FastTree
             return true;
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine();
             writer.WriteLine("Per-feature gain summary for the boosted tree ensemble:");
 
-            foreach (var pair in GetSummaryInKeyValuePairs(schema))
+            foreach (var pair in ((ICanGetSummaryInKeyValuePairs)this).GetSummaryInKeyValuePairs(schema))
             {
                 Host.Assert(pair.Value is Double);
                 writer.WriteLine("\t{0}\t{1}", pair.Key, (Double)pair.Value);
@@ -3187,7 +3187,7 @@ namespace Microsoft.ML.Trainers.FastTree
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             List<KeyValuePair<string, object>> results = new List<KeyValuePair<string, object>>();
 
@@ -3309,7 +3309,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return TrainedEnsemble.GetTreeAt(treeId).GetLeaf(in features, ref path);
         }
 
-        public Row GetSummaryIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
             var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
@@ -3324,7 +3324,7 @@ namespace Microsoft.ML.Trainers.FastTree
             return MetadataUtils.MetadataAsRow(builder.GetMetadata());
         }
 
-        public Row GetStatsIRowOrNull(RoleMappedSchema schema)
+        Row ICanGetSummaryAsIRow.GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             return null;
         }

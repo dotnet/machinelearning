@@ -152,7 +152,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Calibrator = calibrator;
         }
 
-        public void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null)
+        void ICanSaveInIniFormat.SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator)
         {
             Host.Check(calibrator == null, "Too many calibrators.");
             var saver = SubPredictor as ICanSaveInIniFormat;
@@ -167,7 +167,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 saver.SaveAsText(writer, schema);
         }
 
-        public void SaveAsCode(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInSourceCode.SaveAsCode(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanSaveInSourceCode;
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 saver.SaveAsCode(writer, schema);
         }
 
-        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveSummary.SaveSummary(TextWriter writer, RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanSaveSummary;
@@ -184,7 +184,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         }
 
         ///<inheritdoc/>
-        public IList<KeyValuePair<string, object>> GetSummaryInKeyValuePairs(RoleMappedSchema schema)
+        IList<KeyValuePair<string, object>> ICanGetSummaryInKeyValuePairs.GetSummaryInKeyValuePairs(RoleMappedSchema schema)
         {
             // REVIEW: What about the calibrator?
             var saver = SubPredictor as ICanGetSummaryInKeyValuePairs;
