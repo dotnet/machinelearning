@@ -95,10 +95,10 @@ namespace Microsoft.ML.Transforms.Projections
             public readonly int SrcDim;
 
             // the matrix containing the random fourier vectors
-            public readonly float[] RndFourierVectors;
+            public readonly AlignedArray RndFourierVectors;
 
             // the random rotations
-            public readonly float[] RotationTerms;
+            public readonly AlignedArray RotationTerms;
 
             private readonly IFourierDistributionSampler _matrixGenerator;
             private readonly bool _useSin;
@@ -120,10 +120,10 @@ namespace Microsoft.ML.Transforms.Projections
                 var generator = column.Generator;
                 _matrixGenerator = generator.CreateComponent(host, avgDist);
 
-                int roundedUpD = RoundToMultipleOf4(NewDim);
-                int roundedUpNumFeatures = RoundToMultipleOf4(SrcDim);
-                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
-                RotationTerms = _useSin ? null : new float[roundedUpD];
+                int roundedUpD = RoundUp(NewDim, _cfltAlign);
+                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
+                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
+                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
 
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
@@ -154,10 +154,10 @@ namespace Microsoft.ML.Transforms.Projections
                     ctx.LoadModelOrNull<IFourierDistributionSampler, SignatureLoadModel>(env, out _matrixGenerator, directoryName));
 
                 // initialize the transform matrix
-                int roundedUpD = RoundToMultipleOf4(NewDim);
-                int roundedUpNumFeatures = RoundToMultipleOf4(SrcDim);
-                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
-                RotationTerms = _useSin ? null : new float[roundedUpD];
+                int roundedUpD = RoundUp(NewDim, _cfltAlign);
+                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
+                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
+                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
@@ -224,6 +224,8 @@ namespace Microsoft.ML.Transforms.Projections
         }
 
         private readonly TransformInfo[] _transformInfos;
+
+        private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
 
         private static string TestColumnType(ColumnType type)
         {
@@ -293,11 +295,16 @@ namespace Microsoft.ML.Transforms.Projections
             }
         }
 
-        private static int RoundToMultipleOf4(int number)
+        // Round cflt up to a multiple of cfltAlign.
+        private static int RoundUp(int cflt, int cfltAlign)
         {
-            Contracts.Assert(0 < number);
-            int multipleOf4 = (number + 3) / 4;
-            return multipleOf4 * 4;
+            Contracts.Assert(0 < cflt);
+            // cfltAlign should be a power of two.
+            Contracts.Assert(0 < cfltAlign && (cfltAlign & (cfltAlign - 1)) == 0);
+
+            // Determine the number of "blobs" of size cfltAlign.
+            int cblob = (cflt + cfltAlign - 1) / cfltAlign;
+            return cblob * cfltAlign;
         }
 
         private float[] GetAvgDistances(ColumnInfo[] columns, IDataView input)
@@ -548,14 +555,14 @@ namespace Microsoft.ML.Transforms.Projections
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
                 var src = default(VBuffer<float>);
 
-                var features = new float[RoundToMultipleOf4(_srcTypes[iinfo].ValueCount)];
-                var product = new float[RoundToMultipleOf4(_parent._transformInfos[iinfo].NewDim)];
+                var featuresAligned = new AlignedArray(RoundUp(_srcTypes[iinfo].ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
                 return
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], features, product);
+                        TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
 
             }
@@ -565,8 +572,8 @@ namespace Microsoft.ML.Transforms.Projections
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);
 
-                var featuresAligned = new float[4];
-                var productAligned = new float[RoundToMultipleOf4(_parent._transformInfos[iinfo].NewDim)];
+                var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+                var productAligned = new AlignedArray(RoundUp(_parent._transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
                 var oneDimensionalVector = new VBuffer<float>(1, new float[] { 0 });
 
@@ -580,7 +587,7 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             private void TransformFeatures(in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
-                float[] features, float[] product)
+                AlignedArray featuresAligned, AlignedArray productAligned)
             {
                 Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
 
@@ -599,9 +606,9 @@ namespace Microsoft.ML.Transforms.Projections
 
                 if (src.IsDense)
                 {
-                    src.GetValues().CopyTo(features);
-                    CpuMathUtils.MatrixTimesSource(transpose: false, transformInfo.RndFourierVectors, features, product,
-                        RoundToMultipleOf4(transformInfo.NewDim));
+                    featuresAligned.CopyFrom(src.GetValues());
+                    CpuMathUtils.MatrixTimesSource(false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                        transformInfo.NewDim);
                 }
                 else
                 {
@@ -609,21 +616,15 @@ namespace Microsoft.ML.Transforms.Projections
                     // no need to zero them out.
                     var srcValues = src.GetValues();
                     var srcIndices = src.GetIndices();
-
-                    for (int i = 0; i < srcValues.Length; i++)
-                    {
-                        int iv = srcIndices[i];
-                        features[iv] = srcValues[i];
-                    }
-
-                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, srcIndices, features, 0, 0,
-                        srcValues.Length, product, RoundToMultipleOf4(transformInfo.NewDim));
+                    featuresAligned.CopyFrom(srcIndices, srcValues, 0, 0, srcValues.Length, zeroItems: false);
+                    CpuMathUtils.MatrixTimesSource(transformInfo.RndFourierVectors, srcIndices, featuresAligned, 0, 0,
+                        srcValues.Length, productAligned, transformInfo.NewDim);
                 }
 
                 var dstEditor = VBufferEditor.Create(ref dst, newDstLength);
                 for (int i = 0; i < transformInfo.NewDim; i++)
                 {
-                    var dotProduct = product[i];
+                    var dotProduct = productAligned[i];
                     if (transformInfo.RotationTerms != null)
                         dstEditor.Values[i] = (float)MathUtils.Cos(dotProduct + transformInfo.RotationTerms[i]) * scale;
                     else
