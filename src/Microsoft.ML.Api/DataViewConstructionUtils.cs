@@ -946,7 +946,17 @@ namespace Microsoft.ML.Runtime.Api
             throw Contracts.ExceptNotImpl("Type '{0}' is not yet supported.", typeT.FullName);
         }
 
-        internal override Delegate GetGetterDelegate() => Utils.MarshalInvoke(GetGetter<int>, MetadataType.RawType);
+        internal override Delegate GetGetterDelegate()
+        {
+            Type genericClassType = typeof(MetadataInfo<T>);
+            MethodInfo baseMethodInfo = genericClassType.GetMethod("GetGetter");
+
+            Type[] genericArguments = new Type[] { MetadataType.RawType };
+            MethodInfo genericMethodInfo = baseMethodInfo.MakeGenericMethod(genericArguments);
+
+            object classInstance = Activator.CreateInstance(genericClassType, Kind, Value, MetadataType);
+            return genericMethodInfo.Invoke(classInstance, new object[] { }) as Delegate;
+        }
 
         public class TElement
         {
