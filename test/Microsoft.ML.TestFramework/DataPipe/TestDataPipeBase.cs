@@ -80,14 +80,14 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var transformer = estimator.Fit(validFitInput);
             // Save and reload.
-            //string modelPath = GetOutputPath(FullTestName + "-model.zip");
-            //using (var fs = File.Create(modelPath))
-            //    ML.Model.Save(transformer, fs);
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                ML.Model.Save(transformer, fs);
 
-            //ITransformer loadedTransformer;
-            //using (var fs = File.OpenRead(modelPath))
-            //    loadedTransformer = ML.Model.Load(fs);
-            //DeleteOutputPath(modelPath);
+            ITransformer loadedTransformer;
+            using (var fs = File.OpenRead(modelPath))
+                loadedTransformer = ML.Model.Load(fs);
+            DeleteOutputPath(modelPath);
 
             // Run on train data.
             Action<IDataView> checkOnData = (IDataView data) =>
@@ -107,10 +107,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
 
                 // Loaded transformer needs to have the same schema propagation.
-                //CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+                CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
 
                 var scoredTrain = transformer.Transform(data);
-                //var scoredTrain2 = loadedTransformer.Transform(data);
+                var scoredTrain2 = loadedTransformer.Transform(data);
 
                 // The schema of the transformed data must match the schema provided by schema propagation.
                 CheckSameSchemas(schema, scoredTrain.Schema);
@@ -119,8 +119,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 // and original transformer.
                 // This in turn means that the schema of loaded transformer matches for 
                 // Transform and GetOutputSchema calls.
-                //CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
-                //CheckSameValues(scoredTrain, scoredTrain2, exactDoubles: false);
+                CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
+                CheckSameValues(scoredTrain, scoredTrain2, exactDoubles: false);
             };
 
             checkOnData(validFitInput);
@@ -132,15 +132,15 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 mustFail(() => transformer.GetOutputSchema(invalidInput.Schema));
                 mustFail(() => transformer.Transform(invalidInput));
-                //mustFail(() => loadedTransformer.GetOutputSchema(invalidInput.Schema));
-                //mustFail(() => loadedTransformer.Transform(invalidInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(invalidInput.Schema));
+                mustFail(() => loadedTransformer.Transform(invalidInput));
             }
             if (validForFitNotValidForTransformInput != null)
             {
                 mustFail(() => transformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
                 mustFail(() => transformer.Transform(validForFitNotValidForTransformInput));
-                //mustFail(() => loadedTransformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
-                //mustFail(() => loadedTransformer.Transform(validForFitNotValidForTransformInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
+                mustFail(() => loadedTransformer.Transform(validForFitNotValidForTransformInput));
             }
 
             // Schema verification between estimator and transformer.

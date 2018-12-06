@@ -79,20 +79,12 @@ namespace Microsoft.ML.Runtime.Data
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "FCC",
+                modelSignature: "FCC TRAN",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(FeatureContributionCalculationTransform).Assembly.FullName);
-        }
-
-        // Factory method for SignatureLoadModel.
-        private static FeatureContributionCalculationTransform Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            ctx.CheckAtModel(GetVersionInfo());
-            return new FeatureContributionCalculationTransform(env, ctx);
         }
 
         // TODO: Only thing that we need to do here is store the args, and predictor, change order of params + mew arguments object
@@ -116,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
             _features = features;
         }
 
-        public FeatureContributionCalculationTransform(IHostEnvironment env, ModelLoadContext ctx)
+        private FeatureContributionCalculationTransform(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(FeatureContributionCalculationTransform));
@@ -146,7 +138,16 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public Schema GetOutputSchema(Schema inputSchema)
-            => Transform(new EmptyDataView(_host, inputSchema)).Schema;
+        {
+            var input = new EmptyDataView(_host, inputSchema);
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _features));
+            var schema = new RoleMappedSchema(input.Schema, roles);
+
+            var boundMapper = _mapper.Bind(_host, schema);
+            var data = Create(_host, null, input, boundMapper, null);
+            return data.Schema;
+        }
 
         // TODO: .Transform() should be easy to implement -> just use the code inside create.
         public IDataView Transform(IDataView input)

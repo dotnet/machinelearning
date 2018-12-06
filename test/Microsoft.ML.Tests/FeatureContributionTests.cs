@@ -79,28 +79,28 @@ namespace Microsoft.ML.Tests
                 Bottom = 10,
                 Top = 10
             };
-            //var output = new FeatureContributionCalculationTransform(Env, args, model.FeatureColumn, model.Model).Transform(data); 
+            var output = new FeatureContributionCalculationTransform(Env, args, model.FeatureColumn, model.Model).Transform(data);
 
             // Get prediction scores and contributions
-            //var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
-            //ScoreAndContribution row = null;
-            //var expectedValues = new List<float[]>();
-            //expectedValues.Add(new float[4] { 0.15640761F, 1, 0.155862764F, 0.07276783F });
-            //expectedValues.Add(new float[4] { 0.09507586F, 1, 0.1835608F, 0.0437548943F });
-            //expectedValues.Add(new float[4] { 0.297142357F, 1, 0.2855884F, 0.193529665F });
-            //expectedValues.Add(new float[4] { 0.45465675F, 0.8805887F, 0.4031663F, 1 });
-            //expectedValues.Add(new float[4] { 0.0595234372F, 0.99999994F, 0.349647522F, 0.137912869F });
-            //int index = 0;
-            //while (enumerator.MoveNext() && index < expectedValues.Count)
-            //{
-            //    row = enumerator.Current;
-            //    Assert.True(row.FeatureContributions[0] == expectedValues[index][0]);
-            //    Assert.True(row.FeatureContributions[1] == expectedValues[index][1]);
-            //    Assert.True(row.FeatureContributions[2] == expectedValues[index][2]);
-            //    Assert.True(row.FeatureContributions[3] == expectedValues[index++][3]);
-            //}
+            var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
+            ScoreAndContribution row = null;
+            var expectedValues = new List<float[]>();
+            expectedValues.Add(new float[4] { 0.15640761F, 1, 0.155862764F, 0.07276783F });
+            expectedValues.Add(new float[4] { 0.09507586F, 1, 0.1835608F, 0.0437548943F });
+            expectedValues.Add(new float[4] { 0.297142357F, 1, 0.2855884F, 0.193529665F });
+            expectedValues.Add(new float[4] { 0.45465675F, 0.8805887F, 0.4031663F, 1 });
+            expectedValues.Add(new float[4] { 0.0595234372F, 0.99999994F, 0.349647522F, 0.137912869F });
+            int index = 0;
+            while (enumerator.MoveNext() && index < expectedValues.Count)
+            {
+                row = enumerator.Current;
+                Assert.True(row.FeatureContributions[0] == expectedValues[index][0]);
+                Assert.True(row.FeatureContributions[1] == expectedValues[index][1]);
+                Assert.True(row.FeatureContributions[2] == expectedValues[index][2]);
+                Assert.True(row.FeatureContributions[3] == expectedValues[index++][3]);
+            }
 
-            //Done();
+            Done();
         }
 
         [Fact]
@@ -148,8 +148,8 @@ namespace Microsoft.ML.Tests
                 Bottom = 10,
                 Top = 10
             };
-            //var est = new FeatureContributionCalculatingEstimator(Env, args, model.FeatureColumn, model.Model);
-            //TestEstimatorCore(est, data);
+            var est = new FeatureContributionCalculatingEstimator(Env, args, model.FeatureColumn, model.Model);
+            TestEstimatorCore(est, data);
         }
     }
 }
