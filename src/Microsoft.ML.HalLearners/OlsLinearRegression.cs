@@ -380,7 +380,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
         internal static class Mkl
         {
-            private const string DllName = "MklImports";
+            private const string NativePath = "MklImports";
 
             public enum Layout
             {
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 Lo = (byte)'L'
             }
 
-            [DllImport(DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrf")]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrf")]
             private static extern int PptrfInternal(Layout layout, UpLo uplo, int n, Double[] ap);
 
             /// <summary>
@@ -429,7 +429,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 }
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptrs")]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrs")]
             private static extern int PptrsInternal(Layout layout, UpLo uplo, int n, int nrhs, Double[] ap, Double[] b, int ldb);
 
             /// <summary>
@@ -476,7 +476,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptri")]
+            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptri")]
             private static extern int PptriInternal(Layout layout, UpLo uplo, int n, Double[] ap);
 
             /// <summary>

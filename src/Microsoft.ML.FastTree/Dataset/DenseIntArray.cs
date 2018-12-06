@@ -70,13 +70,14 @@ namespace Microsoft.ML.Trainers.FastTree.Internal
         }
 
 #if USE_FASTTREENATIVE
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl)]
+        internal const string NativePath = "FastTreeNative";
+        [DllImport(NativePath)]
         private static extern unsafe int C_Sumup_float(
             int numBits, byte* pData, int* pIndices, float* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,
             int totalCount, double totalSampleOutputs, double totalSampleOutputWeights);
 
-        [DllImport("FastTreeNative", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(NativePath)]
         private static extern unsafe int C_Sumup_double(
             int numBits, byte* pData, int* pIndices, double* pSampleOutputs, double* pSampleOutputWeights,
             FloatType* pSumTargetsByBin, double* pSumTargets2ByBin, int* pCountByBin,

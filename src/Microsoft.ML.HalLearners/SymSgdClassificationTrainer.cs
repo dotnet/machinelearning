@@ -762,7 +762,7 @@ namespace Microsoft.ML.Trainers.SymSgd
 
             internal const string NativePath = "SymSgdNative";
 
-            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void LearnAll(int totalNumInstances, int* instSizes, int** instIndices,
                 float** instValues, float* labels, bool tuneLR, ref float lr, float l2Const, float piw, float* weightVector, ref float bias,
                 int numFeatres, int numPasses, int numThreads, bool tuneNumLocIter, ref int numLocIter, float tolerance, bool needShuffle, bool shouldInitialize, State* state);
@@ -847,7 +847,7 @@ namespace Microsoft.ML.Trainers.SymSgd
                     MapBackWeightVector(pweightVector, (State*)stateGCHandle.AddrOfPinnedObject());
             }
 
-            [DllImport(NativePath, CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
+            [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
             private static extern void DeallocateSequentially(State* state);
 
             public static void DeallocateSequentially(GCHandle stateGCHandle)
