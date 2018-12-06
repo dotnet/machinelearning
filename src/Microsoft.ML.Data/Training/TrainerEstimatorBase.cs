@@ -130,11 +130,8 @@ namespace Microsoft.ML.Runtime.Training
         protected TTransformer TrainTransformer(IDataView trainSet,
             IDataView validationSet = null, IPredictor initPredictor = null)
         {
-            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, trainSet, prefetch: null) : trainSet;
-            var cachedValid = Info.WantCaching && validationSet != null ? new CacheDataView(Host, validationSet, prefetch: null) : validationSet;
-
-            var trainRoleMapped = MakeRoles(cachedTrain);
-            var validRoleMapped = validationSet == null ? null : MakeRoles(cachedValid);
+            var trainRoleMapped = MakeRoles(trainSet);
+            var validRoleMapped = validationSet == null ? null : MakeRoles(validationSet);
 
             var pred = TrainModelCore(new TrainContext(trainRoleMapped, validRoleMapped, null, initPredictor));
             return MakeTransformer(pred, trainSet.Schema);

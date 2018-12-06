@@ -716,8 +716,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             KMeansModelParameters pred = null;
 
             var est = reader.MakeNewEstimator()
-                 .Append(r => (label: r.label.ToKey(), r.features))
-                 .Append(r => (r.label, r.features, preds: env.Clustering.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p, advancedSettings: s => s.NumThreads = 1)));
+                .AppendCacheCheckpoint()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, r.features, preds: env.Clustering.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p, advancedSettings: s => s.NumThreads = 1)));
 
             var pipe = reader.Append(est);
 

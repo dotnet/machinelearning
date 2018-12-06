@@ -71,9 +71,10 @@ namespace Microsoft.ML.Tests
             var srcDV = bldr.GetDataView();
 
             var pipeline = ML.Transforms.Concatenate("Features", "X1", "X2Important", "X3", "X4Rand")
+                .AppendCacheCheckpoint(ML)
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
-            var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
+            var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
             var args = new FeatureContributionCalculationTransform.Arguments()
             {
                 Bottom = 10,
@@ -85,19 +86,20 @@ namespace Microsoft.ML.Tests
             var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
             ScoreAndContribution row = null;
             var expectedValues = new List<float[]>();
-            expectedValues.Add(new float[4] { 0.15640761F, 1, 0.155862764F, 0.07276783F });
-            expectedValues.Add(new float[4] { 0.09507586F, 1, 0.1835608F, 0.0437548943F });
-            expectedValues.Add(new float[4] { 0.297142357F, 1, 0.2855884F, 0.193529665F });
-            expectedValues.Add(new float[4] { 0.45465675F, 0.8805887F, 0.4031663F, 1 });
-            expectedValues.Add(new float[4] { 0.0595234372F, 0.99999994F, 0.349647522F, 0.137912869F });
+            expectedValues.Add(new float[4] { 0.06319684F, 1, 0.1386623F, 4.46209469E-06F });
+            expectedValues.Add(new float[4] { 0.03841561F, 1, 0.1633037F, 2.68303256E-06F });
+            expectedValues.Add(new float[4] { 0.12006103F, 1, 0.254072F, 1.18671605E-05F });
+            expectedValues.Add(new float[4] { 0.20861618F, 0.99999994F, 0.407312155F, 6.963478E-05F });
+            expectedValues.Add(new float[4] { 0.024050576F, 0.99999994F, 0.31106182F, 8.456762E-06F });
             int index = 0;
             while (enumerator.MoveNext() && index < expectedValues.Count)
             {
                 row = enumerator.Current;
-                Assert.True(row.FeatureContributions[0] == expectedValues[index][0]);
-                Assert.True(row.FeatureContributions[1] == expectedValues[index][1]);
-                Assert.True(row.FeatureContributions[2] == expectedValues[index][2]);
-                Assert.True(row.FeatureContributions[3] == expectedValues[index++][3]);
+                // We set predicion to 6 because the limit of floating-point numbers is 7.
+                Assert.Equal(expectedValues[index][0], row.FeatureContributions[0], 6);
+                Assert.Equal(expectedValues[index][1], row.FeatureContributions[1], 6);
+                Assert.Equal(expectedValues[index][2], row.FeatureContributions[2], 6);
+                Assert.Equal(expectedValues[index++][3], row.FeatureContributions[3], 6);
             }
 
             Done();

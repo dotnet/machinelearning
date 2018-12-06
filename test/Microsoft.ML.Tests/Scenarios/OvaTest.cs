@@ -65,7 +65,7 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
             var pipeline = new Ova(
@@ -133,10 +133,10 @@ namespace Microsoft.ML.Scenarios
             });
 
             // Data
-            var data = reader.Read(GetDataPath(dataPath));
+            var data = mlContext.Data.Cache(reader.Read(GetDataPath(dataPath)));
 
             // Pipeline
-            var pipeline = new Ova(mlContext, new LinearSvm(mlContext),  useProbabilities: false);
+            var pipeline = new Ova(mlContext, new LinearSvm(mlContext, numIterations: 100),  useProbabilities: false);
 
             var model = pipeline.Fit(data);
             var predictions = model.Transform(data);
