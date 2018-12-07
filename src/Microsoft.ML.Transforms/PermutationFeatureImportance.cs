@@ -25,7 +25,7 @@ namespace Microsoft.ML.Transforms
                 Func<IDataView, TMetric> evaluationFunc,
                 Func<TMetric, TMetric, TMetric> deltaFunc,
                 string features,
-                int numPermutations,
+                int permutationCount,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null)
         {
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Transforms
 
                         // Perform multiple permutations for one feature to build a confidence interval
                         var metricsDeltaForFeature = new TResult();
-                        for (int permutationIteration = 0; permutationIteration < numPermutations; permutationIteration++)
+                        for (int permutationIteration = 0; permutationIteration < permutationCount; permutationIteration++)
                         {
                             Utils.Shuffle<float>(shuffleRand, featureValuesBuffer);
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Transforms
                                             d = featureValuesBuffer[state.SampleIndex++]);
 
                                     // Is it time to pre-cache the next feature?
-                                    if (permutationIteration == numPermutations - 1 &&
+                                    if (permutationIteration == permutationCount - 1 &&
                                         processedCnt < workingFeatureIndices.Count - 1)
                                     {
                                         // Fill out the featureValueBuffer for the next feature while updating the current feature

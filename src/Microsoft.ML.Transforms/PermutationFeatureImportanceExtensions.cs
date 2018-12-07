@@ -52,7 +52,7 @@ namespace Microsoft.ML
         /// <param name="features">Feature column names.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
-        /// <param name="numPermutations">The number of permutations to perform.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<RegressionMetricsStatistics>
             PermutationFeatureImportance(
@@ -63,7 +63,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int numPermutations = 1)
+                int permutationCount = 1)
         {
             return PermutationFeatureImportance<RegressionMetrics, RegressionMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
@@ -72,7 +72,7 @@ namespace Microsoft.ML
                             idv => ctx.Evaluate(idv, label),
                             RegressionDelta,
                             features,
-                            numPermutations,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -127,7 +127,7 @@ namespace Microsoft.ML
         /// <param name="features">Feature column names.</param>
         /// <param name="useFeatureWeightFilter">Use features weight to pre-filter features.</param>
         /// <param name="topExamples">Limit the number of examples to evaluate on. null means examples (up to ~ 2 bln) from input will be used.</param>
-        /// <param name="numPermutations">The number of permutations to perform.</param>
+        /// <param name="permutationCount">The number of permutations to perform.</param>
         /// <returns>Array of per-feature 'contributions' to the score.</returns>
         public static ImmutableArray<BinaryClassificationMetricsStatistics>
             PermutationFeatureImportance(
@@ -138,7 +138,7 @@ namespace Microsoft.ML
                 string features = DefaultColumnNames.Features,
                 bool useFeatureWeightFilter = false,
                 int? topExamples = null,
-                int numPermutations = 1)
+                int permutationCount = 1)
         {
             return PermutationFeatureImportance<BinaryClassificationMetrics, BinaryClassificationMetricsStatistics>.GetImportanceMetricsMatrix(
                             CatalogUtils.GetEnvironment(ctx),
@@ -147,7 +147,7 @@ namespace Microsoft.ML
                             idv => ctx.Evaluate(idv, label),
                             BinaryClassifierDelta,
                             features,
-                            numPermutations,
+                            permutationCount,
                             useFeatureWeightFilter,
                             topExamples);
         }
@@ -167,15 +167,57 @@ namespace Microsoft.ML
         }
     }
 
-    public sealed class SimpleStatistics
+    public sealed class MetricStatistics
     {
-        public readonly double Mean;
-        public readonly double StandardDeviation;
+        /// <summary>
+        /// Get the mean value for the metric
+        /// </summary>
+        public double Mean => _statistic.Mean;
 
-        public SimpleStatistics(double mean, double standardDeviation)
+        /// <summary>
+        /// Get the standard deviation for the metric
+        /// </summary>
+        public double StandardDeviation => ComputeStandardDeviation();
+
+        /// <summary>
+        /// Get the standard error of the mean for the metric
+        /// </summary>
+        public double StandardError => ComputeStandardError();
+
+        private SummaryStatistics _statistic;
+
+        internal MetricStatistics()
         {
-            Mean = mean;
-            StandardDeviation = standardDeviation;
+            _statistic = new SummaryStatistics();
+        }
+
+        /// <summary>
+        /// Add another metric
+        /// </summary>
+        /// <param name="metric">The metric being accumulated</param>
+        internal void Add(double metric)
+        {
+            _statistic.Add(metric);
+        }
+
+        private double ComputeStandardDeviation()
+        {
+            double standardDeviation = 0;
+            // Protect against a divid-by-zero
+            if (_statistic.RawCount > 2)
+                standardDeviation = _statistic.SampleStdDev;
+
+            return standardDeviation;
+        }
+
+        private double ComputeStandardError()
+        {
+            double standardError = 0;
+            // Protect against a divid-by-zero
+            if (_statistic.RawCount > 2)
+                standardError = _statistic.StandardErrorMean;
+
+            return standardError;
         }
     }
 
@@ -185,16 +227,6 @@ namespace Microsoft.ML
         }
 
         public abstract void Add(T metrics);
-
-        internal SimpleStatistics GetStatistics(SummaryStatistics summaryStatistics)
-        {
-            double standardDeviation = 0;
-            // Protect against a divid-by-zero
-            if (summaryStatistics.RawCount > 2)
-                standardDeviation = summaryStatistics.SampleStdDev;
-
-            return new SimpleStatistics(summaryStatistics.Mean, standardDeviation);
-        }
     }
 
     public sealed class RegressionMetricsStatistics : MetricsStatisticsBase<RegressionMetrics>
@@ -202,53 +234,44 @@ namespace Microsoft.ML
         /// <summary>
         /// Summary Statistics for L1
         /// </summary>
-        public SimpleStatistics L1 => GetStatistics(_l1);
-        private SummaryStatistics _l1;
+        public MetricStatistics L1 { get; }
 
         /// <summary>
         /// Summary Statistics for L2
         /// </summary>
-        public SimpleStatistics L2 => GetStatistics(_l2);
-
-        private SummaryStatistics _l2;
+        public MetricStatistics L2 { get; }
 
         /// <summary>
         /// Summary statistics for the root mean square loss (or RMS).
         /// </summary>
-        public SimpleStatistics Rms => GetStatistics(_rms);
-
-        private SummaryStatistics _rms;
+        public MetricStatistics Rms { get; }
 
         /// <summary>
         /// Summary statistics for the user-supplied loss function.
         /// </summary>
-        public SimpleStatistics LossFn => GetStatistics(_lossFn);
-
-        private SummaryStatistics _lossFn;
+        public MetricStatistics LossFn { get; }
 
         /// <summary>
         /// Summary statistics for the R squared value.
         /// </summary>
-        public SimpleStatistics RSquared => GetStatistics(_rSquared);
-
-        private SummaryStatistics _rSquared;
+        public MetricStatistics RSquared { get; }
 
         public RegressionMetricsStatistics()
         {
-            _l1 = new SummaryStatistics();
-            _l2 = new SummaryStatistics();
-            _rms = new SummaryStatistics();
-            _lossFn = new SummaryStatistics();
-            _rSquared = new SummaryStatistics();
+            L1 = new MetricStatistics();
+            L2 = new MetricStatistics();
+            Rms = new MetricStatistics();
+            LossFn = new MetricStatistics();
+            RSquared = new MetricStatistics();
         }
 
         public override void Add(RegressionMetrics metrics)
         {
-            _l1.Add(metrics.L1);
-            _l2.Add(metrics.L2);
-            _rms.Add(metrics.Rms);
-            _lossFn.Add(metrics.LossFn);
-            _rSquared.Add(metrics.RSquared);
+            L1.Add(metrics.L1);
+            L2.Add(metrics.L2);
+            Rms.Add(metrics.Rms);
+            LossFn.Add(metrics.LossFn);
+            RSquared.Add(metrics.RSquared);
         }
     }
 
@@ -257,80 +280,65 @@ namespace Microsoft.ML
         /// <summary>
         /// Summary Statistics for L1
         /// </summary>
-        public SimpleStatistics Auc => GetStatistics(_auc);
-        private SummaryStatistics _auc;
+        public MetricStatistics Auc { get; }
 
         /// <summary>
         /// Summary Statistics for L2
         /// </summary>
-        public SimpleStatistics Accuracy => GetStatistics(_accuracy);
-
-        private SummaryStatistics _accuracy;
+        public MetricStatistics Accuracy { get; }
 
         /// <summary>
         /// Summary statistics for the root mean square loss (or RMS).
         /// </summary>
-        public SimpleStatistics PositivePrecision => GetStatistics(_positivePrecision);
-
-        private SummaryStatistics _positivePrecision;
+        public MetricStatistics PositivePrecision { get; }
 
         /// <summary>
         /// Summary statistics for the user-supplied loss function.
         /// </summary>
-        public SimpleStatistics PositiveRecall => GetStatistics(_positiveRecall);
-
-        private SummaryStatistics _positiveRecall;
+        public MetricStatistics PositiveRecall { get; }
 
         /// <summary>
         /// Summary statistics for the R squared value.
         /// </summary>
-        public SimpleStatistics NegativePrecision => GetStatistics(_negativePrecision);
-
-        private SummaryStatistics _negativePrecision;
+        public MetricStatistics NegativePrecision { get; }
 
         /// <summary>
         /// Summary statistics for the R squared value.
         /// </summary>
-        public SimpleStatistics NegativeRecall => GetStatistics(_negativeRecall);
-
-        private SummaryStatistics _negativeRecall;
+        public MetricStatistics NegativeRecall { get; }
 
         /// <summary>
         /// Summary statistics for the R squared value.
         /// </summary>
-        public SimpleStatistics F1Score => GetStatistics(_f1Score);
-
-        private SummaryStatistics _f1Score;
+        public MetricStatistics F1Score { get; }
 
         /// <summary>
         /// Summary statistics for the R squared value.
         /// </summary>
-        public SimpleStatistics Auprc => GetStatistics(_auprc);
-
-        private SummaryStatistics _auprc;
+        public MetricStatistics Auprc { get; }
 
         public BinaryClassificationMetricsStatistics()
         {
-            _auc = new SummaryStatistics();
-            _accuracy = new SummaryStatistics();
-            _positivePrecision = new SummaryStatistics();
-            _positiveRecall = new SummaryStatistics();
-            _negativePrecision = new SummaryStatistics();
-            _negativeRecall = new SummaryStatistics();
-            _f1Score = new SummaryStatistics();
-            _auprc = new SummaryStatistics();
+            Auc = new MetricStatistics();
+            Accuracy = new MetricStatistics();
+            PositivePrecision = new MetricStatistics();
+            PositiveRecall = new MetricStatistics();
+            NegativePrecision = new MetricStatistics();
+            NegativeRecall = new MetricStatistics();
+            F1Score = new MetricStatistics();
+            Auprc = new MetricStatistics();
         }
 
         public override void Add(BinaryClassificationMetrics metrics)
         {
-            _auc.Add(metrics.Auc);
-            _accuracy.Add(metrics.Accuracy);
-            _positivePrecision.Add(metrics.PositivePrecision);
-            _positiveRecall.Add(metrics.PositiveRecall);
-            _negativePrecision.Add(metrics.NegativePrecision);
-            _negativeRecall.Add(metrics.NegativeRecall);
-            _f1Score.Add(metrics.F1Score);
-            _auprc.Add(metrics.Auprc);
+            Auc.Add(metrics.Auc);
+            Accuracy.Add(metrics.Accuracy);
+            PositivePrecision.Add(metrics.PositivePrecision);
+            PositiveRecall.Add(metrics.PositiveRecall);
+            NegativePrecision.Add(metrics.NegativePrecision);
+            NegativeRecall.Add(metrics.NegativeRecall);
+            F1Score.Add(metrics.F1Score);
+            Auprc.Add(metrics.Auprc);
         }
     }
 }
