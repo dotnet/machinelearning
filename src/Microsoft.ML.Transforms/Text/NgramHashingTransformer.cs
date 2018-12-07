@@ -375,7 +375,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     Action disp;
                     // We create mapper getters on top of input cursor
-                    var del = mapper.CreateGetters(rowCursor, columnWithInvertHash.Contains, out disp);
+                    var del = (mapper as IRowMapper).CreateGetters(rowCursor, columnWithInvertHash.Contains, out disp);
                     var valueGetters = new ValueGetter<VBuffer<float>>[columnWithInvertHash.Count];
                     for (int i = 0; i < columnWithInvertHash.Count; i++)
                         valueGetters[i] = del[i] as ValueGetter<VBuffer<float>>;
@@ -474,7 +474,7 @@ namespace Microsoft.ML.Transforms.Text
             return new NgramHashingTransformer(host, ctx);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
+        private protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
         private sealed class Mapper : MapperBase
         {
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Transforms.Text
                 return del;
             }
 
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 for (int i = 0; i < _srcIndices.Length; i++)
@@ -1121,7 +1121,7 @@ namespace Microsoft.ML.Transforms.Text
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            var result = inputSchema.ToDictionary(x => x.Name);
             foreach (var colInfo in _columns)
             {
                 foreach (var input in colInfo.Inputs)
