@@ -99,7 +99,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input column is a vector.</param>
             public ColumnInfo(string input, string output = null, bool bag = KeyToVectorMappingEstimator.Defaults.Bag)
             {

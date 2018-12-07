@@ -11,8 +11,6 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using System;
@@ -185,7 +183,7 @@ namespace Microsoft.ML.Transforms.Categorical
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="outputKind">Output kind: Bag (multi-set vector), Ind (indicator vector), Key (index), or Binary encoded indicator vector.</param>
             /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
             /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.

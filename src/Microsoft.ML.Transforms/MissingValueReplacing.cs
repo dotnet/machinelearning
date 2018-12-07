@@ -195,7 +195,7 @@ namespace Microsoft.ML.Transforms
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="replacementMode">What to replace the missing value with.</param>
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,

@@ -176,7 +176,7 @@ namespace Microsoft.ML.Transforms.Conversions
             /// Describes how the transformer handles one column pair.
             /// </summary>
             /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced. </param>
+            /// <param name="output">Name of the column resulting from the transformation of <paramref name="input"/>. Null means <paramref name="input"/> is replaced.</param>
             /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
             /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
             /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
