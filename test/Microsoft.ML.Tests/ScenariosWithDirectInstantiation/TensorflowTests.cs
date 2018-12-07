@@ -257,18 +257,15 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(
-                new TextLoader.Arguments()
-                {
-                    Separator = "tab",
-                    HasHeader = true,
-                    Column = new[]
+            var reader = mlContext.Data.CreateTextReader(
+                    columns: new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
 
-                    }
-                });
+                    },
+                    hasHeader: true
+                );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -303,17 +300,12 @@ namespace Microsoft.ML.Scenarios
             try
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
-                var reader = mlContext.Data.TextReader(
-                    new TextLoader.Arguments
-                    {
-                        Separator = "tab",
-                        HasHeader = false,
-                        Column = new[]
+                var reader = mlContext.Data.CreateTextReader(columns: new[]
                         {
                             new TextLoader.Column("Label", DataKind.I8, 0),
                             new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                         }
-                    });
+                    );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
                 var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -398,17 +390,13 @@ namespace Microsoft.ML.Scenarios
             {
                 var mlContext = new MLContext(seed: 1, conc: 1);
 
-                var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-                {
-                    Separator = "tab",
-                    HasHeader = false,
-                    Column = new[]
+                var reader = mlContext.Data.CreateTextReader(new[]
                     {
                         new TextLoader.Column("Label", DataKind.U4, new []{ new TextLoader.Range(0) }, new KeyRange(0, 9)),
                         new TextLoader.Column("TfLabel", DataKind.I8, 0),
                         new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
                     }
-                });
+                );
 
                 var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
                 var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -491,16 +479,13 @@ namespace Microsoft.ML.Scenarios
             // of predicted label of a single in-memory example.
 
             var mlContext = new MLContext(seed: 1, conc: 1);
-            var reader = mlContext.Data.TextReader(new TextLoader.Arguments
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
+            var reader = mlContext.Data.CreateTextReader(columns: new[]
                 {
                     new TextLoader.Column("Label", DataKind.U4 , new [] { new TextLoader.Range(0) }, new KeyRange(0, 9)),
                     new TextLoader.Column("Placeholder", DataKind.R4, new []{ new TextLoader.Range(1, 784) })
-                }
-            });
+                },
+                hasHeader: true
+            );
 
             var trainData = reader.Read(GetDataPath(TestDatasets.mnistTiny28.trainFilename));
             var testData = reader.Read(GetDataPath(TestDatasets.mnistOneClass.testFilename));
@@ -625,14 +610,13 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
-                {
+            var data = mlContext.Data.ReadFromTextFile(dataFile,
+                    columns: new[]
+                    {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                    } 
+                );
 
             var pipeEstimator = new ImageLoadingEstimator(mlContext, imageFolder, ("ImagePath", "ImageReal"))
                 .Append(new ImageResizingEstimator(mlContext, "ImageReal", "ImageCropped", imageWidth, imageHeight))
@@ -673,14 +657,12 @@ namespace Microsoft.ML.Scenarios
 
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
+            var data = mlContext.Data.ReadFromTextFile(dataFile, columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                }
+            );
             var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]
@@ -732,14 +714,13 @@ namespace Microsoft.ML.Scenarios
             var imageWidth = 28;
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
-            var data = TextLoader.Create(mlContext, new TextLoader.Arguments()
-            {
-                Column = new[]
+            var data = mlContext.Data.ReadFromTextFile(dataFile, 
+                columns: new[]
                 {
                         new TextLoader.Column("ImagePath", DataKind.TX, 0),
                         new TextLoader.Column("Name", DataKind.TX, 1),
-                    }
-            }, new MultiFileSource(dataFile));
+                }
+            );
             var images = ImageLoaderTransform.Create(mlContext, new ImageLoaderTransform.Arguments()
             {
                 Column = new ImageLoaderTransform.Column[1]

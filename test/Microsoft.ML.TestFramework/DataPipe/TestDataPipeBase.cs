@@ -438,7 +438,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            var loadedData = ML.Data.ReadFromTextFile(pathData);
             if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 

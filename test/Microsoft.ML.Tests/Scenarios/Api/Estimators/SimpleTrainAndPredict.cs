@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_SimpleTrainAndPredict()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var reader = ml.Data.CreateTextReader(MakeSentimentColumns(), hasHeader: true);
             var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")

@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_IntrospectiveTraining()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+            var data = ml.Data.CreateTextReader(MakeSentimentColumns(), hasHeader: true)
                 .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
