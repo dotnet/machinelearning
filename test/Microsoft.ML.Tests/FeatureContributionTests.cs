@@ -74,12 +74,12 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var args = new FeatureContributionCalculationTransform.Arguments()
+            var args = new FeatureContributionCalculatingTransformer.Arguments()
             {
                 Bottom = 10,
                 Top = 10
             };
-            var output = new FeatureContributionCalculationTransform(Env, args, model.FeatureColumn, model.Model).Transform(data);
+            var output = new FeatureContributionCalculatingTransformer(Env, model.Model, model.FeatureColumn, args).Transform(data);
 
             // Get prediction scores and contributions
             var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
