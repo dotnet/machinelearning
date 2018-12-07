@@ -210,7 +210,7 @@ namespace Microsoft.ML.Transforms
 
             public Schema AsSchema { get; }
 
-            public GroupSchema(IExceptionContext ectx, ISchema inputSchema, string[] groupColumns, string[] keepColumns)
+            public GroupSchema(IExceptionContext ectx, Schema inputSchema, string[] groupColumns, string[] keepColumns)
             {
                 Contracts.AssertValue(ectx);
                 _ectx = ectx;

@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Else, if the user name equals the default name return null.
         /// Else, throw an error.
         /// </summary>
-        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, ISchema schema, string argName, string userName, string defaultName)
+        public static string MatchNameOrDefaultOrNull(IExceptionContext ectx, Schema schema, string argName, string userName, string defaultName)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));

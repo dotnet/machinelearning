@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     [BestFriend]
     internal static class LearnerEntryPointsUtils
     {
-        public static string FindColumn(IExceptionContext ectx, ISchema schema, Optional<string> value)
+        public static string FindColumn(IExceptionContext ectx, Schema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));
