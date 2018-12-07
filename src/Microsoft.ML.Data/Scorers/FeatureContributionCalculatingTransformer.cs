@@ -164,7 +164,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.Writer.WriteBoolByte(_stringify);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema)
+        private protected override IRowMapper MakeRowMapper(Schema schema)
             => new Mapper(this, schema);
 
         private class Mapper : MapperBase
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Returns the input columns needed for the requested output columns.
             /// </summary>
-            public override Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
+            private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
                 InputSchema.TryGetColumnIndex(_parent._features, out int featureCol);
@@ -233,17 +233,15 @@ namespace Microsoft.ML.Runtime.Data
                 return result.ToArray();
             }
 
-            protected Delegate GetScoreGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected Delegate GetScoreGetter(Row input, int iinfo, Func<int, bool> active)
             {
-                var genericRow = _genericRowMapper.GetRow(input, col => activeOutput(col), out disposer);
+                var genericRow = _genericRowMapper.GetRow(input, col => active(col));
                 return RowCursorUtils.GetGetterAsDelegate(genericRow, iinfo);
             }
 
-            protected Delegate GetFeatureContributionGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected Delegate GetFeatureContributionGetter(Row input, int iinfo, Func<int, bool> active)
             {
-                disposer = null;
-
-                if (activeOutput(iinfo))
+                if (active(iinfo))
                 {
                     return _bindableMapper.Stringify
                         ? _bindableMapper.GetTextContributionGetter(input, _roleMappedSchema.Feature.Index, _slotNames)
@@ -252,12 +250,13 @@ namespace Microsoft.ML.Runtime.Data
                 return null;
             }
 
-            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> activeOutput, out Action disposer)
+            protected override Delegate MakeGetter(Row input, int iinfo, Func<int, bool> active, out Action disposer)
             {
+                disposer = null;
                 if (iinfo < _outputGenericSchema.ColumnCount)
-                    return GetScoreGetter(input, iinfo, activeOutput, out disposer);
+                    return GetScoreGetter(input, iinfo, active);
                 else
-                    return GetFeatureContributionGetter(input, iinfo, activeOutput, out disposer);
+                    return GetFeatureContributionGetter(input, iinfo, active);
             }
         }
 
@@ -509,8 +508,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 if (parent.Stringify)
                 {
-                    outputSchema = new SimpleSchema(_env,
-                        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
+                    var builder = new SchemaBuilder();
+                    builder.AddColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, null);
+                    outputSchema = builder.GetSchema();
                 }
                 else
                 {
@@ -621,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToList();
+            var result = inputSchema.ToDictionary(x => x.Name);
 
             if (!inputSchema.TryFindColumn(_features, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _features);
@@ -632,21 +632,22 @@ namespace Microsoft.ML.Runtime.Data
 
             // TODO: How do we deal with multiclassScoreColumn? should also contain slotnames
             // Add Score column.
-            result.Add(new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())));
+            result[DefaultColumnNames.Score] = new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4,
+                false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()));
 
             // Add FeatureContributions column.
             if (_args.Stringify)
             {
-                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    TextType.Instance, false, new SchemaShape(metadata.ToArray())));
+                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
+                    TextType.Instance, false, new SchemaShape(metadata.ToArray()));
             }
             else
             {
-                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    col.ItemType, false, new SchemaShape(metadata.ToArray())));
+                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
+                    col.ItemType, false, new SchemaShape(metadata.ToArray()));
             }
 
-            return new SchemaShape(result.ToArray());
+            return new SchemaShape(result.Values);
         }
     }
 }
