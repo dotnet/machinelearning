@@ -67,6 +67,11 @@ namespace Microsoft.ML.Runtime.Data
         private const int MaxTopBottom = 1000;
 
         private readonly string _features;
+        private readonly int _topContributionsCount;
+        private readonly int _bottomContributionsCount;
+        private readonly bool _normalize;
+        private readonly bool _stringify;
+        private readonly IFeatureContributionMapper _predictor;
         private readonly FeatureContributionCalculationTransform.BindableMapper _mapper;
 
         private static VersionInfo GetVersionInfo()
@@ -94,8 +99,13 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
 
             // TODO check that the featues column is not empty.
-            _features = featuresColumn;
             _mapper = new FeatureContributionCalculationTransform.BindableMapper(Host, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
+            _features = featuresColumn;
+            _predictor = pred;
+            _stringify = args.Stringify;
+            _topContributionsCount = args.Top;
+            _bottomContributionsCount = args.Bottom;
+            _normalize = args.Normalize;
         }
 
         // Factory method for SignatureLoadModel
@@ -110,7 +120,15 @@ namespace Microsoft.ML.Runtime.Data
             // BindableMapper mapper
 
             _features = ctx.LoadNonEmptyString();
-            _mapper = new FeatureContributionCalculationTransform.BindableMapper(env, ctx);
+            ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out _predictor, ModelFileUtils.DirPredictor);
+            _topContributionsCount = ctx.Reader.ReadInt32();
+            Contracts.CheckDecode(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+            _bottomContributionsCount = ctx.Reader.ReadInt32();
+            Contracts.CheckDecode(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+            _normalize = ctx.Reader.ReadBoolByte();
+            _stringify = ctx.Reader.ReadBoolByte();
+
+            _mapper = new FeatureContributionCalculationTransform.BindableMapper(env, _predictor, _topContributionsCount, _bottomContributionsCount, _normalize, _stringify);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -127,7 +145,13 @@ namespace Microsoft.ML.Runtime.Data
             // BindableMapper mapper
 
             ctx.SaveNonEmptyString(_features);
-            _mapper.Save(ctx);
+            ctx.SaveModel(_predictor, ModelFileUtils.DirPredictor);
+            Contracts.Assert(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
+            ctx.Writer.Write(_topContributionsCount);
+            Contracts.Assert(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
+            ctx.Writer.Write(_bottomContributionsCount);
+            ctx.Writer.WriteBoolByte(_normalize);
+            ctx.Writer.WriteBoolByte(_stringify);
         }
 
         protected override IRowMapper MakeRowMapper(Schema schema)
