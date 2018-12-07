@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
@@ -13,7 +13,6 @@ using Microsoft.ML.TestFramework;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Conversions;
-using Microsoft.ML.Transforms.FeatureSelection;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;

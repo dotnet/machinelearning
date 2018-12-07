@@ -6,14 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="GeneratedCodeTemplate.csresource" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="GeneratedCodeTemplate.csresource" />
-  </ItemGroup>
-
-  <ItemGroup>
      <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
      <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
   </ItemGroup>

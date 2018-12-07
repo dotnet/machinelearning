@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A prediction engine class, that takes instances of <typeparamref name="TSrc"/> through

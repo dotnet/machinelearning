@@ -3,19 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Data;
 
 [assembly: LoadableClass(typeof(ITransformer), typeof(LambdaTransform), null, typeof(SignatureLoadModel), "", LambdaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Transforms
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 

@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// This class defines extension methods for an <see cref="IHostEnvironment"/> to facilitate creating

@@ -1,12 +1,10 @@
 ﻿using Microsoft.ML.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.ML.Samples.Dynamic
 {

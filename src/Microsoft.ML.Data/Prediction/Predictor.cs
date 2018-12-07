@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// An opaque 'holder' of the predictor, meant to insulate the user from the internal TLC predictor structure,

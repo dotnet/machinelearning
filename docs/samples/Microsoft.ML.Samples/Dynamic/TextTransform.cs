@@ -1,5 +1,5 @@
 ﻿using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Text;
 using System;

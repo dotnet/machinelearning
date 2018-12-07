@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// A class that runs the previously trained model (and the preceding transform pipeline) on the
