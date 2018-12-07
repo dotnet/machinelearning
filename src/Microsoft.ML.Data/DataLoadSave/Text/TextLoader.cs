@@ -1022,7 +1022,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static Arguments MakeArgs(Column[] columns, bool hasHeader, char[] separatorChars)
         {
-            separatorChars = separatorChars ?? new[] { '\t' };
+            Contracts.AssertValue(separatorChars);
             var result = new Arguments { Column = columns, HasHeader = hasHeader, SeparatorChars = separatorChars};
             return result;
         }
@@ -1315,6 +1315,12 @@ namespace Microsoft.ML.Runtime.Data
             => (IDataLoader)Create(env, ctx).Read(files);
         internal static IDataLoader Create(IHostEnvironment env, Arguments args, IMultiStreamSource files)
             => (IDataLoader)new TextLoader(env, args, files).Read(files);
+
+        /// <summary>
+        /// Convenience method to create a <see cref="TextLoader"/> and use it to read a specified file.
+        /// </summary>
+        internal static IDataView ReadFile(IHostEnvironment env, Arguments args, IMultiStreamSource fileSource)
+            => new TextLoader(env, args, fileSource).Read(fileSource);
 
         public void Save(ModelSaveContext ctx)
         {
