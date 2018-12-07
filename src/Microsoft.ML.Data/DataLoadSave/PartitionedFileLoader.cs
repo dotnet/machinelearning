@@ -329,7 +329,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                var schemas = new ISchema[]
+                var schemas = new Schema[]
                 {
                     subSchema,
                     colSchema

@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
-        /// needed. The domain of the function is defined over the indices of the columns of <see cref="ISchema.ColumnCount"/>
+        /// needed. The domain of the function is defined over the indices of the columns of <see cref="Schema.ColumnCount"/>
         /// for <see cref="InputSchema"/>.
         /// </summary>
         Func<int, bool> GetDependencies(Func<int, bool> predicate);

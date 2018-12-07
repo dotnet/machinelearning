@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected bool CheckMetadataTypes(ISchema sch)
+        protected bool CheckMetadataTypes(Schema sch)
         {
             var hs = new HashSet<string>();
             for (int col = 0; col < sch.ColumnCount; col++)
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckSameSchemas(ISchema sch1, ISchema sch2, bool exactTypes = true, bool keyNames = true)
+        protected bool CheckSameSchemas(Schema sch1, Schema sch2, bool exactTypes = true, bool keyNames = true)
         {
             if (sch1.ColumnCount != sch2.ColumnCount)
             {
@@ -603,7 +603,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
+        protected bool CheckMetadataNames(string kind, int size, Schema sch1, Schema sch2, int col, bool exactTypes, bool mustBeText)
         {
             var names1 = default(VBuffer<ReadOnlyMemory<char>>);
             var names2 = default(VBuffer<ReadOnlyMemory<char>>);
@@ -655,7 +655,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
+        protected bool CheckMetadataCallFailure(string kind, Schema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
