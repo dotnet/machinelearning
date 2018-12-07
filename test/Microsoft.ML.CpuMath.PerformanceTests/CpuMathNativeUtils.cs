@@ -13,6 +13,8 @@
 // * D suffix means convolution matrix, with implicit source padding.
 // * Tran means the matrix is transposed.
 
+using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Microsoft.ML.CpuMath.PerformanceTests
 {
