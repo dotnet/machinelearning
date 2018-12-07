@@ -13,6 +13,7 @@ namespace Microsoft.ML
 {
     public static class PermutationFeatureImportanceExtensions
     {
+        #region Regression
         /// <summary>
         /// Permutation Feature Importance (PFI) for Regression
         /// </summary>
@@ -84,7 +85,9 @@ namespace Microsoft.ML
                 lossFunction: a.LossFn - b.LossFn,
                 rSquared: a.RSquared - b.RSquared);
         }
+        #endregion
 
+        #region Binary Classification
         /// <summary>
         /// Permutation Feature Importance (PFI) for Binary Classification
         /// </summary>
@@ -160,6 +163,9 @@ namespace Microsoft.ML
                 auprc: a.Auprc - b.Auprc);
         }
 
+        #endregion Binary Classification
+
+        #region Multiclass Classification
         /// <summary>
         /// Permutation Feature Importance (PFI) for MulticlassClassification
         /// </summary>
@@ -224,14 +230,11 @@ namespace Microsoft.ML
         private static MultiClassClassifierMetrics MulticlassClassificationDelta(
             MultiClassClassifierMetrics a, MultiClassClassifierMetrics b)
         {
-            if (a.TopK != b.TopK || a.PerClassLogLoss.Length != b.PerClassLogLoss.Length)
-                throw new ArgumentException($"Can't compare {nameof(MultiClassClassifierMetrics)} with different class counts or TopK.");
+            if (a.TopK != b.TopK)
+                Contracts.Assert(a.TopK== b.TopK, "TopK to compare must be the same length.");
 
-            var perClassLogLoss = new double[a.PerClassLogLoss.Length];
-            for (int i = 0; i < perClassLogLoss.Length; i++)
-                perClassLogLoss[i] = a.PerClassLogLoss[i] - b.PerClassLogLoss[i];
+            var perClassLogLoss = ComputeArrayDeltas(a.PerClassLogLoss, b.PerClassLogLoss);
 
-            //perClassLogLoss.CopyTo(PerClassLogLoss, 0);
             return new MultiClassClassifierMetrics(
                 accuracyMicro: a.AccuracyMicro - b.AccuracyMicro,
                 accuracyMacro: a.AccuracyMacro - b.AccuracyMacro,
@@ -243,6 +246,9 @@ namespace Microsoft.ML
                 );
         }
 
+        #endregion
+
+        #region Ranking
         /// <summary>
         /// Permutation Feature Importance (PFI) for Ranking
         /// </summary>
@@ -309,19 +315,15 @@ namespace Microsoft.ML
         private static RankerMetrics RankingDelta(
             RankerMetrics a, RankerMetrics b)
         {
-            if (a.Dcg.Length!= b.Dcg.Length || a.Ndcg.Length != b.Ndcg.Length)
-                throw new ArgumentException($"Can't compare {nameof(RankerMetrics)} with different DCG/NDCG Lengths.");
-
-            var dcg = new double[a.Dcg.Length];
-            for (int i = 0; i < a.Dcg.Length; i++)
-                dcg[i] = a.Dcg[i] - b.Dcg[i];
-
-            var ndcg = new double[a.Ndcg.Length];
-            for (int i = 0; i < a.Ndcg.Length; i++)
-                ndcg[i] = a.Ndcg[i] - b.Ndcg[i];
+            var dcg = ComputeArrayDeltas(a.Dcg, b.Dcg);
+            var ndcg = ComputeArrayDeltas(a.Ndcg, b.Ndcg);
 
             return new RankerMetrics(dcg: dcg, ndcg: ndcg);
         }
+
+        #endregion
+
+        #region Clustering
         /// <summary>
         /// Permutation Feature Importance (PFI) for Clustering
         /// </summary>
@@ -391,5 +393,21 @@ namespace Microsoft.ML
                 avgMinScore: a.AvgMinScore- b.AvgMinScore,
                 dbi: a.Dbi - b.Dbi);
         }
+
+        #endregion Clustering
+
+        #region Helpers
+
+        private static double[] ComputeArrayDeltas(double[] a, double[] b)
+        {
+            Contracts.Assert(a.Length == b.Length, "Arrays to compare must be of the same length.");
+
+            var delta = new double[a.Length];
+            for (int i = 0; i < a.Length; i++)
+                delta[i] = a[i] - b[i];
+            return delta;
+        }
+
+        #endregion
     }
 }

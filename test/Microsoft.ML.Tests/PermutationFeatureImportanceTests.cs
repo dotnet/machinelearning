@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.RunTests;
@@ -354,8 +355,7 @@ namespace Microsoft.ML.Tests
         /// </summary>
         private IDataView GetDenseDataset(TaskType task = TaskType.Regression)
         {
-            if (task == TaskType.Clustering)
-                throw new ArgumentException($"TaskType {nameof(TaskType.Clustering)} not supported.");
+            Contracts.Assert(task != TaskType.Clustering, $"TaskType {nameof(TaskType.Clustering)} not supported.");
 
             // Setup synthetic dataset.
             const int numberOfInstances = 1000;
