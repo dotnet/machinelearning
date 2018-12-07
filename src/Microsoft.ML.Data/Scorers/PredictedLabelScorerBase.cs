@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
             var predColType = getPredColType(scoreType, rowMapper);
 
             Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType);
-            OutputSchema = Schema.Create(Bindings);
+            OutputSchema = Bindings.Output;
         }
 
         protected PredictedLabelScorerBase(IHostEnvironment env, PredictedLabelScorerBase transform,
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, newSource, registrationName, transform.Bindable)
         {
             Bindings = transform.Bindings.ApplyToSchema(newSource.Schema, Bindable, env);
-            OutputSchema = Schema.Create(Bindings);
+            OutputSchema = Bindings.Output;
         }
 
         protected PredictedLabelScorerBase(IHost host, ModelLoadContext ctx, IDataView input,
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(getPredColType);
 
             Bindings = BindingsImpl.Create(ctx, input.Schema, host, Bindable, outputTypeMatches, getPredColType);
-            OutputSchema = Schema.Create(Bindings);
+            OutputSchema = Bindings.Output;
         }
 
         protected override void SaveCore(ModelSaveContext ctx)

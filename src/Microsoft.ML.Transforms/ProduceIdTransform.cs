@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public Bindings(ISchema input, bool user, string name)
+            public Bindings(Schema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Transforms
                 return NumberType.UG;
             }
 
-            public static Bindings Create(ModelLoadContext ctx, ISchema input)
+            public static Bindings Create(ModelLoadContext ctx, Schema input)
             {
                 Contracts.AssertValue(ctx);
                 Contracts.AssertValue(input);
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Transforms
 
         private readonly Bindings _bindings;
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.Output;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Transforms
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.Output;
 
             public Cursor(IChannelProvider provider, Bindings bindings, RowCursor input, bool active)
                 : base(provider, input)

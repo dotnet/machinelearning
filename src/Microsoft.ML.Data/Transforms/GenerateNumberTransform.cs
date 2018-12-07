@@ -318,7 +318,7 @@ namespace Microsoft.ML.Transforms
             _bindings.Save(ctx);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.Output;
 
         public override bool CanShuffle { get { return false; } }
 
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.Output;
 
             public override bool IsColumnActive(int col)
             {

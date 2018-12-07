@@ -616,7 +616,7 @@ namespace Microsoft.ML.Transforms.Text
             Host.Assert(icol >= 0);
         }
 
-        public override Schema OutputSchema => _bindings.AsSchema;
+        public override Schema OutputSchema => _bindings.Output;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -734,7 +734,7 @@ namespace Microsoft.ML.Transforms.Text
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.Output;
 
             public Cursor(NgramHashingTransformer parent, RowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)

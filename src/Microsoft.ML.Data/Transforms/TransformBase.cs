@@ -639,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data
         private protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override Schema OutputSchema => _bindings.AsSchema;
+        public sealed override Schema OutputSchema => _bindings.Output;
 
         public ITransposeSchema TransposeSchema => _bindings;
 
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose(disposing);
             }
 
-            public override Schema Schema => _bindings.AsSchema;
+            public override Schema Schema => _bindings.Output;
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)
             {

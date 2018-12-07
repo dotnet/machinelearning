@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly int ScoreIndex;
             public readonly int GroupIndex;
 
-            protected BindingsBase(IExceptionContext ectx, ISchema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
+            protected BindingsBase(IExceptionContext ectx, Schema input, string labelCol, string scoreCol, string groupCol, bool user, params string[] names)
                 : base(input, user, names)
             {
                 ectx.AssertNonWhiteSpace(labelCol);
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
 
         Schema IDataView.Schema => OutputSchema;
 
-        public Schema OutputSchema => GetBindings().AsSchema;
+        public Schema OutputSchema => GetBindings().Output;
 
         public IDataView Source { get; }
 

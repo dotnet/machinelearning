@@ -264,9 +264,11 @@ namespace Microsoft.ML.Runtime.Data
     /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
     /// at the end. By default, newly added columns have no metadata (but this can be overriden).
     /// </summary>
-    public abstract class ColumnBindingsBase : ISchema
+    public abstract class ColumnBindingsBase
     {
-        public readonly ISchema Input;
+        public readonly Schema Input;
+
+        public Schema Output => _outputGenerator.Value;
 
         // Mapping from name to index into Infos for the columns that we "generate".
         // Some of these might "hide" input columns.
@@ -282,17 +284,18 @@ namespace Microsoft.ML.Runtime.Data
         // index into Infos (for the columns that we "generate").
         private readonly int[] _colMap;
 
-        // Conversion to the eager schema.
-        private readonly Lazy<Schema> _convertedSchema;
-
-        public Schema AsSchema => _convertedSchema.Value;
+        // On-demand creator of output schema. We can't initialize output schema directly because
+        // necessary information is usually available after this class' constructor gets called. For example,
+        // only derived transform knows how to compute its own output types, so this class can't compute Output
+        // until derived transform's constructor finishes its job.
+        private readonly Lazy<Schema> _outputGenerator;
 
         /// <summary>
         /// Constructor that takes an input schema and adds no new columns.
         /// This is utilized by lambda transforms if the output happens to have no columns.
         /// </summary>
         /// <param name="input"></param>
-        protected ColumnBindingsBase(ISchema input)
+        protected ColumnBindingsBase(Schema input)
         {
             Contracts.CheckValue(input, nameof(input));
 
@@ -302,7 +305,33 @@ namespace Microsoft.ML.Runtime.Data
             _nameToInfoIndex = new Dictionary<string, int>();
             Contracts.Assert(_nameToInfoIndex.Count == _names.Length);
             ComputeColumnMapping(Input, _names, out _colMap, out _mapIinfoToCol);
-            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
+            _outputGenerator = new Lazy<Schema>(() => MakeOutputSchema(), LazyThreadSafetyMode.PublicationOnly);
+        }
+
+        private Schema MakeOutputSchema()
+        {
+            var builder = new SchemaBuilder();
+            for (int i = 0; i < ColumnCount; ++i)
+            {
+                var meta = new MetadataBuilder();
+                foreach (var kvp in GetMetadataTypes(i))
+                {
+                    var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, i, kvp.Key);
+                    meta.Add(kvp.Key, kvp.Value, getter);
+                }
+                builder.AddColumn(GetColumnName(i), GetColumnType(i), meta.GetMetadata());
+            }
+            return builder.GetSchema();
+        }
+
+        // Pack a getter as a delegate to a lambda function with state and a dynamic type parameter.
+        private Delegate GetMetadataGetterDelegate<TValue>(int col, string kind)
+        {
+            // REVIEW: We are facing a choice here: cache 'value' and get rid of 'schema' reference altogether,
+            // or retain the reference but be more memory efficient. This code should not stick around for too long
+            // anyway, so let's not sweat too much, and opt for the latter.
+            ValueGetter<TValue> getter = (ref TValue value) => GetMetadata(kind, col, ref value);
+            return getter;
         }
 
         /// <summary>
@@ -311,7 +340,7 @@ namespace Microsoft.ML.Runtime.Data
         /// in schemaInput. For error reporting, this assumes that the names come from a user-supplied
         /// parameter named "column". This takes ownership of the params array of names.
         /// </summary>
-        protected ColumnBindingsBase(ISchema input, bool user, params string[] names)
+        protected ColumnBindingsBase(Schema input, bool user, params string[] names)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(names, nameof(names));
@@ -351,56 +380,89 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(_nameToInfoIndex.Count == names.Length);
 
             ComputeColumnMapping(Input, names, out _colMap, out _mapIinfoToCol);
-            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
+            _outputGenerator = new Lazy<Schema>(() => MakeOutputSchema(), LazyThreadSafetyMode.PublicationOnly);
         }
 
         private static void ComputeColumnMapping(ISchema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)
         {
-            // To compute the column mapping information, first populate:
-            // * _colMap[src] with the ~ of the iinfo that hides src (zero for none).
-            // * _mapIinfoToCol[iinfo] with the ~ of the source column that iinfo hides (zero for none).
+            // colMap[i] returns "the thing" generating output column indexed by i.
+            // "The thing" is ~iinfo if colMap[i] < 0. Otherwise "the thing" is an column index in input schema.
             colMap = new int[input.ColumnCount + names.Length];
+            // Info index i produces the output column indexed by mapIinfoToCol[i].
             mapIinfoToCol = new int[names.Length];
+
+            // Iterate through all columns generated by the transform that this bindings object belongs to.
+            // If a generated column hides an input column (i.e., a generated column name matches an input column
+            // name), we indicate that
+            //  - _colMap[src] with the ~ of the iinfo that hides src (zero for none).
+            //  - _mapIinfoToCol[iinfo] with the ~ of the source column that iinfo hides (zero for none).
             for (int iinfo = 0; iinfo < names.Length; iinfo++)
             {
                 var name = names[iinfo];
                 int colHidden;
+                // If this transform produces a column name which conflicts with a column name in the input schema,
+                // the generated column hides that incoming column.
                 if (input.TryGetColumnIndex(name, out colHidden))
                 {
                     Contracts.Check(0 <= colHidden && colHidden < input.ColumnCount);
                     var str = input.GetColumnName(colHidden);
                     Contracts.Check(str == name);
                     Contracts.Check(colMap[colHidden] == 0);
+                    // Sementic: iinfo produces column colHidden because colHidden is hidden by iinfo's outcome.
                     mapIinfoToCol[iinfo] = ~colHidden;
+                    // Sementic: output column colHidden is considered as generated by iinfo after column-hidding.
                     colMap[colHidden] = ~iinfo;
                 }
             }
 
             // Now back-fill the column mapping.
             int colDst = colMap.Length;
+            // This loop scans through newly added columns not hidding input columns.
             for (int iinfo = names.Length; --iinfo >= 0;)
             {
                 Contracts.Assert(mapIinfoToCol[iinfo] <= 0);
+                // If mapIinfoToCol[iinfo] == 0, the info indexed by iinfo shouldn't hide anything, so the previous for-loop didn't create the connection
+                // between iinfo and an output column index.
                 if (mapIinfoToCol[iinfo] == 0)
                 {
-                    colMap[--colDst] = ~iinfo;
+                    // First colDst descreases by 1 for moving to the next unused output column. At the beginning of each iteration,
+                    // colDst is the index of the last used output column.
+                    --colDst;
+                    // Sementic: output column indexed by colDst is produced by info indexed by iinfo.
+                    colMap[colDst] = ~iinfo;
+                    // Sementic: this assignment means that iinfo generates output column indexed by colDst.
                     mapIinfoToCol[iinfo] = colDst;
                 }
             }
+            // This loop scans through input columns consumed by this transform.
+            // For each input column indexed by colSrc, an output may be produced.
+            // If the considered input column is hidden by iinfo, that iinfo will be
+            // used again to produce a new output column.
             for (int colSrc = input.ColumnCount; --colSrc >= 0;)
             {
                 Contracts.Assert(colMap[colSrc] <= 0);
                 if (colMap[colSrc] < 0)
                 {
+                    // colSrc is hidden by a column generated by a iinfo.
                     Contracts.Assert(colDst > 1);
+                    // The info index, iinfo, generates a column which hides input column indexed by colSrc
                     int iinfo = ~colMap[colSrc];
                     Contracts.Assert(0 <= iinfo && iinfo < names.Length);
                     Contracts.Assert(mapIinfoToCol[iinfo] == ~colSrc);
-                    colMap[--colDst] = ~iinfo;
+
+                    // colDst descreases by 1 for moving to the next unused output column. At the beginning of each iteration,
+                    // colDst is the index of the last used output column.
+                    --colDst;
+                    // Output columns indexed by colDst and colSrc are both produced by iinfo
+                    colMap[colDst] = ~iinfo;
+                    // Change mapIinfoToCol[iinfo] = ~colSrc to mapIinfoToCol[iinfo] = colDst.
                     mapIinfoToCol[iinfo] = colDst;
                 }
                 Contracts.Assert(colDst > 0);
-                colMap[--colDst] = colSrc;
+                // colDst descreases by 1 for moving to the next unused output column. At the beginning of each iteration,
+                // colDst is the index of the last used output column.
+                --colDst;
+                colMap[colDst] = colSrc;
             }
             Contracts.Assert(colDst == 0);
         }
