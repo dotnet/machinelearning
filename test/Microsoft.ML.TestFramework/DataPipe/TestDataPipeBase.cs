@@ -790,20 +790,6 @@ namespace Microsoft.ML.Runtime.RunTests
             public float Score;
         }
 
-        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
-        {
-            return new TextLoader.Arguments()
-            {
-                Separator = "tab",
-                HasHeader = true,
-                Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.BL, 0),
-                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                }
-            };
-        }
-
         protected bool Failed()
         {
             Contracts.Assert(!IsPassing);

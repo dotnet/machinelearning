@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var ml = new MLContext(seed: 1, conc: 1);
             // Pipeline.
-            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var reader = ml.Data.TextReader(TestDatasets.Sentiment.GetLoaderArgs());
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
             // Train the pipeline, prepare train and validation set.
