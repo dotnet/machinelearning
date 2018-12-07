@@ -143,12 +143,12 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OnlineGradientDescent().Fit(data);
-            var args = new FeatureContributionCalculationTransform.Arguments()
+            var args = new FeatureContributionCalculatingTransformer.Arguments()
             {
                 Bottom = 10,
                 Top = 10
             };
-            var est = new FeatureContributionCalculatingEstimator(Env, args, model.FeatureColumn, model.Model);
+            var est = new FeatureContributionCalculatingEstimator(Env, model.Model, model.FeatureColumn, args);
             TestEstimatorCore(est, data);
         }
     }

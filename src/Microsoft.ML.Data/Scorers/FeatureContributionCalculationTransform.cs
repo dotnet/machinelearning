@@ -63,9 +63,9 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Apparently, loader signature is limited in length to 24 characters.
-        //internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
-        //internal const string FriendlyName = "Feature Contribution Transform";
-        internal const string LoaderSignature = "FeatureContributionTransform";
+        internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
+        internal const string FriendlyName = "Feature Contribution Transform";
+        internal const string LoaderSignature = "FeatureContribution";
 
         internal const string MapperLoaderSignature = "WTFBindable";
         private const int MaxTopBottom = 1000;
@@ -100,9 +100,6 @@ namespace Microsoft.ML.Runtime.Data
                 throw env.Except($"Number of top contribution must be in range (0,{MaxTopBottom}]");
             if (args.Bottom <= 0 || args.Bottom > MaxTopBottom)
                 throw env.Except($"Number of bottom contribution must be in range (0,{MaxTopBottom}]");
-
-            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, features));
 
             _mapper = CreateBindableMapper(env, args, predictor);
             _features = features;
@@ -158,7 +155,6 @@ namespace Microsoft.ML.Runtime.Data
 
             var boundMapper = _mapper.Bind(_host, schema);
             return Create(_host, null, input, boundMapper, null);
-            //.ApplyToData(_host, input);
         }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
@@ -225,8 +221,13 @@ namespace Microsoft.ML.Runtime.Data
         private static ISchemaBindableMapper Create(IHostEnvironment env, ModelLoadContext ctx)
             => new BindableMapper(env, ctx);
 
+        //private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        //{
+
+        //}
+
         // TODO documentation... what is this? Can I put everything that is in here in the transformer, and eliminate this thing?
-        private sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
+        internal sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
             private readonly int _topContributionsCount;
             private readonly int _bottomContributionsCount;
@@ -599,77 +600,6 @@ namespace Microsoft.ML.Runtime.Data
                 else
                     throw MetadataUtils.ExceptGetMetadata();
             }
-        }
-    }
-
-    public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculationTransform>
-    {
-        private readonly FeatureContributionCalculationTransform.Arguments _arguments;
-        private readonly string _features;
-
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, FeatureContributionCalculationTransform.Arguments arguments, string features, IPredictor predictor)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculationTransform)), new FeatureContributionCalculationTransform(env, arguments, features, predictor))
-        {
-            // TODO argcheck?
-            _arguments = arguments;
-            _features = features;
-        }
-
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToList();
-            //foreach (var colPair in Transformer.Columns)
-            //{
-            //    if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
-            //        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
-            //    var metadata = new List<SchemaShape.Column>();
-            //    if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-            //        metadata.Add(slotMeta);
-            //    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-            //    ColumnType type = !col.ItemType.IsVector ? (ColumnType)BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
-            //    result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
-            //}
-
-            //if (parent.Stringify)
-            //{
-            //    _outputSchema = new SimpleSchema(_env,
-            //        new KeyValuePair<string, ColumnType>(DefaultColumnNames.FeatureContributions, TextType.Instance));
-            //    if (InputSchema.HasSlotNames(InputRoleMappedSchema.Feature.Index, InputRoleMappedSchema.Feature.Type.VectorSize))
-            //        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, InputRoleMappedSchema.Feature.Index,
-            //            ref _slotNames);
-            //    else
-            //        _slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(InputRoleMappedSchema.Feature.Type.VectorSize);
-            //}
-            //else
-            //{
-            //    _outputSchema = new FeatureContributionSchema(_env, DefaultColumnNames.FeatureContributions,
-            //        new VectorType(NumberType.R4, schema.Feature.Type.AsVector),
-            //        InputSchema, InputRoleMappedSchema.Feature.Index);
-            //}
-
-            if (!inputSchema.TryFindColumn(_features, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _features);
-            var metadata = new List<SchemaShape.Column>();
-            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                metadata.Add(slotMeta);
-
-            //public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
-            // TODO: add score column
-
-            // Add FeatureContributions column.
-            if (_arguments.Stringify)
-            {
-                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    TextType.Instance, false, new SchemaShape(metadata.ToArray())));
-            }
-            else
-            {
-                result.Add(new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    col.ItemType, false, new SchemaShape(metadata.ToArray())));
-            }
-
-            return new SchemaShape(result.ToArray());
         }
     }
 }
