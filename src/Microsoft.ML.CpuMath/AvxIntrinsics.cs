@@ -877,11 +877,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
                         Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + ((8 - misalignment) * 8));
 
-                        Vector256<float> temp = Avx.And(result, leadingMask);
-                        result = Avx.And(result, trailingMask);
+                        Vector256<float> temp = Avx.And(result, trailingMask);
+                        result = Avx.Multiply(scaleVector256, result);
 
-                        temp = Avx.Multiply(scaleVector256, temp);
-                        result = Avx.Or(temp, result);
+                        // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+                        result = Avx.And(result, leadingMask);
+                        result = Avx.Or(result, temp);
 
                         Avx.Store(pDstCurrent, result);
 
@@ -930,13 +931,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
                     Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + ((8 - remainder) * 8));
 
-                    Vector256<float> temp = Avx.And(result, trailingMask);
-                    result = Avx.And(result, leadingMask);
+                    Vector256<float> temp = Avx.And(result, leadingMask);
+                    result = Avx.Multiply(scaleVector256, result);
 
-                    temp = Avx.Multiply(scaleVector256, temp);
-                    temp = Avx.Or(temp, result);
+                    // Masking operation is done at the end to avoid doing an Or operation with negative Zero.
+                    result = Avx.And(result, trailingMask);
+                    result = Avx.Or(result, temp);
 
-                    Avx.Store(pDstCurrent, temp);
+                    Avx.Store(pDstCurrent, result);
                 }
             }
         }
