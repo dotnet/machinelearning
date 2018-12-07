@@ -221,9 +221,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private readonly IValueMapper _mapper;
         private readonly IFeatureContributionMapper _featureContribution;
 
-        public ColumnType InputType => _mapper.InputType;
-        public ColumnType OutputType => _mapper.OutputType;
-        public ColumnType DistType => NumberType.Float;
+        ColumnType IValueMapper.InputType => _mapper.InputType;
+        ColumnType IValueMapper.OutputType => _mapper.OutputType;
+        ColumnType IValueMapperDist.DistType => NumberType.Float;
         bool ICanSavePfa.CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
@@ -239,16 +239,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             _featureContribution = predictor as IFeatureContributionMapper;
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             return _mapper.GetMapper<TIn, TOut>();
         }
 
-        public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
+        ValueMapper<TIn, TOut, TDist> IValueMapperDist.GetMapper<TIn, TOut, TDist>()
         {
             Host.Check(typeof(TOut) == typeof(Float));
             Host.Check(typeof(TDist) == typeof(Float));
-            var map = GetMapper<TIn, Float>();
+            var map = ((IValueMapper)this).GetMapper<TIn, Float>();
             ValueMapper<TIn, Float, Float> del =
                 (in TIn src, ref Float score, ref Float prob) =>
                 {
