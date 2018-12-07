@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 
 // REVIEW: Do we really need all these names?
@@ -1090,7 +1091,7 @@ namespace Microsoft.ML.Trainers.FastTree
                     }));
             }
 
-            [DllImport("FastTreeNative", EntryPoint = "C_GetDerivatives", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+            [DllImport("FastTreeNative", EntryPoint = "C_GetDerivatives", CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
             private static extern unsafe void GetDerivatives(
                 int numDocuments, int begin, int* pPermutation, short* pLabels,
                 double* pScores, double* pLambdas, double* pWeights, double* pDiscount,

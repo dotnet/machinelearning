@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security;
 
 [assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -380,7 +381,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
         internal static class Mkl
         {
-            private const string DllName = "MklImports";
+            private const string MklPath = "MklImports";
 
             public enum Layout
             {
@@ -394,7 +395,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 Lo = (byte)'L'
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptrf")]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrf"), SuppressUnmanagedCodeSecurity]
             private static extern int PptrfInternal(Layout layout, UpLo uplo, int n, Double[] ap);
 
             /// <summary>
@@ -429,7 +430,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 }
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptrs")]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptrs"), SuppressUnmanagedCodeSecurity]
             private static extern int PptrsInternal(Layout layout, UpLo uplo, int n, int nrhs, Double[] ap, Double[] b, int ldb);
 
             /// <summary>
@@ -476,7 +477,7 @@ namespace Microsoft.ML.Trainers.HalLearners
 
             }
 
-            [DllImport(DllName, EntryPoint = "LAPACKE_dpptri")]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_dpptri"), SuppressUnmanagedCodeSecurity]
             private static extern int PptriInternal(Layout layout, UpLo uplo, int n, Double[] ap);
 
             /// <summary>

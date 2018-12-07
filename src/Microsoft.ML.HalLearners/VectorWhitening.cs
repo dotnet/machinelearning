@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 
 [assembly: LoadableClass(VectorWhiteningTransformer.Summary, typeof(IDataTransform), typeof(VectorWhiteningTransformer), typeof(VectorWhiteningTransformer.Arguments), typeof(SignatureDataTransform),
@@ -585,7 +586,7 @@ namespace Microsoft.ML.Transforms.Projections
 
         private static class Mkl
         {
-            private const string DllName = "MklImports";
+            private const string MklPath = "MklImports";
 
             // The allowed value of Layout is specified in Intel's MLK library. See Layout parameter in this
             // [doc](https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemm) for details.
@@ -624,17 +625,17 @@ namespace Microsoft.ML.Transforms.Projections
             }
 
             // See: https://software.intel.com/en-us/node/520750
-            [DllImport(DllName, EntryPoint = "cblas_sgemv")]
+            [DllImport(MklPath , CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemv"), SuppressUnmanagedCodeSecurity]
             private static unsafe extern void Gemv(Layout layout, Transpose trans, int m, int n, float alpha,
                 float* a, int lda, float* x, int incx, float beta, float* y, int incy);
 
             // See: https://software.intel.com/en-us/node/520775
-            [DllImport(DllName, EntryPoint = "cblas_sgemm")]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "cblas_sgemm"), SuppressUnmanagedCodeSecurity]
             public static extern void Gemm(Layout layout, Transpose transA, Transpose transB, int m, int n, int k, float alpha,
                 float[] a, int lda, float[] b, int ldb, float beta, float[] c, int ldc);
 
             // See: https://software.intel.com/en-us/node/521150
-            [DllImport(DllName, EntryPoint = "LAPACKE_sgesvd")]
+            [DllImport(MklPath, CallingConvention = CallingConvention.Cdecl, EntryPoint = "LAPACKE_sgesvd"), SuppressUnmanagedCodeSecurity]
             public static extern int Svd(Layout layout, SvdJob jobu, SvdJob jobvt,
                 int m, int n, float[] a, int lda, float[] s, float[] u, int ldu, float[] vt, int ldvt, float[] superb);
         }
