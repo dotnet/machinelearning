@@ -32,11 +32,14 @@ if(WIN32)
     add_compile_options(/FC) # use full pathnames in diagnostics
     add_compile_options(/DEBUG)
     add_compile_options(/GS)
-    add_compile_options(/Gz)
     add_compile_options(/W1)
     add_compile_options(/Zc:inline)
     add_compile_options(/fp:precise)
     add_compile_options(/EHsc)
+
+    if ($ENV{__BuildArch} STREQUAL "x86")
+        add_compile_options(/Gz)
+    endif ()
 
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LARGEADDRESSAWARE") # can handle addresses larger than 2 gigabytes
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG")
