@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             var ml = new MLContext();
 
-            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
+            var data = ml.Data.CreateTextReader(MakeIrisColumns(), separatorChar: ',')
                     .Read(dataPath);
 
             var pipeline = new ColumnConcatenatingEstimator (ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
             var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(ml);
 
-            var testLoader = TextLoader.ReadFile(ml, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+            var testLoader = ml.Data.ReadFromTextFile(dataPath, MakeIrisColumns(), separatorChar: ',');
             var testData = testLoader.AsEnumerable<IrisData>(ml, false);
             foreach (var input in testData.Take(20))
             {

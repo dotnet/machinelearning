@@ -98,9 +98,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary> The predictor's bias term.</summary>
         public Float Bias { get; protected set; }
 
-        public ColumnType InputType { get; }
-
-        public ColumnType OutputType => NumberType.Float;
+        private readonly ColumnType _inputType;
 
         bool ICanSavePfa.CanSavePfa => true;
 
@@ -122,7 +120,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Weight = weights;
             Bias = bias;
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
 
             if (Weight.IsDense)
                 _weightsDense = Weight;
@@ -177,7 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
             else
                 Weight = new VBuffer<Float>(len, Utils.Size(weights), weights, indices);
 
-            InputType = new VectorType(NumberType.Float, Weight.Length);
+            _inputType = new VectorType(NumberType.Float, Weight.Length);
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
             if (Weight.IsDense)
@@ -186,7 +184,8 @@ namespace Microsoft.ML.Runtime.Learners
                 _weightsDenseLock = new object();
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -284,7 +283,17 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ColumnType IValueMapper.InputType
+        {
+            get { return _inputType; }
+        }
+
+        ColumnType IValueMapper.OutputType
+        {
+            get { return NumberType.Float; }
+        }
+
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TOut) == typeof(Float));
@@ -327,7 +336,7 @@ namespace Microsoft.ML.Runtime.Learners
             bias /= models.Count;
         }
 
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
@@ -451,7 +460,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new SchemaBindableCalibratedPredictor(env, predictor, calibrator);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             // *** Binary format ***
             // (Base class)
@@ -602,7 +611,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -678,7 +687,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PoissonRegressionPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

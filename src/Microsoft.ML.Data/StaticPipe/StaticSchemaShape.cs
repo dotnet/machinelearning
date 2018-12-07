@@ -113,7 +113,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
         private static Type GetTypeOrNull(SchemaShape.Column col)
         {
-            Contracts.AssertValue(col);
+            Contracts.Assert(col.IsValid);
 
             Type vecType = null;
 

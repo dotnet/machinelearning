@@ -50,14 +50,14 @@ namespace Microsoft.ML.Runtime.Data
             _state = CursorState.NotStarted;
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (State != CursorState.Done)
-            {
+            if (State == CursorState.Done)
+                return;
+            if (disposing)
                 Ch.Dispose();
-                _position = -1;
-                _state = CursorState.Done;
-            }
+            _position = -1;
+            _state = CursorState.Done;
         }
 
         public sealed override bool MoveNext()

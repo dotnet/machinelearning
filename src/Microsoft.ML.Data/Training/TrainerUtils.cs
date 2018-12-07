@@ -366,7 +366,7 @@ namespace Microsoft.ML.Runtime.Training
         public static SchemaShape.Column MakeU4ScalarColumn(string columnName)
         {
             if (columnName == null)
-                return null;
+                return default;
 
             return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
         }
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Training
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
         {
             if (weightColumn == null || !isExplicit)
-                return null;
+                return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
     }

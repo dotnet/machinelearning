@@ -26,11 +26,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void New_MultithreadedPrediction()
         {
             var ml = new MLContext(seed: 1, conc: 1);
-            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var reader = ml.Data.CreateTextReader(MakeSentimentColumns(), hasHeader: true);
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Pipeline.
             var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .AppendCacheCheckpoint(ml)
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent("Label", "Features", advancedSettings: s => s.NumThreads = 1));
 
             // Train.

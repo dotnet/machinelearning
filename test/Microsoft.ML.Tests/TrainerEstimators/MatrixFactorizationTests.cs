@@ -379,7 +379,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             // factorization problem, unspecified matrix elements are all a constant provided by user. If that constant is 0.15,
             // the following list means a 3-by-2 training matrix with elements:
             //   (0, 0, 1), (1, 1, 1), (0, 2, 1), (0, 1, 0.15), (1, 0, 0.15), (1, 2, 0.15).
-            // because matrix elements at (0, 1), (1, 0), and (1, 2) are not specified.
+            // because matrix elements at (0, 1), (1, 0), and (1, 2) are not specified. Below is a visualization of the training matrix.
+            //   [1, ?]
+            //   |?, 1| where ? will be set to 0.15 by user when creating the trainer.
+            //   [1, ?]
             var dataMatrix = new List<OneClassMatrixElementZeroBased>();
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 0, MatrixRowIndex = 0, Value = 1 });
             dataMatrix.Add(new OneClassMatrixElementZeroBased() { MatrixColumnIndex = 1, MatrixRowIndex = 1, Value = 1 });

@@ -30,22 +30,22 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             _env = env;
             _shape = inputShape;
-            _colMap = Enumerable.Range(0, _shape.Columns.Length)
-                .ToDictionary(idx => _shape.Columns[idx].Name, idx => idx);
+            _colMap = Enumerable.Range(0, _shape.Count)
+                .ToDictionary(idx => _shape[idx].Name, idx => idx);
         }
 
-        public int ColumnCount => _shape.Columns.Length;
+        public int ColumnCount => _shape.Count;
 
         public string GetColumnName(int col)
         {
             _env.Check(0 <= col && col < ColumnCount);
-            return _shape.Columns[col].Name;
+            return _shape[col].Name;
         }
 
         public ColumnType GetColumnType(int col)
         {
             _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape.Columns[col];
+            var inputCol = _shape[col];
             return MakeColumnType(inputCol);
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Data.DataLoadSave
         public void GetMetadata<TValue>(string kind, int col, ref TValue value)
         {
             _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape.Columns[col];
+            var inputCol = _shape[col];
             var metaShape = inputCol.Metadata;
             if (metaShape == null || !metaShape.TryFindColumn(kind, out var metaColumn))
                 throw _env.ExceptGetMetadata();
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Data.DataLoadSave
         public ColumnType GetMetadataTypeOrNull(string kind, int col)
         {
             _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape.Columns[col];
+            var inputCol = _shape[col];
             var metaShape = inputCol.Metadata;
             if (metaShape == null || !metaShape.TryFindColumn(kind, out var metaColumn))
                 return null;
@@ -99,12 +99,12 @@ namespace Microsoft.ML.Data.DataLoadSave
         public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
         {
             _env.Check(0 <= col && col < ColumnCount);
-            var inputCol = _shape.Columns[col];
+            var inputCol = _shape[col];
             var metaShape = inputCol.Metadata;
             if (metaShape == null)
                 return Enumerable.Empty<KeyValuePair<string, ColumnType>>();
 
-            return metaShape.Columns.Select(c => new KeyValuePair<string, ColumnType>(c.Name, MakeColumnType(c)));
+            return metaShape.Select(c => new KeyValuePair<string, ColumnType>(c.Name, MakeColumnType(c)));
         }
     }
 }

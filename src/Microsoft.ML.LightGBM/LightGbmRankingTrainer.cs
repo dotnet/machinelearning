@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.AssertValue(labelCol);
+            Contracts.Assert(labelCol.IsValid);
 
             Action error =
                 () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "R4 or a Key", labelCol.GetTypeString());

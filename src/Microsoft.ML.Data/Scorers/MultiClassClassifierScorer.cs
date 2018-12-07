@@ -307,9 +307,9 @@ namespace Microsoft.ML.Runtime.Data
                     return _mapper.GetInputColumnRoles();
                 }
 
-                public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+                public Row GetRow(Row input, Func<int, bool> predicate)
                 {
-                    var innerRow = _mapper.GetRow(input, predicate, out disposer);
+                    var innerRow = _mapper.GetRow(input, predicate);
                     return new RowImpl(innerRow, OutputSchema);
                 }
 
@@ -386,38 +386,30 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private sealed class RowImpl : Row
+                private sealed class RowImpl : WrappingRow
                 {
-                    private readonly Row _row;
                     private readonly Schema _schema;
 
-                    public override long Batch => _row.Batch;
-                    public override long Position => _row.Position;
                     // The schema is of course the only difference from _row.
                     public override Schema Schema => _schema;
 
                     public RowImpl(Row row, Schema schema)
+                        : base(row)
                     {
                         Contracts.AssertValue(row);
                         Contracts.AssertValue(schema);
 
-                        _row = row;
                         _schema = schema;
                     }
 
                     public override bool IsColumnActive(int col)
                     {
-                        return _row.IsColumnActive(col);
+                        return Input.IsColumnActive(col);
                     }
 
                     public override ValueGetter<TValue> GetGetter<TValue>(int col)
                     {
-                        return _row.GetGetter<TValue>(col);
-                    }
-
-                    public override ValueGetter<UInt128> GetIdGetter()
-                    {
-                        return _row.GetIdGetter();
+                        return Input.GetGetter<TValue>(col);
                     }
                 }
             }

@@ -19,21 +19,21 @@ Confusion table
 PREDICTED ||     0 |     1 |     2 | Recall
 TRUTH     ||========================
         0 ||    50 |     0 |     0 | 1.0000
-        1 ||     0 |    45 |     5 | 0.9000
-        2 ||     0 |     1 |    49 | 0.9800
+        1 ||     0 |    47 |     3 | 0.9400
+        2 ||     0 |     0 |    50 | 1.0000
           ||========================
-Precision ||1.0000 |0.9783 |0.9074 |
-Accuracy(micro-avg): 0.960000
-Accuracy(macro-avg): 0.960000
-Log-loss:           0.293938
-Log-loss reduction: 73.244600
+Precision ||1.0000 |1.0000 |0.9434 |
+Accuracy(micro-avg): 0.980000
+Accuracy(macro-avg): 0.980000
+Log-loss:           0.272667
+Log-loss reduction: 75.180769
 
 OVERALL RESULTS
 ---------------------------------------
-Accuracy(micro-avg): 0.960000 (0.0000)
-Accuracy(macro-avg): 0.960000 (0.0000)
-Log-loss:           0.293938 (0.0000)
-Log-loss reduction: 73.244600 (0.0000)
+Accuracy(micro-avg): 0.980000 (0.0000)
+Accuracy(macro-avg): 0.980000 (0.0000)
+Log-loss:           0.272667 (0.0000)
+Log-loss reduction: 75.180769 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

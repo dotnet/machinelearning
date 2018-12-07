@@ -86,7 +86,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Trainers
         /// Save the predictor in the binary format.
         /// </summary>
         /// <param name="ctx"></param>
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Trainers
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+            var outColumns = inputSchema.ToDictionary(x => x.Name);
 
             var newColumns = new[]
             {
@@ -396,7 +396,7 @@ namespace Microsoft.ML.Trainers
             return new PriorPredictor(env, ctx);
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
             ctx.SetVersionInfo(GetVersionInfo());

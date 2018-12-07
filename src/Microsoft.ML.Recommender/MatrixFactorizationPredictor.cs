@@ -163,7 +163,7 @@ namespace Microsoft.ML.Trainers.Recommender
         /// <summary>
         /// Save the trained matrix factorization model (two factor matrices) in text format
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
             writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", _numberOfRows, _approximationRank);
@@ -358,15 +358,14 @@ namespace Microsoft.ML.Trainers.Recommender
                 return getters;
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> active)
             {
-                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
-                var getters = CreateGetter(input, active);
-                disposer = null;
+                var activeArray = Utils.BuildArray(OutputSchema.ColumnCount, active);
+                var getters = CreateGetter(input, activeArray);
                 return new SimpleRow(OutputSchema, input, getters);
             }
 
-            public ISchemaBindableMapper Bindable { get { return _parent; } }
+            public ISchemaBindableMapper Bindable => _parent;
         }
     }
 

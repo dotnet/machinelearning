@@ -259,13 +259,13 @@ namespace Microsoft.ML.Trainers
         }
 
         internal SdcaTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
-           SchemaShape.Column weight = null, Action<TArgs> advancedSettings = null, float? l2Const = null,
+           SchemaShape.Column weight = default, Action<TArgs> advancedSettings = null, float? l2Const = null,
             float? l1Threshold = null, int? maxIterations = null)
           : this(env, ArgsInit(featureColumn, labelColumn, advancedSettings), labelColumn, weight, l2Const, l1Threshold, maxIterations)
         {
         }
 
-        internal SdcaTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, SchemaShape.Column weight = null,
+        internal SdcaTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, SchemaShape.Column weight = default,
             float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, weight)
         {
@@ -1520,7 +1520,7 @@ namespace Microsoft.ML.Trainers
 
         protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
         {
-            Contracts.AssertValue(labelCol);
+            Contracts.Assert(labelCol.IsValid);
 
             Action error =
                 () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
@@ -1535,7 +1535,7 @@ namespace Microsoft.ML.Trainers
         private static SchemaShape.Column MakeWeightColumn(string weightColumn)
         {
             if (weightColumn == null)
-                return null;
+                return default;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 

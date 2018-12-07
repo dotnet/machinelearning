@@ -103,12 +103,13 @@ namespace Microsoft.ML.Runtime.Ensemble
                 yield break;
             }
 
-            public Row GetRow(Row input, Func<int, bool> predicate, out Action disposer)
+            public Row GetRow(Row input, Func<int, bool> predicate)
             {
-                return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
+                var scoreGetter = CreateScoreGetter(input, predicate, out Action disposer);
+                return new SimpleRow(OutputSchema, input, new[] { scoreGetter }, disposer);
             }
 
-            public abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
+            internal abstract Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer);
         }
 
         // A generic base class for pipeline ensembles. This class contains the combiner.
@@ -124,7 +125,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                     _combiner = parent.Combiner;
                 }
 
-                public override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
+                internal override Delegate CreateScoreGetter(Row input, Func<int, bool> mapperPredicate, out Action disposer)
                 {
                     disposer = null;
 
@@ -137,13 +138,12 @@ namespace Microsoft.ML.Runtime.Ensemble
                         // First get the output row from the pipelines. The input predicate of the predictor
                         // is the output predicate of the pipeline.
                         var inputPredicate = Mappers[i].GetDependencies(mapperPredicate);
-                        var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out Action disp);
-                        disposer += disp;
+                        var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
-                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i], out disp);
-                        disposer += disp;
+                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i]);
                         getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
+                        disposer += predictorRow.Dispose;
                     }
 
                     var comb = _combiner.GetCombiner();
@@ -164,7 +164,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                     Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index, out disposer);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index);
+                    disposer = pipelineRow.Dispose;
                     return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
                 }
 
@@ -174,14 +175,16 @@ namespace Microsoft.ML.Runtime.Ensemble
 
                     if (Mappers[i].InputRoleMappedSchema.Weight == null)
                     {
-                        ValueGetter<Single> weight = (ref Single dst) => dst = 1;
+                        ValueGetter<Single> weight = (ref float dst) => dst = 1;
                         disposer = null;
                         return weight;
                     }
                     // The weight should be in the output row of the i'th pipeline if it exists.
                     var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputRoleMappedSchema.Weight.Index);
-                    var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out disposer);
-                    return pipelineRow.GetGetter<Single>(Mappers[i].InputRoleMappedSchema.Weight.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate);
+                    disposer = pipelineRow.Dispose;
+                    return pipelineRow.GetGetter<float>(Mappers[i].InputRoleMappedSchema.Weight.Index);
+
                 }
             }
 

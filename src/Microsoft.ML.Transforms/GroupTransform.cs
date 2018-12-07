@@ -552,7 +552,7 @@ namespace Microsoft.ML.Transforms
             private readonly GroupKeyColumnChecker[] _groupCheckers;
             private readonly KeepColumnAggregator[] _aggregators;
 
-            public override long Batch { get { return 0; } }
+            public override long Batch => 0;
 
             public override Schema Schema => _parent.OutputSchema;
 
@@ -662,11 +662,19 @@ namespace Microsoft.ML.Transforms
                 return result;
             }
 
-            public override void Dispose()
+            private bool _disposed;
+
+            protected override void Dispose(bool disposing)
             {
-                _leadingCursor.Dispose();
-                _trailingCursor.Dispose();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                {
+                    _leadingCursor.Dispose();
+                    _trailingCursor.Dispose();
+                }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override ValueGetter<TValue> GetGetter<TValue>(int col)

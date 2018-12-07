@@ -155,8 +155,9 @@ namespace Microsoft.ML.Runtime.Data
             Func<int, bool> predicateInput;
             Func<int, bool> predicateMapper;
             GetActive(bindings, active, out predicateInput, out predicateMapper);
-            var output = bindings.RowMapper.GetRow(input, predicateMapper, out disp);
+            var output = bindings.RowMapper.GetRow(input, predicateMapper);
             Func<int, bool> activeInfos = iinfo => active(bindings.MapIinfoToCol(iinfo));
+            disp = output.Dispose;
             return GetGetters(output, activeInfos);
         }
 
@@ -220,7 +221,8 @@ namespace Microsoft.ML.Runtime.Data
             private readonly BindingsBase _bindings;
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
-            private readonly Action _disposer;
+            private readonly Row _output;
+            private bool _disposed;
 
             public override Schema Schema { get; }
 
@@ -236,23 +238,27 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(active.Length == _bindings.ColumnCount);
                 _active = active;
 
-                var output = _bindings.RowMapper.GetRow(input, predicateMapper, out _disposer);
+                _output = _bindings.RowMapper.GetRow(input, predicateMapper);
                 try
                 {
-                    Ch.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
-                    _getters = parent.GetGetters(output, iinfo => active[_bindings.MapIinfoToCol(iinfo)]);
+                    Ch.Assert(_output.Schema == _bindings.RowMapper.OutputSchema);
+                    _getters = parent.GetGetters(_output, iinfo => active[_bindings.MapIinfoToCol(iinfo)]);
                 }
                 catch (Exception)
                 {
-                    _disposer?.Invoke();
+                    _output.Dispose();
                     throw;
                 }
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _disposer?.Invoke();
-                base.Dispose();
+                if (_disposed)
+                    return;
+                if (disposing)
+                    _output.Dispose();
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override bool IsColumnActive(int col)

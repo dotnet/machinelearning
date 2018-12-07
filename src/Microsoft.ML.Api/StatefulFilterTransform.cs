@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Api
             _bindings = new ColumnBindings(Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
         }
 
-        public bool CanShuffle { get { return false; } }
+        public bool CanShuffle => false;
 
         Schema IDataView.Schema => OutputSchema;
 
@@ -132,10 +132,7 @@ namespace Microsoft.ML.Runtime.Api
             return new[] { GetRowCursor(predicate, rand) };
         }
 
-        public IDataView Source
-        {
-            get { return _source; }
-        }
+        public IDataView Source => _source;
 
         public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
         {
@@ -158,10 +155,7 @@ namespace Microsoft.ML.Runtime.Api
 
             private bool _disposed;
 
-            public override long Batch
-            {
-                get { return _input.Batch; }
-            }
+            public override long Batch => _input.Batch;
 
             public Cursor(StatefulFilterTransform<TSrc, TDst, TState> parent, RowCursor<TSrc> input, Func<int, bool> predicate)
                 : base(parent.Host)
@@ -196,24 +190,22 @@ namespace Microsoft.ML.Runtime.Api
                 _appendedRow = appendedDataView.GetRowCursor(appendedPredicate);
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                if (!_disposed)
+                if (_disposed)
+                    return;
+                if (disposing)
                 {
-                    var disposableState = _state as IDisposable;
-                    var disposableSrc = _src as IDisposable;
-                    var disposableDst = _dst as IDisposable;
-                    if (disposableState != null)
+                    if (_state is IDisposable disposableState)
                         disposableState.Dispose();
-                    if (disposableSrc != null)
+                    if (_src is IDisposable disposableSrc)
                         disposableSrc.Dispose();
-                    if (disposableDst != null)
+                    if (_dst is IDisposable disposableDst)
                         disposableDst.Dispose();
-
                     _input.Dispose();
-                    base.Dispose();
-                    _disposed = true;
                 }
+                _disposed = true;
+                base.Dispose(disposing);
             }
 
             public override ValueGetter<UInt128> GetIdGetter()

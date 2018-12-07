@@ -2830,8 +2830,12 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected abstract uint VerCategoricalSplitSerialized { get; }
 
-        public ColumnType InputType { get; }
-        public ColumnType OutputType => NumberType.Float;
+        protected internal readonly ColumnType InputType;
+        ColumnType IValueMapper.InputType => InputType;
+
+        protected readonly ColumnType OutputType;
+        ColumnType IValueMapper.OutputType => OutputType;
+
         bool ICanSavePfa.CanSavePfa => true;
         bool ICanSaveOnnx.CanSaveOnnx(OnnxContext ctx) => true;
 
@@ -2853,6 +2857,7 @@ namespace Microsoft.ML.Trainers.FastTree
             Contracts.Assert(NumFeatures > MaxSplitFeatIdx);
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, ModelLoadContext ctx, VersionInfo ver)
@@ -2890,9 +2895,11 @@ namespace Microsoft.ML.Trainers.FastTree
             // tricks.
 
             InputType = new VectorType(NumberType.Float, NumFeatures);
+            OutputType = NumberType.Float;
         }
 
-        protected override void SaveCore(ModelSaveContext ctx)
+        [BestFriend]
+        private protected override void SaveCore(ModelSaveContext ctx)
         {
             base.SaveCore(ctx);
 
@@ -2907,7 +2914,7 @@ namespace Microsoft.ML.Trainers.FastTree
             ctx.Writer.Write(NumFeatures);
         }
 
-        public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
+        ValueMapper<TIn, TOut> IValueMapper.GetMapper<TIn, TOut>()
         {
             Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
             Host.Check(typeof(TOut) == typeof(Float));
@@ -2965,7 +2972,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Output the INI model to a given writer
         /// </summary>
-        public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
+        void ICanSaveInTextFormat.SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValueOrNull(schema);
