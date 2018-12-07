@@ -82,9 +82,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             return res;
         }
 
-        private LightGbmBinaryPredictor CreateBinaryPredictor(int classID, string innerArgs)
+        private LightGbmBinaryModelParameters CreateBinaryPredictor(int classID, string innerArgs)
         {
-            return new LightGbmBinaryPredictor(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
+            return new LightGbmBinaryModelParameters(Host, GetBinaryEnsemble(classID), FeatureCount, innerArgs);
         }
 
         private protected override OvaPredictor CreatePredictor()

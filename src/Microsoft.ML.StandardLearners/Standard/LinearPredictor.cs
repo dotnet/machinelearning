@@ -389,7 +389,7 @@ namespace Microsoft.ML.Runtime.Learners
             Weight.CopyTo(ref weights);
         }
 
-        public ValueMapper<TSrc, VBuffer<Float>> GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
+        ValueMapper<TSrc, VBuffer<Float>> IFeatureContributionMapper.GetFeatureContributionMapper<TSrc, TDstContributions>(int top, int bottom, bool normalize)
         {
             Contracts.Check(typeof(TSrc) == typeof(VBuffer<Float>));
             Contracts.Check(typeof(TDstContributions) == typeof(VBuffer<Float>));

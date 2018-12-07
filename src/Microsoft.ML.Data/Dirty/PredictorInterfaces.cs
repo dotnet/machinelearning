@@ -38,7 +38,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Predictor that can specialize for quantile regression. It will produce a <see cref="ISchemaBindableMapper"/>, given
     /// an array of quantiles.
     /// </summary>
-    public interface IQuantileRegressionPredictor
+    [BestFriend]
+    internal interface IQuantileRegressionPredictor
     {
         ISchemaBindableMapper CreateMapper(Double[] quantiles);
     }
@@ -59,7 +60,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     }
 
     // REVIEW: How should this quantile stuff work?
-    public interface IQuantileValueMapper
+    [BestFriend]
+    internal interface IQuantileValueMapper
     {
         ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles);
     }
@@ -183,7 +185,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
     /// Interface for mapping input values to corresponding feature contributions.
     /// This interface is commonly implemented by predictors.
     /// </summary>
-    public interface IFeatureContributionMapper : IPredictor
+    [BestFriend]
+    internal interface IFeatureContributionMapper : IPredictor
     {
         /// <summary>
         /// Get a delegate for mapping Contributions to Features.

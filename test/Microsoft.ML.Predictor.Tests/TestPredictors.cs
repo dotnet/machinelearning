@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             base.InitializeEnvironment(environment);
 
-            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryModelParameters).Assembly);
             environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
         }
 

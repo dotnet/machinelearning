@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime
 
             _ = typeof(TextLoader).Assembly; // ML.Data
             //_ = typeof(EnsemblePredictor).Assembly); // ML.Ensemble BUG https://github.com/dotnet/machinelearning/issues/1078 Ensemble isn't in a NuGet package
-            _ = typeof(FastTreeBinaryPredictor).Assembly; // ML.FastTree
+            _ = typeof(FastTreeBinaryModelParameters).Assembly; // ML.FastTree
             _ = typeof(KMeansModelParameters).Assembly; // ML.KMeansClustering
             _ = typeof(Maml).Assembly; // ML.Maml
             _ = typeof(PcaPredictor).Assembly; // ML.PCA
