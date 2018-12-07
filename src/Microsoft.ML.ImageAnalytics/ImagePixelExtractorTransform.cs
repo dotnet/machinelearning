@@ -483,7 +483,9 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             return;
                         }
 
-                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                        Host.Check(src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb
+                            || src.PixelFormat == System.Drawing.Imaging.PixelFormat.Format24bppRgb,
+                            "Transform only supports pixel formats Format24bppRgb and Format32bppArgb");
                         Host.Check(src.Height == height && src.Width == width);
 
                         var editor = VBufferEditor.Create(ref dst, size);
@@ -542,28 +544,6 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         else
                         {
                             int idstMin = 0;
-                            if (ex.Alpha)
-                            {
-                                // The image only has rgb but we need to supply alpha as well, so fake it up,
-                                // assuming that it is 0xFF.
-                                if (!vf.IsEmpty)
-                                {
-                                    Single v = (0xFF - offset) * scale;
-                                    for (int i = 0; i < cpix; i++)
-                                        vf[i] = v;
-                                }
-                                else
-                                {
-                                    for (int i = 0; i < cpix; i++)
-                                        vb[i] = 0xFF;
-                                }
-                                idstMin = cpix;
-
-                                // We've preprocessed alpha, avoid it in the
-                                // scan operation below.
-                                a = false;
-                            }
-
                             for (int y = 0; y < h; ++y)
                             {
                                 int idstBase = idstMin + y * w;

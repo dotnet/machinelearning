@@ -411,7 +411,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             destWidth = (int)(sourceWidth * aspect);
                             destHeight = (int)(sourceHeight * aspect);
                         }
-                        dst = new Bitmap(info.Width, info.Height);
+                        dst = new Bitmap(info.Width, info.Height, src.PixelFormat);
                         var srcRectangle = new Rectangle(sourceX, sourceY, sourceWidth, sourceHeight);
                         var destRectangle = new Rectangle(destX, destY, destWidth, destHeight);
                         using (var g = Graphics.FromImage(dst))
