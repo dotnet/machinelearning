@@ -17,14 +17,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.Arguments),
+[assembly: LoadableClass(typeof(IDataScorerTransform), typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper.Arguments),
     typeof(SignatureDataScorer), "Feature Contribution Transform", "fct", "FeatureContributionCalculationTransform", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.Arguments),
+[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper.Arguments),
     typeof(SignatureBindableMapper), "Feature Contribution Mapper", "fct", MetadataUtils.Const.ScoreColumnKind.FeatureContribution)]
 
-[assembly: LoadableClass(typeof(ISchemaBindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper), null, typeof(SignatureLoadModel),
-    "Feature Contribution Mapper", FeatureContributionCalculatingTransformer.MapperLoaderSignature)]
+[assembly: LoadableClass(typeof(FeatureContributionCalculatingTransformer.BindableMapper), typeof(FeatureContributionCalculatingTransformer.BindableMapper), null, typeof(SignatureLoadModel),
+    "Feature Contribution Mapper", FeatureContributionCalculatingTransformer.BindableMapper.MapperLoaderSignature)]
 
 [assembly: LoadableClass(FeatureContributionCalculatingTransformer.Summary, typeof(FeatureContributionCalculatingTransformer), null, typeof(SignatureLoadModel),
     FeatureContributionCalculatingTransformer.FriendlyName, FeatureContributionCalculatingTransformer.LoaderSignature)]
@@ -51,38 +51,12 @@ namespace Microsoft.ML.Runtime.Data
     /// </example>
     public sealed class FeatureContributionCalculatingTransformer : RowToRowTransformerBase
     {
-        public sealed class Arguments : ScorerArgumentsBase
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
-            public int Top = 10;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 2)]
-            public int Bottom = 10;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 3)]
-            public bool Normalize = true;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution in string key-value format", ShortName = "str", SortOrder = 4)]
-            public bool Stringify = false;
-
-            // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
-        }
-
         // Apparently, loader signature is limited in length to 24 characters.
         internal const string Summary = "For each data point, calculates the contribution of individual features to the model prediction.";
         internal const string FriendlyName = "Feature Contribution Transform";
         internal const string LoaderSignature = "FeatureContribution";
 
-        internal const string MapperLoaderSignature = "WTFBindable";
-
-        private const int MaxTopBottom = 1000;
-
-        private readonly string _features;
-        private readonly int _topContributionsCount;
-        private readonly int _bottomContributionsCount;
-        private readonly bool _normalize;
-        private readonly bool _stringify;
-        private readonly IFeatureContributionMapper _predictor;
+        private readonly string _featureColumn;
         private readonly BindableMapper _mapper;
 
         private static VersionInfo GetVersionInfo()
@@ -97,23 +71,22 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // TODO documentation
-        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IPredictor predictor, string featuresColumn, Arguments args)
+        public FeatureContributionCalculatingTransformer(IHostEnvironment env, IPredictor predictor, string featureColumn,
+            int top = FeatureContributionCalculatingEstimator.Defaults.Top,
+            int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
+            bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize,
+            bool stringigy = FeatureContributionCalculatingEstimator.Defaults.Stringify)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
         {
-            Host.CheckValue(args, nameof(args));
             Host.CheckValue(predictor, nameof(predictor));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
             var pred = predictor as IFeatureContributionMapper;
             Host.CheckParam(pred != null, nameof(predictor), "Predictor doesn't support getting feature contributions");
 
             // TODO check that the featues column is not empty.
-            _mapper = new BindableMapper(Host, pred, args.Top, args.Bottom, args.Normalize, args.Stringify);
-            _features = featuresColumn;
-            _predictor = pred;
-            _stringify = args.Stringify;
-            _topContributionsCount = args.Top;
-            _bottomContributionsCount = args.Bottom;
-            _normalize = args.Normalize;
+            _featureColumn = featureColumn;
+            _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringigy);
         }
 
         // Factory method for SignatureLoadModel
@@ -127,17 +100,8 @@ namespace Microsoft.ML.Runtime.Data
             // string features
             // BindableMapper mapper
 
-            // TODO use ctx.LoadModel with BindableMapper instead of this.
-            _features = ctx.LoadNonEmptyString();
-            ctx.LoadModel<IFeatureContributionMapper, SignatureLoadModel>(env, out _predictor, ModelFileUtils.DirPredictor);
-            _topContributionsCount = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
-            _bottomContributionsCount = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
-            _normalize = ctx.Reader.ReadBoolByte();
-            _stringify = ctx.Reader.ReadBoolByte();
-
-            _mapper = new BindableMapper(env, _predictor, _topContributionsCount, _bottomContributionsCount, _normalize, _stringify);
+            _featureColumn = ctx.LoadNonEmptyString();
+            ctx.LoadModel<BindableMapper, SignatureLoadModel>(env, out _mapper, ModelFileUtils.DirPredictor);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -153,15 +117,8 @@ namespace Microsoft.ML.Runtime.Data
             // string features
             // BindableMapper mapper
 
-            ctx.SaveNonEmptyString(_features);
-            // TODO use ctx.SaveModel with BindableMapper instead of this.
-            ctx.SaveModel(_predictor, ModelFileUtils.DirPredictor);
-            Contracts.Assert(0 < _topContributionsCount && _topContributionsCount <= MaxTopBottom);
-            ctx.Writer.Write(_topContributionsCount);
-            Contracts.Assert(0 < _bottomContributionsCount && _bottomContributionsCount <= MaxTopBottom);
-            ctx.Writer.Write(_bottomContributionsCount);
-            ctx.Writer.WriteBoolByte(_normalize);
-            ctx.Writer.WriteBoolByte(_stringify);
+            ctx.SaveNonEmptyString(_featureColumn);
+            ctx.SaveModel(_mapper, ModelFileUtils.DirPredictor);
         }
 
         private protected override IRowMapper MakeRowMapper(Schema schema)
@@ -179,12 +136,11 @@ namespace Microsoft.ML.Runtime.Data
             public Mapper(FeatureContributionCalculatingTransformer parent, Schema schema)
                 : base(parent.Host, schema)
             {
-                // TODO some checks? get soem of the columns, initialize some stuff
                 _parent = parent;
                 _bindableMapper = _parent._mapper;
 
                 var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-                roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _parent._features));
+                roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, _parent._featureColumn));
                 _roleMappedSchema = new RoleMappedSchema(InputSchema, roles);
 
                 var genericMapper = _bindableMapper.GenericMapper.Bind(Host, _roleMappedSchema);
@@ -204,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
             private protected override Func<int, bool> GetDependenciesCore(Func<int, bool> activeOutput)
             {
                 var active = new bool[InputSchema.ColumnCount];
-                InputSchema.TryGetColumnIndex(_parent._features, out int featureCol);
+                InputSchema.TryGetColumnIndex(_parent._featureColumn, out int featureCol);
                 active[featureCol] = true;
                 return col => active[col];
             }
@@ -219,8 +175,7 @@ namespace Microsoft.ML.Runtime.Data
                 var result = new List<Schema.DetachedColumn>();
 
                 // Add Score Column.
-                foreach (var pair in _outputGenericSchema.GetColumns())
-                    result.Add(new Schema.DetachedColumn(pair.column));
+                result.AddRange(_outputGenericSchema.GetColumns().Select(pair => new Schema.DetachedColumn(pair.column)));
 
                 // Add FeatureContributions column.
                 var builder = new MetadataBuilder();
@@ -263,6 +218,23 @@ namespace Microsoft.ML.Runtime.Data
         // TODO documentation
         internal sealed class BindableMapper : ISchemaBindableMapper, ICanSaveModel, IPredictor
         {
+            public sealed class Arguments : ScorerArgumentsBase
+            {
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Number of top contributions", SortOrder = 1)]
+                public int Top = FeatureContributionCalculatingEstimator.Defaults.Top;
+
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bottom contributions", SortOrder = 2)]
+                public int Bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom;
+
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution should be normalized", ShortName = "norm", SortOrder = 3)]
+                public bool Normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize;
+
+                [Argument(ArgumentType.AtMostOnce, HelpText = "Whether or not output of Features contribution in string key-value format", ShortName = "str", SortOrder = 4)]
+                public bool Stringify = FeatureContributionCalculatingEstimator.Defaults.Stringify;
+
+                // REVIEW: the scorer currently ignores the 'suffix' argument from the base class. It should respect it.
+            }
+
             private readonly int _topContributionsCount;
             private readonly int _bottomContributionsCount;
             private readonly bool _normalize;
@@ -271,6 +243,9 @@ namespace Microsoft.ML.Runtime.Data
             public readonly IFeatureContributionMapper Predictor;
             public readonly ISchemaBindableMapper GenericMapper;
             public readonly bool Stringify;
+
+            internal const string MapperLoaderSignature = "WTFBindable";
+            private const int MaxTopBottom = 1000;
 
             private static VersionInfo GetVersionInfo()
             {
@@ -604,18 +579,30 @@ namespace Microsoft.ML.Runtime.Data
     // TODO DOcumentation
     public sealed class FeatureContributionCalculatingEstimator : TrivialEstimator<FeatureContributionCalculatingTransformer>
     {
-        private readonly FeatureContributionCalculatingTransformer.Arguments _args;
-        private readonly string _features;
+        private readonly string _featureColumn;
         private readonly IPredictor _predictor;
+        private readonly bool _stringify;
+
+        public static class Defaults
+        {
+            public const int Top = 10;
+            public const int Bottom = 10;
+            public const bool Normalize = true;
+            public const bool Stringify = false;
+        }
 
         // TODO Documentation
-        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IPredictor predictor, string featuresColumn, FeatureContributionCalculatingTransformer.Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)), new FeatureContributionCalculatingTransformer(env, predictor, featuresColumn, args))
+        public FeatureContributionCalculatingEstimator(IHostEnvironment env, IPredictor predictor, string featureColumn,
+            int top = Defaults.Top,
+            int bottom = Defaults.Bottom,
+            bool normalize = Defaults.Normalize,
+            bool stringify = Defaults.Stringify)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)),
+                  new FeatureContributionCalculatingTransformer(env, predictor, featureColumn, top, bottom, normalize, stringify))
         {
-            // TODO argcheck
-            _args = args;
-            _features = featuresColumn;
+            _featureColumn = featureColumn;
             _predictor = predictor;
+            _stringify = stringify;
         }
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -623,28 +610,33 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
 
-            if (!inputSchema.TryFindColumn(_features, out var col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _features);
-            var metadata = new List<SchemaShape.Column>();
-            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                metadata.Add(slotMeta);
-            // TODO: check type of feature column.
-
-            // TODO: How do we deal with multiclassScoreColumn? should also contain slotnames
             // Add Score column.
+            var scoreMetadata = new List<SchemaShape.Column>();
+            // If multiclass, there could be a SlotNames metadata column, so it is added to the score column metadata in case.
+            if (_predictor.PredictionKind == PredictionKind.MultiClassClassification)
+                scoreMetadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+            // For some trainers the output could be normalized, but it cannot be known it given the information available here, so it is added in case.
+            scoreMetadata.AddRange(MetadataUtils.GetTrainerOutputMetadata(isNormalized: true));
             result[DefaultColumnNames.Score] = new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4,
-                false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()));
+                false, new SchemaShape(scoreMetadata));
 
             // Add FeatureContributions column.
-            if (_args.Stringify)
+            if (!inputSchema.TryFindColumn(_featureColumn, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
+
+            // TODO: check type of feature column.
+            if (_stringify)
             {
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    TextType.Instance, false, new SchemaShape(metadata.ToArray()));
+                    TextType.Instance, false, null);
             }
             else
             {
+                var featContributionMetadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    featContributionMetadata.Add(slotMeta);
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    col.ItemType, false, new SchemaShape(metadata.ToArray()));
+                    col.ItemType, false, new SchemaShape(featContributionMetadata.ToArray()));
             }
 
             return new SchemaShape(result.Values);

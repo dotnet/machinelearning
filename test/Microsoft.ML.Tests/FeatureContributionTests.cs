@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests
             }
 
             // Create data view.
-            var bldr = new ArrayDataViewBuilder(Env);
+            var bldr = new ArrayDataViewBuilder(ML);
             bldr.AddColumn("X1", NumberType.Float, x1Array);
             bldr.AddColumn("X2Important", NumberType.Float, x2Array);
             bldr.AddColumn("X3", NumberType.Float, x3Array);
@@ -75,15 +75,11 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
-            var args = new FeatureContributionCalculatingTransformer.Arguments()
-            {
-                Bottom = 10,
-                Top = 10
-            };
-            var output = new FeatureContributionCalculatingTransformer(Env, model.Model, model.FeatureColumn, args).Transform(data);
+
+            var output = new FeatureContributionCalculatingTransformer(ML, model.Model, model.FeatureColumn).Transform(data);
 
             // Get prediction scores and contributions
-            var enumerator = output.AsEnumerable<ScoreAndContribution>(Env, true).GetEnumerator();
+            var enumerator = output.AsEnumerable<ScoreAndContribution>(ML, true).GetEnumerator();
             ScoreAndContribution row = null;
             var expectedValues = new List<float[]>();
             expectedValues.Add(new float[4] { 0.06319684F, 1, 0.1386623F, 4.46209469E-06F });
@@ -133,7 +129,7 @@ namespace Microsoft.ML.Tests
             }
 
             // Create data view.
-            var bldr = new ArrayDataViewBuilder(Env);
+            var bldr = new ArrayDataViewBuilder(ML);
             bldr.AddColumn("X1", NumberType.Float, x1Array);
             bldr.AddColumn("X2Important", NumberType.Float, x2Array);
             bldr.AddColumn("X3", NumberType.Float, x3Array);
@@ -146,13 +142,10 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
-            var args = new FeatureContributionCalculatingTransformer.Arguments()
-            {
-                Bottom = 10,
-                Top = 10
-            };
-            var est = new FeatureContributionCalculatingEstimator(Env, model.Model, model.FeatureColumn, args);
-            TestEstimatorCore(est, data);
+                
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true));
+            TestEstimatorCore(estPipe, data);
 
             Done();
         }
