@@ -142,9 +142,9 @@ namespace Microsoft.ML.Tests
                 .Append(ML.Transforms.Normalize("Features"));
             var data = pipeline.Fit(srcDV).Transform(srcDV);
             var model = ML.Regression.Trainers.OrdinaryLeastSquares().Fit(data);
-                
-            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn)
-                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true));
+
+            var estPipe = new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn, stringify: true)
+                .Append(new FeatureContributionCalculatingEstimator(ML, model.Model, model.FeatureColumn));
             TestEstimatorCore(estPipe, data);
 
             Done();

@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Data
             int top = FeatureContributionCalculatingEstimator.Defaults.Top,
             int bottom = FeatureContributionCalculatingEstimator.Defaults.Bottom,
             bool normalize = FeatureContributionCalculatingEstimator.Defaults.Normalize,
-            bool stringigy = FeatureContributionCalculatingEstimator.Defaults.Stringify)
+            bool stringify = FeatureContributionCalculatingEstimator.Defaults.Stringify)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(FeatureContributionCalculatingTransformer)))
         {
             Host.CheckValue(predictor, nameof(predictor));
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // TODO check that the featues column is not empty.
             _featureColumn = featureColumn;
-            _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringigy);
+            _mapper = new BindableMapper(Host, pred, top, bottom, normalize, stringify);
         }
 
         // Factory method for SignatureLoadModel
@@ -178,12 +178,14 @@ namespace Microsoft.ML.Runtime.Data
                 result.AddRange(_outputGenericSchema.GetColumns().Select(pair => new Schema.DetachedColumn(pair.column)));
 
                 // Add FeatureContributions column.
-                var builder = new MetadataBuilder();
-                builder.Add(InputSchema[_roleMappedSchema.Feature.Index].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                 if (_bindableMapper.Stringify)
-                    result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, TextType.Instance, builder.GetMetadata()));
+                    result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, TextType.Instance));
                 else
+                {
+                    var builder = new MetadataBuilder();
+                    builder.Add(InputSchema[_roleMappedSchema.Feature.Index].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
                     result.Add(new Schema.DetachedColumn(DefaultColumnNames.FeatureContributions, new VectorType(NumberType.R4, _roleMappedSchema.Feature.Type.AsVector), builder.GetMetadata()));
+                }
 
                 return result.ToArray();
             }
@@ -405,16 +407,15 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         featureGetter(ref features);
                         map(in features, ref contributions);
-                        var indices = new Span<int>();
-                        var values = new Span<float>();
+                        int[] indices;
+                        float[] values = contributions.GetValues().ToArray();
                         if (contributions.IsDense)
-                            Utils.GetIdentityPermutation(contributions.Length).AsSpan().CopyTo(indices);
+                            indices = Utils.GetIdentityPermutation(contributions.Length);
                         else
-                            contributions.GetIndices().CopyTo(indices);
-                        contributions.GetValues().CopyTo(values);
+                            indices = contributions.GetIndices().ToArray();
                         var count = values.Length;
                         var sb = new StringBuilder();
-                        GenericSpanSortHelper<int>.Sort(indices, values, 0, count);
+                        Array.Sort(indices, values, 0, count);
                         for (var i = 0; i < count; i++)
                         {
                             var val = values[i];
@@ -610,6 +611,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.ToDictionary(x => x.Name);
 
+            // TODO: handle other predictionkind: binary, multiclass, ranking...
             // Add Score column.
             var scoreMetadata = new List<SchemaShape.Column>();
             // If multiclass, there could be a SlotNames metadata column, so it is added to the score column metadata in case.
@@ -623,20 +625,19 @@ namespace Microsoft.ML.Runtime.Data
             // Add FeatureContributions column.
             if (!inputSchema.TryFindColumn(_featureColumn, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _featureColumn);
-
+            var featContributionMetadata = new List<SchemaShape.Column>();
+            if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                featContributionMetadata.Add(slotMeta);
             // TODO: check type of feature column.
             if (_stringify)
             {
-                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    TextType.Instance, false, null);
+                result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, SchemaShape.Column.VectorKind.Scalar,
+                    TextType.Instance, false);
             }
             else
             {
-                var featContributionMetadata = new List<SchemaShape.Column>();
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
-                    featContributionMetadata.Add(slotMeta);
                 result[DefaultColumnNames.FeatureContributions] = new SchemaShape.Column(DefaultColumnNames.FeatureContributions, col.Kind,
-                    col.ItemType, false, new SchemaShape(featContributionMetadata.ToArray()));
+                    col.ItemType, false, new SchemaShape(featContributionMetadata));
             }
 
             return new SchemaShape(result.Values);

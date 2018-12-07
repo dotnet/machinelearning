@@ -48,7 +48,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformPipeline = mlContext.Transforms.Concatenate("Features", "CrimesPerCapita", "PercentResidental",
                 "PercentNonRetail", "CharlesRiver", "NitricOxides", "RoomsPerDwelling", "PercentPre40s",
                 "EmploymentDistance", "HighwayDistance", "TaxRate", "TeacherRatio");
-            var learner = mlContext.Regression.Trainers.StochasticDualCoordinateAscent(
+            var learner = mlContext.Regression.Trainers.OrdinaryLeastSquares(
                         labelColumn: "MedianHomeValue", featureColumn: "Features");
 
             var transformedData = transformPipeline.Fit(data).Transform(data);
@@ -58,14 +58,8 @@ namespace Microsoft.ML.Samples.Dynamic
             // Create a Feature Contribution Calculator
             // Calculate the feature contributions for all features
             // And don't normalize the contribution scores
-            var args = new FeatureContributionCalculatingTransformer.Arguments()
-            {
-                Top = 11,
-                Normalize = false
-            };
-
-            var featureContributionCalculator = new FeatureContributionCalculatingTransformer(mlContext, model.Model, model.FeatureColumn, args);
-            var outputData = featureContributionCalculator.Transform(transformedData);
+            var featureContributionCalculator = new FeatureContributionCalculatingEstimator(mlContext, model.Model, model.FeatureColumn, top: 11, normalize: false, stringify: true);
+            var outputData = featureContributionCalculator.Fit(transformedData).Transform(transformedData);
 
             // Let's extract the weights from the linear model to use as a comparison
             var weights = new VBuffer<float>();
@@ -81,24 +75,25 @@ namespace Microsoft.ML.Samples.Dynamic
                 var row = scoringEnumerator.Current;
 
                 // Get the feature index with the biggest contribution
-                var featureOfInterest = GetMostContributingFeature(row.FeatureContributions);
+                //var featureOfInterest = GetMostContributingFeature(row.FeatureContributions);
 
                 // And the corresponding information about the feature
-                var value = row.Features[featureOfInterest];
-                var contribution = row.FeatureContributions[featureOfInterest];
-                var percentContribution = 100 * contribution / row.Score;
-                var name = data.Schema[(int) (featureOfInterest + 1)].Name;
-                var weight = weights.GetValues()[featureOfInterest];
+                //var value = row.Features[featureOfInterest];
+                //var contribution = row.FeatureContributions[featureOfInterest];
+                //var percentContribution = 100 * contribution / row.Score;
+                //var name = data.Schema.GetColumnName(featureOfInterest + 1);
+                //var weight = weights.GetValues()[featureOfInterest];
 
-                Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
-                    row.MedianHomeValue,
-                    row.Score,
-                    name,
-                    value,
-                    weight,
-                    contribution,
-                    percentContribution
-                    );
+                //Console.WriteLine("{0:0.00}\t{1:0.00}\t{2}\t{3:0.00}\t{4:0.00}\t{5:0.00}\t{6:0.00}",
+                //    row.MedianHomeValue,
+                //    row.Score,
+                //    name,
+                //    value,
+                //    weight,
+                //    contribution,
+                //    percentContribution
+                //    );
+                Console.WriteLine(row.FeatureContributions);
 
                 index++;
             }
@@ -131,8 +126,7 @@ namespace Microsoft.ML.Samples.Dynamic
 
             public float Score { get; set; }
 
-            [VectorType(4)]
-            public float[] FeatureContributions { get; set; }
+            public string FeatureContributions { get; set; }
         }
     }
 }
